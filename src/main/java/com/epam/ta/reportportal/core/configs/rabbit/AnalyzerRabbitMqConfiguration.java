@@ -64,7 +64,7 @@ public class AnalyzerRabbitMqConfiguration {
 	@Bean(name = "analyzerConnectionFactory")
 	public ConnectionFactory analyzerConnectionFactory(@Value("${rp.amqp.addresses}") URI addresses) {
 		CachingConnectionFactory factory = new CachingConnectionFactory(addresses);
-		factory.setVirtualHost(@Value("${rp.amqp.virtualhost:” + ANALYZER_KEY + “}”);
+		factory.setVirtualHost(@Value("${rp.amqp.virtualhost:" + ANALYZER_KEY + "}");
 		return factory;
 	}
 

@@ -18,18 +18,16 @@ package com.epam.ta.reportportal.core.events.plugin;
 
 import com.epam.reportportal.extension.event.LaunchDeletedPluginEvent;
 import com.epam.ta.reportportal.core.events.activity.LaunchDeletedEvent;
-import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Pavel Bortnik</a>
  */
 @Service
-public class LaunchDeletedPluginEventPublisher implements ConfigurableEventHandler<LaunchDeletedEvent, Map<String, String>> {
+public class LaunchDeletedPluginEventPublisher {
 
 	private final ApplicationEventPublisher eventPublisher;
 
@@ -38,8 +36,8 @@ public class LaunchDeletedPluginEventPublisher implements ConfigurableEventHandl
 		this.eventPublisher = eventPublisher;
 	}
 
-	@Override
-	public void handle(LaunchDeletedEvent event, Map<String, String> config) {
+	@EventListener
+	public void handle(LaunchDeletedEvent event) {
 		eventPublisher.publishEvent(new LaunchDeletedPluginEvent(event.getBefore().getId(), event.getBefore().getProjectId()));
 	}
 }

@@ -114,13 +114,14 @@ rp:
   amqp:
     addresses: amqp://${rp.amqp.user}:${rp.amqp.pass}@${rp.amqp.host}:${rp.amqp.port}
     api-address: http://${rp.amqp.apiuser}:${rp.amqp.apipass}@${rp.amqp.host}:${rp.amqp.apiport}/api
+    vhost: foobar
     host: rabbitmq
     port: 5672
-    user:
-    pass:
+    user: rabbitmq
+    pass: rabbitmq
     apiport: 15672
-    apiuser:
-    apipass:
+    apiuser: rabbitmq
+    apipass: rabbitmq
     queues: 10
     queuesPerPod: 10
     #TODO currently we wait for log clusterization finish that may last for ~20 mins
@@ -144,8 +145,8 @@ rp:
     name: reportportal
     host: postgres
     port: 5432
-    user:
-    pass:
+    user: rpuser
+    pass: rppass
 
   upload:
     maxUploadSize: 128MB
@@ -163,8 +164,8 @@ rp:
     path: /data/storage
     minio:
       endpoint: http://play.min.io
-      accessKey:
-      secretKey:
+      accessKey: minio
+      secretKey: minio123
       bucketPrefix: prj-
       defaultBucketName: rp-bucket
     # could be one of [filesystem, minio]

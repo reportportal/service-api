@@ -32,6 +32,7 @@ import com.rabbitmq.http.client.domain.ExchangeInfo;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -56,11 +57,14 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 
 	private final RabbitTemplate rabbitTemplate;
 
+	private String virtualHost;
+
 	@Autowired
 	public AnalyzerServiceClientImpl(RabbitMqManagementClient rabbitMqManagementClient,
-			@Qualifier("analyzerRabbitTemplate") RabbitTemplate rabbitTemplate) {
+			@Qualifier("analyzerRabbitTemplate") RabbitTemplate rabbitTemplate, @Value("${rp.amqp.vhost}") String virtualHost) {
 		this.rabbitMqManagementClient = rabbitMqManagementClient;
 		this.rabbitTemplate = rabbitTemplate;
+		this.virtualHost = virtualHost;
 	}
 
 	@Override
@@ -135,7 +139,7 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 				}
 		);
 		if (!CollectionUtils.isEmpty(result)) {
-			resultMap.put((String) exchangeInfo.getArguments().getOrDefault(ANALYZER_KEY, exchangeInfo.getName()), result);
+			resultMap.put((String) exchangeInfo.getArguments().getOrDefault(virtualHost, exchangeInfo.getName()), result);
 			removeAnalyzedFromRq(rq, result);
 		}
 	}

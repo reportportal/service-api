@@ -68,7 +68,7 @@ public class TestConfig {
 	@Bean
 	@Profile("unittest")
 	protected RabbitMqManagementClient managementTemplate() {
-		return new RabbitMqManagementClientTemplate(rabbitClient);
+		return new RabbitMqManagementClientTemplate(rabbitClient, "analyzer");
 	}
 
 	@Bean

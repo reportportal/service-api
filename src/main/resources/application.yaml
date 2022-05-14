@@ -114,14 +114,14 @@ rp:
   amqp:
     addresses: amqp://${rp.amqp.user}:${rp.amqp.pass}@${rp.amqp.host}:${rp.amqp.port}
     api-address: http://${rp.amqp.apiuser}:${rp.amqp.apipass}@${rp.amqp.host}:${rp.amqp.apiport}/api
-    vhost: foobar
+    vhost: analyzer
     host: rabbitmq
     port: 5672
-    user: rabbitmq
-    pass: rabbitmq
+    user:
+    pass:
     apiport: 15672
-    apiuser: rabbitmq
-    apipass: rabbitmq
+    apiuser:
+    apipass:
     queues: 10
     queuesPerPod: 10
     #TODO currently we wait for log clusterization finish that may last for ~20 mins
@@ -145,8 +145,8 @@ rp:
     name: reportportal
     host: postgres
     port: 5432
-    user: rpuser
-    pass: rppass
+    user:
+    pass:
 
   upload:
     maxUploadSize: 128MB

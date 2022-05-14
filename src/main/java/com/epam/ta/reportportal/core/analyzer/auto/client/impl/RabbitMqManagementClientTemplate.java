@@ -26,6 +26,7 @@ import com.rabbitmq.http.client.domain.ExchangeInfo;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.ANALYZER_KEY;
 import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.EXCHANGE_PRIORITY;
 import static java.util.Comparator.comparingInt;
 
@@ -54,7 +55,7 @@ public class RabbitMqManagementClientTemplate implements RabbitMqManagementClien
             throw new ReportPortalException(ErrorType.ANALYZER_NOT_FOUND, virtualHost);
         }
         return client.stream()
-                .filter(it -> it.getArguments().get(virtualHost) != null)
+                .filter(it -> it.getArguments().get(ANALYZER_KEY) != null)
                 .sorted(comparingInt(EXCHANGE_PRIORITY))
                 .collect(Collectors.toList());
     }

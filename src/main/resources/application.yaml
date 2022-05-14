@@ -164,8 +164,8 @@ rp:
     path: /data/storage
     minio:
       endpoint: http://play.min.io
-      accessKey: minio
-      secretKey: minio123
+      accessKey:
+      secretKey:
       bucketPrefix: prj-
       defaultBucketName: rp-bucket
     # could be one of [filesystem, minio]

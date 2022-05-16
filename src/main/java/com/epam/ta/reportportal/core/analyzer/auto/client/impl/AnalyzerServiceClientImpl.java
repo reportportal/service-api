@@ -61,7 +61,7 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 
 	@Autowired
 	public AnalyzerServiceClientImpl(RabbitMqManagementClient rabbitMqManagementClient,
-			@Qualifier("analyzerRabbitTemplate") RabbitTemplate rabbitTemplate, @Value("${rp.amqp.vhost}") String virtualHost) {
+			@Qualifier("analyzerRabbitTemplate") RabbitTemplate rabbitTemplate, @Value("${rp.amqp.analyzer-vhost}") String virtualHost) {
 		this.rabbitMqManagementClient = rabbitMqManagementClient;
 		this.rabbitTemplate = rabbitTemplate;
 		this.virtualHost = virtualHost;

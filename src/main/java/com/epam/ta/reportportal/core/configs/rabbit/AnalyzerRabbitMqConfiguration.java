@@ -47,7 +47,7 @@ public class AnalyzerRabbitMqConfiguration {
 
 	@Bean
 	public RabbitMqManagementClient managementTemplate(@Value("${rp.amqp.api-address}") String address,
-			@Value("${rp.amqp.vhost}") String virtualHost) {
+			@Value("${rp.amqp.analyzer-vhost}") String virtualHost) {
 		Client rabbitClient;
 		try {
 			rabbitClient = new Client(address);
@@ -62,7 +62,7 @@ public class AnalyzerRabbitMqConfiguration {
 
 	@Bean(name = "analyzerConnectionFactory")
 	public ConnectionFactory analyzerConnectionFactory(@Value("${rp.amqp.addresses}") URI addresses,
-			@Value("${rp.amqp.vhost}") String virtualHost) {
+			@Value("${rp.amqp.analyzer-vhost}") String virtualHost) {
 		CachingConnectionFactory factory = new CachingConnectionFactory(addresses);
 		factory.setVirtualHost(virtualHost);
 		return factory;

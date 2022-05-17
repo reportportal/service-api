@@ -4,23 +4,22 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.authentication.TokenExtractor;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
+import java.util.List;
 
 public class ExcludedPathTokenExtractor implements TokenExtractor {
 
 	private final TokenExtractor delegate;
-	private final String[] EXCLUDED_PATHS = new String[] {
-			"v1/plugin/public"
-	};
+	private final List<String> excludedPaths;
 
-	public ExcludedPathTokenExtractor(TokenExtractor defaultExtractor) {
+	public ExcludedPathTokenExtractor(List<String> excludedPaths, TokenExtractor defaultExtractor) {
 		this.delegate = defaultExtractor;
+		this.excludedPaths = excludedPaths;
 	}
 
 	@Override
 	public Authentication extract(HttpServletRequest request) {
 		String requestURI = request.getRequestURI();
-		if (Arrays.stream(EXCLUDED_PATHS).noneMatch(requestURI::contains)) {
+		if (excludedPaths.stream().noneMatch(requestURI::contains)) {
 			return delegate.extract(request);
 		}
 		return null;

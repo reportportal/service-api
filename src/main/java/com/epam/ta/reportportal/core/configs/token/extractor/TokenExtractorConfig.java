@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.provider.authentication.BearerTokenExtractor;
 import org.springframework.security.oauth2.provider.authentication.TokenExtractor;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -40,7 +41,8 @@ public class TokenExtractorConfig {
 
 	@Bean
 	public TokenExtractor pluginTokenExtractor() {
-		return new ExcludedPathTokenExtractor(new MatchedPathTokenExtractor("/v1/plugin", cookieTokenExtractor()));
+		return new ExcludedPathTokenExtractor(Collections.singletonList("/v1/plugin/public"),
+				new MatchedPathTokenExtractor("/v1/plugin", cookieTokenExtractor()));
 	}
 
 	@Bean

@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.configs.token.extractor;
 
 import com.epam.ta.reportportal.auth.token.extractor.CookieTokenExtractor;
 import com.epam.ta.reportportal.auth.token.extractor.decorator.DelegatingTokenExtractor;
+import com.epam.ta.reportportal.auth.token.extractor.decorator.ExcludedPathTokenExtractor;
 import com.epam.ta.reportportal.auth.token.extractor.decorator.MatchedPathTokenExtractor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,7 +40,7 @@ public class TokenExtractorConfig {
 
 	@Bean
 	public TokenExtractor pluginTokenExtractor() {
-		return new MatchedPathTokenExtractor("/v1/plugin", "/v1/plugin/public", cookieTokenExtractor());
+		return new ExcludedPathTokenExtractor(new MatchedPathTokenExtractor("/v1/plugin", cookieTokenExtractor()));
 	}
 
 	@Bean

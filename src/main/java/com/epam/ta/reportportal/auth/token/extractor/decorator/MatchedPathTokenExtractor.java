@@ -27,16 +27,18 @@ import javax.servlet.http.HttpServletRequest;
 public class MatchedPathTokenExtractor implements TokenExtractor {
 
 	private final String pathMatcher;
+	private final String excludedPathMatcher;
 	private final TokenExtractor tokenExtractor;
 
-	public MatchedPathTokenExtractor(String pathMatcher, TokenExtractor tokenExtractor) {
+	public MatchedPathTokenExtractor(String pathMatcher, String excludedPathMatcher, TokenExtractor tokenExtractor) {
 		this.pathMatcher = pathMatcher;
+		this.excludedPathMatcher = excludedPathMatcher;
 		this.tokenExtractor = tokenExtractor;
 	}
 
 	@Override
 	public Authentication extract(HttpServletRequest request) {
-		if (request.getRequestURI().contains(pathMatcher)) {
+		if (!request.getRequestURI().contains(excludedPathMatcher) && request.getRequestURI().contains(pathMatcher)) {
 			return tokenExtractor.extract(request);
 		}
 		return null;

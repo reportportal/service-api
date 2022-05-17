@@ -39,7 +39,7 @@ public class TokenExtractorConfig {
 
 	@Bean
 	public TokenExtractor pluginTokenExtractor() {
-		return new MatchedPathTokenExtractor("/v1/plugin", cookieTokenExtractor());
+		return new MatchedPathTokenExtractor("/v1/plugin", "/v1/plugin/public", cookieTokenExtractor());
 	}
 
 	@Bean

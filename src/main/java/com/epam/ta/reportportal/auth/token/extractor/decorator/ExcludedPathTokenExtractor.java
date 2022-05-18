@@ -4,6 +4,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.authentication.TokenExtractor;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.List;
 
 public class ExcludedPathTokenExtractor implements TokenExtractor {
@@ -14,6 +15,10 @@ public class ExcludedPathTokenExtractor implements TokenExtractor {
 	public ExcludedPathTokenExtractor(List<String> excludedPaths, TokenExtractor defaultExtractor) {
 		this.delegate = defaultExtractor;
 		this.excludedPaths = excludedPaths;
+	}
+
+	public ExcludedPathTokenExtractor(String excludedPath, TokenExtractor defaultExtractor) {
+		this(Collections.singletonList(excludedPath), defaultExtractor);
 	}
 
 	@Override

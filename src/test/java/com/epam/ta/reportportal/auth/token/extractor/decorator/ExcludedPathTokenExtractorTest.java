@@ -13,10 +13,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class ExcludedPathTokenExtractorTest {
-
+	private final String PUBLIC_PATH = "/v1/plugin/public";
 	private final TokenExtractor delegate = mock(TokenExtractor.class);
-	private final List<String> exludedPaths = List.of("/v1/plugin/public", "some/excluded/path");
-	private final ExcludedPathTokenExtractor excludedPathTokenExtractor = new ExcludedPathTokenExtractor(exludedPaths, delegate);
+	private final List<String> exludedPaths = List.of(PUBLIC_PATH, "some/excluded/path");
+	private final ExcludedPathTokenExtractor excludedPathsTokenExtractor = new ExcludedPathTokenExtractor(exludedPaths, delegate);
+	private final ExcludedPathTokenExtractor excludedPathTokenExtractor = new ExcludedPathTokenExtractor(PUBLIC_PATH, delegate);
 
 	@Test
 	public void extractShouldReturnNullForExcludedPaths() {
@@ -26,11 +27,17 @@ public class ExcludedPathTokenExtractorTest {
 		HttpServletRequest request2 = mock(HttpServletRequest.class);
 		when(request2.getRequestURI()).thenReturn("/some/excluded/path/someCommand");
 
-		Authentication resultForRequest1 = excludedPathTokenExtractor.extract(request1);
-		Authentication resultForRequest2 = excludedPathTokenExtractor.extract(request2);
+		Authentication resultForRequest1 = excludedPathsTokenExtractor.extract(request1);
+		Authentication resultForRequest2 = excludedPathsTokenExtractor.extract(request2);
+
+		Authentication resultForRequest3 = excludedPathTokenExtractor.extract(request1);
+		Authentication resultForRequest4 = excludedPathTokenExtractor.extract(request2);
 
 		assertNull(resultForRequest1);
 		assertNull(resultForRequest2);
+
+		assertNull(resultForRequest3);
+		assertNull(resultForRequest4);
 	}
 
 	@Test
@@ -45,13 +52,19 @@ public class ExcludedPathTokenExtractorTest {
 		when(request2.getRequestURI()).thenReturn("/some/path/someCommand");
 		when(delegate.extract(eq(request2))).thenReturn(authentication);
 
-		Authentication resultForRequest1 = excludedPathTokenExtractor.extract(request1);
-		Authentication resultForRequest2 = excludedPathTokenExtractor.extract(request2);
+		Authentication resultForRequest1 = excludedPathsTokenExtractor.extract(request1);
+		Authentication resultForRequest2 = excludedPathsTokenExtractor.extract(request2);
+
+		Authentication resultForRequest3 = excludedPathTokenExtractor.extract(request1);
+		Authentication resultForRequest4 = excludedPathTokenExtractor.extract(request2);
 
 		assertNotNull(resultForRequest1);
 		assertNotNull(resultForRequest2);
 
-		verify(delegate, times(2)).extract(any(HttpServletRequest.class));
+		assertNotNull(resultForRequest3);
+		assertNotNull(resultForRequest4);
+
+		verify(delegate, times(4)).extract(any(HttpServletRequest.class));
 	}
 
 }

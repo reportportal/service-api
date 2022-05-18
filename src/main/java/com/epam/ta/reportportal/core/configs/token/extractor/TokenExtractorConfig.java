@@ -41,8 +41,7 @@ public class TokenExtractorConfig {
 
 	@Bean
 	public TokenExtractor pluginTokenExtractor() {
-		return new ExcludedPathTokenExtractor(Collections.singletonList("/v1/plugin/public"),
-				new MatchedPathTokenExtractor("/v1/plugin", cookieTokenExtractor()));
+		return new ExcludedPathTokenExtractor("/v1/plugin/public", new MatchedPathTokenExtractor("/v1/plugin", cookieTokenExtractor()));
 	}
 
 	@Bean

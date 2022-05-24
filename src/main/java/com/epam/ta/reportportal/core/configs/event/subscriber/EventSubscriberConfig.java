@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.item.TestItemIndexRunner;
 import com.epam.ta.reportportal.core.events.handler.item.TestItemUniqueErrorAnalysisRunner;
 import com.epam.ta.reportportal.core.events.handler.launch.*;
-import com.epam.ta.reportportal.core.events.plugin.LaunchFinishedPluginEventPublisher;
 import com.epam.ta.reportportal.core.events.subscriber.impl.delegate.ProjectConfigDelegatingSubscriber;
 import com.epam.ta.reportportal.core.project.config.ProjectConfigProvider;
 import org.springframework.context.annotation.Bean;
@@ -40,14 +39,13 @@ public class EventSubscriberConfig {
 			ProjectConfigProvider projectConfigProvider, LaunchAutoAnalysisRunner autoAnalysisEventHandler,
 			LaunchUniqueErrorAnalysisRunner uniqueErrorAnalysisEventHandler,
 			LaunchAnalysisFinishEventPublisher launchAnalysisFinishEventPublisher, LaunchPatternAnalysisRunner patternAnalysisEventHandler,
-			LaunchNotificationRunner notificationEventHandler, LaunchFinishedPluginEventPublisher launchFinishedPluginEventPublisher) {
+			LaunchNotificationRunner notificationEventHandler) {
 		return new ProjectConfigDelegatingSubscriber<>(projectConfigProvider,
 				List.of(autoAnalysisEventHandler,
 						uniqueErrorAnalysisEventHandler,
 						launchAnalysisFinishEventPublisher,
 						patternAnalysisEventHandler,
-						notificationEventHandler,
-						launchFinishedPluginEventPublisher
+						notificationEventHandler
 				)
 		);
 	}

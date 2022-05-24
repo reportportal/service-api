@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.demodata.service;
 
+import com.epam.reportportal.extension.event.LaunchFinishedPluginEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -29,6 +30,7 @@ import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,11 +55,14 @@ public class DemoDataLaunchService {
 
 	private final LaunchRepository launchRepository;
 	private final TestItemRepository testItemRepository;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public DemoDataLaunchService(LaunchRepository launchRepository, TestItemRepository testItemRepository) {
+	public DemoDataLaunchService(LaunchRepository launchRepository, TestItemRepository testItemRepository,
+			ApplicationEventPublisher eventPublisher) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Transactional
@@ -105,5 +110,6 @@ public class DemoDataLaunchService {
 		launch.setStatus(fromStatisticsStatus);
 
 		launchRepository.save(launch);
+		eventPublisher.publishEvent(new LaunchFinishedPluginEvent(launch.getId(), launch.getProjectId()));
 	}
 }

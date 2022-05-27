@@ -35,8 +35,6 @@ import org.springframework.context.annotation.Configuration;
 
 import java.net.URI;
 
-import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.ANALYZER_KEY;
-
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
@@ -48,7 +46,8 @@ public class AnalyzerRabbitMqConfiguration {
 	private MessageConverter messageConverter;
 
 	@Bean
-	public RabbitMqManagementClient managementTemplate(@Value("${rp.amqp.api-address}") String address) {
+	public RabbitMqManagementClient managementTemplate(@Value("${rp.amqp.api-address}") String address,
+			@Value("${rp.amqp.analyzer-vhost}") String virtualHost) {
 		Client rabbitClient;
 		try {
 			rabbitClient = new Client(address);
@@ -58,13 +57,14 @@ public class AnalyzerRabbitMqConfiguration {
 					"Cannot create a HTTP rabbit client instance. Incorrect api address " + address
 			);
 		}
-		return new RabbitMqManagementClientTemplate(rabbitClient);
+		return new RabbitMqManagementClientTemplate(rabbitClient, virtualHost);
 	}
 
 	@Bean(name = "analyzerConnectionFactory")
-	public ConnectionFactory analyzerConnectionFactory(@Value("${rp.amqp.addresses}") URI addresses) {
+	public ConnectionFactory analyzerConnectionFactory(@Value("${rp.amqp.addresses}") URI addresses,
+			@Value("${rp.amqp.analyzer-vhost}") String virtualHost) {
 		CachingConnectionFactory factory = new CachingConnectionFactory(addresses);
-		factory.setVirtualHost(ANALYZER_KEY);
+		factory.setVirtualHost(virtualHost);
 		return factory;
 	}
 

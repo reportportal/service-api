@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import com.epam.reportportal.extension.event.ElementsDeletedPluginEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -24,6 +25,8 @@ import com.epam.ta.reportportal.core.launch.DeleteLaunchHandler;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -32,6 +35,7 @@ import com.epam.ta.reportportal.ws.model.*;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -67,14 +71,24 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
 	private final AttachmentRepository attachmentRepository;
 
+	private final ApplicationEventPublisher eventPublisher;
+
+	private final TestItemRepository testItemRepository;
+
+	private final LogRepository logRepository;
+
 	@Autowired
 	public DeleteLaunchHandlerImpl(ContentRemover<Launch> launchContentRemover, LaunchRepository launchRepository, MessageBus messageBus,
-			LogIndexer logIndexer, AttachmentRepository attachmentRepository) {
+			LogIndexer logIndexer, AttachmentRepository attachmentRepository, ApplicationEventPublisher eventPublisher,
+			TestItemRepository testItemRepository, LogRepository logRepository) {
 		this.launchContentRemover = launchContentRemover;
 		this.launchRepository = launchRepository;
 		this.messageBus = messageBus;
 		this.logIndexer = logIndexer;
 		this.attachmentRepository = attachmentRepository;
+		this.eventPublisher = eventPublisher;
+		this.testItemRepository = testItemRepository;
+		this.logRepository = logRepository;
 	}
 
 	public OperationCompletionRS deleteLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
@@ -88,6 +102,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 		attachmentRepository.moveForDeletionByLaunchId(launchId);
 
 		messageBus.publishActivity(new LaunchDeletedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));
+		eventPublisher.publishEvent(new ElementsDeletedPluginEvent(launchId, launch.getProjectId(), countNumberOfDeletedElements(launchId)));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully deleted.");
 	}
 
@@ -120,9 +135,10 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 			attachmentRepository.moveForDeletionByLaunchIds(launchIds);
 		}
 
-		toDelete.stream()
-				.map(TO_ACTIVITY_RESOURCE)
-				.forEach(it -> messageBus.publishActivity(new LaunchDeletedEvent(it, user.getUserId(), user.getUsername())));
+		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(it -> {
+			messageBus.publishActivity(new LaunchDeletedEvent(it, user.getUserId(), user.getUsername()));
+			eventPublisher.publishEvent(new ElementsDeletedPluginEvent(it.getId(), it.getProjectId(), countNumberOfDeletedElements(it.getId())));
+		});
 
 		return new DeleteBulkRS(launchIds, notFound, exceptions.stream().map(ex -> {
 			ErrorRS errorResponse = new ErrorRS();
@@ -152,5 +168,14 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 				expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED, "You are not launch owner.");
 			}
 		}
+	}
+
+	private int countNumberOfDeletedElements(Long launchId) {
+		int resultedNumber = 1;
+		final List<Long> testItemIdsByLaunchId = testItemRepository.findIdsByLaunchId(launchId);
+		resultedNumber += testItemIdsByLaunchId.size();
+		resultedNumber += logRepository.countLogsByTestItemItemIdIn(testItemIdsByLaunchId);
+		resultedNumber += logRepository.countLogsByLaunchId(launchId);
+		return resultedNumber;
 	}
 }

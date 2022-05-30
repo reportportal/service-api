@@ -102,7 +102,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 		attachmentRepository.moveForDeletionByLaunchId(launchId);
 
 		messageBus.publishActivity(new LaunchDeletedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));
-		eventPublisher.publishEvent(new ElementsDeletedPluginEvent(launchId, launch.getProjectId(), countNumberOfDeletedElements(launchId)));
+		eventPublisher.publishEvent(new ElementsDeletedPluginEvent(launchId, launch.getProjectId(), countNumberOfLaunchElements(launchId)));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully deleted.");
 	}
 
@@ -137,7 +137,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
 		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(it -> {
 			messageBus.publishActivity(new LaunchDeletedEvent(it, user.getUserId(), user.getUsername()));
-			eventPublisher.publishEvent(new ElementsDeletedPluginEvent(it.getId(), it.getProjectId(), countNumberOfDeletedElements(it.getId())));
+			eventPublisher.publishEvent(new ElementsDeletedPluginEvent(it.getId(), it.getProjectId(), countNumberOfLaunchElements(it.getId())));
 		});
 
 		return new DeleteBulkRS(launchIds, notFound, exceptions.stream().map(ex -> {
@@ -170,8 +170,8 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 		}
 	}
 
-	private int countNumberOfDeletedElements(Long launchId) {
-		int resultedNumber = 1;
+	private Long countNumberOfLaunchElements(Long launchId) {
+		long resultedNumber = 1L;
 		final List<Long> testItemIdsByLaunchId = testItemRepository.findIdsByLaunchId(launchId);
 		resultedNumber += testItemIdsByLaunchId.size();
 		resultedNumber += logRepository.countLogsByTestItemItemIdIn(testItemIdsByLaunchId);

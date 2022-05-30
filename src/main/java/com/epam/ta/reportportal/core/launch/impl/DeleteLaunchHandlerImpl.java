@@ -32,6 +32,8 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.*;
+import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
+import com.google.api.client.util.Maps;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -95,6 +98,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 		validate(launch, user, projectDetails);
+		final Long numberOfLaunchElements = countNumberOfLaunchElements(launchId);
 
 		logIndexer.indexLaunchesRemove(projectDetails.getProjectId(), Lists.newArrayList(launchId));
 		launchContentRemover.remove(launch);
@@ -102,14 +106,14 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 		attachmentRepository.moveForDeletionByLaunchId(launchId);
 
 		messageBus.publishActivity(new LaunchDeletedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));
-		eventPublisher.publishEvent(new ElementsDeletedPluginEvent(launchId, launch.getProjectId(), countNumberOfLaunchElements(launchId)));
+		eventPublisher.publishEvent(new ElementsDeletedPluginEvent(launchId, launch.getProjectId(), numberOfLaunchElements));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully deleted.");
 	}
 
 	public DeleteBulkRS deleteLaunches(DeleteBulkRQ deleteBulkRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<Long> notFound = Lists.newArrayList();
 		List<ReportPortalException> exceptions = Lists.newArrayList();
-		List<Launch> toDelete = Lists.newArrayList();
+		Map<Launch, Long> toDelete = Maps.newHashMap();
 		List<Long> launchIds = Lists.newArrayList();
 
 		deleteBulkRQ.getIds().forEach(id -> {
@@ -118,7 +122,8 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 				Launch launch = optionalLaunch.get();
 				try {
 					validate(launch, user, projectDetails);
-					toDelete.add(launch);
+					Long numberOfLaunchElements = countNumberOfLaunchElements(launch.getId());
+					toDelete.put(launch, numberOfLaunchElements);
 					launchIds.add(id);
 				} catch (ReportPortalException ex) {
 					exceptions.add(ex);
@@ -130,14 +135,18 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
 		if (CollectionUtils.isNotEmpty(launchIds)) {
 			logIndexer.indexLaunchesRemove(projectDetails.getProjectId(), launchIds);
-			toDelete.forEach(launchContentRemover::remove);
-			launchRepository.deleteAll(toDelete);
+			toDelete.keySet().forEach(launchContentRemover::remove);
+			launchRepository.deleteAll(toDelete.keySet());
 			attachmentRepository.moveForDeletionByLaunchIds(launchIds);
 		}
 
-		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(it -> {
-			messageBus.publishActivity(new LaunchDeletedEvent(it, user.getUserId(), user.getUsername()));
-			eventPublisher.publishEvent(new ElementsDeletedPluginEvent(it.getId(), it.getProjectId(), countNumberOfLaunchElements(it.getId())));
+		toDelete.entrySet().forEach(entry -> {
+			LaunchActivityResource launchActivity = TO_ACTIVITY_RESOURCE.apply(entry.getKey());
+			messageBus.publishActivity(new LaunchDeletedEvent(launchActivity, user.getUserId(), user.getUsername()));
+			eventPublisher.publishEvent(new ElementsDeletedPluginEvent(entry.getKey().getId(),
+					entry.getKey().getProjectId(),
+					entry.getValue()
+			));
 		});
 
 		return new DeleteBulkRS(launchIds, notFound, exceptions.stream().map(ex -> {

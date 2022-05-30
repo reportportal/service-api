@@ -19,6 +19,9 @@ package com.epam.ta.reportportal.core.configs.remover;
 import com.epam.ta.reportportal.core.remover.project.ProjectClusterRemover;
 import com.epam.ta.reportportal.core.remover.project.ProjectContentRemover;
 import com.epam.ta.reportportal.core.remover.project.ProjectWidgetRemover;
+import com.epam.ta.reportportal.core.remover.user.UserContentRemover;
+import com.epam.ta.reportportal.core.remover.user.UserPhotoRemover;
+import com.epam.ta.reportportal.core.remover.user.UserWidgetRemover;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,6 +38,12 @@ public class ContentRemoverConfig {
 	public ProjectContentRemover projectContentRemover(@Autowired ProjectClusterRemover projectClusterRemover,
 			@Autowired ProjectWidgetRemover projectWidgetRemover) {
 		return new ProjectContentRemover(List.of(projectClusterRemover, projectWidgetRemover));
+	}
+
+	@Bean
+	public UserContentRemover userContentRemover(@Autowired UserWidgetRemover userWidgetRemover,
+			@Autowired UserPhotoRemover userPhotoRemover) {
+		return new UserContentRemover(List.of(userWidgetRemover, userPhotoRemover));
 	}
 
 }

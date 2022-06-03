@@ -62,6 +62,7 @@ public final class NotificationConfigConverter {
 				.map(TO_ATTRIBUTE_RULE_RESOURCE)
 				.collect(Collectors.toSet())));
 		resource.setSendCase(model.getSendCase().getCaseString());
+		resource.setRuleName(model.getRuleName());
 		resource.setRecipients(Lists.newArrayList(model.getRecipients()));
 		resource.setEnabled(model.isEnabled());
 		return resource;
@@ -84,6 +85,7 @@ public final class NotificationConfigConverter {
 				})
 				.collect(Collectors.toSet())));
 		ofNullable(resource.getLaunchNames()).ifPresent(launchNames -> senderCase.setLaunchNames(Sets.newHashSet(launchNames)));
+		senderCase.setRuleName(resource.getRuleName());
 		senderCase.setRecipients(Sets.newHashSet(resource.getRecipients()));
 		senderCase.setSendCase(SendCase.findByName(resource.getSendCase())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,

@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import com.epam.reportportal.extension.event.ElementsDeletedPluginEvent;
+import com.epam.reportportal.events.ElementsDeletedEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -106,7 +106,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 		attachmentRepository.moveForDeletionByLaunchId(launchId);
 
 		messageBus.publishActivity(new LaunchDeletedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));
-		eventPublisher.publishEvent(new ElementsDeletedPluginEvent(launchId, launch.getProjectId(), numberOfLaunchElements));
+		eventPublisher.publishEvent(new ElementsDeletedEvent(launchId, launch.getProjectId(), numberOfLaunchElements));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully deleted.");
 	}
 
@@ -143,7 +143,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 		toDelete.entrySet().forEach(entry -> {
 			LaunchActivityResource launchActivity = TO_ACTIVITY_RESOURCE.apply(entry.getKey());
 			messageBus.publishActivity(new LaunchDeletedEvent(launchActivity, user.getUserId(), user.getUsername()));
-			eventPublisher.publishEvent(new ElementsDeletedPluginEvent(entry.getKey().getId(),
+			eventPublisher.publishEvent(new ElementsDeletedEvent(entry.getKey().getId(),
 					entry.getKey().getProjectId(),
 					entry.getValue()
 			));

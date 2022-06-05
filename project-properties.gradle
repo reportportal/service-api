@@ -18,7 +18,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
     scriptsUrl = commonScriptsUrl + (releaseMode ? getProperty('scripts.version') : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? getProperty('migrations.version') : 'develop')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? getProperty('migrations.version') : 'feature/EPMRPP-77644_add_field_rulename_to_db')
     //TODO refactor with archive download
     testScriptsSrc = [
             (migrationsUrl + '/migrations/0_extensions.up.sql')                        : 'V001__extensions.sql',
@@ -57,6 +57,7 @@ project.ext {
             (migrationsUrl + '/migrations/58_alter_ticket.up.sql')                     : 'V058__alter_ticket.sql',
             (migrationsUrl + '/migrations/59_stale_materialized_view.up.sql')          : 'V059__stale_materialized_view.sql',
             (migrationsUrl + '/migrations/60_user_bid_extension.up.sql')               : 'V060__user_bid_extension.up.sql',
+            (migrationsUrl + '/migrations/62_sender_case_rule_name.up.sql')            : 'V062__sender_case_rule_name.up.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

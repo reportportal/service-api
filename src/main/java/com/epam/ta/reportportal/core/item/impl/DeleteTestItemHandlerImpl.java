@@ -16,8 +16,10 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import com.epam.reportportal.events.ElementsDeletedEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.ElementsCounterService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
@@ -37,6 +39,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -72,14 +75,21 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 	private final AttachmentRepository attachmentRepository;
 
+	private final ApplicationEventPublisher eventPublisher;
+
+	private final ElementsCounterService elementsCounterService;
+
 	@Autowired
-	public DeleteTestItemHandlerImpl(TestItemRepository testItemRepository, ContentRemover<Long> itemContentRemover, LogIndexer logIndexer, LaunchRepository launchRepository,
-			AttachmentRepository attachmentRepository) {
+	public DeleteTestItemHandlerImpl(TestItemRepository testItemRepository, ContentRemover<Long> itemContentRemover, LogIndexer logIndexer,
+			LaunchRepository launchRepository, AttachmentRepository attachmentRepository, ApplicationEventPublisher eventPublisher,
+			ElementsCounterService elementsCounterService) {
 		this.testItemRepository = testItemRepository;
 		this.itemContentRemover = itemContentRemover;
 		this.logIndexer = logIndexer;
 		this.launchRepository = launchRepository;
 		this.attachmentRepository = attachmentRepository;
+		this.eventPublisher = eventPublisher;
+		this.elementsCounterService = elementsCounterService;
 	}
 
 	@Override
@@ -95,6 +105,10 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		Set<Long> itemsForRemove = Sets.newHashSet(testItemRepository.selectAllDescendantsIds(item.getPath()));
 		itemsForRemove.forEach(itemContentRemover::remove);
 
+		eventPublisher.publishEvent(new ElementsDeletedEvent(item,
+				projectDetails.getProjectId(),
+				elementsCounterService.countNumberOfItemElements(item)
+		));
 		itemContentRemover.remove(item.getItemId());
 		testItemRepository.deleteById(item.getItemId());
 
@@ -145,6 +159,11 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 				.collect(toSet());
 
 		idsToDelete.forEach(itemContentRemover::remove);
+		eventPublisher.publishEvent(new ElementsDeletedEvent(
+				items,
+				projectDetails.getProjectId(),
+				elementsCounterService.countNumberOfItemElements(items)
+		));
 		testItemRepository.deleteAllByItemIdIn(idsToDelete);
 
 		launches.forEach(it -> it.setHasRetries(launchRepository.hasRetries(it.getId())));

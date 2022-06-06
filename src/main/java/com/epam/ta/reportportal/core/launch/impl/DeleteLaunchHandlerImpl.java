@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.reportportal.events.ElementsDeletedEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.ElementsCounterService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchDeletedEvent;
@@ -25,8 +26,6 @@ import com.epam.ta.reportportal.core.launch.DeleteLaunchHandler;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -76,29 +75,26 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
 	private final ApplicationEventPublisher eventPublisher;
 
-	private final TestItemRepository testItemRepository;
-
-	private final LogRepository logRepository;
+	private final ElementsCounterService elementsCounterService;
 
 	@Autowired
 	public DeleteLaunchHandlerImpl(ContentRemover<Launch> launchContentRemover, LaunchRepository launchRepository, MessageBus messageBus,
 			LogIndexer logIndexer, AttachmentRepository attachmentRepository, ApplicationEventPublisher eventPublisher,
-			TestItemRepository testItemRepository, LogRepository logRepository) {
+			ElementsCounterService elementsCounterService) {
 		this.launchContentRemover = launchContentRemover;
 		this.launchRepository = launchRepository;
 		this.messageBus = messageBus;
 		this.logIndexer = logIndexer;
 		this.attachmentRepository = attachmentRepository;
 		this.eventPublisher = eventPublisher;
-		this.testItemRepository = testItemRepository;
-		this.logRepository = logRepository;
+		this.elementsCounterService = elementsCounterService;
 	}
 
 	public OperationCompletionRS deleteLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 		validate(launch, user, projectDetails);
-		final Long numberOfLaunchElements = countNumberOfLaunchElements(launchId);
+		final Long numberOfLaunchElements = elementsCounterService.countNumberOfLaunchElements(launchId);
 
 		logIndexer.indexLaunchesRemove(projectDetails.getProjectId(), Lists.newArrayList(launchId));
 		launchContentRemover.remove(launch);
@@ -122,7 +118,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 				Launch launch = optionalLaunch.get();
 				try {
 					validate(launch, user, projectDetails);
-					Long numberOfLaunchElements = countNumberOfLaunchElements(launch.getId());
+					Long numberOfLaunchElements = elementsCounterService.countNumberOfLaunchElements(launch.getId());
 					toDelete.put(launch, numberOfLaunchElements);
 					launchIds.add(id);
 				} catch (ReportPortalException ex) {
@@ -143,10 +139,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 		toDelete.entrySet().forEach(entry -> {
 			LaunchActivityResource launchActivity = TO_ACTIVITY_RESOURCE.apply(entry.getKey());
 			messageBus.publishActivity(new LaunchDeletedEvent(launchActivity, user.getUserId(), user.getUsername()));
-			eventPublisher.publishEvent(new ElementsDeletedEvent(entry.getKey().getId(),
-					entry.getKey().getProjectId(),
-					entry.getValue()
-			));
+			eventPublisher.publishEvent(new ElementsDeletedEvent(entry.getKey().getId(), entry.getKey().getProjectId(), entry.getValue()));
 		});
 
 		return new DeleteBulkRS(launchIds, notFound, exceptions.stream().map(ex -> {
@@ -177,14 +170,5 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 				expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED, "You are not launch owner.");
 			}
 		}
-	}
-
-	private Long countNumberOfLaunchElements(Long launchId) {
-		long resultedNumber = 1L;
-		final List<Long> testItemIdsByLaunchId = testItemRepository.findIdsByLaunchId(launchId);
-		resultedNumber += testItemIdsByLaunchId.size();
-		resultedNumber += logRepository.countLogsByTestItemItemIdIn(testItemIdsByLaunchId);
-		resultedNumber += logRepository.countLogsByLaunchId(launchId);
-		return resultedNumber;
 	}
 }

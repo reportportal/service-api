@@ -81,7 +81,7 @@ dependencies {
         compile 'com.epam.reportportal:commons-fonts'
         compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-dao:36eae7a'
+        compile 'com.github.reportportal:commons-dao:0bdc93c'
         compile 'com.github.reportportal:commons-rules:5.3.0'
         compile 'com.github.reportportal:commons-model:553f850'
         compile 'com.github.reportportal:commons:7480d61'

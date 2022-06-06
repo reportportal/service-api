@@ -63,7 +63,8 @@ ext['postgresql.version'] = '42.2.13'
 //https://nvd.nist.gov/vuln/detail/CVE-2020-9488 and https://nvd.nist.gov/vuln/detail/CVE-2021-44228 and https://nvd.nist.gov/vuln/detail/CVE-2021-45046
 ext['log4j2.version'] = '2.17.0'
 ext['log4j-to-slf4j.version'] = '2.17.0'
-//
+//https://nvd.nist.gov/vuln/detail/cve-2022-22965
+ext['spring-boot.version'] = '2.5.12'
 
 dependencyManagement {
     imports {

@@ -137,7 +137,7 @@ class TestItemBuilderTest {
 		TestItem testItem = new TestItemBuilder().addStartItemRequest(request).get();
 
 		assertEquals(testCaseId, testItem.getTestCaseId());
-		assertEquals(testCaseId.hashCode(), testItem.getTestCaseHash());
+		assertEquals(testCaseId.hashCode(), testItem.getTestCaseHash().intValue());
 	}
 
 	@Test
@@ -153,7 +153,7 @@ class TestItemBuilderTest {
 		assertTrue(item.getTestCaseId().length() <= 1024);
 		assertEquals(testCaseId.substring(0, 1010), item.getTestCaseId().substring(0, 1010));
 		assertEquals("[" + testCaseId.substring(1011).hashCode() + "]", item.getTestCaseId().substring(1011));
-		assertEquals(testCaseId.hashCode(), item.getTestCaseHash());
+		assertEquals(testCaseId.hashCode(), item.getTestCaseHash().intValue());
 	}
 
 	@Test
@@ -167,7 +167,7 @@ class TestItemBuilderTest {
 		TestItem item = new TestItemBuilder().addStartItemRequest(request).get();
 
 		assertEquals(codeRef, item.getTestCaseId());
-		assertEquals(codeRef.hashCode(), item.getTestCaseHash());
+		assertEquals(codeRef.hashCode(), item.getTestCaseHash().intValue());
 	}
 
     @Test
@@ -193,6 +193,6 @@ class TestItemBuilderTest {
 
         String expected = codeRef + "[" + value1 + "," + value2 + ",null]";
         assertEquals(expected, item.getTestCaseId());
-        assertEquals(expected.hashCode(), item.getTestCaseHash());
+        assertEquals(expected.hashCode(), item.getTestCaseHash().intValue());
     }
 }

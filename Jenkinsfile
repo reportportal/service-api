@@ -20,31 +20,23 @@ node {
         sh './gradlew build'
     }
     stage('Docker image') {
-        sh "./gradlew buildDocker -P dockerServerUrl=$DOCKER_HOST"
+        sh "./gradlew buildDocker"
     }
-    stage('Deploy Container') {
-        docker.withServer("$DOCKER_HOST") {
-            sh "docker-compose -p reportportal -f $COMPOSE_FILE_RP up -d --force-recreate api"
-
-            stage('Push to registries') {
-                withEnv(["AWS_URI=${AWS_URI}", "AWS_REGION=${AWS_REGION}"]) {
-                    sh 'docker tag reportportal-dev/service-api ${AWS_URI}/service-api'
-                    def image = env.AWS_URI + '/service-api'
-                    def url = 'https://' + env.AWS_URI
-                    def credentials = 'ecr:' + env.AWS_REGION + ':aws_credentials'
-                    docker.withRegistry(url, credentials) {
-                        docker.image(image).push('SNAPSHOT-${BUILD_NUMBER}')
-                    }
-                }
+    stage('Push to registries') {
+        withEnv(["AWS_URI=${AWS_URI}", "AWS_REGION=${AWS_REGION}"]) {
+            sh 'docker tag reportportal-dev/service-api ${AWS_URI}/service-api'
+            def image = env.AWS_URI + '/service-api'
+            def url = 'https://' + env.AWS_URI
+            def credentials = 'ecr:' + env.AWS_REGION + ':aws_credentials'
+            docker.withRegistry(url, credentials) {
+                docker.image(image).push('SNAPSHOT-${BUILD_NUMBER}')
             }
         }
     }
     stage('Cleanup') {
-        docker.withServer("$DOCKER_HOST") {
-            withEnv(["AWS_URI=${AWS_URI}"]) {
-                sh 'docker rmi ${AWS_URI}/service-api:SNAPSHOT-${BUILD_NUMBER}'
-                sh 'docker rmi ${AWS_URI}/service-api:latest'
-            }
+        withEnv(["AWS_URI=${AWS_URI}"]) {
+            sh 'docker rmi ${AWS_URI}/service-api:SNAPSHOT-${BUILD_NUMBER}'
+            sh 'docker rmi ${AWS_URI}/service-api:latest'
         }
     }
 }

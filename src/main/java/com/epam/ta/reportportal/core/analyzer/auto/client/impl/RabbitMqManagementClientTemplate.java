@@ -37,19 +37,22 @@ public class RabbitMqManagementClientTemplate implements RabbitMqManagementClien
 
 	private final Client rabbitClient;
 
-	public RabbitMqManagementClientTemplate(Client rabbitClient) {
+	private final String virtualHost;
+
+	public RabbitMqManagementClientTemplate(Client rabbitClient, String virtualHost) {
 		this.rabbitClient = rabbitClient;
+		this.virtualHost = virtualHost;
 		try {
-			rabbitClient.createVhost(ANALYZER_KEY);
+			rabbitClient.createVhost(virtualHost);
 		} catch (JsonProcessingException e) {
 			throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, "Unable to create RabbitMq virtual host");
 		}
 	}
 
     public List<ExchangeInfo> getAnalyzerExchangesInfo() {
-        List<ExchangeInfo> client = rabbitClient.getExchanges(ANALYZER_KEY);
+        List<ExchangeInfo> client = rabbitClient.getExchanges(virtualHost);
         if (client == null) {
-            throw new ReportPortalException(ErrorType.ANALYZER_NOT_FOUND, ANALYZER_KEY);
+            throw new ReportPortalException(ErrorType.ANALYZER_NOT_FOUND, virtualHost);
         }
         return client.stream()
                 .filter(it -> it.getArguments().get(ANALYZER_KEY) != null)

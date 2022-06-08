@@ -42,7 +42,7 @@ import static java.util.Optional.ofNullable;
 
 public class LaunchBuilder implements Supplier<Launch> {
 
-	private static final int LAUNCH_DESCRIPTION_LENGTH_LIMIT = 1024;
+	private static final int LAUNCH_DESCRIPTION_LENGTH_LIMIT = 16000;
 	private static final int DESCRIPTION_START_SYMBOL_INDEX = 0;
 
 	private Launch launch;

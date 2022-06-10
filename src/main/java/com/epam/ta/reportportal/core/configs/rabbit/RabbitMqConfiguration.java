@@ -17,7 +17,10 @@
 package com.epam.ta.reportportal.core.configs.rabbit;
 
 import com.epam.ta.reportportal.core.configs.Conditions;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rabbitmq.http.client.Client;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
@@ -54,8 +57,19 @@ public class RabbitMqConfiguration {
 	}
 
 	@Bean
-	public ConnectionFactory connectionFactory(@Value("${rp.amqp.addresses}") URI addresses) {
-		return new CachingConnectionFactory(addresses);
+	public ConnectionFactory connectionFactory(@Value("${rp.amqp.api-address}") String apiAddress,
+			@Value("${rp.amqp.addresses}") URI addresses, @Value("${rp.amqp.base-vhost}") String virtualHost) {
+		try {
+			Client client = new Client(apiAddress);
+			client.createVhost(virtualHost);
+		} catch (Exception e) {
+			throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
+					"Unable to create RabbitMq virtual host: " + e.getMessage()
+			);
+		}
+		final CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory(addresses);
+		cachingConnectionFactory.setVirtualHost(virtualHost);
+		return cachingConnectionFactory;
 	}
 
 	@Bean

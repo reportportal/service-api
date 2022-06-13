@@ -16,7 +16,9 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import com.epam.reportportal.events.ElementsDeletedEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.ElementsCounterService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchDeletedEvent;
@@ -29,12 +31,16 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.*;
+import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
+import com.google.api.client.util.Maps;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -67,20 +73,28 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
 	private final AttachmentRepository attachmentRepository;
 
+	private final ApplicationEventPublisher eventPublisher;
+
+	private final ElementsCounterService elementsCounterService;
+
 	@Autowired
 	public DeleteLaunchHandlerImpl(ContentRemover<Launch> launchContentRemover, LaunchRepository launchRepository, MessageBus messageBus,
-			LogIndexer logIndexer, AttachmentRepository attachmentRepository) {
+			LogIndexer logIndexer, AttachmentRepository attachmentRepository, ApplicationEventPublisher eventPublisher,
+			ElementsCounterService elementsCounterService) {
 		this.launchContentRemover = launchContentRemover;
 		this.launchRepository = launchRepository;
 		this.messageBus = messageBus;
 		this.logIndexer = logIndexer;
 		this.attachmentRepository = attachmentRepository;
+		this.eventPublisher = eventPublisher;
+		this.elementsCounterService = elementsCounterService;
 	}
 
 	public OperationCompletionRS deleteLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 		validate(launch, user, projectDetails);
+		final Long numberOfLaunchElements = elementsCounterService.countNumberOfLaunchElements(launchId);
 
 		logIndexer.indexLaunchesRemove(projectDetails.getProjectId(), Lists.newArrayList(launchId));
 		launchContentRemover.remove(launch);
@@ -88,13 +102,14 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 		attachmentRepository.moveForDeletionByLaunchId(launchId);
 
 		messageBus.publishActivity(new LaunchDeletedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));
+		eventPublisher.publishEvent(new ElementsDeletedEvent(launchId, launch.getProjectId(), numberOfLaunchElements));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully deleted.");
 	}
 
 	public DeleteBulkRS deleteLaunches(DeleteBulkRQ deleteBulkRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<Long> notFound = Lists.newArrayList();
 		List<ReportPortalException> exceptions = Lists.newArrayList();
-		List<Launch> toDelete = Lists.newArrayList();
+		Map<Launch, Long> toDelete = Maps.newHashMap();
 		List<Long> launchIds = Lists.newArrayList();
 
 		deleteBulkRQ.getIds().forEach(id -> {
@@ -103,7 +118,8 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 				Launch launch = optionalLaunch.get();
 				try {
 					validate(launch, user, projectDetails);
-					toDelete.add(launch);
+					Long numberOfLaunchElements = elementsCounterService.countNumberOfLaunchElements(launch.getId());
+					toDelete.put(launch, numberOfLaunchElements);
 					launchIds.add(id);
 				} catch (ReportPortalException ex) {
 					exceptions.add(ex);
@@ -115,14 +131,16 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
 		if (CollectionUtils.isNotEmpty(launchIds)) {
 			logIndexer.indexLaunchesRemove(projectDetails.getProjectId(), launchIds);
-			toDelete.forEach(launchContentRemover::remove);
-			launchRepository.deleteAll(toDelete);
+			toDelete.keySet().forEach(launchContentRemover::remove);
+			launchRepository.deleteAll(toDelete.keySet());
 			attachmentRepository.moveForDeletionByLaunchIds(launchIds);
 		}
 
-		toDelete.stream()
-				.map(TO_ACTIVITY_RESOURCE)
-				.forEach(it -> messageBus.publishActivity(new LaunchDeletedEvent(it, user.getUserId(), user.getUsername())));
+		toDelete.entrySet().forEach(entry -> {
+			LaunchActivityResource launchActivity = TO_ACTIVITY_RESOURCE.apply(entry.getKey());
+			messageBus.publishActivity(new LaunchDeletedEvent(launchActivity, user.getUserId(), user.getUsername()));
+			eventPublisher.publishEvent(new ElementsDeletedEvent(entry.getKey().getId(), entry.getKey().getProjectId(), entry.getValue()));
+		});
 
 		return new DeleteBulkRS(launchIds, notFound, exceptions.stream().map(ex -> {
 			ErrorRS errorResponse = new ErrorRS();

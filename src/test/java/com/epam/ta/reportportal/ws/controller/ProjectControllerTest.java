@@ -506,6 +506,7 @@ class ProjectControllerTest extends BaseMvcTest {
 
 		SenderCaseDTO senderCaseDTO = new SenderCaseDTO();
 		senderCaseDTO.setSendCase("always");
+		senderCaseDTO.setRuleName("Rule1");
 		senderCaseDTO.setRecipients(Collections.singletonList("default"));
 		senderCaseDTO.setLaunchNames(Collections.singletonList("test launch"));
 		senderCaseDTO.setEnabled(true);

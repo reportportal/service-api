@@ -57,6 +57,7 @@ public final class NotificationConfigConverter {
 	public final static Function<SenderCase, SenderCaseDTO> TO_CASE_RESOURCE = model -> {
 		Preconditions.checkNotNull(model);
 		SenderCaseDTO resource = new SenderCaseDTO();
+		resource.setId(model.getId());
 		resource.setLaunchNames(Lists.newArrayList(model.getLaunchNames()));
 		ofNullable(model.getLaunchAttributeRules()).ifPresent(launchAttributeRules -> resource.setAttributes(launchAttributeRules.stream()
 				.map(TO_ATTRIBUTE_RULE_RESOURCE)
@@ -84,6 +85,7 @@ public final class NotificationConfigConverter {
 					return launchAttributeRule;
 				})
 				.collect(Collectors.toSet())));
+		senderCase.setId(resource.getId());
 		ofNullable(resource.getLaunchNames()).ifPresent(launchNames -> senderCase.setLaunchNames(Sets.newHashSet(launchNames)));
 		senderCase.setRuleName(resource.getRuleName());
 		senderCase.setRecipients(Sets.newHashSet(resource.getRecipients()));

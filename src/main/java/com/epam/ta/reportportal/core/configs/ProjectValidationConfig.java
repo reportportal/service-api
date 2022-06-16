@@ -3,7 +3,9 @@ package com.epam.ta.reportportal.core.configs;
 import com.epam.ta.reportportal.core.project.validator.attribute.DelayBoundLessRule;
 import com.epam.ta.reportportal.core.project.validator.attribute.DelayBoundValidator;
 import com.epam.ta.reportportal.core.project.validator.attribute.ProjectAttributeValidator;
+import com.epam.ta.reportportal.core.project.validator.notification.ProjectNotificationValidator;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

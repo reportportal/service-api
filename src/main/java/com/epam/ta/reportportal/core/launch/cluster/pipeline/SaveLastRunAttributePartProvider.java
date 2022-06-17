@@ -40,19 +40,17 @@ public class SaveLastRunAttributePartProvider implements PipelinePartProvider<Ge
 	@Override
 	public PipelinePart provide(GenerateClustersConfig config) {
 		return () -> {
+			if (config.isForUpdate()) {
+				return;
+			}
 			final String lastRunDate = String.valueOf(Instant.now().toEpochMilli());
 			final ClusterEntityContext entityContext = config.getEntityContext();
-			itemAttributeRepository.findByLaunchIdAndKeyAndSystem(entityContext.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, true)
-					.ifPresentOrElse(attr -> {
-								attr.setValue(lastRunDate);
-								itemAttributeRepository.save(attr);
-							},
-							() -> itemAttributeRepository.saveByLaunchId(entityContext.getLaunchId(),
-									RP_CLUSTER_LAST_RUN_KEY,
-									lastRunDate,
-									true
-							)
-					);
+			itemAttributeRepository.deleteAllByLaunchIdAndKeyAndSystem(entityContext.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, true);
+			itemAttributeRepository.saveByLaunchId(entityContext.getLaunchId(),
+					RP_CLUSTER_LAST_RUN_KEY,
+					lastRunDate,
+					true
+			);
 		};
 	}
 }

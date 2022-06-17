@@ -20,7 +20,9 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.core.project.settings.notification.CreateProjectNotificationHandler;
 import com.epam.ta.reportportal.core.project.settings.notification.GetProjectNotificationsHandler;
+import com.epam.ta.reportportal.core.project.settings.notification.UpdateProjectNotificationHandler;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,13 +50,16 @@ public class NotificationController {
 	private final GetProjectHandler getProjectHandler;
 	private final GetProjectNotificationsHandler getProjectNotificationsHandler;
 	private final CreateProjectNotificationHandler createProjectNotificationHandler;
+	private final UpdateProjectNotificationHandler updateProjectNotificationHandler;
 
 	@Autowired
 	public NotificationController(GetProjectHandler getProjectHandler, GetProjectNotificationsHandler getProjectNotificationsHandler,
-			CreateProjectNotificationHandler createProjectNotificationHandler) {
+			CreateProjectNotificationHandler createProjectNotificationHandler,
+			UpdateProjectNotificationHandler updateProjectNotificationHandler) {
 		this.getProjectHandler = getProjectHandler;
 		this.getProjectNotificationsHandler = getProjectNotificationsHandler;
 		this.createProjectNotificationHandler = createProjectNotificationHandler;
+		this.updateProjectNotificationHandler = updateProjectNotificationHandler;
 	}
 
 	@Transactional(readOnly = true)
@@ -71,12 +76,27 @@ public class NotificationController {
 	@ResponseStatus(CREATED)
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
 	@ApiOperation(value = "Creates notification for specified project", notes = "Only for users with PROJECT_MANAGER or ADMIN roles")
-	public EntryCreatedRS getNotifications(@PathVariable String projectName,
+	public EntryCreatedRS createNotification(@PathVariable String projectName,
 			@RequestBody @Validated SenderCaseDTO createNotificationRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return createProjectNotificationHandler.createNotification(
 				getProjectHandler.get(normalizeId(projectName)),
 				createNotificationRQ,
+				user
+		);
+	}
+
+	@Transactional
+	@PutMapping("/{projectName}")
+	@ResponseStatus(CREATED)
+	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@ApiOperation(value = "Updates notification for specified project", notes = "Only for users with PROJECT_MANAGER or ADMIN roles")
+	public OperationCompletionRS updateNotification(@PathVariable String projectName,
+			@RequestBody @Validated SenderCaseDTO updateNotificationRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return updateProjectNotificationHandler.updateNotification(
+				getProjectHandler.get(normalizeId(projectName)),
+				updateNotificationRQ,
 				user
 		);
 	}

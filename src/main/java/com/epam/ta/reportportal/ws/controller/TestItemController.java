@@ -216,6 +216,8 @@ public class TestItemController {
 	public Iterable<TestItemResource> getTestItemsV2(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@RequestParam Map<String, String> params, @FilterFor(TestItem.class) Filter filter,
 			@FilterFor(TestItem.class) Queryable predefinedFilter, @SortFor(TestItem.class) Pageable pageable) {
+		// tmp return null for project, to fix perf issue
+		if ("libg-140".equalsIgnoreCase(projectName)) return null;
 		return getTestItemHandler.getTestItemsByProvider(new CompositeFilter(Operator.AND, filter, predefinedFilter),
 				pageable,
 				projectExtractor.extractProjectDetails(user, projectName),

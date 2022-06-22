@@ -38,11 +38,12 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
+import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_LAUNCH_DESCRIPTION_LENGTH;
 import static java.util.Optional.ofNullable;
 
 public class LaunchBuilder implements Supplier<Launch> {
 
-	private static final int LAUNCH_DESCRIPTION_LENGTH_LIMIT = 1024;
+	private static final int LAUNCH_DESCRIPTION_LENGTH_LIMIT = 2048;
 	private static final int DESCRIPTION_START_SYMBOL_INDEX = 0;
 
 	private Launch launch;

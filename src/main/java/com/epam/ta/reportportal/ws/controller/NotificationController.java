@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.core.project.settings.notification.CreateProjectNotificationHandler;
+import com.epam.ta.reportportal.core.project.settings.notification.DeleteProjectNotificationHandlerImpl;
 import com.epam.ta.reportportal.core.project.settings.notification.GetProjectNotificationsHandler;
 import com.epam.ta.reportportal.core.project.settings.notification.UpdateProjectNotificationHandler;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
@@ -51,15 +52,17 @@ public class NotificationController {
 	private final GetProjectNotificationsHandler getProjectNotificationsHandler;
 	private final CreateProjectNotificationHandler createProjectNotificationHandler;
 	private final UpdateProjectNotificationHandler updateProjectNotificationHandler;
+	private final DeleteProjectNotificationHandlerImpl deleteNotificationHandler;
 
 	@Autowired
 	public NotificationController(GetProjectHandler getProjectHandler, GetProjectNotificationsHandler getProjectNotificationsHandler,
 			CreateProjectNotificationHandler createProjectNotificationHandler,
-			UpdateProjectNotificationHandler updateProjectNotificationHandler) {
+			UpdateProjectNotificationHandler updateProjectNotificationHandler, DeleteProjectNotificationHandlerImpl deleteNotificationHandler) {
 		this.getProjectHandler = getProjectHandler;
 		this.getProjectNotificationsHandler = getProjectNotificationsHandler;
 		this.createProjectNotificationHandler = createProjectNotificationHandler;
 		this.updateProjectNotificationHandler = updateProjectNotificationHandler;
+		this.deleteNotificationHandler = deleteNotificationHandler;
 	}
 
 	@Transactional(readOnly = true)
@@ -97,6 +100,21 @@ public class NotificationController {
 		return updateProjectNotificationHandler.updateNotification(
 				getProjectHandler.get(normalizeId(projectName)),
 				updateNotificationRQ,
+				user
+		);
+	}
+
+	@Transactional
+	@DeleteMapping("/{projectName}/{notificationId:\\d+}")
+	@ResponseStatus(OK)
+	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@ApiOperation(value = "Deletes notification for specified project", notes = "Only for users with PROJECT_MANAGER or ADMIN roles")
+	public OperationCompletionRS deleteNotification(@PathVariable String projectName,
+			@PathVariable Long notificationId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return deleteNotificationHandler.deleteNotification(
+				getProjectHandler.get(normalizeId(projectName)),
+				notificationId,
 				user
 		);
 	}

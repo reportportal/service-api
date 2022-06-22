@@ -5,6 +5,11 @@ properties([
       name: "VERSION", 
       defaultValue: "",
       description: "Release candidate version tag"
+    ),
+    string(
+      name: "BRANCH", 
+      defaultValue: "",
+      description: "Specify the GitHub branch from which the image will be built"
     )
   ])
 ])

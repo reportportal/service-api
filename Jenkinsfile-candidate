@@ -37,7 +37,7 @@ node {
             def image = env.AWS_URI + '/service-api:' + env.TAG + '-RC-' + env.BUILD_NUMBER
             def url = 'https://' + env.AWS_URI
             def credentials = 'ecr:' + env.AWS_REGION + ':aws_credentials'
-            sh "./gradlew buildDocker -P dockerTag=$AWS_URI/service-api"
+            sh './gradlew buildDocker -P dockerTag=$AWS_URI/service-api:$VERSION-RC-$BUILD_NUMBER'
             docker.withRegistry(url, credentials) {
                 docker.image(image).push()
             }

@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -31,6 +32,8 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 public class ElementsCounterService {
 
+	private static final int BATCH_SIZE = 50;
+
 	private final TestItemRepository testItemRepository;
 
 	private final LogRepository logRepository;
@@ -42,12 +45,14 @@ public class ElementsCounterService {
 	}
 
 	public Long countNumberOfLaunchElements(Long launchId) {
-		long resultedNumber = 1L;
+		final AtomicLong resultedNumber = new AtomicLong(1L);
 		final List<Long> testItemIdsByLaunchId = testItemRepository.findIdsByLaunchId(launchId);
-		resultedNumber += testItemIdsByLaunchId.size();
-		resultedNumber += logRepository.countLogsByTestItemItemIdIn(testItemIdsByLaunchId);
-		resultedNumber += logRepository.countLogsByLaunchId(launchId);
-		return resultedNumber;
+		resultedNumber.addAndGet(testItemIdsByLaunchId.size());
+		Lists.partition(testItemIdsByLaunchId, BATCH_SIZE).forEach(batch -> {
+			resultedNumber.addAndGet(logRepository.countLogsByTestItemItemIdIn(testItemIdsByLaunchId));
+			resultedNumber.addAndGet(logRepository.countLogsByLaunchId(launchId));
+		});
+		return resultedNumber.longValue();
 	}
 
 	public Long countNumberOfItemElements(TestItem item) {
@@ -74,9 +79,7 @@ public class ElementsCounterService {
 	public Long countNumberOfItemElements(List<TestItem> items) {
 		if (!CollectionUtils.isEmpty(items)) {
 			final AtomicLong resultedNumber = new AtomicLong(0L);
-			items.forEach(item -> {
-				resultedNumber.addAndGet(countNumberOfItemElements(item));
-			});
+			items.forEach(item -> resultedNumber.addAndGet(countNumberOfItemElements(item)));
 			return resultedNumber.get();
 		}
 		return 0L;

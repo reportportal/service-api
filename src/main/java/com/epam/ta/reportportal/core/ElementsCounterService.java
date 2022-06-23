@@ -31,9 +31,9 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 public class ElementsCounterService {
 
-	private TestItemRepository testItemRepository;
+	private final TestItemRepository testItemRepository;
 
-	private LogRepository logRepository;
+	private final LogRepository logRepository;
 
 	@Autowired
 	public ElementsCounterService(TestItemRepository testItemRepository, LogRepository logRepository) {
@@ -52,11 +52,21 @@ public class ElementsCounterService {
 
 	public Long countNumberOfItemElements(TestItem item) {
 		if (item != null) {
-			long resultedNumber;
+			final AtomicLong resultedNumber;
 			final List<Long> itemIds = testItemRepository.selectAllDescendantsIds(item.getPath());
-			resultedNumber = itemIds.size();
-			resultedNumber += logRepository.countLogsByTestItemItemIdIn(itemIds);
-			return resultedNumber;
+			resultedNumber = new AtomicLong(itemIds.size());
+			resultedNumber.addAndGet(logRepository.countLogsByTestItemItemIdIn(itemIds));
+
+			if (item.isHasRetries()) {
+				final List<Long> retryIds = testItemRepository.findIdsByRetryOf(item.getItemId());
+				final List<String> nestedPaths = testItemRepository.findPathsByParentIds(retryIds.toArray(new Long[0]));
+				nestedPaths.forEach(path -> {
+					final List<Long> nestedChild = testItemRepository.selectAllDescendantsIds(path);
+					resultedNumber.addAndGet(nestedChild.size());
+					resultedNumber.addAndGet(logRepository.countLogsByTestItemItemIdIn(nestedChild));
+				});
+			}
+			return resultedNumber.longValue();
 		}
 		return 0L;
 	}
@@ -65,9 +75,7 @@ public class ElementsCounterService {
 		if (!CollectionUtils.isEmpty(items)) {
 			final AtomicLong resultedNumber = new AtomicLong(0L);
 			items.forEach(item -> {
-				final List<Long> itemIds = testItemRepository.selectAllDescendantsIds(item.getPath());
-				resultedNumber.addAndGet(itemIds.size());
-				resultedNumber.addAndGet(logRepository.countLogsByTestItemItemIdIn(itemIds));
+				resultedNumber.addAndGet(countNumberOfItemElements(item));
 			});
 			return resultedNumber.get();
 		}

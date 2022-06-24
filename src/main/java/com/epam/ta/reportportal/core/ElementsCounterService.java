@@ -51,10 +51,9 @@ public class ElementsCounterService {
 		final AtomicLong resultedNumber = new AtomicLong(1L);
 		final List<Long> testItemIdsByLaunchId = testItemRepository.findIdsByLaunchId(launchId);
 		resultedNumber.addAndGet(testItemIdsByLaunchId.size());
-		Lists.partition(testItemIdsByLaunchId, batchSize).forEach(batch -> {
-			resultedNumber.addAndGet(logRepository.countLogsByTestItemItemIdIn(testItemIdsByLaunchId));
-			resultedNumber.addAndGet(logRepository.countLogsByLaunchId(launchId));
-		});
+		resultedNumber.addAndGet(logRepository.countLogsByLaunchId(launchId));
+		Lists.partition(testItemIdsByLaunchId, batchSize)
+				.forEach(batch -> resultedNumber.addAndGet(logRepository.countLogsByTestItemItemIdIn(testItemIdsByLaunchId)));
 		return resultedNumber.longValue();
 	}
 

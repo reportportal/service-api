@@ -18,7 +18,9 @@ package com.epam.ta.reportportal.core;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -31,32 +33,47 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 public class ElementsCounterService {
 
-	private TestItemRepository testItemRepository;
+	private final Integer batchSize;
 
-	private LogRepository logRepository;
+	private final TestItemRepository testItemRepository;
+
+	private final LogRepository logRepository;
 
 	@Autowired
-	public ElementsCounterService(TestItemRepository testItemRepository, LogRepository logRepository) {
+	public ElementsCounterService(@Value("${rp.environment.variable.elements-counter.batch-size}") Integer batchSize,
+			TestItemRepository testItemRepository, LogRepository logRepository) {
+		this.batchSize = batchSize;
 		this.testItemRepository = testItemRepository;
 		this.logRepository = logRepository;
 	}
 
 	public Long countNumberOfLaunchElements(Long launchId) {
-		long resultedNumber = 1L;
+		final AtomicLong resultedNumber = new AtomicLong(1L);
 		final List<Long> testItemIdsByLaunchId = testItemRepository.findIdsByLaunchId(launchId);
-		resultedNumber += testItemIdsByLaunchId.size();
-		resultedNumber += logRepository.countLogsByTestItemItemIdIn(testItemIdsByLaunchId);
-		resultedNumber += logRepository.countLogsByLaunchId(launchId);
-		return resultedNumber;
+		resultedNumber.addAndGet(testItemIdsByLaunchId.size());
+		resultedNumber.addAndGet(logRepository.countLogsByLaunchId(launchId));
+		Lists.partition(testItemIdsByLaunchId, batchSize)
+				.forEach(batch -> resultedNumber.addAndGet(logRepository.countLogsByTestItemItemIdIn(testItemIdsByLaunchId)));
+		return resultedNumber.longValue();
 	}
 
 	public Long countNumberOfItemElements(TestItem item) {
 		if (item != null) {
-			long resultedNumber;
+			final AtomicLong resultedNumber;
 			final List<Long> itemIds = testItemRepository.selectAllDescendantsIds(item.getPath());
-			resultedNumber = itemIds.size();
-			resultedNumber += logRepository.countLogsByTestItemItemIdIn(itemIds);
-			return resultedNumber;
+			resultedNumber = new AtomicLong(itemIds.size());
+			resultedNumber.addAndGet(logRepository.countLogsByTestItemItemIdIn(itemIds));
+
+			if (item.isHasRetries()) {
+				final List<Long> retryIds = testItemRepository.findIdsByRetryOf(item.getItemId());
+				final List<String> nestedPaths = testItemRepository.findPathsByParentIds(retryIds.toArray(new Long[0]));
+				nestedPaths.forEach(path -> {
+					final List<Long> nestedChild = testItemRepository.selectAllDescendantsIds(path);
+					resultedNumber.addAndGet(nestedChild.size());
+					resultedNumber.addAndGet(logRepository.countLogsByTestItemItemIdIn(nestedChild));
+				});
+			}
+			return resultedNumber.longValue();
 		}
 		return 0L;
 	}
@@ -64,11 +81,7 @@ public class ElementsCounterService {
 	public Long countNumberOfItemElements(List<TestItem> items) {
 		if (!CollectionUtils.isEmpty(items)) {
 			final AtomicLong resultedNumber = new AtomicLong(0L);
-			items.forEach(item -> {
-				final List<Long> itemIds = testItemRepository.selectAllDescendantsIds(item.getPath());
-				resultedNumber.addAndGet(itemIds.size());
-				resultedNumber.addAndGet(logRepository.countLogsByTestItemItemIdIn(itemIds));
-			});
+			items.forEach(item -> resultedNumber.addAndGet(countNumberOfItemElements(item)));
 			return resultedNumber.get();
 		}
 		return 0L;

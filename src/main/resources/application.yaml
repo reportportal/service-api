@@ -70,6 +70,8 @@ rp:
         batch-size: 20
       pattern-analysis:
         batch-size: 100
+      elements-counter:
+        batch-size: 50
       history:
         old: false
       demo:

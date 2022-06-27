@@ -22,8 +22,8 @@ import com.epam.ta.reportportal.dao.SenderCaseRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.util.email.EmailRulesValidator;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -62,7 +62,7 @@ public class ProjectNotificationValidator {
 		Optional<SenderCaseDTO> duplicate = senderCaseRepository.findAllByProjectId(project.getId())
 				.stream()
 				.map(NotificationConfigConverter.TO_CASE_RESOURCE)
-				.filter(o1 -> equalsWithoutRuleName(o1, senderCaseDTO))
+				.filter(existing -> equalsWithoutRuleName(existing, senderCaseDTO))
 				.findFirst();
 		expect(duplicate, Optional::isEmpty).verify(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
 	}
@@ -111,11 +111,10 @@ public class ProjectNotificationValidator {
 		);
 	}
 
-	private boolean equalsWithoutRuleName(SenderCaseDTO o1, SenderCaseDTO o2) {
-		return Objects.equals(o1.getRecipients(), o2.getRecipients())
-				&& Objects.equals(o1.getSendCase(), o2.getSendCase())
-				&& Objects.equals(o1.getLaunchNames(), o2.getLaunchNames())
-				&& Objects.equals(o1.getAttributes(), o2.getAttributes())
-				&& Objects.equals(o1.isEnabled(), o2.isEnabled());
+	private boolean equalsWithoutRuleName(SenderCaseDTO senderCase, SenderCaseDTO toCompare) {
+		return CollectionUtils.isEqualCollection(senderCase.getRecipients(), toCompare.getRecipients())
+				&& Objects.equals(senderCase.getSendCase(), toCompare.getSendCase())
+				&& CollectionUtils.isEqualCollection(senderCase.getLaunchNames(), toCompare.getLaunchNames())
+				&& CollectionUtils.isEqualCollection(senderCase.getAttributes(), toCompare.getAttributes());
 	}
 }

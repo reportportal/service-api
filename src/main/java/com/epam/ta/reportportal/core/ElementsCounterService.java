@@ -53,7 +53,7 @@ public class ElementsCounterService {
 		resultedNumber.addAndGet(testItemIdsByLaunchId.size());
 		resultedNumber.addAndGet(logRepository.countLogsByLaunchId(launchId));
 		Lists.partition(testItemIdsByLaunchId, batchSize)
-				.forEach(batch -> resultedNumber.addAndGet(logRepository.countLogsByTestItemItemIdIn(testItemIdsByLaunchId)));
+				.forEach(batch -> resultedNumber.addAndGet(logRepository.countLogsByTestItemItemIdIn(batch)));
 		return resultedNumber.longValue();
 	}
 

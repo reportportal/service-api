@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -52,7 +53,12 @@ public class AutoAnalyzedCollector implements AnalyzeItemsCollector {
 
 	@Override
 	public List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user) {
-		List<Long> itemIds = testItemRepository.selectIdsByAnalyzedWithLevelGte(true, false, launchId, LogLevel.ERROR.toInt());
+		List<Long> itemIds = testItemRepository.selectIdsByAnalyzedWithLevelGteExcludingIssueTypes(true,
+				false,
+				launchId,
+				LogLevel.ERROR.toInt(),
+				Collections.emptyList()
+		);
 		int deletedLogsCount = logIndexer.indexItemsRemove(projectId, itemIds);
 		LOGGER.debug("{} logs deleted from analyzer", deletedLogsCount);
 		updateTestItemHandler.resetItemsIssue(itemIds, projectId, user);

@@ -129,10 +129,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	private final ProjectConverter projectConverter;
 
 	@Autowired
-	public UpdateProjectHandlerImpl(ProjectExtractor projectExtractor, ProjectAttributeValidator projectAttributeValidator, ProjectRepository projectRepository,
-			UserRepository userRepository, UserPreferenceRepository preferenceRepository, MessageBus messageBus, ProjectUserRepository projectUserRepository,
-			ApplicationEventPublisher applicationEventPublisher, MailServiceFactory mailServiceFactory, AnalyzerStatusCache analyzerStatusCache, IndexerStatusCache indexerStatusCache,
-			AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer, ShareableObjectsHandler aclHandler, ProjectConverter projectConverter) {
+	public UpdateProjectHandlerImpl(ProjectExtractor projectExtractor, ProjectAttributeValidator projectAttributeValidator,
+			ProjectRepository projectRepository, UserRepository userRepository, UserPreferenceRepository preferenceRepository,
+			MessageBus messageBus, ProjectUserRepository projectUserRepository, ApplicationEventPublisher applicationEventPublisher,
+			MailServiceFactory mailServiceFactory, AnalyzerStatusCache analyzerStatusCache, IndexerStatusCache indexerStatusCache,
+			AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer, ShareableObjectsHandler aclHandler,
+			ProjectConverter projectConverter) {
 		this.projectExtractor = projectExtractor;
 		this.projectAttributeValidator = projectAttributeValidator;
 		this.projectRepository = projectRepository;
@@ -367,36 +369,41 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		}
 	}
 
-	private void updateProjectUserRoles(Map<String, String> userRoles, Project project, ReportPortalUser user) {
+	private void updateProjectUserRoles(Map<String, String> userRoles, Project project, ReportPortalUser updater) {
 
-		if (!user.getUserRole().equals(UserRole.ADMINISTRATOR)) {
-			expect(userRoles.get(user.getUsername()), isNull()).verify(ErrorType.UNABLE_TO_UPDATE_YOURSELF_ROLE, user.getUsername());
+		if (!updater.getUserRole().equals(UserRole.ADMINISTRATOR)) {
+			expect(userRoles.get(updater.getUsername()), isNull()).verify(ErrorType.UNABLE_TO_UPDATE_YOURSELF_ROLE, updater.getUsername());
 		}
 
 		if (MapUtils.isNotEmpty(userRoles)) {
-			userRoles.forEach((key, value) -> {
+			userRoles.forEach((username, role) -> {
 
-				Optional<ProjectRole> newProjectRole = ProjectRole.forName(value);
-				expect(newProjectRole, isPresent()).verify(ErrorType.ROLE_NOT_FOUND, value);
+				ProjectRole newProjectRole = ProjectRole.forName(role).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, role));
 
-				Optional<ProjectUser> updatingProjectUser = ofNullable(ProjectUtils.findUserConfigByLogin(project, key));
-				expect(updatingProjectUser, isPresent()).verify(ErrorType.USER_NOT_FOUND, key);
+				ProjectUser updatingProjectUser = ofNullable(ProjectUtils.findUserConfigByLogin(project,
+						username
+				)).orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
 
-				if (UserRole.ADMINISTRATOR != user.getUserRole()) {
-					ProjectRole principalRole = projectExtractor.extractProjectDetails(user, project.getName()).getProjectRole();
+				if (UserRole.ADMINISTRATOR != updater.getUserRole()) {
+					ProjectRole principalRole = projectExtractor.extractProjectDetails(updater, project.getName()).getProjectRole();
 					ProjectRole updatingUserRole = ofNullable(ProjectUtils.findUserConfigByLogin(project,
-							key
-					)).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, key)).getProjectRole();
+							username
+					)).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username)).getProjectRole();
 					/*
 					 * Validate principal role level is high enough
 					 */
 					if (principalRole.sameOrHigherThan(updatingUserRole)) {
-						expect(newProjectRole.get(), Preconditions.isLevelEnough(principalRole)).verify(ErrorType.ACCESS_DENIED);
+						expect(newProjectRole, Preconditions.isLevelEnough(principalRole)).verify(ErrorType.ACCESS_DENIED);
 					} else {
 						expect(updatingUserRole, Preconditions.isLevelEnough(principalRole)).verify(ErrorType.ACCESS_DENIED);
 					}
 				}
-				updatingProjectUser.get().setProjectRole(newProjectRole.get());
+				updatingProjectUser.setProjectRole(newProjectRole);
+				if (newProjectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
+					aclHandler.updateSharedObjectsPermission(project.getId(), username, BasePermission.ADMINISTRATION);
+				} else {
+					aclHandler.updateSharedObjectsPermission(project.getId(), username, BasePermission.READ);
+				}
 			});
 		}
 	}

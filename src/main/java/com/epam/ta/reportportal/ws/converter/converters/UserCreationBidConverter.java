@@ -41,7 +41,7 @@ public final class UserCreationBidConverter {
 		UserCreationBid user = new UserCreationBid();
 		user.setUuid(UUID.randomUUID().toString());
 		user.setEmail(EntityUtils.normalizeId(request.getEmail().trim()));
-		user.setDefaultProject(project);
+		user.setProjectName(project.getName());
 		user.setRole(request.getRole());
 		return user;
 	};

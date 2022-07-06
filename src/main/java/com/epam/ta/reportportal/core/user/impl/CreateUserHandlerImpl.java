@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.user.impl;
 
 import com.epam.ta.reportportal.auth.authenticator.UserAuthenticator;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
@@ -29,6 +30,7 @@ import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.dao.RestorePasswordBidRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.Metadata;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -46,6 +48,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.ws.model.user.*;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.exception.ConstraintViolationException;
@@ -56,6 +59,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.PersistenceException;
+import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -76,6 +81,9 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
  */
 @Service
 public class CreateUserHandlerImpl implements CreateUserHandler {
+
+	public static final String BID_TYPE = "type";
+	public static final String INTERNAL_BID_TYPE = "internal";
 
 	private final UserRepository userRepository;
 
@@ -132,7 +140,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 		normalize(request);
 
-		Pair<UserActivityResource, CreateUserRS> pair = saveUser(request);
+		final Project projectToAssign = getProjectHandler.getRaw(normalizeId(request.getDefaultProject()));
+		Pair<UserActivityResource, CreateUserRS> pair = saveUser(request, projectToAssign);
 		UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), creator.getUserId(), creator.getUsername());
 		messageBus.publishActivity(userCreatedEvent);
 
@@ -179,9 +188,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		return normalizeId(original.trim());
 	}
 
-	private Pair<UserActivityResource, CreateUserRS> saveUser(CreateUserRQFull request) {
-
-		final Project projectToAssign = getProjectHandler.getRaw(normalizeId(request.getDefaultProject()));
+	private Pair<UserActivityResource, CreateUserRS> saveUser(CreateUserRQFull request, Project projectToAssign) {
 		final ProjectRole projectRole = forName(request.getProjectRole()).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND,
 				request.getProjectRole()
 		));
@@ -224,7 +231,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 	@Override
 	@Transactional
 	public CreateUserRS createUser(CreateUserRQConfirm request, String uuid) {
-		final UserCreationBid bid = userCreationBidRepository.findById(uuid)
+		final UserCreationBid bid = userCreationBidRepository.findByUuidAndType(uuid, INTERNAL_BID_TYPE)
 				.orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST,
 						"Impossible to register user. UUID expired or already registered."
 				));
@@ -234,7 +241,10 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		normalize(createUserRQFull);
 		expect(createUserRQFull.getEmail(), Predicate.isEqual(bid.getEmail())).verify(INCORRECT_REQUEST, "Email from bid not match.");
 
-		final Pair<UserActivityResource, CreateUserRS> pair = saveUser(createUserRQFull);
+		final Project projectToAssign = getProjectHandler.getRaw(normalizeId(createUserRQFull.getDefaultProject()));
+		validateBidCreationTime(projectToAssign, bid);
+
+		final Pair<UserActivityResource, CreateUserRS> pair = saveUser(createUserRQFull, projectToAssign);
 
 		userCreationBidRepository.deleteAllByEmail(createUserRQFull.getEmail());
 
@@ -244,13 +254,20 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		return pair.getValue();
 	}
 
+	private void validateBidCreationTime(Project projectToAssign, UserCreationBid bid) {
+		final Instant projectCreationTime = Instant.ofEpochMilli(projectToAssign.getCreationDate().getTime());
+		final Instant bidCreationTime = Instant.ofEpochMilli(bid.getLastModified().getTime());
+		BusinessRule.expect(bidCreationTime, bidTime -> bidTime.isAfter(projectCreationTime))
+				.verify(ACCESS_DENIED, "No access to project: " + projectToAssign.getName());
+	}
+
 	private CreateUserRQFull convertToCreateRequest(CreateUserRQConfirm request, UserCreationBid bid) {
 		CreateUserRQFull createUserRQFull = new CreateUserRQFull();
 		createUserRQFull.setLogin(request.getLogin());
 		createUserRQFull.setEmail(request.getEmail());
 		createUserRQFull.setFullName(request.getFullName());
 		createUserRQFull.setPassword(request.getPassword());
-		createUserRQFull.setDefaultProject(bid.getDefaultProject().getName());
+		createUserRQFull.setDefaultProject(bid.getProjectName());
 		createUserRQFull.setAccountRole(UserRole.USER.name());
 		createUserRQFull.setProjectRole(bid.getRole());
 		return createUserRQFull;
@@ -286,6 +303,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		request.setRole(forName(request.getRole()).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, request.getRole())).name());
 
 		UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(request, defaultProject);
+		bid.setMetadata(getUserCreationBidMetadata());
 		try {
 			userCreationBidRepository.save(bid);
 		} catch (Exception e) {
@@ -304,6 +322,12 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		response.setBid(bid.getUuid());
 		response.setBackLink(emailLink.toString());
 		return response;
+	}
+
+	private Metadata getUserCreationBidMetadata() {
+		final Map<String, Object> meta = Maps.newHashMapWithExpectedSize(1);
+		meta.put(BID_TYPE, INTERNAL_BID_TYPE);
+		return new Metadata(meta);
 	}
 
 	@Override

@@ -105,8 +105,8 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 			suiteGenerator.generateSuites(suite, RootMetaData.of(launch.getUuid(), user, projectDetails));
 		});
 
-		demoDataLaunchService.finishLaunch(launch.getUuid());
 		final List<Log> logs = demoLogsService.generateLaunchLogs(LAUNCH_LOGS_COUNT, launch.getUuid(), launch.getStatus());
+		demoDataLaunchService.finishLaunch(launch.getUuid());
 		demoLogsService.attachFiles(logs, projectDetails.getProjectId(), launch.getUuid());
 		return launch.getId();
 	}

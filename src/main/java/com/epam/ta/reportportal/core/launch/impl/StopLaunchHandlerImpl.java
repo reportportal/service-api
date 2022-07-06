@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import com.epam.reportportal.extension.event.LaunchFinishedPluginEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishForcedEvent;
@@ -91,6 +92,7 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
 
 		messageBus.publishActivity(new LaunchFinishForcedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));
 		eventPublisher.publishEvent(new LaunchFinishedEvent(launch, user.getUserId(), user.getUsername()));
+		eventPublisher.publishEvent(new LaunchFinishedPluginEvent(launch.getId(), launch.getProjectId()));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully stopped.");
 	}
 

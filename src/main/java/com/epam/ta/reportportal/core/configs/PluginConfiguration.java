@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.integration.plugin.file.validator.ExtensionValidator;
 import com.epam.ta.reportportal.core.integration.plugin.file.validator.FileValidator;
+import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
+import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.entity.plugin.PluginFileExtension;
 import com.epam.ta.reportportal.plugin.Pf4jPluginManager;
@@ -28,7 +30,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.mail.javamail.ConfigurableMimeFileTypeMap;
 
+import javax.activation.FileTypeMap;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -49,6 +53,9 @@ public class PluginConfiguration {
 
 	@Value("${rp.plugins.resources.path}")
 	private String pluginsResourcesPath;
+
+	@Value("${rp.plugins.resources.public}")
+	private String publicFolderQualifier;
 
 	@Bean
 	public Pf4jPluginBox pf4jPluginBox() throws IOException {
@@ -103,6 +110,21 @@ public class PluginConfiguration {
 				.map(v -> v.getExtension().split("\\.")[1])
 				.collect(Collectors.toSet());
 		return new ExtensionValidator(allowedExtensions);
+	}
+
+	@Bean
+	public FileTypeMap fileTypeMap() {
+		return new ConfigurableMimeFileTypeMap();
+	}
+
+	@Bean
+	public PluginFilesProvider pluginPublicFilesProvider() {
+		return new PluginFilesProvider(pluginsResourcesPath, publicFolderQualifier, fileTypeMap(), integrationTypeRepository);
+	}
+
+	@Bean
+	public PluginFilesProvider pluginFilesProvider() {
+		return new PluginFilesProvider(pluginsResourcesPath, "", fileTypeMap(), integrationTypeRepository);
 	}
 
 }

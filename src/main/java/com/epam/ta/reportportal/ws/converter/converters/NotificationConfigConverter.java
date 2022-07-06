@@ -57,11 +57,13 @@ public final class NotificationConfigConverter {
 	public final static Function<SenderCase, SenderCaseDTO> TO_CASE_RESOURCE = model -> {
 		Preconditions.checkNotNull(model);
 		SenderCaseDTO resource = new SenderCaseDTO();
+		resource.setId(model.getId());
 		resource.setLaunchNames(Lists.newArrayList(model.getLaunchNames()));
 		ofNullable(model.getLaunchAttributeRules()).ifPresent(launchAttributeRules -> resource.setAttributes(launchAttributeRules.stream()
 				.map(TO_ATTRIBUTE_RULE_RESOURCE)
 				.collect(Collectors.toSet())));
 		resource.setSendCase(model.getSendCase().getCaseString());
+		resource.setRuleName(model.getRuleName());
 		resource.setRecipients(Lists.newArrayList(model.getRecipients()));
 		resource.setEnabled(model.isEnabled());
 		return resource;
@@ -83,7 +85,9 @@ public final class NotificationConfigConverter {
 					return launchAttributeRule;
 				})
 				.collect(Collectors.toSet())));
+		senderCase.setId(resource.getId());
 		ofNullable(resource.getLaunchNames()).ifPresent(launchNames -> senderCase.setLaunchNames(Sets.newHashSet(launchNames)));
+		senderCase.setRuleName(resource.getRuleName());
 		senderCase.setRecipients(Sets.newHashSet(resource.getRecipients()));
 		senderCase.setSendCase(SendCase.findByName(resource.getSendCase())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,

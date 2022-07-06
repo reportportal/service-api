@@ -70,6 +70,8 @@ rp:
         batch-size: 20
       pattern-analysis:
         batch-size: 100
+      elements-counter:
+        batch-size: 50
       history:
         old: false
       demo:
@@ -157,6 +159,7 @@ rp:
     path: ${rp.plugins.rootDir}/resolved
     resources:
       path: ${rp.plugins.rootDir}/resources
+      public: public
     temp:
       path: ${rp.plugins.rootDir}/temp
   binarystore:

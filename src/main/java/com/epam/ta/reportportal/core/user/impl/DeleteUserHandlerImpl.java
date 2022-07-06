@@ -51,8 +51,6 @@ import java.util.Objects;
 @Transactional
 public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
-	private final UserBinaryDataService dataStore;
-
 	private final UserRepository userRepository;
 
 	private final DeleteProjectHandler deleteProjectHandler;
@@ -67,12 +65,11 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 	@Autowired
 	public DeleteUserHandlerImpl(UserRepository userRepository, DeleteProjectHandler deleteProjectHandler,
-			ShareableObjectsHandler shareableObjectsHandler, UserBinaryDataService dataStore, ContentRemover<User> userContentRemover,
+			ShareableObjectsHandler shareableObjectsHandler, ContentRemover<User> userContentRemover,
 			ProjectRecipientHandler projectRecipientHandler, ProjectRepository projectRepository) {
 		this.userRepository = userRepository;
 		this.deleteProjectHandler = deleteProjectHandler;
 		this.shareableObjectsHandler = shareableObjectsHandler;
-		this.dataStore = dataStore;
 		this.userContentRemover = userContentRemover;
 		this.projectRecipientHandler = projectRecipientHandler;
 		this.projectRepository = projectRepository;
@@ -96,7 +93,6 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 			}
 		});
 
-		dataStore.deleteUserPhoto(user);
 		userRepository.delete(user);
 		return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
 	}

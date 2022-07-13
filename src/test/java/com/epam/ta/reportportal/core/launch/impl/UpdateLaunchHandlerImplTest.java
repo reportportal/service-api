@@ -149,8 +149,8 @@ class UpdateLaunchHandlerImplTest {
 
 		final ClusterEntityContext entityContext = contextCaptor.getValue();
 
-		assertEquals(1L, entityContext.getProjectId());
-		assertEquals(1L, entityContext.getLaunchId());
+		assertEquals(1L, entityContext.getProjectId().longValue());
+		assertEquals(1L, entityContext.getLaunchId().longValue());
 
 		final Map<String, String> providedConfig = mapCaptor.getValue();
 

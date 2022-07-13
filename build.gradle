@@ -16,7 +16,7 @@
 
 plugins {
     id "io.spring.dependency-management" version "1.0.9.RELEASE"
-    id 'org.springframework.boot' version '2.2.5.RELEASE'
+    id 'org.springframework.boot' version '2.5.12'
     id 'java'
     id "org.owasp.dependencycheck" version "5.3.1"
 }
@@ -30,7 +30,7 @@ apply from: "$scriptsUrl/build-info.gradle"
 apply from: "$scriptsUrl/release-service.gradle"
 apply from: "$scriptsUrl/signing.gradle"
 apply from: "$scriptsUrl/copy-database-scripts.gradle"
-apply from: "$scriptsUrl/build-quality.gradle"
+//apply from: "$scriptsUrl/build-quality.gradle"
 apply from: "$scriptsUrl/jacoco.gradle"
 project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
 
@@ -63,7 +63,8 @@ ext['postgresql.version'] = '42.2.13'
 //https://nvd.nist.gov/vuln/detail/CVE-2020-9488 and https://nvd.nist.gov/vuln/detail/CVE-2021-44228 and https://nvd.nist.gov/vuln/detail/CVE-2021-45046
 ext['log4j2.version'] = '2.17.0'
 ext['log4j-to-slf4j.version'] = '2.17.0'
-//
+//https://nvd.nist.gov/vuln/detail/cve-2022-22965
+ext['spring-boot.version'] = '2.5.12'
 
 dependencyManagement {
     imports {
@@ -135,11 +136,11 @@ dependencies {
     compile 'com.github.ben-manes.caffeine:caffeine:2.8.0'
 
     // Metrics
-    compile 'io.micrometer:micrometer-registry-prometheus:1.3.1'
+    compile 'io.micrometer:micrometer-registry-prometheus:1.7.10'
 
     //  Tests
     testCompile 'org.springframework.boot:spring-boot-starter-test'
-    testCompile 'org.flywaydb.flyway-test-extensions:flyway-spring-test:6.1.0'
+    testCompile 'org.flywaydb.flyway-test-extensions:flyway-spring-test:7.0.0'
 }
 
 processResources {

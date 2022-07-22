@@ -82,7 +82,7 @@ public class DemoLogsService {
 			logs.addAll(errors.stream().map(msg -> getLog(launch, msg, errorLevel())).collect(toList()));
 		}
 		logRepository.saveAll(logs);
-		logService.saveLogMessageListToElasticSearch(logs);
+		logService.saveLogMessageListToElasticSearch(logs, launch.getId());
 
 		return logs;
 	}
@@ -109,7 +109,7 @@ public class DemoLogsService {
 			logs.addAll(errors.stream().map(msg -> getLog(projectId, testItem, errorLevel(), msg)).collect(toList()));
 		}
 		logRepository.saveAll(logs);
-		logService.saveLogMessageListToElasticSearch(logs);
+		logService.saveLogMessageListToElasticSearch(logs, testItem.getLaunchId());
 
 		return logs;
 	}

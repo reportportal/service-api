@@ -46,6 +46,7 @@ class SaveLastRunAttributePartProviderTest {
 				eq(RP_CLUSTER_LAST_RUN_KEY),
 				eq(true)
 		);
+
 		verify(itemAttributeRepository, times(1)).saveByLaunchId(eq(config.getEntityContext().getLaunchId()),
 				eq(RP_CLUSTER_LAST_RUN_KEY),
 				anyString(),

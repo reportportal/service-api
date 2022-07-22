@@ -46,14 +46,14 @@ class LogServiceElasticTest {
 
     @Test
     void saveLogMessageToElasticSearch() {
-        logServiceElastic.saveLogMessageToElasticSearch(log);
+        logServiceElastic.saveLogMessageToElasticSearch(log, log.getLaunch().getId());
 
         verify(amqpTemplate, times(1)).convertAndSend(eq(PROCESSING_EXCHANGE_NAME), eq(LOG_MESSAGE_SAVING_ROUTING_KEY), eq(logMessage));
     }
 
     @Test
     void saveLogMessageListToElasticSearch() {
-        logServiceElastic.saveLogMessageListToElasticSearch(List.of(log));
+        logServiceElastic.saveLogMessageListToElasticSearch(List.of(log), log.getLaunch().getId());
 
         verify(amqpTemplate, times(1)).convertAndSend(eq(PROCESSING_EXCHANGE_NAME), eq(LOG_MESSAGE_SAVING_ROUTING_KEY), eq(logMessage));
     }

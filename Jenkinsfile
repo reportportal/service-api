@@ -1,4 +1,5 @@
 #!groovy
+
 node {
 
     load "$JENKINS_HOME/jobvars.env"
@@ -21,7 +22,7 @@ node {
     stage('Docker image') {
         sh "./gradlew buildDocker"
     }
-    stage('Push to ECR') {
+    stage('Push to registries') {
         withEnv(["AWS_URI=${AWS_URI}", "AWS_REGION=${AWS_REGION}"]) {
             sh 'docker tag reportportal-dev/service-api ${AWS_URI}/service-api:SNAPSHOT-${BUILD_NUMBER}'
             def image = env.AWS_URI + '/service-api' + ':SNAPSHOT-' + env.BUILD_NUMBER

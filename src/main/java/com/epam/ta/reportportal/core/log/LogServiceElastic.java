@@ -25,9 +25,10 @@ public class LogServiceElastic implements LogService {
         this.amqpTemplate = amqpTemplate;
     }
 
-    public void saveLogMessageToElasticSearch(Log log) {
+    public void saveLogMessageToElasticSearch(Log log, Long launchId) {
         if (Objects.isNull(log)) return;
-        amqpTemplate.convertAndSend(PROCESSING_EXCHANGE_NAME, LOG_MESSAGE_SAVING_ROUTING_KEY, convertLogToLogMessage(log));
+        amqpTemplate.convertAndSend(PROCESSING_EXCHANGE_NAME, LOG_MESSAGE_SAVING_ROUTING_KEY,
+                convertLogToLogMessage(log, launchId));
     }
 
     /**
@@ -35,14 +36,13 @@ public class LogServiceElastic implements LogService {
      * during reporting.
      * @param logList
      */
-    public void saveLogMessageListToElasticSearch(List<Log> logList) {
+    public void saveLogMessageListToElasticSearch(List<Log> logList, Long launchId) {
         if (CollectionUtils.isEmpty(logList)) return;
-        logList.stream().filter(Objects::nonNull).forEach(this::saveLogMessageToElasticSearch);
+        logList.stream().filter(Objects::nonNull).forEach(log -> saveLogMessageToElasticSearch(log, launchId));
     }
 
-    private LogMessage convertLogToLogMessage(Log log) {
+    private LogMessage convertLogToLogMessage(Log log, Long launchId) {
         Long itemId = Objects.nonNull(log.getTestItem()) ? log.getTestItem().getItemId() : null;
-        Long launchId = Objects.nonNull(log.getLaunch()) ? log.getLaunch().getId() : null;
         return new LogMessage(log.getId(), log.getLogTime(), log.getLogMessage(), itemId, launchId, log.getProjectId());
     }
 }

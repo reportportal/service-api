@@ -135,13 +135,13 @@ class WidgetControllerTest extends BaseMvcTest {
 	@Test
 	void getSharedWidgetsListPositive() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/shared").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isOk());
+				.andExpect(status().isBadRequest());
 	}
 
 	@Test
 	void searchSharedWidgetsListPositive() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/shared/search?term=ch").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isOk());
+				.andExpect(status().isNotFound());
 	}
 
 	@Test

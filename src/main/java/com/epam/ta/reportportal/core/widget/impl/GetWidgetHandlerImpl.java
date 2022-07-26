@@ -38,7 +38,6 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
-import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -49,8 +48,6 @@ import org.springframework.util.MultiValueMap;
 import java.util.*;
 import java.util.function.Predicate;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_OWNER;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTES;
@@ -240,29 +237,5 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 			ReportPortalUser user) {
 		Page<Widget> own = widgetRepository.getOwn(ProjectFilter.of(filter, projectDetails.getProjectId()), pageable, user.getUsername());
 		return PagedResourcesAssembler.pageConverter().apply(own.map(Widget::getName));
-	}
-
-	@Override
-	public Iterable<WidgetResource> getShared(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
-			ReportPortalUser user) {
-		Page<Widget> shared = widgetRepository.getShared(ProjectFilter.of(filter, projectDetails.getProjectId()),
-				pageable,
-				user.getUsername()
-		);
-		return PagedResourcesAssembler.pageConverter(WidgetConverter.TO_WIDGET_RESOURCE).apply(shared);
-	}
-
-	@Override
-	public Iterable<WidgetResource> searchShared(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
-			ReportPortalUser user, String term) {
-		Filter termFilter = Filter.builder()
-				.withTarget(Widget.class)
-				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_NAME))
-				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_OWNER))
-				.build();
-		Page<Widget> shared = widgetRepository.getShared(ProjectFilter.of(new CompositeFilter(Operator.AND, filter, termFilter),
-				projectDetails.getProjectId()
-		), pageable, user.getUsername());
-		return PagedResourcesAssembler.pageConverter(WidgetConverter.TO_WIDGET_RESOURCE).apply(shared);
 	}
 }

@@ -55,28 +55,16 @@ public interface GetUserFilterHandler {
 	Iterable<UserFilterResource> getOwn(String projectName, Pageable pageable, Filter filter, ReportPortalUser user);
 
 	/**
-	 * Get shared {@link UserFilterResource} objects
-	 *
-	 * @param projectName Project Name
-	 * @param pageable    Page request
-	 * @param filter      Filter representation
-	 * @param user        Report Portal User
-	 * @return {@link Iterable}
-	 */
-	Iterable<UserFilterResource> getShared(String projectName, Pageable pageable, Filter filter, ReportPortalUser user);
-
-	/**
 	 * Get all {@link com.epam.ta.reportportal.entity.filter.UserFilter}'s names
 	 *
 	 * @param projectDetails Project details
-	 * @param user           Report Portal user
 	 * @param pageable       Page request
 	 * @param filter         Filter representation
-	 * @param isShared       Is shared
+	 * @param user           Report Portal user
 	 * @return List of {@link SharedEntity}
 	 */
 	Iterable<SharedEntity> getFiltersNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
-			ReportPortalUser user, boolean isShared);
+										   ReportPortalUser user);
 
 	/**
 	 * Get all

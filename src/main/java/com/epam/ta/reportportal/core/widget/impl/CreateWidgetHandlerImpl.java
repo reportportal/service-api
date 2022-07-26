@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.widget.impl;
 
-import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -49,7 +48,6 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
-import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -63,8 +61,6 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 
 	private final MessageBus messageBus;
 
-	private final ShareableObjectsHandler aclHandler;
-
 	private final UpdateUserFilterHandler updateUserFilterHandler;
 
 	private final List<WidgetPostProcessor> widgetPostProcessors;
@@ -73,12 +69,11 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 
 	@Autowired
 	public CreateWidgetHandlerImpl(WidgetRepository widgetRepository, UserFilterRepository filterRepository, MessageBus messageBus,
-			ShareableObjectsHandler aclHandler, UpdateUserFilterHandler updateUserFilterHandler,
+			UpdateUserFilterHandler updateUserFilterHandler,
 			List<WidgetPostProcessor> widgetPostProcessors, WidgetValidator widgetContentFieldsValidator) {
 		this.widgetRepository = widgetRepository;
 		this.filterRepository = filterRepository;
 		this.messageBus = messageBus;
-		this.aclHandler = aclHandler;
 		this.updateUserFilterHandler = updateUserFilterHandler;
 		this.widgetPostProcessors = widgetPostProcessors;
 		this.widgetContentFieldsValidator = widgetContentFieldsValidator;
@@ -106,13 +101,7 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 				.forEach(widgetPostProcessor -> widgetPostProcessor.postProcess(widget));
 
 		widgetRepository.save(widget);
-		aclHandler.initAcl(widget, user.getUsername(), projectDetails.getProjectId(), BooleanUtils.isTrue(createWidgetRQ.getShare()));
-		if (widget.isShared()) {
-			ofNullable(widget.getFilters()).ifPresent(filters -> updateUserFilterHandler.updateSharing(filters,
-					projectDetails.getProjectId(),
-					widget.isShared()
-			));
-		}
+
 		messageBus.publishActivity(new WidgetCreatedEvent(TO_ACTIVITY_RESOURCE.apply(widget), user.getUserId(), user.getUsername()));
 		return new EntryCreatedRS(widget.getId());
 	}

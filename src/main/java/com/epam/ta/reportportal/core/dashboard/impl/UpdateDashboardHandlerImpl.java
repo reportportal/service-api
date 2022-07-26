@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
-import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -47,8 +46,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.stream.Collectors;
-
 import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
 
 /**
@@ -67,20 +64,18 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 	private final MessageBus messageBus;
 	private final GetShareableEntityHandler<Dashboard> getShareableDashboardHandler;
 	private final GetShareableEntityHandler<Widget> getShareableWidgetHandler;
-	private final ShareableObjectsHandler aclHandler;
 
 	@Autowired
 	public UpdateDashboardHandlerImpl(DashboardRepository dashboardRepository, UpdateWidgetHandler updateWidgetHandler,
 			@Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover, MessageBus messageBus,
 			GetShareableEntityHandler<Dashboard> getShareableDashboardHandler, GetShareableEntityHandler<Widget> getShareableWidgetHandler,
-			ShareableObjectsHandler aclHandler, DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository) {
+			DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository) {
 		this.dashboardRepository = dashboardRepository;
 		this.updateWidgetHandler = updateWidgetHandler;
 		this.widgetContentRemover = widgetContentRemover;
 		this.messageBus = messageBus;
 		this.getShareableDashboardHandler = getShareableDashboardHandler;
 		this.getShareableWidgetHandler = getShareableWidgetHandler;
-		this.aclHandler = aclHandler;
 		this.dashboardWidgetRepository = dashboardWidgetRepository;
 		this.widgetRepository = widgetRepository;
 	}
@@ -100,14 +95,6 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 
 		dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
 		dashboardRepository.save(dashboard);
-
-		if (before.isShared() != dashboard.isShared()) {
-			aclHandler.updateAcl(dashboard, projectDetails.getProjectId(), dashboard.isShared());
-			updateWidgetHandler.updateSharing(dashboard.getDashboardWidgets()
-					.stream()
-					.map(DashboardWidget::getWidget)
-					.collect(Collectors.toList()), projectDetails.getProjectId(), dashboard.isShared());
-		}
 
 		messageBus.publishActivity(new DashboardUpdatedEvent(before,
 				TO_ACTIVITY_RESOURCE.apply(dashboard),
@@ -182,7 +169,6 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 		widgetContentRemover.removeContent(widget);
 		dashboardWidgetRepository.deleteAll(widget.getDashboardWidgets());
 		widgetRepository.delete(widget);
-		aclHandler.deleteAclForObject(widget);
 		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' was successfully deleted from the system.");
 	}
 

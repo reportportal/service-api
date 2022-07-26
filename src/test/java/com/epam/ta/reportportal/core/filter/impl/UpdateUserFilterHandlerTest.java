@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
-import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
@@ -70,14 +69,12 @@ class UpdateUserFilterHandlerTest {
 
 	private WidgetRepository widgetRepository = mock(WidgetRepository.class);
 
-	private ShareableObjectsHandler aclHandler = mock(ShareableObjectsHandler.class);
-
 	private MessageBus messageBus = mock(MessageBus.class);
 
 	private GetShareableEntityHandler<UserFilter> getShareableEntityHandler = mock(GetShareableEntityHandler.class);
 
 	private UpdateUserFilterHandler updateUserFilterHandler = new UpdateUserFilterHandlerImpl(projectExtractor, getShareableEntityHandler,
-			userFilterRepository, widgetRepository, aclHandler,
+			userFilterRepository, widgetRepository,
 			messageBus
 	);
 
@@ -96,7 +93,6 @@ class UpdateUserFilterHandlerTest {
 		when(userFilter.getProject()).thenReturn(project);
 		when(project.getId()).thenReturn(1L);
 
-		doNothing().when(aclHandler).initAcl(userFilter, "user", 1L, updateUserFilterRQ.getShare());
 		doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
 
 		OperationCompletionRS operationCompletionRS = updateUserFilterHandler.updateUserFilter(1L,
@@ -125,7 +121,6 @@ class UpdateUserFilterHandlerTest {
 
 		when(userFilterRepository.existsByNameAndOwnerAndProjectId(updateUserFilterRQ.getName(), "user", 1L)).thenReturn(Boolean.FALSE);
 
-		doNothing().when(aclHandler).initAcl(userFilter, "user", 1L, updateUserFilterRQ.getShare());
 		doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
 
 		OperationCompletionRS operationCompletionRS = updateUserFilterHandler.updateUserFilter(1L,
@@ -158,7 +153,6 @@ class UpdateUserFilterHandlerTest {
 				projectDetails.getProjectId()
 		)).thenReturn(Boolean.TRUE);
 
-		doNothing().when(aclHandler).initAcl(userFilter, "user", 1L, updateUserFilterRQ.getShare());
 		doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,

@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
-import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.DeleteDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -51,20 +50,17 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 	private final DashboardRepository dashboardRepository;
 	private final DashboardWidgetRepository dashboardWidgetRepository;
 	private final WidgetRepository widgetRepository;
-	private final ShareableObjectsHandler aclHandler;
 	private final WidgetContentRemover widgetContentRemover;
 	private final MessageBus messageBus;
 
 	@Autowired
 	public DeleteDashboardHandlerImpl(GetShareableEntityHandler<Dashboard> getShareableEntityHandler,
 			DashboardRepository dashboardRepository, DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository,
-			ShareableObjectsHandler aclHandler, @Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover,
-			MessageBus messageBus) {
+			@Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover, MessageBus messageBus) {
 		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.dashboardRepository = dashboardRepository;
 		this.dashboardWidgetRepository = dashboardWidgetRepository;
 		this.widgetRepository = widgetRepository;
-		this.aclHandler = aclHandler;
 		this.widgetContentRemover = widgetContentRemover;
 		this.messageBus = messageBus;
 	}
@@ -77,12 +73,10 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 		List<Widget> widgets = dashboardWidgets.stream()
 				.filter(DashboardWidget::isCreatedOn)
 				.map(DashboardWidget::getWidget)
-				.peek(aclHandler::deleteAclForObject)
 				.peek(widgetContentRemover::removeContent)
 				.collect(Collectors.toList());
 		dashboardWidgets.addAll(widgets.stream().flatMap(w -> w.getDashboardWidgets().stream()).collect(toSet()));
 
-		aclHandler.deleteAclForObject(dashboard);
 		dashboardWidgetRepository.deleteAll(dashboardWidgets);
 		dashboardRepository.delete(dashboard);
 		widgetRepository.deleteAll(widgets);

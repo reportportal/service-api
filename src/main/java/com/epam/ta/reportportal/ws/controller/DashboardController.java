@@ -137,13 +137,4 @@ public class DashboardController {
 		Dashboard dashboard = getShareableEntityHandler.getPermitted(dashboardId, projectExtractor.extractProjectDetails(user, projectName));
 		return DashboardConverter.TO_RESOURCE.apply(dashboard);
 	}
-
-	@GetMapping(value = "/shared")
-	@ResponseStatus(OK)
-	@ApiOperation("Get names of shared dashboards from specified project")
-	public Iterable<SharedEntity> getSharedDashboardsNames(@PathVariable String projectName, @SortFor(Dashboard.class) Pageable pageable,
-			@FilterFor(Dashboard.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getDashboardHandler.getSharedDashboardsNames(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
-	}
-
 }

@@ -80,21 +80,9 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 	}
 
 	@Override
-	public Iterable<UserFilterResource> getShared(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user, projectName);
-		Page<UserFilter> filters = filterRepository.getShared(ProjectFilter.of(filter, projectDetails.getProjectId()),
-				pageable,
-				user.getUsername()
-		);
-		return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_FILTER_RESOURCE).apply(filters);
-	}
-
-	@Override
 	public Iterable<SharedEntity> getFiltersNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
-			ReportPortalUser user, boolean isShared) {
-		Page<UserFilter> filters = isShared ?
-				filterRepository.getShared(ProjectFilter.of(filter, projectDetails.getProjectId()), pageable, user.getUsername()) :
-				filterRepository.getOwn(ProjectFilter.of(filter, projectDetails.getProjectId()), pageable, user.getUsername());
+												  ReportPortalUser user) {
+		Page<UserFilter> filters = filterRepository.getOwn(ProjectFilter.of(filter, projectDetails.getProjectId()), pageable, user.getUsername());
 		return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_SHARED_ENTITY).apply(filters);
 	}
 

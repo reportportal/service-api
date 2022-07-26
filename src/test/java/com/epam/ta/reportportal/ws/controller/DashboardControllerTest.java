@@ -102,7 +102,7 @@ class DashboardControllerTest extends BaseMvcTest {
 	@Test
 	void getSharedDashboardsNamesPositive() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/dashboard/shared").with(token(oAuthHelper.getDefaultToken())))
-				.andExpect(status().isOk());
+				.andExpect(status().isBadRequest());
 	}
 
 	@Test

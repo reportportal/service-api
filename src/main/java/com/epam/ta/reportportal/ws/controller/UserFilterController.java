@@ -112,16 +112,6 @@ public class UserFilterController {
 		return getFilterHandler.getOwn(projectName, pageable, filter, user);
 	}
 
-	// filter/shared
-	@Transactional(readOnly = true)
-	@GetMapping(value = "/shared")
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Get all available shared filters (except own shared filters)")
-	public Iterable<UserFilterResource> getSharedFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
-			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getFilterHandler.getShared(projectName, pageable, filter, user);
-	}
-
 	@Transactional
 	@DeleteMapping(value = "/{filterId}")
 	@ResponseStatus(HttpStatus.OK)
@@ -136,9 +126,8 @@ public class UserFilterController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get available filter names")
 	public Iterable<SharedEntity> getAllFiltersNames(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
-			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user,
-			@RequestParam(value = "share", defaultValue = "false", required = false) boolean isShared) {
-		return getFilterHandler.getFiltersNames(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user, isShared);
+			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
+		return getFilterHandler.getFiltersNames(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
 	}
 
 	@Transactional

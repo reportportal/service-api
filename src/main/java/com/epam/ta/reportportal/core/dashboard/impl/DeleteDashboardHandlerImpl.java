@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.DeleteDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardDeletedEvent;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.core.widget.content.remover.WidgetContentRemover;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.dao.DashboardWidgetRepository;
@@ -28,6 +27,8 @@ import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -45,8 +46,6 @@ import static java.util.stream.Collectors.toSet;
  */
 @Service
 public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
-
-	private final GetShareableEntityHandler<Dashboard> getShareableEntityHandler;
 	private final DashboardRepository dashboardRepository;
 	private final DashboardWidgetRepository dashboardWidgetRepository;
 	private final WidgetRepository widgetRepository;
@@ -54,10 +53,9 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 	private final MessageBus messageBus;
 
 	@Autowired
-	public DeleteDashboardHandlerImpl(GetShareableEntityHandler<Dashboard> getShareableEntityHandler,
-			DashboardRepository dashboardRepository, DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository,
-			@Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover, MessageBus messageBus) {
-		this.getShareableEntityHandler = getShareableEntityHandler;
+	public DeleteDashboardHandlerImpl(DashboardRepository dashboardRepository, DashboardWidgetRepository dashboardWidgetRepository,
+			WidgetRepository widgetRepository, @Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover,
+			MessageBus messageBus) {
 		this.dashboardRepository = dashboardRepository;
 		this.dashboardWidgetRepository = dashboardWidgetRepository;
 		this.widgetRepository = widgetRepository;
@@ -67,7 +65,11 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 
 	@Override
 	public OperationCompletionRS deleteDashboard(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Dashboard dashboard = getShareableEntityHandler.getAdministrated(dashboardId, projectDetails);
+		Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
+						dashboardId,
+						projectDetails.getProjectName()
+				));
 
 		Set<DashboardWidget> dashboardWidgets = dashboard.getDashboardWidgets();
 		List<Widget> widgets = dashboardWidgets.stream()

@@ -100,12 +100,6 @@ class UserFilterControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	void getOwnFiltersPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/filter/own").with(token(oAuthHelper.getDefaultToken())))
-				.andExpect(status().isOk());
-	}
-
-	@Test
 	void getSharedFiltersPositive() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/filter/shared").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isBadRequest());

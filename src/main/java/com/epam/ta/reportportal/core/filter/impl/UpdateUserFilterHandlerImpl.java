@@ -26,9 +26,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterCreatedEvent;
 import com.epam.ta.reportportal.core.events.activity.FilterUpdatedEvent;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
-import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -58,18 +56,14 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.USER_FILTER_NOT_FOUND;
 public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 	private final ProjectExtractor projectExtractor;
-	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 	private final UserFilterRepository userFilterRepository;
-	private final WidgetRepository widgetRepository;
 	private final MessageBus messageBus;
 
 	@Autowired
-	public UpdateUserFilterHandlerImpl(ProjectExtractor projectExtractor, GetShareableEntityHandler<UserFilter> getShareableEntityHandler,
-			UserFilterRepository userFilterRepository, WidgetRepository widgetRepository, MessageBus messageBus) {
+	public UpdateUserFilterHandlerImpl(ProjectExtractor projectExtractor, UserFilterRepository userFilterRepository,
+			MessageBus messageBus) {
 		this.projectExtractor = projectExtractor;
-		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.userFilterRepository = userFilterRepository;
-		this.widgetRepository = widgetRepository;
 		this.messageBus = messageBus;
 	}
 
@@ -99,7 +93,11 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 	public OperationCompletionRS updateUserFilter(Long userFilterId, UpdateUserFilterRQ updateRQ,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		validateFilterRq(updateRQ);
-		UserFilter userFilter = getShareableEntityHandler.getAdministrated(userFilterId, projectDetails);
+		UserFilter userFilter = userFilterRepository.findByIdAndProjectId(userFilterId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
+						userFilterId,
+						projectDetails.getProjectName()
+				));
 		expect(userFilter.getProject().getId(), Predicate.isEqual(projectDetails.getProjectId())).verify(USER_FILTER_NOT_FOUND,
 				userFilterId,
 				projectDetails.getProjectId(),

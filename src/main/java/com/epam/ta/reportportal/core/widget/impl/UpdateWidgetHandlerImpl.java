@@ -24,8 +24,6 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.WidgetUpdatedEvent;
-import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.core.widget.UpdateWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.updater.validator.WidgetValidator;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
@@ -59,46 +57,44 @@ import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.T
 @Service
 public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 
-	private final UpdateUserFilterHandler updateUserFilterHandler;
 	private final WidgetRepository widgetRepository;
 	private final UserFilterRepository filterRepository;
 	private final MessageBus messageBus;
 	private final ObjectMapper objectMapper;
-	private final GetShareableEntityHandler<Widget> getShareableEntityHandler;
 	private final WidgetValidator widgetContentFieldsValidator;
 
 	@Autowired
-	public UpdateWidgetHandlerImpl(UpdateUserFilterHandler updateUserFilterHandler, WidgetRepository widgetRepository,
-			UserFilterRepository filterRepository, MessageBus messageBus, ObjectMapper objectMapper,
-			GetShareableEntityHandler<Widget> getShareableEntityHandler,
-			WidgetValidator widgetContentFieldsValidator) {
-		this.updateUserFilterHandler = updateUserFilterHandler;
+	public UpdateWidgetHandlerImpl(WidgetRepository widgetRepository, UserFilterRepository filterRepository, MessageBus messageBus,
+			ObjectMapper objectMapper, WidgetValidator widgetContentFieldsValidator) {
 		this.widgetRepository = widgetRepository;
 		this.filterRepository = filterRepository;
 		this.messageBus = messageBus;
 		this.objectMapper = objectMapper;
-		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.widgetContentFieldsValidator = widgetContentFieldsValidator;
 	}
 
 	@Override
 	public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		Widget widget = getShareableEntityHandler.getAdministrated(widgetId, projectDetails);
+		Widget widget = widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
+						widgetId,
+						projectDetails.getProjectName()
+				));
 
 		widgetContentFieldsValidator.validate(widget);
 
 		if (!widget.getName().equals(updateRQ.getName())) {
 			BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(updateRQ.getName(),
-					user.getUsername(),
-					projectDetails.getProjectId()
-			), BooleanUtils::isFalse)
+							user.getUsername(),
+							projectDetails.getProjectId()
+					), BooleanUtils::isFalse)
 					.verify(ErrorType.RESOURCE_ALREADY_EXISTS, updateRQ.getName());
 		}
 
 		WidgetActivityResource before = TO_ACTIVITY_RESOURCE.apply(widget);
 
-		List<UserFilter> userFilter = getUserFilters(updateRQ.getFilterIds(), projectDetails.getProjectId(), user.getUsername());
+		List<UserFilter> userFilter = getUserFilters(updateRQ.getFilterIds(), projectDetails.getProjectId());
 		String widgetOptionsBefore = parseWidgetOptions(widget);
 
 		widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilter).get();
@@ -114,7 +110,7 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
 	}
 
-	private List<UserFilter> getUserFilters(List<Long> filterIds, Long projectId, String username) {
+	private List<UserFilter> getUserFilters(List<Long> filterIds, Long projectId) {
 		if (CollectionUtils.isNotEmpty(filterIds)) {
 			Filter defaultFilter = new Filter(UserFilter.class,
 					Condition.IN,
@@ -122,7 +118,7 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 					filterIds.stream().map(String::valueOf).collect(Collectors.joining(",")),
 					CRITERIA_ID
 			);
-			return filterRepository.getPermitted(ProjectFilter.of(defaultFilter, projectId), Pageable.unpaged(), username).getContent();
+			return filterRepository.findByFilter(ProjectFilter.of(defaultFilter, projectId), Pageable.unpaged()).getContent();
 		}
 		return Collections.emptyList();
 	}

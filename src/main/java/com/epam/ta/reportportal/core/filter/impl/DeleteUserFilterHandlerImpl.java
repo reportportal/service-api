@@ -16,15 +16,14 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
-import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterDeletedEvent;
 import com.epam.ta.reportportal.core.filter.DeleteUserFilterHandler;
-import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,29 +38,27 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.USER_FILTER_NOT_FOUND;
 public class DeleteUserFilterHandlerImpl implements DeleteUserFilterHandler {
 
 	private final UserFilterRepository userFilterRepository;
-	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 	private final MessageBus messageBus;
-	private final ShareableObjectsHandler aclHandler;
 
 	@Autowired
-	public DeleteUserFilterHandlerImpl(UserFilterRepository userFilterRepository, GetUserFilterHandler getFilterHandler,
-			GetShareableEntityHandler<UserFilter> getShareableEntityHandler, MessageBus messageBus, ShareableObjectsHandler aclHandler) {
+	public DeleteUserFilterHandlerImpl(UserFilterRepository userFilterRepository, MessageBus messageBus) {
 		this.userFilterRepository = userFilterRepository;
-		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.messageBus = messageBus;
-		this.aclHandler = aclHandler;
 	}
 
 	@Override
 	public OperationCompletionRS deleteFilter(Long id, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		UserFilter userFilter = getShareableEntityHandler.getAdministrated(id, projectDetails);
+		UserFilter userFilter = userFilterRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
+						id,
+						projectDetails.getProjectName()
+				));
 		expect(userFilter.getProject().getId(), Predicate.isEqual(projectDetails.getProjectId())).verify(USER_FILTER_NOT_FOUND,
 				id,
 				projectDetails.getProjectId(),
 				user.getUserId()
 		);
 		userFilterRepository.delete(userFilter);
-		aclHandler.deleteAclForObject(userFilter);
 		messageBus.publishActivity(new FilterDeletedEvent(TO_ACTIVITY_RESOURCE.apply(userFilter), user.getUserId(), user.getUsername()));
 		return new OperationCompletionRS("User filter with ID = '" + id + "' successfully deleted.");
 	}

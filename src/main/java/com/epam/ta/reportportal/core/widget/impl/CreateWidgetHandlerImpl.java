@@ -110,10 +110,8 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 		if (CollectionUtils.isNotEmpty(filterIds)) {
 			String ids = filterIds.stream().map(String::valueOf).collect(Collectors.joining(","));
 			Filter defaultFilter = new Filter(UserFilter.class, Condition.IN, false, ids, CRITERIA_ID);
-			List<UserFilter> userFilters = filterRepository.getPermitted(ProjectFilter.of(defaultFilter, projectId),
-					Pageable.unpaged(),
-					username
-			).getContent();
+			List<UserFilter> userFilters = filterRepository.findByFilter(ProjectFilter.of(defaultFilter, projectId), Pageable.unpaged())
+					.getContent();
 			BusinessRule.expect(userFilters, not(List::isEmpty)).verify(ErrorType.USER_FILTER_NOT_FOUND, filterIds, projectId, username);
 			return userFilters;
 		}

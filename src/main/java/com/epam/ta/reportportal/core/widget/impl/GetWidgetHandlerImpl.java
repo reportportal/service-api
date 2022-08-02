@@ -17,9 +17,9 @@
 package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.*;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
@@ -70,9 +70,6 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	private Set<WidgetType> unfilteredWidgetTypes;
 
 	@Autowired
-	private GetShareableEntityHandler<Widget> getShareableEntityHandler;
-
-	@Autowired
 	private WidgetRepository widgetRepository;
 
 	@Autowired
@@ -109,7 +106,11 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 
 	@Override
 	public WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Widget widget = getShareableEntityHandler.getPermitted(widgetId, projectDetails);
+		Widget widget = widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
+						widgetId,
+						projectDetails.getProjectName()
+				));
 
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
@@ -123,12 +124,11 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 		Map<String, ?> content;
 
 		if (unfilteredWidgetTypes.contains(widgetType) || isFilteredContentLoadAllowed(widget.getFilters(), projectDetails, user)) {
-			content = loadContentStrategy.get(widgetType)
-					.loadContent(Lists.newArrayList(widget.getContentFields()),
-							buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
-							widget.getWidgetOptions(),
-							widget.getItemsCount()
-					);
+			content = loadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
+					buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
+					widget.getWidgetOptions(),
+					widget.getItemsCount()
+			);
 		} else {
 			content = Collections.emptyMap();
 		}
@@ -141,7 +141,11 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	@Override
 	public WidgetResource getWidget(Long widgetId, String[] attributes, MultiValueMap<String, String> params,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Widget widget = getShareableEntityHandler.getPermitted(widgetId, projectDetails);
+		Widget widget = widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
+						widgetId,
+						projectDetails.getProjectName()
+				));
 
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
@@ -156,7 +160,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 		if (unfilteredWidgetTypes.contains(widgetType) || isFilteredContentLoadAllowed(widget.getFilters(), projectDetails, user)) {
 			params.put(ATTRIBUTES, Lists.newArrayList(attributes));
 			content = ofNullable(multilevelLoadContentStrategy.get(widgetType)).map(strategy -> strategy.loadContent(Lists.newArrayList(
-					widget.getContentFields()),
+							widget.getContentFields()),
 					buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
 					widget.getWidgetOptions(),
 					attributes,
@@ -210,21 +214,19 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 				.get();
 
 		if (widgetType.isSupportMultilevelStructure()) {
-			return multilevelLoadContentStrategy.get(widgetType)
-					.loadContent(Lists.newArrayList(widget.getContentFields()),
-							buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
-							widget.getWidgetOptions(),
-							null,
-							null,
-							widget.getItemsCount()
-					);
+			return multilevelLoadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
+					buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
+					widget.getWidgetOptions(),
+					null,
+					null,
+					widget.getItemsCount()
+			);
 		} else {
-			return loadContentStrategy.get(widgetType)
-					.loadContent(Lists.newArrayList(widget.getContentFields()),
-							buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
-							widget.getWidgetOptions(),
-							widget.getItemsCount()
-					);
+			return loadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
+					buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
+					widget.getWidgetOptions(),
+					widget.getItemsCount()
+			);
 		}
 	}
 
@@ -235,7 +237,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	@Override
 	public Iterable<Object> getOwnNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
 			ReportPortalUser user) {
-		Page<Widget> own = widgetRepository.getOwn(ProjectFilter.of(filter, projectDetails.getProjectId()), pageable, user.getUsername());
-		return PagedResourcesAssembler.pageConverter().apply(own.map(Widget::getName));
+		final Page<Widget> widgets = widgetRepository.findByFilter(ProjectFilter.of(filter, projectDetails.getProjectId()), pageable);
+		return PagedResourcesAssembler.pageConverter().apply(widgets.map(Widget::getName));
 	}
 }

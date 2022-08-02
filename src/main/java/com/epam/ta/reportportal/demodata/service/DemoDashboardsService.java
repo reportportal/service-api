@@ -132,14 +132,14 @@ class DemoDashboardsService {
 	}
 
 	private UserFilter createDemoFilter(ReportPortalUser user, Project project) {
-		List<UserFilter> existedFilterList = userFilterRepository.getPermitted(ProjectFilter.of(Filter.builder()
+		List<UserFilter> existedFilterList = userFilterRepository.findByFilter(ProjectFilter.of(Filter.builder()
 				.withTarget(UserFilter.class)
 				.withCondition(FilterCondition.builder()
 						.withCondition(Condition.EQUALS)
 						.withSearchCriteria(CRITERIA_NAME)
 						.withValue(FILTER_NAME)
 						.build())
-				.build(), project.getId()), Pageable.unpaged(), user.getUsername()).getContent();
+				.build(), project.getId()), Pageable.unpaged()).getContent();
 
 		if (!existedFilterList.isEmpty()) {
 			return existedFilterList.get(0);

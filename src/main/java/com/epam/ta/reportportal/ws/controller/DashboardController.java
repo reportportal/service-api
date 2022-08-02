@@ -22,13 +22,10 @@ import com.epam.ta.reportportal.core.dashboard.CreateDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.DeleteDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.UpdateDashboardHandler;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.converter.converters.DashboardConverter;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.dashboard.AddWidgetRq;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
@@ -60,17 +57,16 @@ public class DashboardController {
 	private final CreateDashboardHandler createDashboardHandler;
 	private final UpdateDashboardHandler updateDashboardHandler;
 	private final GetDashboardHandler getDashboardHandler;
-	private final GetShareableEntityHandler<Dashboard> getShareableEntityHandler;
 	private final DeleteDashboardHandler deleteDashboardHandler;
 
 	@Autowired
-	public DashboardController(ProjectExtractor projectExtractor, CreateDashboardHandler createDashboardHandler, UpdateDashboardHandler updateDashboardHandler,
-			GetDashboardHandler getDashboardHandler, GetShareableEntityHandler<Dashboard> getShareableEntityHandler, DeleteDashboardHandler deleteDashboardHandler) {
+	public DashboardController(ProjectExtractor projectExtractor, CreateDashboardHandler createDashboardHandler,
+			UpdateDashboardHandler updateDashboardHandler, GetDashboardHandler getDashboardHandler,
+			DeleteDashboardHandler deleteDashboardHandler) {
 		this.projectExtractor = projectExtractor;
 		this.createDashboardHandler = createDashboardHandler;
 		this.updateDashboardHandler = updateDashboardHandler;
 		this.getDashboardHandler = getDashboardHandler;
-		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.deleteDashboardHandler = deleteDashboardHandler;
 	}
 
@@ -89,7 +85,7 @@ public class DashboardController {
 	@ApiOperation("Get all permitted dashboard resources for specified project")
 	public Iterable<DashboardResource> getAllDashboards(@PathVariable String projectName, @SortFor(Dashboard.class) Pageable pageable,
 			@FilterFor(Dashboard.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getDashboardHandler.getPermitted(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
+		return getDashboardHandler.getDashboards(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
 	}
 
 	@Transactional
@@ -116,7 +112,12 @@ public class DashboardController {
 	@ApiOperation("Update specified dashboard for specified project")
 	public OperationCompletionRS updateDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@RequestBody @Validated UpdateDashboardRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateDashboardHandler.updateDashboard(projectExtractor.extractProjectDetails(user, projectName), updateRQ, dashboardId, user);
+		return updateDashboardHandler.updateDashboard(
+				projectExtractor.extractProjectDetails(user, projectName),
+				updateRQ,
+				dashboardId,
+				user
+		);
 	}
 
 	@Transactional
@@ -134,7 +135,6 @@ public class DashboardController {
 	@ApiOperation("Get specified dashboard by ID for specified project")
 	public DashboardResource getDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		Dashboard dashboard = getShareableEntityHandler.getPermitted(dashboardId, projectExtractor.extractProjectDetails(user, projectName));
-		return DashboardConverter.TO_RESOURCE.apply(dashboard);
+		return getDashboardHandler.getDashboard(dashboardId, projectExtractor.extractProjectDetails(user, projectName));
 	}
 }

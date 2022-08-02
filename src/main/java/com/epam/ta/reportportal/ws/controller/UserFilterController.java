@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.filter.DeleteUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
@@ -60,16 +59,14 @@ public class UserFilterController {
 
 	private final ProjectExtractor projectExtractor;
 	private final GetUserFilterHandler getFilterHandler;
-	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 	private final DeleteUserFilterHandler deleteFilterHandler;
 	private final UpdateUserFilterHandler updateUserFilterHandler;
 
 	@Autowired
-	public UserFilterController(ProjectExtractor projectExtractor, GetUserFilterHandler getFilterHandler, GetShareableEntityHandler<UserFilter> getShareableEntityHandler,
+	public UserFilterController(ProjectExtractor projectExtractor, GetUserFilterHandler getFilterHandler,
 			DeleteUserFilterHandler deleteFilterHandler, UpdateUserFilterHandler updateUserFilterHandler) {
 		this.projectExtractor = projectExtractor;
 		this.getFilterHandler = getFilterHandler;
-		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.deleteFilterHandler = deleteFilterHandler;
 		this.updateUserFilterHandler = updateUserFilterHandler;
 	}
@@ -89,8 +86,7 @@ public class UserFilterController {
 	@ApiOperation("Get specified user filter by id")
 	public UserFilterResource getFilter(@PathVariable String projectName, @PathVariable Long filterId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		UserFilter filter = getShareableEntityHandler.getPermitted(filterId, projectExtractor.extractProjectDetails(user, projectName));
-		return UserFilterConverter.TO_FILTER_RESOURCE.apply(filter);
+		return getFilterHandler.getUserFilter(filterId, projectExtractor.extractProjectDetails(user, projectName));
 	}
 
 	@Transactional(readOnly = true)
@@ -99,17 +95,7 @@ public class UserFilterController {
 	@ApiOperation("Get permitted (own and shared) filters")
 	public Iterable<UserFilterResource> getAllFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
 			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getFilterHandler.getPermitted(projectName, pageable, filter, user);
-	}
-
-	// filter/own
-	@Transactional(readOnly = true)
-	@GetMapping(value = "/own")
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Get all filters for specified user who own them")
-	public Iterable<UserFilterResource> getOwnFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
-			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getFilterHandler.getOwn(projectName, pageable, filter, user);
+		return getFilterHandler.getUserFilters(projectName, pageable, filter, user);
 	}
 
 	@Transactional
@@ -136,7 +122,12 @@ public class UserFilterController {
 	@ApiOperation("Update specified user filter")
 	public OperationCompletionRS updateUserFilter(@PathVariable String projectName, @PathVariable Long filterId,
 			@RequestBody @Validated UpdateUserFilterRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateUserFilterHandler.updateUserFilter(filterId, updateRQ, projectExtractor.extractProjectDetails(user, projectName), user);
+		return updateUserFilterHandler.updateUserFilter(
+				filterId,
+				updateRQ,
+				projectExtractor.extractProjectDetails(user, projectName),
+				user
+		);
 	}
 
 	@Transactional(readOnly = true)

@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
@@ -39,6 +38,8 @@ import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
+
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
@@ -71,10 +72,8 @@ class UpdateUserFilterHandlerTest {
 
 	private MessageBus messageBus = mock(MessageBus.class);
 
-	private GetShareableEntityHandler<UserFilter> getShareableEntityHandler = mock(GetShareableEntityHandler.class);
-
-	private UpdateUserFilterHandler updateUserFilterHandler = new UpdateUserFilterHandlerImpl(projectExtractor, getShareableEntityHandler,
-			userFilterRepository, widgetRepository,
+	private UpdateUserFilterHandler updateUserFilterHandler = new UpdateUserFilterHandlerImpl(projectExtractor,
+			userFilterRepository,
 			messageBus
 	);
 
@@ -86,7 +85,7 @@ class UpdateUserFilterHandlerTest {
 		UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(SAME_NAME);
 
 		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, "test_project");
-		when(getShareableEntityHandler.getAdministrated(1L, projectDetails)).thenReturn(userFilter);
+		when(userFilterRepository.findByIdAndProjectId(1L, projectDetails.getProjectId())).thenReturn(Optional.of(userFilter));
 
 		when(userFilter.getId()).thenReturn(1L);
 		when(userFilter.getName()).thenReturn(SAME_NAME);
@@ -112,7 +111,7 @@ class UpdateUserFilterHandlerTest {
 		UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(ANOTHER_NAME);
 
 		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, "test_project");
-		when(getShareableEntityHandler.getAdministrated(1L, projectDetails)).thenReturn(userFilter);
+		when(userFilterRepository.findByIdAndProjectId(1L, projectDetails.getProjectId())).thenReturn(Optional.of(userFilter));
 
 		when(userFilter.getId()).thenReturn(1L);
 		when(userFilter.getName()).thenReturn(SAME_NAME);
@@ -140,7 +139,7 @@ class UpdateUserFilterHandlerTest {
 		UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(ANOTHER_NAME);
 
 		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, "test_project");
-		when(getShareableEntityHandler.getAdministrated(1L, projectDetails)).thenReturn(userFilter);
+		when(userFilterRepository.findByIdAndProjectId(1L, projectDetails.getProjectId())).thenReturn(Optional.of(userFilter));
 
 		when(userFilter.getId()).thenReturn(1L);
 		when(userFilter.getName()).thenReturn(SAME_NAME);

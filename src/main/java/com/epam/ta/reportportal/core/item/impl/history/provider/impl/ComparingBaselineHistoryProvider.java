@@ -21,12 +21,14 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.ta.reportportal.core.item.impl.history.provider.HistoryProvider;
 import com.epam.ta.reportportal.core.item.utils.DefaultLaunchFilterProvider;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -46,13 +48,13 @@ public class ComparingBaselineHistoryProvider implements HistoryProvider {
 
 	private final LaunchRepository launchRepository;
 	private final TestItemRepository testItemRepository;
-	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
+	private final UserFilterRepository userFilterRepository;
 
 	public ComparingBaselineHistoryProvider(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			GetShareableEntityHandler<UserFilter> getShareableEntityHandler) {
+			UserFilterRepository userFilterRepository) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
-		this.getShareableEntityHandler = getShareableEntityHandler;
+		this.userFilterRepository = userFilterRepository;
 	}
 
 	@Override
@@ -60,8 +62,15 @@ public class ComparingBaselineHistoryProvider implements HistoryProvider {
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean usingHash) {
 
 		return historyRequestParams.getFilterParams().map(filterParams -> {
+
+			UserFilter userFilter = userFilterRepository.findByIdAndProjectId(filterParams.getFilterId(), projectDetails.getProjectId())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
+							filterParams.getFilterId(),
+							projectDetails.getProjectName()
+					));
+
 			Pair<Queryable, Pageable> launchQueryablePair = DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(projectDetails,
-					getShareableEntityHandler.getPermitted(filterParams.getFilterId(), projectDetails),
+					userFilter,
 					filterParams.getLaunchesLimit()
 			);
 

@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.OwnedEntity;
+import com.epam.ta.reportportal.ws.model.OwnedEntityResource;
 import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
@@ -111,7 +111,7 @@ public class UserFilterController {
 	@GetMapping(value = "/names")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get available filter names")
-	public Iterable<OwnedEntity> getAllFiltersNames(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
+	public Iterable<OwnedEntityResource> getAllFiltersNames(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
 			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
 		return getFilterHandler.getFiltersNames(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
 	}

@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.OwnedEntity;
+import com.epam.ta.reportportal.ws.model.OwnedEntityResource;
 
 import java.util.function.Function;
 
@@ -29,8 +30,8 @@ public final class BaseEntityConverter {
 		//static only
 	}
 
-	public static final Function<? super OwnedEntity, com.epam.ta.reportportal.ws.model.OwnedEntity> TO_OWNED_ENTITY = shareable -> {
-		com.epam.ta.reportportal.ws.model.OwnedEntity ownedEntity = new com.epam.ta.reportportal.ws.model.OwnedEntity();
+	public static final Function<? super OwnedEntity, OwnedEntityResource> TO_OWNED_ENTITY = shareable -> {
+		OwnedEntityResource ownedEntity = new OwnedEntityResource();
 		ownedEntity.setId(String.valueOf(shareable.getId()));
 		ownedEntity.setOwner(shareable.getOwner());
 		return ownedEntity;

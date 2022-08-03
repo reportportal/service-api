@@ -69,7 +69,6 @@ class DashboardEventsTest {
 
 	private static DashboardActivityResource getTestDashboard(String name, boolean shared, String description) {
 		DashboardActivityResource dashboard = new DashboardActivityResource();
-		dashboard.setShared(shared);
 		dashboard.setDescription(description);
 		dashboard.setProjectId(3L);
 		dashboard.setName(name);
@@ -103,7 +102,6 @@ class DashboardEventsTest {
 	private static List<HistoryField> getExpectedHistory(Pair<String, String> name, Pair<Boolean, Boolean> shared,
 			Pair<String, String> description) {
 		return Lists.newArrayList(HistoryField.of(NAME, name.getLeft(), name.getRight()),
-				HistoryField.of(SHARE, shared.getLeft().toString(), shared.getRight().toString()),
 				HistoryField.of(DESCRIPTION, description.getLeft(), description.getRight())
 		);
 	}

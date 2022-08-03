@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.widget.impl;
 
-import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -25,8 +24,6 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.WidgetUpdatedEvent;
-import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.core.widget.UpdateWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.updater.validator.WidgetValidator;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
@@ -47,14 +44,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
-import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -62,51 +57,45 @@ import static java.util.Optional.ofNullable;
 @Service
 public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 
-	private final UpdateUserFilterHandler updateUserFilterHandler;
 	private final WidgetRepository widgetRepository;
 	private final UserFilterRepository filterRepository;
 	private final MessageBus messageBus;
 	private final ObjectMapper objectMapper;
-	private final GetShareableEntityHandler<Widget> getShareableEntityHandler;
-	private final ShareableObjectsHandler aclHandler;
 	private final WidgetValidator widgetContentFieldsValidator;
 
 	@Autowired
-	public UpdateWidgetHandlerImpl(UpdateUserFilterHandler updateUserFilterHandler, WidgetRepository widgetRepository,
-			UserFilterRepository filterRepository, MessageBus messageBus, ObjectMapper objectMapper,
-			GetShareableEntityHandler<Widget> getShareableEntityHandler, ShareableObjectsHandler aclHandler,
-			WidgetValidator widgetContentFieldsValidator) {
-		this.updateUserFilterHandler = updateUserFilterHandler;
+	public UpdateWidgetHandlerImpl(WidgetRepository widgetRepository, UserFilterRepository filterRepository, MessageBus messageBus,
+			ObjectMapper objectMapper, WidgetValidator widgetContentFieldsValidator) {
 		this.widgetRepository = widgetRepository;
 		this.filterRepository = filterRepository;
 		this.messageBus = messageBus;
 		this.objectMapper = objectMapper;
-		this.getShareableEntityHandler = getShareableEntityHandler;
-		this.aclHandler = aclHandler;
 		this.widgetContentFieldsValidator = widgetContentFieldsValidator;
 	}
 
 	@Override
 	public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		Widget widget = getShareableEntityHandler.getAdministrated(widgetId, projectDetails);
+		Widget widget = widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
+						widgetId,
+						projectDetails.getProjectName()
+				));
 
 		widgetContentFieldsValidator.validate(widget);
 
 		if (!widget.getName().equals(updateRQ.getName())) {
 			BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(updateRQ.getName(),
-					user.getUsername(),
-					projectDetails.getProjectId()
-			), BooleanUtils::isFalse)
+							user.getUsername(),
+							projectDetails.getProjectId()
+					), BooleanUtils::isFalse)
 					.verify(ErrorType.RESOURCE_ALREADY_EXISTS, updateRQ.getName());
 		}
 
 		WidgetActivityResource before = TO_ACTIVITY_RESOURCE.apply(widget);
 
-		List<UserFilter> userFilter = getUserFilters(updateRQ.getFilterIds(), projectDetails.getProjectId(), user.getUsername());
+		List<UserFilter> userFilter = getUserFilters(updateRQ.getFilterIds(), projectDetails.getProjectId());
 		String widgetOptionsBefore = parseWidgetOptions(widget);
-
-		updateSharing(widget, projectDetails.getProjectId(), updateRQ.getShare());
 
 		widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilter).get();
 		widgetRepository.save(widget);
@@ -121,27 +110,7 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
 	}
 
-	@Override
-	public void updateSharing(Collection<Widget> widgets, Long projectId, Boolean isShared) {
-		widgets.forEach(widget -> updateSharing(widget, projectId, isShared));
-	}
-
-	private void updateSharing(Widget widget, Long projectId, Boolean shared) {
-		if (null != shared) {
-			if (shared != widget.isShared()) {
-				widget.setShared(shared);
-				aclHandler.updateAcl(widget, projectId, widget.isShared());
-			}
-			if (widget.isShared()) {
-				ofNullable(widget.getFilters()).ifPresent(filters -> updateUserFilterHandler.updateSharing(filters,
-						projectId,
-						widget.isShared()
-				));
-			}
-		}
-	}
-
-	private List<UserFilter> getUserFilters(List<Long> filterIds, Long projectId, String username) {
+	private List<UserFilter> getUserFilters(List<Long> filterIds, Long projectId) {
 		if (CollectionUtils.isNotEmpty(filterIds)) {
 			Filter defaultFilter = new Filter(UserFilter.class,
 					Condition.IN,
@@ -149,7 +118,7 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 					filterIds.stream().map(String::valueOf).collect(Collectors.joining(",")),
 					CRITERIA_ID
 			);
-			return filterRepository.getPermitted(ProjectFilter.of(defaultFilter, projectId), Pageable.unpaged(), username).getContent();
+			return filterRepository.findByFilter(ProjectFilter.of(defaultFilter, projectId), Pageable.unpaged()).getContent();
 		}
 		return Collections.emptyList();
 	}

@@ -67,12 +67,4 @@ public interface UpdateUserFilterHandler {
 	List<OperationCompletionRS> updateUserFilter(CollectionsRQ<BulkUpdateFilterRQ> updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user);
 
-	/**
-	 * Update {@link UserFilter#isShared()} state
-	 *
-	 * @param filters   {@link Collection} of {@link UserFilter}
-	 * @param projectId {@link com.epam.ta.reportportal.entity.project.Project#id}
-	 * @param isShared  flag that indicates whether filter should be shared or unshared
-	 */
-	void updateSharing(Collection<UserFilter> filters, Long projectId, boolean isShared);
 }

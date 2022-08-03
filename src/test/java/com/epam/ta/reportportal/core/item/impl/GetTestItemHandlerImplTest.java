@@ -21,8 +21,8 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.item.TestItemService;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -47,7 +47,8 @@ import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaCons
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -65,7 +66,7 @@ class GetTestItemHandlerImplTest {
 	private TestItemService testItemService;
 
 	@Mock
-	private GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
+	private UserFilterRepository userFilterRepository;
 
 	@InjectMocks
 	private GetTestItemHandlerImpl handler;
@@ -189,7 +190,8 @@ class GetTestItemHandlerImplTest {
 
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
 		when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
-		doThrow(new ReportPortalException("You do not have enough permissions.")).when(launchAccessValidator).validate(launch.getId(), extractProjectDetails(operator, "test_project"), operator);
+		doThrow(new ReportPortalException("You do not have enough permissions.")).when(launchAccessValidator)
+				.validate(launch.getId(), extractProjectDetails(operator, "test_project"), operator);
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.getTestItem("1", extractProjectDetails(operator, "test_project"), operator)
@@ -206,11 +208,10 @@ class GetTestItemHandlerImplTest {
 		launch.setId(1L);
 		launch.setProjectId(2L);
 		item.setLaunchId(launch.getId());
-		when(getShareableEntityHandler.getPermitted(1L, extractProjectDetails(rpUser, "test_project"))).thenThrow(new ReportPortalException(
-				ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
+		when(userFilterRepository.findByIdAndProjectId(
 				1L,
-				"test_project"
-		));
+				extractProjectDetails(rpUser, "test_project").getProjectId()
+		)).thenThrow(new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT, 1L, "test_project"));
 
 		final Executable executable = () -> handler.getTestItems(Filter.builder()
 				.withTarget(TestItem.class)
@@ -238,7 +239,8 @@ class GetTestItemHandlerImplTest {
 		item.setLaunchId(launch.getId());
 		UserFilter filter = new UserFilter();
 		filter.setTargetClass(ObjectType.TestItem);
-		when(getShareableEntityHandler.getPermitted(1L, extractProjectDetails(rpUser, "test_project"))).thenReturn(filter);
+		when(userFilterRepository.findByIdAndProjectId(1L, extractProjectDetails(rpUser, "test_project").getProjectId())).thenReturn(
+				Optional.of(filter));
 
 		final Executable executable = () -> handler.getTestItems(Filter.builder()
 				.withTarget(TestItem.class)
@@ -267,7 +269,8 @@ class GetTestItemHandlerImplTest {
 		item.setLaunchId(launch.getId());
 		UserFilter filter = new UserFilter();
 		filter.setTargetClass(ObjectType.Launch);
-		when(getShareableEntityHandler.getPermitted(1L, extractProjectDetails(rpUser, "test_project"))).thenReturn(filter);
+		when(userFilterRepository.findByIdAndProjectId(1L, extractProjectDetails(rpUser, "test_project").getProjectId())).thenReturn(
+				Optional.of(filter));
 
 		final Executable executable = () -> handler.getTestItems(Filter.builder()
 				.withTarget(TestItem.class)
@@ -279,8 +282,7 @@ class GetTestItemHandlerImplTest {
 				.build(), PageRequest.of(0, 10), extractProjectDetails(rpUser, "test_project"), rpUser, null, 1L, false, 0);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
-		assertEquals(
-				"Error in handled Request. Please, check specified parameters: 'Launches limit should be greater than 0'",
+		assertEquals("Error in handled Request. Please, check specified parameters: 'Launches limit should be greater than 0'",
 				exception.getMessage()
 		);
 	}

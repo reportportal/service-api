@@ -70,7 +70,6 @@ class FilterEventsTest {
 		userFilter.setId(2L);
 		userFilter.setProjectId(3L);
 		userFilter.setName(name);
-		userFilter.setShared(shared);
 		userFilter.setDescription(description);
 		return userFilter;
 	}
@@ -100,7 +99,6 @@ class FilterEventsTest {
 	private static List<HistoryField> getExpectedHistory(Pair<String, String> name, Pair<Boolean, Boolean> shared,
 			Pair<String, String> description) {
 		return Lists.newArrayList(HistoryField.of(NAME, name.getLeft(), name.getRight()),
-				HistoryField.of(SHARE, shared.getLeft().toString(), shared.getRight().toString()),
 				HistoryField.of(DESCRIPTION, description.getLeft(), description.getRight())
 		);
 	}

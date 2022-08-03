@@ -161,7 +161,6 @@ class DemoDashboardsService {
 		userFilter.setFilterSorts(Sets.newHashSet(filterSort));
 
 		userFilter.setOwner(user.getUsername());
-		userFilter.setShared(SHARED);
 
 		userFilterRepository.save(userFilter);
 
@@ -174,7 +173,6 @@ class DemoDashboardsService {
 		dashboard.setProject(project);
 		dashboard.setCreationDate(LocalDateTime.now());
 		dashboard.setOwner(user.getUsername());
-		dashboard.setShared(SHARED);
 
 		dashboardRepository.save(dashboard);
 

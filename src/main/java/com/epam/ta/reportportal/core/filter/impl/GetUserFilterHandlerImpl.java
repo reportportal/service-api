@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.SharedEntity;
+import com.epam.ta.reportportal.ws.model.OwnedEntity;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,12 +76,12 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 	}
 
 	@Override
-	public Iterable<SharedEntity> getFiltersNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+	public Iterable<OwnedEntity> getFiltersNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
 			ReportPortalUser user) {
 		final Page<UserFilter> userFilters = filterRepository.findByFilter(ProjectFilter.of(filter, projectDetails.getProjectId()),
 				pageable
 		);
-		return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_SHARED_ENTITY).apply(userFilters);
+		return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_OWNED_ENTITY_RESOURCE).apply(userFilters);
 	}
 
 	@Override

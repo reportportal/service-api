@@ -171,7 +171,6 @@ class UpdateUserFilterHandlerTest {
 
 		updateUserFilterRQ.setName(name);
 		updateUserFilterRQ.setObjectType("Launch");
-		updateUserFilterRQ.setShare(false);
 
 		Order order = new Order();
 		order.setIsAsc(true);

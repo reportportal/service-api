@@ -82,7 +82,6 @@ class DashboardControllerTest extends BaseMvcTest {
 		final UpdateDashboardRQ rq = new UpdateDashboardRQ();
 		rq.setName("updated");
 		rq.setDescription("updated");
-		rq.setShare(false);
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/dashboard/17").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)).andExpect(status().isOk());
@@ -90,7 +89,6 @@ class DashboardControllerTest extends BaseMvcTest {
 		assertTrue(optionalDashboard.isPresent());
 		assertEquals("updated", optionalDashboard.get().getName());
 		assertEquals("updated", optionalDashboard.get().getDescription());
-		assertFalse(optionalDashboard.get().isShared());
 	}
 
 	@Test

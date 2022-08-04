@@ -92,7 +92,7 @@ public class UserFilterController {
 	@Transactional(readOnly = true)
 	@GetMapping
 	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Get permitted (own and shared) filters")
+	@ApiOperation("Get filters")
 	public Iterable<UserFilterResource> getAllFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
 			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
 		return getFilterHandler.getUserFilters(projectName, pageable, filter, user);

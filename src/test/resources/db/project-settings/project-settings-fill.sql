@@ -8,10 +8,10 @@ values (2, 6),
        (2, 7),
        (2, 8);
 
-INSERT INTO public.shareable_entity (id, shared, owner, project_id)
-VALUES (1, false, 'default', 2),
-       (2, false, 'default', 2),
-       (3, false, 'default', 2);
+INSERT INTO public.owned_entity (id, owner, project_id)
+VALUES (1, 'default', 2),
+       (2, 'default', 2),
+       (3, 'default', 2);
 
 
 INSERT INTO public.filter (id, name, target, description)

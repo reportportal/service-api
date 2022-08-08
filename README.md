@@ -8,7 +8,6 @@
 [![Code Coverage](https://codecov.io/gh/reportportal/service-api/graphs/badge.svg)](https://codecov.io/gh/reportportal/service-api)
 [![Maven Central](https://img.shields.io/maven-central/v/com.epam.reportportal/service-api.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.epam.reportportal%22%20AND%20a:%22service-api%22)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/reportportal/service-api.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/reportportal/service-api/alerts/)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/reportportal/service-api.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/reportportal/service-api/alerts/)
 
 ## Copyright Notice
 Licensed under the [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0)

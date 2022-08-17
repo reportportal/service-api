@@ -1,34 +1,34 @@
-insert into issue_type (id, issue_group_id, locator, issue_name, abbreviation, hex_color)
-values (6, 1, 'custom_ti', 'Custom to investigate', 'CTI', '#2f39bf'),
+INSERT INTO issue_type (id, issue_group_id, locator, issue_name, abbreviation, hex_color)
+VALUES (6, 1, 'custom_ti', 'Custom to investigate', 'CTI', '#2f39bf'),
        (7, 2, 'custom_ab', 'Custom automation bug', 'CAB', '#ccac39'),
        (8, 5, 'custom si', 'Custom system issue', 'CSI', '#08af2a');
 
-insert into issue_type_project(project_id, issue_type_id)
-values (2, 6),
+INSERT INTO issue_type_project(project_id, issue_type_id)
+VALUES (2, 6),
        (2, 7),
        (2, 8);
 
 INSERT INTO public.shareable_entity (id, shared, owner, project_id)
-VALUES (1, false, 'default', 2),
-       (2, false, 'default', 2),
-       (3, false, 'default', 2);
+VALUES (1, FALSE, 'default', 2),
+       (2, FALSE, 'default', 2),
+       (3, FALSE, 'default', 2);
 
 
 INSERT INTO public.filter (id, name, target, description)
-VALUES (1, 'filter', 'Launch', null);
+VALUES (1, 'filter', 'Launch', NULL);
 
 INSERT INTO public.filter_sort (id, filter_id, field, direction)
 VALUES (1, 1, 'name', 'ASC');
 
 INSERT INTO public.filter_condition (id, filter_id, condition, value, search_criteria, negative)
-VALUES (1, 1, 'CONTAINS', 'test', 'name', false);
+VALUES (1, 1, 'CONTAINS', 'test', 'name', FALSE);
 
 INSERT INTO public.widget (id, name, description, widget_type, items_count, widget_options)
-VALUES (2, 'overall statistics', null, 'overallStatistics', 20, '{"options": {}}'),
-       (3, 'launches table', null, 'launchesTable', 20, '{"options": {}}');
+VALUES (2, 'overall statistics', NULL, 'overallStatistics', 20, '{"options": {}}'),
+       (3, 'launches table', NULL, 'launchesTable', 20, '{"options": {}}');
 
-insert into content_field(id, field)
-values (2, 'statistics$executions$total'),
+INSERT INTO content_field(id, field)
+VALUES (2, 'statistics$executions$total'),
        (2, 'statistics$executions$passed'),
        (2, 'statistics$executions$failed'),
        (2, 'statistics$executions$skipped'),
@@ -52,14 +52,29 @@ values (2, 'statistics$executions$total'),
        (3, 'statistics$defects$to_investigate$custom_ti');
 
 
-insert into widget_filter(widget_id, filter_id)
-values (2, 1),
+INSERT INTO widget_filter(widget_id, filter_id)
+VALUES (2, 1),
        (3, 1);
 
-alter sequence issue_type_id_seq restart with 9;
+ALTER SEQUENCE issue_type_id_seq RESTART WITH 9;
 
-insert into pattern_template(id, name, "value", type, enabled, project_id)
-values (1, 'some_name', 'value', 'STRING', true, 2),
-       (2, 'simple_name', 'value', 'STRING', true, 2),
-       (3, 'another_name', 'value', 'STRING', true, 1);
-alter sequence pattern_template_id_seq restart with 4;
+INSERT INTO pattern_template(id, name, value, type, enabled, project_id)
+VALUES (1, 'some_name', 'value', 'STRING', TRUE, 2),
+       (2, 'simple_name', 'value', 'STRING', TRUE, 2),
+       (3, 'another_name', 'value', 'STRING', TRUE, 1);
+ALTER SEQUENCE pattern_template_id_seq RESTART WITH 4;
+
+INSERT INTO launch(id, uuid, project_id, user_id, name, description, start_time, end_time, last_modified, mode, status, has_retries,
+                   rerun, approximate_duration)
+VALUES (1, 'uuid', 2, 1, 'launch', 'launch', now(), now(), now(), 'DEFAULT', 'FAILED', FALSE, FALSE, 0);
+
+INSERT INTO public.sender_case (id, send_case, project_id, enabled, rule_name)
+VALUES (1, 'ALWAYS', 2, TRUE, 'rule #1'),
+       (2, 'FAILED', 2, FALSE, 'rule #2'),
+       (3, 'TO_INVESTIGATE', 2, FALSE, 'rule #3'),
+       (4, 'MORE_10', 2, TRUE, 'rule #4');
+
+ALTER SEQUENCE sender_case_id_seq RESTART WITH 5;
+
+INSERT INTO public.launch_names (sender_case_id, launch_name)
+VALUES (1, 1);

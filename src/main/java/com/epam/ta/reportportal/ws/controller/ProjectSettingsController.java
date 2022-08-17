@@ -17,10 +17,12 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.core.project.settings.CreateProjectSettingsHandler;
 import com.epam.ta.reportportal.core.project.settings.DeleteProjectSettingsHandler;
 import com.epam.ta.reportportal.core.project.settings.GetProjectSettingsHandler;
 import com.epam.ta.reportportal.core.project.settings.UpdateProjectSettingsHandler;
+import com.epam.ta.reportportal.core.project.settings.notification.*;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
@@ -29,15 +31,19 @@ import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
 import com.epam.ta.reportportal.ws.model.project.config.pattern.UpdatePatternTemplateRQ;
+import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
+import java.util.List;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -61,13 +67,31 @@ public class ProjectSettingsController {
 
 	private final GetProjectSettingsHandler getHandler;
 
+	private final GetProjectHandler getProjectHandler;
+
+	private final GetProjectNotificationsHandler getProjectNotificationsHandler;
+
+	private final CreateProjectNotificationHandler createProjectNotificationHandler;
+
+	private final UpdateProjectNotificationHandler updateProjectNotificationHandler;
+
+	private final DeleteProjectNotificationHandler deleteNotificationHandler;
+
 	@Autowired
 	public ProjectSettingsController(CreateProjectSettingsHandler createHandler, UpdateProjectSettingsHandler updateHandler,
-			DeleteProjectSettingsHandler deleteHandler, GetProjectSettingsHandler getHandler) {
+			DeleteProjectSettingsHandler deleteHandler, GetProjectSettingsHandler getHandler, GetProjectHandler getProjectHandler,
+			GetProjectNotificationsHandler getProjectNotificationsHandler,
+			CreateProjectNotificationHandler createProjectNotificationHandler,
+			UpdateProjectNotificationHandler updateProjectNotificationHandler, DeleteProjectNotificationHandler deleteNotificationHandler) {
 		this.createHandler = createHandler;
 		this.updateHandler = updateHandler;
 		this.deleteHandler = deleteHandler;
 		this.getHandler = getHandler;
+		this.getProjectHandler = getProjectHandler;
+		this.getProjectNotificationsHandler = getProjectNotificationsHandler;
+		this.createProjectNotificationHandler = createProjectNotificationHandler;
+		this.updateProjectNotificationHandler = updateProjectNotificationHandler;
+		this.deleteNotificationHandler = deleteNotificationHandler;
 	}
 
 	@PostMapping("/sub-type")
@@ -130,5 +154,50 @@ public class ProjectSettingsController {
 	public OperationCompletionRS deletePatternTemplate(@PathVariable String projectName, @PathVariable Long id,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return deleteHandler.deletePatternTemplate(normalizeId(projectName), user, id);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/notification")
+	@ResponseStatus(OK)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
+	@ApiOperation(value = "Returns notifications config of specified project", notes = "Only for users assigned to specified project")
+	public List<SenderCaseDTO> getNotifications(@PathVariable String projectName) {
+		return getProjectNotificationsHandler.getProjectNotifications(getProjectHandler.get(normalizeId(projectName)).getId());
+	}
+
+	@Transactional
+	@PostMapping("/notification")
+	@ResponseStatus(CREATED)
+	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@ApiOperation(value = "Creates notification for specified project", notes = "Only for users with PROJECT_MANAGER or ADMIN roles")
+	public EntryCreatedRS createNotification(@PathVariable String projectName, @RequestBody @Validated SenderCaseDTO createNotificationRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return createProjectNotificationHandler.createNotification(getProjectHandler.get(normalizeId(projectName)),
+				createNotificationRQ,
+				user
+		);
+	}
+
+	@Transactional
+	@PutMapping("/notification")
+	@ResponseStatus(CREATED)
+	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@ApiOperation(value = "Updates notification for specified project", notes = "Only for users with PROJECT_MANAGER or ADMIN roles")
+	public OperationCompletionRS updateNotification(@PathVariable String projectName,
+			@RequestBody @Validated SenderCaseDTO updateNotificationRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateProjectNotificationHandler.updateNotification(getProjectHandler.get(normalizeId(projectName)),
+				updateNotificationRQ,
+				user
+		);
+	}
+
+	@Transactional
+	@DeleteMapping("/notification/{notificationId:\\d+}")
+	@ResponseStatus(OK)
+	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@ApiOperation(value = "Deletes notification for specified project", notes = "Only for users with PROJECT_MANAGER or ADMIN roles")
+	public OperationCompletionRS deleteNotification(@PathVariable String projectName, @PathVariable Long notificationId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return deleteNotificationHandler.deleteNotification(getProjectHandler.get(normalizeId(projectName)), notificationId, user);
 	}
 }

@@ -17,7 +17,10 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
+import com.epam.ta.reportportal.dao.SenderCaseRepository;
+import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
@@ -25,6 +28,8 @@ import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
 import com.epam.ta.reportportal.ws.model.project.config.pattern.UpdatePatternTemplateRQ;
+import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,11 +38,11 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -53,6 +58,11 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private IssueTypeRepository issueTypeRepository;
+
+	@Autowired
+	private SenderCaseRepository senderCaseRepository;
+
+	private static final String NOTIFICATION_URL = "/settings/notification/";
 
 	@Test
 	void createSubType() throws Exception {
@@ -176,4 +186,75 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(updatePatternTemplateRQ))).andExpect(status().isConflict());
 	}
+
+	@Test
+	void getNotifications() throws Exception {
+		final MvcResult mvcResult = mockMvc.perform(get(
+						DEFAULT_PROJECT_BASE_URL + NOTIFICATION_URL).with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk())
+				.andReturn();
+		final List<SenderCaseDTO> senderCaseDTOS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
+				new TypeReference<>() {
+				}
+		);
+		assertEquals(4, senderCaseDTOS.size());
+	}
+
+	@Test
+	void createNotification() throws Exception {
+
+		SenderCaseDTO senderCaseDTO = new SenderCaseDTO();
+		senderCaseDTO.setId(5L);
+		senderCaseDTO.setSendCase(SendCase.MORE_20.getCaseString());
+		senderCaseDTO.setEnabled(true);
+		senderCaseDTO.setRuleName("rule #5");
+		senderCaseDTO.setRecipients(List.of("test1@email.com", "test2@email.com"));
+
+		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + NOTIFICATION_URL).with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(senderCaseDTO))).andExpect(status().isCreated());
+	}
+
+	@Test
+	void createNotificationWithDuplicateRuleName() throws Exception {
+
+		SenderCaseDTO senderCaseDTO = new SenderCaseDTO();
+		senderCaseDTO.setId(5L);
+		senderCaseDTO.setSendCase(SendCase.MORE_20.getCaseString());
+		senderCaseDTO.setEnabled(true);
+		senderCaseDTO.setRuleName("rule #2");
+		senderCaseDTO.setRecipients(List.of("test1@email.com", "test2@email.com"));
+
+		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + NOTIFICATION_URL).with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(senderCaseDTO))).andExpect(status().isConflict());
+	}
+
+	@Test
+	void updateNotification() throws Exception {
+
+		SenderCaseDTO updateRq = new SenderCaseDTO();
+		updateRq.setId(1L);
+		updateRq.setRuleName("rule #5");
+		updateRq.setSendCase(SendCase.ALWAYS.getCaseString());
+		updateRq.setRecipients(List.of("test1@email.com", "test2@email.com"));
+		updateRq.setLaunchNames(List.of("launch"));
+
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + NOTIFICATION_URL).with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(updateRq))).andExpect(status().isCreated());
+	}
+
+	@Test
+	void deleteNotification() throws Exception {
+		Long id = 1L;
+
+		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + NOTIFICATION_URL + id).with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+
+		List<SenderCase> senderCases = senderCaseRepository.findAll();
+
+		assertFalse(senderCases.stream().anyMatch(s -> s.getId().equals(id)));
+	}
+
 }

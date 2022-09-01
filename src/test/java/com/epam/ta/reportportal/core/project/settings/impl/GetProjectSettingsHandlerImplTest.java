@@ -16,10 +16,7 @@
 
 package com.epam.ta.reportportal.core.project.settings.impl;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,8 +26,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_ORGANIZATION_SLUG;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
@@ -50,9 +47,9 @@ class GetProjectSettingsHandlerImplTest {
 	@Test
 	void getProjectSettingOnNotExistProject() {
 
-		when(repository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
+		when(repository.findBySlugAndKey(TEST_ORGANIZATION_SLUG, TEST_PROJECT_NAME)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.getProjectSettings(TEST_PROJECT_NAME));
+		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.getProjectSettings(TEST_ORGANIZATION_SLUG, TEST_PROJECT_NAME));
 
 		assertEquals("Project 'test_project' not found. Did you use correct project name?", exception.getMessage());
 	}

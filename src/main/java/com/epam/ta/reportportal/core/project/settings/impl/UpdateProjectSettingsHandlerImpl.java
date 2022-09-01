@@ -77,14 +77,14 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 	}
 
 	@Override
-	public OperationCompletionRS updateProjectIssueSubType(String projectName, ReportPortalUser user,
+	public OperationCompletionRS updateProjectIssueSubType(String organizationSlug, String projectKey, ReportPortalUser user,
 			UpdateIssueSubTypeRQ updateIssueSubTypeRQ) {
 		expect(updateIssueSubTypeRQ.getIds().size() > 0, equalTo(true)).verify(FORBIDDEN_OPERATION,
 				"Please specify at least one item data for update."
 		);
 
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+		Project project = projectRepository.findBySlugAndKey(organizationSlug, projectKey)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
 
 		List<IssueTypeActivityResource> issueTypeActivityResources = updateIssueSubTypeRQ.getIds()
 				.stream()
@@ -103,11 +103,11 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 	}
 
 	@Override
-	public OperationCompletionRS updatePatternTemplate(Long id, String projectName, UpdatePatternTemplateRQ updatePatternTemplateRQ,
-			ReportPortalUser user) {
+	public OperationCompletionRS updatePatternTemplate(Long id, String organizationSlug, String projectKey,
+			UpdatePatternTemplateRQ updatePatternTemplateRQ, ReportPortalUser user) {
 
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+		Project project = projectRepository.findBySlugAndKey(organizationSlug, projectKey)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
 
 		PatternTemplate patternTemplate = patternTemplateRepository.findById(id)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT, id, project.getId()));

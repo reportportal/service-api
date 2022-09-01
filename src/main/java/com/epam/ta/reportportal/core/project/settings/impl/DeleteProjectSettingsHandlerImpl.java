@@ -91,9 +91,9 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 	}
 
 	@Override
-	public OperationCompletionRS deleteProjectIssueSubType(String projectName, ReportPortalUser user, Long id) {
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+	public OperationCompletionRS deleteProjectIssueSubType(String organizationSlug, String projectKey, ReportPortalUser user, Long id) {
+		Project project = projectRepository.findBySlugAndKey(organizationSlug, projectKey)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
 
 		ProjectIssueType type = project.getProjectIssueTypes()
 				.stream()
@@ -161,10 +161,10 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 	}
 
 	@Override
-	public OperationCompletionRS deletePatternTemplate(String projectName, ReportPortalUser user, Long id) {
+	public OperationCompletionRS deletePatternTemplate(String organizationSlug, String projectKey, ReportPortalUser user, Long id) {
 
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+		Project project = projectRepository.findBySlugAndKey(organizationSlug, projectKey)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
 
 		PatternTemplate patternTemplate = patternTemplateRepository.findByIdAndProjectId(id, project.getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT, id, project.getName()));

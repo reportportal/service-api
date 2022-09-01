@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.MoreCollectors;
+import com.epam.ta.reportportal.entity.organization.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserType;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Converts user from database to resource
@@ -66,6 +68,19 @@ public final class UserConverter {
 						return assignedProject;
 					}));
 			resource.setAssignedProjects(userProjects);
+		}
+
+		if (null != user.getOrganizations()) {
+			List<OrganizationUser> organizations = Lists.newArrayList(user.getOrganizations());
+			Map<String, UserResource.AssignedOrganization> userOrganization = organizations
+					.stream()
+					.collect(Collectors.toMap(organizationUser -> organizationUser.getOrganization().getSlug(), org -> {
+						UserResource.AssignedOrganization assignedOrganization = new UserResource.AssignedOrganization();
+						assignedOrganization.setOrganizationName(org.getOrganization().getName());
+						assignedOrganization.setOrganizationRole(org.getOrganizationRole().name());
+						return assignedOrganization;
+					}));
+			resource.setAssignedOrganizations(userOrganization);
 		}
 		return resource;
 	};

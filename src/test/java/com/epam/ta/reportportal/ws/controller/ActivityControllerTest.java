@@ -31,35 +31,37 @@ class ActivityControllerTest extends BaseMvcTest {
 
 	@Test
 	void getActivityByWrongTestItemId() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/activity/1111").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/activity/1111").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().is(404));
 	}
 
 	@Test
 	void getActivityByWrongProjectName() throws Exception {
-		mockMvc.perform(get("/v1/wrong_project/activity/1").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(403));
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/wrong_project/activity/1").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().is(403));
 	}
 
 	@Test
 	void getTestItemActivitiesByWrongTestItem() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/activity/item/1111").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL+ "/default_personal/activity/item/1111").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().is(404));
 	}
 
 	@Test
 	void getTestItemActivitiesPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/activity/item/1").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/activity/item/1").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().is(200));
 	}
 
 	@Test
 	void getActivityPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/activity/1").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/activity/1").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().is(200));
 	}
 
 	@Test
 	void getActivitiesForProject() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/activity").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/activity").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().is(200));
 	}
 }

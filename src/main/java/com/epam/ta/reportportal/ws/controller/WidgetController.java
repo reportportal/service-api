@@ -44,7 +44,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -53,7 +52,7 @@ import static org.springframework.http.HttpStatus.OK;
  */
 @RestController
 @PreAuthorize(ASSIGNED_TO_PROJECT)
-@RequestMapping("/v1/{projectName}/widget")
+@RequestMapping("/v1/{organizationSlug}/{projectKey}/widget")
 public class WidgetController {
 
 	private final ProjectExtractor projectExtractor;
@@ -75,52 +74,52 @@ public class WidgetController {
 	@ResponseStatus(CREATED)
 	@ApiOperation("Create a new widget")
 	public EntryCreatedRS createWidget(@RequestBody @Validated WidgetRQ createWidget, @AuthenticationPrincipal ReportPortalUser user,
-			@PathVariable String projectName) {
-		return createWidgetHandler.createWidget(createWidget, projectExtractor.extractProjectDetails(user, projectName), user);
+			@PathVariable String organizationSlug, @PathVariable String projectKey) {
+		return createWidgetHandler.createWidget(createWidget, projectExtractor.extractProjectDetails(user, organizationSlug, projectKey), user);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/{widgetId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Get widget by ID")
-	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
+	public WidgetResource getWidget(@PathVariable String organizationSlug, @PathVariable String projectKey, @PathVariable Long widgetId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidget(widgetId, projectExtractor.extractProjectDetails(user, projectName), user);
+		return getWidgetHandler.getWidget(widgetId, projectExtractor.extractProjectDetails(user, organizationSlug, projectKey), user);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "multilevel/{widgetId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Get multilevel widget by ID")
-	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
+	public WidgetResource getWidget(@PathVariable String organizationSlug, @PathVariable String projectKey, @PathVariable Long widgetId,
 			@RequestParam(required = false, name = "attributes") String[] attributes, @RequestParam MultiValueMap<String, String> params, @AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidget(widgetId, ArrayUtils.nullToEmpty(attributes), params, projectExtractor.extractProjectDetails(user, projectName), user);
+		return getWidgetHandler.getWidget(widgetId, ArrayUtils.nullToEmpty(attributes), params, projectExtractor.extractProjectDetails(user, organizationSlug, projectKey), user);
 	}
 
 	@Transactional(readOnly = true)
 	@PostMapping(value = "/preview")
 	@ResponseStatus(OK)
 	@ApiOperation("Get widget preview")
-	public Map<String, ?> getWidgetPreview(@PathVariable String projectName, @RequestBody @Validated WidgetPreviewRQ previewRQ,
+	public Map<String, ?> getWidgetPreview(@PathVariable String organizationSlug, @PathVariable String projectKey, @RequestBody @Validated WidgetPreviewRQ previewRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidgetPreview(previewRQ, projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user);
+		return getWidgetHandler.getWidgetPreview(previewRQ, projectExtractor.extractProjectDetails(user, organizationSlug, projectKey), user);
 	}
 
 	@Transactional
 	@PutMapping(value = "/{widgetId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Update specified widget")
-	public OperationCompletionRS updateWidget(@PathVariable String projectName, @PathVariable Long widgetId,
+	public OperationCompletionRS updateWidget(@PathVariable String organizationSlug, @PathVariable String projectKey, @PathVariable Long widgetId,
 			@RequestBody @Validated WidgetRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateWidgetHandler.updateWidget(widgetId, updateRQ, projectExtractor.extractProjectDetails(user, projectName), user);
+		return updateWidgetHandler.updateWidget(widgetId, updateRQ, projectExtractor.extractProjectDetails(user, organizationSlug, projectKey), user);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/names/all")
 	@ResponseStatus(OK)
 	@ApiOperation("Load all widget names which belong to a user")
-	public Iterable<Object> getWidgetNames(@PathVariable String projectName, @SortFor(Widget.class) Pageable pageable,
+	public Iterable<Object> getWidgetNames(@PathVariable String organizationSlug, @PathVariable String projectKey, @SortFor(Widget.class) Pageable pageable,
 			@FilterFor(Widget.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getOwnNames(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
+		return getWidgetHandler.getOwnNames(projectExtractor.extractProjectDetails(user, organizationSlug, projectKey), pageable, filter, user);
 	}
 }

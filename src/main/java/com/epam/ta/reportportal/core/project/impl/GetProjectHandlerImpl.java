@@ -85,9 +85,9 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	}
 
 	@Override
-	public Iterable<UserResource> getProjectUsers(String projectName, Filter filter, Pageable pageable) {
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+	public Iterable<UserResource> getProjectUsers(String organizationSlug, String projectKey, Filter filter, Pageable pageable) {
+		Project project = projectRepository.findBySlugAndKey(organizationSlug, projectKey)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 		if (CollectionUtils.isEmpty(project.getUsers())) {
 			return Collections.emptyList();
 		}
@@ -118,15 +118,20 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	}
 
 	@Override
+	public Project get(String slug, String key) {
+		return projectRepository.findBySlugAndKey(slug, key).orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, key));
+	}
+
+	@Override
 	public Project getRaw(String name) {
 		return projectRepository.findRawByName(name).orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, name));
 	}
 
 	@Override
-	public ProjectResource getResource(String projectName, ReportPortalUser user) {
+	public ProjectResource getResource(String organizationSlug, String projectKey, ReportPortalUser user) {
 
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+		Project project = projectRepository.findBySlugAndKey(organizationSlug, projectKey)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 
 		return projectConverter.TO_PROJECT_RESOURCE.apply(project);
 	}

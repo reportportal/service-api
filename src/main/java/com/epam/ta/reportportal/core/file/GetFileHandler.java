@@ -40,8 +40,8 @@ public interface GetFileHandler {
 	 * @param loggedInUser Logged-in {@link ReportPortalUser}
 	 * @return {@link InputStream}
 	 */
-	BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, String projectName,
-			boolean loadThumbnail);
+	BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, String organizationSlug,
+			String projectKey, boolean loadThumbnail);
 
 	/**
 	 * Returns {@link InputStream} for the file with the specified id

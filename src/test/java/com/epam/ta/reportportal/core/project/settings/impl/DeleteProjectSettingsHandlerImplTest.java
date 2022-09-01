@@ -30,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_ORGANIZATION_SLUG;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,10 +54,10 @@ class DeleteProjectSettingsHandlerImplTest {
 		long projectId = 1L;
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
+		when(projectRepository.findBySlugAndKey(TEST_ORGANIZATION_SLUG, TEST_PROJECT_NAME)).thenReturn(Optional.empty());
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.deleteProjectIssueSubType(TEST_PROJECT_NAME, user, 1L)
+				() -> handler.deleteProjectIssueSubType(TEST_ORGANIZATION_SLUG, TEST_PROJECT_NAME, user, 1L)
 		);
 
 		assertEquals("Project 'test_project' not found. Did you use correct project name?", exception.getMessage());
@@ -67,10 +68,10 @@ class DeleteProjectSettingsHandlerImplTest {
 		long projectId = 1L;
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
+		when(projectRepository.findBySlugAndKey(TEST_ORGANIZATION_SLUG, TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.deleteProjectIssueSubType(TEST_PROJECT_NAME, user, 1L)
+				() -> handler.deleteProjectIssueSubType(TEST_ORGANIZATION_SLUG, TEST_PROJECT_NAME, user, 1L)
 		);
 
 		assertEquals("Issue Type '1' not found.", exception.getMessage());

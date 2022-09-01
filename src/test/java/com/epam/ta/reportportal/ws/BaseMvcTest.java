@@ -56,7 +56,9 @@ import org.springframework.transaction.annotation.Transactional;
 public abstract class BaseMvcTest {
 
 	protected static final String DEFAULT_PROJECT_BASE_URL = "/v1/default_personal";
+	protected static final String DEFAULT_SLUG_KEY_BASE_URL = "/v1/my-organization/default_personal";
 	protected static final String SUPERADMIN_PROJECT_BASE_URL = "/v1/superadmin_personal";
+	protected static final String SUPERADMIN_SLUG_KEY_BASE_URL = "/v1/my-organization/superadmin_personal";
 
 	@Autowired
 	protected OAuthHelper oAuthHelper;

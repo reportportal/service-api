@@ -50,7 +50,7 @@ import static org.springframework.http.HttpStatus.OK;
  */
 @RestController
 @PreAuthorize(ASSIGNED_TO_PROJECT)
-@RequestMapping("/v1/{projectName}/dashboard")
+@RequestMapping("/v1/{organizationSlug}/{projectKey}/dashboard")
 public class DashboardController {
 
 	private final ProjectExtractor projectExtractor;
@@ -74,46 +74,67 @@ public class DashboardController {
 	@PostMapping
 	@ResponseStatus(CREATED)
 	@ApiOperation("Create dashboard for specified project")
-	public EntryCreatedRS createDashboard(@PathVariable String projectName, @RequestBody @Validated CreateDashboardRQ createRQ,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return createDashboardHandler.createDashboard(projectExtractor.extractProjectDetails(user, projectName), createRQ, user);
+	public EntryCreatedRS createDashboard(@PathVariable String organizationSlug, @PathVariable String projectKey,
+			@RequestBody @Validated CreateDashboardRQ createRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return createDashboardHandler.createDashboard(
+				projectExtractor.extractProjectDetails(user, organizationSlug, projectKey),
+				createRQ,
+				user
+		);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping
 	@ResponseStatus(OK)
 	@ApiOperation("Get all permitted dashboard resources for specified project")
-	public Iterable<DashboardResource> getAllDashboards(@PathVariable String projectName, @SortFor(Dashboard.class) Pageable pageable,
-			@FilterFor(Dashboard.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getDashboardHandler.getDashboards(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
+	public Iterable<DashboardResource> getAllDashboards(@PathVariable String organizationSlug, @PathVariable String projectKey,
+			@SortFor(Dashboard.class) Pageable pageable, @FilterFor(Dashboard.class) Filter filter,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getDashboardHandler.getDashboards(
+				projectExtractor.extractProjectDetails(user, organizationSlug, projectKey),
+				pageable,
+				filter,
+				user
+		);
 	}
 
 	@Transactional
 	@PutMapping("/{dashboardId}/add")
 	@ResponseStatus(OK)
 	@ApiOperation("Add widget to specified dashboard")
-	public OperationCompletionRS addWidget(@PathVariable String projectName, @PathVariable Long dashboardId,
-			@RequestBody @Validated AddWidgetRq addWidgetRq, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateDashboardHandler.addWidget(dashboardId, projectExtractor.extractProjectDetails(user, projectName), addWidgetRq, user);
+	public OperationCompletionRS addWidget(@PathVariable String organizationSlug, @PathVariable String projectKey,
+			@PathVariable Long dashboardId, @RequestBody @Validated AddWidgetRq addWidgetRq,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return updateDashboardHandler.addWidget(
+				dashboardId,
+				projectExtractor.extractProjectDetails(user, organizationSlug, projectKey),
+				addWidgetRq,
+				user
+		);
 	}
 
 	@Transactional
 	@DeleteMapping("/{dashboardId}/{widgetId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Remove widget from specified dashboard")
-	public OperationCompletionRS removeWidget(@PathVariable String projectName, @PathVariable Long dashboardId, @PathVariable Long widgetId,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateDashboardHandler.removeWidget(widgetId, dashboardId, projectExtractor.extractProjectDetails(user, projectName), user);
+	public OperationCompletionRS removeWidget(@PathVariable String organizationSlug, @PathVariable String projectKey,
+			@PathVariable Long dashboardId, @PathVariable Long widgetId, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateDashboardHandler.removeWidget(
+				widgetId,
+				dashboardId,
+				projectExtractor.extractProjectDetails(user, organizationSlug, projectKey),
+				user
+		);
 	}
 
 	@Transactional
 	@PutMapping(value = "/{dashboardId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Update specified dashboard for specified project")
-	public OperationCompletionRS updateDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
-			@RequestBody @Validated UpdateDashboardRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateDashboardHandler.updateDashboard(
-				projectExtractor.extractProjectDetails(user, projectName),
+	public OperationCompletionRS updateDashboard(@PathVariable String organizationSlug, @PathVariable String projectKey,
+			@PathVariable Long dashboardId, @RequestBody @Validated UpdateDashboardRQ updateRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return updateDashboardHandler.updateDashboard(projectExtractor.extractProjectDetails(user, organizationSlug, projectKey),
 				updateRQ,
 				dashboardId,
 				user
@@ -124,17 +145,21 @@ public class DashboardController {
 	@DeleteMapping(value = "/{dashboardId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified dashboard by ID for specified project")
-	public OperationCompletionRS deleteDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteDashboardHandler.deleteDashboard(dashboardId, projectExtractor.extractProjectDetails(user, projectName), user);
+	public OperationCompletionRS deleteDashboard(@PathVariable String organizationSlug, @PathVariable String projectKey,
+			@PathVariable Long dashboardId, @AuthenticationPrincipal ReportPortalUser user) {
+		return deleteDashboardHandler.deleteDashboard(
+				dashboardId,
+				projectExtractor.extractProjectDetails(user, organizationSlug, projectKey),
+				user
+		);
 	}
 
 	@Transactional
 	@GetMapping(value = "/{dashboardId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Get specified dashboard by ID for specified project")
-	public DashboardResource getDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getDashboardHandler.getDashboard(dashboardId, projectExtractor.extractProjectDetails(user, projectName));
+	public DashboardResource getDashboard(@PathVariable String organizationSlug, @PathVariable String projectKey,
+			@PathVariable Long dashboardId, @AuthenticationPrincipal ReportPortalUser user) {
+		return getDashboardHandler.getDashboard(dashboardId, projectExtractor.extractProjectDetails(user, organizationSlug, projectKey));
 	}
 }

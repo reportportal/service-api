@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -67,6 +66,27 @@ public class ProjectExtractor {
 	}
 
 	/**
+	 * Extracts project details for specified user by specified project name
+	 *
+	 * @param user        User
+	 * @param organizationSlug Organization slug
+	 * @param projectKey Project key
+	 * @return Project Details
+	 */
+	public ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user, String organizationSlug, String projectKey) {
+		final String normalizedOrgSlug = normalizeId(organizationSlug);
+		final String normalizedProjectKey = normalizeId(projectKey);
+		return user.getProjectDetails()
+				.computeIfAbsent(normalizedOrgSlug + "-" + normalizedProjectKey,
+						k -> findProjectDetails(user,
+								normalizedProjectKey
+						).orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
+								"Please check the list of your available projects."
+						))
+				);
+	}
+
+	/**
 	 * Find project details for specified user by specified project name
 	 *
 	 * @param user        User
@@ -75,7 +95,6 @@ public class ProjectExtractor {
 	 */
 	public Optional<ReportPortalUser.ProjectDetails> findProjectDetails(ReportPortalUser user, String projectName) {
 		return projectUserRepository.findDetailsByUserIdAndProjectName(user.getUserId(), projectName);
-
 	}
 
 	/**
@@ -83,20 +102,22 @@ public class ProjectExtractor {
 	 * If user is ADMINISTRATOR - he is added as a PROJECT_MANAGER to the project
 	 *
 	 * @param user        User
-	 * @param projectName Project name
+	 * @param organizationSlug Organization slug
+	 * @param projectKey Project key
 	 * @return Project Details
 	 */
-	public ReportPortalUser.ProjectDetails extractProjectDetailsAdmin(ReportPortalUser user, String projectName) {
-
+	public ReportPortalUser.ProjectDetails extractProjectDetailsAdmin(ReportPortalUser user, String organizationSlug, String projectKey) {
+		final String normalizedOrgSlug = normalizeId(organizationSlug);
+		final String normalizedProjectKey = normalizeId(projectKey);
 		//dirty hack to allow everything for user with 'admin' authority
 		if (user.getUserRole().getAuthority().equals(ADMINISTRATOR.getAuthority())) {
-			Project project = projectRepository.findByName(normalizeId(projectName))
-					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+			Project project = projectRepository.findBySlugAndKey(normalizedOrgSlug, normalizedProjectKey)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 			user.getProjectDetails()
-					.put(projectName, new ReportPortalUser.ProjectDetails(project.getId(), project.getName(), ProjectRole.PROJECT_MANAGER));
+					.put(normalizedOrgSlug + "-" + normalizedProjectKey, new ReportPortalUser.ProjectDetails(project.getId(), project.getName(), ProjectRole.PROJECT_MANAGER));
 		}
 
-		return Optional.ofNullable(user.getProjectDetails().get(normalizeId(projectName)))
+		return Optional.ofNullable(user.getProjectDetails().get(normalizedOrgSlug + "-" + normalizedProjectKey))
 				.orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED, "Please check the list of your available projects."));
 	}
 

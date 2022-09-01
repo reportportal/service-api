@@ -28,6 +28,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
  */
 public class ReportPortalUserUtil {
 
+	public static final String TEST_ORGANIZATION_SLUG = "my-org";
 	public static final String TEST_PROJECT_NAME = "test_project";
 
 	private ReportPortalUserUtil() {

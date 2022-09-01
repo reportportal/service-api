@@ -61,14 +61,14 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 		rq.setColor("#eeeeee");
 		rq.setLongName("LongName");
 		rq.setShortName("name");
-		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/settings/sub-type").contentType(APPLICATION_JSON)
+		mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + "/settings/sub-type").contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated());
 	}
 
 	@Test
 	void getProjectSettings() throws Exception {
-		final MvcResult mvcResult = mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/settings").with(token(oAuthHelper.getDefaultToken())))
+		final MvcResult mvcResult = mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/settings").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk())
 				.andReturn();
 		final ProjectSettingsResource projectSettingsResource = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
@@ -81,7 +81,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 
 	@Test
 	void deleteSubType() throws Exception {
-		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/settings/sub-type/6").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(delete(DEFAULT_SLUG_KEY_BASE_URL + "/settings/sub-type/6").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 
 		Optional<IssueType> byId = issueTypeRepository.findById(6L);
@@ -99,7 +99,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 		updateOneIssueSubTypeRQ.setShortName("upd");
 		updateOneIssueSubTypeRQ.setTypeRef("TO_INVESTIGATE");
 		request.setIds(Collections.singletonList(updateOneIssueSubTypeRQ));
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/settings/sub-type").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/settings/sub-type").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 	}
@@ -111,7 +111,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 		createPatternTemplateRQ.setName("another_name");
 		createPatternTemplateRQ.setType("string");
 		createPatternTemplateRQ.setValue("qwe");
-		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/settings/pattern").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + "/settings/pattern").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(createPatternTemplateRQ))).andExpect(status().isCreated());
 	}
@@ -123,7 +123,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 		createPatternTemplateRQ.setName("name");
 		createPatternTemplateRQ.setType("dd");
 		createPatternTemplateRQ.setValue("qwe");
-		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/settings/pattern").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + "/settings/pattern").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(createPatternTemplateRQ))).andExpect(status().isBadRequest());
 	}
@@ -136,7 +136,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 		createPatternTemplateRQ.setType("string");
 		createPatternTemplateRQ.setValue("qwe");
 
-		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/settings/pattern").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + "/settings/pattern").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(createPatternTemplateRQ))).andExpect(status().isConflict());
 	}
@@ -148,7 +148,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 		updatePatternTemplateRQ.setName("another_name");
 		updatePatternTemplateRQ.setEnabled(true);
 
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/settings/pattern/1").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/settings/pattern/1").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(updatePatternTemplateRQ))).andExpect(status().isOk());
 	}
@@ -160,7 +160,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 		updatePatternTemplateRQ.setName("some_name");
 		updatePatternTemplateRQ.setEnabled(true);
 
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/settings/pattern/1").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/settings/pattern/1").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(updatePatternTemplateRQ))).andExpect(status().isOk());
 	}
@@ -172,7 +172,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 		updatePatternTemplateRQ.setName("some_name");
 		updatePatternTemplateRQ.setEnabled(true);
 
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/settings/pattern/2").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/settings/pattern/2").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(updatePatternTemplateRQ))).andExpect(status().isConflict());
 	}

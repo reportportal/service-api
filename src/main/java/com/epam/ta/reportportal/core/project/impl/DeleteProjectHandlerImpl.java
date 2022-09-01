@@ -96,13 +96,13 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS deleteProjectIndex(String projectName, String username) {
+	public OperationCompletionRS deleteProjectIndex(String organizationSlug, String projectKey, String username) {
 		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"There are no analyzer deployed."
 		);
 
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+		Project project = projectRepository.findBySlugAndKey(organizationSlug, projectKey)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 
 		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
 
@@ -118,7 +118,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 		logIndexer.deleteIndex(project.getId());
 		messageBus.publishActivity(new ProjectIndexEvent(user.getId(), user.getLogin(), project.getId(), project.getName(), false));
-		return new OperationCompletionRS("Project index with name = '" + projectName + "' is successfully deleted.");
+		return new OperationCompletionRS("Project index with name = '" + projectKey + "' is successfully deleted.");
 	}
 
 	private OperationCompletionRS deleteProject(Project project) {

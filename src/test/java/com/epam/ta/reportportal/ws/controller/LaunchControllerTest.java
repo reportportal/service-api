@@ -93,7 +93,7 @@ class LaunchControllerTest extends BaseMvcTest {
 		analyzeLaunchRQ.setAnalyzeItemsModes(Collections.singletonList("TO_INVESTIGATE"));
 		analyzeLaunchRQ.setAnalyzerTypeName("autoAnalyzer");
 		analyzeLaunchRQ.setAnalyzerHistoryMode("ALL");
-		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/launch/analyze").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + "/launch/analyze").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(analyzeLaunchRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(result -> assertTrue(result.getResolvedException() instanceof ReportPortalException))
@@ -109,27 +109,27 @@ class LaunchControllerTest extends BaseMvcTest {
 		rq.setMode(DEFAULT);
 		rq.setDescription("description");
 		rq.setAttributes(Sets.newHashSet(new ItemAttributeResource("test", "test")));
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/3/update").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/launch/3/update").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)).andExpect(status().is(200));
 	}
 
 	@Test
 	void getLaunchPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/2").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/launch/2").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
 	}
 
 	@Test
 	void getLaunchStringPositive() throws Exception {
 		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/launch/4850a659-ac26-4a65-8ea4-a6756a57fb92").with(token(oAuthHelper.getDefaultToken())))
+				DEFAULT_SLUG_KEY_BASE_URL + "/launch/4850a659-ac26-4a65-8ea4-a6756a57fb92").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().is(200));
 	}
 
 	@Test
 	void getLaunchUuidPositive() throws Exception {
 		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/launch/uuid/4850a659-ac26-4a65-8ea4-a6756a57fb92").with(token(oAuthHelper.getDefaultToken())))
+				DEFAULT_SLUG_KEY_BASE_URL + "/launch/uuid/4850a659-ac26-4a65-8ea4-a6756a57fb92").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().is(200));
 	}
 
@@ -141,7 +141,7 @@ class LaunchControllerTest extends BaseMvcTest {
 
 	@Test
 	void compareLaunches() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/compare?ids=1,2").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/launch/compare?ids=1,2").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().is(200));
 	}
 
@@ -156,26 +156,26 @@ class LaunchControllerTest extends BaseMvcTest {
 		rq.setMergeStrategyType("BASIC");
 		rq.setStartTime(new Date());
 		rq.setEndTime(new Date());
-		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/launch/merge").contentType(APPLICATION_JSON)
+		mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + "/launch/merge").contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
 	}
 
 	@Test
 	void deleteLaunchPositive() throws Exception {
-		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/launch/1").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(delete(DEFAULT_SLUG_KEY_BASE_URL + "/launch/1").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().is(200));
 	}
 
 	@Test
 	void deleteLaunchNegative() throws Exception {
-		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/launch/3").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(delete(DEFAULT_SLUG_KEY_BASE_URL + "/launch/3").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().is(406));
 	}
 
 	@Test
 	void getStatus() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/status?ids=1").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/launch/status?ids=1").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().is(200));
 	}
 
@@ -194,7 +194,7 @@ class LaunchControllerTest extends BaseMvcTest {
 		final FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/3/stop").contentType(APPLICATION_JSON)
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/launch/3/stop").contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(finishExecutionRQ))).andExpect(status().is(200));
 	}
@@ -208,20 +208,20 @@ class LaunchControllerTest extends BaseMvcTest {
 			finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 			return finishExecutionRQ;
 		})));
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/stop").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/launch/stop").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(bulkRQ))).andExpect(status().isOk());
 	}
 
 	@Test
 	void getAllOwners() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/owners?filter.cnt.user=def").contentType(APPLICATION_JSON)
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/launch/owners?filter.cnt.user=def").contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
 	}
 
 	@Test
 	void getAllLaunchNames() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/names?filter.cnt.name=test").contentType(APPLICATION_JSON)
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/launch/names?filter.cnt.name=test").contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
 	}
 
@@ -230,7 +230,7 @@ class LaunchControllerTest extends BaseMvcTest {
 		DeleteBulkRQ deleteBulkRQ = new DeleteBulkRQ();
 		List<Long> ids = Lists.newArrayList(1L, 2L);
 		deleteBulkRQ.setIds(ids);
-		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/launch").contentType(APPLICATION_JSON)
+		mockMvc.perform(delete(DEFAULT_SLUG_KEY_BASE_URL + "/launch").contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(deleteBulkRQ))).andExpect(status().is(200));
 		List<Launch> launches = launchRepository.findAllById(ids);
@@ -250,7 +250,7 @@ class LaunchControllerTest extends BaseMvcTest {
 		}));
 		final BulkRQ<Long, UpdateLaunchRQ> bulkRQ = new BulkRQ<>();
 		bulkRQ.setEntities(entities);
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/update").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/launch/update").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(bulkRQ))
 				.contentType(APPLICATION_JSON)).andExpect(status().is(200));
 		launchRepository.findAllById(ids).forEach(it -> assertSame(it.getMode(), LaunchModeEnum.DEBUG));
@@ -258,21 +258,21 @@ class LaunchControllerTest extends BaseMvcTest {
 
 	@Test
 	void getLaunches() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL
 				+ "/launch?page.page=1&page.size=50&page.sort=statistics$defects$product_bug$total,ASC").contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
 	}
 
 	@Test
 	void getLatestLaunches() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL
 				+ "/launch/latest?page.page=1&page.size=10&page.sort=name,ASC").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().is(200));
 	}
 
 	@Test
 	void getAttributeKeys() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL
 				+ "/launch/attribute/keys?filter.cnt.attributeKey=browser").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
@@ -280,20 +280,20 @@ class LaunchControllerTest extends BaseMvcTest {
 	@Test
 	void getAttributeValues() throws Exception {
 		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/launch/attribute/values?filter.eq.attributeKey=browser&filter.cnt.attributeValue=ch").with(
+				DEFAULT_SLUG_KEY_BASE_URL + "/launch/attribute/values?filter.eq.attributeKey=browser&filter.cnt.attributeValue=ch").with(
 				token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
 	void getProjectLaunches() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/launch").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content", hasSize(4)));
 	}
 
 	@Test
 	void export() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/1/report").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/launch/1/report").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
@@ -313,7 +313,7 @@ class LaunchControllerTest extends BaseMvcTest {
 		updateItemAttributeRQ.setTo(new ItemAttributeResource("updatedKey", "updatedValue"));
 		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/info").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/launch/info").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
@@ -346,7 +346,7 @@ class LaunchControllerTest extends BaseMvcTest {
 		updateItemAttributeRQ.setTo(new ItemAttributeResource("createdKey", "createdValue"));
 		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/info").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/launch/info").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
@@ -376,7 +376,7 @@ class LaunchControllerTest extends BaseMvcTest {
 		updateItemAttributeRQ.setFrom(new ItemAttributeResource("testKey", "testValue"));
 		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/info").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/launch/info").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 

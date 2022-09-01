@@ -54,7 +54,7 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 		WidgetRQ widgetRQ = prepareWidget();
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + WIDGET_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(widgetRQ))
 				.contentType(APPLICATION_JSON))
@@ -73,7 +73,7 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 		widgetRQ.setName(EMPTY);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + WIDGET_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(widgetRQ))
 				.contentType(APPLICATION_JSON))
@@ -92,7 +92,7 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 		widgetRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + WIDGET_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(widgetRQ))
 				.contentType(APPLICATION_JSON))
@@ -111,7 +111,7 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 		widgetRQ.setName(SHORT_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + WIDGET_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(widgetRQ))
 				.contentType(APPLICATION_JSON))
@@ -130,7 +130,7 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 		widgetRQ.setName(LONG_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + WIDGET_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(widgetRQ))
 				.contentType(APPLICATION_JSON))
@@ -148,7 +148,7 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 		WidgetRQ widgetRQ = prepareWidget();
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + WIDGET_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(widgetRQ))
 				.contentType(APPLICATION_JSON))
@@ -167,7 +167,7 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 		widgetRQ.setName(EMPTY);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + WIDGET_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(widgetRQ))
 				.contentType(APPLICATION_JSON))
@@ -186,7 +186,7 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 		widgetRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + WIDGET_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(widgetRQ))
 				.contentType(APPLICATION_JSON))
@@ -205,7 +205,7 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 		widgetRQ.setName(SHORT_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + WIDGET_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(widgetRQ))
 				.contentType(APPLICATION_JSON))
@@ -224,7 +224,7 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 		widgetRQ.setName(LONG_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + WIDGET_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(widgetRQ))
 				.contentType(APPLICATION_JSON))

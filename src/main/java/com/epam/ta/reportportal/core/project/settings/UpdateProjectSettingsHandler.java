@@ -29,20 +29,22 @@ public interface UpdateProjectSettingsHandler {
 	/**
 	 * Update issue sub-type for specified project
 	 *
-	 * @param projectName Project name
+	 * @param organizationSlug
+	 * @param projectKey
 	 * @param rq          Update rq
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS updateProjectIssueSubType(String projectName, ReportPortalUser user, UpdateIssueSubTypeRQ rq);
+	OperationCompletionRS updateProjectIssueSubType(String organizationSlug, String projectKey, ReportPortalUser user, UpdateIssueSubTypeRQ rq);
 
 	/**
 	 * Update {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} by ID and project ID
 	 *
-	 * @param projectName             {@link com.epam.ta.reportportal.entity.project.Project#name}
+	 * @param organizationSlug
+	 * @param projectKey
 	 * @param updatePatternTemplateRQ {@link UpdatePatternTemplateRQ}
 	 * @param user                    {@link ReportPortalUser}
 	 * @return {@link OperationCompletionRS}
 	 */
-	OperationCompletionRS updatePatternTemplate(Long id, String projectName, UpdatePatternTemplateRQ updatePatternTemplateRQ,
+	OperationCompletionRS updatePatternTemplate(Long id, String organizationSlug, String projectKey, UpdatePatternTemplateRQ updatePatternTemplateRQ,
 			ReportPortalUser user);
 }

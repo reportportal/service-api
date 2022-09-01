@@ -17,14 +17,12 @@
 package com.epam.ta.reportportal.core.filter;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -38,11 +36,12 @@ public interface UpdateUserFilterHandler {
 	 * Creates new filter
 	 *
 	 * @param createFilterRQ
-	 * @param projectName
+	 * @param organizationSlug
+	 * @param projectKey
 	 * @param user
 	 * @return EntryCreatedRS
 	 */
-	EntryCreatedRS createFilter(UpdateUserFilterRQ createFilterRQ, String projectName, ReportPortalUser user);
+	EntryCreatedRS createFilter(UpdateUserFilterRQ createFilterRQ, String organizationSlug, String projectKey, ReportPortalUser user);
 
 	/**
 	 * Update user filter with specified id

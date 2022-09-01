@@ -38,7 +38,6 @@ import org.springframework.web.bind.annotation.*;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -49,7 +48,7 @@ import static org.springframework.http.HttpStatus.OK;
  * @author Andrei_Ramanchuk
  */
 @RestController
-@RequestMapping("/v1/{projectName}/settings")
+@RequestMapping("/v1/{organizationSlug}/{projectKey}/settings")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class ProjectSettingsController {
 
@@ -74,61 +73,63 @@ public class ProjectSettingsController {
 	@ResponseStatus(CREATED)
 	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Creation of custom project specific issue sub-type")
-	public IssueSubTypeCreatedRS createProjectIssueSubType(@PathVariable String projectName,
+	public IssueSubTypeCreatedRS createProjectIssueSubType(@PathVariable String organizationSlug, @PathVariable String projectKey,
 			@RequestBody @Validated CreateIssueSubTypeRQ request, @AuthenticationPrincipal ReportPortalUser user) {
-		return createHandler.createProjectIssueSubType(normalizeId(projectName), user, request);
+		return createHandler.createProjectIssueSubType(organizationSlug, projectKey, user, request);
 	}
 
 	@PutMapping("/sub-type")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Update of custom project specific issue sub-type")
-	public OperationCompletionRS updateProjectIssueSubType(@PathVariable String projectName,
+	public OperationCompletionRS updateProjectIssueSubType(@PathVariable String organizationSlug, @PathVariable String projectKey,
 			@RequestBody @Validated UpdateIssueSubTypeRQ request, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateHandler.updateProjectIssueSubType(normalizeId(projectName), user, request);
+		return updateHandler.updateProjectIssueSubType(organizationSlug, projectKey, user, request);
 	}
 
 	@DeleteMapping("/sub-type/{id}")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Delete custom project specific issue sub-type")
-	public OperationCompletionRS deleteProjectIssueSubType(@PathVariable String projectName, @PathVariable Long id,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteHandler.deleteProjectIssueSubType(normalizeId(projectName), user, id);
+	public OperationCompletionRS deleteProjectIssueSubType(@PathVariable String organizationSlug, @PathVariable String projectKey,
+			@PathVariable Long id, @AuthenticationPrincipal ReportPortalUser user) {
+		return deleteHandler.deleteProjectIssueSubType(organizationSlug, projectKey, user, id);
 	}
 
 	@GetMapping
 	@ResponseStatus(OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation(value = "Get project specific issue sub-types", notes = "Only for users that are assigned to the project")
-	public ProjectSettingsResource getProjectSettings(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return getHandler.getProjectSettings(normalizeId(projectName));
+	public ProjectSettingsResource getProjectSettings(@PathVariable String organizationSlug, @PathVariable String projectKey,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getHandler.getProjectSettings(organizationSlug, projectKey);
 	}
 
 	@PostMapping("/pattern")
 	@ResponseStatus(CREATED)
 	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Create pattern template for items' log messages pattern analysis")
-	public EntryCreatedRS createPatternTemplate(@PathVariable String projectName,
+	public EntryCreatedRS createPatternTemplate(@PathVariable String organizationSlug, @PathVariable String projectKey,
 			@RequestBody @Validated CreatePatternTemplateRQ createPatternTemplateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return createHandler.createPatternTemplate(normalizeId(projectName), createPatternTemplateRQ, user);
+		return createHandler.createPatternTemplate(organizationSlug, projectKey, createPatternTemplateRQ, user);
 	}
 
 	@PutMapping("/pattern/{id}")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Update pattern template for items' log messages pattern analysis")
-	public OperationCompletionRS updatePatternTemplate(@PathVariable String projectName, @PathVariable Long id,
-			@RequestBody @Validated UpdatePatternTemplateRQ updatePatternTemplateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateHandler.updatePatternTemplate(id, normalizeId(projectName), updatePatternTemplateRQ, user);
+	public OperationCompletionRS updatePatternTemplate(@PathVariable String organizationSlug, @PathVariable String projectKey,
+			@PathVariable Long id, @RequestBody @Validated UpdatePatternTemplateRQ updatePatternTemplateRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return updateHandler.updatePatternTemplate(id, organizationSlug, projectKey, updatePatternTemplateRQ, user);
 	}
 
 	@DeleteMapping("/pattern/{id}")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Delete pattern template for items' log messages pattern analysis")
-	public OperationCompletionRS deletePatternTemplate(@PathVariable String projectName, @PathVariable Long id,
+	public OperationCompletionRS deletePatternTemplate(@PathVariable String organizationSlug, @PathVariable String projectKey, @PathVariable Long id,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteHandler.deletePatternTemplate(normalizeId(projectName), user, id);
+		return deleteHandler.deletePatternTemplate(organizationSlug, projectKey, user, id);
 	}
 }

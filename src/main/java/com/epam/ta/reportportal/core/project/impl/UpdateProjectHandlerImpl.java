@@ -148,9 +148,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS updateProject(String projectName, UpdateProjectRQ updateProjectRQ, ReportPortalUser user) {
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+	public OperationCompletionRS updateProject(String organizationSlug, String projectKey, UpdateProjectRQ updateProjectRQ,
+			ReportPortalUser user) {
+		Project project = projectRepository.findBySlugAndKey(organizationSlug, projectKey)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 		ProjectAttributesActivityResource before = TO_ACTIVITY_RESOURCE.apply(project);
 		updateProjectConfiguration(updateProjectRQ.getConfiguration(), project);
 		ofNullable(updateProjectRQ.getUserRoles()).ifPresent(roles -> updateProjectUserRoles(roles, project, user));
@@ -165,10 +166,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS updateProjectNotificationConfig(String projectName, ReportPortalUser user,
+	public OperationCompletionRS updateProjectNotificationConfig(String organizationSlug, String projectKey, ReportPortalUser user,
 			ProjectNotificationConfigDTO updateProjectNotificationConfigRQ) {
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+		Project project = projectRepository.findBySlugAndKey(organizationSlug, projectKey)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectKey)));
 		ProjectResource before = projectConverter.TO_PROJECT_RESOURCE.apply(project);
 
 		updateSenderCases(project, updateProjectNotificationConfigRQ.getSenderCases());
@@ -184,16 +185,17 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				user.getUserId(),
 				user.getUsername()
 		));
-		return new OperationCompletionRS("Notification configuration of project - '" + projectName + "' is successfully updated.");
+		return new OperationCompletionRS("Notification configuration of project - '" + normalizeId(projectKey) + "' is successfully updated.");
 	}
 
 	@Override
-	public OperationCompletionRS unassignUsers(String projectName, UnassignUsersRQ unassignUsersRQ, ReportPortalUser user) {
+	public OperationCompletionRS unassignUsers(String organizationSlug, String projectKey, UnassignUsersRQ unassignUsersRQ,
+			ReportPortalUser user) {
 		expect(unassignUsersRQ.getUsernames(), not(List::isEmpty)).verify(BAD_REQUEST_ERROR,
 				"Request should contain at least one username."
 		);
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+		Project project = projectRepository.findBySlugAndKey(organizationSlug, projectKey)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
 		User modifier = userRepository.findById(user.getUserId())
 				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, user.getUsername()));
 		if (!UserRole.ADMINISTRATOR.equals(modifier.getRole())) {
@@ -214,11 +216,11 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS assignUsers(String projectName, AssignUsersRQ assignUsersRQ, ReportPortalUser user) {
+	public OperationCompletionRS assignUsers(String organizationSlug, String projectKey, AssignUsersRQ assignUsersRQ, ReportPortalUser user) {
 
 		if (UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
-			Project project = projectRepository.findByName(normalizeId(projectName))
-					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectName)));
+			Project project = projectRepository.findBySlugAndKey(organizationSlug, projectKey)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 
 			List<String> assignedUsernames = project.getUsers().stream().map(u -> u.getUser().getLogin()).collect(toList());
 			assignUsersRQ.getUserNames().forEach((name, role) -> {
@@ -231,9 +233,9 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 					"User should not assign himself to project."
 			);
 
-			ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user, projectName);
+			ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user, organizationSlug, projectKey);
 			Project project = projectRepository.findById(projectDetails.getProjectId())
-					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectName)));
+					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectKey)));
 
 			List<String> assignedUsernames = project.getUsers().stream().map(u -> u.getUser().getLogin()).collect(toList());
 			assignUsersRQ.getUserNames().forEach((name, role) -> {
@@ -247,17 +249,17 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 		return new OperationCompletionRS(
 				"User(s) with username='" + assignUsersRQ.getUserNames().keySet() + "' was successfully assigned to project='"
-						+ normalizeId(projectName) + "'");
+						+ normalizeId(projectKey) + "'");
 	}
 
 	@Override
-	public OperationCompletionRS indexProjectData(String projectName, ReportPortalUser user) {
+	public OperationCompletionRS indexProjectData(String organizationSlug, String projectKey, ReportPortalUser user) {
 		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"There are no analyzer deployed."
 		);
 
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+		Project project = projectRepository.findBySlugAndKey(organizationSlug, projectKey)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
 
 		expect(ofNullable(indexerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false), equalTo(false)).verify(
 				ErrorType.FORBIDDEN_OPERATION,

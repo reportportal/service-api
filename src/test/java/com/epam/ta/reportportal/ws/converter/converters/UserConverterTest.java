@@ -52,6 +52,7 @@ class UserConverterTest {
 		assertEquals(resource.getPhotoId(), user.getAttachment());
 		assertThat((HashMap<String, Object>) resource.getMetadata()).containsAllEntriesOf(getMetadata());
 		assertThat(resource.getAssignedProjects()).containsKeys("project1", "project2");
+		assertThat(resource.getAssignedOrganizations()).containsKeys("test-org");
 	}
 
 	@Test
@@ -89,6 +90,10 @@ class UserConverterTest {
 				.withProjectRole(ProjectRole.PROJECT_MANAGER)
 				.withUser(user);
 		user.setProjects(Sets.newHashSet(projectUser1, projectUser2));
+//		final Organization org1 = new Organization(1L, "test org", "test-org");
+//		final OrganizationUser organizationUser = new OrganizationUser.OrganizationUserBuilder().withOrganization(org1).withOrganizationRole(
+//				OrganizationRole.PROJECT_MANAGER).build();
+//		user.setOrganizations(Sets.newHashSet(organizationUser));
 		return user;
 	}
 

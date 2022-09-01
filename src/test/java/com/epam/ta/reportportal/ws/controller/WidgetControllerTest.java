@@ -65,7 +65,7 @@ class WidgetControllerTest extends BaseMvcTest {
 		contentParameters.setItemsCount(50);
 		rq.setFilterIds(Collections.singletonList(3L));
 		rq.setContentParameters(contentParameters);
-		final MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/widget").with(token(oAuthHelper.getDefaultToken()))
+		final MvcResult mvcResult = mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + "/widget").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)).andExpect(status().isCreated()).andReturn();
 		final EntryCreatedRS entryCreatedRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), EntryCreatedRS.class);
@@ -77,7 +77,7 @@ class WidgetControllerTest extends BaseMvcTest {
 
 	@Test
 	void getWidgetPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/widget/10").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/widget/10").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
@@ -90,7 +90,7 @@ class WidgetControllerTest extends BaseMvcTest {
 		contentParameters.setContentFields(Arrays.asList("number", "start_time", "user"));
 		contentParameters.setItemsCount(50);
 		rq.setContentParameters(contentParameters);
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/widget/12").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/widget/12").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)).andExpect(status().isOk());
 		final Optional<Widget> optionalWidget = widgetRepository.findById(12L);
@@ -108,7 +108,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	    contextParams.setItemsCount(1);
 		contextParams.setContentFields(Collections.singletonList("test"));
 		rq.setContentParameters(contextParams);
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/widget/100").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/widget/100").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)).andExpect(status().isNotFound());
 	}
@@ -142,7 +142,7 @@ class WidgetControllerTest extends BaseMvcTest {
 
 	@Test
 	void getWidgetNamesPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/widget/names/all").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/widget/names/all").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().is(200));
 	}
 
@@ -164,7 +164,7 @@ class WidgetControllerTest extends BaseMvcTest {
 		request.setContentParameters(contentParameters);
 		request.setFilterIds(Collections.singletonList(4L));
 
-		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/widget/preview").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + "/widget/preview").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 	}

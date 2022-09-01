@@ -76,37 +76,37 @@ class LogControllerTest extends BaseMvcTest {
 
 	@Test
 	void deleteLogPositive() throws Exception {
-		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/log/1").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(delete(DEFAULT_SLUG_KEY_BASE_URL + "/log/1").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
 	void getLogsPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/log?filter.eq.item=2").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/log?filter.eq.item=2").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getLogPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/log/2").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/log/2").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
 	void getLogStringPositive() throws Exception {
 		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/log/9ba98f41-2cde-4510-8503-d8eda901cc71").with(token(oAuthHelper.getDefaultToken())))
+				DEFAULT_SLUG_KEY_BASE_URL + "/log/9ba98f41-2cde-4510-8503-d8eda901cc71").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getLogUuidPositive() throws Exception {
 		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/log/uuid/9ba98f41-2cde-4510-8503-d8eda901cc71").with(token(oAuthHelper.getDefaultToken())))
+				DEFAULT_SLUG_KEY_BASE_URL + "/log/uuid/9ba98f41-2cde-4510-8503-d8eda901cc71").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getLogNegative() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/log/100").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/log/100").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isNotFound());
 	}
 }

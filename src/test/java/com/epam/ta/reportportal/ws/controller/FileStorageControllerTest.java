@@ -71,7 +71,7 @@ class FileStorageControllerTest extends BaseMvcTest {
 	@Test
 	@Sql("/db/user/user-customer.sql")
 	public void testUserPhotoAccessDeniedForCustomer() throws Exception {
-		mockMvc.perform(get("/v1/data/default_personal/userphoto?id=default").with(token(oAuthHelper.getCustomerToken())))
+		mockMvc.perform(get("/v1/data/my-organization/default_personal/userphoto?id=default").with(token(oAuthHelper.getCustomerToken())))
 				.andExpect(status().isForbidden());
 	}
 
@@ -131,7 +131,7 @@ class FileStorageControllerTest extends BaseMvcTest {
 
 		assertTrue(attachment.isPresent());
 
-		mockMvc.perform(get("/v1/data/superadmin_personal/" + attachment.get().getId()).with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/data/my-organization/superadmin_personal/" + attachment.get().getId()).with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
@@ -142,7 +142,7 @@ class FileStorageControllerTest extends BaseMvcTest {
 
 	@Test
 	void getUserPhotoByLoginNegative() throws Exception {
-		mockMvc.perform(get("/v1/data/superadmin_personal/userphoto?id=superadmin").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/data/my-organization/superadmin_personal/userphoto?id=superadmin").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 

@@ -69,7 +69,7 @@ class UserFilterControllerTest extends BaseMvcTest {
 		request.setDescription(description);
 		request.setConditions(Sets.newHashSet(new UserFilterCondition("name", "cnt", "test")));
 
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/filter").with(token(oAuthHelper.getDefaultToken()))
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + "/filter").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(request))
 				.contentType(APPLICATION_JSON)).andExpect(status().isCreated()).andReturn();
 
@@ -84,18 +84,18 @@ class UserFilterControllerTest extends BaseMvcTest {
 
 	@Test
 	void getFilterPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/filter/3").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/filter/3").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
 	void getFilterNegative() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/filter/100").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/filter/100").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isNotFound());
 	}
 
 	@Test
 	void getFiltersByIds() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/filter/filters?ids=3,4").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/filter/filters?ids=3,4").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
@@ -113,19 +113,19 @@ class UserFilterControllerTest extends BaseMvcTest {
 
 	@Test
 	void deleteFilterPositive() throws Exception {
-		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/filter/3").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(delete(DEFAULT_SLUG_KEY_BASE_URL + "/filter/3").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getAllFiltersNamesPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/filter/names").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/filter/names").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getAllSharedFiltersNames() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/filter/names?share=true").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/filter/names?share=true").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
@@ -141,7 +141,7 @@ class UserFilterControllerTest extends BaseMvcTest {
 		updateUserFilterRQ.setOrders(Lists.newArrayList(order));
 		updateUserFilterRQ.setConditions(Sets.newHashSet(new UserFilterCondition("name", "eq", "filter")));
 
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/filter/3").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/filter/3").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(updateUserFilterRQ))
 				.contentType(APPLICATION_JSON)).andExpect(status().isOk());
 		final Optional<UserFilter> optionalUserFilter = repository.findById(3L);
@@ -165,7 +165,7 @@ class UserFilterControllerTest extends BaseMvcTest {
 		request.setDescription(StringUtils.leftPad("", 1501, "a"));
 		request.setConditions(Sets.newHashSet(new UserFilterCondition("name", "cnt", "test")));
 
-		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/filter").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + "/filter").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().is4xxClientError());
 	}

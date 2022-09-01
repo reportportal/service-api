@@ -51,7 +51,7 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + DASHBOARD_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
 				.contentType(APPLICATION_JSON))
@@ -70,7 +70,7 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 		createDashboardRQ.setName(EMPTY);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + DASHBOARD_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
 				.contentType(APPLICATION_JSON))
@@ -89,7 +89,7 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 		createDashboardRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + DASHBOARD_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
 				.contentType(APPLICATION_JSON))
@@ -108,7 +108,7 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 		createDashboardRQ.setName(SHORT_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + DASHBOARD_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
 				.contentType(APPLICATION_JSON))
@@ -127,7 +127,7 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 		createDashboardRQ.setName(LONG_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + DASHBOARD_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
 				.contentType(APPLICATION_JSON))
@@ -145,7 +145,7 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + DASHBOARD_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
 				.contentType(APPLICATION_JSON))
@@ -164,7 +164,7 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 		createDashboardRQ.setName(EMPTY);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + DASHBOARD_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
 				.contentType(APPLICATION_JSON))
@@ -183,7 +183,7 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 		createDashboardRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + DASHBOARD_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
 				.contentType(APPLICATION_JSON))
@@ -202,7 +202,7 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 		createDashboardRQ.setName(SHORT_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + DASHBOARD_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
 				.contentType(APPLICATION_JSON))
@@ -221,7 +221,7 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 		createDashboardRQ.setName(LONG_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + DASHBOARD_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
 				.contentType(APPLICATION_JSON))

@@ -55,7 +55,7 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
 		UpdateUserFilterRQ userFilterRQ = prepareFilter();
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + FILTER_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
@@ -74,7 +74,7 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
 		userFilterRQ.setName(EMPTY);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + FILTER_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
@@ -93,7 +93,7 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
 		userFilterRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + FILTER_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
@@ -112,7 +112,7 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
 		userFilterRQ.setName(SHORT_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + FILTER_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
@@ -131,7 +131,7 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
 		userFilterRQ.setName(LONG_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_SLUG_KEY_BASE_URL + FILTER_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
@@ -149,7 +149,7 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
 		UpdateUserFilterRQ userFilterRQ = prepareFilter();
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + FILTER_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
@@ -168,7 +168,7 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
 		userFilterRQ.setName(EMPTY);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + FILTER_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
@@ -187,7 +187,7 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
 		userFilterRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + FILTER_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
@@ -206,7 +206,7 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
 		userFilterRQ.setName(SHORT_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + FILTER_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
@@ -225,7 +225,7 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
 		userFilterRQ.setName(LONG_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + FILTER_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))

@@ -26,8 +26,9 @@ public interface GetProjectSettingsHandler {
 	/**
 	 * Provide additional settings for specified project
 	 *
-	 * @param projectName Project name
+	 * @param organizationSlug
+	 * @param projectKey
 	 * @return ProjectSettingsResource
 	 */
-	ProjectSettingsResource getProjectSettings(String projectName);
+	ProjectSettingsResource getProjectSettings(String organizationSlug, String projectKey);
 }

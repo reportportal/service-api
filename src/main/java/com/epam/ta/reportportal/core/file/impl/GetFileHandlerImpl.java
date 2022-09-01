@@ -66,9 +66,10 @@ public class GetFileHandlerImpl implements GetFileHandler {
 	}
 
 	@Override
-	public BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, String projectName, boolean loadThumbnail) {
+	public BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, String organizationSlug,
+			String projectKey, boolean loadThumbnail) {
 		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
-		ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetailsAdmin(loggedInUser, projectName);
+		ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetailsAdmin(loggedInUser, organizationSlug, projectKey);
 		if (loggedInUser.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(
 					ProjectUtils.isAssignedToProject(user, projectDetails.getProjectId()),

@@ -64,10 +64,10 @@ public class FileStorageController {
 
 	@Transactional(readOnly = true)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
-	@GetMapping(value = "/{projectName}/{dataId}")
-	public void getFile(@PathVariable String projectName, @PathVariable("dataId") Long dataId, HttpServletResponse response,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		toResponse(response, getFileHandler.loadFileById(dataId, projectExtractor.extractProjectDetails(user, projectName)));
+	@GetMapping(value = "/{organizationSlug}/{projectKey}/{dataId}")
+	public void getFile(@PathVariable String organizationSlug, @PathVariable String projectKey, @PathVariable("dataId") Long dataId,
+			HttpServletResponse response, @AuthenticationPrincipal ReportPortalUser user) {
+		toResponse(response, getFileHandler.loadFileById(dataId, projectExtractor.extractProjectDetails(user, organizationSlug, projectKey)));
 	}
 
 	/**
@@ -86,12 +86,12 @@ public class FileStorageController {
 	 */
 	@Transactional(readOnly = true)
 	@PreAuthorize(NOT_CUSTOMER)
-	@GetMapping(value = "/{projectName}/userphoto")
+	@GetMapping(value = "/{organizationSlug}/{projectKey}/userphoto")
 	@ApiOperation("Get user's photo")
-	public void getUserPhoto(@PathVariable String projectName, @RequestParam(value = "id") String username,
-			@RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail, HttpServletResponse response,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		BinaryData userPhoto = getFileHandler.getUserPhoto(EntityUtils.normalizeId(username), user, projectName, loadThumbnail);
+	public void getUserPhoto(@PathVariable String organizationSlug, @PathVariable String projectKey,
+			@RequestParam(value = "id") String username, @RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail,
+			HttpServletResponse response, @AuthenticationPrincipal ReportPortalUser user) {
+		BinaryData userPhoto = getFileHandler.getUserPhoto(EntityUtils.normalizeId(username), user, organizationSlug, projectKey, loadThumbnail);
 		toResponse(response, userPhoto);
 	}
 

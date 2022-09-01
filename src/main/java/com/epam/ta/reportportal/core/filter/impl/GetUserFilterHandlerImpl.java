@@ -69,8 +69,9 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 	}
 
 	@Override
-	public Iterable<UserFilterResource> getUserFilters(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user, projectName);
+	public Iterable<UserFilterResource> getUserFilters(String organizationSlug, String projectKey, Pageable pageable, Filter filter,
+			ReportPortalUser user) {
+		ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user, organizationSlug, projectKey);
 		Page<UserFilter> userFilters = filterRepository.findByFilter(ProjectFilter.of(filter, projectDetails.getProjectId()), pageable);
 		return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_FILTER_RESOURCE).apply(userFilters);
 	}

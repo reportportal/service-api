@@ -68,8 +68,8 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 	}
 
 	@Override
-	public EntryCreatedRS createFilter(UpdateUserFilterRQ createFilterRQ, String projectName, ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user, projectName);
+	public EntryCreatedRS createFilter(UpdateUserFilterRQ createFilterRQ, String organizationSlug, String projectKey, ReportPortalUser user) {
+		ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user, organizationSlug, projectKey);
 
 		validateFilterRq(createFilterRQ);
 
@@ -77,7 +77,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 				user.getUsername(),
 				projectDetails.getProjectId()
 		), BooleanUtils::isFalse)
-				.verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName(), user.getUsername(), projectName);
+				.verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName(), user.getUsername(), projectKey);
 
 		UserFilter filter = new UserFilterBuilder().addFilterRq(createFilterRQ)
 				.addProject(projectDetails.getProjectId())

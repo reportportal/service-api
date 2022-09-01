@@ -36,7 +36,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -73,7 +72,7 @@ public class LaunchAsyncController {
 	public StartLaunchRS startLaunch(@PathVariable String projectName,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return startLaunchHandler.startLaunch(user, projectExtractor.extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
+		return startLaunchHandler.startLaunch(user, projectExtractor.extractProjectDetails(user, projectName), startLaunchRQ);
 	}
 
 	@HttpLogging
@@ -87,7 +86,7 @@ public class LaunchAsyncController {
 		return finishLaunchHandler.finishLaunch(
 				launchId,
 				finishLaunchRQ,
-				projectExtractor.extractProjectDetails(user, normalizeId(projectName)),
+				projectExtractor.extractProjectDetails(user, projectName),
 				user,
 				composeBaseUrl(request)
 		);
@@ -102,7 +101,7 @@ public class LaunchAsyncController {
 	public LaunchResource mergeLaunches(@PathVariable String projectName,
 			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return mergeLaunchesHandler.mergeLaunches(projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user, mergeLaunchesRQ);
+		return mergeLaunchesHandler.mergeLaunches(projectExtractor.extractProjectDetails(user, projectName), user, mergeLaunchesRQ);
 	}
 
 }

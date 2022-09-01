@@ -55,13 +55,12 @@ class GetProjectHandlerImplTest {
 
 	@Test
 	void getUsersOnNotExistProject() {
-		long projectId = 1L;
-
-		String projectName = "test_project";
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
+		String organizationSlug = "test-org";
+		String projectKey = "test_project";
+		when(projectRepository.findBySlugAndKey(organizationSlug, projectKey)).thenReturn(Optional.empty());
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> {
-					handler.getProjectUsers(projectName,
+					handler.getProjectUsers(organizationSlug, projectKey,
 							Filter.builder()
 									.withTarget(User.class)
 									.withCondition(FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build())
@@ -76,12 +75,11 @@ class GetProjectHandlerImplTest {
 
 	@Test
 	void getEmptyUserList() {
-		long projectId = 1L;
+		String organizationSlug = "test-org";
+		String projectKey = "test_project";
+		when(projectRepository.findBySlugAndKey(organizationSlug, projectKey)).thenReturn(Optional.of(new Project()));
 
-		String projectName = "test_project";
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(new Project()));
-
-		Iterable<UserResource> users = handler.getProjectUsers(projectName,
+		Iterable<UserResource> users = handler.getProjectUsers(organizationSlug, projectKey,
 				Filter.builder()
 						.withTarget(User.class)
 						.withCondition(FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build())
@@ -94,15 +92,16 @@ class GetProjectHandlerImplTest {
 
 	@Test
 	void getNotExistProject() {
-		String projectName = "not_exist";
+		String organizationSlug = "test-org";
+		String projectKey = "not_exist";
 		long projectId = 1L;
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
+		when(projectRepository.findBySlugAndKey(organizationSlug, projectKey)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.getResource(projectName, user));
+		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.getResource(organizationSlug, projectKey, user));
 
-		assertEquals("Project '" + projectName + "' not found. Did you use correct project name?", exception.getMessage());
+		assertEquals("Project '" + projectKey + "' not found. Did you use correct project name?", exception.getMessage());
 	}
 
 	@Test

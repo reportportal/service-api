@@ -41,20 +41,22 @@ public interface GetProjectInfoHandler {
 	/**
 	 * Get project info
 	 *
-	 * @param projectName Project name
-	 * @param interval    Interval
+	 * @param organizationSlug Organization Slug
+	 * @param projectKey       Project Key
+	 * @param interval         Interval
 	 * @return Project info resource
 	 */
-	ProjectInfoResource getProjectInfo(String projectName, String interval);
+	ProjectInfoResource getProjectInfo(String organizationSlug, String projectKey, String interval);
 
 	/**
 	 * Get widget data content for specified project by specified
 	 * {@link InfoInterval} and {@link com.epam.ta.reportportal.entity.project.email.ProjectInfoWidget}
 	 *
-	 * @param projectName Project name
+	 * @param organizationSlug Organization Slug
+	 * @param projectKey       Project Key
 	 * @param interval    Interval
 	 * @param widgetCode  Project Info Widget code
 	 * @return
 	 */
-	Map<String, ?> getProjectInfoWidgetContent(String projectName, String interval, String widgetCode);
+	Map<String, ?> getProjectInfoWidgetContent(String organizationSlug, String projectKey, String interval, String widgetCode);
 }

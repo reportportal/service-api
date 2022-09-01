@@ -188,119 +188,119 @@ class TestItemControllerTest extends BaseMvcTest {
 
 	@Test
 	void getTestItemPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/1").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/item/1").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
 	void getTestItemStringPositive() throws Exception {
 		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").with(token(oAuthHelper.getDefaultToken())))
+						DEFAULT_SLUG_KEY_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getTestItemRetryPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/7").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/item/7").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
 	void getTestItemRetryStringPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-retry").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/item/3ab067e5-537b-45ff-9605-retry").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getTestItemUuidPositive() throws Exception {
 		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/item/uuid/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").with(token(oAuthHelper.getDefaultToken())))
+						DEFAULT_SLUG_KEY_BASE_URL + "/item/uuid/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getTestItemsPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item?filter.eq.launchId=1").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/item?filter.eq.launchId=1").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getTestItemsBadProvider() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=bad").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/item/v2?providerType=bad").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isBadRequest());
 	}
 
 	@Test
 	void getTestItemsLaunchProvider() throws Exception {
 		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=launch&launchId=1").with(token(oAuthHelper.getDefaultToken())))
+						DEFAULT_SLUG_KEY_BASE_URL + "/item/v2?providerType=launch&launchId=1").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getTestItemsLaunchProviderMissedParam() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=launch").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/item/v2?providerType=launch").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isBadRequest());
 	}
 
 	@Test
 	void getTestItemsFilterProvider() throws Exception {
 		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=filter&filterId=1&launchesLimit=10").with(token(oAuthHelper.getDefaultToken())))
+						DEFAULT_SLUG_KEY_BASE_URL + "/item/v2?providerType=filter&filterId=1&launchesLimit=10").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getTestItemsFilterProviderMissedParam() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=filter").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/item/v2?providerType=filter").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isBadRequest());
 	}
 
 	@Test
 	void getTestItemsWidgetProvider() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=widget").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/item/v2?providerType=widget").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isBadRequest());
 	}
 
 	@Test
 	void getTestItemBySpecifiedIds() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/items?ids=1,2,3").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/item/items?ids=1,2,3").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void deleteTestItemPositive() throws Exception {
-		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/item/2").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(delete(DEFAULT_SLUG_KEY_BASE_URL + "/item/2").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
 	void deleteTestItemBySpecifiedIds() throws Exception {
-		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/item?ids=2,3").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(delete(DEFAULT_SLUG_KEY_BASE_URL + "/item?ids=2,3").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getAccumulatedStatisticsByFilter() throws Exception {
 		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/item/statistics?providerType=launch&launchId=1").with(token(oAuthHelper.getDefaultToken())))
+				DEFAULT_SLUG_KEY_BASE_URL + "/item/statistics?providerType=launch&launchId=1").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getItemHistoryByParentIdPositive() throws Exception {
 		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/item/history?filter.eq.parentId=1&historyDepth=3").with(token(oAuthHelper.getDefaultToken())))
+						DEFAULT_SLUG_KEY_BASE_URL + "/item/history?filter.eq.parentId=1&historyDepth=3").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getItemHistoryByLaunchIdPositive() throws Exception {
-		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL
+		mockMvc.perform(get(SUPERADMIN_SLUG_KEY_BASE_URL
 				+ "/item/history?filter.eq.launchId=1&historyDepth=3").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getItemHistoryByFilterIdPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL
 				+ "/item/history?filterId=1&launchesLimit=10&historyDepth=3").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
@@ -310,7 +310,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		UpdateTestItemRQ rq = new UpdateTestItemRQ();
 		rq.setDescription("updated");
 		rq.setAttributes(Sets.newHashSet(new ItemAttributeResource("test", "test")));
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/1/update").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/item/1/update").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
 	}
@@ -319,7 +319,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	void handleSuggestChooseAnalyzerNotDeployed() throws Exception {
 		SuggestInfo suggestInfo = new SuggestInfo();
 		suggestInfo.setTestItem(1L);
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/suggest/choice").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/item/suggest/choice").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(Lists.newArrayList(suggestInfo))))
 				.andExpect(result -> assertTrue(result.getResolvedException() instanceof ReportPortalException))
@@ -331,41 +331,41 @@ class TestItemControllerTest extends BaseMvcTest {
 
 	@Test
 	void getTickets() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/ticket/ids?launch=1&term=ticket").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/item/ticket/ids?launch=1&term=ticket").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getAttributeKeys() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL
 				+ "/item/attribute/keys?launch=1&filter.cnt.attributeKey=bro").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getAttributeKeysForProject() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL
 				+ "/item/attribute/keys/all?filterId=1&launchesLimit=600&isLatest=false&filter.cnt.attributeKey=bro").with(token(oAuthHelper
 				.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
 	void getAttributeValues() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/attribute/values?launch=1&filter.cnt.attributeValue=lin").with(token(
+		mockMvc.perform(get(DEFAULT_SLUG_KEY_BASE_URL + "/item/attribute/values?launch=1&filter.cnt.attributeValue=lin").with(token(
 				oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
 	void getAttributeKeysByProjectId() throws Exception {
 		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/item/step/attribute/keys?filter.eq.name=test launch&filter.cnt.attributeKey=bro").with(token(
+				DEFAULT_SLUG_KEY_BASE_URL + "/item/step/attribute/keys?filter.eq.name=test launch&filter.cnt.attributeKey=bro").with(token(
 				oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
 	void getAttributeValuesByKeyAndProjectId() throws Exception {
 		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/item/step/attribute/values?filter.eq.name=test launch&filter.cnt.attributeValue=lin").with(
+				DEFAULT_SLUG_KEY_BASE_URL + "/item/step/attribute/values?filter.eq.name=test launch&filter.cnt.attributeValue=lin").with(
 				token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
@@ -379,7 +379,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		issue.setIgnoreAnalyzer(false);
 		issueDefinition.setIssue(issue);
 		rq.setIssues(Collections.singletonList(issueDefinition));
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/item").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
 	}
@@ -394,7 +394,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		issue.setIgnoreAnalyzer(false);
 		issueDefinition.setIssue(issue);
 		rq.setIssues(Collections.singletonList(issueDefinition));
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/item").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isBadRequest());
 	}
@@ -555,7 +555,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		issue.setTicketId("ticket1");
 		issue.setUrl("https://example.com/NEWTICKET1");
 		rq.setIssues(Collections.singletonList(issue));
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/issue/link").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/item/issue/link").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)).andExpect(status().isOk());
 	}
@@ -570,7 +570,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		issue.setTicketId("ticket1");
 		issue.setUrl("https://example.com/NEWTICKET1");
 		rq.setIssues(Collections.singletonList(issue));
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/issue/link").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/item/issue/link").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)).andExpect(status().isBadRequest());
 	}
@@ -580,7 +580,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		UnlinkExternalIssueRQ rq = new UnlinkExternalIssueRQ();
 		rq.setTestItemIds(Collections.singletonList(3L));
 		rq.setTicketIds(Collections.singletonList("ticket"));
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/issue/unlink").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/item/issue/unlink").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
 	}
@@ -590,7 +590,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		UnlinkExternalIssueRQ rq = new UnlinkExternalIssueRQ();
 		rq.setTestItemIds(Collections.singletonList(2L));
 		rq.setTicketIds(Collections.singletonList("ticket"));
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/issue/unlink").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/item/issue/unlink").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isBadRequest());
 	}
@@ -607,7 +607,7 @@ class TestItemControllerTest extends BaseMvcTest {
 
 	@Test
 	void getItemsByAdmin() throws Exception {
-		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/item/items?ids=1,2,4").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get(SUPERADMIN_SLUG_KEY_BASE_URL + "/item/items?ids=1,2,4").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$", hasSize(3)));
 	}
@@ -618,7 +618,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		UpdateTestItemRQ request = new UpdateTestItemRQ();
 		request.setStatus("failed");
 
-		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put(SUPERADMIN_SLUG_KEY_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
@@ -640,7 +640,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		UpdateTestItemRQ request = new UpdateTestItemRQ();
 		request.setStatus("skipped");
 
-		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put(SUPERADMIN_SLUG_KEY_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
@@ -664,7 +664,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		UpdateTestItemRQ request = new UpdateTestItemRQ();
 		request.setStatus("skipped");
 
-		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/9/update").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put(SUPERADMIN_SLUG_KEY_BASE_URL + "/item/9/update").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
@@ -695,7 +695,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.IN_PROGRESS, updatedItem.get().getItemResults().getStatus());
 
-		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/uuid_s_2_9").content(objectMapper.writeValueAsBytes(rq))
+		mockMvc.perform(put(SUPERADMIN_SLUG_KEY_BASE_URL + "/item/uuid_s_2_9").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 
@@ -717,7 +717,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		UpdateTestItemRQ request = new UpdateTestItemRQ();
 		request.setStatus("passed");
 
-		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put(SUPERADMIN_SLUG_KEY_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
@@ -739,7 +739,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		UpdateTestItemRQ request = new UpdateTestItemRQ();
 		request.setStatus("skipped");
 
-		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put(SUPERADMIN_SLUG_KEY_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
@@ -763,7 +763,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		UpdateTestItemRQ request = new UpdateTestItemRQ();
 		request.setStatus("failed");
 
-		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put(SUPERADMIN_SLUG_KEY_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
@@ -787,7 +787,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		UpdateTestItemRQ request = new UpdateTestItemRQ();
 		request.setStatus("passed");
 
-		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put(SUPERADMIN_SLUG_KEY_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
@@ -809,7 +809,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		UpdateTestItemRQ request = new UpdateTestItemRQ();
 		request.setStatus("passed");
 
-		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put(SUPERADMIN_SLUG_KEY_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
@@ -831,7 +831,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		UpdateTestItemRQ request = new UpdateTestItemRQ();
 		request.setStatus("skipped");
 
-		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put(SUPERADMIN_SLUG_KEY_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
@@ -855,7 +855,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		UpdateTestItemRQ request = new UpdateTestItemRQ();
 		request.setStatus("failed");
 
-		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put(SUPERADMIN_SLUG_KEY_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
@@ -878,7 +878,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		UpdateTestItemRQ request = new UpdateTestItemRQ();
 		request.setStatus("failed");
 
-		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/5/update").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put(SUPERADMIN_SLUG_KEY_BASE_URL + "/item/5/update").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().is(400));
 	}
@@ -899,7 +899,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		updateItemAttributeRQ.setTo(new ItemAttributeResource("updatedKey", "updatedValue"));
 		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/info").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/item/info").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
@@ -932,7 +932,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		updateItemAttributeRQ.setTo(new ItemAttributeResource("createdKey", "createdValue"));
 		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/info").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/item/info").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
@@ -962,7 +962,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		updateItemAttributeRQ.setFrom(new ItemAttributeResource("testKey", "testValue"));
 		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/info").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_SLUG_KEY_BASE_URL + "/item/info").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 

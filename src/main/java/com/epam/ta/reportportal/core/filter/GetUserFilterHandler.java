@@ -44,13 +44,15 @@ public interface GetUserFilterHandler {
 	/**
 	 * Get {@link UserFilterResource} objects
 	 *
-	 * @param projectName Project Name
-	 * @param pageable    Page request
-	 * @param filter      Filter representation
-	 * @param user        Report Portal User
+	 * @param organizationSlug Organization Slug
+	 * @param projectKey       Project Key
+	 * @param pageable         Page request
+	 * @param filter           Filter representation
+	 * @param user             Report Portal User
 	 * @return {@link Iterable}
 	 */
-	Iterable<UserFilterResource> getUserFilters(String projectName, Pageable pageable, Filter filter, ReportPortalUser user);
+	Iterable<UserFilterResource> getUserFilters(String organizationSlug, String projectKey, Pageable pageable, Filter filter,
+			ReportPortalUser user);
 
 	/**
 	 * Get all {@link com.epam.ta.reportportal.entity.filter.UserFilter}'s names

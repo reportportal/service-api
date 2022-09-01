@@ -54,7 +54,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -72,7 +71,8 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Transactional
 public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHandler {
 
-	private static final Map<String, String> PREFIX = ImmutableMap.<String, String>builder().put(AUTOMATION_BUG.getValue(), "ab_")
+	private static final Map<String, String> PREFIX = ImmutableMap.<String, String>builder()
+			.put(AUTOMATION_BUG.getValue(), "ab_")
 			.put(PRODUCT_BUG.getValue(), "pb_")
 			.put(SYSTEM_ISSUE.getValue(), "si_")
 			.put(NO_DEFECT.getValue(), "nd_")
@@ -117,12 +117,7 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 		TestItemIssueGroup expectedGroup = TestItemIssueGroup.fromValue(rq.getTypeRef())
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, rq.getTypeRef()));
 
-		List<ProjectIssueType> existingSubTypes = project.getProjectIssueTypes()
-				.stream()
-				.filter(projectIssueType -> projectIssueType.getIssueType().getIssueGroup().getTestItemIssueGroup().equals(expectedGroup))
-				.collect(Collectors.toList());
-
-		expect(existingSubTypes.size() < ValidationConstraints.MAX_ISSUE_SUBTYPES, equalTo(true)).verify(INCORRECT_REQUEST,
+		expect(project.getProjectIssueTypes().size() < ValidationConstraints.MAX_ISSUE_TYPES_AND_SUBTYPES, equalTo(true)).verify(INCORRECT_REQUEST,
 				"Sub Issues count is bound of size limit"
 		);
 

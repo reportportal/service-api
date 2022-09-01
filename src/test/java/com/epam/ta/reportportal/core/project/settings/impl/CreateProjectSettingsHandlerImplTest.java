@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -108,7 +109,7 @@ class CreateProjectSettingsHandlerImplTest {
 
 	private Set<ProjectIssueType> getSubTypes() {
 		HashSet<ProjectIssueType> subTypes = new HashSet<>();
-		for (int i = 1; i < 16; i++) {
+		for (int i = 1; i < ValidationConstraints.MAX_ISSUE_TYPES_AND_SUBTYPES + 1; i++) {
 			IssueType issueType = new IssueType();
 			issueType.setId((long) i);
 			issueType.setIssueGroup(new IssueGroup(TestItemIssueGroup.PRODUCT_BUG));

@@ -72,7 +72,7 @@ class LaunchPatternAnalysisStrategyTest {
 		when(project.getProjectAttributes()).thenReturn(Sets.newHashSet(projectAttribute));
 
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
-		ReportPortalUser.ProjectDetails projectDetails = new ReportPortalUser.ProjectDetails(1L, "name", "key", 1L, ProjectRole.PROJECT_MANAGER);
+		ReportPortalUser.ProjectDetails projectDetails = new ReportPortalUser.ProjectDetails(1L, "name", ProjectRole.PROJECT_MANAGER);
 		AnalyzeLaunchRQ analyzeLaunchRQ = new AnalyzeLaunchRQ();
 		analyzeLaunchRQ.setLaunchId(1L);
 		analyzeLaunchRQ.setAnalyzeItemsModes(Lists.newArrayList("TO_INVESTIGATE"));

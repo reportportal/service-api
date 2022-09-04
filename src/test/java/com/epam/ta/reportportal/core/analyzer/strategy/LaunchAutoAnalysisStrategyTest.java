@@ -71,8 +71,6 @@ class LaunchAutoAnalysisStrategyTest {
 		ReportPortalUser.ProjectDetails projectDetails = new ReportPortalUser.ProjectDetails(
 				1L,
 				"name",
-				"projectKey",
-				1L,
 				ProjectRole.PROJECT_MANAGER
 		);
 		AnalyzeLaunchRQ analyzeLaunchRQ = new AnalyzeLaunchRQ();

@@ -104,7 +104,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	@Override
 	public Project get(ReportPortalUser.ProjectDetails projectDetails) {
 		return projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectKey()));
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectName()));
 	}
 
 	@Override
@@ -152,7 +152,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 		final Filter filter = Filter.builder()
 				.withTarget(User.class)
 				.withCondition(userCondition)
-				.withCondition(new FilterCondition(Operator.AND, Condition.ANY, true, projectDetails.getProjectKey(), CRITERIA_PROJECT))
+				.withCondition(new FilterCondition(Operator.AND, Condition.ANY, true, projectDetails.getProjectName(), CRITERIA_PROJECT))
 				.build();
 
 		return PagedResourcesAssembler.pageConverter(UserConverter.TO_SEARCH_RESOURCE)

@@ -91,8 +91,6 @@ class SearchLogServiceImplTest {
 		ReportPortalUser.ProjectDetails projectDetails = new ReportPortalUser.ProjectDetails(
 				1L,
 				"project",
-				"projectKey",
-				1L,
 				ProjectRole.PROJECT_MANAGER
 		);
 

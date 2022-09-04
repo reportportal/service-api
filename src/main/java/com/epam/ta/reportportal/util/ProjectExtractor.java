@@ -96,9 +96,7 @@ public class ProjectExtractor {
 					.put(
 							projectKey,
 							new ReportPortalUser.ProjectDetails(project.getId(),
-									project.getKey(),
-									project.getKey(),
-									project.getOrganization().getId(),
+									project.getName(),
 									ProjectRole.PROJECT_MANAGER
 							)
 					);

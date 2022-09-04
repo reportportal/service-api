@@ -36,7 +36,6 @@ public class ReportPortalUserUtil {
 	}
 
 	public static ReportPortalUser getRpUser(String login, UserRole userRole, ProjectRole projectRole, Long projectId) {
-		Long orgId = projectId;
 		return ReportPortalUser.userBuilder()
 				.withUserName(login)
 				.withPassword("test")
@@ -45,7 +44,7 @@ public class ReportPortalUserUtil {
 				.withEmail("test@email.com")
 				.withUserRole(userRole)
 				.withProjectDetails(Maps.newHashMap("test_project",
-						new ReportPortalUser.ProjectDetails(projectId, TEST_PROJECT_NAME, TEST_PROJECT_KEY, orgId, projectRole)
+						new ReportPortalUser.ProjectDetails(projectId, TEST_PROJECT_NAME, projectRole)
 				))
 				.build();
 	}

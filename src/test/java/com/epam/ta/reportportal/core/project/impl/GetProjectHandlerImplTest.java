@@ -120,7 +120,7 @@ class GetProjectHandlerImplTest {
 	@Test
 	void getUserNamesNegative() {
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.getUserNames("",
-				new ReportPortalUser.ProjectDetails(1L, "superadmin_personal", "superadmin_personal", 1L,  ProjectRole.PROJECT_MANAGER),
+				new ReportPortalUser.ProjectDetails(1L, "superadmin_personal", ProjectRole.PROJECT_MANAGER),
 				PageRequest.of(0, 10)));
 		assertEquals("Incorrect filtering parameters. Length of the filtering string '' is less than 1 symbol", exception.getMessage());
 	}

@@ -96,97 +96,97 @@ class DeleteProjectHandlerImplTest {
 
 	@Test
 	void deleteIndexOnNotExistProject() {
-		String projectName = "notExist";
+		String projectKey = "notExist";
 		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectName, "user"));
+		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectKey, "user"));
 
 		assertEquals("Project 'notExist' not found. Did you use correct project name?", exception.getMessage());
 	}
 
 	@Test
 	void deleteProjectIndexByNotExistUser() {
-		String projectName = "notExist";
+		String projectKey = "notExist";
 		String userName = "user";
 		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(new Project()));
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(new Project()));
 		when(userRepository.findByLogin(userName)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectName, "user"));
+		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectKey, "user"));
 
 		assertEquals("User 'user' not found.", exception.getMessage());
 	}
 
 	@Test
 	void deleteIndexWhenIndexingRunning() {
-		String projectName = "test_project";
+		String projectKey = "test_project";
 		String userName = "user";
 		Long projectId = 1L;
 		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(getProjectWithAnalyzerAttributes(projectId, true)));
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(getProjectWithAnalyzerAttributes(projectId, true)));
 		when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectName, "user"));
+		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectKey, "user"));
 
 		assertEquals("Forbidden operation. Index can not be removed until index generation proceeds.", exception.getMessage());
 	}
 
 	@Test
 	void deleteIndexWhenIndexingCacheNotInvalidated() {
-		String projectName = "test_project";
+		String projectKey = "test_project";
 		String userName = "user";
 		Long projectId = 1L;
 		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(getProjectWithAnalyzerAttributes(projectId, false)));
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(getProjectWithAnalyzerAttributes(projectId, false)));
 		when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
 		Cache<Long, Long> cache = CacheBuilder.newBuilder().build();
 		cache.put(2L, projectId);
 		when(analyzerStatusCache.getAnalyzeStatus(AnalyzerStatusCache.AUTO_ANALYZER_KEY)).thenReturn(Optional.of(cache));
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectName, "user"));
+		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectKey, "user"));
 
 		assertEquals("Forbidden operation. Index can not be removed until index generation proceeds.", exception.getMessage());
 	}
 
 	@Test
 	void deleteIndexWhenThereAreNoAnalyzers() {
-		String projectName = "test_project";
+		String projectKey = "test_project";
 		when(analyzerServiceClient.hasClients()).thenReturn(false);
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectName, "user"));
+		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectKey, "user"));
 
 		assertEquals("Impossible interact with integration. There are no analyzer deployed.", exception.getMessage());
 	}
 
 	@Test
 	void happyDeleteIndex() {
-		String projectName = "test_project";
+		String projectKey = "test_project";
 		String userName = "user";
 		Long projectId = 1L;
 		Project project = getProjectWithAnalyzerAttributes(projectId, false);
-		project.setName(projectName);
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(project));
+		project.setName(projectKey);
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
 		when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
 		when(analyzerStatusCache.getAnalyzeStatus(AnalyzerStatusCache.AUTO_ANALYZER_KEY)).thenReturn(Optional.of(CacheBuilder.newBuilder()
 				.build()));
 		when(analyzerServiceClient.hasClients()).thenReturn(true);
 
-		OperationCompletionRS response = handler.deleteProjectIndex(projectName, "user");
+		OperationCompletionRS response = handler.deleteProjectIndex(projectKey, "user");
 
 		verify(logIndexer, times(1)).deleteIndex(projectId);
 		verify(messageBus, times(1)).publishActivity(any(ProjectIndexEvent.class));
 
-		assertEquals(response.getResultMessage(), "Project index with name = '" + projectName + "' is successfully deleted.");
+		assertEquals(response.getResultMessage(), "Project index with name = '" + projectKey + "' is successfully deleted.");
 
 	}
 
 	@Test
 	void deleteProjectTest() {
-		String projectName = "test_project";
+		String projectKey = "test_project";
 		Long projectId = 1L;
 		Project project = getProjectWithAnalyzerAttributes(projectId, false);
-		project.setName(projectName);
+		project.setName(projectKey);
 		when(issueTypeRepository.getDefaultIssueTypes()).thenReturn(new ArrayList<>());
 		when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
 		when(logRepository.deleteByProjectId(1L)).thenReturn(10);

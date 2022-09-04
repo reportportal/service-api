@@ -51,7 +51,7 @@ import static org.springframework.http.HttpStatus.CREATED;
  * @author Konstantin Antipin
  */
 @RestController
-@RequestMapping("/v2/{projectName}/log")
+@RequestMapping("/v2/{projectKey}/log")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LogAsyncController {
 
@@ -76,10 +76,10 @@ public class LogAsyncController {
 	@ResponseStatus(CREATED)
 	@ApiIgnore
 	@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedAsyncRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
+	public EntryCreatedAsyncRS createLog(@PathVariable String projectKey, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(validator, createLogRQ);
-		return createLogHandler.createLog(createLogRQ, null, projectExtractor.extractProjectDetails(user, projectName));
+		return createLogHandler.createLog(createLogRQ, null, projectExtractor.extractProjectDetails(user, projectKey));
 	}
 
 	@HttpLogging
@@ -87,10 +87,10 @@ public class LogAsyncController {
 	@ResponseStatus(CREATED)
 	@ApiOperation("Create log")
 	@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedAsyncRS createLogEntry(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
+	public EntryCreatedAsyncRS createLogEntry(@PathVariable String projectKey, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(validator, createLogRQ);
-		return createLogHandler.createLog(createLogRQ, null, projectExtractor.extractProjectDetails(user, projectName));
+		return createLogHandler.createLog(createLogRQ, null, projectExtractor.extractProjectDetails(user, projectKey));
 	}
 
 	@HttpLogging
@@ -100,7 +100,7 @@ public class LogAsyncController {
 	// request mappings
 	//	@Async
 	@PreAuthorize(ALLOWED_TO_REPORT)
-	public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectName,
+	public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectKey,
 			@RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs, HttpServletRequest request,
 			@AuthenticationPrincipal ReportPortalUser user) {
 
@@ -121,7 +121,7 @@ public class LogAsyncController {
 					 * There is no filename in request. Use simple save
 					 * method
 					 */
-					responseItem = createLog(projectName, createLogRq, user);
+					responseItem = createLog(projectKey, createLogRq, user);
 
 				} else {
 					/* Find by request part */
@@ -136,7 +136,7 @@ public class LogAsyncController {
 					 * data
 					 */
 					//noinspection ConstantConditions
-					responseItem = createLogHandler.createLog(createLogRq, data, projectExtractor.extractProjectDetails(user, projectName));
+					responseItem = createLogHandler.createLog(createLogRq, data, projectExtractor.extractProjectDetails(user, projectKey));
 				}
 				response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
 			} catch (Exception e) {

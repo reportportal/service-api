@@ -90,11 +90,11 @@ class UserControllerTest extends BaseMvcTest {
 		assertEquals(normalizeId(rq.getLogin()), createUserRS.getLogin());
 		assertTrue(userRepository.findById(createUserRS.getId()).isPresent());
 
-		final Optional<Project> projectOptional = projectRepository.findByName("default_personal");
+		final Optional<Project> projectOptional = projectRepository.findByKey("default_personal");
 		assertTrue(projectOptional.isPresent());
 		assertTrue(projectOptional.get().getUsers().stream().anyMatch(config -> config.getUser().getLogin().equals("testlogin")));
 
-		Optional<Project> personalProject = projectRepository.findByName("testlogin_personal");
+		Optional<Project> personalProject = projectRepository.findByKey("testlogin_personal");
 		assertTrue(personalProject.isPresent(), "Personal project isn't created");
 		Project project = personalProject.get();
 

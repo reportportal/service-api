@@ -83,9 +83,9 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 	}
 
 	@Override
-	public OperationCompletionRS deleteProjectIntegration(Long integrationId, String projectName, ReportPortalUser user) {
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+	public OperationCompletionRS deleteProjectIntegration(Long integrationId, String projectKey, ReportPortalUser user) {
+		Project project = projectRepository.findByKey(projectKey)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
 		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, project.getId())
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
 		integration.getProject().getIntegrations().removeIf(it -> it.getId().equals(integration.getId()));
@@ -98,9 +98,9 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 	}
 
 	@Override
-	public OperationCompletionRS deleteProjectIntegrationsByType(String type, String projectName, ReportPortalUser user) {
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+	public OperationCompletionRS deleteProjectIntegrationsByType(String type, String projectKey, ReportPortalUser user) {
+		Project project = projectRepository.findByKey(projectKey)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
 		IntegrationType integrationType = integrationTypeRepository.findByName(type)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, type));
 		List<Integration> integrations = integrationRepository.findAllByProjectIdAndInIntegrationTypeIds(

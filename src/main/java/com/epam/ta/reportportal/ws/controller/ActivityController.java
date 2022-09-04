@@ -41,7 +41,7 @@
   * @author Ihar_Kahadouski
   */
  @RestController
- @RequestMapping("/v1/{projectName}/activity")
+ @RequestMapping("/v1/{projectKey}/activity")
  @Transactional(readOnly = true)
  @PreAuthorize(ASSIGNED_TO_PROJECT)
  public class ActivityController {
@@ -59,23 +59,23 @@
 	 @RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
 	 @ResponseStatus(OK)
 	 @ApiOperation("Get activities for project")
-	 public Iterable<ActivityResource> getActivities(@PathVariable String projectName, @FilterFor(Activity.class) Filter filter,
+	 public Iterable<ActivityResource> getActivities(@PathVariable String projectKey, @FilterFor(Activity.class) Filter filter,
 			 @FilterFor(Activity.class) Queryable predefinedFilter, @SortFor(Activity.class) Pageable pageable,
 			 @AuthenticationPrincipal ReportPortalUser user) {
 		 ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetailsAdmin(
 				 user,
-				 EntityUtils.normalizeId(projectName)
+				 EntityUtils.normalizeId(projectKey)
 		 );
 		 return activityHandler.getActivitiesHistory(projectDetails, filter, predefinedFilter, pageable);
 	 }
 
 	 @RequestMapping(value = "/{activityId}", method = RequestMethod.GET)
 	 @ResponseStatus(OK)
-	 public ActivityResource getActivity(@PathVariable String projectName, @PathVariable Long activityId,
+	 public ActivityResource getActivity(@PathVariable String projectKey, @PathVariable Long activityId,
 			 @AuthenticationPrincipal ReportPortalUser user) {
 		 ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetailsAdmin(
 				 user,
-				 EntityUtils.normalizeId(projectName)
+				 EntityUtils.normalizeId(projectKey)
 		 );
 		 return activityHandler.getActivity(projectDetails, activityId);
 	 }
@@ -83,12 +83,12 @@
 	 @RequestMapping(value = "/item/{itemId}", method = RequestMethod.GET)
 	 @ResponseStatus(OK)
 	 @ApiOperation("Get activities for test item")
-	 public Iterable<ActivityResource> getTestItemActivities(@PathVariable String projectName, @PathVariable Long itemId,
+	 public Iterable<ActivityResource> getTestItemActivities(@PathVariable String projectKey, @PathVariable Long itemId,
 			 @FilterFor(Activity.class) Filter filter, @SortFor(Activity.class) Pageable pageable,
 			 @AuthenticationPrincipal ReportPortalUser user) {
 		 ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetailsAdmin(
 				 user,
-				 EntityUtils.normalizeId(projectName)
+				 EntityUtils.normalizeId(projectKey)
 		 );
 		 return activityHandler.getItemActivities(projectDetails, itemId, filter, pageable);
 	 }

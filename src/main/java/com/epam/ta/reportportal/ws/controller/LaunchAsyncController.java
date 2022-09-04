@@ -48,7 +48,7 @@ import static org.springframework.http.HttpStatus.OK;
  * @author Konstantin Antipin
  */
 @RestController
-@RequestMapping("/v2/{projectName}/launch")
+@RequestMapping("/v2/{projectKey}/launch")
 public class LaunchAsyncController {
 
 	private final ProjectExtractor projectExtractor;
@@ -70,10 +70,10 @@ public class LaunchAsyncController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
-	public StartLaunchRS startLaunch(@PathVariable String projectName,
+	public StartLaunchRS startLaunch(@PathVariable String projectKey,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return startLaunchHandler.startLaunch(user, projectExtractor.extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
+		return startLaunchHandler.startLaunch(user, projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), startLaunchRQ);
 	}
 
 	@HttpLogging
@@ -81,13 +81,13 @@ public class LaunchAsyncController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Finish launch for specified project")
-	public FinishLaunchRS finishLaunch(@PathVariable String projectName, @PathVariable String launchId,
+	public FinishLaunchRS finishLaunch(@PathVariable String projectKey, @PathVariable String launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
 			HttpServletRequest request) {
 		return finishLaunchHandler.finishLaunch(
 				launchId,
 				finishLaunchRQ,
-				projectExtractor.extractProjectDetails(user, normalizeId(projectName)),
+				projectExtractor.extractProjectDetails(user, normalizeId(projectKey)),
 				user,
 				composeBaseUrl(request)
 		);
@@ -99,10 +99,10 @@ public class LaunchAsyncController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Merge set of specified launches in common one")
-	public LaunchResource mergeLaunches(@PathVariable String projectName,
+	public LaunchResource mergeLaunches(@PathVariable String projectKey,
 			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return mergeLaunchesHandler.mergeLaunches(projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user, mergeLaunchesRQ);
+		return mergeLaunchesHandler.mergeLaunches(projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), user, mergeLaunchesRQ);
 	}
 
 }

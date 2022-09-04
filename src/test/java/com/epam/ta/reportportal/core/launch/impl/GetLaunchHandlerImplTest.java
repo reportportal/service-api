@@ -138,25 +138,25 @@ class GetLaunchHandlerImplTest {
 
 	@Test
 	void getLaunchByNotExistProjectName() {
-		String projectName = "not_exist";
+		String projectKey = "not_exist";
 
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.empty());
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getLaunchByProjectName(projectName, PageRequest.of(0, 10), getDefaultFilter(), "user")
+				() -> handler.getLaunchByProjectName(projectKey, PageRequest.of(0, 10), getDefaultFilter(), "user")
 		);
 		assertEquals("Project 'not_exist' not found. Did you use correct project name?", exception.getMessage());
 	}
 
 	@Test
 	void getLaunchByProjectNameNotFound() {
-		String projectName = "not_exist";
+		String projectKey = "not_exist";
 
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(new Project()));
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(new Project()));
 		when(launchRepository.findByFilter(any(), any())).thenReturn(null);
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getLaunchByProjectName(projectName, PageRequest.of(0, 10), getDefaultFilter(), "user")
+				() -> handler.getLaunchByProjectName(projectKey, PageRequest.of(0, 10), getDefaultFilter(), "user")
 		);
 		assertEquals("Launch '' not found. Did you use correct Launch ID?", exception.getMessage());
 	}

@@ -106,7 +106,7 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 
 	@Override
 	public IssueSubTypeCreatedRS createProjectIssueSubType(String projectName, ReportPortalUser user, CreateIssueSubTypeRQ rq) {
-		Project project = projectRepository.findByName(projectName)
+		Project project = projectRepository.findByKey(projectName)
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 
 		expect(NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(rq.getTypeRef()), equalTo(false)).verify(INCORRECT_REQUEST,
@@ -179,7 +179,7 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 	public EntryCreatedRS createPatternTemplate(String projectName, CreatePatternTemplateRQ createPatternTemplateRQ,
 			ReportPortalUser user) {
 
-		Project project = projectRepository.findByName(projectName)
+		Project project = projectRepository.findByKey(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
 		PatternTemplate patternTemplate = createPatternTemplateMapping.get(PatternTemplateType.fromString(createPatternTemplateRQ.getType())

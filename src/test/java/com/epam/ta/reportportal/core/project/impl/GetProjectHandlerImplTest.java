@@ -57,11 +57,11 @@ class GetProjectHandlerImplTest {
 	void getUsersOnNotExistProject() {
 		long projectId = 1L;
 
-		String projectName = "test_project";
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
+		String projectKey = "test_project";
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.empty());
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> {
-					handler.getProjectUsers(projectName,
+					handler.getProjectUsers(projectKey,
 							Filter.builder()
 									.withTarget(User.class)
 									.withCondition(FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build())
@@ -78,10 +78,10 @@ class GetProjectHandlerImplTest {
 	void getEmptyUserList() {
 		long projectId = 1L;
 
-		String projectName = "test_project";
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(new Project()));
+		String projectKey = "test_project";
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(new Project()));
 
-		Iterable<UserResource> users = handler.getProjectUsers(projectName,
+		Iterable<UserResource> users = handler.getProjectUsers(projectKey,
 				Filter.builder()
 						.withTarget(User.class)
 						.withCondition(FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build())
@@ -94,15 +94,15 @@ class GetProjectHandlerImplTest {
 
 	@Test
 	void getNotExistProject() {
-		String projectName = "not_exist";
+		String projectKey = "not_exist";
 		long projectId = 1L;
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.getResource(projectName, user));
+		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.getResource(projectKey, user));
 
-		assertEquals("Project '" + projectName + "' not found. Did you use correct project name?", exception.getMessage());
+		assertEquals("Project '" + projectKey + "' not found. Did you use correct project name?", exception.getMessage());
 	}
 
 	@Test
@@ -120,7 +120,7 @@ class GetProjectHandlerImplTest {
 	@Test
 	void getUserNamesNegative() {
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.getUserNames("",
-				new ReportPortalUser.ProjectDetails(1L, "superadmin_personal", ProjectRole.PROJECT_MANAGER),
+				new ReportPortalUser.ProjectDetails(1L, "superadmin_personal", "superadmin_personal", 1L,  ProjectRole.PROJECT_MANAGER),
 				PageRequest.of(0, 10)));
 		assertEquals("Incorrect filtering parameters. Length of the filtering string '' is less than 1 symbol", exception.getMessage());
 	}

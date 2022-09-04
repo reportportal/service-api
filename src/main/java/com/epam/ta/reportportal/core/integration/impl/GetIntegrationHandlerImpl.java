@@ -73,7 +73,7 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 
 	@Override
 	public IntegrationResource getProjectIntegrationById(Long integrationId, String projectName) {
-		Project project = projectRepository.findByName(projectName)
+		Project project = projectRepository.findByKey(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, project.getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
@@ -171,14 +171,14 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 
 	@Override
 	public List<IntegrationResource> getProjectIntegrations(String projectName) {
-		Project project = projectRepository.findByName(projectName)
+		Project project = projectRepository.findByKey(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		return integrationRepository.findAllByProjectIdOrderByCreationDateDesc(project.getId()).stream().map(TO_INTEGRATION_RESOURCE).collect(Collectors.toList());
 	}
 
 	@Override
 	public List<IntegrationResource> getProjectIntegrations(String pluginName, String projectName) {
-		Project project = projectRepository.findByName(projectName)
+		Project project = projectRepository.findByKey(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
@@ -190,7 +190,7 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 
 	@Override
 	public boolean testConnection(Long integrationId, String projectName) {
-		Project project = projectRepository.findByName(projectName)
+		Project project = projectRepository.findByKey(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
 		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, project.getId())

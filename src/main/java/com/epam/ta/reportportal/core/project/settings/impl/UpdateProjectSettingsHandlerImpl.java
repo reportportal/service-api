@@ -83,7 +83,7 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 				"Please specify at least one item data for update."
 		);
 
-		Project project = projectRepository.findByName(projectName)
+		Project project = projectRepository.findByKey(projectName)
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 
 		List<IssueTypeActivityResource> issueTypeActivityResources = updateIssueSubTypeRQ.getIds()
@@ -106,7 +106,7 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 	public OperationCompletionRS updatePatternTemplate(Long id, String projectName, UpdatePatternTemplateRQ updatePatternTemplateRQ,
 			ReportPortalUser user) {
 
-		Project project = projectRepository.findByName(projectName)
+		Project project = projectRepository.findByKey(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
 		PatternTemplate patternTemplate = patternTemplateRepository.findById(id)

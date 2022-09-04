@@ -48,18 +48,18 @@ public class ProjectExtractor {
 	}
 
 	/**
-	 * Extracts project details for specified user by specified project name
+	 * Extracts project details for specified user by specified project Key
 	 *
 	 * @param user        User
-	 * @param projectName Project name
+	 * @param projectKey Project Key
 	 * @return Project Details
 	 */
-	public ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user, String projectName) {
-		final String normalizedProjectName = normalizeId(projectName);
+	public ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user, String projectKey) {
+		final String normalizedProjectKey = normalizeId(projectKey);
 		return user.getProjectDetails()
-				.computeIfAbsent(normalizedProjectName,
+				.computeIfAbsent(normalizedProjectKey,
 						k -> findProjectDetails(user,
-								normalizedProjectName
+								normalizedProjectKey
 						).orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
 								"Please check the list of your available projects."
 						))
@@ -67,36 +67,44 @@ public class ProjectExtractor {
 	}
 
 	/**
-	 * Find project details for specified user by specified project name
+	 * Find project details for specified user by specified project Key
 	 *
 	 * @param user        User
-	 * @param projectName Project name
+	 * @param projectKey Project Key
 	 * @return {@link Optional} with Project Details
 	 */
-	public Optional<ReportPortalUser.ProjectDetails> findProjectDetails(ReportPortalUser user, String projectName) {
-		return projectUserRepository.findDetailsByUserIdAndProjectName(user.getUserId(), projectName);
+	public Optional<ReportPortalUser.ProjectDetails> findProjectDetails(ReportPortalUser user, String projectKey) {
+		return projectUserRepository.findDetailsByUserIdAndProjectKey(user.getUserId(), projectKey);
 
 	}
 
 	/**
-	 * Extracts project details for specified user by specified project name
+	 * Extracts project details for specified user by specified project Key
 	 * If user is ADMINISTRATOR - he is added as a PROJECT_MANAGER to the project
 	 *
 	 * @param user        User
-	 * @param projectName Project name
+	 * @param projectKey Project Key
 	 * @return Project Details
 	 */
-	public ReportPortalUser.ProjectDetails extractProjectDetailsAdmin(ReportPortalUser user, String projectName) {
+	public ReportPortalUser.ProjectDetails extractProjectDetailsAdmin(ReportPortalUser user, String projectKey) {
 
 		//dirty hack to allow everything for user with 'admin' authority
 		if (user.getUserRole().getAuthority().equals(ADMINISTRATOR.getAuthority())) {
-			Project project = projectRepository.findByName(normalizeId(projectName))
-					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+			Project project = projectRepository.findByKey(normalizeId(projectKey))
+					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 			user.getProjectDetails()
-					.put(projectName, new ReportPortalUser.ProjectDetails(project.getId(), project.getName(), ProjectRole.PROJECT_MANAGER));
+					.put(
+							projectKey,
+							new ReportPortalUser.ProjectDetails(project.getId(),
+									project.getKey(),
+									project.getKey(),
+									project.getOrganization().getId(),
+									ProjectRole.PROJECT_MANAGER
+							)
+					);
 		}
 
-		return Optional.ofNullable(user.getProjectDetails().get(normalizeId(projectName)))
+		return Optional.ofNullable(user.getProjectDetails().get(normalizeId(projectKey)))
 				.orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED, "Please check the list of your available projects."));
 	}
 

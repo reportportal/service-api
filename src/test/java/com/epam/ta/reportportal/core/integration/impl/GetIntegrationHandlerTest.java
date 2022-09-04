@@ -65,7 +65,7 @@ class GetIntegrationHandlerTest {
 		project.setId(projectId);
 		project.setName(TEST_PROJECT_NAME);
 
-		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(project));
+		when(projectRepository.findByKey(TEST_PROJECT_NAME)).thenReturn(Optional.of(project));
 
 		when(integrationRepository.findByIdAndProjectId(emailIntegrationId,
 				projectId

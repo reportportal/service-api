@@ -149,7 +149,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	@Override
 	public OperationCompletionRS updateProject(String projectName, UpdateProjectRQ updateProjectRQ, ReportPortalUser user) {
-		Project project = projectRepository.findByName(projectName)
+		Project project = projectRepository.findByKey(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		ProjectAttributesActivityResource before = TO_ACTIVITY_RESOURCE.apply(project);
 		updateProjectConfiguration(updateProjectRQ.getConfiguration(), project);
@@ -167,7 +167,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	@Override
 	public OperationCompletionRS updateProjectNotificationConfig(String projectName, ReportPortalUser user,
 			ProjectNotificationConfigDTO updateProjectNotificationConfigRQ) {
-		Project project = projectRepository.findByName(projectName)
+		Project project = projectRepository.findByKey(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		ProjectResource before = projectConverter.TO_PROJECT_RESOURCE.apply(project);
 
@@ -192,7 +192,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		expect(unassignUsersRQ.getUsernames(), not(List::isEmpty)).verify(BAD_REQUEST_ERROR,
 				"Request should contain at least one username."
 		);
-		Project project = projectRepository.findByName(projectName)
+		Project project = projectRepository.findByKey(projectName)
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 		User modifier = userRepository.findById(user.getUserId())
 				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, user.getUsername()));
@@ -217,7 +217,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	public OperationCompletionRS assignUsers(String projectName, AssignUsersRQ assignUsersRQ, ReportPortalUser user) {
 
 		if (UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
-			Project project = projectRepository.findByName(normalizeId(projectName))
+			Project project = projectRepository.findByKey(normalizeId(projectName))
 					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectName)));
 
 			List<String> assignedUsernames = project.getUsers().stream().map(u -> u.getUser().getLogin()).collect(toList());
@@ -256,7 +256,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				"There are no analyzer deployed."
 		);
 
-		Project project = projectRepository.findByName(projectName)
+		Project project = projectRepository.findByKey(projectName)
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 
 		expect(ofNullable(indexerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false), equalTo(false)).verify(

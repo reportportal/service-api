@@ -66,54 +66,54 @@ public class NotificationController {
 	}
 
 	@Transactional(readOnly = true)
-	@GetMapping("/{projectName}")
+	@GetMapping("/{projectKey}")
 	@ResponseStatus(OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation(value = "Returns notifications config of specified project", notes = "Only for users assigned to specified project")
-	public List<SenderCaseDTO> getNotifications(@PathVariable String projectName) {
-		return getProjectNotificationsHandler.getProjectNotifications(getProjectHandler.get(normalizeId(projectName)).getId());
+	public List<SenderCaseDTO> getNotifications(@PathVariable String projectKey) {
+		return getProjectNotificationsHandler.getProjectNotifications(getProjectHandler.get(normalizeId(projectKey)).getId());
 	}
 
 	@Transactional
-	@PostMapping("/{projectName}")
+	@PostMapping("/{projectKey}")
 	@ResponseStatus(CREATED)
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
 	@ApiOperation(value = "Creates notification for specified project", notes = "Only for users with PROJECT_MANAGER or ADMIN roles")
-	public EntryCreatedRS createNotification(@PathVariable String projectName,
+	public EntryCreatedRS createNotification(@PathVariable String projectKey,
 			@RequestBody @Validated SenderCaseDTO createNotificationRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return createProjectNotificationHandler.createNotification(
-				getProjectHandler.get(normalizeId(projectName)),
+				getProjectHandler.get(normalizeId(projectKey)),
 				createNotificationRQ,
 				user
 		);
 	}
 
 	@Transactional
-	@PutMapping("/{projectName}")
+	@PutMapping("/{projectKey}")
 	@ResponseStatus(CREATED)
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
 	@ApiOperation(value = "Updates notification for specified project", notes = "Only for users with PROJECT_MANAGER or ADMIN roles")
-	public OperationCompletionRS updateNotification(@PathVariable String projectName,
+	public OperationCompletionRS updateNotification(@PathVariable String projectKey,
 			@RequestBody @Validated SenderCaseDTO updateNotificationRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return updateProjectNotificationHandler.updateNotification(
-				getProjectHandler.get(normalizeId(projectName)),
+				getProjectHandler.get(normalizeId(projectKey)),
 				updateNotificationRQ,
 				user
 		);
 	}
 
 	@Transactional
-	@DeleteMapping("/{projectName}/{notificationId:\\d+}")
+	@DeleteMapping("/{projectKey}/{notificationId:\\d+}")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
 	@ApiOperation(value = "Deletes notification for specified project", notes = "Only for users with PROJECT_MANAGER or ADMIN roles")
-	public OperationCompletionRS deleteNotification(@PathVariable String projectName,
+	public OperationCompletionRS deleteNotification(@PathVariable String projectKey,
 			@PathVariable Long notificationId,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return deleteNotificationHandler.deleteNotification(
-				getProjectHandler.get(normalizeId(projectName)),
+				getProjectHandler.get(normalizeId(projectKey)),
 				notificationId,
 				user
 		);

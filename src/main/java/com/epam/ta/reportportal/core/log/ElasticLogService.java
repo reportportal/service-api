@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.log;
 
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogMessage;
 import org.apache.commons.collections.CollectionUtils;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.core.configs.rabbit.BackgroundProcessingConfiguration.LOG_MESSAGE_SAVING_ROUTING_KEY;
 import static com.epam.ta.reportportal.core.configs.rabbit.BackgroundProcessingConfiguration.PROCESSING_EXCHANGE_NAME;
@@ -39,6 +41,31 @@ public class ElasticLogService implements LogService {
     public void saveLogMessageList(List<Log> logList, Long launchId) {
         if (CollectionUtils.isEmpty(logList)) return;
         logList.stream().filter(Objects::nonNull).forEach(log -> saveLogMessage(log, launchId));
+    }
+
+    @Override
+    public void deleteLogMessage(Long projectId, Long logId) {
+
+    }
+
+    @Override
+    public void deleteLogMessageByTestItemSet(Long projectId, Set<Long> itemIds) {
+
+    }
+
+    @Override
+    public void deleteLogMessageByLaunch(Long projectId, Long launchId) {
+
+    }
+
+    @Override
+    public void deleteLogMessageByLaunchList(Long projectId, List<Long> launchIds) {
+
+    }
+
+    @Override
+    public void deleteLogMessageByProject(Long projectId) {
+
     }
 
     private LogMessage convertLogToLogMessage(Log log, Long launchId) {

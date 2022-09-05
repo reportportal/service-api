@@ -105,9 +105,9 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 	}
 
 	@Override
-	public IssueSubTypeCreatedRS createProjectIssueSubType(String projectName, ReportPortalUser user, CreateIssueSubTypeRQ rq) {
-		Project project = projectRepository.findByKey(projectName)
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+	public IssueSubTypeCreatedRS createProjectIssueSubType(String projectKey, ReportPortalUser user, CreateIssueSubTypeRQ rq) {
+		Project project = projectRepository.findByKey(projectKey)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
 
 		expect(NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(rq.getTypeRef()), equalTo(false)).verify(INCORRECT_REQUEST,
 				"Impossible to create sub-type for 'Not Issue' type."

@@ -60,7 +60,7 @@ class CreateProjectHandlerImplTest {
 		createProjectRQ.setProjectName(projectName);
 		createProjectRQ.setEntryType("wrongType");
 
-		when(projectRepository.findByKey(projectName.toLowerCase().trim())).thenReturn(Optional.empty());
+		when(projectRepository.findByName(projectName.toLowerCase().trim())).thenReturn(Optional.empty());
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.createProject(createProjectRQ, rpUser));
 
@@ -76,7 +76,7 @@ class CreateProjectHandlerImplTest {
 		createProjectRQ.setProjectName(projectName);
 		createProjectRQ.setEntryType("internal");
 
-		when(projectRepository.findByKey(projectName.toLowerCase().trim())).thenReturn(Optional.empty());
+		when(projectRepository.findByName(projectName.toLowerCase().trim())).thenReturn(Optional.empty());
 		when(userRepository.findRawById(rpUser.getUserId())).thenReturn(Optional.empty());
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.createProject(createProjectRQ, rpUser));

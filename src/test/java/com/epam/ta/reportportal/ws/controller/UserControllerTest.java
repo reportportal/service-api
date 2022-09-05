@@ -94,7 +94,7 @@ class UserControllerTest extends BaseMvcTest {
 		assertTrue(projectOptional.isPresent());
 		assertTrue(projectOptional.get().getUsers().stream().anyMatch(config -> config.getUser().getLogin().equals("testlogin")));
 
-		Optional<Project> personalProject = projectRepository.findByKey("testlogin_personal");
+		Optional<Project> personalProject = projectRepository.findByName("testlogin_personal");
 		assertTrue(personalProject.isPresent(), "Personal project isn't created");
 		Project project = personalProject.get();
 

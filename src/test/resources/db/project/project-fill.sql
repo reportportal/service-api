@@ -1,5 +1,5 @@
-insert into project (id, name, project_type, organization, creation_date)
-values (3, 'test_project', 'INTERNAL', 'org', now());
+insert into project (id, name, project_type, organization, organization_id, key, creation_date)
+values (3, 'test_project', 'INTERNAL', 'org', 'test_project', 3, now());
 
 INSERT INTO project_attribute (attribute_id, value, project_id)
 VALUES (1, '1 day', 3),

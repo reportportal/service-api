@@ -21,13 +21,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class LogServiceElasticTest {
+class ElasticLogServiceTest {
 
     @Mock
     private AmqpTemplate amqpTemplate;
 
     @InjectMocks
-    private LogServiceElastic logServiceElastic;
+    private ElasticLogService elasticLogService;
 
     private Log log;
 
@@ -45,15 +45,15 @@ class LogServiceElasticTest {
     }
 
     @Test
-    void saveLogMessageToElasticSearch() {
-        logServiceElastic.saveLogMessageToElasticSearch(log, log.getLaunch().getId());
+    void saveLogMessage() {
+        elasticLogService.saveLogMessage(log, log.getLaunch().getId());
 
         verify(amqpTemplate, times(1)).convertAndSend(eq(PROCESSING_EXCHANGE_NAME), eq(LOG_MESSAGE_SAVING_ROUTING_KEY), eq(logMessage));
     }
 
     @Test
-    void saveLogMessageListToElasticSearch() {
-        logServiceElastic.saveLogMessageListToElasticSearch(List.of(log), log.getLaunch().getId());
+    void saveLogMessageList() {
+        elasticLogService.saveLogMessageList(List.of(log), log.getLaunch().getId());
 
         verify(amqpTemplate, times(1)).convertAndSend(eq(PROCESSING_EXCHANGE_NAME), eq(LOG_MESSAGE_SAVING_ROUTING_KEY), eq(logMessage));
     }

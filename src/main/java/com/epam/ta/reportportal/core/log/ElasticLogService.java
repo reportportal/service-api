@@ -18,14 +18,14 @@ import static com.epam.ta.reportportal.core.configs.rabbit.BackgroundProcessingC
 @Primary
 @Service
 @ConditionalOnProperty(prefix = "rp.elasticsearchLogmessage", name = "host")
-public class LogServiceElastic implements LogService {
+public class ElasticLogService implements LogService {
     private final AmqpTemplate amqpTemplate;
 
-    public LogServiceElastic(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate) {
+    public ElasticLogService(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate) {
         this.amqpTemplate = amqpTemplate;
     }
 
-    public void saveLogMessageToElasticSearch(Log log, Long launchId) {
+    public void saveLogMessage(Log log, Long launchId) {
         if (Objects.isNull(log)) return;
         amqpTemplate.convertAndSend(PROCESSING_EXCHANGE_NAME, LOG_MESSAGE_SAVING_ROUTING_KEY,
                 convertLogToLogMessage(log, launchId));
@@ -36,9 +36,9 @@ public class LogServiceElastic implements LogService {
      * during reporting.
      * @param logList
      */
-    public void saveLogMessageListToElasticSearch(List<Log> logList, Long launchId) {
+    public void saveLogMessageList(List<Log> logList, Long launchId) {
         if (CollectionUtils.isEmpty(logList)) return;
-        logList.stream().filter(Objects::nonNull).forEach(log -> saveLogMessageToElasticSearch(log, launchId));
+        logList.stream().filter(Objects::nonNull).forEach(log -> saveLogMessage(log, launchId));
     }
 
     private LogMessage convertLogToLogMessage(Log log, Long launchId) {

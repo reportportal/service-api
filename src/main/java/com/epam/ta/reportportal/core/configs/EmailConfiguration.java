@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.reportportal.commons.template.TemplateEngineProvider;
-import com.epam.ta.reportportal.core.analyzer.strategy.LaunchAnalysisStrategy;
 import com.epam.ta.reportportal.util.email.strategy.EmailNotificationStrategy;
 import com.epam.ta.reportportal.util.email.strategy.EmailTemplate;
 import com.epam.ta.reportportal.util.email.strategy.UserDeletionNotificationStrategy;
@@ -27,6 +26,7 @@ import com.epam.ta.reportportal.util.email.strategy.UserSelfDeletionNotification
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
- * Global Email Configuration<br> Probably will be replaces by configuration per project.
+ * Global Email Configuration<br> Probably will be replaced by configuration per project.
  *
  * @author Andrei_Ramanchuk
  */
@@ -45,11 +45,14 @@ public class EmailConfiguration {
   private ApplicationContext applicationContext;
 
   @Bean
-  public ThreadPoolTaskExecutor emailExecutorService() {
+  public ThreadPoolTaskExecutor emailExecutorService(
+      @Value("${rp.environment.variable.executor.pool.user-email.core}") Integer corePoolSize,
+      @Value("${rp.environment.variable.executor.pool.user-email.max}") Integer maxPoolSize,
+      @Value("${rp.environment.variable.executor.pool.user-email.queue}") Integer queueCapacity) {
     ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-    threadPoolTaskExecutor.setCorePoolSize(5);
-    threadPoolTaskExecutor.setMaxPoolSize(20);
-    threadPoolTaskExecutor.setQueueCapacity(50);
+    threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
+    threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
+    threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
     threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
     threadPoolTaskExecutor.setAwaitTerminationSeconds(20);
     threadPoolTaskExecutor.setThreadNamePrefix("email-sending-exec");

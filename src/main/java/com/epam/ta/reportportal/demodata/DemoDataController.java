@@ -33,7 +33,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANA
  * @author Ihar Kahadouski
  */
 @RestController
-@RequestMapping("/v1/demo/{projectName}")
+@RequestMapping("/v1/demo/{projectKey}")
 @PreAuthorize(PROJECT_MANAGER)
 class DemoDataController {
 
@@ -48,8 +48,8 @@ class DemoDataController {
 
 	@PostMapping
 	@ApiOperation(value = "generate")
-	public DemoDataRs generate(@PathVariable String projectName, @Validated @RequestBody DemoDataRq demoDataRq,
+	public DemoDataRs generate(@PathVariable String projectKey, @Validated @RequestBody DemoDataRq demoDataRq,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return demoDataService.generate(demoDataRq, projectExtractor.extractProjectDetailsAdmin(user, projectName), user);
+		return demoDataService.generate(demoDataRq, projectExtractor.extractProjectDetailsAdmin(user, projectKey), user);
 	}
 }

@@ -53,7 +53,7 @@ import static org.springframework.http.HttpStatus.OK;
  */
 @RestController
 @PreAuthorize(ASSIGNED_TO_PROJECT)
-@RequestMapping("/v1/{projectName}/widget")
+@RequestMapping("/v1/{projectKey}/widget")
 public class WidgetController {
 
 	private final ProjectExtractor projectExtractor;
@@ -75,52 +75,52 @@ public class WidgetController {
 	@ResponseStatus(CREATED)
 	@ApiOperation("Create a new widget")
 	public EntryCreatedRS createWidget(@RequestBody @Validated WidgetRQ createWidget, @AuthenticationPrincipal ReportPortalUser user,
-			@PathVariable String projectName) {
-		return createWidgetHandler.createWidget(createWidget, projectExtractor.extractProjectDetails(user, projectName), user);
+			@PathVariable String projectKey) {
+		return createWidgetHandler.createWidget(createWidget, projectExtractor.extractProjectDetails(user, projectKey), user);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/{widgetId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Get widget by ID")
-	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
+	public WidgetResource getWidget(@PathVariable String projectKey, @PathVariable Long widgetId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidget(widgetId, projectExtractor.extractProjectDetails(user, projectName), user);
+		return getWidgetHandler.getWidget(widgetId, projectExtractor.extractProjectDetails(user, projectKey), user);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "multilevel/{widgetId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Get multilevel widget by ID")
-	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
+	public WidgetResource getWidget(@PathVariable String projectKey, @PathVariable Long widgetId,
 			@RequestParam(required = false, name = "attributes") String[] attributes, @RequestParam MultiValueMap<String, String> params, @AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidget(widgetId, ArrayUtils.nullToEmpty(attributes), params, projectExtractor.extractProjectDetails(user, projectName), user);
+		return getWidgetHandler.getWidget(widgetId, ArrayUtils.nullToEmpty(attributes), params, projectExtractor.extractProjectDetails(user, projectKey), user);
 	}
 
 	@Transactional(readOnly = true)
 	@PostMapping(value = "/preview")
 	@ResponseStatus(OK)
 	@ApiOperation("Get widget preview")
-	public Map<String, ?> getWidgetPreview(@PathVariable String projectName, @RequestBody @Validated WidgetPreviewRQ previewRQ,
+	public Map<String, ?> getWidgetPreview(@PathVariable String projectKey, @RequestBody @Validated WidgetPreviewRQ previewRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidgetPreview(previewRQ, projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user);
+		return getWidgetHandler.getWidgetPreview(previewRQ, projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), user);
 	}
 
 	@Transactional
 	@PutMapping(value = "/{widgetId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Update specified widget")
-	public OperationCompletionRS updateWidget(@PathVariable String projectName, @PathVariable Long widgetId,
+	public OperationCompletionRS updateWidget(@PathVariable String projectKey, @PathVariable Long widgetId,
 			@RequestBody @Validated WidgetRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateWidgetHandler.updateWidget(widgetId, updateRQ, projectExtractor.extractProjectDetails(user, projectName), user);
+		return updateWidgetHandler.updateWidget(widgetId, updateRQ, projectExtractor.extractProjectDetails(user, projectKey), user);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/names/all")
 	@ResponseStatus(OK)
 	@ApiOperation("Load all widget names which belong to a user")
-	public Iterable<Object> getWidgetNames(@PathVariable String projectName, @SortFor(Widget.class) Pageable pageable,
+	public Iterable<Object> getWidgetNames(@PathVariable String projectKey, @SortFor(Widget.class) Pageable pageable,
 			@FilterFor(Widget.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getOwnNames(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
+		return getWidgetHandler.getOwnNames(projectExtractor.extractProjectDetails(user, projectKey), pageable, filter, user);
 	}
 }

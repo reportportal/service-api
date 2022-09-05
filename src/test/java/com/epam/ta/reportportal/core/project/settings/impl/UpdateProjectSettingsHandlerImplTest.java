@@ -72,7 +72,7 @@ class UpdateProjectSettingsHandlerImplTest {
 		UpdateIssueSubTypeRQ updateIssueSubTypeRQ = new UpdateIssueSubTypeRQ();
 		updateIssueSubTypeRQ.setIds(Collections.singletonList(new UpdateOneIssueSubTypeRQ()));
 
-		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
+		when(projectRepository.findByKey(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.updateProjectIssueSubType(TEST_PROJECT_NAME, user, updateIssueSubTypeRQ)
@@ -90,7 +90,7 @@ class UpdateProjectSettingsHandlerImplTest {
 		oneIssueSubTypeRQ.setTypeRef("wrongType");
 		updateIssueSubTypeRQ.setIds(Collections.singletonList(oneIssueSubTypeRQ));
 
-		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
+		when(projectRepository.findByKey(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.updateProjectIssueSubType(TEST_PROJECT_NAME, user, updateIssueSubTypeRQ)
@@ -109,7 +109,7 @@ class UpdateProjectSettingsHandlerImplTest {
 		oneIssueSubTypeRQ.setLocator("locator");
 		updateIssueSubTypeRQ.setIds(Collections.singletonList(oneIssueSubTypeRQ));
 
-		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
+		when(projectRepository.findByKey(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.updateProjectIssueSubType(TEST_PROJECT_NAME, user, updateIssueSubTypeRQ)

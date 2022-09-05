@@ -92,7 +92,7 @@ class ProjectControllerTest extends BaseMvcTest {
 		mockMvc.perform(post("/v1/project").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
-		final Optional<Project> createdProjectOptional = projectRepository.findByName("TestProject".toLowerCase());
+		final Optional<Project> createdProjectOptional = projectRepository.findByKey("TestProject".toLowerCase());
 		assertTrue(createdProjectOptional.isPresent());
 		assertEquals(14, createdProjectOptional.get().getProjectAttributes().size());
 		assertEquals(5, createdProjectOptional.get().getProjectIssueTypes().size());
@@ -139,7 +139,7 @@ class ProjectControllerTest extends BaseMvcTest {
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 
-		Project project = projectRepository.findByName("test_project").get();
+		Project project = projectRepository.findByKey("test_project").get();
 		projectAttributes.forEach((key, value) -> {
 			Optional<ProjectAttribute> pa = project.getProjectAttributes()
 					.stream()

@@ -88,7 +88,11 @@ class SearchLogServiceImplTest {
 	@Test
 	void searchTest() {
 
-		ReportPortalUser.ProjectDetails projectDetails = new ReportPortalUser.ProjectDetails(1L, "project", ProjectRole.PROJECT_MANAGER);
+		ReportPortalUser.ProjectDetails projectDetails = new ReportPortalUser.ProjectDetails(
+				1L,
+				"project",
+				ProjectRole.PROJECT_MANAGER
+		);
 
 		when(projectRepository.findById(projectDetails.getProjectId())).thenReturn(Optional.of(project));
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(testItem));

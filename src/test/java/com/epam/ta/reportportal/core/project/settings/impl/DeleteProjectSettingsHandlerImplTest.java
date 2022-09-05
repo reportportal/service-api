@@ -53,7 +53,7 @@ class DeleteProjectSettingsHandlerImplTest {
 		long projectId = 1L;
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
+		when(projectRepository.findByKey(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.deleteProjectIssueSubType(TEST_PROJECT_NAME, user, 1L)
@@ -67,7 +67,7 @@ class DeleteProjectSettingsHandlerImplTest {
 		long projectId = 1L;
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
+		when(projectRepository.findByKey(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.deleteProjectIssueSubType(TEST_PROJECT_NAME, user, 1L)

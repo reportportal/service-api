@@ -29,6 +29,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 public class ReportPortalUserUtil {
 
 	public static final String TEST_PROJECT_NAME = "test_project";
+	public static final String TEST_PROJECT_KEY = "test_project";
 
 	private ReportPortalUserUtil() {
 		//static only

@@ -106,6 +106,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 
 		Project project = new Project();
 		project.setName(projectName);
+		project.setKey(projectName);
 		project.setCreationDate(new Date());
 
 		project.setProjectIssueTypes(ProjectUtils.defaultIssueTypes(project, issueTypeRepository.getDefaultIssueTypes()));

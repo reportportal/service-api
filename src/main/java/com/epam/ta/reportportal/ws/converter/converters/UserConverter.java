@@ -71,7 +71,7 @@ public final class UserConverter {
 			resource.setAssignedProjects(userProjects);
 		}
 
-		if (null != user.getOrganizations()) {
+		if (CollectionUtils.isNotEmpty(user.getOrganizations())) {
 			List<OrganizationUser> organizations = Lists.newArrayList(user.getOrganizations());
 			Map<String, UserResource.AssignedOrganization> userOrganization = organizations
 					.stream()

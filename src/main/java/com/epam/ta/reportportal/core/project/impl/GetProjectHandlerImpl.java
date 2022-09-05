@@ -113,8 +113,8 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	}
 
 	@Override
-	public Project get(String name) {
-		return projectRepository.findByKey(name).orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, name));
+	public Project get(String key) {
+		return projectRepository.findByKey(key).orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, key));
 	}
 
 	@Override

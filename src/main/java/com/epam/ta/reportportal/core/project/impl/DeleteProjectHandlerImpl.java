@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.dao.*;
@@ -71,11 +72,13 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	private final LogRepository logRepository;
 
+	private final LogService logService;
+
 	@Autowired
 	public DeleteProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository, LogIndexer logIndexer,
-			AnalyzerServiceClient analyzerServiceClient, AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus,
-			AttachmentRepository attachmentRepository, IssueTypeRepository issueTypeRepository,
-			ContentRemover<Project> projectContentRemover, LogRepository logRepository) {
+									AnalyzerServiceClient analyzerServiceClient, AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus,
+									AttachmentRepository attachmentRepository, IssueTypeRepository issueTypeRepository,
+									ContentRemover<Project> projectContentRemover, LogRepository logRepository, LogService logService) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.logIndexer = logIndexer;
@@ -86,6 +89,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 		this.issueTypeRepository = issueTypeRepository;
 		this.projectContentRemover = projectContentRemover;
 		this.logRepository = logRepository;
+		this.logService = logService;
 	}
 
 	@Override
@@ -136,6 +140,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 		issueTypeRepository.deleteAll(issueTypesToRemove);
 		logIndexer.deleteIndex(project.getId());
 		analyzerServiceClient.removeSuggest(project.getId());
+		logService.deleteLogMessageByProject(project.getId());
 		logRepository.deleteByProjectId(project.getId());
 		attachmentRepository.moveForDeletionByProjectId(project.getId());
 		return new OperationCompletionRS("Project with id = '" + project.getId() + "' has been successfully deleted.");

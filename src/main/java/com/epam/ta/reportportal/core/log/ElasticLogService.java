@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.log;
 
-import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.dao.custom.ElasticSearchClient;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogMessage;
 import org.apache.commons.collections.CollectionUtils;
@@ -19,12 +19,14 @@ import static com.epam.ta.reportportal.core.configs.rabbit.BackgroundProcessingC
 
 @Primary
 @Service
-@ConditionalOnProperty(prefix = "rp.elasticsearchLogmessage", name = "host")
+@ConditionalOnProperty(prefix = "rp.elasticsearch", name = "host")
 public class ElasticLogService implements LogService {
     private final AmqpTemplate amqpTemplate;
+    private final ElasticSearchClient elasticSearchClient;
 
-    public ElasticLogService(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate) {
+    public ElasticLogService(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate, ElasticSearchClient elasticSearchClient) {
         this.amqpTemplate = amqpTemplate;
+        this.elasticSearchClient = elasticSearchClient;
     }
 
     public void saveLogMessage(Log log, Long launchId) {
@@ -45,27 +47,27 @@ public class ElasticLogService implements LogService {
 
     @Override
     public void deleteLogMessage(Long projectId, Long logId) {
-
+        elasticSearchClient.deleteLogsByLogIdAndProjectId(projectId, logId);
     }
 
     @Override
     public void deleteLogMessageByTestItemSet(Long projectId, Set<Long> itemIds) {
-
+        elasticSearchClient.deleteLogsByItemSetAndProjectId(projectId, itemIds);
     }
 
     @Override
     public void deleteLogMessageByLaunch(Long projectId, Long launchId) {
-
+        elasticSearchClient.deleteLogsByLaunchIdAndProjectId(projectId, launchId);
     }
 
     @Override
     public void deleteLogMessageByLaunchList(Long projectId, List<Long> launchIds) {
-
+        elasticSearchClient.deleteLogsByLaunchListAndProjectId(projectId, launchIds);
     }
 
     @Override
     public void deleteLogMessageByProject(Long projectId) {
-
+        elasticSearchClient.deleteLogsByProjectId(projectId);
     }
 
     private LogMessage convertLogToLogMessage(Log log, Long launchId) {

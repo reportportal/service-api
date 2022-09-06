@@ -1,6 +1,5 @@
 package com.epam.ta.reportportal.core.log;
 
-import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
 import org.springframework.stereotype.Service;
 

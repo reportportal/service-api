@@ -19,6 +19,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -47,6 +48,8 @@ public class TestItemPojo {
 	private Integer noDefect;
 	private Integer toInvestigate;
 
+	private static final Double EMPTY_DURATION = 0D;
+
 	public TestItemPojo(TestItem input) {
 		this.type = input.getType().name();
 		Optional<String> issueDescription = Optional.empty();
@@ -59,8 +62,10 @@ public class TestItemPojo {
 		this.name = adjustName(input) + description.orElse(EMPTY_STRING) + issueDescription.orElse(EMPTY_STRING);
 		this.status = input.getItemResults().getStatus().name();
 
-		this.duration = Duration.between(input.getStartTime(), input.getItemResults().getEndTime()).toMillis()
-				/ (double) org.apache.commons.lang3.time.DateUtils.MILLIS_PER_SECOND;
+		this.duration = Objects.nonNull(input.getItemResults().getEndTime()) ?
+				Duration.between(input.getStartTime(), input.getItemResults().getEndTime()).toMillis()
+						/ (double) org.apache.commons.lang3.time.DateUtils.MILLIS_PER_SECOND :
+				EMPTY_DURATION;
 
 		Set<Statistics> statistics = input.getItemResults().getStatistics();
 

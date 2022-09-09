@@ -62,10 +62,11 @@ public final class UserConverter {
 			projects.sort(Comparator.comparing(compare -> compare.getProject().getName()));
 			Map<String, UserResource.AssignedProject> userProjects = user.getProjects()
 					.stream()
-					.collect(MoreCollectors.toLinkedMap(p -> p.getProject().getName(), p -> {
+					.collect(MoreCollectors.toLinkedMap(p -> p.getProject().getKey(), p -> {
 						UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
 						assignedProject.setEntryType(p.getProject().getProjectType().name());
 						assignedProject.setProjectRole(p.getProjectRole().toString());
+						assignedProject.setProjectName(p.getProject().getName());
 						return assignedProject;
 					}));
 			resource.setAssignedProjects(userProjects);

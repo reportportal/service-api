@@ -80,10 +80,12 @@ class UserConverterTest {
 		user.setMetadata(new Metadata(metadata));
 		final Project project1 = new Project();
 		project1.setName("project1");
+		project1.setKey("project1");
 		project1.setProjectType(ProjectType.INTERNAL);
 		final ProjectUser projectUser1 = new ProjectUser().withProject(project1).withProjectRole(ProjectRole.MEMBER).withUser(user);
 		final Project project2 = new Project();
 		project2.setName("project2");
+		project2.setKey("project2");
 		project2.setProjectType(ProjectType.INTERNAL);
 		final ProjectUser projectUser2 = new ProjectUser().withProject(project2)
 				.withProjectRole(ProjectRole.PROJECT_MANAGER)

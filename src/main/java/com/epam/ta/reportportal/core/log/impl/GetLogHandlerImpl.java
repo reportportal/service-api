@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.dao.constant.LogRepositoryConstants;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.NestedItem;
+import com.epam.ta.reportportal.entity.item.NestedItemPage;
 import com.epam.ta.reportportal.entity.item.NestedStep;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -42,14 +43,13 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -76,6 +76,9 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
 	public static final String EXCLUDE_PASSED_LOGS = "excludePassedLogs";
 	public static final String EXCLUDE_EMPTY_STEPS = "excludeEmptySteps";
+	public static final String EXCLUDE_LOG_CONTENT = "excludeLogContent";
+
+	private static final int NESTED_STEP_MAX_PAGE_SIZE = 300;
 
 	private static final int LOG_UNDER_ITEM_BATCH_SIZE = 5;
 
@@ -180,6 +183,60 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
 		return PagedResourcesAssembler.pageConverter()
 				.apply(PageableExecutionUtils.getPage(resources, nestedItems.getPageable(), nestedItems::getTotalElements));
+	}
+
+	@Override
+	public List<PagedLogResource> getLogsWithLocation(Long parentId, ReportPortalUser.ProjectDetails projectDetails,
+			Map<String, String> params, Queryable queryable, Pageable pageable) {
+
+		TestItem parentItem = testItemRepository.findById(parentId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentId));
+		Launch launch = testItemService.getEffectiveLaunch(parentItem);
+		validate(launch, projectDetails);
+
+		Boolean excludeEmptySteps = ofNullable(params.get(EXCLUDE_EMPTY_STEPS)).map(BooleanUtils::toBoolean).orElse(false);
+		Boolean excludePassedLogs = ofNullable(params.get(EXCLUDE_PASSED_LOGS)).map(BooleanUtils::toBoolean).orElse(false);
+		Boolean excludeLogContent = ofNullable(params.get(EXCLUDE_LOG_CONTENT)).map(BooleanUtils::toBoolean).orElse(false);
+
+		List<PagedLogResource> loadedLogs = new LinkedList<>();
+		loadInnerLogs(parentId, loadedLogs, Collections.emptyMap(), excludeEmptySteps, excludePassedLogs, queryable, pageable);
+
+		if (!excludeLogContent) {
+			Map<Long, Log> logMap = logRepository.findAllById(loadedLogs.stream()
+					.map(PagedLogResource::getId)
+					.collect(Collectors.toSet())).stream().collect(toMap(Log::getId, l -> l));
+			loadedLogs.forEach(resource -> {
+				final Log model = logMap.get(resource.getId());
+				LogConverter.FILL_WITH_LOG_CONTENT.apply(model, resource);
+			});
+		}
+		return loadedLogs;
+	}
+
+	private void loadInnerLogs(Long parentId, List<PagedLogResource> results, Map<Long, Integer> pagesLocation, boolean excludeEmptySteps,
+			boolean excludePassedLogs, Queryable queryable, Pageable pageable) {
+		final List<NestedItemPage> nestedItems = logRepository.findNestedItemsWithPage(parentId, excludeEmptySteps, excludePassedLogs, queryable, pageable);
+		for (NestedItemPage nestedItem : nestedItems) {
+			Map<Long, Integer> copy = new LinkedHashMap<>(pagesLocation.size());
+			copy.putAll(pagesLocation);
+			copy.put(nestedItem.getId(), nestedItem.getPageNumber());
+			if (nestedItem.getType().equals(LogRepositoryConstants.ITEM)) {
+				loadInnerLogs(
+						nestedItem.getId(),
+						results,
+						copy,
+						excludeEmptySteps,
+						excludePassedLogs,
+						queryable,
+						PageRequest.of(1, NESTED_STEP_MAX_PAGE_SIZE, pageable.getSort())
+				);
+			} else {
+				PagedLogResource pagedLogResource = new PagedLogResource();
+				pagedLogResource.setId(nestedItem.getId());
+				pagedLogResource.setPagesLocation(copy);
+				results.add(pagedLogResource);
+			}
+		}
 	}
 
 	/**

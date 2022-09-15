@@ -215,6 +215,10 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
 	private void loadInnerLogs(Long parentId, List<PagedLogResource> results, List<Map.Entry<Long, Integer>> pagesLocation,
 			boolean excludeEmptySteps, boolean excludePassedLogs, Queryable queryable, Pageable pageable) {
+
+		TestItem parentItem = testItemRepository.findById(parentId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentId));
+
 		final List<NestedItemPage> nestedItems = logRepository.findNestedItemsWithPage(
 				parentId,
 				excludeEmptySteps,
@@ -233,7 +237,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
 								results,
 								copy,
 								excludeEmptySteps,
-								excludePassedLogs,
+								isLogsExclusionRequired(parentItem, excludePassedLogs),
 								queryable,
 								PageRequest.of(1, NESTED_STEP_MAX_PAGE_SIZE, pageable.getSort())
 						);

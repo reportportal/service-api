@@ -199,7 +199,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
 		Boolean excludeLogContent = ofNullable(params.get(EXCLUDE_LOG_CONTENT)).map(BooleanUtils::toBoolean).orElse(false);
 
 		List<PagedLogResource> loadedLogs = new LinkedList<>();
-		loadInnerLogs(parentId, loadedLogs, Collections.emptyMap(), excludeEmptySteps, excludePassedLogs, queryable, pageable);
+		loadInnerLogs(parentId, loadedLogs, Collections.emptyList(), excludeEmptySteps, excludePassedLogs, queryable, pageable);
 
 		if (!excludeLogContent) {
 			Map<Long, Log> logMap = logRepository.findAllById(loadedLogs.stream()
@@ -213,8 +213,8 @@ public class GetLogHandlerImpl implements GetLogHandler {
 		return loadedLogs;
 	}
 
-	private void loadInnerLogs(Long parentId, List<PagedLogResource> results, Map<Long, Integer> pagesLocation, boolean excludeEmptySteps,
-			boolean excludePassedLogs, Queryable queryable, Pageable pageable) {
+	private void loadInnerLogs(Long parentId, List<PagedLogResource> results, List<Map.Entry<Long, Integer>> pagesLocation,
+			boolean excludeEmptySteps, boolean excludePassedLogs, Queryable queryable, Pageable pageable) {
 		final List<NestedItemPage> nestedItems = logRepository.findNestedItemsWithPage(
 				parentId,
 				excludeEmptySteps,
@@ -226,9 +226,8 @@ public class GetLogHandlerImpl implements GetLogHandler {
 				.filter(nestedItem -> nestedItem.getType().equals(LogRepositoryConstants.ITEM)
 						|| nestedItem.getLogLevel() >= LogLevel.ERROR_INT)
 				.forEach(nestedItem -> {
-					Map<Long, Integer> copy = new LinkedHashMap<>(pagesLocation.size());
-					copy.putAll(pagesLocation);
-					copy.put(nestedItem.getId(), nestedItem.getPageNumber());
+					List<Map.Entry<Long, Integer>> copy = new LinkedList<>(pagesLocation);
+					copy.add(new AbstractMap.SimpleEntry<>(nestedItem.getId(), nestedItem.getPageNumber()));
 					if (nestedItem.getType().equals(LogRepositoryConstants.ITEM)) {
 						loadInnerLogs(nestedItem.getId(),
 								results,

@@ -27,7 +27,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -35,7 +34,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -67,7 +65,6 @@ public class LaunchAsyncController {
 
 	@HttpLogging
 	@PostMapping
-	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
 	public StartLaunchRS startLaunch(@PathVariable String projectKey,
@@ -78,7 +75,6 @@ public class LaunchAsyncController {
 
 	@HttpLogging
 	@PutMapping(value = "/{launchId}/finish")
-	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Finish launch for specified project")
 	public FinishLaunchRS finishLaunch(@PathVariable String projectKey, @PathVariable String launchId,
@@ -96,7 +92,6 @@ public class LaunchAsyncController {
 	@HttpLogging
 	@Transactional
 	@PostMapping("/merge")
-	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Merge set of specified launches in common one")
 	public LaunchResource mergeLaunches(@PathVariable String projectKey,

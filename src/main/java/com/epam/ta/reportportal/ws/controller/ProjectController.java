@@ -182,7 +182,6 @@ public class ProjectController {
 
 	@Transactional(readOnly = true)
 	@GetMapping("/{projectKey}/users")
-	@PreAuthorize(NOT_CUSTOMER)
 	@ApiOperation("Get users assigned on current project")
 	public Iterable<UserResource> getProjectUsers(@PathVariable String projectKey, @FilterFor(User.class) Filter filter,
 			@SortFor(User.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
@@ -230,7 +229,6 @@ public class ProjectController {
 	@Transactional(readOnly = true)
 	@GetMapping("/{projectKey}/usernames")
 	@ResponseStatus(HttpStatus.OK)
-	@PreAuthorize(NOT_CUSTOMER)
 	@ApiOperation(value = "Load project users by filter", notes = "Only for users that are members of the project")
 	public List<String> getProjectUsers(@PathVariable String projectKey,
 			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + "users") String value,

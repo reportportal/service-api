@@ -33,7 +33,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -66,7 +65,6 @@ public class TestItemAsyncController {
 	@PostMapping
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a root test item")
-	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedAsyncRS startRootItem(@PathVariable String projectKey, @AuthenticationPrincipal ReportPortalUser user,
 			@RequestBody @Validated StartTestItemRQ startTestItemRQ) {
 		return startTestItemHandler.startRootItem(user, projectExtractor.extractProjectDetails(user, projectKey), startTestItemRQ);
@@ -76,7 +74,6 @@ public class TestItemAsyncController {
 	@PostMapping("/{parentItem}")
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a child test item")
-	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedAsyncRS startChildItem(@PathVariable String projectKey, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable String parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
 		return startTestItemHandler.startChildItem(user, projectExtractor.extractProjectDetails(user, projectKey), startTestItemRQ, parentItem);
@@ -86,7 +83,6 @@ public class TestItemAsyncController {
 	@PutMapping("/{testItemId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Finish test item")
-	@PreAuthorize(ALLOWED_TO_REPORT)
 	public OperationCompletionRS finishTestItem(@PathVariable String projectKey, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable String testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
 		return finishTestItemHandler.finishTestItem(user, projectExtractor.extractProjectDetails(user, projectKey), testItemId, finishExecutionRQ);

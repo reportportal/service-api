@@ -31,13 +31,9 @@ public final class Permissions {
 
 	public static final String ADMIN_ONLY = "hasRole('ADMINISTRATOR')";
 
-	public static final String ALLOWED_TO_REPORT = "hasPermission(#projectKey.toLowerCase(), 'reporterPermission')";
-
 	public static final String ASSIGNED_TO_PROJECT = "hasPermission(#projectKey.toLowerCase(), 'isAssignedToProject')";
 
 	public static final String PROJECT_MANAGER = "hasPermission(#projectKey.toLowerCase(), 'projectManagerPermission')";
-
-	public static final String NOT_CUSTOMER = "hasPermission(#projectKey.toLowerCase(), 'notCustomerPermission')";
 
 	public static final String PROJECT_MANAGER_OR_ADMIN =
 			"hasPermission(#projectKey.toLowerCase(), 'projectManagerPermission')" + "||" + ADMIN_ONLY;

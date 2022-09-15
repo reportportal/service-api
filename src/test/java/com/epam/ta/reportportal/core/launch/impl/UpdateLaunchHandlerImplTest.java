@@ -91,24 +91,9 @@ class UpdateLaunchHandlerImplTest {
 	}
 
 	@Test
-	void updateDebugLaunchByCustomer() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
-
-		when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(new Project());
-		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
-		final UpdateLaunchRQ updateLaunchRQ = new UpdateLaunchRQ();
-		updateLaunchRQ.setMode(Mode.DEBUG);
-
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.updateLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser, updateLaunchRQ)
-		);
-		assertEquals("You do not have enough permissions.", exception.getMessage());
-	}
-
-	@Test
 	void createClustersLaunchInProgress() {
 
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
 		when(getLaunchHandler.get(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT).get());
 		final CreateClustersRQ createClustersRQ = new CreateClustersRQ();
@@ -125,7 +110,7 @@ class UpdateLaunchHandlerImplTest {
 	@Test
 	void createClusters() {
 
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
 		final Project project = new Project();
 		project.setId(1L);

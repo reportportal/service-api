@@ -42,7 +42,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Validator;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.util.ControllerUtils.*;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -75,7 +74,6 @@ public class LogAsyncController {
 	@PostMapping(consumes = { MediaType.APPLICATION_JSON_VALUE })
 	@ResponseStatus(CREATED)
 	@ApiIgnore
-	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedAsyncRS createLog(@PathVariable String projectKey, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(validator, createLogRQ);
@@ -86,7 +84,6 @@ public class LogAsyncController {
 	@PostMapping(value = "/entry", consumes = { MediaType.APPLICATION_JSON_VALUE })
 	@ResponseStatus(CREATED)
 	@ApiOperation("Create log")
-	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedAsyncRS createLogEntry(@PathVariable String projectKey, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(validator, createLogRQ);
@@ -99,7 +96,6 @@ public class LogAsyncController {
 	// Specific handler should be added for springfox in case of similar POST
 	// request mappings
 	//	@Async
-	@PreAuthorize(ALLOWED_TO_REPORT)
 	public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectKey,
 			@RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs, HttpServletRequest request,
 			@AuthenticationPrincipal ReportPortalUser user) {

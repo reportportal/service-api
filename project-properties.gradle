@@ -63,6 +63,7 @@ project.ext {
             (migrationsUrl + '/migrations/64_add_organization_user_ref.up.sql')        : 'V064__add_organization_user_ref.up.sql',
             (migrationsUrl + '/migrations/65_organization_migration.up.sql')           : 'V065__organization_migration.up.sql',
             (migrationsUrl + '/migrations/66_organization_slug_project_key.up.sql')    : 'V066__organization_slug_project_key.up.sql',
+            (migrationsUrl + '/migrations/67_remove_customer_and_operator_roles.up.sql')    : 'V067__remove_customer_and_operator_roles.up.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

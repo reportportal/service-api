@@ -92,18 +92,4 @@ class StartLaunchHandlerImplTest {
 		verify(eventPublisher, times(1)).publishEvent(any());
 		assertNotNull(startLaunchRS);
 	}
-
-	@Test
-	void accessDeniedForCustomerRoleAndDebugMode() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
-
-		StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
-		startLaunchRQ.setStartTime(new Date());
-		startLaunchRQ.setMode(Mode.DEBUG);
-
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> startLaunchHandlerImpl.startLaunch(rpUser, extractProjectDetails(rpUser, "test_project"), startLaunchRQ)
-		);
-		assertEquals("Forbidden operation.", exception.getMessage());
-	}
 }

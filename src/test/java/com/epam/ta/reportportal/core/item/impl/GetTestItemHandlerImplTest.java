@@ -178,28 +178,6 @@ class GetTestItemHandlerImplTest {
 	}
 
 	@Test
-	void getItemByOperator() {
-		ReportPortalUser operator = getRpUser("operator", UserRole.USER, ProjectRole.OPERATOR, 1L);
-
-		TestItem item = new TestItem();
-		Launch launch = new Launch();
-		launch.setId(2L);
-		launch.setMode(LaunchModeEnum.DEBUG);
-		launch.setProjectId(1L);
-		item.setLaunchId(launch.getId());
-
-		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
-		when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
-		doThrow(new ReportPortalException("You do not have enough permissions.")).when(launchAccessValidator)
-				.validate(launch.getId(), extractProjectDetails(operator, "test_project"), operator);
-
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getTestItem("1", extractProjectDetails(operator, "test_project"), operator)
-		);
-		assertEquals("You do not have enough permissions.", exception.getMessage());
-	}
-
-	@Test
 	public void getItemsForNonExistingFilter() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 

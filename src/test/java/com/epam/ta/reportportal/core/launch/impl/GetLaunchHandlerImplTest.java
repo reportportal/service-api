@@ -103,17 +103,6 @@ class GetLaunchHandlerImplTest {
 	}
 
 	@Test
-	void getDebugLaunchWithCustomerRole() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
-		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEBUG));
-
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getLaunch("1", extractProjectDetails(rpUser, "test_project"))
-		);
-		assertEquals("You do not have enough permissions.", exception.getMessage());
-	}
-
-	@Test
 	void getLaunchNamesIncorrectInput() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
@@ -240,23 +229,6 @@ class GetLaunchHandlerImplTest {
 				() -> handler.exportLaunch(launchId, ReportFormat.PDF, null, user)
 		);
 		assertEquals("User '1' not found.", exception.getMessage());
-	}
-
-	@Test
-	void getLaunchInDebugModeByCustomer() {
-		long projectId = 1L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.CUSTOMER, projectId);
-		String launchId = "1";
-
-		Launch launch = new Launch();
-		launch.setProjectId(projectId);
-		launch.setMode(LaunchModeEnum.DEBUG);
-		when(launchRepository.findById(Long.parseLong(launchId))).thenReturn(Optional.of(launch));
-
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getLaunch(launchId, extractProjectDetails(user, "test_project"))
-		);
-		assertEquals("You do not have enough permissions.", exception.getMessage());
 	}
 
 	@Test

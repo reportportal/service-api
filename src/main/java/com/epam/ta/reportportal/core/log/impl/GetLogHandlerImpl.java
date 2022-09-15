@@ -215,28 +215,36 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
 	private void loadInnerLogs(Long parentId, List<PagedLogResource> results, Map<Long, Integer> pagesLocation, boolean excludeEmptySteps,
 			boolean excludePassedLogs, Queryable queryable, Pageable pageable) {
-		final List<NestedItemPage> nestedItems = logRepository.findNestedItemsWithPage(parentId, excludeEmptySteps, excludePassedLogs, queryable, pageable);
-		for (NestedItemPage nestedItem : nestedItems) {
-			Map<Long, Integer> copy = new LinkedHashMap<>(pagesLocation.size());
-			copy.putAll(pagesLocation);
-			copy.put(nestedItem.getId(), nestedItem.getPageNumber());
-			if (nestedItem.getType().equals(LogRepositoryConstants.ITEM)) {
-				loadInnerLogs(
-						nestedItem.getId(),
-						results,
-						copy,
-						excludeEmptySteps,
-						excludePassedLogs,
-						queryable,
-						PageRequest.of(1, NESTED_STEP_MAX_PAGE_SIZE, pageable.getSort())
-				);
-			} else {
-				PagedLogResource pagedLogResource = new PagedLogResource();
-				pagedLogResource.setId(nestedItem.getId());
-				pagedLogResource.setPagesLocation(copy);
-				results.add(pagedLogResource);
-			}
-		}
+		final List<NestedItemPage> nestedItems = logRepository.findNestedItemsWithPage(
+				parentId,
+				excludeEmptySteps,
+				excludePassedLogs,
+				queryable,
+				pageable
+		);
+		nestedItems.stream()
+				.filter(nestedItem -> nestedItem.getType().equals(LogRepositoryConstants.ITEM)
+						|| nestedItem.getLogLevel() >= LogLevel.ERROR_INT)
+				.forEach(nestedItem -> {
+					Map<Long, Integer> copy = new LinkedHashMap<>(pagesLocation.size());
+					copy.putAll(pagesLocation);
+					copy.put(nestedItem.getId(), nestedItem.getPageNumber());
+					if (nestedItem.getType().equals(LogRepositoryConstants.ITEM)) {
+						loadInnerLogs(nestedItem.getId(),
+								results,
+								copy,
+								excludeEmptySteps,
+								excludePassedLogs,
+								queryable,
+								PageRequest.of(1, NESTED_STEP_MAX_PAGE_SIZE, pageable.getSort())
+						);
+					} else {
+						PagedLogResource pagedLogResource = new PagedLogResource();
+						pagedLogResource.setId(nestedItem.getId());
+						pagedLogResource.setPagesLocation(copy);
+						results.add(pagedLogResource);
+					}
+				});
 	}
 
 	/**

@@ -74,6 +74,7 @@ public class LogAsyncController {
 	@PostMapping(consumes = { MediaType.APPLICATION_JSON_VALUE })
 	@ResponseStatus(CREATED)
 	@ApiIgnore
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public EntryCreatedAsyncRS createLog(@PathVariable String projectKey, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(validator, createLogRQ);
@@ -84,6 +85,7 @@ public class LogAsyncController {
 	@PostMapping(value = "/entry", consumes = { MediaType.APPLICATION_JSON_VALUE })
 	@ResponseStatus(CREATED)
 	@ApiOperation("Create log")
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public EntryCreatedAsyncRS createLogEntry(@PathVariable String projectKey, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(validator, createLogRQ);
@@ -96,6 +98,7 @@ public class LogAsyncController {
 	// Specific handler should be added for springfox in case of similar POST
 	// request mappings
 	//	@Async
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectKey,
 			@RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs, HttpServletRequest request,
 			@AuthenticationPrincipal ReportPortalUser user) {

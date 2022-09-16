@@ -53,6 +53,7 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
@@ -106,6 +107,7 @@ public class LaunchController {
 	/* Report client API */
 
 	@PostMapping
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
 	public StartLaunchRS startLaunch(@PathVariable String projectKey,
@@ -115,6 +117,7 @@ public class LaunchController {
 	}
 
 	@PutMapping(value = "/{launchId}/finish")
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ResponseStatus(OK)
 	@ApiOperation("Finish launch for specified project")
 	public FinishLaunchRS finishLaunch(@PathVariable String projectKey, @PathVariable String launchId,
@@ -132,6 +135,7 @@ public class LaunchController {
 
 	@Transactional
 	@PutMapping("/{launchId}/stop")
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ResponseStatus(OK)
 	@ApiOperation("Force finish launch for specified project")
 	public OperationCompletionRS forceFinishLaunch(@PathVariable String projectKey, @PathVariable Long launchId,
@@ -141,6 +145,7 @@ public class LaunchController {
 
 	@Transactional
 	@PutMapping("/stop")
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ResponseStatus(OK)
 	@ApiOperation("Force finish launch")
 	public List<OperationCompletionRS> bulkForceFinish(@PathVariable String projectKey,
@@ -150,6 +155,7 @@ public class LaunchController {
 
 	@Transactional
 	@PutMapping("/{launchId}/update")
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ResponseStatus(OK)
 	@ApiOperation("Updates launch for specified project")
 	public OperationCompletionRS updateLaunch(@PathVariable String projectKey, @PathVariable Long launchId,
@@ -159,6 +165,7 @@ public class LaunchController {
 
 	@Transactional
 	@PutMapping("/update")
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ResponseStatus(OK)
 	@ApiOperation("Updates launches for specified project")
 	public List<OperationCompletionRS> updateLaunches(@PathVariable String projectKey,
@@ -168,6 +175,7 @@ public class LaunchController {
 
 	@Transactional
 	@DeleteMapping("/{launchId}")
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified launch by ID")
 	public OperationCompletionRS deleteLaunch(@PathVariable String projectKey, @PathVariable Long launchId,
@@ -294,6 +302,7 @@ public class LaunchController {
 
 	@Transactional
 	@PostMapping("/merge")
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ResponseStatus(OK)
 	@ApiOperation("Merge set of specified launches in common one")
 	public LaunchResource mergeLaunches(@PathVariable String projectKey,
@@ -352,6 +361,7 @@ public class LaunchController {
 
 	@Transactional
 	@DeleteMapping
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified launches by ids")
 	public DeleteBulkRS deleteLaunches(@PathVariable String projectKey, @RequestBody @Valid DeleteBulkRQ deleteBulkRQ,

@@ -112,6 +112,7 @@ public class TestItemController {
 	@PostMapping
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a root test item")
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public EntryCreatedAsyncRS startRootItem(@PathVariable String projectKey, @AuthenticationPrincipal ReportPortalUser user,
 			@RequestBody @Validated StartTestItemRQ startTestItemRQ) {
 		return startTestItemHandler.startRootItem(user, projectExtractor.extractProjectDetails(user, projectKey), startTestItemRQ);
@@ -120,6 +121,7 @@ public class TestItemController {
 	@PostMapping("/{parentItem}")
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a child test item")
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public EntryCreatedAsyncRS startChildItem(@PathVariable String projectKey, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable String parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
 		return startTestItemHandler.startChildItem(user, projectExtractor.extractProjectDetails(user, projectKey), startTestItemRQ, parentItem);
@@ -128,6 +130,7 @@ public class TestItemController {
 	@PutMapping("/{testItemId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Finish test item")
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public OperationCompletionRS finishTestItem(@PathVariable String projectKey, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable String testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
 		return finishTestItemHandler.finishTestItem(user, projectExtractor.extractProjectDetails(user, projectKey), testItemId, finishExecutionRQ);

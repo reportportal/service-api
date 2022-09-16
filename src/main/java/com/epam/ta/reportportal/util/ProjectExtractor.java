@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;

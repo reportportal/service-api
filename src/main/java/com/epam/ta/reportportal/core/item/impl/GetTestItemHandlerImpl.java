@@ -37,7 +37,6 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -57,15 +56,11 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -141,7 +136,6 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		Optional<Long> filterIdOptional = Optional.ofNullable(filterId);
 
 		Page<TestItem> testItemPage = filterIdOptional.map(launchFilterId -> {
-			validateProjectRole(projectDetails, user);
 			return getItemsWithLaunchesFiltering(filter, pageable, projectDetails, launchFilterId, isLatest, launchesLimit);
 		}).orElseGet(() -> launchIdOptional.map(id -> {
 			launchAccessValidator.validate(id, projectDetails, user);
@@ -194,12 +188,6 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 				));
 		return StatisticsConverter.TO_RESOURCE.apply(testItemDataProviders.get(dataProviderType)
 				.accumulateStatistics(filter, projectDetails, reportPortalUser, params));
-	}
-
-	protected void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(projectDetails.getProjectRole() == OPERATOR, Predicate.isEqual(false)).verify(ACCESS_DENIED);
-		}
 	}
 
 	private Page<TestItem> getItemsWithLaunchesFiltering(Queryable testItemFilter, Pageable testItemPageable,
@@ -322,9 +310,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 						.withValue(Arrays.stream(ids).map(Object::toString).collect(Collectors.joining(",")))
 						.build())
 				.build();
-		return projectDetails.getProjectRole() != ProjectRole.OPERATOR ?
-				filter :
-				filter.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, LaunchModeEnum.DEFAULT.name()).build());
+		return filter.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, LaunchModeEnum.DEFAULT.name()).build());
 	}
 
 }

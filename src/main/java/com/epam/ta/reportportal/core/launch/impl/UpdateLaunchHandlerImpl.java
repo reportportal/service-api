@@ -109,7 +109,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 		Project project = getProjectHandler.get(projectDetails);
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
-		validate(launch, user, projectDetails, rq.getMode());
+		validate(launch, user, projectDetails);
 
 		LaunchModeEnum previousMode = launch.getMode();
 
@@ -223,13 +223,9 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 	 *
 	 * @param launch {@link Launch}
 	 * @param user   {@link ReportPortalUser}
-	 * @param mode   {@link Launch#mode}
 	 */
 	//TODO *Validator refactoring
-	private void validate(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Mode mode) {
-		if (projectDetails.getProjectRole() == ProjectRole.CUSTOMER && null != mode) {
-			expect(mode, equalTo(Mode.DEFAULT)).verify(ACCESS_DENIED);
-		}
+	private void validate(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
 			if (projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {

@@ -49,7 +49,6 @@ public class StartLaunchHandlerAsyncImpl implements StartLaunchHandler {
 
 	@Override
 	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ request) {
-		validateRoles(projectDetails, request);
 
 		if (request.getUuid() == null) {
 			request.setUuid(UUID.randomUUID().toString());

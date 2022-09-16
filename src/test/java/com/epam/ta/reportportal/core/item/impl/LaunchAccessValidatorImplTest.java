@@ -83,21 +83,4 @@ class LaunchAccessValidatorImplTest {
 				exception.getMessage()
 		);
 	}
-
-	@Test
-	void validateLaunchWithOperatorRole() {
-		ReportPortalUser operator = getRpUser("operator", UserRole.USER, ProjectRole.OPERATOR, 1L);
-
-		Launch launch = new Launch();
-		launch.setId(1L);
-		launch.setMode(LaunchModeEnum.DEBUG);
-		launch.setProjectId(1L);
-
-		when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
-
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> launchAccessValidator.validate(1L, extractProjectDetails(operator, "test_project"), operator)
-		);
-		assertEquals("You do not have enough permissions.", exception.getMessage());
-	}
 }

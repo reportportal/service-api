@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -67,7 +67,7 @@ public class LaunchAsyncController {
 
 	@HttpLogging
 	@PostMapping
-	@PreAuthorize(ALLOWED_TO_REPORT)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
 	public StartLaunchRS startLaunch(@PathVariable String projectKey,
@@ -78,7 +78,7 @@ public class LaunchAsyncController {
 
 	@HttpLogging
 	@PutMapping(value = "/{launchId}/finish")
-	@PreAuthorize(ALLOWED_TO_REPORT)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ResponseStatus(OK)
 	@ApiOperation("Finish launch for specified project")
 	public FinishLaunchRS finishLaunch(@PathVariable String projectKey, @PathVariable String launchId,
@@ -96,7 +96,7 @@ public class LaunchAsyncController {
 	@HttpLogging
 	@Transactional
 	@PostMapping("/merge")
-	@PreAuthorize(ALLOWED_TO_REPORT)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ResponseStatus(OK)
 	@ApiOperation("Merge set of specified launches in common one")
 	public LaunchResource mergeLaunches(@PathVariable String projectKey,

@@ -29,7 +29,6 @@ import java.util.function.Predicate;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -54,7 +53,7 @@ public class LaunchAccessValidatorImpl implements LaunchAccessValidator {
 							projectDetails.getProjectId()
 					)
 			);
-			expect(projectDetails.getProjectRole() == OPERATOR && launch.getMode() == LaunchModeEnum.DEBUG,
+			expect(launch.getMode() == LaunchModeEnum.DEBUG,
 					Predicate.isEqual(false)
 			).verify(ACCESS_DENIED);
 		}

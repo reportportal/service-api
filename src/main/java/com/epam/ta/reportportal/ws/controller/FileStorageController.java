@@ -85,8 +85,8 @@ public class FileStorageController {
 	 * (non-Javadoc)
 	 */
 	@Transactional(readOnly = true)
-	@PreAuthorize(NOT_CUSTOMER)
 	@GetMapping(value = "/{projectKey}/userphoto")
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Get user's photo")
 	public void getUserPhoto(@PathVariable String projectKey, @RequestParam(value = "id") String username,
 			@RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail, HttpServletResponse response,

@@ -56,12 +56,6 @@ public class OAuthHelper {
 				superadminToken;
 	}
 
-	public String getCustomerToken() {
-		return customerToken == null ?
-				customerToken = createAccessToken("default_customer", "erebus", UserRole.USER).getValue() :
-				customerToken;
-	}
-
 	private OAuth2AccessToken createAccessToken(String username, String password, UserRole... roles) {
 		Collection<GrantedAuthority> authorities = Arrays.stream(roles)
 				.map(it -> new SimpleGrantedAuthority(it.getAuthority()))

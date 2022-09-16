@@ -24,7 +24,6 @@ import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
-import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -37,13 +36,9 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
 import static com.epam.ta.reportportal.ws.controller.TestItemController.IS_LATEST_LAUNCHES_REQUEST_PARAM;
 import static com.epam.ta.reportportal.ws.controller.TestItemController.LAUNCHES_LIMIT_REQUEST_PARAM;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -62,7 +57,6 @@ public class FilterDataProviderImpl implements DataProviderHandler {
 	@Override
 	public Set<Statistics> accumulateStatistics(Queryable filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			Map<String, String> params) {
-		validateProjectRole(projectDetails, user);
 		Optional.ofNullable(params.get(FILTER_ID_PARAM))
 				.map(ControllerUtils::safeParseLong)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
@@ -74,7 +68,6 @@ public class FilterDataProviderImpl implements DataProviderHandler {
 	@Override
 	public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user, Map<String, String> params) {
-		validateProjectRole(projectDetails, user);
 
 		Long launchFilterId = Optional.ofNullable(params.get(FILTER_ID_PARAM))
 				.map(ControllerUtils::safeParseLong)
@@ -102,11 +95,5 @@ public class FilterDataProviderImpl implements DataProviderHandler {
 		);
 
 		return testItemRepository.findByFilter(isLatest, queryablePair.getKey(), filter, queryablePair.getValue(), pageable);
-	}
-
-	protected void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(projectDetails.getProjectRole() == OPERATOR, Predicate.isEqual(false)).verify(ACCESS_DENIED);
-		}
 	}
 }

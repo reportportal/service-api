@@ -44,13 +44,20 @@ public class PagingHandlerMethodArgumentResolver extends org.springframework.dat
 	}
 
 	public static final int DEFAULT_PAGE_SIZE = 50;
-	public static final int MAX_PAGE_SIZE = 300;
+	public static final int MAX_PAGE_SIZE = 300000;
 
 	@Override
 	@Nonnull
 	public Pageable resolveArgument(MethodParameter methodParameter, @Nullable ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) {
 		Pageable pageable = super.resolveArgument(methodParameter, mavContainer, webRequest, binderFactory);
+
+		//overriding spring base limit for page size
+		String pageSize = webRequest.getParameter(getParameterNameToUse(getSizeParameterName(), methodParameter));
+		if (pageSize != null) {
+			pageable = PageRequest.of(pageable.getPageNumber(), Integer.parseInt(pageSize), pageable.getSort());
+		}
+
 		if (0 == pageable.getPageSize()) {
 			return PageRequest.of(pageable.getPageNumber(), DEFAULT_PAGE_SIZE, pageable.getSort());
 		} else if (MAX_PAGE_SIZE < pageable.getPageSize()) {

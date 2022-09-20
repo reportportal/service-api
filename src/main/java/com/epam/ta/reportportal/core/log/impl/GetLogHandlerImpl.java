@@ -219,10 +219,14 @@ public class GetLogHandlerImpl implements GetLogHandler {
 		TestItem parentItem = testItemRepository.findById(parentId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentId));
 
+		if (isLogsExclusionRequired(parentItem, excludePassedLogs)) {
+			return;
+		}
+
 		final List<NestedItemPage> nestedItems = logRepository.findNestedItemsWithPage(
 				parentId,
 				excludeEmptySteps,
-				excludePassedLogs,
+				isLogsExclusionRequired(parentItem, excludePassedLogs),
 				queryable,
 				pageable
 		);
@@ -237,7 +241,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
 								results,
 								copy,
 								excludeEmptySteps,
-								isLogsExclusionRequired(parentItem, excludePassedLogs),
+								excludePassedLogs,
 								queryable,
 								PageRequest.of(1, NESTED_STEP_MAX_PAGE_SIZE, pageable.getSort())
 						);

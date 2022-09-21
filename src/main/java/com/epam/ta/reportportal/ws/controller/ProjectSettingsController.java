@@ -37,7 +37,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -72,7 +71,7 @@ public class ProjectSettingsController {
 
 	@PostMapping("/sub-type")
 	@ResponseStatus(CREATED)
-	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Creation of custom project specific issue sub-type")
 	public IssueSubTypeCreatedRS createProjectIssueSubType(@PathVariable String projectKey,
 			@RequestBody @Validated CreateIssueSubTypeRQ request, @AuthenticationPrincipal ReportPortalUser user) {
@@ -81,7 +80,7 @@ public class ProjectSettingsController {
 
 	@PutMapping("/sub-type")
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Update of custom project specific issue sub-type")
 	public OperationCompletionRS updateProjectIssueSubType(@PathVariable String projectKey,
 			@RequestBody @Validated UpdateIssueSubTypeRQ request, @AuthenticationPrincipal ReportPortalUser user) {
@@ -90,7 +89,7 @@ public class ProjectSettingsController {
 
 	@DeleteMapping("/sub-type/{id}")
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Delete custom project specific issue sub-type")
 	public OperationCompletionRS deleteProjectIssueSubType(@PathVariable String projectKey, @PathVariable Long id,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -107,7 +106,7 @@ public class ProjectSettingsController {
 
 	@PostMapping("/pattern")
 	@ResponseStatus(CREATED)
-	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Create pattern template for items' log messages pattern analysis")
 	public EntryCreatedRS createPatternTemplate(@PathVariable String projectKey,
 			@RequestBody @Validated CreatePatternTemplateRQ createPatternTemplateRQ, @AuthenticationPrincipal ReportPortalUser user) {
@@ -116,7 +115,7 @@ public class ProjectSettingsController {
 
 	@PutMapping("/pattern/{id}")
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Update pattern template for items' log messages pattern analysis")
 	public OperationCompletionRS updatePatternTemplate(@PathVariable String projectKey, @PathVariable Long id,
 			@RequestBody @Validated UpdatePatternTemplateRQ updatePatternTemplateRQ, @AuthenticationPrincipal ReportPortalUser user) {
@@ -125,7 +124,7 @@ public class ProjectSettingsController {
 
 	@DeleteMapping("/pattern/{id}")
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Delete pattern template for items' log messages pattern analysis")
 	public OperationCompletionRS deletePatternTemplate(@PathVariable String projectKey, @PathVariable Long id,
 			@AuthenticationPrincipal ReportPortalUser user) {

@@ -79,18 +79,6 @@ class UpdateLaunchHandlerImplTest {
 	private UpdateLaunchHandlerImpl handler;
 
 	@Test
-	void updateNotOwnLaunch() {
-		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
-		rpUser.setUserId(2L);
-		when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(new Project());
-		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.updateLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser, new UpdateLaunchRQ())
-		);
-		assertEquals("You do not have enough permissions.", exception.getMessage());
-	}
-
-	@Test
 	void createClustersLaunchInProgress() {
 
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);

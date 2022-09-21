@@ -109,7 +109,7 @@ public class UserController {
 	@Transactional
 	@PostMapping(value = "/bid")
 	@ResponseStatus(CREATED)
-	@PreAuthorize("(hasPermission(#createUserRQ.getDefaultProject(), 'projectManagerPermission')) || hasRole('ADMINISTRATOR')")
+	@PreAuthorize("(hasPermission(#createUserRQ.getDefaultProject(), 'isAssignedToProject')) || hasRole('ADMINISTRATOR')")
 	@ApiOperation("Register invitation for user who will be created")
 	public CreateUserBidRS createUserBid(@RequestBody @Validated CreateUserRQ createUserRQ,
 			@AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {

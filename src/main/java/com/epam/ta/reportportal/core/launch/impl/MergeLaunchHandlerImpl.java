@@ -130,12 +130,8 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
 	 */
 	private void validateMergingLaunches(List<Launch> launches, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 
-		/*
-		 * ADMINISTRATOR and PROJECT_MANAGER+ users have permission to merge not-only-own
-		 * launches
-		 */
 		boolean isUserValidate = !(user.getUserRole().equals(ADMINISTRATOR) || projectDetails.getProjectRole()
-				.sameOrHigherThan(ProjectRole.PROJECT_MANAGER));
+				.sameOrHigherThan(ProjectRole.MEMBER));
 
 		launches.forEach(launch -> {
 			expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launch);

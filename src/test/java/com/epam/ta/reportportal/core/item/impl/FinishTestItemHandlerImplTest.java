@@ -117,35 +117,6 @@ class FinishTestItemHandlerImplTest {
 	}
 
 	@Test
-	void finishTestItemByNotLaunchOwner() {
-		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
-		TestItem item = new TestItem();
-		Launch launch = new Launch();
-		launch.setId(1L);
-		launch.setProjectId(1L);
-		User user = new User();
-		user.setId(2L);
-		user.setLogin("owner");
-		launch.setUserId(user.getId());
-		item.setItemId(1L);
-		item.setLaunchId(launch.getId());
-		item.setHasChildren(false);
-		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
-		TestItemResults results = new TestItemResults();
-		results.setStatus(StatusEnum.IN_PROGRESS);
-		item.setItemResults(results);
-		item.setItemId(1L);
-		when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
-
-
-		final ReportPortalException exception = assertThrows(
-				ReportPortalException.class,
-				() -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1", new FinishTestItemRQ())
-		);
-		assertEquals("Finish test item is not allowed. You are not a launch owner.", exception.getMessage());
-	}
-
-	@Test
 	void finishStepItemWithoutProvidedStatus() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		TestItem item = new TestItem();

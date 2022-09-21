@@ -377,7 +377,7 @@ public class TestItemController {
 
 	@Transactional
 	@PutMapping(value = "/info")
-	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@PreAuthorize(ASSIGNED_TO_PROJECT_OR_ADMIN)
 	@ResponseStatus(OK)
 	@ApiOperation("Bulk update attributes and description")
 	public OperationCompletionRS bulkUpdate(@PathVariable String projectKey, @RequestBody @Validated BulkInfoUpdateRQ bulkInfoUpdateRQ,

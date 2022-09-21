@@ -119,7 +119,7 @@ public class ProjectController {
 	@Transactional
 	@PutMapping("/{projectKey}")
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@PreAuthorize(ASSIGNED_TO_PROJECT_OR_ADMIN)
 	@ApiOperation(value = "Update project")
 	public OperationCompletionRS updateProject(@PathVariable String projectKey, @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -129,7 +129,7 @@ public class ProjectController {
 	@Transactional
 	@PutMapping("/{projectKey}/notification")
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Update project notifications configuration")
 	public OperationCompletionRS updateProjectNotificationConfig(@PathVariable String projectKey,
 			@RequestBody @Validated ProjectNotificationConfigDTO updateProjectNotificationConfigRQ,
@@ -165,7 +165,7 @@ public class ProjectController {
 
 	@DeleteMapping("/{projectKey}/index")
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@PreAuthorize(ASSIGNED_TO_PROJECT_OR_ADMIN)
 	@ApiOperation("Delete project index from ML")
 	public OperationCompletionRS deleteProjectIndex(@PathVariable String projectKey, Principal principal) {
 		return deleteProjectHandler.deleteProjectIndex(normalizeId(projectKey), principal.getName());
@@ -174,7 +174,7 @@ public class ProjectController {
 	@Transactional
 	@PutMapping("/{projectKey}/index")
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@PreAuthorize(ASSIGNED_TO_PROJECT_OR_ADMIN)
 	@ApiOperation(value = "Starts reindex all project data in ML")
 	public OperationCompletionRS indexProjectData(@PathVariable String projectKey, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateProjectHandler.indexProjectData(normalizeId(projectKey), user);
@@ -200,7 +200,7 @@ public class ProjectController {
 	@Transactional
 	@PutMapping("/{projectKey}/unassign")
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Un assign users")
 	public OperationCompletionRS unassignProjectUsers(@PathVariable String projectKey,
 			@RequestBody @Validated UnassignUsersRQ unassignUsersRQ, @AuthenticationPrincipal ReportPortalUser user) {
@@ -210,7 +210,7 @@ public class ProjectController {
 	@Transactional
 	@PutMapping("/{projectKey}/assign")
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Assign users")
 	public OperationCompletionRS assignProjectUsers(@PathVariable String projectKey, @RequestBody @Validated AssignUsersRQ assignUsersRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -220,7 +220,7 @@ public class ProjectController {
 	@Transactional(readOnly = true)
 	@GetMapping("/{projectKey}/assignable")
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation(value = "Load users which can be assigned to specified project", notes = "Only for users with project manager permissions")
 	public Iterable<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
 			@PathVariable String projectKey, @AuthenticationPrincipal ReportPortalUser user) {
@@ -241,7 +241,7 @@ public class ProjectController {
 	@Transactional(readOnly = true)
 	@GetMapping("/{projectKey}/usernames/search")
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public Iterable<SearchUserResource> searchForUser(@PathVariable String projectKey, @RequestParam(value = "term") String term,
 			Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
 		return getProjectHandler.getUserNames(term, projectExtractor.extractProjectDetails(user, projectKey), pageable);

@@ -54,7 +54,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT_OR_ADMIN;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -264,7 +264,7 @@ public class LaunchController {
 
 	@Transactional
 	@PutMapping(value = "/info")
-	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@PreAuthorize(ASSIGNED_TO_PROJECT_OR_ADMIN)
 	@ResponseStatus(OK)
 	@ApiOperation("Bulk update attributes and description")
 	public OperationCompletionRS bulkUpdate(@PathVariable String projectKey, @RequestBody @Validated BulkInfoUpdateRQ bulkInfoUpdateRQ,

@@ -297,7 +297,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			expect(projectUser, not(isNull())).verify(ACCESS_DENIED,
 					formattedSupplier("'{}' is not your project", defaultProject.getName())
 			);
-			expect(projectUser.getProjectRole(), Predicate.isEqual(ProjectRole.PROJECT_MANAGER)).verify(ACCESS_DENIED);
 		}
 
 		request.setRole(forName(request.getRole()).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, request.getRole())).name());

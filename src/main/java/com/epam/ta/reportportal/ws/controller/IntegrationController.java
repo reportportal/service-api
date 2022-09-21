@@ -117,7 +117,7 @@ public class IntegrationController {
 	@PostMapping(value = "/{projectKey}/{pluginName}")
 	@ResponseStatus(HttpStatus.CREATED)
 	@ApiOperation("Create project Report Portal integration instance")
-	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public EntryCreatedRS createProjectIntegration(@RequestBody @Valid IntegrationRQ createRequest, @PathVariable String pluginName,
 			@PathVariable String projectKey, @AuthenticationPrincipal ReportPortalUser user) {
 		return createIntegrationHandler.createProjectIntegration(normalizeId(projectKey), createRequest, pluginName, user);
@@ -177,7 +177,7 @@ public class IntegrationController {
 	@PutMapping(value = "/{projectKey}/{integrationId}")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Update project integration instance")
-	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public OperationCompletionRS updateProjectIntegration(@PathVariable Long integrationId, @RequestBody @Valid IntegrationRQ updateRequest,
 			@PathVariable String projectKey, @AuthenticationPrincipal ReportPortalUser user) {
 		return createIntegrationHandler.updateProjectIntegration(integrationId, normalizeId(projectKey), updateRequest, user);
@@ -206,7 +206,7 @@ public class IntegrationController {
 	@DeleteMapping(value = "/{projectKey}/{integrationId}")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Delete project integration instance")
-	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public OperationCompletionRS deleteProjectIntegration(@PathVariable String projectKey, @PathVariable Long integrationId,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return deleteIntegrationHandler.deleteProjectIntegration(integrationId, normalizeId(projectKey), user);
@@ -216,7 +216,7 @@ public class IntegrationController {
 	@DeleteMapping(value = "/{projectKey}/all/{type}")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Delete all integrations assigned to specified project")
-	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public OperationCompletionRS deleteAllProjectIntegrations(@PathVariable String type, @PathVariable String projectKey,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return deleteIntegrationHandler.deleteProjectIntegrationsByType(type, normalizeId(projectKey), user);

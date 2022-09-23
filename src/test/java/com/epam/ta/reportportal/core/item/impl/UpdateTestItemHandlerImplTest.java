@@ -105,28 +105,6 @@ class UpdateTestItemHandlerImplTest {
 	}
 
 	@Test
-	void updateTestItemUnderNotOwnLaunch() {
-		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
-
-		TestItem item = new TestItem();
-		Launch launch = new Launch();
-		launch.setId(1L);
-		User user = new User();
-		user.setId(1L);
-		user.setLogin("owner");
-		launch.setUserId(2L);
-		launch.setProjectId(1L);
-		item.setLaunchId(launch.getId());
-		when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
-		when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
-
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, new UpdateTestItemRQ(), rpUser)
-		);
-		assertEquals("You do not have enough permissions. You are not a launch owner.", exception.getMessage());
-	}
-
-	@Test
 	void updateTestItemFromAnotherProject() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		TestItem item = new TestItem();

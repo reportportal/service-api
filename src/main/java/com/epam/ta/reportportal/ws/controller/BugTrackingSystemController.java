@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 
 /**
  * Controller implementation for working with external systems.
@@ -63,7 +63,7 @@ public class BugTrackingSystemController {
 	@GetMapping(value = "/{projectKey}/{integrationId}/fields-set")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get list of fields required for posting ticket in concrete integration")
-	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public List<PostFormField> getSetOfIntegrationSystemFields(@RequestParam(value = "issueType") String issuetype,
 			@PathVariable String projectKey, @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
 		return getTicketHandler.getSubmitTicketFields(issuetype,
@@ -76,7 +76,7 @@ public class BugTrackingSystemController {
 	@GetMapping(value = "/{projectKey}/{integrationId}/issue_types")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get list of allowable issue types for bug tracking system")
-	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public List<String> getAllowableIssueTypes(@PathVariable String projectKey, @PathVariable Long integrationId,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return getTicketHandler.getAllowableIssueTypes(integrationId, projectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectKey)));

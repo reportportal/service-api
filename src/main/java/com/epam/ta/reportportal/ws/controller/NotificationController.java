@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT_OR_ADMIN;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -77,7 +77,7 @@ public class NotificationController {
 	@Transactional
 	@PostMapping("/{projectKey}")
 	@ResponseStatus(CREATED)
-	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@PreAuthorize(ASSIGNED_TO_PROJECT_OR_ADMIN)
 	@ApiOperation(value = "Creates notification for specified project", notes = "Only for users with PROJECT_MANAGER or ADMIN roles")
 	public EntryCreatedRS createNotification(@PathVariable String projectKey,
 			@RequestBody @Validated SenderCaseDTO createNotificationRQ,
@@ -92,7 +92,7 @@ public class NotificationController {
 	@Transactional
 	@PutMapping("/{projectKey}")
 	@ResponseStatus(CREATED)
-	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@PreAuthorize(ASSIGNED_TO_PROJECT_OR_ADMIN)
 	@ApiOperation(value = "Updates notification for specified project", notes = "Only for users with PROJECT_MANAGER or ADMIN roles")
 	public OperationCompletionRS updateNotification(@PathVariable String projectKey,
 			@RequestBody @Validated SenderCaseDTO updateNotificationRQ,
@@ -107,7 +107,7 @@ public class NotificationController {
 	@Transactional
 	@DeleteMapping("/{projectKey}/{notificationId:\\d+}")
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@PreAuthorize(ASSIGNED_TO_PROJECT_OR_ADMIN)
 	@ApiOperation(value = "Deletes notification for specified project", notes = "Only for users with PROJECT_MANAGER or ADMIN roles")
 	public OperationCompletionRS deleteNotification(@PathVariable String projectKey,
 			@PathVariable Long notificationId,

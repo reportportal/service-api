@@ -101,37 +101,6 @@ class DeleteLogHandlerTest {
 	}
 
 	@Test
-	void deleteLogByNotOwner() {
-		long projectId = 1L;
-		long logId = 2L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
-
-		Log log = new Log();
-		TestItem testItem = new TestItem();
-		TestItemResults itemResults = new TestItemResults();
-		itemResults.setStatistics(Sets.newHashSet(new Statistics()));
-		testItem.setItemResults(itemResults);
-		Launch launch = new Launch();
-		launch.setId(1L);
-		launch.setProjectId(projectId);
-		User user1 = new User();
-		user1.setId(1L);
-		user1.setLogin("owner");
-		launch.setUserId(2L);
-		testItem.setLaunchId(launch.getId());
-		log.setTestItem(testItem);
-
-		when(testItemService.getEffectiveLaunch(any(TestItem.class))).thenReturn(launch);
-		when(projectRepository.existsById(projectId)).thenReturn(true);
-		when(logRepository.findById(logId)).thenReturn(Optional.of(log));
-
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user)
-		);
-		assertEquals("You do not have enough permissions.", exception.getMessage());
-	}
-
-	@Test
 	void cleanUpLogDataTest() {
 		long projectId = 1L;
 		long logId = 2L;

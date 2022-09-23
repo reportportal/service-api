@@ -124,13 +124,6 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
 				formattedSupplier("Log '{}' not under specified '{}' project", logId, projectDetails.getProjectId())
 		);
 
-		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUserId(), launch.getUserId())) {
-			/*
-			 * Only PROJECT_MANAGER roles could delete logs
-			 */
-			expect(projectDetails.getProjectRole(), equalTo(ProjectRole.PROJECT_MANAGER)).verify(ACCESS_DENIED);
-		}
-
 		return log;
 	}
 }

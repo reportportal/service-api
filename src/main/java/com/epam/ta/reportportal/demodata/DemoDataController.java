@@ -27,14 +27,14 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 
 /**
  * @author Ihar Kahadouski
  */
 @RestController
 @RequestMapping("/v1/demo/{projectKey}")
-@PreAuthorize(PROJECT_MANAGER)
+@PreAuthorize(ASSIGNED_TO_PROJECT)
 class DemoDataController {
 
 	private final DemoDataService demoDataService;

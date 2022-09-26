@@ -53,6 +53,8 @@ class GetProjectHandlerImplTest {
 	@InjectMocks
 	private GetProjectHandlerImpl handler;
 
+	private final static String INCORRECT_FILTER_LENGTH = "Incorrect filtering parameters. Length of the filtering string '' is less than 1 symbol";
+
 	@Test
 	void getUsersOnNotExistProject() {
 		long projectId = 1L;
@@ -60,15 +62,13 @@ class GetProjectHandlerImplTest {
 		String projectName = "test_project";
 		when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> {
-					handler.getProjectUsers(projectName,
-							Filter.builder()
-									.withTarget(User.class)
-									.withCondition(FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build())
-									.build(),
-							PageRequest.of(0, 10)
-					);
-				}
+		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.getProjectUsers(projectName,
+				Filter.builder()
+						.withTarget(User.class)
+						.withCondition(FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build())
+						.build(),
+				PageRequest.of(0, 10)
+		)
 		);
 
 		assertEquals("Project 'test_project' not found. Did you use correct project name?", exception.getMessage());
@@ -111,10 +111,10 @@ class GetProjectHandlerImplTest {
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getUserNames(extractProjectDetails(user, "test_project"), "qw")
+				() -> handler.getUserNames(extractProjectDetails(user, "test_project"), "")
 		);
 
-		assertEquals("Incorrect filtering parameters. Length of the filtering string 'qw' is less than 3 symbols", exception.getMessage());
+		assertEquals(INCORRECT_FILTER_LENGTH, exception.getMessage());
 	}
 
 	@Test
@@ -122,6 +122,6 @@ class GetProjectHandlerImplTest {
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.getUserNames("",
 				new ReportPortalUser.ProjectDetails(1L, "superadmin_personal", ProjectRole.PROJECT_MANAGER),
 				PageRequest.of(0, 10)));
-		assertEquals("Incorrect filtering parameters. Length of the filtering string '' is less than 1 symbol", exception.getMessage());
+		assertEquals(INCORRECT_FILTER_LENGTH, exception.getMessage());
 	}
 }

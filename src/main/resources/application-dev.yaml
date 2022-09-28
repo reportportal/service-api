@@ -9,7 +9,7 @@ rp:
     maximumPoolSize: 5
   binarystore:
     type: filesystem
-    minio:
+    s3:
       endpoint: http://localhost:9000
       accessKey:
       secretKey:

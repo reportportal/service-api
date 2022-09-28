@@ -163,13 +163,13 @@ rp:
       path: ${rp.plugins.rootDir}/temp
   binarystore:
     path: /data/storage
-    minio:
+    s3:
       endpoint: http://play.min.io
       accessKey:
       secretKey:
       bucketPrefix: prj-
       defaultBucketName: rp-bucket
-    # could be one of [filesystem, minio]
+    # could be one of [filesystem, s3]
     type: filesystem
     thumbnail:
       attachment:

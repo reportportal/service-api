@@ -15,8 +15,8 @@ rp:
     maximumPoolSize: 12
   binarystore:
 #    path: /Users/pavel_bortnik/ReportPortal5/data/storage
-    type: minio
-    minio:
+    type: s3
+    s3:
       endpoint: http://localhost:9000
       accessKey: minio
       secretKey: minio123

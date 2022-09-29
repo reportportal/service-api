@@ -67,6 +67,7 @@ public final class UserConverter {
 						assignedProject.setEntryType(p.getProject().getProjectType().name());
 						assignedProject.setProjectRole(p.getProjectRole().toString());
 						assignedProject.setProjectName(p.getProject().getName());
+						assignedProject.setOrganizationSlug(p.getProject().getOrganization().getSlug());
 						return assignedProject;
 					}));
 			resource.setAssignedProjects(userProjects);

@@ -286,12 +286,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 			usernames.forEach(username -> {
 				User userForUnassign = userRepository.findByLogin(username)
 						.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
-				validateUnassigningUser(modifier, userForUnassign, project.getId(), project);
+				validateUnassigningUser(modifier, userForUnassign, project);
 				unassignedUsers.add(unassignUser(project, username, userForUnassign));
 
 			});
 		} else {
-			ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user, project.getName());
+			ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user, project.getKey());
 
 			usernames.forEach(username -> {
 				User userForUnassign = userRepository.findByLogin(username)
@@ -308,7 +308,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				expect(projectDetails.getProjectRole().sameOrHigherThan(projectUser.getProjectRole()), BooleanUtils::isTrue).verify(
 						ACCESS_DENIED);
 
-				validateUnassigningUser(modifier, userForUnassign, project.getId(), project);
+				validateUnassigningUser(modifier, userForUnassign, project);
 				unassignedUsers.add(unassignUser(project, username, userForUnassign));
 
 			});
@@ -345,7 +345,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		project.getUsers().add(projectUser);
 	}
 
-	private void validateUnassigningUser(User modifier, User userForUnassign, Long projectId, Project project) {
+	private void validateUnassigningUser(User modifier, User userForUnassign, Project project) {
 		if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(), userForUnassign.getLogin())) {
 			fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Unable to unassign user from his personal project");
 		}

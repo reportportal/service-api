@@ -30,6 +30,7 @@ import org.apache.commons.collections.CollectionUtils;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -67,7 +68,9 @@ public final class UserConverter {
 						assignedProject.setEntryType(p.getProject().getProjectType().name());
 						assignedProject.setProjectRole(p.getProjectRole().toString());
 						assignedProject.setProjectName(p.getProject().getName());
-						assignedProject.setOrganizationSlug(p.getProject().getOrganization().getSlug());
+						if (Objects.nonNull(p.getProject().getOrganization())) {
+							assignedProject.setOrganizationSlug(p.getProject().getOrganization().getSlug());
+						}
 						return assignedProject;
 					}));
 			resource.setAssignedProjects(userProjects);

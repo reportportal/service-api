@@ -88,7 +88,7 @@ public class FlushingDataJob implements Job {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
-	@Value("${datastore.s3.bucketPrefix}")
+	@Value("${datastore.minio.bucketPrefix}")
 	private String bucketPrefix;
 
 	@Override

@@ -21,7 +21,9 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.project.CreateProjectHandler;
 import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepository;
 import com.epam.ta.reportportal.entity.enums.ProjectType;
+import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -38,6 +40,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -59,6 +62,8 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 
 	private final UserRepository userRepository;
 
+	private final OrganizationRepository organizationRepository;
+
 	private final AttributeRepository attributeRepository;
 
 	private final IssueTypeRepository issueTypeRepository;
@@ -70,7 +75,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 	@Autowired
 	public CreateProjectHandlerImpl(PersonalProjectService personalProjectService, ProjectRepository projectRepository, UserRepository userRepository,
 			AttributeRepository attributeRepository, IssueTypeRepository issueTypeRepository, ApplicationEventPublisher applicationEventPublisher,
-			ProjectUserRepository projectUserRepository) {
+			ProjectUserRepository projectUserRepository, OrganizationRepository organizationRepository) {
 		this.personalProjectService = personalProjectService;
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
@@ -78,6 +83,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 		this.issueTypeRepository = issueTypeRepository;
 		this.applicationEventPublisher = applicationEventPublisher;
 		this.projectUserRepository = projectUserRepository;
+		this.organizationRepository = organizationRepository;
 	}
 
 	@Override
@@ -106,8 +112,9 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 
 		Project project = new Project();
 		project.setName(projectName);
-		project.setKey(projectName.replaceAll(" ", "_"));
+		project.setKey(createProjectRQ.getProjectKey());
 		project.setCreationDate(new Date());
+		fillOrganization(project, createProjectRQ.getOrganizationId());
 
 		project.setProjectIssueTypes(ProjectUtils.defaultIssueTypes(project, issueTypeRepository.getDefaultIssueTypes()));
 		Set<ProjectAttribute> projectAttributes = ProjectUtils.defaultProjectAttributes(project,
@@ -126,6 +133,14 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 		applicationEventPublisher.publishEvent(new ProjectEvent(project.getId(), CREATE_KEY));
 
 		return new EntryCreatedRS(project.getId());
+	}
+
+	private void fillOrganization(Project project, Long organizationId) {
+		if (Objects.nonNull(organizationId)) {
+			Organization organization = organizationRepository.findById(organizationId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, organizationId));
+			project.setOrganization(organization);
+		}
 	}
 
 	@Override

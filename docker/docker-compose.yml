@@ -51,7 +51,7 @@ services:
       - minio
     environment:
       - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp
-      - RP_BINARYSTORE_TYPE=MINIO
+      - RP_BINARYSTORE_TYPE=minio
       - RP_BINARYSTORE_MINIO_ENDPOINT=http://minio:9000
       - RP_BINARYSTORE_MINIO_ACCESSKEY=minio
       - RP_BINARYSTORE_MINIO_SECRETKEY=minio123

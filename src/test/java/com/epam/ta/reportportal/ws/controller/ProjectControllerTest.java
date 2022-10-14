@@ -88,11 +88,13 @@ class ProjectControllerTest extends BaseMvcTest {
 	void createProjectPositive() throws Exception {
 		CreateProjectRQ rq = new CreateProjectRQ();
 		rq.setProjectName("TestProject");
+		rq.setProjectKey("TestProjectKey");
+		rq.setOrganizationId(1L);
 		rq.setEntryType("INTERNAL");
 		mockMvc.perform(post("/v1/project").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
-		final Optional<Project> createdProjectOptional = projectRepository.findByKey("TestProject".toLowerCase());
+		final Optional<Project> createdProjectOptional = projectRepository.findByKey("TestProjectKey");
 		assertTrue(createdProjectOptional.isPresent());
 		assertEquals(14, createdProjectOptional.get().getProjectAttributes().size());
 		assertEquals(5, createdProjectOptional.get().getProjectIssueTypes().size());

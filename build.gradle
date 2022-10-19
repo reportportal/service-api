@@ -59,16 +59,16 @@ ext['hibernate.version'] = '5.4.18.Final'
 //https://nvd.nist.gov/vuln/detail/CVE-2020-10693
 ext['hibernate-validator.version'] = '6.1.5.Final'
 //https://nvd.nist.gov/vuln/detail/CVE-2020-13692
-ext['postgresql.version'] = '42.2.13'
+//ext['postgresql.version'] = '42.2.13'
 //https://nvd.nist.gov/vuln/detail/CVE-2020-9488 and https://nvd.nist.gov/vuln/detail/CVE-2021-44228 and https://nvd.nist.gov/vuln/detail/CVE-2021-45046
-ext['log4j2.version'] = '2.17.0'
-ext['log4j-to-slf4j.version'] = '2.17.0'
+ext['log4j2.version'] = '2.17.1'
+ext['log4j-to-slf4j.version'] = '2.17.1'
 //https://nvd.nist.gov/vuln/detail/cve-2022-22965
 ext['spring-boot.version'] = '2.5.12'
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + getProperty('bom.version') : 'com.github.reportportal:commons-bom:7ea4bf3')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + getProperty('bom.version') : 'com.github.reportportal:commons-bom:a148884d')
     }
 }
 
@@ -103,9 +103,9 @@ dependencies {
     //https://nvd.nist.gov/vuln/detail/CVE-2020-11996 AND https://nvd.nist.gov/vuln/detail/CVE-2020-9484
     //AND https://nvd.nist.gov/vuln/detail/CVE-2020-13934 AND https://nvd.nist.gov/vuln/detail/CVE-2020-13935
     //AND https://nvd.nist.gov/vuln/detail/CVE-2020-8022
-    compile 'org.apache.tomcat.embed:tomcat-embed-core:9.0.37'
-    compile 'org.apache.tomcat.embed:tomcat-embed-el:9.0.37'
-    compile 'org.apache.tomcat.embed:tomcat-embed-websocket:9.0.37'
+    compile 'org.apache.tomcat.embed:tomcat-embed-core:9.0.43'
+    compile 'org.apache.tomcat.embed:tomcat-embed-el:9.0.43'
+    compile 'org.apache.tomcat.embed:tomcat-embed-websocket:9.0.43'
     //
 
     //https://nvd.nist.gov/vuln/detail/CVE-2020-5411
@@ -125,15 +125,19 @@ dependencies {
 
     ///// Security
     //https://nvd.nist.gov/vuln/detail/CVE-2020-5407 AND https://nvd.nist.gov/vuln/detail/CVE-2020-5408
-    compile 'org.springframework.security:spring-security-core:5.2.4.RELEASE'
-    compile 'org.springframework.security:spring-security-config:5.2.4.RELEASE'
-    compile 'org.springframework.security:spring-security-web:5.2.4.RELEASE'
+    compile 'org.springframework.security:spring-security-core:5.5.8'
+    compile 'org.springframework.security:spring-security-config:5.5.8'
+    compile 'org.springframework.security:spring-security-web:5.5.8'
     //
 
     compile 'org.springframework.security.oauth:spring-security-oauth2:2.4.0.RELEASE'
     compile 'org.springframework.security:spring-security-jwt:1.0.11.RELEASE'
     compile 'org.springframework.security:spring-security-acl'
     compile 'com.github.ben-manes.caffeine:caffeine:2.8.0'
+
+    compile 'org.apache.commons:commons-compress:1.21'
+    compile 'org.yaml:snakeyaml:1.32'
+    compile 'org.hibernate:hibernate-core:5.4.24.Final'
 
     // Metrics
     compile 'io.micrometer:micrometer-registry-prometheus:1.7.10'

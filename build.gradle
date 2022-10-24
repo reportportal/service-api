@@ -98,7 +98,7 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-batch')
 
 
-    compile group: 'com.opencsv', name: 'opencsv', version: '5.3'
+    compile group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
 
     //https://nvd.nist.gov/vuln/detail/CVE-2020-11996 AND https://nvd.nist.gov/vuln/detail/CVE-2020-9484
     //AND https://nvd.nist.gov/vuln/detail/CVE-2020-13934 AND https://nvd.nist.gov/vuln/detail/CVE-2020-13935

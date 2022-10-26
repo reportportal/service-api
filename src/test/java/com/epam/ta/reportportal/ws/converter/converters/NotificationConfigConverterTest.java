@@ -118,6 +118,7 @@ class NotificationConfigConverterTest {
 		senderCaseDTO.setAttributes(Sets.newHashSet(launchAttribute));
 		senderCaseDTO.setSendCase("always");
 		senderCaseDTO.setEnabled(true);
+		senderCaseDTO.setAttributesOperator(LogicalOperator.AND.getOperator());
 		return senderCaseDTO;
 	}
 

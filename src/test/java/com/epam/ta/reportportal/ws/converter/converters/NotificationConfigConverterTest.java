@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.entity.enums.LogicalOperator;
 import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
@@ -86,7 +87,8 @@ class NotificationConfigConverterTest {
 				Sets.newHashSet("launch1", "launch5", "launch10"),
 				Sets.newHashSet(launchAttributeRule),
 				SendCase.ALWAYS,
-				true
+				true,
+				LogicalOperator.AND
 		));
 		return senderCases;
 	}
@@ -101,7 +103,8 @@ class NotificationConfigConverterTest {
 				Sets.newHashSet("launch1", "launch2", "launch3"),
 				Sets.newHashSet(launchAttributeRule),
 				SendCase.MORE_10,
-				true
+				true,
+				LogicalOperator.AND
 		);
 	}
 
@@ -115,6 +118,7 @@ class NotificationConfigConverterTest {
 		senderCaseDTO.setAttributes(Sets.newHashSet(launchAttribute));
 		senderCaseDTO.setSendCase("always");
 		senderCaseDTO.setEnabled(true);
+		senderCaseDTO.setAttributesOperator(LogicalOperator.AND.getOperator());
 		return senderCaseDTO;
 	}
 

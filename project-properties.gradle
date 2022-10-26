@@ -56,7 +56,7 @@ project.ext {
             (migrationsUrl + '/migrations/54_analyzer_unique_error_attribute.up.sql')  : 'V054__analyzer_unique_error_attribute.sql',
             (migrationsUrl + '/migrations/58_alter_ticket.up.sql')                     : 'V058__alter_ticket.sql',
             (migrationsUrl + '/migrations/59_stale_materialized_view.up.sql')          : 'V059__stale_materialized_view.sql',
-            (migrationsUrl + '/migrations/60_sender_case_operator.up.sql')             : 'V060_sender_case_operator.sql',
+            (migrationsUrl + '/migrations/60_sender_case_operator.up.sql')             : 'V060__sender_case_operator.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

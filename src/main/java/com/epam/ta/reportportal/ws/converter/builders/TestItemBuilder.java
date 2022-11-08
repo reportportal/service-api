@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import java.time.LocalDateTime;
@@ -44,6 +45,8 @@ import static java.util.Optional.ofNullable;
 
 public class TestItemBuilder implements Supplier<TestItem> {
 
+	private static final int TEST_ITEM_DESCRIPTION_LENGTH_LIMIT = 2048;
+	private static final int DESCRIPTION_START_SYMBOL_INDEX = 0;
 	public static final String PARAMETER_NULL_VALUE = "NULL";
 
 	private TestItem testItem;
@@ -100,7 +103,10 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	}
 
 	public TestItemBuilder addDescription(String description) {
-		ofNullable(description).ifPresent(it -> testItem.setDescription(it.trim()));
+		ofNullable(description).ifPresent(it -> testItem.setDescription(StringUtils.substring(it.trim(),
+				DESCRIPTION_START_SYMBOL_INDEX,
+				TEST_ITEM_DESCRIPTION_LENGTH_LIMIT
+		)));
 		return this;
 	}
 

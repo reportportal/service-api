@@ -101,7 +101,7 @@ class AnalyzerUtilsTest {
 		final IndexLog indexLog = indexLogs.stream().findFirst().get();
 		assertEquals(log.getId(), indexLog.getLogId());
 		assertEquals(log.getLogMessage(), indexLog.getMessage());
-		assertEquals(log.getLogLevel(), indexLog.getLogLevel());
+		assertEquals(log.getLogLevel().intValue(), indexLog.getLogLevel());
 		assertEquals(log.getClusterId(), indexLog.getClusterId());
 	}
 

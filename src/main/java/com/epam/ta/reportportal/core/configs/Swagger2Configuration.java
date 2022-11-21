@@ -106,7 +106,7 @@ public class Swagger2Configuration {
 				"Report Portal API documentation",
 				buildVersion,
 				null,
-				new Contact("Support", null, "Support EPMC-TST Report Portal <SupportEPMC-TSTReportPortal@epam.com>"),
+				new Contact("Support", null, "Support Report Portal <support@reportportal.io>"),
 				"Apache 2.0",
 				"http://www.apache.org/licenses/LICENSE-2.0",
 				Collections.emptyList()

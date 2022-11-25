@@ -117,7 +117,6 @@ class GetLaunchHandlerImplTest {
 	void getLaunchNamesIncorrectInput() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		assertThrows(ReportPortalException.class, () -> handler.getLaunchNames(extractProjectDetails(rpUser, "test_project"), ""));
 		assertThrows(ReportPortalException.class,
 				() -> handler.getLaunchNames(extractProjectDetails(rpUser, "test_project"), RandomStringUtils.random(257))
 		);

@@ -16,10 +16,12 @@
 
 package com.epam.ta.reportportal.core.widget.content.loader;
 
+import com.epam.ta.reportportal.entity.widget.content.AbstractLaunchStatisticsContent;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import org.apache.commons.collections.MapUtils;
 import org.joda.time.DateTime;
 
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -41,10 +43,6 @@ public abstract class AbstractStatisticsContentLoader {
 	 * @return
 	 */
 	protected Map<String, ChartStatisticsContent> groupByDate(List<ChartStatisticsContent> input, Period period) {
-
-		final LongSummaryStatistics statistics = input.stream().mapToLong(object -> object.getStartTime().getTime()).summaryStatistics();
-		final DateTime start = new DateTime(statistics.getMin());
-		final DateTime end = new DateTime(statistics.getMax());
 		if (input.isEmpty()) {
 			return Collections.emptyMap();
 		}
@@ -52,15 +50,12 @@ public abstract class AbstractStatisticsContentLoader {
 
 		switch (period) {
 			case DAY:
-				proceedDailyChart(chart, start, end, input);
-				groupStatistics(DATE_PATTERN, input, chart);
-				break;
 			case WEEK:
-				proceedDailyChart(chart, start, end, input);
+				proceedDailyChart(chart, input);
 				groupStatistics(DATE_PATTERN, input, chart);
 				break;
 			case MONTH:
-				proceedMonthlyChart(chart, start, end, input);
+				proceedDailyChart(chart, input);
 				groupStatistics("yyyy-MM", input, chart);
 				break;
 		}
@@ -115,34 +110,13 @@ public abstract class AbstractStatisticsContentLoader {
 		}));
 	}
 
-	private void proceedDailyChart(Map<String, ChartStatisticsContent> chart, DateTime intermediate, DateTime end,
-			List<ChartStatisticsContent> statisticsContents) {
-
-		while (intermediate.isBefore(end)) {
-			chart.put(intermediate.toString(DATE_PATTERN), createChartObject(statisticsContents.get(0)));
-			intermediate = intermediate.plusDays(1);
-		}
-
-		chart.put(end.toString(DATE_PATTERN), createChartObject(statisticsContents.get(0)));
-
-	}
-
-	private void proceedMonthlyChart(Map<String, ChartStatisticsContent> chart, DateTime intermediate, DateTime end,
-			List<ChartStatisticsContent> statisticsContents) {
-		while (intermediate.isBefore(end)) {
-			if (intermediate.getYear() == end.getYear()) {
-				if (intermediate.getMonthOfYear() != end.getMonthOfYear()) {
-					chart.put(intermediate.toString(DATE_PATTERN), createChartObject(statisticsContents.get(0)));
-				}
-			} else {
-				chart.put(intermediate.toString(DATE_PATTERN), createChartObject(statisticsContents.get(0)));
-			}
-
-			intermediate = intermediate.plusMonths(1);
-		}
-
-		chart.put(end.toString(DATE_PATTERN), createChartObject(statisticsContents.get(0)));
-
+	private void proceedDailyChart(Map<String, ChartStatisticsContent> chart, List<ChartStatisticsContent> statisticsContents) {
+		statisticsContents.stream().sorted(Comparator.comparing(AbstractLaunchStatisticsContent::getStartTime)).forEach(sc -> {
+			chart.put(
+					sc.getStartTime().toLocalDateTime().format(DateTimeFormatter.ISO_DATE),
+					createChartObject(sc)
+			);
+		});
 	}
 
 	private ChartStatisticsContent createChartObject(ChartStatisticsContent input) {

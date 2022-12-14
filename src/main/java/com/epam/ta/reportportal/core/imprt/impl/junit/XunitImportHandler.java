@@ -112,6 +112,7 @@ public class XunitImportHandler extends DefaultHandler {
 				break;
 			case TESTCASE:
 				startStepItem(attributes.getValue(XunitReportTag.ATTR_NAME.getValue()),
+						attributes.getValue(XunitReportTag.START_TIME.getValue()),
 						attributes.getValue(XunitReportTag.ATTR_TIME.getValue())
 				);
 				break;
@@ -216,10 +217,10 @@ public class XunitImportHandler extends DefaultHandler {
 		itemUuids.push(id);
 	}
 
-	private void startStepItem(String name, String duration) {
+	private void startStepItem(String name, String startTime, String duration) {
 		StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setLaunchUuid(launchUuid);
-		rq.setStartTime(EntityUtils.TO_DATE.apply(startItemTime));
+		rq.setStartTime(EntityUtils.TO_DATE.apply(parseTimeStamp(startTime)));
 		rq.setType(TestItemTypeEnum.STEP.name());
 		rq.setName(name);
 		String id = startTestItemHandler.startChildItem(user, projectDetails, rq, itemUuids.peek()).getId();

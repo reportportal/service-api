@@ -163,6 +163,7 @@ bootJar {
     project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('exec')
 }
 jar.enabled(true)
+jar.archiveClassifier.set('')
 
 test {
     dependsOn(copyTestDatabaseScripts)

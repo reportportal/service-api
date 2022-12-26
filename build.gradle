@@ -68,7 +68,7 @@ ext['spring-boot.version'] = '2.5.12'
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + getProperty('bom.version') : 'com.github.reportportal:commons-bom:a148884d')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + getProperty('bom.version') : 'com.github.reportportal:commons-bom:76778372')
     }
 }
 
@@ -81,9 +81,9 @@ dependencies {
         compile 'com.epam.reportportal:commons-fonts'
         compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-dao:94ffb40'
+        compile 'com.github.reportportal:commons-dao:7c82a597'
         compile 'com.github.reportportal:commons-rules:5.3.0'
-        compile 'com.github.reportportal:commons-model:d61b714'
+        compile 'com.github.reportportal:commons-model:aee0bb9b'
         compile 'com.github.reportportal:commons:7480d61'
         compile 'com.github.reportportal:commons-fonts:10d1054'
         compile 'com.github.reportportal:plugin-api:886ac55'
@@ -98,7 +98,7 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-batch')
 
 
-    compile group: 'com.opencsv', name: 'opencsv', version: '5.3'
+    compile group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
 
     //https://nvd.nist.gov/vuln/detail/CVE-2020-11996 AND https://nvd.nist.gov/vuln/detail/CVE-2020-9484
     //AND https://nvd.nist.gov/vuln/detail/CVE-2020-13934 AND https://nvd.nist.gov/vuln/detail/CVE-2020-13935
@@ -163,6 +163,7 @@ bootJar {
     project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('exec')
 }
 jar.enabled(true)
+jar.archiveClassifier.set('')
 
 test {
     dependsOn(copyTestDatabaseScripts)

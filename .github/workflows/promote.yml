@@ -23,7 +23,7 @@ on:
 env:
   REPOSITORY_URL: 'https://maven.pkg.github.com'
   UPSTREAM_REPOSITORY_URL: 'https://oss.sonatype.org'
-  PACKAGE_SUFFIXES: '-javadoc.jar,-javadoc.jar.asc,-sources.jar,-sources.jar.asc,.jar,.jar.asc,.pom,.pom.asc'
+  PACKAGE_SUFFIXES: '-exec.jar,-exec.jar.asc,-javadoc.jar,-javadoc.jar.asc,-sources.jar,-sources.jar.asc,.jar,.jar.asc,.pom,.pom.asc'
   PACKAGE: 'com.epam.reportportal'
 
 
@@ -32,11 +32,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-      - name: Set up JDK 1.8
-        uses: actions/setup-java@v1
-        with:
-          java-version: 1.8
 
       - name: Get variables
         run: |
@@ -60,7 +55,7 @@ jobs:
           jar -cvf ${BUNDLE_FILE} "${files[@]}"
 
           echo 'Bundle upload'
-          curl -u ${{ secrets.SONATYPE_USER }}:${{ secrets.SONATYPE_PASSWORD }} -L \
+          curl -f -u ${{ secrets.SONATYPE_USER }}:${{ secrets.SONATYPE_PASSWORD }} -L \
             --request POST '${{ env.UPSTREAM_REPOSITORY_URL }}/service/local/staging/bundle_upload' \
             --form "file=@${BUNDLE_FILE}" >response.json
 

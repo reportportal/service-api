@@ -30,7 +30,7 @@ import java.time.ZoneOffset;
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**

@@ -17,12 +17,14 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.core.log.impl.PagedLogResource;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
 import com.google.common.base.Preconditions;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;
@@ -40,10 +42,13 @@ public final class LogConverter {
 	}
 
 	public static final Function<Log, LogResource> TO_RESOURCE = model -> {
-
 		Preconditions.checkNotNull(model);
-
 		LogResource resource = new LogResource();
+		fillWithLogContent(model, resource);
+		return resource;
+	};
+
+	private static void fillWithLogContent(Log model, LogResource resource) {
 		resource.setId(model.getId());
 		resource.setUuid(model.getUuid());
 		resource.setMessage(ofNullable(model.getLogMessage()).orElse("NULL"));
@@ -62,7 +67,11 @@ public final class LogConverter {
 		ofNullable(model.getTestItem()).ifPresent(testItem -> resource.setItemId(testItem.getItemId()));
 		ofNullable(model.getLaunch()).ifPresent(launch -> resource.setLaunchId(launch.getId()));
 		ofNullable(model.getLogLevel()).ifPresent(level -> resource.setLevel(LogLevel.toLevel(level).toString()));
-		return resource;
+	}
+
+	public static final BiFunction<Log, PagedLogResource, PagedLogResource> FILL_WITH_LOG_CONTENT = (model, pagedLog) -> {
+		fillWithLogContent(model, pagedLog);
+		return pagedLog;
 	};
 
 	public static final Function<Log, SearchLogRs.LogEntry> TO_LOG_ENTRY = log -> {

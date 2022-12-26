@@ -559,9 +559,9 @@ class ProjectControllerTest extends BaseMvcTest {
 		verify(messageBus, times(1)).publishActivity(eventArgumentCaptor.capture());
 
 		final ProjectIndexEvent event = eventArgumentCaptor.getValue();
-		assertEquals(2L, event.getProjectId());
+		assertEquals(2L, event.getProjectId().longValue());
 		assertEquals("default_personal", event.getProjectName());
-		assertEquals(2L, event.getUserId());
+		assertEquals(2L, event.getUserId().longValue());
 		assertEquals("default", event.getUserLogin());
 	}
 }

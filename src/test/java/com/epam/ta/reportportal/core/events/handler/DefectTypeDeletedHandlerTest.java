@@ -92,7 +92,7 @@ class DefectTypeDeletedHandlerTest {
 
 		handler.handleDefectTypeDeleted(new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId));
 
-		verifyZeroInteractions(logIndexer);
+		verifyNoInteractions(logIndexer);
 	}
 
 	@Test

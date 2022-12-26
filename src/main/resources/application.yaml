@@ -169,7 +169,7 @@ rp:
       secretKey:
       bucketPrefix: prj-
       defaultBucketName: rp-bucket
-    # could be one of [filesystem, minio]
+    # could be one of [filesystem, minio, s3]
     type: filesystem
     thumbnail:
       attachment:

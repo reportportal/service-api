@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
-import io.minio.MinioClient;
+import org.jclouds.blobstore.BlobStore;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -83,7 +83,7 @@ public class FlushingDataJob implements Job {
 	private UserBinaryDataService dataStore;
 
 	@Autowired
-	private MinioClient minioClient;
+	private BlobStore blobStore;
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
@@ -163,7 +163,7 @@ public class FlushingDataJob implements Job {
 		analyzerServiceClient.removeSuggest(project.getId());
 		issueTypeRepository.deleteAll(issueTypesToRemove);
 		try {
-			minioClient.removeBucket(bucketPrefix + project.getId());
+			blobStore.deleteContainer(bucketPrefix + project.getId());
 		} catch (Exception e) {
 			LOGGER.warn("Cannot delete attachments bucket " + bucketPrefix + project.getId());
 		}

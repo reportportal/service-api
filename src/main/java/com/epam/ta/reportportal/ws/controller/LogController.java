@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.SearchLogService;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.core.log.DeleteLogHandler;
 import com.epam.ta.reportportal.core.log.GetLogHandler;
+import com.epam.ta.reportportal.core.log.impl.PagedLogResource;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.*;
@@ -228,6 +229,14 @@ public class LogController {
 			@ApiParam(required = false) @RequestParam Map<String, String> params, @FilterFor(Log.class) Filter filter,
 			@SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLogHandler.getNestedItems(parentId, projectExtractor.extractProjectDetails(user, projectName), params, filter, pageable);
+	}
+
+	@GetMapping(value = "/locations/{parentId}")
+	@ApiOperation("Get next or previous log in test item")
+	@Transactional(readOnly = true)
+	public List<PagedLogResource> getErrorPage(@PathVariable String projectName, @PathVariable Long parentId, @RequestParam Map<String, String> params,
+			@FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLogHandler.getLogsWithLocation(parentId, projectExtractor.extractProjectDetails(user, projectName), params, filter, pageable);
 	}
 
 	@PostMapping("search/{itemId}")

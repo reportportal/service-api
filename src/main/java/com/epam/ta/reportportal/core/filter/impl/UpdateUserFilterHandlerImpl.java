@@ -203,6 +203,13 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 		}
 		int delimiterPosition = entity.indexOf(":");
 		String key = "";
+		if (delimiterPosition == -1) {
+			if (entity.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {
+				return entity.substring(0, ValidationConstraints.MAX_ATTRIBUTE_LENGTH);
+			} else {
+				return entity;
+			}
+		}
 		if (delimiterPosition != 0) {
 			key = entity.substring(0, delimiterPosition - 1);
 			if (key.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {

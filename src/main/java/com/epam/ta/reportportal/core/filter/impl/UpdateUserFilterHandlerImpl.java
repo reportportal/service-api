@@ -35,10 +35,7 @@ import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
-import com.epam.ta.reportportal.ws.model.CollectionsRQ;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
 import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
@@ -69,7 +66,8 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 	@Autowired
 	public UpdateUserFilterHandlerImpl(ProjectExtractor projectExtractor, GetShareableEntityHandler<UserFilter> getShareableEntityHandler,
-			UserFilterRepository userFilterRepository, WidgetRepository widgetRepository, ShareableObjectsHandler aclHandler, MessageBus messageBus) {
+			UserFilterRepository userFilterRepository, WidgetRepository widgetRepository, ShareableObjectsHandler aclHandler,
+			MessageBus messageBus) {
 		this.projectExtractor = projectExtractor;
 		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.userFilterRepository = userFilterRepository;
@@ -85,9 +83,9 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 		validateFilterRq(createFilterRQ);
 
 		BusinessRule.expect(userFilterRepository.existsByNameAndOwnerAndProjectId(createFilterRQ.getName(),
-				user.getUsername(),
-				projectDetails.getProjectId()
-		), BooleanUtils::isFalse)
+						user.getUsername(),
+						projectDetails.getProjectId()
+				), BooleanUtils::isFalse)
 				.verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName(), user.getUsername(), projectName);
 
 		UserFilter filter = new UserFilterBuilder().addFilterRq(createFilterRQ)
@@ -115,9 +113,9 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 		if (!userFilter.getName().equals(updateRQ.getName())) {
 
 			BusinessRule.expect(userFilterRepository.existsByNameAndOwnerAndProjectId(updateRQ.getName(),
-					userFilter.getOwner(),
-					projectDetails.getProjectId()
-			), BooleanUtils::isFalse)
+							userFilter.getOwner(),
+							projectDetails.getProjectId()
+					), BooleanUtils::isFalse)
 					.verify(ErrorType.USER_FILTER_ALREADY_EXISTS,
 							updateRQ.getName(),
 							userFilter.getOwner(),
@@ -184,8 +182,11 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 			Condition condition = Condition.findByMarker(it.getCondition())
 					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS, it.getCondition()));
 			boolean isNegative = Condition.isNegative(it.getCondition());
-			condition.validate(criteriaHolder, it.getValue(), isNegative, ErrorType.INCORRECT_FILTER_PARAMETERS);
-			condition.castValue(criteriaHolder, it.getValue(), ErrorType.INCORRECT_FILTER_PARAMETERS);
+			String value = cutAttributesToMaxLength(it.getValue());
+
+			condition.validate(criteriaHolder, value, isNegative, ErrorType.INCORRECT_FILTER_PARAMETERS);
+			condition.castValue(criteriaHolder, value, ErrorType.INCORRECT_FILTER_PARAMETERS);
+			it.setValue(value);
 		});
 
 		//order conditions validation
@@ -194,5 +195,27 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 						.verify(ErrorType.INCORRECT_SORTING_PARAMETERS,
 								"Unable to find sort parameter '" + order.getSortingColumnName() + "'"
 						));
+	}
+
+	private String cutAttributesToMaxLength(String entity) {
+		if (entity == null || entity.isEmpty()) {
+			return entity;
+		}
+		int delimiterPosition = entity.indexOf(":");
+		String key = "";
+		if (delimiterPosition != 0) {
+			key = entity.substring(0, delimiterPosition - 1);
+			if (key.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {
+				key = key.substring(0, ValidationConstraints.MAX_ATTRIBUTE_LENGTH);
+			}
+		}
+		String value = "";
+		if (entity.length() != 1) {
+			value = entity.substring(delimiterPosition + 1, entity.length() - 1);
+			if (value.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {
+				value = value.substring(0, ValidationConstraints.MAX_ATTRIBUTE_LENGTH);
+			}
+		}
+		return key + ":" + value;
 	}
 }

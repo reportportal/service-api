@@ -126,11 +126,13 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 	public OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq,
 			ReportPortalUser user) {
 		Dashboard dashboard = getShareableDashboardHandler.getAdministrated(dashboardId, projectDetails);
-		BusinessRule.expect(dashboard.getDashboardWidgets().size() >= MAX_WIDGET_ON_DASHBOARD, Predicates.equalTo(false)).verify(
-				ErrorType.DASHBOARD_UPDATE_ERROR,
-				Suppliers.formattedSupplier(
-						"The limit of 300 dashboards has been reached. To create a new one you need to delete at least one created previously.")
-		);
+		BusinessRule.expect(dashboard.getDashboardWidgets().size() >= MAX_WIDGET_ON_DASHBOARD, Predicates.equalTo(false))
+				.verify(ErrorType.DASHBOARD_UPDATE_ERROR,
+						Suppliers.formattedSupplier(
+								"The limit of {} dashboards has been reached. To create a new one you need to delete at least one created previously.",
+								MAX_WIDGET_ON_DASHBOARD
+						)
+				);
 		BusinessRule.expect(dashboard.getDashboardWidgets()
 				.stream()
 				.map(dw -> dw.getId().getWidgetId())

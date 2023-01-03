@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.DashboardWidgetRepository;
@@ -76,7 +77,10 @@ public class UpdateDashboardHandlerImplTest {
 				() -> updateDashboardHandler.addWidget(67L, projectDetails, addWidgetRq, rpUser)
 		);
 
-		assertEquals("Dashboard update request contains invalid data. The limit of 300 dashboards has been reached. To create a new one you need to delete at least one created previously.", exception.getMessage());
+		assertEquals(Suppliers.formattedSupplier(
+				"Dashboard update request contains invalid data. The limit of {} dashboards has been reached. To create a new one you need to delete at least one created previously.",
+				MAX_WIDGET_ON_DASHBOARD
+		).get(), exception.getMessage());
 	}
 
 	private Dashboard getDashboard() {

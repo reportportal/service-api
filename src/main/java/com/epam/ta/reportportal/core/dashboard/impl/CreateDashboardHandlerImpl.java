@@ -17,8 +17,10 @@
 package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
+import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.dashboard.CreateDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardCreatedEvent;
@@ -44,6 +46,8 @@ public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
 	private final MessageBus messageBus;
 	private final ShareableObjectsHandler aclHandler;
 
+	private final static int DASHBOARD_LIMIT = 300;
+
 	@Autowired
 	public CreateDashboardHandlerImpl(DashboardRepository dashboardRepository, MessageBus messageBus, ShareableObjectsHandler aclHandler) {
 		this.dashboardRepository = dashboardRepository;
@@ -54,6 +58,11 @@ public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
 	@Override
 	public EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails, CreateDashboardRQ rq, ReportPortalUser user) {
 
+		BusinessRule.expect(dashboardRepository.findAllByProjectId(projectDetails.getProjectId()).size() >= DASHBOARD_LIMIT,
+				BooleanUtils::isFalse).verify(ErrorType.DASHBOARD_UPDATE_ERROR, Suppliers.formattedSupplier(
+				"The limit of {} dashboards has been reached. To create a new one you need to delete at least one created previously.",
+				DASHBOARD_LIMIT
+		));
 		BusinessRule.expect(dashboardRepository.existsByNameAndOwnerAndProjectId(rq.getName(),
 				user.getUsername(),
 				projectDetails.getProjectId()

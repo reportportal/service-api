@@ -17,10 +17,7 @@
 package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
-import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
-import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.dashboard.UpdateDashboardHandler;
@@ -71,8 +68,6 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 	private final GetShareableEntityHandler<Dashboard> getShareableDashboardHandler;
 	private final GetShareableEntityHandler<Widget> getShareableWidgetHandler;
 	private final ShareableObjectsHandler aclHandler;
-
-	private final static int MAX_WIDGET_ON_DASHBOARD = 300;
 
 	@Autowired
 	public UpdateDashboardHandlerImpl(DashboardRepository dashboardRepository, UpdateWidgetHandler updateWidgetHandler,
@@ -126,13 +121,6 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 	public OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq,
 			ReportPortalUser user) {
 		Dashboard dashboard = getShareableDashboardHandler.getAdministrated(dashboardId, projectDetails);
-		BusinessRule.expect(dashboard.getDashboardWidgets().size() >= MAX_WIDGET_ON_DASHBOARD, Predicates.equalTo(false))
-				.verify(ErrorType.DASHBOARD_UPDATE_ERROR,
-						Suppliers.formattedSupplier(
-								"The limit of {} dashboards has been reached. To create a new one you need to delete at least one created previously.",
-								MAX_WIDGET_ON_DASHBOARD
-						)
-				);
 		BusinessRule.expect(dashboard.getDashboardWidgets()
 				.stream()
 				.map(dw -> dw.getId().getWidgetId())

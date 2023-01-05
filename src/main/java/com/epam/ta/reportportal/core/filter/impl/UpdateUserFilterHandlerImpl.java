@@ -57,6 +57,9 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.USER_FILTER_NOT_FOUND;
 @Service
 public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
+	private final static String KEY_AND_VALUE_DELIMITER = ":";
+
+	private final static String ATTRIBUTES_DELIMITER = ",";
 	private final ProjectExtractor projectExtractor;
 	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 	private final UserFilterRepository userFilterRepository;
@@ -197,32 +200,36 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 						));
 	}
 
-	private String cutAttributesToMaxLength(String entity) {
-		if (entity == null || entity.isEmpty()) {
-			return entity;
+	private String cutAttributesToMaxLength(String keyAndValue) {
+		if (keyAndValue == null || keyAndValue.isEmpty()) {
+			return keyAndValue;
 		}
-		int delimiterPosition = entity.indexOf(":");
-		String key = "";
-		if (delimiterPosition == -1) {
-			if (entity.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {
-				return entity.substring(0, ValidationConstraints.MAX_ATTRIBUTE_LENGTH);
-			} else {
-				return entity;
-			}
+		String[] keyAndValueArray = keyAndValue.split("[" + KEY_AND_VALUE_DELIMITER + ATTRIBUTES_DELIMITER + "]");
+		if (keyAndValueArray.length == 0){
+			return keyAndValue;
 		}
-		if (delimiterPosition != 0) {
-			key = entity.substring(0, delimiterPosition - 1);
-			if (key.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {
+		StringBuilder result = new StringBuilder();
+		for (int i = 0; i < keyAndValueArray.length; i = i + 2){
+			String key = keyAndValueArray[i];
+			if (key.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH){
 				key = key.substring(0, ValidationConstraints.MAX_ATTRIBUTE_LENGTH);
 			}
-		}
-		String value = "";
-		if (entity.length() != 1) {
-			value = entity.substring(delimiterPosition + 1, entity.length() - 1);
-			if (value.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {
-				value = value.substring(0, ValidationConstraints.MAX_ATTRIBUTE_LENGTH);
+			String value = "";
+			if (i != keyAndValueArray.length - 1) {
+				value = keyAndValueArray[i + 1];
+				if (value.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH){
+					value = value.substring(0, ValidationConstraints.MAX_ATTRIBUTE_LENGTH);
+				}
+			} else {
+				result.append(key).append(KEY_AND_VALUE_DELIMITER);
+				break;
+			}
+
+			result.append(key).append(KEY_AND_VALUE_DELIMITER).append(value);
+			if (i + 1 != keyAndValueArray.length - 1){
+				result.append(ATTRIBUTES_DELIMITER);
 			}
 		}
-		return key + ":" + value;
+		return result.toString();
 	}
 }

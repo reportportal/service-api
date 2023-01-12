@@ -34,6 +34,7 @@
  import org.springframework.transaction.annotation.Transactional;
  import org.springframework.web.bind.annotation.*;
 
+ import static com.epam.ta.reportportal.auth.*
  import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
  import static org.springframework.http.HttpStatus.OK;
 

@@ -286,7 +286,7 @@ public class LaunchController {
 	@GetMapping(value = "/names")
 	@ResponseStatus(OK)
 	@ApiOperation("Get launch names of project")
-	public List<String> getAllLaunchNames(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "name") String value,
+	public List<String> getAllLaunchNames(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "name", required = false, defaultValue = "") String value,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return getLaunchMessageHandler.getLaunchNames(projectExtractor.extractProjectDetails(user, normalizeId(projectName)), value);
 	}

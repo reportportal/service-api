@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
@@ -80,6 +81,9 @@ class DeleteProjectHandlerImplTest {
 
 	@Mock
 	private LogRepository logRepository;
+
+	@Mock
+	private LogService logService;
 
 	@InjectMocks
 	private DeleteProjectHandlerImpl handler;

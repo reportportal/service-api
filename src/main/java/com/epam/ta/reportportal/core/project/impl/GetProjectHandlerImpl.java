@@ -133,19 +133,13 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	@Override
 	public List<String> getUserNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
-		BusinessRule.expect(value.length() > 2, Predicates.equalTo(true))
-				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
-				);
+		checkFilterLength(value);
 		return userRepository.findNamesByProject(projectDetails.getProjectId(), value);
 	}
 
 	@Override
 	public Iterable<SearchUserResource> getUserNames(String value, ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
-		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true))
-				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 1 symbol", value)
-				);
+		checkFilterLength(value);
 
 		final CompositeFilterCondition userCondition = getUserSearchCondition(value);
 
@@ -157,6 +151,13 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 		return PagedResourcesAssembler.pageConverter(UserConverter.TO_SEARCH_RESOURCE)
 				.apply(userRepository.findByFilterExcludingProjects(filter, pageable));
+	}
+
+	private void checkFilterLength(String value) {
+		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true))
+				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 1 symbol", value)
+				);
 	}
 
 	private CompositeFilterCondition getUserSearchCondition(String value) {

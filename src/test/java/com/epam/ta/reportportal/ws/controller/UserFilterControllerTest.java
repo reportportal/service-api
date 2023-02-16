@@ -178,7 +178,6 @@ class UserFilterControllerTest extends BaseMvcTest {
 		updateUserFilterRQ.setName("new name");
 		updateUserFilterRQ.setObjectType("Launch");
 		updateUserFilterRQ.setDescription("new description");
-		updateUserFilterRQ.setShare(true);
 		Order order = new Order();
 		order.setIsAsc(true);
 		order.setSortingColumnName("name");

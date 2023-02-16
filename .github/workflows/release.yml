@@ -12,7 +12,7 @@ on:
 env:
   GH_USER_NAME: github.actor
   SCRIPTS_VERSION: 5.7.0
-  BOM_VERSION: 5.7.3
+  BOM_VERSION: 5.7.4
   MIGRATIONS_VERSION: 5.7.3
   RELEASE_VERSION: 5.8
   REPOSITORY_URL: 'https://maven.pkg.github.com/'

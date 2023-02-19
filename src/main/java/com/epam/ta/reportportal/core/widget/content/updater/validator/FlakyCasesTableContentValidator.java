@@ -38,40 +38,40 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 @Service
 public class FlakyCasesTableContentValidator implements WidgetValidatorStrategy {
 
-	@Override
-	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions, int limit) {
-		validateWidgetOptions(widgetOptions);
-		validateWidgetLimit(limit);
-		validateFilterSortMapping(filterSortMapping);
-	}
+    @Override
+    public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions, int limit) {
+        validateWidgetOptions(widgetOptions);
+        validateWidgetLimit(limit);
+        validateFilterSortMapping(filterSortMapping);
+    }
 
-	/**
-	 * Mapping should not be empty
-	 *
-	 * @param filterSortMapping Map of ${@link Filter} for query building as key and ${@link Sort} as value for each filter
-	 */
-	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
-		BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");
-	}
+    /**
+     * Mapping should not be empty
+     *
+     * @param filterSortMapping Map of ${@link Filter} for query building as key and ${@link Sort} as value for each filter
+     */
+    private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
+        BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
+                .verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");
+    }
 
-	/**
-	 * Validate provided widget options. For current widget launch name should be specified.
-	 *
-	 * @param widgetOptions Map of stored widget options.
-	 */
-	private void validateWidgetOptions(WidgetOptions widgetOptions) {
-		BusinessRule.expect(WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions), StringUtils::isNotEmpty)
-				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LAUNCH_NAME_FIELD + " should be specified for widget.");
-	}
+    /**
+     * Validate provided widget options. For current widget launch name should be specified.
+     *
+     * @param widgetOptions Map of stored widget options.
+     */
+    private void validateWidgetOptions(WidgetOptions widgetOptions) {
+        BusinessRule.expect(WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions), StringUtils::isNotEmpty)
+                .verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LAUNCH_NAME_FIELD + " should be specified for widget.");
+    }
 
-	/**
-	 * Validate provided widget launches count. For current widget launches count should in the range from 2 to 100.
-	 *
-	 * @param limit launches count.
-	 */
-	private void validateWidgetLimit(int limit) {
-		BusinessRule.expect(limit > 100 || limit < 2 , equalTo(false))
-				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,  "Items count should have value from 2 to 100.");
-	}
+    /**
+     * Validate provided widget launches count. For current widget launches count should in the range from 2 to 100.
+     *
+     * @param limit launches count.
+     */
+    private void validateWidgetLimit(int limit) {
+        BusinessRule.expect(limit > 100 || limit < 2 , equalTo(false))
+                .verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,  "Items count should have value from 2 to 100.");
+    }
 }

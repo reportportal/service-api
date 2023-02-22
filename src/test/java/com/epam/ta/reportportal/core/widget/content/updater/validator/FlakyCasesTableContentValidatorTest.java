@@ -24,7 +24,7 @@ public class FlakyCasesTableContentValidatorTest {
 			flakyCasesTableContentValidator.validate(null, new HashMap<>(), new WidgetOptions(), 5);
 		});
 
-		String expectedMessage = "Unable to load widget content. Widget proprties contains errors: launchNameFilter should be specified for widget.";
+		String expectedMessage = "Unable to load widget content. Widget properties contain errors: launchNameFilter should be specified for widget.";
 		String actualMessage = exception.getMessage();
 		assertTrue(actualMessage.contains(expectedMessage));
 	}

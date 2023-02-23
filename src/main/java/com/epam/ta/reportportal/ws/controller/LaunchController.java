@@ -371,7 +371,7 @@ public class LaunchController {
 
 	@PostMapping(value = "/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@ResponseStatus(OK)
-	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")
+	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip and xml.")
 	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file,
 			@AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request) {
 		return importLaunchHandler.importLaunch(projectExtractor.extractProjectDetails(user, normalizeId(projectName)),

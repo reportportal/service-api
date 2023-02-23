@@ -123,24 +123,4 @@ public class WidgetController {
 			@FilterFor(Widget.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
 		return getWidgetHandler.getOwnNames(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
 	}
-
-	@Transactional(readOnly = true)
-	@GetMapping(value = "/shared")
-	@ResponseStatus(OK)
-	@ApiOperation("Load shared widgets")
-	public Iterable<WidgetResource> getShared(@PathVariable String projectName, @SortFor(Widget.class) Pageable pageable,
-			@FilterFor(Widget.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getShared(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
-	}
-
-	@Transactional(readOnly = true)
-	@GetMapping(value = "/shared/search")
-	@ResponseStatus(OK)
-	@ApiOperation("Search shared widgets by name")
-	public Iterable<WidgetResource> searchShared(@RequestParam("term") String term, @PathVariable String projectName,
-			@SortFor(Widget.class) Pageable pageable, @FilterFor(Widget.class) Filter filter,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.searchShared(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user, term);
-	}
-
 }

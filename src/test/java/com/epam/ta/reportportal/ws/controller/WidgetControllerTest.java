@@ -65,7 +65,6 @@ class WidgetControllerTest extends BaseMvcTest {
 		contentParameters.setItemsCount(50);
 		rq.setFilterIds(Collections.singletonList(3L));
 		rq.setContentParameters(contentParameters);
-		rq.setShare(true);
 		final MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/widget").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)).andExpect(status().isCreated()).andReturn();
@@ -87,7 +86,6 @@ class WidgetControllerTest extends BaseMvcTest {
 		rq.setName("updated");
 		rq.setDescription("updated");
 		rq.setWidgetType("activityStream");
-		rq.setShare(false);
 		final ContentParameters contentParameters = new ContentParameters();
 		contentParameters.setContentFields(Arrays.asList("number", "start_time", "user"));
 		contentParameters.setItemsCount(50);
@@ -106,7 +104,6 @@ class WidgetControllerTest extends BaseMvcTest {
 		WidgetRQ rq = new WidgetRQ();
 		rq.setName("name");
 		rq.setWidgetType("oldLineChart");
-		rq.setShare(false);
 	    var contextParams =	new ContentParameters();
 	    contextParams.setItemsCount(1);
 		contextParams.setContentFields(Collections.singletonList("test"));
@@ -122,7 +119,6 @@ class WidgetControllerTest extends BaseMvcTest {
 		rq.setName("LAUNCH STATISTICS");
 		rq.setDescription("updated");
 		rq.setWidgetType("activityStream");
-		rq.setShare(false);
 		final ContentParameters contentParameters = new ContentParameters();
 		contentParameters.setContentFields(Arrays.asList("number", "start_time", "user"));
 		contentParameters.setItemsCount(50);
@@ -135,13 +131,13 @@ class WidgetControllerTest extends BaseMvcTest {
 	@Test
 	void getSharedWidgetsListPositive() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/shared").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isOk());
+				.andExpect(status().isBadRequest());
 	}
 
 	@Test
 	void searchSharedWidgetsListPositive() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/shared/search?term=ch").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isOk());
+				.andExpect(status().isNotFound());
 	}
 
 	@Test

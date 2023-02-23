@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
-import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -24,8 +23,6 @@ import com.epam.ta.reportportal.core.dashboard.UpdateDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardUpdatedEvent;
 import com.epam.ta.reportportal.core.events.activity.WidgetDeletedEvent;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
-import com.epam.ta.reportportal.core.widget.UpdateWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.remover.WidgetContentRemover;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.dao.DashboardWidgetRepository;
@@ -47,8 +44,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.stream.Collectors;
-
 import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
 
 /**
@@ -61,26 +56,17 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 
 	private final DashboardWidgetRepository dashboardWidgetRepository;
 	private final DashboardRepository dashboardRepository;
-	private final UpdateWidgetHandler updateWidgetHandler;
 	private final WidgetContentRemover widgetContentRemover;
 	private final WidgetRepository widgetRepository;
 	private final MessageBus messageBus;
-	private final GetShareableEntityHandler<Dashboard> getShareableDashboardHandler;
-	private final GetShareableEntityHandler<Widget> getShareableWidgetHandler;
-	private final ShareableObjectsHandler aclHandler;
 
 	@Autowired
-	public UpdateDashboardHandlerImpl(DashboardRepository dashboardRepository, UpdateWidgetHandler updateWidgetHandler,
+	public UpdateDashboardHandlerImpl(DashboardRepository dashboardRepository,
 			@Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover, MessageBus messageBus,
-			GetShareableEntityHandler<Dashboard> getShareableDashboardHandler, GetShareableEntityHandler<Widget> getShareableWidgetHandler,
-			ShareableObjectsHandler aclHandler, DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository) {
+			DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository) {
 		this.dashboardRepository = dashboardRepository;
-		this.updateWidgetHandler = updateWidgetHandler;
 		this.widgetContentRemover = widgetContentRemover;
 		this.messageBus = messageBus;
-		this.getShareableDashboardHandler = getShareableDashboardHandler;
-		this.getShareableWidgetHandler = getShareableWidgetHandler;
-		this.aclHandler = aclHandler;
 		this.dashboardWidgetRepository = dashboardWidgetRepository;
 		this.widgetRepository = widgetRepository;
 	}
@@ -88,26 +74,23 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 	@Override
 	public OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails, UpdateDashboardRQ rq, Long dashboardId,
 			ReportPortalUser user) {
-		Dashboard dashboard = getShareableDashboardHandler.getAdministrated(dashboardId, projectDetails);
+		Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
+						dashboardId,
+						projectDetails.getProjectName()
+				));
 		DashboardActivityResource before = TO_ACTIVITY_RESOURCE.apply(dashboard);
 
 		if (!dashboard.getName().equals(rq.getName())) {
 			BusinessRule.expect(dashboardRepository.existsByNameAndOwnerAndProjectId(rq.getName(),
-					user.getUsername(),
-					projectDetails.getProjectId()
-			), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
+							user.getUsername(),
+							projectDetails.getProjectId()
+					), BooleanUtils::isFalse)
+					.verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
 		}
 
 		dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
 		dashboardRepository.save(dashboard);
-
-		if (before.isShared() != dashboard.isShared()) {
-			aclHandler.updateAcl(dashboard, projectDetails.getProjectId(), dashboard.isShared());
-			updateWidgetHandler.updateSharing(dashboard.getDashboardWidgets()
-					.stream()
-					.map(DashboardWidget::getWidget)
-					.collect(Collectors.toList()), projectDetails.getProjectId(), dashboard.isShared());
-		}
 
 		messageBus.publishActivity(new DashboardUpdatedEvent(before,
 				TO_ACTIVITY_RESOURCE.apply(dashboard),
@@ -120,18 +103,25 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 	@Override
 	public OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq,
 			ReportPortalUser user) {
-		Dashboard dashboard = getShareableDashboardHandler.getAdministrated(dashboardId, projectDetails);
+		final Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
+						dashboardId,
+						projectDetails.getProjectName()
+				));
 		BusinessRule.expect(dashboard.getDashboardWidgets()
-				.stream()
-				.map(dw -> dw.getId().getWidgetId())
-				.anyMatch(widgetId -> widgetId.equals(rq.getAddWidget().getWidgetId())), BooleanUtils::isFalse)
-				.verify(ErrorType.DASHBOARD_UPDATE_ERROR,
-						Suppliers.formattedSupplier("Widget with ID = '{}' is already added to the dashboard with ID = '{}'",
-								rq.getAddWidget().getWidgetId(),
-								dashboard.getId()
-						)
-				);
-		Widget widget = getShareableWidgetHandler.getPermitted(rq.getAddWidget().getWidgetId(), projectDetails);
+						.stream()
+						.map(dw -> dw.getId().getWidgetId())
+						.anyMatch(widgetId -> widgetId.equals(rq.getAddWidget().getWidgetId())), BooleanUtils::isFalse)
+				.verify(ErrorType.DASHBOARD_UPDATE_ERROR, Suppliers.formattedSupplier(
+						"Widget with ID = '{}' is already added to the dashboard with ID = '{}'",
+						rq.getAddWidget().getWidgetId(),
+						dashboard.getId()
+				));
+		Widget widget = widgetRepository.findByIdAndProjectId(rq.getAddWidget().getWidgetId(), projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
+						rq.getAddWidget().getWidgetId(),
+						projectDetails.getProjectName()
+				));
 		boolean isCreatedOnDashboard = CollectionUtils.isEmpty(widget.getDashboardWidgets());
 		DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getAddWidget(), dashboard, widget, isCreatedOnDashboard);
 		dashboardWidgetRepository.save(dashboardWidget);
@@ -143,8 +133,16 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 	@Override
 	public OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		Dashboard dashboard = getShareableDashboardHandler.getPermitted(dashboardId, projectDetails);
-		Widget widget = getShareableWidgetHandler.getPermitted(widgetId, projectDetails);
+		Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
+						dashboardId,
+						projectDetails.getProjectName()
+				));
+		Widget widget = widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
+						widgetId,
+						projectDetails.getProjectName()
+				));
 
 		if (shouldDelete(widget)) {
 			OperationCompletionRS result = deleteWidget(widget);
@@ -182,7 +180,6 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 		widgetContentRemover.removeContent(widget);
 		dashboardWidgetRepository.deleteAll(widget.getDashboardWidgets());
 		widgetRepository.delete(widget);
-		aclHandler.deleteAclForObject(widget);
 		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' was successfully deleted from the system.");
 	}
 

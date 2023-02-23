@@ -105,7 +105,6 @@ public final class ProjectConverter {
 		projectConfiguration.setSubTypes(subTypes);
 
 		projectResource.setConfiguration(projectConfiguration);
-		projectResource.setOrganization(project.getOrganization());
 		return projectResource;
 	};
 

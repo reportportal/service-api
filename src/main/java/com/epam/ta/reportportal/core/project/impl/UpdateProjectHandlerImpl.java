@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.reportportal.extension.event.ProjectEvent;
-import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
@@ -71,7 +70,6 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -126,8 +124,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private final LogIndexer logIndexer;
 
-	private final ShareableObjectsHandler aclHandler;
-
 	private final ProjectConverter projectConverter;
 
 	@Autowired
@@ -135,7 +131,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 			ProjectRepository projectRepository, UserRepository userRepository, UserPreferenceRepository preferenceRepository,
 			MessageBus messageBus, ProjectUserRepository projectUserRepository, ApplicationEventPublisher applicationEventPublisher,
 			MailServiceFactory mailServiceFactory, AnalyzerStatusCache analyzerStatusCache, IndexerStatusCache indexerStatusCache,
-			AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer, ShareableObjectsHandler aclHandler,
+			AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer,
 			ProjectConverter projectConverter) {
 		this.projectExtractor = projectExtractor;
 		this.projectAttributeValidator = projectAttributeValidator;
@@ -150,7 +146,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		this.indexerStatusCache = indexerStatusCache;
 		this.analyzerServiceClient = analyzerServiceClient;
 		this.logIndexer = logIndexer;
-		this.aclHandler = aclHandler;
 		this.projectConverter = projectConverter;
 	}
 
@@ -329,7 +324,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
 		project.getUsers().remove(projectUser);
 		userForUnassign.getProjects().remove(projectUser);
-		aclHandler.preventSharedObjects(project.getId(), username);
 		return projectUser;
 	}
 
@@ -348,12 +342,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		projectUser.setUser(modifyingUser);
 		projectUser.setProject(project);
 		project.getUsers().add(projectUser);
-
-		if (projectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
-			aclHandler.permitSharedObjects(project.getId(), name, BasePermission.ADMINISTRATION);
-		} else {
-			aclHandler.permitSharedObjects(project.getId(), name, BasePermission.READ);
-		}
 	}
 
 	private void validateUnassigningUser(User modifier, User userForUnassign, Long projectId, Project project) {

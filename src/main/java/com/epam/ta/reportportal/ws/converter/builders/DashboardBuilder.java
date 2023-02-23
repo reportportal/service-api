@@ -46,7 +46,6 @@ public class DashboardBuilder implements Supplier<Dashboard> {
 	public DashboardBuilder addDashboardRq(CreateDashboardRQ rq) {
 		dashboard.setName(rq.getName());
 		dashboard.setDescription(rq.getDescription());
-		ofNullable(rq.getShare()).ifPresent(it -> dashboard.setShared(it));
 		return this;
 	}
 
@@ -60,7 +59,6 @@ public class DashboardBuilder implements Supplier<Dashboard> {
 	public DashboardBuilder addUpdateRq(UpdateDashboardRQ rq) {
 		Optional.ofNullable(rq.getName()).ifPresent(name -> dashboard.setName(name));
 		Optional.ofNullable(rq.getDescription()).ifPresent(description -> dashboard.setDescription(description));
-		Optional.ofNullable(rq.getShare()).ifPresent(share -> dashboard.setShared(share));
 		Optional.ofNullable(rq.getWidgets()).ifPresent(widgets -> {
 			for (DashboardWidget dashboardWidget : dashboard.getDashboardWidgets()) {
 				widgets.stream()

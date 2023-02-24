@@ -92,7 +92,7 @@ public class EmailService extends JavaMailSenderImpl {
 
 			message.addInline("create-user.png", emailTemplateResource("create-user.png"));
 
-			attachSocialImages(message);
+			attachSocialImagesWithoutFbAndVk(message);
 		};
 		this.send(preparator);
 	}
@@ -115,7 +115,7 @@ public class EmailService extends JavaMailSenderImpl {
 			String text = mergeFinishLaunchText(getUrl(url), launch, project.getProjectIssueTypes());
 			message.setText(text, true);
 
-			attachSocialImages(message);
+			attachSocialImagesWithoutFbAndVk(message);
 		};
 		this.send(preparator);
 	}
@@ -284,7 +284,7 @@ public class EmailService extends JavaMailSenderImpl {
 			message.setText(text, true);
 
 			message.addInline("create-user.png", emailTemplateResource("create-user.png"));
-			attachSocialImages(message);
+			attachSocialImagesWithoutFbAndVk(message);
 		};
 		this.send(preparator);
 	}
@@ -331,11 +331,15 @@ public class EmailService extends JavaMailSenderImpl {
 	}
 
 	private void attachSocialImages(MimeMessageHelper message) throws MessagingException {
-		message.addInline("ic-github.png", emailTemplateResource("ic-github.png"));
+		attachSocialImagesWithoutFbAndVk(message);
 		message.addInline("ic-fb.png", emailTemplateResource("ic-fb.png"));
+		message.addInline("ic-vk.png", emailTemplateResource("ic-vk.png"));
+	}
+
+	private void attachSocialImagesWithoutFbAndVk(MimeMessageHelper message) throws MessagingException {
+		message.addInline("ic-github.png", emailTemplateResource("ic-github.png"));
 		message.addInline("ic-twitter.png", emailTemplateResource("ic-twitter.png"));
 		message.addInline("ic-youtube.png", emailTemplateResource("ic-youtube.png"));
-		message.addInline("ic-vk.png", emailTemplateResource("ic-vk.png"));
 		message.addInline("ic-slack.png", emailTemplateResource("ic-slack.png"));
 	}
 

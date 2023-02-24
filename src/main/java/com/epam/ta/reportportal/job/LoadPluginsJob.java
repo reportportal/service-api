@@ -88,6 +88,8 @@ public class LoadPluginsJob {
 					IntegrationType integrationType = integrationTypeRepository.findByName(pluginInfo.getId())
 							.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginInfo.getId()));
 
+					unloadPlugin(integrationType);
+
 					boolean isLoaded = pluginBox.loadPlugin(integrationType.getName(), integrationType.getDetails());
 
 					if (isLoaded) {
@@ -104,6 +106,17 @@ public class LoadPluginsJob {
 			}
 		});
 
+	}
+
+	private void unloadPlugin(IntegrationType integrationType) {
+		pluginBox.getPluginById(integrationType.getName()).ifPresent(plugin -> {
+
+			if (!pluginBox.unloadPlugin(integrationType)) {
+				throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'", integrationType.getName()).get()
+				);
+			}
+		});
 	}
 
 }

@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.util.BinaryDataResponseWriter;
 import org.apache.tika.parser.AutoDetectParser;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,5 +21,10 @@ public class MultipartDataConfig {
 	@Bean
 	public AutoDetectParser autoDetectParser() {
 		return new AutoDetectParser();
+	}
+
+	@Bean
+	public BinaryDataResponseWriter binaryDataResponseWriter() {
+		return new BinaryDataResponseWriter();
 	}
 }

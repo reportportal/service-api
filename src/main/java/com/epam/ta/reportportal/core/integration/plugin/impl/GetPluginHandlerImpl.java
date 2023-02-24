@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class GetPluginHandlerImpl implements GetPluginHandler {
+	private static final String ACCESS_TYPE_PUBLIC_NAME = "public";
 
 	private final IntegrationTypeRepository integrationTypeRepository;
 
@@ -42,6 +43,14 @@ public class GetPluginHandlerImpl implements GetPluginHandler {
 	@Override
 	public List<IntegrationTypeResource> getPlugins() {
 		return integrationTypeRepository.findAllByOrderByCreationDate()
+				.stream()
+				.map(IntegrationTypeConverter.TO_RESOURCE)
+				.collect(Collectors.toList());
+	}
+
+	@Override
+	public List<IntegrationTypeResource> getPublicPlugins() {
+		return integrationTypeRepository.findAllByAccessType(ACCESS_TYPE_PUBLIC_NAME)
 				.stream()
 				.map(IntegrationTypeConverter.TO_RESOURCE)
 				.collect(Collectors.toList());

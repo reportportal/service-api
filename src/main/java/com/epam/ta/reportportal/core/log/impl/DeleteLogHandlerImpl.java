@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.log.DeleteLogHandler;
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -67,13 +68,16 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
 
 	private final LogIndexer logIndexer;
 
+	private final LogService logService;
+
 	public DeleteLogHandlerImpl(LogRepository logRepository, ProjectRepository projectRepository, TestItemService testItemService,
-			LogIndexer logIndexer, AttachmentRepository attachmentRepository) {
+								LogIndexer logIndexer, AttachmentRepository attachmentRepository, LogService logService) {
 		this.logRepository = logRepository;
 		this.projectRepository = projectRepository;
 		this.testItemService = testItemService;
 		this.logIndexer = logIndexer;
 		this.attachmentRepository = attachmentRepository;
+		this.logService = logService;
 	}
 
 	@Override
@@ -83,6 +87,7 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
 
 		Log log = validate(logId, user, projectDetails);
 		try {
+			logService.deleteLogMessage(projectDetails.getProjectId(), log.getId());
 			logRepository.delete(log);
 			ofNullable(log.getAttachment()).ifPresent(attachment -> attachmentRepository.moveForDeletion(attachment.getId()));
 		} catch (Exception exc) {

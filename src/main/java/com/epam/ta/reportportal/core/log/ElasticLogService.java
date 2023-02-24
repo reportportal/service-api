@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.log;
 
+import com.epam.ta.reportportal.dao.custom.ElasticSearchClient;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogMessage;
 import org.apache.commons.collections.CollectionUtils;
@@ -11,21 +12,24 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.core.configs.rabbit.BackgroundProcessingConfiguration.LOG_MESSAGE_SAVING_ROUTING_KEY;
 import static com.epam.ta.reportportal.core.configs.rabbit.BackgroundProcessingConfiguration.PROCESSING_EXCHANGE_NAME;
 
 @Primary
 @Service
-@ConditionalOnProperty(prefix = "rp.elasticsearchLogmessage", name = "host")
-public class LogServiceElastic implements LogService {
+@ConditionalOnProperty(prefix = "rp.elasticsearch", name = "host")
+public class ElasticLogService implements LogService {
     private final AmqpTemplate amqpTemplate;
+    private final ElasticSearchClient elasticSearchClient;
 
-    public LogServiceElastic(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate) {
+    public ElasticLogService(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate, ElasticSearchClient elasticSearchClient) {
         this.amqpTemplate = amqpTemplate;
+        this.elasticSearchClient = elasticSearchClient;
     }
 
-    public void saveLogMessageToElasticSearch(Log log, Long launchId) {
+    public void saveLogMessage(Log log, Long launchId) {
         if (Objects.isNull(log)) return;
         amqpTemplate.convertAndSend(PROCESSING_EXCHANGE_NAME, LOG_MESSAGE_SAVING_ROUTING_KEY,
                 convertLogToLogMessage(log, launchId));
@@ -36,9 +40,34 @@ public class LogServiceElastic implements LogService {
      * during reporting.
      * @param logList
      */
-    public void saveLogMessageListToElasticSearch(List<Log> logList, Long launchId) {
+    public void saveLogMessageList(List<Log> logList, Long launchId) {
         if (CollectionUtils.isEmpty(logList)) return;
-        logList.stream().filter(Objects::nonNull).forEach(log -> saveLogMessageToElasticSearch(log, launchId));
+        logList.stream().filter(Objects::nonNull).forEach(log -> saveLogMessage(log, launchId));
+    }
+
+    @Override
+    public void deleteLogMessage(Long projectId, Long logId) {
+        elasticSearchClient.deleteLogsByLogIdAndProjectId(projectId, logId);
+    }
+
+    @Override
+    public void deleteLogMessageByTestItemSet(Long projectId, Set<Long> itemIds) {
+        elasticSearchClient.deleteLogsByItemSetAndProjectId(projectId, itemIds);
+    }
+
+    @Override
+    public void deleteLogMessageByLaunch(Long projectId, Long launchId) {
+        elasticSearchClient.deleteLogsByLaunchIdAndProjectId(projectId, launchId);
+    }
+
+    @Override
+    public void deleteLogMessageByLaunchList(Long projectId, List<Long> launchIds) {
+        elasticSearchClient.deleteLogsByLaunchListAndProjectId(projectId, launchIds);
+    }
+
+    @Override
+    public void deleteLogMessageByProject(Long projectId) {
+        elasticSearchClient.deleteLogsByProjectId(projectId);
     }
 
     private LogMessage convertLogToLogMessage(Log log, Long launchId) {

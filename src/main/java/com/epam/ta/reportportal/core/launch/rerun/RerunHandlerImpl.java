@@ -182,7 +182,7 @@ public class RerunHandlerImpl implements RerunHandler {
 	}
 
 	private Filter getChildItemFilter(Launch launch, Integer testCaseHash, Long parentId) {
-		return getCommonFilter(launch.getId(), testCaseHash).withCondition(new FilterCondition(Condition.EXISTS,
+		return getCommonFilter(launch.getId(), testCaseHash).withCondition(new FilterCondition(Condition.EQUALS,
 				false,
 				String.valueOf(parentId),
 				CRITERIA_PARENT_ID

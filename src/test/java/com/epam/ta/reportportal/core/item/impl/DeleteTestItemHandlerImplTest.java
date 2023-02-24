@@ -17,7 +17,9 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.ElementsCounterService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -36,6 +38,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -62,10 +65,19 @@ class DeleteTestItemHandlerImplTest {
 	private LogIndexer logIndexer;
 
 	@Mock
+	private ElementsCounterService elementsCounterService;
+
+	@Mock
+	private ApplicationEventPublisher eventPublisher;
+
+	@Mock
 	private LaunchRepository launchRepository;
 
 	@Mock
 	private AttachmentRepository attachmentRepository;
+
+	@Mock
+	private LogService logService;
 
 	@InjectMocks
 	private DeleteTestItemHandlerImpl handler;

@@ -293,7 +293,7 @@ public class AsyncReportingListener implements MessageListener {
 		Log log = new LogBuilder().addSaveLogRq(request).addTestItem(item).addProjectId(projectId).get();
 		logRepository.save(log);
 		Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
-		logService.saveLogMessageToElasticSearch(log, effectiveLaunch.getId());
+		logService.saveLogMessage(log, effectiveLaunch.getId());
 
 		saveAttachment(metaInfo,
 				log.getId(),
@@ -308,7 +308,7 @@ public class AsyncReportingListener implements MessageListener {
 	private void createLaunchLog(SaveLogRQ request, Launch launch, BinaryDataMetaInfo metaInfo, Long projectId) {
 		Log log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).addProjectId(projectId).get();
 		logRepository.save(log);
-		logService.saveLogMessageToElasticSearch(log, launch.getId());
+		logService.saveLogMessage(log, launch.getId());
 
 		saveAttachment(metaInfo, log.getId(), projectId, launch.getId(), null, launch.getUuid(), log.getUuid());
 	}

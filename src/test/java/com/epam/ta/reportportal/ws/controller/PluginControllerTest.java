@@ -16,9 +16,15 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import org.junit.jupiter.api.Test;
 
+import javax.activation.MimetypesFileTypeMap;
+import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
+
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -30,6 +36,26 @@ class PluginControllerTest extends BaseMvcTest {
 	@Test
 	void getLaunchPositive() throws Exception {
 		mockMvc.perform(get("/v1/plugin").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	void shouldGetFileWhenAuthenticated() throws Exception {
+
+		final ByteArrayInputStream inputStream = new ByteArrayInputStream(new byte[] {});
+		final String contentType = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType("image.png");
+
+		final BinaryData binaryData = new BinaryData(contentType, (long) inputStream.available(), inputStream);
+		when(pluginFilesProvider.load("pluginName", "image.png")).thenReturn(binaryData);
+
+		mockMvc.perform(get("/v1/plugin/pluginName/file/image.png").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk());
+
+		verify(binaryDataResponseWriter, times(1)).write(eq(binaryData), any(HttpServletResponse.class));
+	}
+
+	@Test
+	void shouldNotGetFileWhenNotAuthenticated() throws Exception {
+		mockMvc.perform(get("/v1/plugin/pluginName/file/image.png")).andExpect(status().isUnauthorized());
 	}
 
 }

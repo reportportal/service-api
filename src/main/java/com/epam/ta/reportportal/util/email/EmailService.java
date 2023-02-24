@@ -65,6 +65,7 @@ public class EmailService extends JavaMailSenderImpl {
 	private TemplateEngine templateEngine;
 	/* Default value for FROM project notifications field */
 	private String from;
+	private String fromAlias;
 	private String rpHost;
 
 	public EmailService(Properties javaMailProperties) {
@@ -265,6 +266,10 @@ public class EmailService extends JavaMailSenderImpl {
 		this.from = from;
 	}
 
+	public void setFromAlias(String fromAlias) {
+		this.fromAlias = fromAlias;
+	}
+
 	public void setRpHost(String rpHost) {
 		this.rpHost = rpHost;
 	}
@@ -309,16 +314,18 @@ public class EmailService extends JavaMailSenderImpl {
 	 * If username is email, format will be "from \<email\>"
 	 */
 	private void setFrom(MimeMessageHelper message) throws MessagingException, UnsupportedEncodingException {
-		if (StringUtils.isNotBlank(this.from)) {
-			if (UserUtils.isEmailValid(this.from) && isAddressValid(this.from)) {
-				message.setFrom(this.from);
-			} else if (UserUtils.isEmailValid(getUsername())) {
-				message.setFrom(getUsername(), this.from);
+		if (isFromValid()) {
+			if (StringUtils.isNotBlank(fromAlias)) {
+				message.setFrom(new InternetAddress(from, fromAlias));
+			} else {
+				message.setFrom(from);
 			}
-		} else if (UserUtils.isEmailValid(getUsername())) {
-			message.setFrom(getUsername());
 		}
 		//otherwise generate automatically
+	}
+
+	private boolean isFromValid() {
+		return StringUtils.isNotBlank(this.from) && UserUtils.isEmailValid(this.from) && isAddressValid(this.from);
 	}
 
 	private boolean isAddressValid(String from) {

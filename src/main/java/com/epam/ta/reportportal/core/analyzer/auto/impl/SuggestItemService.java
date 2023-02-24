@@ -163,6 +163,7 @@ public class SuggestItemService {
 			return null;
 		}
 		SuggestedItem suggestedItem = new SuggestedItem();
+		roundSuggestInfoMatchScore(suggestInfo);
 		suggestedItem.setSuggestRs(suggestInfo);
 		suggestedItem.setTestItemResource(TestItemConverter.TO_RESOURCE.apply(relevantTestItem));
 		suggestedItem.setLogs(logRepository.findLatestUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(relevantTestItem.getLaunchId(),
@@ -171,6 +172,11 @@ public class SuggestItemService {
 				SUGGESTED_ITEMS_LOGS_LIMIT
 		).stream().map(LogConverter.TO_RESOURCE).collect(Collectors.toSet()));
 		return suggestedItem;
+	}
+
+	private void roundSuggestInfoMatchScore(SuggestInfo info) {
+		float roundedMatchScore = Math.round(info.getMatchScore());
+		info.setMatchScore(roundedMatchScore);
 	}
 
 	public OperationCompletionRS handleSuggestChoice(List<SuggestInfo> suggestInfos) {

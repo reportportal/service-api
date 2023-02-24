@@ -127,7 +127,7 @@ public class BatchLogIndexer {
 	private List<Long> getLaunchIds(Long projectId) {
 		return launchRepository.findIdsByProjectIdAndModeAndStatusNotEq(projectId,
 				JLaunchModeEnum.DEFAULT,
-				JStatusEnum.PASSED,
+				JStatusEnum.IN_PROGRESS,
 				launchBatchSize
 		);
 	}
@@ -135,7 +135,7 @@ public class BatchLogIndexer {
 	private List<Long> getLaunchIds(Long projectId, Long launchId) {
 		return launchRepository.findIdsByProjectIdAndModeAndStatusNotEqAfterId(projectId,
 				JLaunchModeEnum.DEFAULT,
-				JStatusEnum.PASSED,
+				JStatusEnum.IN_PROGRESS,
 				launchId,
 				launchBatchSize
 		);

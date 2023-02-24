@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import com.epam.reportportal.extension.event.LaunchFinishedPluginEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
@@ -103,8 +104,8 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 				.addEndTime(finishLaunchRQ.getEndTime())
 				.get();
 
-		LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, baseUrl);
-		eventPublisher.publishEvent(event);
+		eventPublisher.publishEvent(new LaunchFinishedPluginEvent(launch.getId(), launch.getProjectId()));
+		eventPublisher.publishEvent(new LaunchFinishedEvent(launch, user, baseUrl));
 
 		FinishLaunchRS response = new FinishLaunchRS();
 		response.setId(launch.getUuid());

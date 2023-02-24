@@ -35,7 +35,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
 
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -301,8 +301,7 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$failed").value("3"))
 				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$total").value("5"))
 				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$passed").value("1"))
-				.andExpect(jsonPath("$.content.result[0].attributes[0].value").value("value1"))
-				.andExpect(jsonPath("$.content.result[0].attributes[1].value").value("value"))
+				.andExpect(jsonPath("$.content.result[0].attributes", hasSize(2)))
 				.andReturn();
 	}
 

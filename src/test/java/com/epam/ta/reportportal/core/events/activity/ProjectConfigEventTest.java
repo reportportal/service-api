@@ -42,6 +42,7 @@ class ProjectConfigEventTest {
 	private static final Pair<String, String> MIN_SHOULD_MATCH = Pair.of("80", "100");
 	private static final Pair<String, String> NUMBER_OF_LOG_LINES = Pair.of("5", "10");
 	private static final Pair<String, String> AUTO_ANALYZED_ENABLED = Pair.of("false", "true");
+	private static final Pair<String, String> ALL_MESSAGES_SHOULD_MATCH = Pair.of("false", "true");
 
 	private static final Pair<String, String> KEEP_LOGS = Pair.of("1 month", "3 month");
 	private static final Pair<String, String> KEEP_SCREENSHOTS = Pair.of("2 weeks", "3 weeks");
@@ -65,19 +66,26 @@ class ProjectConfigEventTest {
 		final Activity actual = new ProjectAnalyzerConfigEvent(getProjectAttributes(getAnalyzerConfig(ANALYZER_MODE.getLeft(),
 				MIN_SHOULD_MATCH.getLeft(),
 				NUMBER_OF_LOG_LINES.getLeft(),
-				AUTO_ANALYZED_ENABLED.getLeft()
+				AUTO_ANALYZED_ENABLED.getLeft(),
+				ALL_MESSAGES_SHOULD_MATCH.getLeft()
 		)),
 				getProjectAttributes(getAnalyzerConfig(ANALYZER_MODE.getRight(),
 						MIN_SHOULD_MATCH.getRight(),
 						NUMBER_OF_LOG_LINES.getRight(),
-						AUTO_ANALYZED_ENABLED.getRight()
+						AUTO_ANALYZED_ENABLED.getRight(),
+						ALL_MESSAGES_SHOULD_MATCH.getRight()
 				)),
 				1L,
 				"user"
 		).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_ANALYZER);
 		expected.getDetails()
-				.setHistory(getAnalyzerConfigHistory(ANALYZER_MODE, MIN_SHOULD_MATCH, NUMBER_OF_LOG_LINES, AUTO_ANALYZED_ENABLED));
+				.setHistory(getAnalyzerConfigHistory(ANALYZER_MODE,
+						MIN_SHOULD_MATCH,
+						NUMBER_OF_LOG_LINES,
+						AUTO_ANALYZED_ENABLED,
+						ALL_MESSAGES_SHOULD_MATCH
+				));
 		checkActivity(expected, actual);
 	}
 
@@ -90,12 +98,13 @@ class ProjectConfigEventTest {
 	}
 
 	private static Map<String, String> getAnalyzerConfig(String analyzerMode, String minShouldMatch, String numberOfLogs,
-			String autoAnalyzerEnabled) {
+			String autoAnalyzerEnabled, String allMessagesShouldMatch) {
 		HashMap<String, String> result = new HashMap<>();
 		result.put(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute(), analyzerMode);
 		result.put(ProjectAttributeEnum.MIN_SHOULD_MATCH.getAttribute(), minShouldMatch);
 		result.put(ProjectAttributeEnum.NUMBER_OF_LOG_LINES.getAttribute(), numberOfLogs);
 		result.put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), autoAnalyzerEnabled);
+		result.put(ProjectAttributeEnum.ALL_MESSAGES_SHOULD_MATCH.getAttribute(), allMessagesShouldMatch);
 		return result;
 	}
 
@@ -123,15 +132,21 @@ class ProjectConfigEventTest {
 	}
 
 	private static List<HistoryField> getAnalyzerConfigHistory(Pair<String, String> analyzerMode, Pair<String, String> minShouldMatch,
-			Pair<String, String> numberOfLogsLines, Pair<String, String> autoAnalyzed) {
-		return Lists.newArrayList(
-				HistoryField.of(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute(), analyzerMode.getLeft(), analyzerMode.getRight()),
+			Pair<String, String> numberOfLogsLines, Pair<String, String> autoAnalyzed, Pair<String, String> allMessagesShouldMatch) {
+		return Lists.newArrayList(HistoryField.of(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute(),
+						analyzerMode.getLeft(),
+						analyzerMode.getRight()
+				),
 				HistoryField.of(ProjectAttributeEnum.MIN_SHOULD_MATCH.getAttribute(), minShouldMatch.getLeft(), minShouldMatch.getRight()),
 				HistoryField.of(ProjectAttributeEnum.NUMBER_OF_LOG_LINES.getAttribute(),
 						numberOfLogsLines.getLeft(),
 						numberOfLogsLines.getRight()
 				),
-				HistoryField.of(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), autoAnalyzed.getLeft(), autoAnalyzed.getRight())
+				HistoryField.of(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), autoAnalyzed.getLeft(), autoAnalyzed.getRight()),
+				HistoryField.of(ProjectAttributeEnum.ALL_MESSAGES_SHOULD_MATCH.getAttribute(),
+						allMessagesShouldMatch.getLeft(),
+						allMessagesShouldMatch.getRight()
+				)
 		);
 	}
 

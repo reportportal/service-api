@@ -32,7 +32,6 @@ apply from: "$scriptsUrl/signing.gradle"
 apply from: "$scriptsUrl/copy-database-scripts.gradle"
 //apply from: "$scriptsUrl/build-quality.gradle"
 apply from: "$scriptsUrl/jacoco.gradle"
-project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
 
 repositories {
     mavenCentral { url "https://repo1.maven.org/maven2" }
@@ -69,6 +68,7 @@ ext['spring-boot.version'] = '2.5.12'
 dependencyManagement {
     imports {
         mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + getProperty('bom.version') : 'com.github.reportportal:commons-bom:f0b6bb6b')
+        mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:12.9.0')
     }
 }
 
@@ -81,12 +81,13 @@ dependencies {
         compile 'com.epam.reportportal:commons-fonts'
         compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-dao:bf7f4474d7'
+        compile 'com.github.reportportal:commons-events:f130879'
+        compile 'com.github.reportportal:commons-dao:d9db19c155'
         compile 'com.github.reportportal:commons-rules:5.3.0'
-        compile 'com.github.reportportal:commons-model:a0479c55'
+        compile 'com.github.reportportal:commons-model:51f5fe85'
         compile 'com.github.reportportal:commons:7480d61'
         compile 'com.github.reportportal:commons-fonts:10d1054'
-        compile 'com.github.reportportal:plugin-api:886ac55'
+        compile 'com.github.reportportal:plugin-api:ab1f825'
     }
 
     compile 'org.springframework.boot:spring-boot-starter-aop'

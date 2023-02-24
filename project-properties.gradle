@@ -5,7 +5,6 @@ def commonScriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-sc
 def migrationsScriptsUrl = 'https://raw.githubusercontent.com/reportportal/migrations/'
 
 project.ext {
-    publishRepo = "https://maven.pkg.github.com/reportportal/service-api"
     dependencyRepos = ["commons-dao", "commons-rules", "commons-model", "commons", "commons-fonts", "plugin-api", "commons-bom"]
     limits = [
             'instruction': 70,
@@ -56,6 +55,8 @@ project.ext {
             (migrationsUrl + '/migrations/54_analyzer_unique_error_attribute.up.sql')  : 'V054__analyzer_unique_error_attribute.sql',
             (migrationsUrl + '/migrations/58_alter_ticket.up.sql')                     : 'V058__alter_ticket.sql',
             (migrationsUrl + '/migrations/59_stale_materialized_view.up.sql')          : 'V059__stale_materialized_view.sql',
+            (migrationsUrl + '/migrations/60_user_bid_extension.up.sql')               : 'V060__user_bid_extension.up.sql',
+            (migrationsUrl + '/migrations/62_sender_case_rule_name.up.sql')            : 'V062__sender_case_rule_name.up.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

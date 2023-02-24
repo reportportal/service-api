@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.log.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.TestItemService;
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -68,6 +69,9 @@ class DeleteLogHandlerTest {
 
 	@Mock
 	private LogIndexer logIndexer;
+
+	@Mock
+	private LogService logService;
 
 	@InjectMocks
 	private DeleteLogHandlerImpl handler;

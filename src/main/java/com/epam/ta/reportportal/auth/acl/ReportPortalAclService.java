@@ -100,6 +100,29 @@ public class ReportPortalAclService extends JdbcMutableAclService {
 	}
 
 	/**
+	 * Update permission to the object for the user.
+	 *
+	 * @param object     to update permission settings.
+	 * @param userName   this user permissions will be updated.
+	 * @param permission {@link Permission}
+	 */
+	void updatePermission(Object object, String userName, Permission permission) {
+		getAcl(object).filter(acl -> isAceExistForUser(acl, userName)).ifPresent(acl -> {
+			PrincipalSid sid = new PrincipalSid(userName);
+			if (!acl.getOwner().equals(sid)) {
+				for (int i = 0; i < acl.getEntries().size(); i++) {
+					AccessControlEntry entry = acl.getEntries().get(i);
+					if (sid.equals(entry.getSid()) && !entry.getPermission().equals(permission)) {
+						acl.updateAce(i, permission);
+						break;
+					}
+				}
+				updateAcl(acl);
+			}
+		});
+	}
+
+	/**
 	 * Remove read permissions to the object for the user.
 	 *
 	 * @param object   to remove permission settings.

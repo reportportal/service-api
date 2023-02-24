@@ -57,7 +57,7 @@ import static java.util.stream.Collectors.toMap;
  */
 public class EmailService extends JavaMailSenderImpl {
 
-	private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " Report Portal Notification: [%s] launch '%s' #%s finished";
+	private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " ReportPortal Notification: [%s] launch '%s' #%s finished";
 	private static final String URL_FORMAT = "%s/launches/all";
 	private static final String FULL_ATTRIBUTE_FILTER_FORMAT = "%s?filter.has.key=%s&filter.has.value=%s";
 	private static final String VALUE_ATTRIBUTE_FILTER_FORMAT = "%s?filter.has.value=%s";
@@ -92,7 +92,7 @@ public class EmailService extends JavaMailSenderImpl {
 
 			message.addInline("create-user.png", emailTemplateResource("create-user.png"));
 
-			attachSocialImagesWithoutFbAndVk(message);
+			attachSocialImages(message);
 		};
 		this.send(preparator);
 	}
@@ -115,7 +115,7 @@ public class EmailService extends JavaMailSenderImpl {
 			String text = mergeFinishLaunchText(getUrl(url), launch, project.getProjectIssueTypes());
 			message.setText(text, true);
 
-			attachSocialImagesWithoutFbAndVk(message);
+			attachSocialImages(message);
 		};
 		this.send(preparator);
 	}
@@ -272,7 +272,7 @@ public class EmailService extends JavaMailSenderImpl {
 	public void sendCreateUserConfirmationEmail(CreateUserRQFull req, String basicUrl) {
 		MimeMessagePreparator preparator = mimeMessage -> {
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
-			message.setSubject("Welcome to Report Portal");
+			message.setSubject("Welcome to ReportPortal");
 			message.setTo(req.getEmail());
 			setFrom(message);
 
@@ -284,7 +284,7 @@ public class EmailService extends JavaMailSenderImpl {
 			message.setText(text, true);
 
 			message.addInline("create-user.png", emailTemplateResource("create-user.png"));
-			attachSocialImagesWithoutFbAndVk(message);
+			attachSocialImages(message);
 		};
 		this.send(preparator);
 	}
@@ -331,12 +331,6 @@ public class EmailService extends JavaMailSenderImpl {
 	}
 
 	private void attachSocialImages(MimeMessageHelper message) throws MessagingException {
-		attachSocialImagesWithoutFbAndVk(message);
-		message.addInline("ic-fb.png", emailTemplateResource("ic-fb.png"));
-		message.addInline("ic-vk.png", emailTemplateResource("ic-vk.png"));
-	}
-
-	private void attachSocialImagesWithoutFbAndVk(MimeMessageHelper message) throws MessagingException {
 		message.addInline("ic-github.png", emailTemplateResource("ic-github.png"));
 		message.addInline("ic-twitter.png", emailTemplateResource("ic-twitter.png"));
 		message.addInline("ic-youtube.png", emailTemplateResource("ic-youtube.png"));

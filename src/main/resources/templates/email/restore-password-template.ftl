@@ -75,7 +75,7 @@
                 <tr>
                     <td height="130">
                         <img class="mainimg" src="cid:restore-password.png" border="0" width="540" height="130"
-                             alt="Restore your password to Report Portal">
+                             alt="Restore your password to ReportPortal">
                     </td>
                 </tr>
                 </tbody>
@@ -84,7 +84,7 @@
                 <tbody>
                 <tr>
                     <td align="left" height="170">
-                        <h2 style="font-size: 20px; color: #777777;" align="center">Forgot your password to Report Portal?</h2>
+                        <h2 style="font-size: 20px; color: #777777;" align="center">Forgot your password to ReportPortal?</h2>
                         <p style="font-size: 14px; color: #777777;">Click the link below to choose a new one.</p>
                         <table border="0" cellspacing="8" cellpadding="0" align="center">
                             <tbody>
@@ -114,9 +114,6 @@
                                 <td><a href="https://github.com/reportportal" target="_blank"><img src="cid:ic-github.png" border="0"
                                                                                                    width="20" height="21" alt="github"></a>
                                 </td>
-                                <td><a href="https://www.facebook.com/ReportPortal.io" target="_blank"><img src="cid:ic-fb.png" border="0"
-                                                                                                            width="18" height="18"
-                                                                                                            alt="facebook"></a></td>
                                 <td><a href="http://twitter.com/ReportPortal_io" target="_blank"><img src="cid:ic-twitter.png" border="0"
                                                                                                       width="20" height="16" alt="twitter"></a>
                                 </td>
@@ -124,9 +121,7 @@
                                                                                                               border="0" width="20"
                                                                                                               height="15" alt="youtube"></a>
                                 </td>
-                                <td><a href="https://vk.com/reportportal_io" target="_blank"><img src="cid:ic-vk.png" border="0" width="21"
-                                                                                                  height="12" alt="vk"></a></td>
-                                <td><a href="https://reportportal-slack-auto.herokuapp.com/" target="_blank"><img src="cid:ic-slack.png"
+                                <td><a href="https://slack.epmrpp.reportportal.io" target="_blank"><img src="cid:ic-slack.png"
                                                                                                                   border="0" width="18"
                                                                                                                   height="18"
                                                                                                                   alt="slack"></a></td>
@@ -149,7 +144,7 @@
                 <tr>
                     <td align="center" height="52" class="footercontent" style="padding: 4px;">
                         <p style="font-size: 11px; line-height: 1.5; color: #6d6d6d">
-                            <b>Report Portal Notification Center</b><br>
+                            <b>ReportPortal Notification Center</b><br>
                             This is an automatically generated notification - please do not reply to this message. You are receiving this
                             email to complete the registration initiated on the ReportPortal application; if you are not waiting
                             for the ReportPortal's invitation then just ignore this message.

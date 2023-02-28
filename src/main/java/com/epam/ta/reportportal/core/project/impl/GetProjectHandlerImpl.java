@@ -66,8 +66,8 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 @Service
 public class GetProjectHandlerImpl implements GetProjectHandler {
 
-	private static final String LENGTH_LESS_THAN_1_SYMBOL_MSG = "Length of the filtering string " +
-			"'{}' is less than 1 symbol";
+	private static final String LENGTH_LESS_THAN_1_SYMBOL_MSG = "Length of the filtering string "
+			+ "'{}' is less than 1 symbol";
 
 	private final ProjectRepository projectRepository;
 

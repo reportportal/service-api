@@ -114,8 +114,9 @@ class GetProjectHandlerImplTest {
 				() -> handler.getUserNames(extractProjectDetails(user, "test_project"), "")
 		);
 
-		assertEquals("Incorrect filtering parameters. " +
-				"Length of the filtering string '' is less than 1 symbol", exception.getMessage());
+		assertEquals(
+				"Incorrect filtering parameters. Length of the filtering string '' is less than 1 symbol",
+				exception.getMessage());
 	}
 
 	@Test

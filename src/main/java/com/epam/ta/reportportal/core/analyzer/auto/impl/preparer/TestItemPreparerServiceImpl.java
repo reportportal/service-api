@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.auto.impl.preparer;
 
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
@@ -43,11 +44,11 @@ import static java.util.stream.Collectors.toList;
 public class TestItemPreparerServiceImpl implements TestItemPreparerService {
 
 	private final TestItemRepository testItemRepository;
-	private final LogRepository logRepository;
+	private final LogService logService;
 
-	public TestItemPreparerServiceImpl(TestItemRepository testItemRepository, LogRepository logRepository) {
+	public TestItemPreparerServiceImpl(TestItemRepository testItemRepository, LogService logService, LogRepository logRepository) {
 		this.testItemRepository = testItemRepository;
-		this.logRepository = logRepository;
+		this.logService = logService;
 	}
 
 	@Override
@@ -81,7 +82,7 @@ public class TestItemPreparerServiceImpl implements TestItemPreparerService {
 	}
 
 	private Map<Long, List<IndexLog>> getLogsMapping(Long launchId, List<Long> itemIds) {
-		return logRepository.findAllIndexUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId, itemIds, LogLevel.ERROR.toInt());
+		return logService.findAllIndexUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId, itemIds, LogLevel.ERROR.toInt());
 	}
 
 }

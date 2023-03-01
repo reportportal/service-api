@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
@@ -91,18 +92,18 @@ class AnalyzerUtilsTest {
 
 	@Test
 	void testFromLogs() {
-		final Log log = new Log();
-		log.setId(1L);
-		log.setLogMessage("Log message");
-		log.setLogLevel(40000);
-		log.setClusterId(2L);
+		final LogFull logFull = new LogFull();
+		logFull.setId(1L);
+		logFull.setLogMessage("Log message");
+		logFull.setLogLevel(40000);
+		logFull.setClusterId(2L);
 
-		final Set<IndexLog> indexLogs = AnalyzerUtils.fromLogs(List.of(log));
+		final Set<IndexLog> indexLogs = AnalyzerUtils.fromLogs(List.of(logFull));
 		final IndexLog indexLog = indexLogs.stream().findFirst().get();
-		assertEquals(log.getId(), indexLog.getLogId());
-		assertEquals(log.getLogMessage(), indexLog.getMessage());
-		assertEquals(log.getLogLevel().intValue(), indexLog.getLogLevel());
-		assertEquals(log.getClusterId(), indexLog.getClusterId());
+		assertEquals(logFull.getId(), indexLog.getLogId());
+		assertEquals(logFull.getLogMessage(), indexLog.getMessage());
+		assertEquals(logFull.getLogLevel().intValue(), indexLog.getLogLevel());
+		assertEquals(logFull.getClusterId(), indexLog.getClusterId());
 	}
 
 	@Test

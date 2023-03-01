@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.*;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.log.GetLogHandler;
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.constant.LogRepositoryConstants;
@@ -31,6 +32,7 @@ import com.epam.ta.reportportal.entity.item.NestedStep;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
@@ -84,13 +86,16 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
 	private final LogRepository logRepository;
 
+	private final LogService logService;
+
 	private final TestItemRepository testItemRepository;
 
 	private final TestItemService testItemService;
 
 	@Autowired
-	public GetLogHandlerImpl(LogRepository logRepository, TestItemRepository testItemRepository, TestItemService testItemService) {
+	public GetLogHandlerImpl(LogRepository logRepository, LogService logService, TestItemRepository testItemRepository, TestItemService testItemService) {
 		this.logRepository = logRepository;
+		this.logService = logService;
 		this.testItemRepository = testItemRepository;
 		this.testItemService = testItemService;
 	}
@@ -99,8 +104,8 @@ public class GetLogHandlerImpl implements GetLogHandler {
 	public Iterable<LogResource> getLogs(@Nullable String path, ReportPortalUser.ProjectDetails projectDetails, Filter filterable,
 			Pageable pageable) {
 		ofNullable(path).ifPresent(p -> updateFilter(filterable, p));
-		Page<Log> logPage = logRepository.findByFilter(ProjectFilter.of(filterable, projectDetails.getProjectId()), pageable);
-		return PagedResourcesAssembler.pageConverter(LogConverter.TO_RESOURCE).apply(logPage);
+		Page<LogFull> logFullPage = logService.findByFilter(ProjectFilter.of(filterable, projectDetails.getProjectId()), pageable);
+		return PagedResourcesAssembler.pageConverter(LogConverter.TO_RESOURCE).apply(logFullPage);
 	}
 
 	@Override
@@ -112,7 +117,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
 		return testItemRepository.findAllById(logsUnderRq.getItemIds()).stream().collect(toMap(TestItem::getItemId, item -> {
 			final Launch launch = testItemService.getEffectiveLaunch(item);
 			validate(launch, projectDetails);
-			return logRepository.findLatestUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
+			return logService.findLatestUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
 					item.getItemId(),
 					logLevel.toInt(),
 					LOG_UNDER_ITEM_BATCH_SIZE
@@ -127,14 +132,14 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
 	@Override
 	public LogResource getLog(String logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Log log;
+		LogFull logFull;
 		try {
-			log = findById(Long.parseLong(logId));
+			logFull = findById(Long.parseLong(logId));
 		} catch (NumberFormatException e) {
-			log = findByUuid(logId);
+			logFull = findByUuid(logId);
 		}
-		validate(log, projectDetails);
-		return LogConverter.TO_RESOURCE.apply(log);
+		validate(logFull, projectDetails);
+		return LogConverter.TO_RESOURCE.apply(logFull);
 	}
 
 	@Override
@@ -160,9 +165,9 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
 		Map<String, List<NestedItem>> result = content.stream().collect(groupingBy(NestedItem::getType));
 
-		Map<Long, Log> logMap = ofNullable(result.get(LogRepositoryConstants.LOG)).map(logs -> logRepository.findAllById(logs.stream()
+		Map<Long, LogFull> logMap = ofNullable(result.get(LogRepositoryConstants.LOG)).map(logs -> logService.findAllById(logs.stream()
 				.map(NestedItem::getId)
-				.collect(Collectors.toSet())).stream().collect(toMap(Log::getId, l -> l))).orElseGet(Collections::emptyMap);
+				.collect(Collectors.toSet())).stream().collect(toMap(LogFull::getId, l -> l))).orElseGet(Collections::emptyMap);
 
 		queryable.getFilterConditions().add(getLaunchCondition(launch.getId()));
 		queryable.getFilterConditions().add(getParentPathCondition(parentItem));
@@ -202,11 +207,11 @@ public class GetLogHandlerImpl implements GetLogHandler {
 		loadInnerLogs(parentId, loadedLogs, Collections.emptyList(), excludeEmptySteps, excludePassedLogs, queryable, pageable);
 
 		if (!excludeLogContent) {
-			Map<Long, Log> logMap = logRepository.findAllById(loadedLogs.stream()
+			Map<Long, LogFull> logMap = logService.findAllById(loadedLogs.stream()
 					.map(PagedLogResource::getId)
-					.collect(Collectors.toSet())).stream().collect(toMap(Log::getId, l -> l));
+					.collect(Collectors.toSet())).stream().collect(toMap(LogFull::getId, l -> l));
 			loadedLogs.forEach(resource -> {
-				final Log model = logMap.get(resource.getId());
+				final LogFull model = logMap.get(resource.getId());
 				LogConverter.FILL_WITH_LOG_CONTENT.apply(model, resource);
 			});
 		}
@@ -258,10 +263,10 @@ public class GetLogHandlerImpl implements GetLogHandler {
 	 * Validate log item on existence, availability under specified project,
 	 * etc.
 	 *
-	 * @param log            - log item
+	 * @param log            - logFull item
 	 * @param projectDetails Project details
 	 */
-	private void validate(Log log, ReportPortalUser.ProjectDetails projectDetails) {
+	private void validate(LogFull log, ReportPortalUser.ProjectDetails projectDetails) {
 		Long launchProjectId = ofNullable(log.getTestItem()).map(it -> testItemService.getEffectiveLaunch(it).getProjectId())
 				.orElseGet(() -> log.getLaunch().getProjectId());
 
@@ -277,23 +282,23 @@ public class GetLogHandlerImpl implements GetLogHandler {
 	}
 
 	/**
-	 * Find log item by id
+	 * Find logFull item by id
 	 *
 	 * @param logId - log ID
 	 * @return - log item
 	 */
-	private Log findById(Long logId) {
-		return logRepository.findById(logId).orElseThrow(() -> new ReportPortalException(LOG_NOT_FOUND, logId));
+	private LogFull findById(Long logId) {
+		return logService.findById(logId).orElseThrow(() -> new ReportPortalException(LOG_NOT_FOUND, logId));
 	}
 
 	/**
-	 * Find log item by uuid
+	 * Find logFull item by uuid
 	 *
 	 * @param logId - log UUID
 	 * @return - log item
 	 */
-	private Log findByUuid(String logId) {
-		return logRepository.findByUuid(logId).orElseThrow(() -> new ReportPortalException(LOG_NOT_FOUND, logId));
+	private LogFull findByUuid(String logId) {
+		return logService.findByUuid(logId).orElseThrow(() -> new ReportPortalException(LOG_NOT_FOUND, logId));
 	}
 
 	private FilterCondition getLaunchCondition(Long launchId) {

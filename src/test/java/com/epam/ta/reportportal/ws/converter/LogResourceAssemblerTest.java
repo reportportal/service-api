@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import org.junit.jupiter.api.Test;
 
@@ -36,19 +36,19 @@ class LogResourceAssemblerTest {
 	@Test
 	void toResource() {
 		LogResourceAssembler resourceAssembler = new LogResourceAssembler();
-		Log log = getLog();
-		LogResource logResource = resourceAssembler.toResource(log);
+		LogFull logFull = getFullLog();
+		LogResource logResource = resourceAssembler.toResource(logFull);
 
-		assertEquals(logResource.getId(), log.getId());
-		assertEquals(logResource.getLevel(), LogLevel.toLevel(log.getLogLevel()).name());
-		assertEquals(logResource.getMessage(), log.getLogMessage());
-		assertEquals(logResource.getItemId(), log.getTestItem().getItemId());
+		assertEquals(logResource.getId(), logFull.getId());
+		assertEquals(logResource.getLevel(), LogLevel.toLevel(logFull.getLogLevel()).name());
+		assertEquals(logResource.getMessage(), logFull.getLogMessage());
+		assertEquals(logResource.getItemId(), logFull.getTestItem().getItemId());
 	}
 
 	@Test
 	void toResources() {
 		LogResourceAssembler resourceAssembler = new LogResourceAssembler();
-		List<LogResource> logResources = resourceAssembler.toResources(Collections.singleton(getLog()));
+		List<LogResource> logResources = resourceAssembler.toResources(Collections.singleton(getFullLog()));
 
 		assertEquals(1, logResources.size());
 	}
@@ -56,26 +56,26 @@ class LogResourceAssemblerTest {
 	@Test
 	void apply() {
 		LogResourceAssembler resourceAssembler = new LogResourceAssembler();
-		Log log = getLog();
-		LogResource logResource = resourceAssembler.apply(log);
+		LogFull logFull = getFullLog();
+		LogResource logResource = resourceAssembler.apply(logFull);
 
-		assertEquals(logResource.getId(), log.getId());
-		assertEquals(logResource.getLevel(), LogLevel.toLevel(log.getLogLevel()).name());
-		assertEquals(logResource.getMessage(), log.getLogMessage());
-		assertEquals(logResource.getItemId(), log.getTestItem().getItemId());
+		assertEquals(logResource.getId(), logFull.getId());
+		assertEquals(logResource.getLevel(), LogLevel.toLevel(logFull.getLogLevel()).name());
+		assertEquals(logResource.getMessage(), logFull.getLogMessage());
+		assertEquals(logResource.getItemId(), logFull.getTestItem().getItemId());
 	}
 
-	private Log getLog() {
-		Log log = new Log();
-		log.setId(1L);
-		log.setLogTime(LocalDateTime.now());
-		log.setLastModified(LocalDateTime.now());
-		log.setLogMessage("message");
-		log.setLogLevel(40000);
+	private LogFull getFullLog() {
+		LogFull logFull = new LogFull();
+		logFull.setId(1L);
+		logFull.setLogTime(LocalDateTime.now());
+		logFull.setLastModified(LocalDateTime.now());
+		logFull.setLogMessage("message");
+		logFull.setLogLevel(40000);
 		TestItem testItem = new TestItem();
 		testItem.setItemId(2L);
-		log.setTestItem(testItem);
+		logFull.setTestItem(testItem);
 
-		return log;
+		return logFull;
 	}
 }

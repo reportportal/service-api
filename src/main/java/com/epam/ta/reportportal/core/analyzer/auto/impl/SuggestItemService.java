@@ -23,8 +23,8 @@ import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.item.validator.state.TestItemValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.cluster.GetClusterHandler;
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
-import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.cluster.Cluster;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -65,21 +65,21 @@ public class SuggestItemService {
 	private final LaunchAccessValidator launchAccessValidator;
 
 	private final TestItemRepository testItemRepository;
-	private final LogRepository logRepository;
+	private final LogService logService;
 
 	private final List<TestItemValidator> testItemValidators;
 
 	@Autowired
 	public SuggestItemService(AnalyzerServiceClient analyzerServiceClient, GetProjectHandler getProjectHandler,
-			GetLaunchHandler getLaunchHandler, GetClusterHandler getClusterHandler, LaunchAccessValidator launchAccessValidator,
-			TestItemRepository testItemRepository, LogRepository logRepository, List<TestItemValidator> testItemValidators) {
+							  GetLaunchHandler getLaunchHandler, GetClusterHandler getClusterHandler, LaunchAccessValidator launchAccessValidator,
+							  TestItemRepository testItemRepository, LogService logService, List<TestItemValidator> testItemValidators) {
 		this.analyzerServiceClient = analyzerServiceClient;
 		this.getProjectHandler = getProjectHandler;
 		this.getLaunchHandler = getLaunchHandler;
 		this.getClusterHandler = getClusterHandler;
 		this.launchAccessValidator = launchAccessValidator;
 		this.testItemRepository = testItemRepository;
-		this.logRepository = logRepository;
+		this.logService = logService;
 		this.testItemValidators = testItemValidators;
 	}
 
@@ -126,7 +126,7 @@ public class SuggestItemService {
 		suggestRq.setTestItemId(testItem.getItemId());
 		suggestRq.setUniqueId(testItem.getUniqueId());
 		suggestRq.setTestCaseHash(testItem.getTestCaseHash());
-		suggestRq.setLogs(AnalyzerUtils.fromLogs(logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
+		suggestRq.setLogs(AnalyzerUtils.fromLogs(logService.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
 				Collections.singletonList(testItem.getItemId()),
 				ERROR_INT
 		)));
@@ -166,7 +166,7 @@ public class SuggestItemService {
 		roundSuggestInfoMatchScore(suggestInfo);
 		suggestedItem.setSuggestRs(suggestInfo);
 		suggestedItem.setTestItemResource(TestItemConverter.TO_RESOURCE.apply(relevantTestItem));
-		suggestedItem.setLogs(logRepository.findLatestUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(relevantTestItem.getLaunchId(),
+		suggestedItem.setLogs(logService.findLatestUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(relevantTestItem.getLaunchId(),
 				relevantTestItem.getItemId(),
 				ERROR_INT,
 				SUGGESTED_ITEMS_LOGS_LIMIT

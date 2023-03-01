@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
@@ -52,7 +53,7 @@ public class AnalyzerUtils {
 	 * Creates {@link IndexLog} model for log for further
 	 * sending that into analyzer
 	 */
-	private final static Function<Log, IndexLog> TO_INDEX_LOG = log -> {
+	private final static Function<LogFull, IndexLog> TO_INDEX_LOG = log -> {
 		IndexLog indexLog = new IndexLog();
 		indexLog.setLogId(log.getId());
 		if (log.getLogLevel() != null) {
@@ -85,7 +86,7 @@ public class AnalyzerUtils {
 		return indexTestItem;
 	}
 
-	public static Set<IndexLog> fromLogs(List<Log> logs) {
+	public static Set<IndexLog> fromLogs(List<LogFull> logs) {
 		return logs.stream().filter(it -> StringUtils.isNotEmpty(it.getLogMessage())).map(TO_INDEX_LOG).collect(Collectors.toSet());
 	}
 

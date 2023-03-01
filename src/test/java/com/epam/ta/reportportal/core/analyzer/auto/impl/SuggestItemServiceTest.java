@@ -8,14 +8,15 @@ import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.item.validator.state.TestItemValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.cluster.GetClusterHandler;
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
-import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.cluster.Cluster;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -46,7 +47,7 @@ class SuggestItemServiceTest {
 	private final LaunchAccessValidator launchAccessValidator = mock(LaunchAccessValidator.class);
 
 	private final TestItemRepository testItemRepository = mock(TestItemRepository.class);
-	private final LogRepository logRepository = mock(LogRepository.class);
+	private final LogService logService = mock(LogService.class);
 
 	private final TestItemValidator testItemValidator = mock(TestItemValidator.class);
 	private final List<TestItemValidator> validators = List.of(testItemValidator);
@@ -57,8 +58,7 @@ class SuggestItemServiceTest {
 			getClusterHandler,
 			launchAccessValidator,
 			testItemRepository,
-			logRepository,
-			validators
+			logService, validators
 	);
 
 	@Test
@@ -75,7 +75,7 @@ class SuggestItemServiceTest {
 		Launch launch = new Launch();
 		launch.setId(1L);
 
-		final Log log = new Log();
+		final LogFull logFull = new LogFull();
 
 		SuggestInfo suggestInfo = new SuggestInfo();
 		suggestInfo.setRelevantItem(2L);
@@ -85,10 +85,10 @@ class SuggestItemServiceTest {
 		when(testItemRepository.findById(2L)).thenReturn(Optional.of(relevantItem));
 		when(getLaunchHandler.get(testItem.getLaunchId())).thenReturn(launch);
 		when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(project);
-		when(logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
+		when(logService.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
 				Collections.singletonList(testItem.getItemId()),
 				ERROR_INT
-		)).thenReturn(Collections.singletonList(log));
+		)).thenReturn(Collections.singletonList(logFull));
 
 		when(analyzerServiceClient.searchSuggests(any(SuggestRq.class))).thenReturn(Collections.singletonList(suggestInfo));
 
@@ -184,7 +184,7 @@ class SuggestItemServiceTest {
 		Launch launch = new Launch();
 		launch.setId(1L);
 
-		final Log log = new Log();
+		final LogFull logFull = new LogFull();
 
 		SuggestInfo suggestInfo = new SuggestInfo();
 		suggestInfo.setRelevantItem(2L);
@@ -193,10 +193,10 @@ class SuggestItemServiceTest {
 		when(testItemRepository.findById(2L)).thenReturn(Optional.of(relevantItem));
 		when(getLaunchHandler.get(cluster.getLaunchId())).thenReturn(launch);
 		when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(project);
-		when(logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
+		when(logService.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
 				Collections.singletonList(relevantItem.getItemId()),
 				ERROR_INT
-		)).thenReturn(Collections.singletonList(log));
+		)).thenReturn(Collections.singletonList(logFull));
 
 		when(analyzerServiceClient.searchSuggests(any(SuggestRq.class))).thenReturn(Collections.singletonList(suggestInfo));
 

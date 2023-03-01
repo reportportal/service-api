@@ -21,8 +21,8 @@ import com.epam.ta.reportportal.core.analyzer.auto.SearchLogService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.search.SearchCollectorFactory;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.search.SearchLogsMode;
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
@@ -73,7 +74,7 @@ public class SearchLogServiceImpl implements SearchLogService {
 
 	private final TestItemRepository testItemRepository;
 
-	private final LogRepository logRepository;
+	private final LogService logService;
 
 	private final AnalyzerServiceClient analyzerServiceClient;
 
@@ -81,12 +82,12 @@ public class SearchLogServiceImpl implements SearchLogService {
 
 	@Autowired
 	public SearchLogServiceImpl(ProjectRepository projectRepository, LaunchRepository launchRepository,
-			TestItemRepository testItemRepository, LogRepository logRepository, AnalyzerServiceClient analyzerServiceClient,
-			SearchCollectorFactory searchCollectorFactory) {
+								TestItemRepository testItemRepository, LogService logService, AnalyzerServiceClient analyzerServiceClient,
+								SearchCollectorFactory searchCollectorFactory) {
 		this.projectRepository = projectRepository;
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
-		this.logRepository = logRepository;
+		this.logService = logService;
 		this.analyzerServiceClient = analyzerServiceClient;
 		this.searchCollectorFactory = searchCollectorFactory;
 	}
@@ -117,7 +118,7 @@ public class SearchLogServiceImpl implements SearchLogService {
 		searchRq.setFilteredLaunchIds(searchCollectorFactory.getCollector(searchMode).collect(request.getFilterId(), launch));
 
 		//TODO fix query - select messages from `Nested Step` descendants too
-		List<String> logMessages = logRepository.findMessagesByLaunchIdAndItemIdAndPathAndLevelGte(launch.getId(),
+		List<String> logMessages = logService.findMessagesByLaunchIdAndItemIdAndPathAndLevelGte(launch.getId(),
 				item.getItemId(),
 				item.getPath(),
 				LogLevel.ERROR_INT
@@ -144,7 +145,7 @@ public class SearchLogServiceImpl implements SearchLogService {
 		Map<Long, TestItem> testItemMapping = testItemRepository.findAllById(logIdMapping.values())
 				.stream()
 				.collect(toMap(TestItem::getItemId, item -> item));
-		List<Log> foundLogs = logRepository.findAllById(logIdMapping.keySet());
+		List<LogFull> foundLogs = logService.findAllById(logIdMapping.keySet());
 		Map<Long, SearchLogRs> foundLogsMap = Maps.newHashMap();
 
 		foundLogs.forEach(log -> ofNullable(logIdMapping.get(log.getId())).ifPresent(itemId -> {
@@ -157,7 +158,7 @@ public class SearchLogServiceImpl implements SearchLogService {
 		return foundLogsMap.values();
 	}
 
-	private SearchLogRs composeResponse(Map<Long, TestItem> testItemMapping, Long projectId, Long itemId, Log log) {
+	private SearchLogRs composeResponse(Map<Long, TestItem> testItemMapping, Long projectId, Long itemId, LogFull log) {
 		TestItem testItem = ofNullable(testItemMapping.get(itemId)).orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND,
 				itemId
 		));

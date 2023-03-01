@@ -17,15 +17,12 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
-import java.util.Date;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-class LogBuilderTest {
+class LogFullBuilderTest {
 
     @Test
     void logBuilder() {
@@ -49,11 +46,11 @@ class LogBuilderTest {
         item.setItemId(1L);
         item.setUniqueId("uuid");
 
-        final Log log = new LogBuilder().addSaveLogRq(createLogRQ).addTestItem(item).get();
+        final LogFull logFull = new LogFullBuilder().addSaveLogRq(createLogRQ).addTestItem(item).get();
 
-        assertEquals(message, log.getLogMessage());
-        assertEquals(40000, (int) log.getLogLevel());
-        assertEquals(now, log.getLogTime());
-        assertThat(log.getTestItem()).isEqualToComparingFieldByField(item);
+        assertEquals(message, logFull.getLogMessage());
+        assertEquals(40000, (int) logFull.getLogLevel());
+        assertEquals(now, logFull.getLogTime());
+        assertThat(logFull.getTestItem()).isEqualToComparingFieldByField(item);
     }
 }

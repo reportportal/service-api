@@ -123,7 +123,7 @@
                                 <td><a href="http://twitter.com/ReportPortal_io" target="_blank"><img src="cid:ic-twitter.png" border="0"
                                                                                                       width="20" height="16" alt="twitter"></a>
                                 </td>
-                                <td><a href="http://youtube.com/c/ReportPortalCommunity" target="_blank"><img src="cid:ic-youtube.png"
+                                <td><a href="https://www.youtube.com/c/ReportPortal" target="_blank"><img src="cid:ic-youtube.png"
                                                                                                               border="0" width="20"
                                                                                                               height="15" alt="youtube"></a>
                                 </td>

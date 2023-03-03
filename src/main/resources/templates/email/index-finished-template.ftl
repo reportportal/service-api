@@ -101,7 +101,7 @@
         <td align="center" height="52" class="footercontent">
             <p style="font-size: 11px; line-height: 1.5; color: #6d6d6d"><b>Report Portal Notification
                     Center</b><br>
-                This notification was created automatically. Please don't reply for this e-mail.</p>
+                This notification was created automatically. Please don't reply to this e-mail.</p>
         </td>
     </tr>
     </tbody>

@@ -87,7 +87,7 @@
                         <p style="font-size: 14px; color: #777777">The password for user
                             <b>${user_name}</b> has been successfully changed.</p>
                         <p style="font-size: 14px; color: #777777">If you didn’t change your password,
-                            please <a href="mailto:support@reportportal.io">Contact us</a>.</p>
+                            please <a href="mailto:support@reportportal.io?subject=A change password issue">Contact us</a>.</p>
                     </td>
                 </tr>
                 </tbody>
@@ -106,7 +106,7 @@
                                 <td><a href="http://twitter.com/ReportPortal_io" target="_blank"><img src="cid:ic-twitter.png" border="0"
                                                                                                       width="20" height="16" alt="twitter"></a>
                                 </td>
-                                <td><a href="http://youtube.com/c/ReportPortalCommunity" target="_blank"><img src="cid:ic-youtube.png"
+                                <td><a href="https://www.youtube.com/c/ReportPortal" target="_blank"><img src="cid:ic-youtube.png"
                                                                                                               border="0" width="20"
                                                                                                               height="15" alt="youtube"></a>
                                 </td>
@@ -133,7 +133,7 @@
                 <tr>
                     <td align="center" height="52" class="footercontent">
                         <p style="font-size: 11px; line-height: 1.5; color: #6d6d6d"><b>ReportPortal Notification Center</b><br>
-                            This notification was created automatically. Please don't reply for this e-mail.</p>
+                            This notification was created automatically. Please don't reply to this e-mail.</p>
                     </td>
                 </tr>
                 </tbody>

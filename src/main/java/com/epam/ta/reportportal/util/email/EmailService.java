@@ -243,6 +243,26 @@ public class EmailService extends JavaMailSenderImpl {
 		this.send(preparator);
 	}
 
+	public void sendChangePasswordConfirmation(final String subject, final String[] recipients,
+			final String login) {
+		MimeMessagePreparator preparator = mimeMessage -> {
+			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+			message.setSubject(subject);
+			message.setTo(recipients);
+
+			setFrom(message);
+
+			Map<String, Object> email = new HashMap<>();
+			email.put("user_name", login);
+			String text = templateEngine.merge("change-password-template.ftl", email);
+			message.setText(text, true);
+
+			message.addInline("illustration.png", emailTemplateResource("illustration.png"));
+			attachSocialImages(message);
+		};
+		this.send(preparator);
+	}
+
 	public void sendIndexFinishedEmail(final String subject, final String recipient, final Long indexedLogsCount) {
 		MimeMessagePreparator preparator = mimeMessage -> {
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");

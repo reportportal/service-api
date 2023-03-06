@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.UserUtils;
+import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.user.ChangePasswordRQ;
@@ -84,15 +85,19 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	private final AutoDetectParser autoDetectParser;
 
+	private final MailServiceFactory emailServiceFactory;
+
 	@Autowired
 	public EditUserHandlerImpl(PasswordEncoder passwordEncoder, UserRepository userRepository, ProjectRepository projectRepository,
-			UserBinaryDataService userBinaryDataService, MimetypesFileTypeMap mimetypesFileTypeMap, AutoDetectParser autoDetectParser) {
+			UserBinaryDataService userBinaryDataService, MimetypesFileTypeMap mimetypesFileTypeMap, AutoDetectParser autoDetectParser,
+			MailServiceFactory emailServiceFactory) {
 		this.passwordEncoder = passwordEncoder;
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.userBinaryDataService = userBinaryDataService;
 		this.mimetypesFileTypeMap = mimetypesFileTypeMap;
 		this.autoDetectParser = autoDetectParser;
+		this.emailServiceFactory = emailServiceFactory;
 	}
 
 	@Override
@@ -170,6 +175,13 @@ public class EditUserHandlerImpl implements EditUserHandler {
 		);
 		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
 		userRepository.save(user);
+
+		emailServiceFactory.getDefaultEmailService(true)
+				.sendChangePasswordConfirmation("Change password confirmation",
+						new String[]{loggedInUser.getEmail()},
+						loggedInUser.getUsername()
+				);
+
 		return new OperationCompletionRS("Password has been changed successfully");
 	}
 

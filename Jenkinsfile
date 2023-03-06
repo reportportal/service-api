@@ -40,4 +40,9 @@ node {
             sh 'docker rmi reportportal-dev/service-api:latest'
         }
     }
+    post {
+        always {
+            sh 'rm -rf $WORKSPACE/*'
+        }
+    }
 }

@@ -214,8 +214,14 @@ public class LogController {
 		return getLogHandler.getLog(logId, projectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
+	/**
+	 * @deprecated Need to remove in version 6.0.
+	 *  This API significantly impacts database performance -
+	 *  high IO operations on getting log record by UUID from production-like database amount.
+	 */
+	@Deprecated(since = "5.8", forRemoval = true)
 	@GetMapping(value = "/uuid/{logId}")
-	@ApiOperation("Get log by UUID")
+	@ApiOperation("Get log by UUID (Will be removed in version 6.0)")
 	@Transactional(readOnly = true)
 	public LogResource getLogByUuid(@PathVariable String projectName, @PathVariable String logId,
 			@AuthenticationPrincipal ReportPortalUser user) {

@@ -68,17 +68,17 @@ class UpdateUserFilterHandlerTest {
 
   private ProjectExtractor projectExtractor = new ProjectExtractor(projectRepository,
       projectUserRepository);
-  private UpdateUserFilterHandler updateUserFilterHandler = new UpdateUserFilterHandlerImpl(
-      projectExtractor, getShareableEntityHandler,
-      userFilterRepository, widgetRepository, aclHandler,
-      messageBus
-  );
   private UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
   private WidgetRepository widgetRepository = mock(WidgetRepository.class);
   private ShareableObjectsHandler aclHandler = mock(ShareableObjectsHandler.class);
   private MessageBus messageBus = mock(MessageBus.class);
   private GetShareableEntityHandler<UserFilter> getShareableEntityHandler = mock(
       GetShareableEntityHandler.class);
+  private UpdateUserFilterHandler updateUserFilterHandler = new UpdateUserFilterHandlerImpl(
+      projectExtractor, getShareableEntityHandler,
+      userFilterRepository, widgetRepository, aclHandler,
+      messageBus
+  );
 
   @Test
   void updateUserFilterWithTheSameName() {

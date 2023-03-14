@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
  */
 public final class ContentFieldPatternConstants {
 
+  private static final String CONTENT_FIELD_SPLITTER = "\\$";
   /*
     ^statistics\\$executions\\$(passed|failed|skipped|total)$
    */
@@ -41,12 +42,27 @@ public final class ContentFieldPatternConstants {
     ^statistics\\$defects\\$(automation_bug|product_bug|no_defect|system_issue|to_investigate)\\$[\\w\\d]+$
    */
   public static final String DEFECTS_REGEX;
+
+  static {
+    EXECUTIONS_REGEX =
+        "^" + "statistics" + CONTENT_FIELD_SPLITTER + EXECUTIONS_KEY + CONTENT_FIELD_SPLITTER + "("
+            + Arrays.stream(StatusEnum.values())
+            .map(StatusEnum::getExecutionCounterField)
+            .collect(Collectors.joining("|")) + "|" + TOTAL + ")" + "$";
+
+    DEFECTS_REGEX =
+        "^" + "statistics" + CONTENT_FIELD_SPLITTER + DEFECTS_KEY + CONTENT_FIELD_SPLITTER + "("
+            + Arrays.stream(TestItemIssueGroup.values())
+            .map(ig -> ig.getValue().toLowerCase())
+            .collect(Collectors.joining("|")) + ")"
+            + CONTENT_FIELD_SPLITTER + "[\\w\\d]+" + "$";
+  }
+
   /*
     ((^statistics\\$defects\\$(automation_bug|product_bug|no_defect|system_issue|to_investigate)\\$[\\w\\d]+$)|(^statistics\\$executions\\$(passed|failed|skipped|total)$))
    */
   public static final String COMBINED_CONTENT_FIELDS_REGEX =
       "(" + DEFECTS_REGEX + ")" + "|" + "(" + EXECUTIONS_REGEX + ")";
-  private static final String CONTENT_FIELD_SPLITTER = "\\$";
   /*
     ^statistics\\$executions\\$total$
    */
@@ -59,22 +75,6 @@ public final class ContentFieldPatternConstants {
   public static final String EXECUTIONS_FAILED_REGEX =
       "^" + "statistics" + CONTENT_FIELD_SPLITTER + EXECUTIONS_KEY + CONTENT_FIELD_SPLITTER
           + StatusEnum.FAILED.getExecutionCounterField() + "$";
-
-  static {
-
-    EXECUTIONS_REGEX =
-        "^" + "statistics" + CONTENT_FIELD_SPLITTER + EXECUTIONS_KEY + CONTENT_FIELD_SPLITTER + "("
-            + Arrays.stream(
-                StatusEnum.values()).map(StatusEnum::getExecutionCounterField)
-            .collect(Collectors.joining("|")) + "|" + TOTAL + ")" + "$";
-
-    DEFECTS_REGEX =
-        "^" + "statistics" + CONTENT_FIELD_SPLITTER + DEFECTS_KEY + CONTENT_FIELD_SPLITTER + "("
-            + Arrays.stream(
-                TestItemIssueGroup.values()).map(ig -> ig.getValue().toLowerCase())
-            .collect(Collectors.joining("|")) + ")"
-            + CONTENT_FIELD_SPLITTER + "[\\w\\d]+" + "$";
-  }
 
   private ContentFieldPatternConstants() {
     //static only

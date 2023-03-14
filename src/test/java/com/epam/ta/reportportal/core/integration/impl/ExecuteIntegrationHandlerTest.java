@@ -1,104 +1,112 @@
 package com.epam.ta.reportportal.core.integration.impl;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import com.epam.reportportal.extension.CommonPluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 public class ExecuteIntegrationHandlerTest {
-	private static final String PUBLIC_COMMAND_PREFIX = "public_";
 
-	private final IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
-	private final PluginBox pluginBox = mock(PluginBox.class);
+  private static final String PUBLIC_COMMAND_PREFIX = "public_";
 
-	private final ExecuteIntegrationHandler executeIntegrationHandler = new ExecuteIntegrationHandlerImpl(integrationRepository, pluginBox);
+  private final IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
+  private final PluginBox pluginBox = mock(PluginBox.class);
 
-	@Test
-	@DisplayName("Positive Test. Everything is fine")
-	public void executePublicCommandPositiveTest() {
-		final String pluginName = "signup";
-		final String publicCommand = PUBLIC_COMMAND_PREFIX + "testCommand";
-		final Map<String, Object> params = Collections.emptyMap();
+  private final ExecuteIntegrationHandler executeIntegrationHandler = new ExecuteIntegrationHandlerImpl(
+      integrationRepository, pluginBox);
 
-		CommonPluginCommand<String> commonPluginCommand = mock(CommonPluginCommand.class);
-		when(commonPluginCommand.executeCommand(params)).thenReturn("Ok");
+  @Test
+  @DisplayName("Positive Test. Everything is fine")
+  public void executePublicCommandPositiveTest() {
+    final String pluginName = "signup";
+    final String publicCommand = PUBLIC_COMMAND_PREFIX + "testCommand";
+    final Map<String, Object> params = Collections.emptyMap();
 
-		ReportPortalExtensionPoint pluginInstance = mock(ReportPortalExtensionPoint.class);
-		when(pluginInstance.getCommonCommand(publicCommand)).thenReturn(commonPluginCommand);
+    CommonPluginCommand<String> commonPluginCommand = mock(CommonPluginCommand.class);
+    when(commonPluginCommand.executeCommand(params)).thenReturn("Ok");
 
-		when(pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)).thenReturn(Optional.of(pluginInstance));
+    ReportPortalExtensionPoint pluginInstance = mock(ReportPortalExtensionPoint.class);
+    when(pluginInstance.getCommonCommand(publicCommand)).thenReturn(commonPluginCommand);
 
-		executeIntegrationHandler.executePublicCommand(pluginName, publicCommand, params);
+    when(pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)).thenReturn(
+        Optional.of(pluginInstance));
 
-		verify(pluginBox).getInstance(eq(pluginName), eq(ReportPortalExtensionPoint.class));
-		verify(pluginInstance).getCommonCommand(eq(publicCommand));
-	}
+    executeIntegrationHandler.executePublicCommand(pluginName, publicCommand, params);
 
-	@Test
-	@DisplayName("Negative Test. When command is not public")
-	public void executeNotPublicCommandTest() {
-		final String pluginName = "signup";
-		final String publicCommand = "testCommand";
-		final Map<String, Object> params = Collections.emptyMap();
+    verify(pluginBox).getInstance(eq(pluginName), eq(ReportPortalExtensionPoint.class));
+    verify(pluginInstance).getCommonCommand(eq(publicCommand));
+  }
 
-		assertThrows(ReportPortalException.class, () ->
-				executeIntegrationHandler.executePublicCommand(pluginName, publicCommand, params));
+  @Test
+  @DisplayName("Negative Test. When command is not public")
+  public void executeNotPublicCommandTest() {
+    final String pluginName = "signup";
+    final String publicCommand = "testCommand";
+    final Map<String, Object> params = Collections.emptyMap();
 
-		verifyNoInteractions(pluginBox);
-	}
+    assertThrows(ReportPortalException.class, () ->
+        executeIntegrationHandler.executePublicCommand(pluginName, publicCommand, params));
 
-	@Test
-	@DisplayName("Negative Test. When Plugin not found")
-	public void executePublicCommandWOPluginTest() {
-		final String pluginName = "signup";
-		final String publicCommand = PUBLIC_COMMAND_PREFIX + "testCommand";
-		final Map<String, Object> params = Collections.emptyMap();
+    verifyNoInteractions(pluginBox);
+  }
 
-		CommonPluginCommand<String> commonPluginCommand = mock(CommonPluginCommand.class);
-		when(commonPluginCommand.executeCommand(params)).thenReturn("Ok");
+  @Test
+  @DisplayName("Negative Test. When Plugin not found")
+  public void executePublicCommandWOPluginTest() {
+    final String pluginName = "signup";
+    final String publicCommand = PUBLIC_COMMAND_PREFIX + "testCommand";
+    final Map<String, Object> params = Collections.emptyMap();
 
-		ReportPortalExtensionPoint pluginInstance = mock(ReportPortalExtensionPoint.class);
+    CommonPluginCommand<String> commonPluginCommand = mock(CommonPluginCommand.class);
+    when(commonPluginCommand.executeCommand(params)).thenReturn("Ok");
 
-		when(pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)).thenReturn(Optional.empty());
+    ReportPortalExtensionPoint pluginInstance = mock(ReportPortalExtensionPoint.class);
 
-		assertThrows(ReportPortalException.class, () ->
-				executeIntegrationHandler.executePublicCommand(pluginName, publicCommand, params));
+    when(pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)).thenReturn(
+        Optional.empty());
 
-		verify(pluginBox).getInstance(eq(pluginName), eq(ReportPortalExtensionPoint.class));
-		verifyNoInteractions(pluginInstance);
-	}
+    assertThrows(ReportPortalException.class, () ->
+        executeIntegrationHandler.executePublicCommand(pluginName, publicCommand, params));
 
-	@Test
-	@DisplayName("Negative Test. When Command not found")
-	public void executePublicCommandWOCommandTest() {
-		final String pluginName = "signup";
-		final String publicCommand = PUBLIC_COMMAND_PREFIX + "testCommand";
-		final Map<String, Object> params = Collections.emptyMap();
+    verify(pluginBox).getInstance(eq(pluginName), eq(ReportPortalExtensionPoint.class));
+    verifyNoInteractions(pluginInstance);
+  }
 
-		CommonPluginCommand<String> commonPluginCommand = mock(CommonPluginCommand.class);
-		when(commonPluginCommand.executeCommand(params)).thenReturn("Ok");
+  @Test
+  @DisplayName("Negative Test. When Command not found")
+  public void executePublicCommandWOCommandTest() {
+    final String pluginName = "signup";
+    final String publicCommand = PUBLIC_COMMAND_PREFIX + "testCommand";
+    final Map<String, Object> params = Collections.emptyMap();
 
-		ReportPortalExtensionPoint pluginInstance = mock(ReportPortalExtensionPoint.class);
-		when(pluginInstance.getCommonCommand(publicCommand)).thenReturn(null);
+    CommonPluginCommand<String> commonPluginCommand = mock(CommonPluginCommand.class);
+    when(commonPluginCommand.executeCommand(params)).thenReturn("Ok");
 
-		when(pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)).thenReturn(Optional.of(pluginInstance));
+    ReportPortalExtensionPoint pluginInstance = mock(ReportPortalExtensionPoint.class);
+    when(pluginInstance.getCommonCommand(publicCommand)).thenReturn(null);
 
-		assertThrows(ReportPortalException.class, () ->
-				executeIntegrationHandler.executePublicCommand(pluginName, publicCommand, params));
+    when(pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)).thenReturn(
+        Optional.of(pluginInstance));
 
-		verify(pluginBox).getInstance(eq(pluginName), eq(ReportPortalExtensionPoint.class));
-		verify(pluginInstance).getCommonCommand(eq(publicCommand));
-	}
+    assertThrows(ReportPortalException.class, () ->
+        executeIntegrationHandler.executePublicCommand(pluginName, publicCommand, params));
+
+    verify(pluginBox).getInstance(eq(pluginName), eq(ReportPortalExtensionPoint.class));
+    verify(pluginInstance).getCommonCommand(eq(publicCommand));
+  }
 
 }

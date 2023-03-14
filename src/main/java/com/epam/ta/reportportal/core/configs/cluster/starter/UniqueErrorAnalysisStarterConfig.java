@@ -29,13 +29,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class UniqueErrorAnalysisStarterConfig {
 
-	@Bean
-	public UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter(@Autowired UniqueErrorGenerator uniqueErrorGenerator) {
-		return new UniqueErrorAnalysisStarter(uniqueErrorGenerator);
-	}
+  @Bean
+  public UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter(
+      @Autowired UniqueErrorGenerator uniqueErrorGenerator) {
+    return new UniqueErrorAnalysisStarter(uniqueErrorGenerator);
+  }
 
-	@Bean
-	public UniqueErrorAnalysisStarter uniqueErrorAnalysisStarterAsync(@Autowired UniqueErrorGeneratorAsync uniqueErrorGeneratorAsync) {
-		return new UniqueErrorAnalysisStarter(uniqueErrorGeneratorAsync);
-	}
+  @Bean
+  public UniqueErrorAnalysisStarter uniqueErrorAnalysisStarterAsync(
+      @Autowired UniqueErrorGeneratorAsync uniqueErrorGeneratorAsync) {
+    return new UniqueErrorAnalysisStarter(uniqueErrorGeneratorAsync);
+  }
 }

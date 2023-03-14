@@ -18,12 +18,11 @@ package com.epam.ta.reportportal.info;
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Shows list of supported analytics providers and other server settings.
@@ -34,21 +33,21 @@ import java.util.Map;
 @Component
 public class ServerSettingsInfoContributor implements ExtensionContributor {
 
-	private final ServerSettingsRepository settingsRepository;
+  private final ServerSettingsRepository settingsRepository;
 
-	@Autowired
-	@SuppressWarnings("SpringJavaAutowiringInspection")
-	public ServerSettingsInfoContributor(ServerSettingsRepository settingsRepository) {
-		this.settingsRepository = settingsRepository;
-	}
+  @Autowired
+  @SuppressWarnings("SpringJavaAutowiringInspection")
+  public ServerSettingsInfoContributor(ServerSettingsRepository settingsRepository) {
+    this.settingsRepository = settingsRepository;
+  }
 
-	@Override
-	public Map<String, ?> contribute() {
-		Map<String, Object> info = new HashMap<>();
-		List<ServerSettings> all = settingsRepository.selectServerSettings();
-		Map<String, String> result = ServerSettingsConverter.TO_RESOURCE.apply(all);
-		info.put("result", result);
-		return info;
+  @Override
+  public Map<String, ?> contribute() {
+    Map<String, Object> info = new HashMap<>();
+    List<ServerSettings> all = settingsRepository.selectServerSettings();
+    Map<String, String> result = ServerSettingsConverter.TO_RESOURCE.apply(all);
+    info.put("result", result);
+    return info;
 
-	}
+  }
 }

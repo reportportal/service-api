@@ -23,80 +23,80 @@ import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.UserBidRS;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
-import org.springframework.data.domain.Pageable;
-
-import javax.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
 import java.util.Map;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.data.domain.Pageable;
 
 /**
  * @author Andrei_Ramanchuk
  */
 public interface GetUserHandler {
 
-	/**
-	 * Get specified user info
-	 *
-	 * @param username    Username
-	 * @param currentUser Logged-in username
-	 * @return {@link UserResource}
-	 */
-	UserResource getUser(String username, ReportPortalUser currentUser);
+  /**
+   * Get specified user info
+   *
+   * @param username    Username
+   * @param currentUser Logged-in username
+   * @return {@link UserResource}
+   */
+  UserResource getUser(String username, ReportPortalUser currentUser);
 
-	/**
-	 * Get logged-in user info
-	 *
-	 * @param currentUser Logged-in username
-	 * @return {@link UserResource}
-	 */
-	UserResource getUser(ReportPortalUser currentUser);
+  /**
+   * Get logged-in user info
+   *
+   * @param currentUser Logged-in username
+   * @return {@link UserResource}
+   */
+  UserResource getUser(ReportPortalUser currentUser);
 
-	/**
-	 * Get information about user registration bid
-	 *
-	 * @param uuid UUID
-	 * @return {@link UserBidRS}
-	 */
-	UserBidRS getBidInformation(String uuid);
+  /**
+   * Get information about user registration bid
+   *
+   * @param uuid UUID
+   * @return {@link UserBidRS}
+   */
+  UserBidRS getBidInformation(String uuid);
 
-	/**
-	 * Validate existence of username or email
-	 *
-	 * @param username User name
-	 * @param email    email
-	 * @return {@link YesNoRS}
-	 */
-	YesNoRS validateInfo(String username, String email);
+  /**
+   * Validate existence of username or email
+   *
+   * @param username User name
+   * @param email    email
+   * @return {@link YesNoRS}
+   */
+  YesNoRS validateInfo(String username, String email);
 
-	/**
-	 * Get all users by filter with paging
-	 *
-	 * @param filter         Filter
-	 * @param pageable       Paging
-	 * @param projectDetails Project details
-	 * @return Page of users
-	 */
-	Iterable<UserResource> getUsers(Filter filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails);
+  /**
+   * Get all users by filter with paging
+   *
+   * @param filter         Filter
+   * @param pageable       Paging
+   * @param projectDetails Project details
+   * @return Page of users
+   */
+  Iterable<UserResource> getUsers(Filter filter, Pageable pageable,
+      ReportPortalUser.ProjectDetails projectDetails);
 
-	Map<String, UserResource.AssignedProject> getUserProjects(String userName);
+  Map<String, UserResource.AssignedProject> getUserProjects(String userName);
 
-	/**
-	 * Get page of users with filter
-	 *
-	 * @param filter   Filter
-	 * @param pageable Paging
-	 * @return Page of {@link UserResource}
-	 */
-	Iterable<UserResource> getAllUsers(Queryable filter, Pageable pageable);
+  /**
+   * Get page of users with filter
+   *
+   * @param filter   Filter
+   * @param pageable Paging
+   * @return Page of {@link UserResource}
+   */
+  Iterable<UserResource> getAllUsers(Queryable filter, Pageable pageable);
 
-	/**
-	 * Export Users info according to the {@link ReportFormat} type
-	 *
-	 * @param reportFormat {@link ReportFormat}
-	 * @param filter       {@link Filter}
-	 * @param outputStream {@link HttpServletResponse#getOutputStream()}
-	 */
-	void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter);
+  /**
+   * Export Users info according to the {@link ReportFormat} type
+   *
+   * @param reportFormat {@link ReportFormat}
+   * @param filter       {@link Filter}
+   * @param outputStream {@link HttpServletResponse#getOutputStream()}
+   */
+  void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter);
 
-	Iterable<UserResource> searchUsers(String term, Pageable pageable);
+  Iterable<UserResource> searchUsers(String term, Pageable pageable);
 }

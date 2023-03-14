@@ -18,10 +18,9 @@ package com.epam.ta.reportportal.core.item.validator.state;
 
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import java.util.Objects;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Service;
-
-import java.util.Objects;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -29,18 +28,18 @@ import java.util.Objects;
 @Service
 public class NotRetryValidator implements TestItemValidator, Ordered {
 
-	@Override
-	public boolean validate(TestItem item) {
-		return Objects.isNull(item.getRetryOf()) && Objects.nonNull(item.getLaunchId());
-	}
+  @Override
+  public boolean validate(TestItem item) {
+    return Objects.isNull(item.getRetryOf()) && Objects.nonNull(item.getLaunchId());
+  }
 
-	@Override
-	public String provide(TestItem item) {
-		return Suppliers.formattedSupplier("Test item = {} is a retry", item.getItemId()).get();
-	}
+  @Override
+  public String provide(TestItem item) {
+    return Suppliers.formattedSupplier("Test item = {} is a retry", item.getItemId()).get();
+  }
 
-	@Override
-	public int getOrder() {
-		return 2;
-	}
+  @Override
+  public int getOrder() {
+    return 2;
+  }
 }

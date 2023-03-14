@@ -28,26 +28,27 @@ import com.epam.ta.reportportal.pipeline.PipelinePartProvider;
  */
 public class DeleteClustersPartProvider implements PipelinePartProvider<GenerateClustersConfig> {
 
-	private final ClusterRepository clusterRepository;
-	private final LogRepository logRepository;
+  private final ClusterRepository clusterRepository;
+  private final LogRepository logRepository;
 
-	public DeleteClustersPartProvider(ClusterRepository clusterRepository, LogRepository logRepository) {
-		this.clusterRepository = clusterRepository;
-		this.logRepository = logRepository;
-	}
+  public DeleteClustersPartProvider(ClusterRepository clusterRepository,
+      LogRepository logRepository) {
+    this.clusterRepository = clusterRepository;
+    this.logRepository = logRepository;
+  }
 
-	@Override
-	public PipelinePart provide(GenerateClustersConfig config) {
-		return () -> {
-			final ClusterEntityContext entityContext = config.getEntityContext();
-			if (config.isForUpdate()) {
-				logRepository.updateClusterIdSetNullByItemIds(entityContext.getItemIds());
-				clusterRepository.deleteClusterTestItemsByItemIds(entityContext.getItemIds());
-			} else {
-				logRepository.updateClusterIdSetNullByLaunchId(entityContext.getLaunchId());
-				clusterRepository.deleteClusterTestItemsByLaunchId(entityContext.getLaunchId());
-				clusterRepository.deleteAllByLaunchId(entityContext.getLaunchId());
-			}
-		};
-	}
+  @Override
+  public PipelinePart provide(GenerateClustersConfig config) {
+    return () -> {
+      final ClusterEntityContext entityContext = config.getEntityContext();
+      if (config.isForUpdate()) {
+        logRepository.updateClusterIdSetNullByItemIds(entityContext.getItemIds());
+        clusterRepository.deleteClusterTestItemsByItemIds(entityContext.getItemIds());
+      } else {
+        logRepository.updateClusterIdSetNullByLaunchId(entityContext.getLaunchId());
+        clusterRepository.deleteClusterTestItemsByLaunchId(entityContext.getLaunchId());
+        clusterRepository.deleteAllByLaunchId(entityContext.getLaunchId());
+      }
+    };
+  }
 }

@@ -19,31 +19,30 @@ package com.epam.ta.reportportal.core.events.listener;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.subscriber.EventSubscriber;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import java.util.List;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.event.TransactionalEventListener;
-
-import java.util.List;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class LaunchFinishedEventListener {
 
-	private final List<EventSubscriber<LaunchFinishedEvent>> subscribers;
+  private final List<EventSubscriber<LaunchFinishedEvent>> subscribers;
 
-	public LaunchFinishedEventListener(List<EventSubscriber<LaunchFinishedEvent>> subscribers) {
-		this.subscribers = subscribers;
-	}
+  public LaunchFinishedEventListener(List<EventSubscriber<LaunchFinishedEvent>> subscribers) {
+    this.subscribers = subscribers;
+  }
 
-	@Async(value = "eventListenerExecutor")
-	@TransactionalEventListener
-	public void onApplicationEvent(LaunchFinishedEvent event) {
-		if (LaunchModeEnum.DEBUG == event.getMode()) {
-			return;
-		}
+  @Async(value = "eventListenerExecutor")
+  @TransactionalEventListener
+  public void onApplicationEvent(LaunchFinishedEvent event) {
+    if (LaunchModeEnum.DEBUG == event.getMode()) {
+      return;
+    }
 
-		subscribers.forEach(s -> s.handleEvent(event));
+    subscribers.forEach(s -> s.handleEvent(event));
 
-	}
+  }
 
 }

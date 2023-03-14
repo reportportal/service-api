@@ -16,33 +16,33 @@
 
 package com.epam.ta.reportportal.ws.converter.utils.item.updater;
 
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
-
 import java.util.Map;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class PathNameUpdater implements ResourceUpdater<TestItemResource> {
 
-	private final Map<Long, PathName> pathNamesMapping;
+  private final Map<Long, PathName> pathNamesMapping;
 
-	private PathNameUpdater(Map<Long, PathName> pathNamesMapping) {
-		this.pathNamesMapping = pathNamesMapping;
-	}
+  private PathNameUpdater(Map<Long, PathName> pathNamesMapping) {
+    this.pathNamesMapping = pathNamesMapping;
+  }
 
-	@Override
-	public void updateResource(TestItemResource resource) {
-		ofNullable(pathNamesMapping.get(resource.getItemId())).ifPresent(pathName -> resource.setPathNames(TestItemConverter.PATH_NAME_TO_RESOURCE
-				.apply(pathName)));
-	}
+  public static PathNameUpdater of(Map<Long, PathName> pathNameMapping) {
+    return new PathNameUpdater(pathNameMapping);
+  }
 
-	public static PathNameUpdater of(Map<Long, PathName> pathNameMapping) {
-		return new PathNameUpdater(pathNameMapping);
-	}
+  @Override
+  public void updateResource(TestItemResource resource) {
+    ofNullable(pathNamesMapping.get(resource.getItemId())).ifPresent(
+        pathName -> resource.setPathNames(TestItemConverter.PATH_NAME_TO_RESOURCE
+            .apply(pathName)));
+  }
 }

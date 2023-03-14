@@ -25,5 +25,6 @@ import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
  */
 public interface SearchLogService {
 
-	Iterable<SearchLogRs> search(Long itemId, SearchLogRq request, ReportPortalUser.ProjectDetails projectDetails);
+  Iterable<SearchLogRs> search(Long itemId, SearchLogRq request,
+      ReportPortalUser.ProjectDetails projectDetails);
 }

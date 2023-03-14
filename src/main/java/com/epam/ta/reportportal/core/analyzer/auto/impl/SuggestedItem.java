@@ -19,7 +19,6 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.fasterxml.jackson.annotation.JsonInclude;
-
 import java.util.Set;
 
 /**
@@ -28,33 +27,33 @@ import java.util.Set;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SuggestedItem {
 
-	private TestItemResource testItemResource;
+  private TestItemResource testItemResource;
 
-	private Set<LogResource> logs;
+  private Set<LogResource> logs;
 
-	private SuggestInfo suggestInfo;
+  private SuggestInfo suggestInfo;
 
-	public Set<LogResource> getLogs() {
-		return logs;
-	}
+  public Set<LogResource> getLogs() {
+    return logs;
+  }
 
-	public void setLogs(Set<LogResource> logs) {
-		this.logs = logs;
-	}
+  public void setLogs(Set<LogResource> logs) {
+    this.logs = logs;
+  }
 
-	public TestItemResource getTestItemResource() {
-		return testItemResource;
-	}
+  public TestItemResource getTestItemResource() {
+    return testItemResource;
+  }
 
-	public void setTestItemResource(TestItemResource testItemResource) {
-		this.testItemResource = testItemResource;
-	}
+  public void setTestItemResource(TestItemResource testItemResource) {
+    this.testItemResource = testItemResource;
+  }
 
-	public SuggestInfo getSuggestRs() {
-		return suggestInfo;
-	}
+  public SuggestInfo getSuggestRs() {
+    return suggestInfo;
+  }
 
-	public void setSuggestRs(SuggestInfo suggestInfo) {
-		this.suggestInfo = suggestInfo;
-	}
+  public void setSuggestRs(SuggestInfo suggestInfo) {
+    this.suggestInfo = suggestInfo;
+  }
 }

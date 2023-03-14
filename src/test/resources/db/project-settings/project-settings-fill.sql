@@ -64,9 +64,11 @@ VALUES (1, 'some_name', 'value', 'STRING', TRUE, 2),
        (3, 'another_name', 'value', 'STRING', TRUE, 1);
 ALTER SEQUENCE pattern_template_id_seq RESTART WITH 4;
 
-INSERT INTO launch(id, uuid, project_id, user_id, name, description, start_time, end_time, last_modified, mode, status, has_retries,
+INSERT INTO launch(id, uuid, project_id, user_id, name, description, start_time, end_time,
+                   last_modified, mode, status, has_retries,
                    rerun, approximate_duration)
-VALUES (1, 'uuid', 2, 1, 'launch', 'launch', now(), now(), now(), 'DEFAULT', 'FAILED', FALSE, FALSE, 0);
+VALUES (1, 'uuid', 2, 1, 'launch', 'launch', now(), now(), now(), 'DEFAULT', 'FAILED', FALSE, FALSE,
+        0);
 
 INSERT INTO public.sender_case (id, send_case, project_id, enabled, rule_name)
 VALUES (1, 'ALWAYS', 2, TRUE, 'rule #1'),

@@ -21,38 +21,38 @@ import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ItemAttr
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class PredicateItemAttributeTypeMatcherTest {
 
-	private final PredicateItemAttributeTypeMatcher systemAttributeMatcher = new PredicateItemAttributeTypeMatcher(ItemAttribute::isSystem, ItemAttributeType.SYSTEM);
-	private final PredicateItemAttributeTypeMatcher publicAttributeMatcher = new PredicateItemAttributeTypeMatcher(it -> !it.isSystem(), ItemAttributeType.PUBLIC);
+  private final PredicateItemAttributeTypeMatcher systemAttributeMatcher = new PredicateItemAttributeTypeMatcher(
+      ItemAttribute::isSystem, ItemAttributeType.SYSTEM);
+  private final PredicateItemAttributeTypeMatcher publicAttributeMatcher = new PredicateItemAttributeTypeMatcher(
+      it -> !it.isSystem(), ItemAttributeType.PUBLIC);
 
-	@Test
-	void publicShouldReturnTrue() {
-		final ItemAttribute publicAttribute = new ItemAttribute("k1", "v1", false);
-		Assertions.assertTrue(publicAttributeMatcher.matches(publicAttribute));
-	}
+  @Test
+  void publicShouldReturnTrue() {
+    final ItemAttribute publicAttribute = new ItemAttribute("k1", "v1", false);
+    Assertions.assertTrue(publicAttributeMatcher.matches(publicAttribute));
+  }
 
-	@Test
-	void publicShouldReturnFalse() {
-		final ItemAttribute systemAttribute = new ItemAttribute("k1", "v1", true);
-		Assertions.assertFalse(publicAttributeMatcher.matches(systemAttribute));
-	}
+  @Test
+  void publicShouldReturnFalse() {
+    final ItemAttribute systemAttribute = new ItemAttribute("k1", "v1", true);
+    Assertions.assertFalse(publicAttributeMatcher.matches(systemAttribute));
+  }
 
-	@Test
-	void systemShouldReturnTrue() {
-		final ItemAttribute systemAttribute = new ItemAttribute("k1", "v1", true);
-		Assertions.assertTrue(systemAttributeMatcher.matches(systemAttribute));
-	}
+  @Test
+  void systemShouldReturnTrue() {
+    final ItemAttribute systemAttribute = new ItemAttribute("k1", "v1", true);
+    Assertions.assertTrue(systemAttributeMatcher.matches(systemAttribute));
+  }
 
-	@Test
-	void systemShouldReturnFalse() {
-		final ItemAttribute publicAttribute = new ItemAttribute("k1", "v1", false);
-		Assertions.assertFalse(systemAttributeMatcher.matches(publicAttribute));
-	}
+  @Test
+  void systemShouldReturnFalse() {
+    final ItemAttribute publicAttribute = new ItemAttribute("k1", "v1", false);
+    Assertions.assertFalse(systemAttributeMatcher.matches(publicAttribute));
+  }
 
 }

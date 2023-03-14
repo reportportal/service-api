@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.resolver;
 
+import javax.annotation.Nonnull;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,45 +26,47 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import javax.annotation.Nonnull;
-
 /**
- * Added to avoid issue with page size == 0 (in this case repository layer tries
- * to retrieve all results from database) and page size greater than 300.
+ * Added to avoid issue with page size == 0 (in this case repository layer tries to retrieve all
+ * results from database) and page size greater than 300.
  *
  * @author Andrei Varabyeu
  */
-public class PagingHandlerMethodArgumentResolver extends org.springframework.data.web.PageableHandlerMethodArgumentResolver {
+public class PagingHandlerMethodArgumentResolver extends
+    org.springframework.data.web.PageableHandlerMethodArgumentResolver {
 
-	public PagingHandlerMethodArgumentResolver() {
-		super();
-	}
+  public static final int DEFAULT_PAGE_SIZE = 50;
+  public static final int MAX_PAGE_SIZE = 300000;
 
-	public PagingHandlerMethodArgumentResolver(SortHandlerMethodArgumentResolver sortResolver) {
-		super(sortResolver);
-	}
+  public PagingHandlerMethodArgumentResolver() {
+    super();
+  }
+  public PagingHandlerMethodArgumentResolver(SortHandlerMethodArgumentResolver sortResolver) {
+    super(sortResolver);
+  }
 
-	public static final int DEFAULT_PAGE_SIZE = 50;
-	public static final int MAX_PAGE_SIZE = 300000;
+  @Override
+  @Nonnull
+  public Pageable resolveArgument(MethodParameter methodParameter,
+      @Nullable ModelAndViewContainer mavContainer,
+      NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) {
+    Pageable pageable = super.resolveArgument(methodParameter, mavContainer, webRequest,
+        binderFactory);
 
-	@Override
-	@Nonnull
-	public Pageable resolveArgument(MethodParameter methodParameter, @Nullable ModelAndViewContainer mavContainer,
-			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) {
-		Pageable pageable = super.resolveArgument(methodParameter, mavContainer, webRequest, binderFactory);
+    //overriding spring base limit for page size
+    String pageSize = webRequest.getParameter(
+        getParameterNameToUse(getSizeParameterName(), methodParameter));
+    if (pageSize != null) {
+      pageable = PageRequest.of(pageable.getPageNumber(), Integer.parseInt(pageSize),
+          pageable.getSort());
+    }
 
-		//overriding spring base limit for page size
-		String pageSize = webRequest.getParameter(getParameterNameToUse(getSizeParameterName(), methodParameter));
-		if (pageSize != null) {
-			pageable = PageRequest.of(pageable.getPageNumber(), Integer.parseInt(pageSize), pageable.getSort());
-		}
-
-		if (0 == pageable.getPageSize()) {
-			return PageRequest.of(pageable.getPageNumber(), DEFAULT_PAGE_SIZE, pageable.getSort());
-		} else if (MAX_PAGE_SIZE < pageable.getPageSize()) {
-			return PageRequest.of(pageable.getPageNumber(), MAX_PAGE_SIZE, pageable.getSort());
-		}
-		return pageable;
-	}
+    if (0 == pageable.getPageSize()) {
+      return PageRequest.of(pageable.getPageNumber(), DEFAULT_PAGE_SIZE, pageable.getSort());
+    } else if (MAX_PAGE_SIZE < pageable.getPageSize()) {
+      return PageRequest.of(pageable.getPageNumber(), MAX_PAGE_SIZE, pageable.getSort());
+    }
+    return pageable;
+  }
 
 }

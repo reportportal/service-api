@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
+
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.configs.rabbit.DeserializablePair;
@@ -25,6 +27,11 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
 import com.epam.ta.reportportal.ws.rabbit.RequestType;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import javax.annotation.Nonnull;
+import javax.inject.Provider;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,79 +39,68 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.Nonnull;
-import javax.inject.Provider;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
-
 /**
- * Asynchronous implementation of {@link CreateLogHandler} using RabbitMQ
- * to defer binding Log to ID(s)
+ * Asynchronous implementation of {@link CreateLogHandler} using RabbitMQ to defer binding Log to
+ * ID(s)
  *
  * @author Andrei Varabyeu
  */
 @Service("asyncCreateLogHandler")
 public class CreateLogHandlerAsyncImpl implements CreateLogHandler {
 
-	/**
-	 * We are using {@link Provider} there because we need
-	 * {@link SaveLogBinaryDataTaskAsync} with scope prototype. Since current class is in
-	 * singleton scope, we have to find a way to get new instance of job for new
-	 * execution
-	 */
-	@Autowired
-	private Provider<SaveLogBinaryDataTaskAsync> saveLogBinaryDataTask;
+  @Autowired
+  @Qualifier(value = "rabbitTemplate")
+  AmqpTemplate amqpTemplate;
+  /**
+   * We are using {@link Provider} there because we need {@link SaveLogBinaryDataTaskAsync} with
+   * scope prototype. Since current class is in singleton scope, we have to find a way to get new
+   * instance of job for new execution
+   */
+  @Autowired
+  private Provider<SaveLogBinaryDataTaskAsync> saveLogBinaryDataTask;
+  @Autowired
+  @Qualifier("saveLogsTaskExecutor")
+  private TaskExecutor taskExecutor;
+  @Autowired
+  private ReportingQueueService reportingQueueService;
 
-	@Autowired
-	@Qualifier("saveLogsTaskExecutor")
-	private TaskExecutor taskExecutor;
+  @Override
+  @Nonnull
+  public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, MultipartFile file,
+      ReportPortalUser.ProjectDetails projectDetails) {
 
-	@Autowired
-	private ReportingQueueService reportingQueueService;
+    validate(request);
 
-	@Autowired
-	@Qualifier(value = "rabbitTemplate")
-	AmqpTemplate amqpTemplate;
+    request.setUuid(UUID.randomUUID().toString());
 
-	@Override
-	@Nonnull
-	public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, MultipartFile file, ReportPortalUser.ProjectDetails projectDetails) {
+    if (file != null) {
+      CompletableFuture.supplyAsync(saveLogBinaryDataTask.get()
+              .withRequest(request)
+              .withFile(file)
+              .withProjectId(projectDetails.getProjectId()), taskExecutor)
+          .thenAccept(metaInfo -> sendMessage(request, metaInfo, projectDetails.getProjectId()));
+    } else {
+      sendMessage(request, null, projectDetails.getProjectId());
+    }
 
-		validate(request);
+    EntryCreatedAsyncRS response = new EntryCreatedAsyncRS();
+    response.setId(request.getUuid());
+    return response;
+  }
 
-		request.setUuid(UUID.randomUUID().toString());
+  protected void sendMessage(SaveLogRQ request, BinaryDataMetaInfo metaInfo, Long projectId) {
+    amqpTemplate.convertAndSend(
+        EXCHANGE_REPORTING,
+        reportingQueueService.getReportingQueueKey(request.getLaunchUuid()),
+        DeserializablePair.of(request, metaInfo),
+        message -> {
+          Map<String, Object> headers = message.getMessageProperties().getHeaders();
+          headers.put(MessageHeaders.REQUEST_TYPE, RequestType.LOG);
+          headers.put(MessageHeaders.PROJECT_ID, projectId);
+          headers.put(MessageHeaders.ITEM_ID, request.getItemUuid());
+          return message;
+        }
+    );
 
-		if (file != null) {
-			CompletableFuture.supplyAsync(saveLogBinaryDataTask.get()
-					.withRequest(request)
-					.withFile(file)
-					.withProjectId(projectDetails.getProjectId()), taskExecutor)
-					.thenAccept(metaInfo -> sendMessage(request, metaInfo, projectDetails.getProjectId()));
-		} else {
-			sendMessage(request, null, projectDetails.getProjectId());
-		}
-
-		EntryCreatedAsyncRS response = new EntryCreatedAsyncRS();
-		response.setId(request.getUuid());
-		return response;
-	}
-
-	protected void sendMessage(SaveLogRQ request, BinaryDataMetaInfo metaInfo, Long projectId) {
-		amqpTemplate.convertAndSend(
-				EXCHANGE_REPORTING,
-				reportingQueueService.getReportingQueueKey(request.getLaunchUuid()),
-				DeserializablePair.of(request, metaInfo),
-				message -> {
-					Map<String, Object> headers = message.getMessageProperties().getHeaders();
-					headers.put(MessageHeaders.REQUEST_TYPE, RequestType.LOG);
-					headers.put(MessageHeaders.PROJECT_ID, projectId);
-					headers.put(MessageHeaders.ITEM_ID, request.getItemUuid());
-					return message;
-				}
-		);
-
-	}
+  }
 }

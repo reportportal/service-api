@@ -16,6 +16,10 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -28,10 +32,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.core.AmqpTemplate;
 
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-
 /**
  * @author Konstantin Antipin
  */
@@ -39,32 +39,36 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class StartTestItemHandlerAsyncImplTest {
 
-    @Mock
-    AmqpTemplate amqpTemplate;
+  @Mock
+  AmqpTemplate amqpTemplate;
 
-    @Mock
-    ReportingQueueService reportingQueueService;
+  @Mock
+  ReportingQueueService reportingQueueService;
 
-    @InjectMocks
-    StartTestItemHandlerAsyncImpl startTestItemHandlerAsync;
+  @InjectMocks
+  StartTestItemHandlerAsyncImpl startTestItemHandlerAsync;
 
-    @Test
-    void startRootItem() {
-        StartTestItemRQ request = new StartTestItemRQ();
-        ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+  @Test
+  void startRootItem() {
+    StartTestItemRQ request = new StartTestItemRQ();
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+        1L);
 
-        startTestItemHandlerAsync.startRootItem(user, user.getProjectDetails().get("test_project"), request);
-        verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
-        verify(reportingQueueService).getReportingQueueKey(any());
-    }
+    startTestItemHandlerAsync.startRootItem(user, user.getProjectDetails().get("test_project"),
+        request);
+    verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
+    verify(reportingQueueService).getReportingQueueKey(any());
+  }
 
-    @Test
-    void startChildItem() {
-        StartTestItemRQ request = new StartTestItemRQ();
-        ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+  @Test
+  void startChildItem() {
+    StartTestItemRQ request = new StartTestItemRQ();
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+        1L);
 
-        startTestItemHandlerAsync.startChildItem(user, user.getProjectDetails().get("test_project"), request, "123");
-        verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
-        verify(reportingQueueService).getReportingQueueKey(any());
-    }
+    startTestItemHandlerAsync.startChildItem(user, user.getProjectDetails().get("test_project"),
+        request, "123");
+    verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
+    verify(reportingQueueService).getReportingQueueKey(any());
+  }
 }

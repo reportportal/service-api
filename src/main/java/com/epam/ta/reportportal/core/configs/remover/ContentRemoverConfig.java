@@ -22,11 +22,10 @@ import com.epam.ta.reportportal.core.remover.project.ProjectWidgetRemover;
 import com.epam.ta.reportportal.core.remover.user.UserContentRemover;
 import com.epam.ta.reportportal.core.remover.user.UserPhotoRemover;
 import com.epam.ta.reportportal.core.remover.user.UserWidgetRemover;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -34,16 +33,17 @@ import java.util.List;
 @Configuration
 public class ContentRemoverConfig {
 
-	@Bean
-	public ProjectContentRemover projectContentRemover(@Autowired ProjectClusterRemover projectClusterRemover,
-			@Autowired ProjectWidgetRemover projectWidgetRemover) {
-		return new ProjectContentRemover(List.of(projectClusterRemover, projectWidgetRemover));
-	}
+  @Bean
+  public ProjectContentRemover projectContentRemover(
+      @Autowired ProjectClusterRemover projectClusterRemover,
+      @Autowired ProjectWidgetRemover projectWidgetRemover) {
+    return new ProjectContentRemover(List.of(projectClusterRemover, projectWidgetRemover));
+  }
 
-	@Bean
-	public UserContentRemover userContentRemover(@Autowired UserWidgetRemover userWidgetRemover,
-			@Autowired UserPhotoRemover userPhotoRemover) {
-		return new UserContentRemover(List.of(userWidgetRemover, userPhotoRemover));
-	}
+  @Bean
+  public UserContentRemover userContentRemover(@Autowired UserWidgetRemover userWidgetRemover,
+      @Autowired UserPhotoRemover userPhotoRemover) {
+    return new UserContentRemover(List.of(userWidgetRemover, userPhotoRemover));
+  }
 
 }

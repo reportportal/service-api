@@ -19,16 +19,15 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.net.HttpHeaders;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.inject.Inject;
+import javax.inject.Provider;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.web.util.matcher.RequestHeaderRequestMatcher;
 import org.springframework.stereotype.Component;
-
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.servlet.http.HttpServletRequest;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Initial implementation of authentication failures handler
@@ -36,51 +35,54 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Andrei_Ramanchuk
  */
 @Component
-public class UiAuthenticationFailureEventHandler implements ApplicationListener<AuthenticationFailureBadCredentialsEvent> {
+public class UiAuthenticationFailureEventHandler implements
+    ApplicationListener<AuthenticationFailureBadCredentialsEvent> {
 
-	private static final long MAXIMUM_SIZE = 5000;
-	private static final long EXPIRATION_SECONDS = 30;
-	private static final int MAX_ATTEMPTS = 3;
-	private static final RequestHeaderRequestMatcher AJAX_REQUEST_MATCHER = new RequestHeaderRequestMatcher(HttpHeaders.X_REQUESTED_WITH,
-			"XMLHttpRequest");
+  private static final long MAXIMUM_SIZE = 5000;
+  private static final long EXPIRATION_SECONDS = 30;
+  private static final int MAX_ATTEMPTS = 3;
+  private static final RequestHeaderRequestMatcher AJAX_REQUEST_MATCHER = new RequestHeaderRequestMatcher(
+      HttpHeaders.X_REQUESTED_WITH,
+      "XMLHttpRequest");
 
-	@Inject
-	private Provider<HttpServletRequest> request;
+  @Inject
+  private Provider<HttpServletRequest> request;
 
-	private LoadingCache<String, AtomicInteger> failures;
+  private LoadingCache<String, AtomicInteger> failures;
 
-	public UiAuthenticationFailureEventHandler() {
-		super();
-		failures = CacheBuilder.newBuilder().maximumSize(MAXIMUM_SIZE).expireAfterWrite(EXPIRATION_SECONDS, TimeUnit.SECONDS)
-				.build(new CacheLoader<String, AtomicInteger>() {
-					@Override
-					public AtomicInteger load(String key) {
-						return new AtomicInteger(0);
-					}
-				});
-	}
+  public UiAuthenticationFailureEventHandler() {
+    super();
+    failures = CacheBuilder.newBuilder().maximumSize(MAXIMUM_SIZE)
+        .expireAfterWrite(EXPIRATION_SECONDS, TimeUnit.SECONDS)
+        .build(new CacheLoader<String, AtomicInteger>() {
+          @Override
+          public AtomicInteger load(String key) {
+            return new AtomicInteger(0);
+          }
+        });
+  }
 
-	public boolean isBlocked(HttpServletRequest request) {
-		AtomicInteger attempts = failures.getIfPresent(getClientIP(request));
-		return null != attempts && attempts.get() > MAX_ATTEMPTS;
-	}
+  public boolean isBlocked(HttpServletRequest request) {
+    AtomicInteger attempts = failures.getIfPresent(getClientIP(request));
+    return null != attempts && attempts.get() > MAX_ATTEMPTS;
+  }
 
-	private void onAjaxFailure(HttpServletRequest request) {
-		String clientIP = getClientIP(request);
-		failures.getUnchecked(clientIP).incrementAndGet();
+  private void onAjaxFailure(HttpServletRequest request) {
+    String clientIP = getClientIP(request);
+    failures.getUnchecked(clientIP).incrementAndGet();
 
-	}
+  }
 
-	private String getClientIP(HttpServletRequest request) {
-		String xfHeader = request.getHeader(HttpHeaders.X_FORWARDED_FOR);
-		if (xfHeader == null) {
-			return request.getRemoteAddr();
-		}
-		return xfHeader.split(",")[0];
-	}
+  private String getClientIP(HttpServletRequest request) {
+    String xfHeader = request.getHeader(HttpHeaders.X_FORWARDED_FOR);
+    if (xfHeader == null) {
+      return request.getRemoteAddr();
+    }
+    return xfHeader.split(",")[0];
+  }
 
-	@Override
-	public void onApplicationEvent(AuthenticationFailureBadCredentialsEvent event) {
-		onAjaxFailure(request.get());
-	}
+  @Override
+  public void onApplicationEvent(AuthenticationFailureBadCredentialsEvent event) {
+    onAjaxFailure(request.get());
+  }
 }

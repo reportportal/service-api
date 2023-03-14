@@ -23,6 +23,11 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType;
 import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilters;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.jooq.Operator;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -30,76 +35,74 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
 /**
  * Resolves filter parameters in GET requests. All Parameters should start with
  * <b>'filter.'</b> prefix. For example, if you would like to filter some
- * parameter with name 'age' you have to put in request the following:
- * '?filter.age=20'. Resolves parameter only in case argument marked with
- * annotation {@link FilterFor}. <br>
- * By FilterFor value resolves criterias/parameters to the given domain class
- * and resolves them if possible. If there are no criteria/parameter defined for
- * specified class than will throw exception
+ * parameter with name 'age' you have to put in request the following: '?filter.age=20'. Resolves
+ * parameter only in case argument marked with annotation {@link FilterFor}. <br> By FilterFor value
+ * resolves criterias/parameters to the given domain class and resolves them if possible. If there
+ * are no criteria/parameter defined for specified class than will throw exception
  *
  * @author Andrei Varabyeu
  */
 public class PredefinedFilterCriteriaResolver implements HandlerMethodArgumentResolver {
 
-	/**
-	 * Default prefix for filter conditions. Since Request contains a lot of
-	 * parameters (some of them may not be related to filtering), we have to
-	 * introduce this
-	 */
-	public static final String PREDEFINED_FILTER_PREFIX = "predefinedFilter.";
+  /**
+   * Default prefix for filter conditions. Since Request contains a lot of parameters (some of them
+   * may not be related to filtering), we have to introduce this
+   */
+  public static final String PREDEFINED_FILTER_PREFIX = "predefinedFilter.";
 
-	/**
-	 * Returns TRUE only for {@link List} marked with {@link FilterFor}
-	 * annotations
-	 */
-	@Override
-	public boolean supportsParameter(MethodParameter methodParameter) {
-		return Queryable.class.isAssignableFrom(methodParameter.getParameterType()) && null != methodParameter.getParameterAnnotation(
-				FilterFor.class);
-	}
+  /**
+   * Returns TRUE only for {@link List} marked with {@link FilterFor} annotations
+   */
+  @Override
+  public boolean supportsParameter(MethodParameter methodParameter) {
+    return Queryable.class.isAssignableFrom(methodParameter.getParameterType())
+        && null != methodParameter.getParameterAnnotation(
+        FilterFor.class);
+  }
 
-	@Override
-	public Queryable resolveArgument(MethodParameter methodParameter, ModelAndViewContainer paramModelAndViewContainer,
-			NativeWebRequest webRequest, WebDataBinderFactory paramWebDataBinderFactory) {
-		Class<?> domainModelType = methodParameter.getParameterAnnotation(FilterFor.class).value();
+  @Override
+  public Queryable resolveArgument(MethodParameter methodParameter,
+      ModelAndViewContainer paramModelAndViewContainer,
+      NativeWebRequest webRequest, WebDataBinderFactory paramWebDataBinderFactory) {
+    Class<?> domainModelType = methodParameter.getParameterAnnotation(FilterFor.class).value();
 
-		List<Queryable> filterConditions = webRequest.getParameterMap()
-				.entrySet().stream().filter(parameter -> parameter.getKey().startsWith(PREDEFINED_FILTER_PREFIX))
-				.map(parameter -> {
-					BusinessRule.expect(parameter.getValue(), v -> null != v && v.length == 1)
-							.verify(ErrorType.INCORRECT_REQUEST, "Incorrect filter value");
+    List<Queryable> filterConditions = webRequest.getParameterMap()
+        .entrySet().stream()
+        .filter(parameter -> parameter.getKey().startsWith(PREDEFINED_FILTER_PREFIX))
+        .map(parameter -> {
+          BusinessRule.expect(parameter.getValue(), v -> null != v && v.length == 1)
+              .verify(ErrorType.INCORRECT_REQUEST, "Incorrect filter value");
 
-					String filterName = parameter.getKey().split("\\.")[1];
-					String[] filterParameters = parameter.getValue()[0].split(",");
+          String filterName = parameter.getKey().split("\\.")[1];
+          String[] filterParameters = parameter.getValue()[0].split(",");
 
-					Optional<PredefinedFilterType> predefinedFilterType = PredefinedFilterType.fromString(filterName);
-					BusinessRule.expect(predefinedFilterType, Optional::isPresent)
-							.verify(ErrorType.BAD_REQUEST_ERROR, "Incorrect predefined filter type " + filterName);
+          Optional<PredefinedFilterType> predefinedFilterType = PredefinedFilterType.fromString(
+              filterName);
+          BusinessRule.expect(predefinedFilterType, Optional::isPresent)
+              .verify(ErrorType.BAD_REQUEST_ERROR,
+                  "Incorrect predefined filter type " + filterName);
 
-					BusinessRule.expect(PredefinedFilters.hasFilter(predefinedFilterType.get()), Predicate.isEqual(true))
-							.verify(ErrorType.INCORRECT_REQUEST, "Unknown filter '" + filterName + "'");
+          BusinessRule.expect(PredefinedFilters.hasFilter(predefinedFilterType.get()),
+                  Predicate.isEqual(true))
+              .verify(ErrorType.INCORRECT_REQUEST, "Unknown filter '" + filterName + "'");
 
-					final Queryable queryable = PredefinedFilters.buildFilter(predefinedFilterType.get(), filterParameters);
-					BusinessRule.expect(queryable.getTarget().getClazz(), Predicate.isEqual(domainModelType))
-							.verify(ErrorType.INCORRECT_REQUEST, "Incorrect filter target class type");
+          final Queryable queryable = PredefinedFilters.buildFilter(predefinedFilterType.get(),
+              filterParameters);
+          BusinessRule.expect(queryable.getTarget().getClazz(), Predicate.isEqual(domainModelType))
+              .verify(ErrorType.INCORRECT_REQUEST, "Incorrect filter target class type");
 
-					return queryable;
+          return queryable;
 
-				})
-				.collect(Collectors.toList());
-		return filterConditions.isEmpty() ? nop(domainModelType) : new CompositeFilter(Operator.AND, filterConditions);
-	}
+        })
+        .collect(Collectors.toList());
+    return filterConditions.isEmpty() ? nop(domainModelType)
+        : new CompositeFilter(Operator.AND, filterConditions);
+  }
 
-	private Queryable nop(Class<?> type) {
-		return new Filter(type, Collections.emptyList());
-	}
+  private Queryable nop(Class<?> type) {
+    return new Filter(type, Collections.emptyList());
+  }
 }

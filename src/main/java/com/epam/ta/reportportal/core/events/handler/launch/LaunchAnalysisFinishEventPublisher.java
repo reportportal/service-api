@@ -19,27 +19,27 @@ package com.epam.ta.reportportal.core.events.handler.launch;
 import com.epam.reportportal.extension.event.LaunchAnalysisFinishEvent;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class LaunchAnalysisFinishEventPublisher implements ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
+public class LaunchAnalysisFinishEventPublisher implements
+    ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
 
-	private final ApplicationEventPublisher eventPublisher;
+  private final ApplicationEventPublisher eventPublisher;
 
-	@Autowired
-	public LaunchAnalysisFinishEventPublisher(ApplicationEventPublisher eventPublisher) {
-		this.eventPublisher = eventPublisher;
-	}
+  @Autowired
+  public LaunchAnalysisFinishEventPublisher(ApplicationEventPublisher eventPublisher) {
+    this.eventPublisher = eventPublisher;
+  }
 
-	@Override
-	public void handle(LaunchFinishedEvent event, Map<String, String> config) {
-		eventPublisher.publishEvent(new LaunchAnalysisFinishEvent(event.getId(), config));
-	}
+  @Override
+  public void handle(LaunchFinishedEvent event, Map<String, String> config) {
+    eventPublisher.publishEvent(new LaunchAnalysisFinishEvent(event.getId(), config));
+  }
 }

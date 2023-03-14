@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.ws.converter.builders;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.google.common.base.Preconditions;
-
 import java.util.function.Supplier;
 
 /**
@@ -27,42 +26,42 @@ import java.util.function.Supplier;
  */
 public class IssueEntityBuilder implements Supplier<IssueEntity> {
 
-	private IssueEntity issueEntity;
+  private IssueEntity issueEntity;
 
-	public IssueEntityBuilder() {
-		this.issueEntity = new IssueEntity();
-	}
+  public IssueEntityBuilder() {
+    this.issueEntity = new IssueEntity();
+  }
 
-	public IssueEntityBuilder(IssueEntity issueEntity) {
-		this.issueEntity = issueEntity;
-	}
+  public IssueEntityBuilder(IssueEntity issueEntity) {
+    this.issueEntity = issueEntity;
+  }
 
-	public IssueEntityBuilder addIssueType(IssueType issueType) {
-		Preconditions.checkNotNull(issueType);
-		issueEntity.setIssueType(issueType);
-		return this;
-	}
+  public IssueEntityBuilder addIssueType(IssueType issueType) {
+    Preconditions.checkNotNull(issueType);
+    issueEntity.setIssueType(issueType);
+    return this;
+  }
 
-	public IssueEntityBuilder addDescription(String comment) {
-		if (null != comment) {
-			issueEntity.setIssueDescription(comment.trim());
-		}
-		return this;
-	}
+  public IssueEntityBuilder addDescription(String comment) {
+    if (null != comment) {
+      issueEntity.setIssueDescription(comment.trim());
+    }
+    return this;
+  }
 
-	public IssueEntityBuilder addIgnoreFlag(boolean ignoreAnalyzer) {
-		issueEntity.setIgnoreAnalyzer(ignoreAnalyzer);
-		return this;
-	}
+  public IssueEntityBuilder addIgnoreFlag(boolean ignoreAnalyzer) {
+    issueEntity.setIgnoreAnalyzer(ignoreAnalyzer);
+    return this;
+  }
 
-	public IssueEntityBuilder addAutoAnalyzedFlag(boolean autoAnalyzed) {
-		issueEntity.setAutoAnalyzed(autoAnalyzed);
-		return this;
-	}
+  public IssueEntityBuilder addAutoAnalyzedFlag(boolean autoAnalyzed) {
+    issueEntity.setAutoAnalyzed(autoAnalyzed);
+    return this;
+  }
 
-	@Override
-	public IssueEntity get() {
-		return this.issueEntity;
-	}
+  @Override
+  public IssueEntity get() {
+    return this.issueEntity;
+  }
 
 }

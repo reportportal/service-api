@@ -16,8 +16,6 @@
 
 package com.epam.ta.reportportal.core.events.subscriber.impl.delegate;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */

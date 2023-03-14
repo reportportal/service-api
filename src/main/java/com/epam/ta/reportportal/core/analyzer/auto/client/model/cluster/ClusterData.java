@@ -23,34 +23,34 @@ import java.util.List;
  */
 public class ClusterData {
 
-	private Long project;
-	private Long launchId;
-	private List<ClusterInfoRs> clusters;
+  private Long project;
+  private Long launchId;
+  private List<ClusterInfoRs> clusters;
 
-	public ClusterData() {
-	}
+  public ClusterData() {
+  }
 
-	public Long getProject() {
-		return project;
-	}
+  public Long getProject() {
+    return project;
+  }
 
-	public void setProject(Long project) {
-		this.project = project;
-	}
+  public void setProject(Long project) {
+    this.project = project;
+  }
 
-	public Long getLaunchId() {
-		return launchId;
-	}
+  public Long getLaunchId() {
+    return launchId;
+  }
 
-	public void setLaunchId(Long launchId) {
-		this.launchId = launchId;
-	}
+  public void setLaunchId(Long launchId) {
+    this.launchId = launchId;
+  }
 
-	public List<ClusterInfoRs> getClusters() {
-		return clusters;
-	}
+  public List<ClusterInfoRs> getClusters() {
+    return clusters;
+  }
 
-	public void setClusters(List<ClusterInfoRs> clusters) {
-		this.clusters = clusters;
-	}
+  public void setClusters(List<ClusterInfoRs> clusters) {
+    this.clusters = clusters;
+  }
 }

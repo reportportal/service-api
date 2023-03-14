@@ -16,6 +16,11 @@
 
 package com.epam.ta.reportportal.ws.rabbit;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.entity.activity.Activity;
@@ -25,65 +30,63 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.mockito.Mockito.*;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @ExtendWith(MockitoExtension.class)
 class ActivityConsumerTest {
 
-	@Mock
-	private ActivityRepository activityRepository;
+  @Mock
+  private ActivityRepository activityRepository;
 
-	@InjectMocks
-	private ActivityConsumer activityConsumer;
+  @InjectMocks
+  private ActivityConsumer activityConsumer;
 
-	private static class EmptyActivity implements ActivityEvent {
+  @Test
+  void nullTest() {
+    activityConsumer.onEvent(new EmptyActivity().toActivity());
+    verifyNoInteractions(activityRepository);
+  }
 
-		@Override
-		public Activity toActivity() {
-			return null;
-		}
-	}
+  @Test
+  void consume() {
+    NotEmptyActivity notEmptyActivity = new NotEmptyActivity(1L, 2L, "username", 3L);
 
-	@Test
-	void nullTest() {
-		activityConsumer.onEvent(new EmptyActivity().toActivity());
-		verifyNoInteractions(activityRepository);
-	}
+    activityConsumer.onEvent(notEmptyActivity.toActivity());
 
-	private static class NotEmptyActivity implements ActivityEvent {
+    verify(activityRepository, times(1)).save(any());
+  }
 
-		private Long userId;
-		private Long projectId;
-		private String username;
-		private Long objectId;
+  private static class EmptyActivity implements ActivityEvent {
 
-		NotEmptyActivity(Long userId, Long projectId, String username, Long objectId) {
-			this.userId = userId;
-			this.projectId = projectId;
-			this.username = username;
-			this.objectId = objectId;
-		}
+    @Override
+    public Activity toActivity() {
+      return null;
+    }
+  }
 
-		@Override
-		public Activity toActivity() {
-			Activity activity = new Activity();
-			activity.setUserId(userId);
-			activity.setProjectId(projectId);
-			activity.setUsername(username);
-			activity.setObjectId(objectId);
-			return activity;
-		}
-	}
+  private static class NotEmptyActivity implements ActivityEvent {
 
-	@Test
-	void consume() {
-		NotEmptyActivity notEmptyActivity = new NotEmptyActivity(1L, 2L, "username", 3L);
+    private Long userId;
+    private Long projectId;
+    private String username;
+    private Long objectId;
 
-		activityConsumer.onEvent(notEmptyActivity.toActivity());
+    NotEmptyActivity(Long userId, Long projectId, String username, Long objectId) {
+      this.userId = userId;
+      this.projectId = projectId;
+      this.username = username;
+      this.objectId = objectId;
+    }
 
-		verify(activityRepository, times(1)).save(any());
-	}
+    @Override
+    public Activity toActivity() {
+      Activity activity = new Activity();
+      activity.setUserId(userId);
+      activity.setProjectId(projectId);
+      activity.setUsername(username);
+      activity.setObjectId(objectId);
+      return activity;
+    }
+  }
 }

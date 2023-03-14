@@ -16,82 +16,86 @@
 
 package com.epam.ta.reportportal.core.widget.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import org.junit.jupiter.api.Test;
-
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class WidgetOptionUtilTest {
 
-	private static final String FIRST_KEY = "KEY1";
-	private static final String SECOND_KEY = "KEY2";
-	private static final String FIRST_STRING_VALUE = "VALUE1";
-	private static final String SECOND_STRING_VALUE = "VALUE2";
+  private static final String FIRST_KEY = "KEY1";
+  private static final String SECOND_KEY = "KEY2";
+  private static final String FIRST_STRING_VALUE = "VALUE1";
+  private static final String SECOND_STRING_VALUE = "VALUE2";
 
-	@Test
-	void getStringValueWhenCorrectTypeTest() {
+  @Test
+  void getStringValueWhenCorrectTypeTest() {
 
-		//given
-		WidgetOptions widgetOptions = new WidgetOptions(getMapWithStringValues());
+    //given
+    WidgetOptions widgetOptions = new WidgetOptions(getMapWithStringValues());
 
-		//when
-		String value = WidgetOptionUtil.getValueByKey(FIRST_KEY, widgetOptions);
+    //when
+    String value = WidgetOptionUtil.getValueByKey(FIRST_KEY, widgetOptions);
 
-		//then
-		assertNotNull(value);
-		assertEquals(FIRST_STRING_VALUE, value);
-	}
+    //then
+    assertNotNull(value);
+    assertEquals(FIRST_STRING_VALUE, value);
+  }
 
-	@Test
-	void throwExceptionWhenGetStringValueWithInCorrectTypeTest() {
+  @Test
+  void throwExceptionWhenGetStringValueWithInCorrectTypeTest() {
 
-		//given
-		WidgetOptions widgetOptions = new WidgetOptions(getMapWithNonStringValues());
+    //given
+    WidgetOptions widgetOptions = new WidgetOptions(getMapWithNonStringValues());
 
-		//when //then throw exception
-		assertThrows(ReportPortalException.class, () -> WidgetOptionUtil.getValueByKey(FIRST_KEY, widgetOptions));
-	}
+    //when //then throw exception
+    assertThrows(ReportPortalException.class,
+        () -> WidgetOptionUtil.getValueByKey(FIRST_KEY, widgetOptions));
+  }
 
-	@Test
-	void getMapValueWhenCorrectTypeTest() {
+  @Test
+  void getMapValueWhenCorrectTypeTest() {
 
-		//given
-		WidgetOptions widgetOptions = new WidgetOptions(getMapWithNonStringValues());
+    //given
+    WidgetOptions widgetOptions = new WidgetOptions(getMapWithNonStringValues());
 
-		//when
-		Map<String, String> mapByKey = WidgetOptionUtil.getMapByKey(FIRST_KEY, widgetOptions);
+    //when
+    Map<String, String> mapByKey = WidgetOptionUtil.getMapByKey(FIRST_KEY, widgetOptions);
 
-		//then
-		assertNotNull(mapByKey);
-	}
+    //then
+    assertNotNull(mapByKey);
+  }
 
-	@Test
-	void throwExceptionWhenGetMapValueWithInCorrectTypeTest() {
+  @Test
+  void throwExceptionWhenGetMapValueWithInCorrectTypeTest() {
 
-		//given
-		WidgetOptions widgetOptions = new WidgetOptions(getMapWithStringValues());
+    //given
+    WidgetOptions widgetOptions = new WidgetOptions(getMapWithStringValues());
 
-		//when //then throw exception
-		assertThrows(ReportPortalException.class, () -> WidgetOptionUtil.getMapByKey(FIRST_KEY, widgetOptions));
-	}
+    //when //then throw exception
+    assertThrows(ReportPortalException.class,
+        () -> WidgetOptionUtil.getMapByKey(FIRST_KEY, widgetOptions));
+  }
 
-	private Map<String, Object> getMapWithStringValues() {
-		return ImmutableMap.<String, Object>builder().put(FIRST_KEY, FIRST_STRING_VALUE).put(SECOND_KEY, SECOND_STRING_VALUE).build();
-	}
+  private Map<String, Object> getMapWithStringValues() {
+    return ImmutableMap.<String, Object>builder().put(FIRST_KEY, FIRST_STRING_VALUE)
+        .put(SECOND_KEY, SECOND_STRING_VALUE).build();
+  }
 
-	private Map<String, Object> getMapWithNonStringValues() {
-		Map<String, Object> mapValue = Maps.newHashMap();
-		mapValue.put(FIRST_KEY, ImmutableList.<String>builder().add(FIRST_STRING_VALUE).build());
+  private Map<String, Object> getMapWithNonStringValues() {
+    Map<String, Object> mapValue = Maps.newHashMap();
+    mapValue.put(FIRST_KEY, ImmutableList.<String>builder().add(FIRST_STRING_VALUE).build());
 
-		return ImmutableMap.<String, Object>builder().put(FIRST_KEY, mapValue).build();
-	}
+    return ImmutableMap.<String, Object>builder().put(FIRST_KEY, mapValue).build();
+  }
 }

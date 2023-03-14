@@ -1,43 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true">
-    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+  <appender class="ch.qos.logback.core.ConsoleAppender" name="CONSOLE">
+    <encoder>
+      <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+    </encoder>
+  </appender>
 
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
-        </encoder>
+  <appender class="ch.qos.logback.classic.AsyncAppender" name="ASYNC_CONSOLE">
+    <appender-ref ref="CONSOLE"/>
+    <neverBlock>true</neverBlock>
+  </appender>
+
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+  <root level="INFO">
+    <appender-ref ref="ASYNC_CONSOLE"/>
+  </root>
+
+  <springProfile name="file-logging">
+    <appender class="ch.qos.logback.core.rolling.RollingFileAppender" name="FILE">
+      <encoder>
+        <pattern>${FILE_LOG_PATTERN}</pattern>
+      </encoder>
+      <file>${LOG_FILE}</file>
+
+      <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern>
+        <maxHistory>10</maxHistory>
+        <totalSizeCap>3GB</totalSizeCap>
+      </rollingPolicy>
     </appender>
 
-    <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
-        <neverBlock>true</neverBlock>
-        <appender-ref ref="CONSOLE"/>
+    <appender class="ch.qos.logback.classic.AsyncAppender" name="ASYNC_FILE">
+      <appender-ref ref="FILE"/>
+      <neverBlock>true</neverBlock>
     </appender>
-
     <root level="INFO">
-        <appender-ref ref="ASYNC_CONSOLE"/>
+      <appender-ref ref="ASYNC_FILE"/>
     </root>
-
-    <springProfile name="file-logging">
-        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <file>${LOG_FILE}</file>
-            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-                <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern>
-                <maxHistory>10</maxHistory>
-                <totalSizeCap>3GB</totalSizeCap>
-            </rollingPolicy>
-
-            <encoder>
-                <pattern>${FILE_LOG_PATTERN}</pattern>
-            </encoder>
-        </appender>
-
-        <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
-            <neverBlock>true</neverBlock>
-            <appender-ref ref="FILE"/>
-        </appender>
-        <root level="INFO">
-            <appender-ref ref="ASYNC_FILE"/>
-        </root>
-    </springProfile>
+  </springProfile>
 
 </configuration>

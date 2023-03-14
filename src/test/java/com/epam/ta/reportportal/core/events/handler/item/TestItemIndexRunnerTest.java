@@ -16,46 +16,48 @@
 
 package com.epam.ta.reportportal.core.events.handler.item;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.ImmutableMap;
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class TestItemIndexRunnerTest {
 
-	private final LogIndexer logIndexer = mock(LogIndexer.class);
+  private final LogIndexer logIndexer = mock(LogIndexer.class);
 
-	private final TestItemIndexRunner runner = new TestItemIndexRunner(logIndexer);
+  private final TestItemIndexRunner runner = new TestItemIndexRunner(logIndexer);
 
-	@Test
-	void shouldInvokeIndexer() {
+  @Test
+  void shouldInvokeIndexer() {
 
-		final ItemFinishedEvent event = new ItemFinishedEvent(3L, 2L, 1L);
+    final ItemFinishedEvent event = new ItemFinishedEvent(3L, 2L, 1L);
 
-		final Map<String, String> projectConfig = ImmutableMap.<String, String>builder()
-				.put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), "false")
-				.build();
+    final Map<String, String> projectConfig = ImmutableMap.<String, String>builder()
+        .put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), "false")
+        .build();
 
-		final List<Long> itemIds = List.of(event.getItemId());
+    final List<Long> itemIds = List.of(event.getItemId());
 
-		runner.handle(event, projectConfig);
+    runner.handle(event, projectConfig);
 
-		verify(logIndexer, times(1)).indexItemsLogs(eq(event.getProjectId()),
-				eq(event.getLaunchId()),
-				eq(itemIds),
-				any(AnalyzerConfig.class)
-		);
-	}
+    verify(logIndexer, times(1)).indexItemsLogs(eq(event.getProjectId()),
+        eq(event.getLaunchId()),
+        eq(itemIds),
+        any(AnalyzerConfig.class)
+    );
+  }
 
 }

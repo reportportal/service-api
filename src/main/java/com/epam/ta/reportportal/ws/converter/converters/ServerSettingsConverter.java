@@ -16,16 +16,15 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+
 import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.collections4.CollectionUtils;
-
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * Converts internal DB model to DTO
@@ -34,13 +33,15 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
  */
 public final class ServerSettingsConverter {
 
-	private ServerSettingsConverter() {
-		//static only
-	}
+  public static final Function<List<ServerSettings>, Map<String, String>> TO_RESOURCE = serverSettings -> {
+    expect(serverSettings, CollectionUtils::isNotEmpty).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND,
+        "default");
+    return serverSettings.stream()
+        .collect(Collectors.toMap(ServerSettings::getKey, ServerSettings::getValue));
+  };
 
-	public static final Function<List<ServerSettings>, Map<String, String>> TO_RESOURCE = serverSettings -> {
-		expect(serverSettings, CollectionUtils::isNotEmpty).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, "default");
-		return serverSettings.stream().collect(Collectors.toMap(ServerSettings::getKey, ServerSettings::getValue));
-	};
+  private ServerSettingsConverter() {
+    //static only
+  }
 
 }

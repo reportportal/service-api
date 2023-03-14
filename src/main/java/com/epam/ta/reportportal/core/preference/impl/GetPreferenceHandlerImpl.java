@@ -22,40 +22,40 @@ import com.epam.ta.reportportal.entity.preference.UserPreference;
 import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
- * Default implementation of
- * {@link com.epam.ta.reportportal.core.preference.GetPreferenceHandler}
+ * Default implementation of {@link com.epam.ta.reportportal.core.preference.GetPreferenceHandler}
  *
  * @author Dzmitry_Kavalets
  */
 @Service
 public class GetPreferenceHandlerImpl implements GetPreferenceHandler {
 
-	private final UserPreferenceRepository userPreferenceRepository;
+  private final UserPreferenceRepository userPreferenceRepository;
 
-	@Autowired
-	public GetPreferenceHandlerImpl(UserPreferenceRepository userPreferenceRepository) {
-		this.userPreferenceRepository = userPreferenceRepository;
-	}
+  @Autowired
+  public GetPreferenceHandlerImpl(UserPreferenceRepository userPreferenceRepository) {
+    this.userPreferenceRepository = userPreferenceRepository;
+  }
 
-	@Override
-	public PreferenceResource getPreference(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		List<UserPreference> userPreferences = userPreferenceRepository.findByProjectIdAndUserId(projectDetails.getProjectId(),
-				user.getUserId()
-		);
-		PreferenceResource preferenceResource = new PreferenceResource();
-		preferenceResource.setUserId(user.getUserId());
-		preferenceResource.setProjectId(projectDetails.getProjectId());
-		List<UserFilterResource> filters = userPreferences.stream()
-				.map(it -> UserFilterConverter.TO_FILTER_RESOURCE.apply(it.getFilter()))
-				.collect(Collectors.toList());
-		preferenceResource.setFilters(filters);
-		return preferenceResource;
-	}
+  @Override
+  public PreferenceResource getPreference(ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user) {
+    List<UserPreference> userPreferences = userPreferenceRepository.findByProjectIdAndUserId(
+        projectDetails.getProjectId(),
+        user.getUserId()
+    );
+    PreferenceResource preferenceResource = new PreferenceResource();
+    preferenceResource.setUserId(user.getUserId());
+    preferenceResource.setProjectId(projectDetails.getProjectId());
+    List<UserFilterResource> filters = userPreferences.stream()
+        .map(it -> UserFilterConverter.TO_FILTER_RESOURCE.apply(it.getFilter()))
+        .collect(Collectors.toList());
+    preferenceResource.setFilters(filters);
+    return preferenceResource;
+  }
 }

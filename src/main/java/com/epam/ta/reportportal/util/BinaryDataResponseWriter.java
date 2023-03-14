@@ -19,29 +19,28 @@ package com.epam.ta.reportportal.util;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.io.IOUtils;
-
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.IOUtils;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class BinaryDataResponseWriter {
 
-	/**
-	 * Copies data from provided {@link InputStream} to Response
-	 *
-	 * @param binaryData File data
-	 * @param response   Response object
-	 */
-	public void write(BinaryData binaryData, HttpServletResponse response) {
-		try {
-			response.setContentType(binaryData.getContentType());
-			IOUtils.copy(binaryData.getInputStream(), response.getOutputStream());
-		} catch (IOException e) {
-			throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, e.getMessage());
-		}
-	}
+  /**
+   * Copies data from provided {@link InputStream} to Response
+   *
+   * @param binaryData File data
+   * @param response   Response object
+   */
+  public void write(BinaryData binaryData, HttpServletResponse response) {
+    try {
+      response.setContentType(binaryData.getContentType());
+      IOUtils.copy(binaryData.getInputStream(), response.getOutputStream());
+    } catch (IOException e) {
+      throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, e.getMessage());
+    }
+  }
 }

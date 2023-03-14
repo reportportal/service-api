@@ -16,7 +16,14 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.reportportal.extension.classloader.ReportPortalResourceLoader;
-import com.epam.ta.reportportal.job.*;
+import com.epam.ta.reportportal.job.CleanExpiredCreationBidsJob;
+import com.epam.ta.reportportal.job.FlushingDataJob;
+import com.epam.ta.reportportal.job.InterruptBrokenLaunchesJob;
+import java.time.Duration;
+import java.util.List;
+import java.util.Properties;
+import javax.inject.Named;
+import javax.sql.DataSource;
 import org.quartz.Job;
 import org.quartz.JobDetail;
 import org.quartz.SimpleTrigger;
@@ -27,166 +34,173 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.scheduling.quartz.*;
+import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
+import org.springframework.scheduling.quartz.JobDetailFactoryBean;
+import org.springframework.scheduling.quartz.SchedulerFactoryBean;
+import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
+import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 import org.springframework.transaction.PlatformTransactionManager;
-
-import javax.inject.Named;
-import javax.sql.DataSource;
-import java.time.Duration;
-import java.util.List;
-import java.util.Properties;
 
 @Configuration
 @Conditional(Conditions.NotTestCondition.class)
-@EnableConfigurationProperties({ SchedulerConfiguration.QuartzProperties.class })
+@EnableConfigurationProperties({SchedulerConfiguration.QuartzProperties.class})
 public class SchedulerConfiguration {
 
-	@Autowired
-	List<Trigger> listOfTrigger;
+  @Autowired
+  List<Trigger> listOfTrigger;
 
-	@Autowired
-	private QuartzProperties quartzProperties;
+  @Autowired
+  private QuartzProperties quartzProperties;
 
-	@Autowired
-	private AutowireCapableBeanFactory context;
+  @Autowired
+  private AutowireCapableBeanFactory context;
 
-	@Autowired
-	private DataSource dataSource;
+  @Autowired
+  private DataSource dataSource;
 
-	@Autowired
-	private PlatformTransactionManager transactionManager;
+  @Autowired
+  private PlatformTransactionManager transactionManager;
 
-	@Autowired
-	private ReportPortalResourceLoader resourceLoader;
+  @Autowired
+  private ReportPortalResourceLoader resourceLoader;
 
-	@Bean
-	@Primary
-	public SchedulerFactoryBean schedulerFactoryBean() {
-		SchedulerFactoryBean scheduler = new SchedulerFactoryBean() {
-			@Override
-			public void setResourceLoader(ResourceLoader resourceLoader) {
-				if (this.resourceLoader == null) {
-					super.setResourceLoader(resourceLoader);
-				}
-			}
-		};
-		scheduler.setApplicationContextSchedulerContextKey("applicationContext");
+  // Use this method for creating cron triggers instead of simple triggers:
+  public static CronTriggerFactoryBean createCronTrigger(JobDetail jobDetail,
+      String cronExpression) {
+    CronTriggerFactoryBean factoryBean = new CronTriggerFactoryBean();
+    factoryBean.setJobDetail(jobDetail);
+    factoryBean.setCronExpression(cronExpression);
+    factoryBean.setMisfireInstruction(SimpleTrigger.MISFIRE_INSTRUCTION_FIRE_NOW);
+    return factoryBean;
+  }
 
-		scheduler.setOverwriteExistingJobs(true);
-		scheduler.setResourceLoader(resourceLoader);
-		scheduler.setQuartzProperties(quartzProperties.getQuartz());
-		scheduler.setDataSource(dataSource);
-		scheduler.setTransactionManager(transactionManager);
-		scheduler.setAutoStartup(true);  // to not automatically start after startup
-		scheduler.setWaitForJobsToCompleteOnShutdown(true);
-		scheduler.setJobFactory(beanJobFactory());
+  public static JobDetailFactoryBean createJobDetail(Class<? extends Job> jobClass) {
+    JobDetailFactoryBean factoryBean = new JobDetailFactoryBean();
+    factoryBean.setJobClass(jobClass);
+    // job has to be durable to be stored in DB:
+    factoryBean.setDurability(true);
+    return factoryBean;
+  }
 
-		// Here we will set all the trigger beans we have defined.
-		if (null != listOfTrigger && !listOfTrigger.isEmpty()) {
-			scheduler.setTriggers(listOfTrigger.toArray(new Trigger[listOfTrigger.size()]));
-		}
+  @Bean
+  @Primary
+  public SchedulerFactoryBean schedulerFactoryBean() {
+    SchedulerFactoryBean scheduler = new SchedulerFactoryBean() {
+      @Override
+      public void setResourceLoader(ResourceLoader resourceLoader) {
+        if (this.resourceLoader == null) {
+          super.setResourceLoader(resourceLoader);
+        }
+      }
+    };
+    scheduler.setApplicationContextSchedulerContextKey("applicationContext");
 
-		return scheduler;
-	}
+    scheduler.setOverwriteExistingJobs(true);
+    scheduler.setResourceLoader(resourceLoader);
+    scheduler.setQuartzProperties(quartzProperties.getQuartz());
+    scheduler.setDataSource(dataSource);
+    scheduler.setTransactionManager(transactionManager);
+    scheduler.setAutoStartup(true);  // to not automatically start after startup
+    scheduler.setWaitForJobsToCompleteOnShutdown(true);
+    scheduler.setJobFactory(beanJobFactory());
 
-	@Bean
-	public SpringBeanJobFactory beanJobFactory() {
-		return new SpringBeanJobFactory() {
-			@Override
-			protected Object createJobInstance(final TriggerFiredBundle bundle) throws Exception {
-				final Object jobInstance = super.createJobInstance(bundle);
-				context.autowireBean(jobInstance);
-				return jobInstance;
-			}
-		};
-	}
+    // Here we will set all the trigger beans we have defined.
+    if (null != listOfTrigger && !listOfTrigger.isEmpty()) {
+      scheduler.setTriggers(listOfTrigger.toArray(new Trigger[listOfTrigger.size()]));
+    }
 
-	@Bean
-	public SimpleTriggerFactoryBean interruptLaunchesTrigger(@Named("interruptLaunchesJobBean") JobDetail jobDetail,
-			@Value("${com.ta.reportportal.job.interrupt.broken.launches.cron}") String interruptLaunchesCron) {
-		return createTriggerDelayed(jobDetail, Duration.parse(interruptLaunchesCron).toMillis());
-	}
+    return scheduler;
+  }
 
-	@Bean
-	public SimpleTriggerFactoryBean cleanExpiredCreationBidsTrigger(@Named("cleanExpiredCreationBidsJobBean") JobDetail jobDetail,
-			@Value("${com.ta.reportportal.job.clean.bids.cron}") String cleanBidsCron) {
-		return createTrigger(jobDetail, Duration.parse(cleanBidsCron).toMillis());
-	}
+  @Bean
+  public SpringBeanJobFactory beanJobFactory() {
+    return new SpringBeanJobFactory() {
+      @Override
+      protected Object createJobInstance(final TriggerFiredBundle bundle) throws Exception {
+        final Object jobInstance = super.createJobInstance(bundle);
+        context.autowireBean(jobInstance);
+        return jobInstance;
+      }
+    };
+  }
 
-	@Bean
-	@Profile("demo")
-	public SimpleTriggerFactoryBean flushingDataTrigger(@Named("flushingDataJob") JobDetail jobDetail,
-			@Value("${com.ta.reportportal.rp.flushing.time.cron}") String flushingCron) {
-		return createTrigger(jobDetail, Duration.parse(flushingCron).toMillis());
-	}
+  @Bean
+  public SimpleTriggerFactoryBean interruptLaunchesTrigger(
+      @Named("interruptLaunchesJobBean") JobDetail jobDetail,
+      @Value("${com.ta.reportportal.job.interrupt.broken.launches.cron}") String interruptLaunchesCron) {
+    return createTriggerDelayed(jobDetail, Duration.parse(interruptLaunchesCron).toMillis());
+  }
 
-	@Bean("interruptLaunchesJobBean")
-	public JobDetailFactoryBean interruptLaunchesJob() {
-		return createJobDetail(InterruptBrokenLaunchesJob.class);
-	}
+  @Bean
+  public SimpleTriggerFactoryBean cleanExpiredCreationBidsTrigger(
+      @Named("cleanExpiredCreationBidsJobBean") JobDetail jobDetail,
+      @Value("${com.ta.reportportal.job.clean.bids.cron}") String cleanBidsCron) {
+    return createTrigger(jobDetail, Duration.parse(cleanBidsCron).toMillis());
+  }
 
-	@Bean("cleanExpiredCreationBidsJobBean")
-	public JobDetailFactoryBean cleanExpiredCreationBidsJob() {
-		return createJobDetail(CleanExpiredCreationBidsJob.class);
-	}
+  @Bean
+  @Profile("demo")
+  public SimpleTriggerFactoryBean flushingDataTrigger(@Named("flushingDataJob") JobDetail jobDetail,
+      @Value("${com.ta.reportportal.rp.flushing.time.cron}") String flushingCron) {
+    return createTrigger(jobDetail, Duration.parse(flushingCron).toMillis());
+  }
 
-	@Bean
-	@Profile("demo")
-	@Named("flushingDataJob")
-	public JobDetailFactoryBean flushingDataJob() {
-		return createJobDetail(FlushingDataJob.class);
-	}
+  @Bean("interruptLaunchesJobBean")
+  public JobDetailFactoryBean interruptLaunchesJob() {
+    return createJobDetail(InterruptBrokenLaunchesJob.class);
+  }
 
-	public SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs) {
-		SimpleTriggerFactoryBean factoryBean = new SimpleTriggerFactoryBean();
-		factoryBean.setJobDetail(jobDetail);
-		factoryBean.setStartDelay(0L);
-		factoryBean.setRepeatInterval(pollFrequencyMs);
-		factoryBean.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
-		// in case of misfire, ignore all missed triggers and continue :
-		factoryBean.setMisfireInstruction(SimpleTrigger.MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT);
-		return factoryBean;
-	}
+  @Bean("cleanExpiredCreationBidsJobBean")
+  public JobDetailFactoryBean cleanExpiredCreationBidsJob() {
+    return createJobDetail(CleanExpiredCreationBidsJob.class);
+  }
 
-	public SimpleTriggerFactoryBean createTriggerDelayed(JobDetail jobDetail, long pollFrequencyMs) {
-		SimpleTriggerFactoryBean factoryBean = new SimpleTriggerFactoryBean();
-		factoryBean.setJobDetail(jobDetail);
-		factoryBean.setStartDelay(pollFrequencyMs);
-		factoryBean.setRepeatInterval(pollFrequencyMs);
-		factoryBean.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
-		// in case of misfire, ignore all missed triggers and continue :
-		factoryBean.setMisfireInstruction(SimpleTrigger.MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT);
-		return factoryBean;
-	}
+  @Bean
+  @Profile("demo")
+  @Named("flushingDataJob")
+  public JobDetailFactoryBean flushingDataJob() {
+    return createJobDetail(FlushingDataJob.class);
+  }
 
-	// Use this method for creating cron triggers instead of simple triggers:
-	public static CronTriggerFactoryBean createCronTrigger(JobDetail jobDetail, String cronExpression) {
-		CronTriggerFactoryBean factoryBean = new CronTriggerFactoryBean();
-		factoryBean.setJobDetail(jobDetail);
-		factoryBean.setCronExpression(cronExpression);
-		factoryBean.setMisfireInstruction(SimpleTrigger.MISFIRE_INSTRUCTION_FIRE_NOW);
-		return factoryBean;
-	}
+  public SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs) {
+    SimpleTriggerFactoryBean factoryBean = new SimpleTriggerFactoryBean();
+    factoryBean.setJobDetail(jobDetail);
+    factoryBean.setStartDelay(0L);
+    factoryBean.setRepeatInterval(pollFrequencyMs);
+    factoryBean.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
+    // in case of misfire, ignore all missed triggers and continue :
+    factoryBean.setMisfireInstruction(
+        SimpleTrigger.MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT);
+    return factoryBean;
+  }
 
-	public static JobDetailFactoryBean createJobDetail(Class<? extends Job> jobClass) {
-		JobDetailFactoryBean factoryBean = new JobDetailFactoryBean();
-		factoryBean.setJobClass(jobClass);
-		// job has to be durable to be stored in DB:
-		factoryBean.setDurability(true);
-		return factoryBean;
-	}
+  public SimpleTriggerFactoryBean createTriggerDelayed(JobDetail jobDetail, long pollFrequencyMs) {
+    SimpleTriggerFactoryBean factoryBean = new SimpleTriggerFactoryBean();
+    factoryBean.setJobDetail(jobDetail);
+    factoryBean.setStartDelay(pollFrequencyMs);
+    factoryBean.setRepeatInterval(pollFrequencyMs);
+    factoryBean.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
+    // in case of misfire, ignore all missed triggers and continue :
+    factoryBean.setMisfireInstruction(
+        SimpleTrigger.MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT);
+    return factoryBean;
+  }
 
-	@ConfigurationProperties("spring.application")
-	public static class QuartzProperties {
+  @ConfigurationProperties("spring.application")
+  public static class QuartzProperties {
 
-		private final Properties quartz = new Properties();
+    private final Properties quartz = new Properties();
 
-		public Properties getQuartz() {
-			return quartz;
-		}
+    public Properties getQuartz() {
+      return quartz;
+    }
 
-	}
+  }
 
 }

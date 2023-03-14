@@ -16,40 +16,46 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.SHARE;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processBoolean;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processDescription;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
+import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.FILTER;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_FILTER;
+
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
 
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.*;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.FILTER;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_FILTER;
-
 /**
  * @author Pavel Bortnik
  */
-public class FilterUpdatedEvent extends AroundEvent<UserFilterActivityResource> implements ActivityEvent {
+public class FilterUpdatedEvent extends AroundEvent<UserFilterActivityResource> implements
+    ActivityEvent {
 
-	public FilterUpdatedEvent() {
-	}
+  public FilterUpdatedEvent() {
+  }
 
-	public FilterUpdatedEvent(UserFilterActivityResource before, UserFilterActivityResource after, Long userId, String userLogin) {
-		super(userId, userLogin, before, after);
-	}
+  public FilterUpdatedEvent(UserFilterActivityResource before, UserFilterActivityResource after,
+      Long userId, String userLogin) {
+    super(userId, userLogin, before, after);
+  }
 
-	@Override
-	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(UPDATE_FILTER)
-				.addActivityEntityType(FILTER)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(getAfter().getId())
-				.addObjectName(getAfter().getName())
-				.addProjectId(getAfter().getProjectId())
-				.addHistoryField(processName(getBefore().getName(), getAfter().getName()))
-				.addHistoryField(processBoolean(SHARE, getBefore().isShared(), getAfter().isShared()))
-				.addHistoryField(processDescription(getBefore().getDescription(), getAfter().getDescription()))
-				.get();
-	}
+  @Override
+  public Activity toActivity() {
+    return new ActivityBuilder().addCreatedNow()
+        .addAction(UPDATE_FILTER)
+        .addActivityEntityType(FILTER)
+        .addUserId(getUserId())
+        .addUserName(getUserLogin())
+        .addObjectId(getAfter().getId())
+        .addObjectName(getAfter().getName())
+        .addProjectId(getAfter().getProjectId())
+        .addHistoryField(processName(getBefore().getName(), getAfter().getName()))
+        .addHistoryField(processBoolean(SHARE, getBefore().isShared(), getAfter().isShared()))
+        .addHistoryField(
+            processDescription(getBefore().getDescription(), getAfter().getDescription()))
+        .get();
+  }
 }

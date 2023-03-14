@@ -18,6 +18,9 @@
 
 package com.epam.ta.reportportal.core.project.settings.notification;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -30,14 +33,10 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
-import org.springframework.stereotype.Service;
-
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static java.util.Optional.ofNullable;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
@@ -45,41 +44,48 @@ import static java.util.Optional.ofNullable;
 @Service
 public class DeleteProjectNotificationHandlerImpl implements DeleteProjectNotificationHandler {
 
-	private final SenderCaseRepository senderCaseRepository;
-	private final MessageBus messageBus;
-	private final ProjectConverter projectConverter;
+  private final SenderCaseRepository senderCaseRepository;
+  private final MessageBus messageBus;
+  private final ProjectConverter projectConverter;
 
-	public DeleteProjectNotificationHandlerImpl(SenderCaseRepository senderCaseRepository, MessageBus messageBus,
-			ProjectConverter projectConverter) {
-		this.senderCaseRepository = senderCaseRepository;
-		this.messageBus = messageBus;
-		this.projectConverter = projectConverter;
-	}
+  public DeleteProjectNotificationHandlerImpl(SenderCaseRepository senderCaseRepository,
+      MessageBus messageBus,
+      ProjectConverter projectConverter) {
+    this.senderCaseRepository = senderCaseRepository;
+    this.messageBus = messageBus;
+    this.projectConverter = projectConverter;
+  }
 
-	@Override
-	public OperationCompletionRS deleteNotification(Project project, Long notificationId, ReportPortalUser user) {
-		Optional<SenderCase> senderCase = senderCaseRepository.findById(notificationId);
-		expect(senderCase,
-				(notification) -> notification.map(ntf -> Objects.equals(ntf.getProject().getId(), project.getId())).orElse(false))
-				.verify(
-						ErrorType.BAD_REQUEST_ERROR,
-						Suppliers.formattedSupplier("Notification '{}' not found. Did you use correct Notification ID?",
-								notificationId).get()
-				);
-		senderCaseRepository.deleteSenderCaseById(notificationId);
+  @Override
+  public OperationCompletionRS deleteNotification(Project project, Long notificationId,
+      ReportPortalUser user) {
+    Optional<SenderCase> senderCase = senderCaseRepository.findById(notificationId);
+    expect(senderCase,
+        (notification) -> notification.map(
+            ntf -> Objects.equals(ntf.getProject().getId(), project.getId())).orElse(false))
+        .verify(
+            ErrorType.BAD_REQUEST_ERROR,
+            Suppliers.formattedSupplier(
+                "Notification '{}' not found. Did you use correct Notification ID?",
+                notificationId).get()
+        );
+    senderCaseRepository.deleteSenderCaseById(notificationId);
 
-		ProjectResource projectResource = projectConverter.TO_PROJECT_RESOURCE.apply(project);
-		ProjectNotificationConfigDTO projectNotificationConfigDTO = projectResource.getConfiguration().getProjectConfig();
-		ofNullable(projectNotificationConfigDTO.getSenderCases()).ifPresent(scs -> projectNotificationConfigDTO.setSenderCases(
-				scs.stream().filter(sc -> !Objects.equals(sc.getId(), notificationId)).collect(Collectors.toList())
-		));
+    ProjectResource projectResource = projectConverter.TO_PROJECT_RESOURCE.apply(project);
+    ProjectNotificationConfigDTO projectNotificationConfigDTO = projectResource.getConfiguration()
+        .getProjectConfig();
+    ofNullable(projectNotificationConfigDTO.getSenderCases()).ifPresent(
+        scs -> projectNotificationConfigDTO.setSenderCases(
+            scs.stream().filter(sc -> !Objects.equals(sc.getId(), notificationId))
+                .collect(Collectors.toList())
+        ));
 
-		messageBus.publishActivity(new NotificationsConfigUpdatedEvent(projectResource,
-				projectResource.getConfiguration().getProjectConfig(),
-				user.getUserId(),
-				user.getUsername()
-		));
+    messageBus.publishActivity(new NotificationsConfigUpdatedEvent(projectResource,
+        projectResource.getConfiguration().getProjectConfig(),
+        user.getUserId(),
+        user.getUsername()
+    ));
 
-		return new OperationCompletionRS("Notification rule was deleted successfully.");
-	}
+    return new OperationCompletionRS("Notification rule was deleted successfully.");
+  }
 }

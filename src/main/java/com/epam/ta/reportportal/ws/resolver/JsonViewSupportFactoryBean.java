@@ -16,47 +16,46 @@
 
 package com.epam.ta.reportportal.ws.resolver;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 /**
- * Initializing bean for wrapping {@link HandlerMethodReturnValueHandler} with
- * JSON view decorators
+ * Initializing bean for wrapping {@link HandlerMethodReturnValueHandler} with JSON view decorators
  *
  * @author Andrei Varabyeu
  */
 public class JsonViewSupportFactoryBean implements InitializingBean {
 
-	@Autowired
-	private RequestMappingHandlerAdapter adapter;
+  @Autowired
+  private RequestMappingHandlerAdapter adapter;
 
-	@Override
-	public void afterPropertiesSet() {
-		List<HandlerMethodReturnValueHandler> handlers = adapter.getReturnValueHandlers();
-		adapter.setReturnValueHandlers(decorateHandlers(handlers));
-	}
+  @Override
+  public void afterPropertiesSet() {
+    List<HandlerMethodReturnValueHandler> handlers = adapter.getReturnValueHandlers();
+    adapter.setReturnValueHandlers(decorateHandlers(handlers));
+  }
 
-	private List<HandlerMethodReturnValueHandler> decorateHandlers(List<HandlerMethodReturnValueHandler> handlers) {
+  private List<HandlerMethodReturnValueHandler> decorateHandlers(
+      List<HandlerMethodReturnValueHandler> handlers) {
 
-		/*
-		 * We have to create new collection here, because initial list is
-		 * unmodifiable
-		 */
-		List<HandlerMethodReturnValueHandler> updatedHandlers = new ArrayList<>(handlers.size());
-		for (HandlerMethodReturnValueHandler handler : handlers) {
-			if (handler instanceof RequestResponseBodyMethodProcessor) {
-				updatedHandlers.add(new JacksonViewReturnValueHandler(handler));
-			} else {
-				updatedHandlers.add(handler);
-			}
-		}
-		return Collections.unmodifiableList(updatedHandlers);
-	}
+    /*
+     * We have to create new collection here, because initial list is
+     * unmodifiable
+     */
+    List<HandlerMethodReturnValueHandler> updatedHandlers = new ArrayList<>(handlers.size());
+    for (HandlerMethodReturnValueHandler handler : handlers) {
+      if (handler instanceof RequestResponseBodyMethodProcessor) {
+        updatedHandlers.add(new JacksonViewReturnValueHandler(handler));
+      } else {
+        updatedHandlers.add(handler);
+      }
+    }
+    return Collections.unmodifiableList(updatedHandlers);
+  }
 }

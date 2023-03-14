@@ -12,36 +12,37 @@ import org.springframework.util.Assert;
  */
 public class ReportPortalClassLoadHelper extends ResourceLoaderClassLoadHelper {
 
-	@Nullable
-	private ResourceLoader resourceLoader;
+  @Nullable
+  private ResourceLoader resourceLoader;
 
-	public ReportPortalClassLoadHelper() {
-	}
+  public ReportPortalClassLoadHelper() {
+  }
 
-	public ReportPortalClassLoadHelper(@Nullable ResourceLoader resourceLoader) {
-		this.resourceLoader = resourceLoader;
-	}
+  public ReportPortalClassLoadHelper(@Nullable ResourceLoader resourceLoader) {
+    this.resourceLoader = resourceLoader;
+  }
 
-	@Override
-	public void initialize() {
-		super.initialize();
-		if (this.resourceLoader == null) {
-			this.resourceLoader = SchedulerFactoryBean.getConfigTimeResourceLoader();
-			if (this.resourceLoader == null) {
-				this.resourceLoader = new DefaultResourceLoader();
-			}
-		}
-	}
+  @Override
+  public void initialize() {
+    super.initialize();
+    if (this.resourceLoader == null) {
+      this.resourceLoader = SchedulerFactoryBean.getConfigTimeResourceLoader();
+      if (this.resourceLoader == null) {
+        this.resourceLoader = new DefaultResourceLoader();
+      }
+    }
+  }
 
-	@Override
-	public Class<?> loadClass(String name) throws ClassNotFoundException {
-		Assert.state(this.resourceLoader != null, "ResourceLoaderClassLoadHelper not initialized");
-		return this.resourceLoader.getClassLoader().loadClass(name);
-	}
+  @Override
+  public Class<?> loadClass(String name) throws ClassNotFoundException {
+    Assert.state(this.resourceLoader != null, "ResourceLoaderClassLoadHelper not initialized");
+    return this.resourceLoader.getClassLoader().loadClass(name);
+  }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> Class<? extends T> loadClass(String name, Class<T> clazz) throws ClassNotFoundException {
-		return (Class<? extends T>) loadClass(name);
-	}
+  @SuppressWarnings("unchecked")
+  @Override
+  public <T> Class<? extends T> loadClass(String name, Class<T> clazz)
+      throws ClassNotFoundException {
+    return (Class<? extends T>) loadClass(name);
+  }
 }

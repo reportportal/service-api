@@ -10,6 +10,7 @@ import org.springframework.util.MultiValueMap;
  */
 public interface ViewGenerator {
 
-	void generate(boolean refresh, String viewName, Widget widget, Filter launchesFilter, Sort launchesSort,
-			MultiValueMap<String, String> params);
+  void generate(boolean refresh, String viewName, Widget widget, Filter launchesFilter,
+      Sort launchesSort,
+      MultiValueMap<String, String> params);
 }

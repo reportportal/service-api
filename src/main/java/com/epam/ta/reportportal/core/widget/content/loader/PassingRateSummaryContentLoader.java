@@ -16,23 +16,22 @@
 
 package com.epam.ta.reportportal.core.widget.content.loader;
 
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.dao.WidgetContentRepository;
-import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.ta.reportportal.entity.widget.content.PassingRateStatisticsResult;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
-
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
+
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.dao.WidgetContentRepository;
+import com.epam.ta.reportportal.entity.widget.WidgetOptions;
+import com.epam.ta.reportportal.entity.widget.content.PassingRateStatisticsResult;
+import java.util.List;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -40,18 +39,20 @@ import static java.util.Collections.singletonMap;
 @Service
 public class PassingRateSummaryContentLoader implements LoadContentStrategy {
 
-	@Autowired
-	private WidgetContentRepository widgetContentRepository;
+  @Autowired
+  private WidgetContentRepository widgetContentRepository;
 
-	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			int limit) {
+  @Override
+  public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping,
+      WidgetOptions widgetOptions,
+      int limit) {
 
-		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
-		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
+    Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
+    Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		PassingRateStatisticsResult result = widgetContentRepository.summaryPassingRateStatistics(filter, sort, limit);
-		return result.getTotal() != 0 ? singletonMap(RESULT, result) : emptyMap();
-	}
+    PassingRateStatisticsResult result = widgetContentRepository.summaryPassingRateStatistics(
+        filter, sort, limit);
+    return result.getTotal() != 0 ? singletonMap(RESULT, result) : emptyMap();
+  }
 
 }

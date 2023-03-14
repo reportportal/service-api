@@ -19,49 +19,49 @@ package com.epam.ta.reportportal.core.item.history;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
-
 import java.util.List;
 
 /**
- * Define interface for loading and validating additional data( launches and
- * test Items) which should be used for loading test items history.
+ * Define interface for loading and validating additional data( launches and test Items) which
+ * should be used for loading test items history.
  *
  * @author Aliaksei_Makayed
  */
 public interface ITestItemsHistoryService {
 
-	/**
-	 * Load launches for which history should be loaded
-	 *
-	 * @param quantity           - count items in history
-	 * @param startingLaunchId   - first initial launch in history
-	 * @param projectName        - name of project
-	 * @param showBrokenLaunches - <b>boolean</b> should in_progress and interrupted launches
-	 *                           been included in history:<br>
-	 *                           <code>true</code> - if history should contain all launch
-	 *                           statuses<br>
-	 *                           <code>false</code> - if history should contain only passed and
-	 *                           failed launches
-	 * @return
-	 */
-	List<Launch> loadLaunches(int quantity, Long startingLaunchId, String projectName, boolean showBrokenLaunches);
+  /**
+   * Load launches for which history should be loaded
+   *
+   * @param quantity           - count items in history
+   * @param startingLaunchId   - first initial launch in history
+   * @param projectName        - name of project
+   * @param showBrokenLaunches - <b>boolean</b> should in_progress and interrupted launches been
+   *                           included in history:<br>
+   *                           <code>true</code> - if history should contain all launch
+   *                           statuses<br>
+   *                           <code>false</code> - if history should contain only passed and
+   *                           failed launches
+   * @return
+   */
+  List<Launch> loadLaunches(int quantity, Long startingLaunchId, String projectName,
+      boolean showBrokenLaunches);
 
-	/**
-	 * Build ui representation of launch history
-	 *
-	 * @param launch    History launch
-	 * @param testItems History test items
-	 * @return {@link TestItemHistoryElement}
-	 */
-	TestItemHistoryElement buildHistoryElement(Launch launch, List<TestItem> testItems);
+  /**
+   * Build ui representation of launch history
+   *
+   * @param launch    History launch
+   * @param testItems History test items
+   * @return {@link TestItemHistoryElement}
+   */
+  TestItemHistoryElement buildHistoryElement(Launch launch, List<TestItem> testItems);
 
-	/**
-	 * Validate size of history depth
-	 *
-	 * @param historyDepth history depth
-	 */
-	void validateHistoryDepth(int historyDepth);
+  /**
+   * Validate size of history depth
+   *
+   * @param historyDepth history depth
+   */
+  void validateHistoryDepth(int historyDepth);
 
-	void validateItems(List<TestItem> itemsForHistory, List<String> ids, String projectName);
+  void validateItems(List<TestItem> itemsForHistory, List<String> ids, String projectName);
 
 }

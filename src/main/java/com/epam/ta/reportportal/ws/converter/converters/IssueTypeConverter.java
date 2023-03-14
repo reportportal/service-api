@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.ws.model.activity.IssueTypeActivityResource;
-
 import java.util.function.Function;
 
 /**
@@ -26,14 +25,14 @@ import java.util.function.Function;
  */
 public class IssueTypeConverter {
 
-	private IssueTypeConverter() {
-		//static only
-	}
+  public static final Function<IssueType, IssueTypeActivityResource> TO_ACTIVITY_RESOURCE = issueType -> {
+    IssueTypeActivityResource resource = new IssueTypeActivityResource();
+    resource.setId(issueType.getId());
+    resource.setLongName(issueType.getLongName());
+    return resource;
+  };
 
-	public static final Function<IssueType, IssueTypeActivityResource> TO_ACTIVITY_RESOURCE = issueType -> {
-		IssueTypeActivityResource resource = new IssueTypeActivityResource();
-		resource.setId(issueType.getId());
-		resource.setLongName(issueType.getLongName());
-		return resource;
-	};
+  private IssueTypeConverter() {
+    //static only
+  }
 }

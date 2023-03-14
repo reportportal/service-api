@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
-
 import java.util.Collection;
 
 /**
@@ -28,18 +27,19 @@ import java.util.Collection;
  */
 public interface UpdateWidgetHandler {
 
-	/**
-	 * Update widget with specified id
-	 */
-	OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+  /**
+   * Update widget with specified id
+   */
+  OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ,
+      ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user);
 
-	/**
-	 * Update {@link Widget#isShared()} state
-	 *
-	 * @param widgets   {@link Collection} of {@link Widget}
-	 * @param projectId {@link com.epam.ta.reportportal.entity.project.Project#id}
-	 * @param isShared  flag that indicates whether widget should be shared or unshared
-	 */
-	void updateSharing(Collection<Widget> widgets, Long projectId, Boolean isShared);
+  /**
+   * Update {@link Widget#isShared()} state
+   *
+   * @param widgets   {@link Collection} of {@link Widget}
+   * @param projectId {@link com.epam.ta.reportportal.entity.project.Project#id}
+   * @param isShared  flag that indicates whether widget should be shared or unshared
+   */
+  void updateSharing(Collection<Widget> widgets, Long projectId, Boolean isShared);
 }

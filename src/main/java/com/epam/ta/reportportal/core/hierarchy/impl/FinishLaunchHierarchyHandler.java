@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.hierarchy.impl;
 
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
+
 import com.epam.ta.reportportal.core.hierarchy.AbstractFinishHierarchyHandler;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.core.item.impl.retry.RetryHandler;
@@ -26,14 +28,11 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import java.util.List;
+import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.function.Function;
-
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -41,38 +40,42 @@ import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 @Service("finishLaunchHierarchyHandler")
 public class FinishLaunchHierarchyHandler extends AbstractFinishHierarchyHandler<Launch> {
 
-	@Autowired
-	public FinishLaunchHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			ItemAttributeRepository itemAttributeRepository, RetryHandler retryHandler, IssueTypeHandler issueTypeHandler,
-			IssueEntityRepository issueEntityRepository, ChangeStatusHandler changeStatusHandler) {
-		super(launchRepository,
-				testItemRepository,
-				itemAttributeRepository,
-				issueEntityRepository,
-				retryHandler,
-				issueTypeHandler,
-				changeStatusHandler
-		);
-	}
+  @Autowired
+  public FinishLaunchHierarchyHandler(LaunchRepository launchRepository,
+      TestItemRepository testItemRepository,
+      ItemAttributeRepository itemAttributeRepository, RetryHandler retryHandler,
+      IssueTypeHandler issueTypeHandler,
+      IssueEntityRepository issueEntityRepository, ChangeStatusHandler changeStatusHandler) {
+    super(launchRepository,
+        testItemRepository,
+        itemAttributeRepository,
+        issueEntityRepository,
+        retryHandler,
+        issueTypeHandler,
+        changeStatusHandler
+    );
+  }
 
-	@Override
-	protected boolean isIssueRequired(StatusEnum status, Launch launch) {
-		return FAILED.equals(status) || evaluateSkippedAttributeValue(status, launch.getId());
-	}
+  @Override
+  protected boolean isIssueRequired(StatusEnum status, Launch launch) {
+    return FAILED.equals(status) || evaluateSkippedAttributeValue(status, launch.getId());
+  }
 
-	@Override
-	protected Function<Pageable, List<Long>> getItemIdsFunction(boolean hasChildren, Launch launch, StatusEnum status) {
-		return hasChildren ?
-				pageable -> testItemRepository.findIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(launch.getId(),
-						status,
-						pageable.getPageSize(),
-						pageable.getOffset()
-				) :
-				pageable -> testItemRepository.findIdsByNotHasChildrenAndLaunchIdAndStatus(launch.getId(),
-						status,
-						pageable.getPageSize(),
-						pageable.getOffset()
-				);
-	}
+  @Override
+  protected Function<Pageable, List<Long>> getItemIdsFunction(boolean hasChildren, Launch launch,
+      StatusEnum status) {
+    return hasChildren ?
+        pageable -> testItemRepository.findIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(
+            launch.getId(),
+            status,
+            pageable.getPageSize(),
+            pageable.getOffset()
+        ) :
+        pageable -> testItemRepository.findIdsByNotHasChildrenAndLaunchIdAndStatus(launch.getId(),
+            status,
+            pageable.getPageSize(),
+            pageable.getOffset()
+        );
+  }
 
 }

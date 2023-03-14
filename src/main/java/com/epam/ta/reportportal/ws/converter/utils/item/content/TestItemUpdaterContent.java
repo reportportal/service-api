@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.ws.converter.utils.item.content;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterContent;
-
 import java.util.List;
 
 /**
@@ -26,23 +25,23 @@ import java.util.List;
  */
 public final class TestItemUpdaterContent implements ResourceUpdaterContent {
 
-	private final Long projectId;
-	private final List<TestItem> testItems;
+  private final Long projectId;
+  private final List<TestItem> testItems;
 
-	private TestItemUpdaterContent(Long projectId, List<TestItem> testItems) {
-		this.projectId = projectId;
-		this.testItems = testItems;
-	}
+  private TestItemUpdaterContent(Long projectId, List<TestItem> testItems) {
+    this.projectId = projectId;
+    this.testItems = testItems;
+  }
 
-	public Long getProjectId() {
-		return projectId;
-	}
+  public static TestItemUpdaterContent of(Long projectId, List<TestItem> testItems) {
+    return new TestItemUpdaterContent(projectId, testItems);
+  }
 
-	public List<TestItem> getTestItems() {
-		return testItems;
-	}
+  public Long getProjectId() {
+    return projectId;
+  }
 
-	public static TestItemUpdaterContent of(Long projectId, List<TestItem> testItems) {
-		return new TestItemUpdaterContent(projectId, testItems);
-	}
+  public List<TestItem> getTestItems() {
+    return testItems;
+  }
 }

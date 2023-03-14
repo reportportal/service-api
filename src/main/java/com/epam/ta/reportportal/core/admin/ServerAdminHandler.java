@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.admin;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
-
 import java.util.Map;
 
 /**
@@ -29,18 +28,18 @@ import java.util.Map;
  */
 public interface ServerAdminHandler {
 
-	/**
-	 * Get all server settings
-	 *
-	 * @return {@link ServerSettingsResource}
-	 */
-	Map<String, String> getServerSettings();
+  /**
+   * Get all server settings
+   *
+   * @return {@link ServerSettingsResource}
+   */
+  Map<String, String> getServerSettings();
 
-	/**
-	 * Update analytics settings
-	 *
-	 * @param analyticsResource {@link AnalyticsResource}
-	 * @return Operation results
-	 */
-	OperationCompletionRS saveAnalyticsSettings(AnalyticsResource analyticsResource);
+  /**
+   * Update analytics settings
+   *
+   * @param analyticsResource {@link AnalyticsResource}
+   * @return Operation results
+   */
+  OperationCompletionRS saveAnalyticsSettings(AnalyticsResource analyticsResource);
 }

@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.bts.handler.impl;
 
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -27,12 +29,9 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 
 /**
  * Default implementation of {@link GetTicketHandler}
@@ -43,52 +42,58 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 @Service
 public class GetTicketHandlerImpl implements GetTicketHandler {
 
-	private final PluginBox pluginBox;
-	private final GetIntegrationHandler getIntegrationHandler;
+  private final PluginBox pluginBox;
+  private final GetIntegrationHandler getIntegrationHandler;
 
-	@Autowired
-	public GetTicketHandlerImpl(PluginBox pluginBox, GetIntegrationHandler getIntegrationHandler) {
-		this.pluginBox = pluginBox;
-		this.getIntegrationHandler = getIntegrationHandler;
-	}
+  @Autowired
+  public GetTicketHandlerImpl(PluginBox pluginBox, GetIntegrationHandler getIntegrationHandler) {
+    this.pluginBox = pluginBox;
+    this.getIntegrationHandler = getIntegrationHandler;
+  }
 
-	@Override
-	public Ticket getTicket(String ticketId, String url, String btsProject, ReportPortalUser.ProjectDetails projectDetails) {
-		Integration integration = getIntegrationHandler.getEnabledBtsIntegration(projectDetails, url, btsProject);
-		return getBtsExtension(integration).getTicket(ticketId, integration)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.TICKET_NOT_FOUND, ticketId));
-	}
+  @Override
+  public Ticket getTicket(String ticketId, String url, String btsProject,
+      ReportPortalUser.ProjectDetails projectDetails) {
+    Integration integration = getIntegrationHandler.getEnabledBtsIntegration(projectDetails, url,
+        btsProject);
+    return getBtsExtension(integration).getTicket(ticketId, integration)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.TICKET_NOT_FOUND, ticketId));
+  }
 
-	@Override
-	public List<PostFormField> getSubmitTicketFields(String ticketType, Long integrationId,
-			ReportPortalUser.ProjectDetails projectDetails) {
-		Integration integration = getIntegrationHandler.getEnabledBtsIntegration(projectDetails, integrationId);
-		return getBtsExtension(integration).getTicketFields(ticketType, integration);
-	}
+  @Override
+  public List<PostFormField> getSubmitTicketFields(String ticketType, Long integrationId,
+      ReportPortalUser.ProjectDetails projectDetails) {
+    Integration integration = getIntegrationHandler.getEnabledBtsIntegration(projectDetails,
+        integrationId);
+    return getBtsExtension(integration).getTicketFields(ticketType, integration);
+  }
 
-	@Override
-	public List<PostFormField> getSubmitTicketFields(String ticketType, Long integrationId) {
-		Integration integration = getIntegrationHandler.getEnabledBtsIntegration(integrationId);
-		return getBtsExtension(integration).getTicketFields(ticketType, integration);
-	}
+  @Override
+  public List<PostFormField> getSubmitTicketFields(String ticketType, Long integrationId) {
+    Integration integration = getIntegrationHandler.getEnabledBtsIntegration(integrationId);
+    return getBtsExtension(integration).getTicketFields(ticketType, integration);
+  }
 
-	@Override
-	public List<String> getAllowableIssueTypes(Long integrationId, ReportPortalUser.ProjectDetails projectDetails) {
-		Integration integration = getIntegrationHandler.getEnabledBtsIntegration(projectDetails, integrationId);
-		return getBtsExtension(integration).getIssueTypes(integration);
-	}
+  @Override
+  public List<String> getAllowableIssueTypes(Long integrationId,
+      ReportPortalUser.ProjectDetails projectDetails) {
+    Integration integration = getIntegrationHandler.getEnabledBtsIntegration(projectDetails,
+        integrationId);
+    return getBtsExtension(integration).getIssueTypes(integration);
+  }
 
-	@Override
-	public List<String> getAllowableIssueTypes(Long integrationId) {
-		Integration integration = getIntegrationHandler.getEnabledBtsIntegration(integrationId);
-		return getBtsExtension(integration).getIssueTypes(integration);
-	}
+  @Override
+  public List<String> getAllowableIssueTypes(Long integrationId) {
+    Integration integration = getIntegrationHandler.getEnabledBtsIntegration(integrationId);
+    return getBtsExtension(integration).getIssueTypes(integration);
+  }
 
-	private BtsExtension getBtsExtension(Integration integration) {
-		return pluginBox.getInstance(integration.getType().getName(), BtsExtension.class)
-				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-						Suppliers.formattedSupplier("BugTracking plugin for {} isn't installed", integration.getType().getName()).get()
-				));
-	}
+  private BtsExtension getBtsExtension(Integration integration) {
+    return pluginBox.getInstance(integration.getType().getName(), BtsExtension.class)
+        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+            Suppliers.formattedSupplier("BugTracking plugin for {} isn't installed",
+                integration.getType().getName()).get()
+        ));
+  }
 
 }

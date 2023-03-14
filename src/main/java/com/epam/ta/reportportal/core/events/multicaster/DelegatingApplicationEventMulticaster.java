@@ -16,80 +16,82 @@
 
 package com.epam.ta.reportportal.core.events.multicaster;
 
+import static java.util.Optional.ofNullable;
+
+import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 
-import java.util.Set;
-
-import static java.util.Optional.ofNullable;
-
 /**
- * Extension for {@link SimpleApplicationEventMulticaster} to allow error handling only for provided set of events
+ * Extension for {@link SimpleApplicationEventMulticaster} to allow error handling only for provided
+ * set of events
  *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class DelegatingApplicationEventMulticaster extends SimpleApplicationEventMulticaster {
 
-	private final Set<Class<?>> errorHandlingEventTypes;
+  private final Set<Class<?>> errorHandlingEventTypes;
 
-	public DelegatingApplicationEventMulticaster(Set<Class<?>> errorHandlingEventTypes) {
-		this.errorHandlingEventTypes = errorHandlingEventTypes;
-	}
+  public DelegatingApplicationEventMulticaster(Set<Class<?>> errorHandlingEventTypes) {
+    this.errorHandlingEventTypes = errorHandlingEventTypes;
+  }
 
-	@Override
-	protected void invokeListener(ApplicationListener<?> listener, ApplicationEvent event) {
-		ofNullable(getErrorHandler()).filter(h -> errorHandlingEventTypes.contains(event.getClass())).ifPresentOrElse(h -> {
-			try {
-				doInvokeListener(listener, event);
-			} catch (Throwable err) {
-				h.handleError(err);
-			}
-		}, () -> doInvokeListener(listener, event));
-	}
+  @Override
+  protected void invokeListener(ApplicationListener<?> listener, ApplicationEvent event) {
+    ofNullable(getErrorHandler()).filter(h -> errorHandlingEventTypes.contains(event.getClass()))
+        .ifPresentOrElse(h -> {
+          try {
+            doInvokeListener(listener, event);
+          } catch (Throwable err) {
+            h.handleError(err);
+          }
+        }, () -> doInvokeListener(listener, event));
+  }
 
-	/**
-	 * @see SimpleApplicationEventMulticaster
-	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void doInvokeListener(ApplicationListener listener, ApplicationEvent event) {
-		try {
-			listener.onApplicationEvent(event);
-		} catch (ClassCastException ex) {
-			String msg = ex.getMessage();
-			if (msg == null || matchesClassCastMessage(msg, event.getClass())) {
-				// Possibly a lambda-defined listener which we could not resolve the generic event type for
-				// -> let's suppress the exception and just log a debug message.
-				Log logger = LogFactory.getLog(getClass());
-				if (logger.isTraceEnabled()) {
-					logger.trace("Non-matching event type for listener: " + listener, ex);
-				}
-			} else {
-				throw ex;
-			}
-		}
-	}
+  /**
+   * @see SimpleApplicationEventMulticaster
+   */
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  private void doInvokeListener(ApplicationListener listener, ApplicationEvent event) {
+    try {
+      listener.onApplicationEvent(event);
+    } catch (ClassCastException ex) {
+      String msg = ex.getMessage();
+      if (msg == null || matchesClassCastMessage(msg, event.getClass())) {
+        // Possibly a lambda-defined listener which we could not resolve the generic event type for
+        // -> let's suppress the exception and just log a debug message.
+        Log logger = LogFactory.getLog(getClass());
+        if (logger.isTraceEnabled()) {
+          logger.trace("Non-matching event type for listener: " + listener, ex);
+        }
+      } else {
+        throw ex;
+      }
+    }
+  }
 
-	/**
-	 * @see SimpleApplicationEventMulticaster
-	 */
-	private boolean matchesClassCastMessage(String classCastMessage, Class<?> eventClass) {
-		// On Java 8, the message starts with the class name: "java.lang.String cannot be cast..."
-		if (classCastMessage.startsWith(eventClass.getName())) {
-			return true;
-		}
-		// On Java 11, the message starts with "class ..." a.k.a. Class.toString()
-		if (classCastMessage.startsWith(eventClass.toString())) {
-			return true;
-		}
-		// On Java 9, the message used to contain the module name: "java.base/java.lang.String cannot be cast..."
-		int moduleSeparatorIndex = classCastMessage.indexOf('/');
-		if (moduleSeparatorIndex != -1 && classCastMessage.startsWith(eventClass.getName(), moduleSeparatorIndex + 1)) {
-			return true;
-		}
-		// Assuming an unrelated class cast failure...
-		return false;
-	}
+  /**
+   * @see SimpleApplicationEventMulticaster
+   */
+  private boolean matchesClassCastMessage(String classCastMessage, Class<?> eventClass) {
+    // On Java 8, the message starts with the class name: "java.lang.String cannot be cast..."
+    if (classCastMessage.startsWith(eventClass.getName())) {
+      return true;
+    }
+    // On Java 11, the message starts with "class ..." a.k.a. Class.toString()
+    if (classCastMessage.startsWith(eventClass.toString())) {
+      return true;
+    }
+    // On Java 9, the message used to contain the module name: "java.base/java.lang.String cannot be cast..."
+    int moduleSeparatorIndex = classCastMessage.indexOf('/');
+    if (moduleSeparatorIndex != -1 && classCastMessage.startsWith(eventClass.getName(),
+        moduleSeparatorIndex + 1)) {
+      return true;
+    }
+    // Assuming an unrelated class cast failure...
+    return false;
+  }
 }

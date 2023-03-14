@@ -32,29 +32,31 @@ import org.springframework.util.StringUtils;
 @Component
 public class JiraEmailSecretMigrationService extends AbstractSecretMigrationService {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(JiraEmailSecretMigrationService.class);
-	private static final String JIRA_INTEGRATION_TYPE_NAME = "jira";
-	private static final String EMAIL_INTEGRATION_TYPE_NAME = "email";
+  private static final Logger LOGGER = LoggerFactory.getLogger(
+      JiraEmailSecretMigrationService.class);
+  private static final String JIRA_INTEGRATION_TYPE_NAME = "jira";
+  private static final String EMAIL_INTEGRATION_TYPE_NAME = "email";
 
-	@Autowired
-	public JiraEmailSecretMigrationService(IntegrationRepository integrationRepository, BasicTextEncryptor encryptor) {
-		super(integrationRepository, encryptor);
-	}
+  @Autowired
+  public JiraEmailSecretMigrationService(IntegrationRepository integrationRepository,
+      BasicTextEncryptor encryptor) {
+    super(integrationRepository, encryptor);
+  }
 
-	@Transactional
-	public void migrate() {
-		LOGGER.debug("Migration of jira and email secrets has been started");
+  @Transactional
+  public void migrate() {
+    LOGGER.debug("Migration of jira and email secrets has been started");
 
-		BasicTextEncryptor staticSaltEncryptor = new BasicTextEncryptor();
-		staticSaltEncryptor.setPassword("reportportal");
+    BasicTextEncryptor staticSaltEncryptor = new BasicTextEncryptor();
+    staticSaltEncryptor.setPassword("reportportal");
 
-		integrationRepository.findAllByTypeIn(JIRA_INTEGRATION_TYPE_NAME, EMAIL_INTEGRATION_TYPE_NAME)
-				.forEach(it -> extractParams(it).flatMap(BtsProperties.PASSWORD::getParam)
-						.filter(pass -> !StringUtils.isEmpty(pass))
-						.ifPresent(pass -> BtsProperties.PASSWORD.setParam(it.getParams(),
-								encryptor.encrypt(staticSaltEncryptor.decrypt(pass))
-						)));
+    integrationRepository.findAllByTypeIn(JIRA_INTEGRATION_TYPE_NAME, EMAIL_INTEGRATION_TYPE_NAME)
+        .forEach(it -> extractParams(it).flatMap(BtsProperties.PASSWORD::getParam)
+            .filter(pass -> !StringUtils.isEmpty(pass))
+            .ifPresent(pass -> BtsProperties.PASSWORD.setParam(it.getParams(),
+                encryptor.encrypt(staticSaltEncryptor.decrypt(pass))
+            )));
 
-		LOGGER.debug("Migration of jira and email secrets has been finished");
-	}
+    LOGGER.debug("Migration of jira and email secrets has been finished");
+  }
 }

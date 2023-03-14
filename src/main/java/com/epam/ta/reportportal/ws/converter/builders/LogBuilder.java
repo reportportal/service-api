@@ -16,55 +16,54 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
-
 import java.util.UUID;
 import java.util.function.Supplier;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
  */
 public class LogBuilder implements Supplier<Log> {
 
-	private final Log log;
+  private final Log log;
 
-	public LogBuilder() {
-		log = new Log();
-	}
+  public LogBuilder() {
+    log = new Log();
+  }
 
-	public LogBuilder addSaveLogRq(SaveLogRQ createLogRQ) {
-		log.setLogLevel(LogLevel.toCustomLogLevel(createLogRQ.getLevel()));
-		log.setLogMessage(ofNullable(createLogRQ.getMessage()).orElse("NULL"));
-		log.setLogTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(createLogRQ.getLogTime()));
-		log.setUuid(ofNullable(createLogRQ.getUuid()).orElse(UUID.randomUUID().toString()));
-		return this;
-	}
+  public LogBuilder addSaveLogRq(SaveLogRQ createLogRQ) {
+    log.setLogLevel(LogLevel.toCustomLogLevel(createLogRQ.getLevel()));
+    log.setLogMessage(ofNullable(createLogRQ.getMessage()).orElse("NULL"));
+    log.setLogTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(createLogRQ.getLogTime()));
+    log.setUuid(ofNullable(createLogRQ.getUuid()).orElse(UUID.randomUUID().toString()));
+    return this;
+  }
 
-	public LogBuilder addTestItem(TestItem testItem) {
-		log.setTestItem(testItem);
-		return this;
-	}
+  public LogBuilder addTestItem(TestItem testItem) {
+    log.setTestItem(testItem);
+    return this;
+  }
 
-	public LogBuilder addLaunch(Launch launch) {
-		log.setLaunch(launch);
-		return this;
-	}
+  public LogBuilder addLaunch(Launch launch) {
+    log.setLaunch(launch);
+    return this;
+  }
 
-	public LogBuilder addProjectId(Long projectId) {
-		log.setProjectId(projectId);
-		return this;
-	}
+  public LogBuilder addProjectId(Long projectId) {
+    log.setProjectId(projectId);
+    return this;
+  }
 
-	@Override
-	public Log get() {
-		return log;
-	}
+  @Override
+  public Log get() {
+    return log;
+  }
 
 }

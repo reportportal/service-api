@@ -16,10 +16,22 @@
 
 package com.epam.ta.reportportal.store.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.reportportal.commons.Thumbnailator;
 import com.epam.ta.reportportal.binary.impl.AttachmentDataStoreService;
 import com.epam.ta.reportportal.filesystem.DataEncoder;
 import com.epam.ta.reportportal.filesystem.DataStore;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,84 +39,77 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 /**
  * @author Dzianis_Shybeka
  */
 @ExtendWith(MockitoExtension.class)
 class DataStoreServiceTest {
 
-	@Mock
-	private DataStore dataStore;
+  @Mock
+  private DataStore dataStore;
 
-	@Mock
-	private Thumbnailator thumbnailator;
+  @Mock
+  private Thumbnailator thumbnailator;
 
-	@Mock
-	private DataEncoder dataEncoder;
+  @Mock
+  private DataEncoder dataEncoder;
 
-	@InjectMocks
-	private AttachmentDataStoreService dataStoreService;
+  @InjectMocks
+  private AttachmentDataStoreService dataStoreService;
 
-	@Test
-	void saveTest() throws Exception {
-		//  given:
-		MultipartFile file = mock(MultipartFile.class);
+  @Test
+  void saveTest() throws Exception {
+    //  given:
+    MultipartFile file = mock(MultipartFile.class);
 
-		//  and: setups
-		when(dataStore.save("fileName", file.getInputStream())).thenReturn("filePath");
-		when(dataEncoder.encode("filePath")).thenReturn("fileId");
+    //  and: setups
+    when(dataStore.save("fileName", file.getInputStream())).thenReturn("filePath");
+    when(dataEncoder.encode("filePath")).thenReturn("fileId");
 
-		//  when:
-		String fileId = dataStoreService.save("fileName", file.getInputStream());
+    //  when:
+    String fileId = dataStoreService.save("fileName", file.getInputStream());
 
-		assertEquals("fileId", fileId);
-	}
+    assertEquals("fileId", fileId);
+  }
 
-	@Test
-	void saveThumbnailTest() throws IOException {
-		MultipartFile file = mock(MultipartFile.class);
+  @Test
+  void saveThumbnailTest() throws IOException {
+    MultipartFile file = mock(MultipartFile.class);
 
-		when(dataStore.save("fileName", file.getInputStream())).thenReturn("thumbnailPath");
-		when(dataEncoder.encode("thumbnailPath")).thenReturn("thumbnailId");
+    when(dataStore.save("fileName", file.getInputStream())).thenReturn("thumbnailPath");
+    when(dataEncoder.encode("thumbnailPath")).thenReturn("thumbnailId");
 
-		assertEquals("thumbnailId", dataStoreService.saveThumbnail("fileName", file.getInputStream()));
-	}
+    assertEquals("thumbnailId", dataStoreService.saveThumbnail("fileName", file.getInputStream()));
+  }
 
-	@Test
-	void saveThumbnailWithException() throws IOException {
-		MultipartFile file = mock(MultipartFile.class);
+  @Test
+  void saveThumbnailWithException() throws IOException {
+    MultipartFile file = mock(MultipartFile.class);
 
-		when(thumbnailator.createThumbnail(file.getInputStream())).thenThrow(IOException.class);
+    when(thumbnailator.createThumbnail(file.getInputStream())).thenThrow(IOException.class);
 
-		assertNull(dataStoreService.saveThumbnail("fileName", file.getInputStream()));
-	}
+    assertNull(dataStoreService.saveThumbnail("fileName", file.getInputStream()));
+  }
 
-	@Test
-	void deleteTest() {
-		when(dataEncoder.decode("fileId")).thenReturn("filePath");
+  @Test
+  void deleteTest() {
+    when(dataEncoder.decode("fileId")).thenReturn("filePath");
 
-		dataStoreService.delete("fileId");
+    dataStoreService.delete("fileId");
 
-		verify(dataStore, times(1)).delete("filePath");
-	}
+    verify(dataStore, times(1)).delete("filePath");
+  }
 
-	@Test
-	void loadTest() {
-		InputStream inputStream = mock(InputStream.class);
+  @Test
+  void loadTest() {
+    InputStream inputStream = mock(InputStream.class);
 
-		when(dataEncoder.decode("fileId")).thenReturn("filePath");
-		when(dataStore.load("filePath")).thenReturn(inputStream);
+    when(dataEncoder.decode("fileId")).thenReturn("filePath");
+    when(dataStore.load("filePath")).thenReturn(inputStream);
 
-		Optional<InputStream> content = dataStoreService.load("fileId");
+    Optional<InputStream> content = dataStoreService.load("fileId");
 
-		assertTrue(content.isPresent());
-		assertSame(inputStream, content.get());
-	}
+    assertTrue(content.isPresent());
+    assertSame(inputStream, content.get());
+  }
 }

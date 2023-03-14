@@ -16,50 +16,55 @@
 
 package com.epam.ta.reportportal.core.widget.content.remover;
 
+import static com.epam.ta.reportportal.entity.widget.WidgetType.COMPONENT_HEALTH_CHECK;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.core.widget.content.materialized.state.WidgetStateResolver;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.WidgetState;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import java.util.Map;
-
-import static com.epam.ta.reportportal.entity.widget.WidgetType.*;
-import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 class DelegatingStateContentRemoverTest {
 
-	private final WidgetStateResolver widgetStateResolver = mock(WidgetStateResolver.class);
+  private final WidgetStateResolver widgetStateResolver = mock(WidgetStateResolver.class);
 
-	private final WidgetContentRemover remover = mock(WidgetContentRemover.class);
-	private final Map<WidgetState, WidgetContentRemover> removerMapping = Map.of(WidgetState.RENDERING, remover);
+  private final WidgetContentRemover remover = mock(WidgetContentRemover.class);
+  private final Map<WidgetState, WidgetContentRemover> removerMapping = Map.of(
+      WidgetState.RENDERING, remover);
 
-	private final DelegatingStateContentRemover delegatingStateContentRemover = new DelegatingStateContentRemover(widgetStateResolver,
-			removerMapping
-	);
+  private final DelegatingStateContentRemover delegatingStateContentRemover = new DelegatingStateContentRemover(
+      widgetStateResolver,
+      removerMapping
+  );
 
-	@ParameterizedTest
-	@ValueSource(strings = { "cumulative", "componentHealthCheckTable" })
-	void supports(String type) {
-		final Widget widget = new Widget();
-		widget.setWidgetType(type);
+  @ParameterizedTest
+  @ValueSource(strings = {"cumulative", "componentHealthCheckTable"})
+  void supports(String type) {
+    final Widget widget = new Widget();
+    widget.setWidgetType(type);
 
-		when(widgetStateResolver.resolve(widget.getWidgetOptions())).thenReturn(WidgetState.RENDERING);
+    when(widgetStateResolver.resolve(widget.getWidgetOptions())).thenReturn(WidgetState.RENDERING);
 
-		delegatingStateContentRemover.removeContent(widget);
-		verify(remover, times(1)).removeContent(widget);
-	}
+    delegatingStateContentRemover.removeContent(widget);
+    verify(remover, times(1)).removeContent(widget);
+  }
 
-	@Test
-	void supportsHealthNegative() {
-		final Widget widget = new Widget();
-		widget.setWidgetType(COMPONENT_HEALTH_CHECK.getType());
-		delegatingStateContentRemover.removeContent(widget);
-		verify(widgetStateResolver, times(0)).resolve(any(WidgetOptions.class));
-	}
+  @Test
+  void supportsHealthNegative() {
+    final Widget widget = new Widget();
+    widget.setWidgetType(COMPONENT_HEALTH_CHECK.getType());
+    delegatingStateContentRemover.removeContent(widget);
+    verify(widgetStateResolver, times(0)).resolve(any(WidgetOptions.class));
+  }
 }

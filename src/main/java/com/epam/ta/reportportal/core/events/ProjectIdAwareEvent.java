@@ -21,5 +21,5 @@ package com.epam.ta.reportportal.core.events;
  */
 public interface ProjectIdAwareEvent extends Event {
 
-	Long getProjectId();
+  Long getProjectId();
 }

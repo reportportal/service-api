@@ -15,6 +15,12 @@
  */
 package com.epam.ta.reportportal.core.imprt;
 
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
+import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.ZIP_EXTENSION;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ImportFinishedEvent;
@@ -25,71 +31,72 @@ import com.epam.ta.reportportal.core.imprt.impl.ImportType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import java.io.File;
+import java.io.IOException;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
-
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
-import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.ZIP_EXTENSION;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
-
 @Service
 public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
-	private ImportStrategyFactory importStrategyFactory;
-	private MessageBus messageBus;
 
-	@Autowired
-	public ImportLaunchHandlerImpl(ImportStrategyFactory importStrategyFactory, MessageBus messageBus) {
-		this.importStrategyFactory = importStrategyFactory;
-		this.messageBus = messageBus;
-	}
+  private ImportStrategyFactory importStrategyFactory;
+  private MessageBus messageBus;
 
-	@Override
-	public OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String format,
-			MultipartFile file, String baseUrl) {
+  @Autowired
+  public ImportLaunchHandlerImpl(ImportStrategyFactory importStrategyFactory,
+      MessageBus messageBus) {
+    this.importStrategyFactory = importStrategyFactory;
+    this.messageBus = messageBus;
+  }
 
-		validate(file);
+  @Override
+  public OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, String format,
+      MultipartFile file, String baseUrl) {
 
-		ImportType type = ImportType.fromValue(format)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unknown import type - " + format));
+    validate(file);
 
-		File tempFile = transferToTempFile(file);
-		messageBus.publishActivity(new ImportStartedEvent(user.getUserId(),
-				user.getUsername(),
-				projectDetails.getProjectId(),
-				file.getOriginalFilename()
-		));
-		ImportStrategy strategy = importStrategyFactory.getImportStrategy(type, file.getOriginalFilename());
-		String launchId = strategy.importLaunch(projectDetails, user, tempFile, baseUrl);
-		messageBus.publishActivity(new ImportFinishedEvent(user.getUserId(),
-				user.getUsername(),
-				projectDetails.getProjectId(),
-				file.getOriginalFilename()
-		));
-		return new OperationCompletionRS("Launch with id = " + launchId + " is successfully imported.");
-	}
+    ImportType type = ImportType.fromValue(format)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            "Unknown import type - " + format));
 
-	private void validate(MultipartFile file) {
-		expect(file.getOriginalFilename(), notNull()).verify(ErrorType.INCORRECT_REQUEST, "File name should be not empty.");
+    File tempFile = transferToTempFile(file);
+    messageBus.publishActivity(new ImportStartedEvent(user.getUserId(),
+        user.getUsername(),
+        projectDetails.getProjectId(),
+        file.getOriginalFilename()
+    ));
+    ImportStrategy strategy = importStrategyFactory.getImportStrategy(type,
+        file.getOriginalFilename());
+    String launchId = strategy.importLaunch(projectDetails, user, tempFile, baseUrl);
+    messageBus.publishActivity(new ImportFinishedEvent(user.getUserId(),
+        user.getUsername(),
+        projectDetails.getProjectId(),
+        file.getOriginalFilename()
+    ));
+    return new OperationCompletionRS("Launch with id = " + launchId + " is successfully imported.");
+  }
 
-		expect(file.getOriginalFilename(), it -> it.endsWith(ZIP_EXTENSION) || it.endsWith(XML_EXTENSION)).verify(INCORRECT_REQUEST,
-				"Should be a zip archive or an xml file " + file.getOriginalFilename()
-		);
-	}
+  private void validate(MultipartFile file) {
+    expect(file.getOriginalFilename(), notNull()).verify(ErrorType.INCORRECT_REQUEST,
+        "File name should be not empty.");
 
-	private File transferToTempFile(MultipartFile file) {
-		try {
-			File tmp = File.createTempFile(file.getOriginalFilename(), "." + FilenameUtils.getExtension(file.getOriginalFilename()));
-			file.transferTo(tmp);
-			return tmp;
-		} catch (IOException e) {
-			throw new ReportPortalException("Error during transferring multipart file.", e);
-		}
-	}
+    expect(file.getOriginalFilename(),
+        it -> it.endsWith(ZIP_EXTENSION) || it.endsWith(XML_EXTENSION)).verify(INCORRECT_REQUEST,
+        "Should be a zip archive or an xml file " + file.getOriginalFilename()
+    );
+  }
+
+  private File transferToTempFile(MultipartFile file) {
+    try {
+      File tmp = File.createTempFile(file.getOriginalFilename(),
+          "." + FilenameUtils.getExtension(file.getOriginalFilename()));
+      file.transferTo(tmp);
+      return tmp;
+    } catch (IOException e) {
+      throw new ReportPortalException("Error during transferring multipart file.", e);
+    }
+  }
 }

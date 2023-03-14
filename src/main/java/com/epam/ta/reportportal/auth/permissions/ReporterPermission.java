@@ -28,19 +28,19 @@ import org.springframework.stereotype.Component;
  * @author Andrei Varabyeu
  */
 @Component
-@LookupPermission({ "reporterPermission" })
+@LookupPermission({"reporterPermission"})
 public class ReporterPermission extends BaseProjectPermission {
 
-	@Autowired
-	public ReporterPermission(ProjectExtractor projectExtractor) {
-		super(projectExtractor);
-	}
+  @Autowired
+  public ReporterPermission(ProjectExtractor projectExtractor) {
+    super(projectExtractor);
+  }
 
-	/**
-	 * Validates that user is allowed to report (start/finish, launch, start/finish item, log)
-	 */
-	@Override
-	protected boolean checkAllowed(ReportPortalUser user, String project, ProjectRole role) {
-		return role.sameOrHigherThan(ProjectRole.CUSTOMER);
-	}
+  /**
+   * Validates that user is allowed to report (start/finish, launch, start/finish item, log)
+   */
+  @Override
+  protected boolean checkAllowed(ReportPortalUser user, String project, ProjectRole role) {
+    return role.sameOrHigherThan(ProjectRole.CUSTOMER);
+  }
 }

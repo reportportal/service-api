@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.client.impl;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.rabbitmq.http.client.Client;
 import org.junit.jupiter.api.Test;
@@ -23,23 +26,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 public class RabbitMqManagementClientTemplateTest {
 
-    @Mock
-    private Client rabbitClient;
+  @Mock
+  private Client rabbitClient;
 
-    private RabbitMqManagementClientTemplate template;
+  private RabbitMqManagementClientTemplate template;
 
-    @Test
-    public void testReportPortalExceptionOnGetExchanges() {
-        template = new RabbitMqManagementClientTemplate(rabbitClient, "analyzer");
+  @Test
+  public void testReportPortalExceptionOnGetExchanges() {
+    template = new RabbitMqManagementClientTemplate(rabbitClient, "analyzer");
 
-        when(rabbitClient.getExchanges("analyzer")).thenReturn(null);
+    when(rabbitClient.getExchanges("analyzer")).thenReturn(null);
 
-        assertThatThrownBy(() -> template.getAnalyzerExchangesInfo()).isInstanceOf(ReportPortalException.class);
-    }
+    assertThatThrownBy(() -> template.getAnalyzerExchangesInfo()).isInstanceOf(
+        ReportPortalException.class);
+  }
 }

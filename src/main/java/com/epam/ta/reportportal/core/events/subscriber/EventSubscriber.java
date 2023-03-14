@@ -23,5 +23,5 @@ import com.epam.ta.reportportal.core.events.Event;
  */
 public interface EventSubscriber<T extends Event> {
 
-	void handleEvent(T event);
+  void handleEvent(T event);
 }

@@ -16,46 +16,46 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 class ParametersConverterTest {
 
-	@Test
-	void toResource() {
-		final Parameter parameter = getParameter();
-		final ParameterResource resource = ParametersConverter.TO_RESOURCE.apply(parameter);
+  private static Parameter getParameter() {
+    Parameter parameter = new Parameter();
+    parameter.setKey("key");
+    parameter.setValue("value");
+    return parameter;
+  }
 
-		assertEquals(resource.getKey(), parameter.getKey());
-		assertEquals(resource.getValue(), parameter.getValue());
-	}
+  private static ParameterResource getResource() {
+    ParameterResource resource = new ParameterResource();
+    resource.setKey("key");
+    resource.setValue("value");
+    return resource;
+  }
 
-	@Test
-	void toModel() {
-		final ParameterResource resource = getResource();
-		final Parameter parameter = ParametersConverter.TO_MODEL.apply(resource);
+  @Test
+  void toResource() {
+    final Parameter parameter = getParameter();
+    final ParameterResource resource = ParametersConverter.TO_RESOURCE.apply(parameter);
 
-		assertEquals(parameter.getKey(), resource.getKey());
-		assertEquals(parameter.getValue(), resource.getValue());
-	}
+    assertEquals(resource.getKey(), parameter.getKey());
+    assertEquals(resource.getValue(), parameter.getValue());
+  }
 
-	private static Parameter getParameter() {
-		Parameter parameter = new Parameter();
-		parameter.setKey("key");
-		parameter.setValue("value");
-		return parameter;
-	}
+  @Test
+  void toModel() {
+    final ParameterResource resource = getResource();
+    final Parameter parameter = ParametersConverter.TO_MODEL.apply(resource);
 
-	private static ParameterResource getResource() {
-		ParameterResource resource = new ParameterResource();
-		resource.setKey("key");
-		resource.setValue("value");
-		return resource;
-	}
+    assertEquals(parameter.getKey(), resource.getKey());
+    assertEquals(parameter.getValue(), resource.getValue());
+  }
 }

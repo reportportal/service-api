@@ -15,36 +15,37 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.LAUNCH;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_LAUNCH;
+
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
 
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.LAUNCH;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_LAUNCH;
-
 /**
  * @author Andrei Varabyeu
  */
-public class LaunchDeletedEvent extends BeforeEvent<LaunchActivityResource> implements ActivityEvent {
+public class LaunchDeletedEvent extends BeforeEvent<LaunchActivityResource> implements
+    ActivityEvent {
 
-	public LaunchDeletedEvent() {
-	}
+  public LaunchDeletedEvent() {
+  }
 
-	public LaunchDeletedEvent(LaunchActivityResource before, Long userId, String userLogin) {
-		super(userId, userLogin, before);
-	}
+  public LaunchDeletedEvent(LaunchActivityResource before, Long userId, String userLogin) {
+    super(userId, userLogin, before);
+  }
 
-	@Override
-	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(DELETE_LAUNCH)
-				.addActivityEntityType(LAUNCH)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(getBefore().getId())
-				.addObjectName(getBefore().getName())
-				.addProjectId(getBefore().getProjectId())
-				.get();
-	}
+  @Override
+  public Activity toActivity() {
+    return new ActivityBuilder().addCreatedNow()
+        .addAction(DELETE_LAUNCH)
+        .addActivityEntityType(LAUNCH)
+        .addUserId(getUserId())
+        .addUserName(getUserLogin())
+        .addObjectId(getBefore().getId())
+        .addObjectName(getBefore().getName())
+        .addProjectId(getBefore().getProjectId())
+        .get();
+  }
 }

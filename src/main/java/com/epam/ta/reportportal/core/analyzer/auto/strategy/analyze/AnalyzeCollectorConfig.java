@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -23,33 +25,33 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * @author Pavel Bortnik
  */
 @Configuration
 public class AnalyzeCollectorConfig implements ApplicationContextAware {
 
-	private ApplicationContext applicationContext;
+  private ApplicationContext applicationContext;
 
-	@Autowired
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
-	}
+  @Autowired
+  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    this.applicationContext = applicationContext;
+  }
 
-	@Bean(name = "analyzerModeMapping")
-	public Map<AnalyzeItemsMode, AnalyzeItemsCollector> getAnalyzerModeMapping() {
-		Map<AnalyzeItemsMode, AnalyzeItemsCollector> mapping = new HashMap<>();
-		mapping.put(AnalyzeItemsMode.TO_INVESTIGATE, applicationContext.getBean(ToInvestigateCollector.class));
-		mapping.put(AnalyzeItemsMode.AUTO_ANALYZED, applicationContext.getBean(AutoAnalyzedCollector.class));
-		mapping.put(AnalyzeItemsMode.MANUALLY_ANALYZED, applicationContext.getBean(ManuallyAnalyzedCollector.class));
-		return mapping;
-	}
+  @Bean(name = "analyzerModeMapping")
+  public Map<AnalyzeItemsMode, AnalyzeItemsCollector> getAnalyzerModeMapping() {
+    Map<AnalyzeItemsMode, AnalyzeItemsCollector> mapping = new HashMap<>();
+    mapping.put(AnalyzeItemsMode.TO_INVESTIGATE,
+        applicationContext.getBean(ToInvestigateCollector.class));
+    mapping.put(AnalyzeItemsMode.AUTO_ANALYZED,
+        applicationContext.getBean(AutoAnalyzedCollector.class));
+    mapping.put(AnalyzeItemsMode.MANUALLY_ANALYZED,
+        applicationContext.getBean(ManuallyAnalyzedCollector.class));
+    return mapping;
+  }
 
-	@Bean
-	public AnalyzeCollectorFactory analyzeCollectorFactory() {
-		return new AnalyzeCollectorFactory(getAnalyzerModeMapping());
-	}
+  @Bean
+  public AnalyzeCollectorFactory analyzeCollectorFactory() {
+    return new AnalyzeCollectorFactory(getAnalyzerModeMapping());
+  }
 }

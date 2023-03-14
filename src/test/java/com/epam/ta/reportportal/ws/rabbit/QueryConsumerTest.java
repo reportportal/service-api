@@ -16,6 +16,10 @@
 
 package com.epam.ta.reportportal.ws.rabbit;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -26,33 +30,29 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @ExtendWith(MockitoExtension.class)
 class QueryConsumerTest {
 
-	@Mock
-	private QueryHandler queryHandler;
+  @Mock
+  private QueryHandler queryHandler;
 
-	@InjectMocks
-	private QueryConsumer queryConsumer;
+  @InjectMocks
+  private QueryConsumer queryConsumer;
 
-	@Test
-	void find() {
-		QueryRQ queryRQ = new QueryRQ();
-		queryRQ.setEntity("launch");
-		queryRQ.setFilter(Filter.builder()
-				.withTarget(Launch.class)
-				.withCondition(FilterCondition.builder().eq(CRITERIA_ID, "100").build())
-				.build());
+  @Test
+  void find() {
+    QueryRQ queryRQ = new QueryRQ();
+    queryRQ.setEntity("launch");
+    queryRQ.setFilter(Filter.builder()
+        .withTarget(Launch.class)
+        .withCondition(FilterCondition.builder().eq(CRITERIA_ID, "100").build())
+        .build());
 
-		queryConsumer.find(queryRQ);
+    queryConsumer.find(queryRQ);
 
-		verify(queryHandler, times(1)).find(queryRQ);
-	}
+    verify(queryHandler, times(1)).find(queryRQ);
+  }
 }

@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
+import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
+import static java.util.stream.Collectors.toSet;
+
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.DeleteDashboardHandler;
@@ -30,16 +33,12 @@ import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
-import static java.util.stream.Collectors.toSet;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -47,47 +46,54 @@ import static java.util.stream.Collectors.toSet;
 @Service
 public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 
-	private final GetShareableEntityHandler<Dashboard> getShareableEntityHandler;
-	private final DashboardRepository dashboardRepository;
-	private final DashboardWidgetRepository dashboardWidgetRepository;
-	private final WidgetRepository widgetRepository;
-	private final ShareableObjectsHandler aclHandler;
-	private final WidgetContentRemover widgetContentRemover;
-	private final MessageBus messageBus;
+  private final GetShareableEntityHandler<Dashboard> getShareableEntityHandler;
+  private final DashboardRepository dashboardRepository;
+  private final DashboardWidgetRepository dashboardWidgetRepository;
+  private final WidgetRepository widgetRepository;
+  private final ShareableObjectsHandler aclHandler;
+  private final WidgetContentRemover widgetContentRemover;
+  private final MessageBus messageBus;
 
-	@Autowired
-	public DeleteDashboardHandlerImpl(GetShareableEntityHandler<Dashboard> getShareableEntityHandler,
-			DashboardRepository dashboardRepository, DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository,
-			ShareableObjectsHandler aclHandler, @Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover,
-			MessageBus messageBus) {
-		this.getShareableEntityHandler = getShareableEntityHandler;
-		this.dashboardRepository = dashboardRepository;
-		this.dashboardWidgetRepository = dashboardWidgetRepository;
-		this.widgetRepository = widgetRepository;
-		this.aclHandler = aclHandler;
-		this.widgetContentRemover = widgetContentRemover;
-		this.messageBus = messageBus;
-	}
+  @Autowired
+  public DeleteDashboardHandlerImpl(GetShareableEntityHandler<Dashboard> getShareableEntityHandler,
+      DashboardRepository dashboardRepository, DashboardWidgetRepository dashboardWidgetRepository,
+      WidgetRepository widgetRepository,
+      ShareableObjectsHandler aclHandler,
+      @Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover,
+      MessageBus messageBus) {
+    this.getShareableEntityHandler = getShareableEntityHandler;
+    this.dashboardRepository = dashboardRepository;
+    this.dashboardWidgetRepository = dashboardWidgetRepository;
+    this.widgetRepository = widgetRepository;
+    this.aclHandler = aclHandler;
+    this.widgetContentRemover = widgetContentRemover;
+    this.messageBus = messageBus;
+  }
 
-	@Override
-	public OperationCompletionRS deleteDashboard(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Dashboard dashboard = getShareableEntityHandler.getAdministrated(dashboardId, projectDetails);
+  @Override
+  public OperationCompletionRS deleteDashboard(Long dashboardId,
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+    Dashboard dashboard = getShareableEntityHandler.getAdministrated(dashboardId, projectDetails);
 
-		Set<DashboardWidget> dashboardWidgets = dashboard.getDashboardWidgets();
-		List<Widget> widgets = dashboardWidgets.stream()
-				.filter(DashboardWidget::isCreatedOn)
-				.map(DashboardWidget::getWidget)
-				.peek(aclHandler::deleteAclForObject)
-				.peek(widgetContentRemover::removeContent)
-				.collect(Collectors.toList());
-		dashboardWidgets.addAll(widgets.stream().flatMap(w -> w.getDashboardWidgets().stream()).collect(toSet()));
+    Set<DashboardWidget> dashboardWidgets = dashboard.getDashboardWidgets();
+    List<Widget> widgets = dashboardWidgets.stream()
+        .filter(DashboardWidget::isCreatedOn)
+        .map(DashboardWidget::getWidget)
+        .peek(aclHandler::deleteAclForObject)
+        .peek(widgetContentRemover::removeContent)
+        .collect(Collectors.toList());
+    dashboardWidgets.addAll(
+        widgets.stream().flatMap(w -> w.getDashboardWidgets().stream()).collect(toSet()));
 
-		aclHandler.deleteAclForObject(dashboard);
-		dashboardWidgetRepository.deleteAll(dashboardWidgets);
-		dashboardRepository.delete(dashboard);
-		widgetRepository.deleteAll(widgets);
+    aclHandler.deleteAclForObject(dashboard);
+    dashboardWidgetRepository.deleteAll(dashboardWidgets);
+    dashboardRepository.delete(dashboard);
+    widgetRepository.deleteAll(widgets);
 
-		messageBus.publishActivity(new DashboardDeletedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(), user.getUsername()));
-		return new OperationCompletionRS("Dashboard with ID = '" + dashboardId + "' successfully deleted.");
-	}
+    messageBus.publishActivity(
+        new DashboardDeletedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(),
+            user.getUsername()));
+    return new OperationCompletionRS(
+        "Dashboard with ID = '" + dashboardId + "' successfully deleted.");
+  }
 }

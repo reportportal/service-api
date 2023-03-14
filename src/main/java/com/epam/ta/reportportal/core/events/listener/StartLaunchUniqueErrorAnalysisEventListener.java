@@ -20,12 +20,11 @@ import com.epam.reportportal.extension.event.LaunchStartUniqueErrorAnalysisEvent
 import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.project.config.ProjectConfigProvider;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -33,19 +32,20 @@ import java.util.Map;
 @Service
 public class StartLaunchUniqueErrorAnalysisEventListener {
 
-	private final ProjectConfigProvider projectConfigProvider;
-	private final UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter;
+  private final ProjectConfigProvider projectConfigProvider;
+  private final UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter;
 
-	@Autowired
-	public StartLaunchUniqueErrorAnalysisEventListener(ProjectConfigProvider projectConfigProvider,
-			@Qualifier("uniqueErrorAnalysisStarter") UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter) {
-		this.projectConfigProvider = projectConfigProvider;
-		this.uniqueErrorAnalysisStarter = uniqueErrorAnalysisStarter;
-	}
+  @Autowired
+  public StartLaunchUniqueErrorAnalysisEventListener(ProjectConfigProvider projectConfigProvider,
+      @Qualifier("uniqueErrorAnalysisStarter") UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter) {
+    this.projectConfigProvider = projectConfigProvider;
+    this.uniqueErrorAnalysisStarter = uniqueErrorAnalysisStarter;
+  }
 
-	@EventListener
-	public void onApplicationEvent(LaunchStartUniqueErrorAnalysisEvent event) {
-		final Map<String, String> projectConfig = projectConfigProvider.provide(event.getProjectId());
-		uniqueErrorAnalysisStarter.start(ClusterEntityContext.of(event.getSource(), event.getProjectId()), projectConfig);
-	}
+  @EventListener
+  public void onApplicationEvent(LaunchStartUniqueErrorAnalysisEvent event) {
+    final Map<String, String> projectConfig = projectConfigProvider.provide(event.getProjectId());
+    uniqueErrorAnalysisStarter.start(
+        ClusterEntityContext.of(event.getSource(), event.getProjectId()), projectConfig);
+  }
 }

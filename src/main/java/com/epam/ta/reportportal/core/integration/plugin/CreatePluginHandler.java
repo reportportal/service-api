@@ -24,11 +24,12 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public interface CreatePluginHandler {
 
-	/**
-	 * Upload and start up the plugin
-	 *
-	 * @param pluginFile Plugin file
-	 * @return {@link EntryCreatedRS} with the newly created {@link com.epam.ta.reportportal.entity.integration.IntegrationType#id}
-	 */
-	EntryCreatedRS uploadPlugin(MultipartFile pluginFile);
+  /**
+   * Upload and start up the plugin
+   *
+   * @param pluginFile Plugin file
+   * @return {@link EntryCreatedRS} with the newly created
+   * {@link com.epam.ta.reportportal.entity.integration.IntegrationType#id}
+   */
+  EntryCreatedRS uploadPlugin(MultipartFile pluginFile);
 }

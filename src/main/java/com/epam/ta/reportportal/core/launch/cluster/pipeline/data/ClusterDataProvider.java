@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.launch.cluster.pipeline.data;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
 import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
-
 import java.util.Optional;
 
 /**
@@ -26,5 +25,5 @@ import java.util.Optional;
  */
 public interface ClusterDataProvider {
 
-	Optional<ClusterData> provide(GenerateClustersConfig config);
+  Optional<ClusterData> provide(GenerateClustersConfig config);
 }

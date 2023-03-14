@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.item.impl.merge.strategy;
 
 import com.epam.ta.reportportal.core.item.merge.StatisticsCalculationStrategy;
-
 import java.util.Map;
 
 /**
@@ -25,13 +24,14 @@ import java.util.Map;
  */
 public class StatisticsCalculationFactory {
 
-	private final Map<MergeStrategyType, StatisticsCalculationStrategy> calculationStrategyMapping;
+  private final Map<MergeStrategyType, StatisticsCalculationStrategy> calculationStrategyMapping;
 
-	public StatisticsCalculationFactory(Map<MergeStrategyType, StatisticsCalculationStrategy> calculationStrategyMapping) {
-		this.calculationStrategyMapping = calculationStrategyMapping;
-	}
+  public StatisticsCalculationFactory(
+      Map<MergeStrategyType, StatisticsCalculationStrategy> calculationStrategyMapping) {
+    this.calculationStrategyMapping = calculationStrategyMapping;
+  }
 
-	public StatisticsCalculationStrategy getStrategy(MergeStrategyType type) {
-		return this.calculationStrategyMapping.get(type);
-	}
+  public StatisticsCalculationStrategy getStrategy(MergeStrategyType type) {
+    return this.calculationStrategyMapping.get(type);
+  }
 }

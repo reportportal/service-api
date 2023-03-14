@@ -16,33 +16,34 @@
 
 package com.epam.ta.reportportal.core.integration.migration;
 
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import org.jasypt.util.text.BasicTextEncryptor;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-
-import static java.util.Optional.ofNullable;
+import org.jasypt.util.text.BasicTextEncryptor;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public abstract class AbstractSecretMigrationService {
 
-	protected IntegrationRepository integrationRepository;
+  protected IntegrationRepository integrationRepository;
 
-	protected BasicTextEncryptor encryptor;
+  protected BasicTextEncryptor encryptor;
 
-	public AbstractSecretMigrationService(IntegrationRepository integrationRepository, BasicTextEncryptor encryptor) {
-		this.integrationRepository = integrationRepository;
-		this.encryptor = encryptor;
-	}
+  public AbstractSecretMigrationService(IntegrationRepository integrationRepository,
+      BasicTextEncryptor encryptor) {
+    this.integrationRepository = integrationRepository;
+    this.encryptor = encryptor;
+  }
 
-	abstract public void migrate();
+  protected static Optional<Map<String, Object>> extractParams(Integration integration) {
+    return ofNullable(integration.getParams()).map(
+        it -> ofNullable(it.getParams()).orElse(Collections.emptyMap()));
+  }
 
-	protected static Optional<Map<String, Object>> extractParams(Integration integration) {
-		return ofNullable(integration.getParams()).map(it -> ofNullable(it.getParams()).orElse(Collections.emptyMap()));
-	}
+  abstract public void migrate();
 }

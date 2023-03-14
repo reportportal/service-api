@@ -16,6 +16,13 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
@@ -23,7 +30,11 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
+import com.epam.ta.reportportal.dao.IssueTypeRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
@@ -33,18 +44,13 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.ArrayList;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -52,181 +58,199 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class DeleteProjectHandlerImplTest {
 
-	@Mock
-	private ProjectRepository projectRepository;
+  @Mock
+  private ProjectRepository projectRepository;
 
-	@Mock
-	private UserRepository userRepository;
+  @Mock
+  private UserRepository userRepository;
 
-	@Mock
-	private AttachmentRepository attachmentRepository;
+  @Mock
+  private AttachmentRepository attachmentRepository;
 
-	@Mock
-	private LogIndexer logIndexer;
+  @Mock
+  private LogIndexer logIndexer;
 
-	@Mock
-	private AnalyzerServiceClient analyzerServiceClient;
+  @Mock
+  private AnalyzerServiceClient analyzerServiceClient;
 
-	@Mock
-	private AnalyzerStatusCache analyzerStatusCache;
+  @Mock
+  private AnalyzerStatusCache analyzerStatusCache;
 
-	@Mock
-	private MessageBus messageBus;
+  @Mock
+  private MessageBus messageBus;
 
-	@Mock
-	private IssueTypeRepository issueTypeRepository;
+  @Mock
+  private IssueTypeRepository issueTypeRepository;
 
-	@Mock
-	private ContentRemover<Project> projectContentRemover;
+  @Mock
+  private ContentRemover<Project> projectContentRemover;
 
-	@Mock
-	private LogRepository logRepository;
+  @Mock
+  private LogRepository logRepository;
 
-	@Mock
-	private LogService logService;
+  @Mock
+  private LogService logService;
 
-	@InjectMocks
-	private DeleteProjectHandlerImpl handler;
+  @InjectMocks
+  private DeleteProjectHandlerImpl handler;
 
-	@Test
-	void deleteNotExistProject() {
-		Long projectId = 1L;
-		when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
+  @Test
+  void deleteNotExistProject() {
+    Long projectId = 1L;
+    when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProject(projectId));
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.deleteProject(projectId));
 
-		assertEquals("Project '1' not found. Did you use correct project name?", exception.getMessage());
-	}
+    assertEquals("Project '1' not found. Did you use correct project name?",
+        exception.getMessage());
+  }
 
-	@Test
-	void deleteIndexOnNotExistProject() {
-		String projectName = "notExist";
-		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
+  @Test
+  void deleteIndexOnNotExistProject() {
+    String projectName = "notExist";
+    when(analyzerServiceClient.hasClients()).thenReturn(true);
+    when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectName, "user"));
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.deleteProjectIndex(projectName, "user"));
 
-		assertEquals("Project 'notExist' not found. Did you use correct project name?", exception.getMessage());
-	}
+    assertEquals("Project 'notExist' not found. Did you use correct project name?",
+        exception.getMessage());
+  }
 
-	@Test
-	void deleteProjectIndexByNotExistUser() {
-		String projectName = "notExist";
-		String userName = "user";
-		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(new Project()));
-		when(userRepository.findByLogin(userName)).thenReturn(Optional.empty());
+  @Test
+  void deleteProjectIndexByNotExistUser() {
+    String projectName = "notExist";
+    String userName = "user";
+    when(analyzerServiceClient.hasClients()).thenReturn(true);
+    when(projectRepository.findByName(projectName)).thenReturn(Optional.of(new Project()));
+    when(userRepository.findByLogin(userName)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectName, "user"));
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.deleteProjectIndex(projectName, "user"));
 
-		assertEquals("User 'user' not found.", exception.getMessage());
-	}
+    assertEquals("User 'user' not found.", exception.getMessage());
+  }
 
-	@Test
-	void deleteIndexWhenIndexingRunning() {
-		String projectName = "test_project";
-		String userName = "user";
-		Long projectId = 1L;
-		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(getProjectWithAnalyzerAttributes(projectId, true)));
-		when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
+  @Test
+  void deleteIndexWhenIndexingRunning() {
+    String projectName = "test_project";
+    String userName = "user";
+    Long projectId = 1L;
+    when(analyzerServiceClient.hasClients()).thenReturn(true);
+    when(projectRepository.findByName(projectName)).thenReturn(
+        Optional.of(getProjectWithAnalyzerAttributes(projectId, true)));
+    when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectName, "user"));
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.deleteProjectIndex(projectName, "user"));
 
-		assertEquals("Forbidden operation. Index can not be removed until index generation proceeds.", exception.getMessage());
-	}
+    assertEquals("Forbidden operation. Index can not be removed until index generation proceeds.",
+        exception.getMessage());
+  }
 
-	@Test
-	void deleteIndexWhenIndexingCacheNotInvalidated() {
-		String projectName = "test_project";
-		String userName = "user";
-		Long projectId = 1L;
-		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(getProjectWithAnalyzerAttributes(projectId, false)));
-		when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
-		Cache<Long, Long> cache = CacheBuilder.newBuilder().build();
-		cache.put(2L, projectId);
-		when(analyzerStatusCache.getAnalyzeStatus(AnalyzerStatusCache.AUTO_ANALYZER_KEY)).thenReturn(Optional.of(cache));
+  @Test
+  void deleteIndexWhenIndexingCacheNotInvalidated() {
+    String projectName = "test_project";
+    String userName = "user";
+    Long projectId = 1L;
+    when(analyzerServiceClient.hasClients()).thenReturn(true);
+    when(projectRepository.findByName(projectName)).thenReturn(
+        Optional.of(getProjectWithAnalyzerAttributes(projectId, false)));
+    when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
+    Cache<Long, Long> cache = CacheBuilder.newBuilder().build();
+    cache.put(2L, projectId);
+    when(analyzerStatusCache.getAnalyzeStatus(AnalyzerStatusCache.AUTO_ANALYZER_KEY)).thenReturn(
+        Optional.of(cache));
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectName, "user"));
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.deleteProjectIndex(projectName, "user"));
 
-		assertEquals("Forbidden operation. Index can not be removed until index generation proceeds.", exception.getMessage());
-	}
+    assertEquals("Forbidden operation. Index can not be removed until index generation proceeds.",
+        exception.getMessage());
+  }
 
-	@Test
-	void deleteIndexWhenThereAreNoAnalyzers() {
-		String projectName = "test_project";
-		when(analyzerServiceClient.hasClients()).thenReturn(false);
+  @Test
+  void deleteIndexWhenThereAreNoAnalyzers() {
+    String projectName = "test_project";
+    when(analyzerServiceClient.hasClients()).thenReturn(false);
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectName, "user"));
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.deleteProjectIndex(projectName, "user"));
 
-		assertEquals("Impossible interact with integration. There are no analyzer deployed.", exception.getMessage());
-	}
+    assertEquals("Impossible interact with integration. There are no analyzer deployed.",
+        exception.getMessage());
+  }
 
-	@Test
-	void happyDeleteIndex() {
-		String projectName = "test_project";
-		String userName = "user";
-		Long projectId = 1L;
-		Project project = getProjectWithAnalyzerAttributes(projectId, false);
-		project.setName(projectName);
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(project));
-		when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
-		when(analyzerStatusCache.getAnalyzeStatus(AnalyzerStatusCache.AUTO_ANALYZER_KEY)).thenReturn(Optional.of(CacheBuilder.newBuilder()
-				.build()));
-		when(analyzerServiceClient.hasClients()).thenReturn(true);
+  @Test
+  void happyDeleteIndex() {
+    String projectName = "test_project";
+    String userName = "user";
+    Long projectId = 1L;
+    Project project = getProjectWithAnalyzerAttributes(projectId, false);
+    project.setName(projectName);
+    when(projectRepository.findByName(projectName)).thenReturn(Optional.of(project));
+    when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
+    when(analyzerStatusCache.getAnalyzeStatus(AnalyzerStatusCache.AUTO_ANALYZER_KEY)).thenReturn(
+        Optional.of(CacheBuilder.newBuilder()
+            .build()));
+    when(analyzerServiceClient.hasClients()).thenReturn(true);
 
-		OperationCompletionRS response = handler.deleteProjectIndex(projectName, "user");
+    OperationCompletionRS response = handler.deleteProjectIndex(projectName, "user");
 
-		verify(logIndexer, times(1)).deleteIndex(projectId);
-		verify(messageBus, times(1)).publishActivity(any(ProjectIndexEvent.class));
+    verify(logIndexer, times(1)).deleteIndex(projectId);
+    verify(messageBus, times(1)).publishActivity(any(ProjectIndexEvent.class));
 
-		assertEquals(response.getResultMessage(), "Project index with name = '" + projectName + "' is successfully deleted.");
+    assertEquals(response.getResultMessage(),
+        "Project index with name = '" + projectName + "' is successfully deleted.");
 
-	}
+  }
 
-	@Test
-	void deleteProjectTest() {
-		String projectName = "test_project";
-		Long projectId = 1L;
-		Project project = getProjectWithAnalyzerAttributes(projectId, false);
-		project.setName(projectName);
-		when(issueTypeRepository.getDefaultIssueTypes()).thenReturn(new ArrayList<>());
-		when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
-		when(logRepository.deleteByProjectId(1L)).thenReturn(10);
+  @Test
+  void deleteProjectTest() {
+    String projectName = "test_project";
+    Long projectId = 1L;
+    Project project = getProjectWithAnalyzerAttributes(projectId, false);
+    project.setName(projectName);
+    when(issueTypeRepository.getDefaultIssueTypes()).thenReturn(new ArrayList<>());
+    when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
+    when(logRepository.deleteByProjectId(1L)).thenReturn(10);
 
-		OperationCompletionRS response = handler.deleteProject(1L);
+    OperationCompletionRS response = handler.deleteProject(1L);
 
-		verify(projectContentRemover, times(1)).remove(project);
-		verify(logIndexer, times(1)).deleteIndex(projectId);
-		verify(analyzerServiceClient, times(1)).removeSuggest(projectId);
-		verify(projectContentRemover, times(1)).remove(any(Project.class));
+    verify(projectContentRemover, times(1)).remove(project);
+    verify(logIndexer, times(1)).deleteIndex(projectId);
+    verify(analyzerServiceClient, times(1)).removeSuggest(projectId);
+    verify(projectContentRemover, times(1)).remove(any(Project.class));
 
-		assertEquals(response.getResultMessage(), "Project with id = '" + project.getId() + "' has been successfully deleted.");
+    assertEquals(response.getResultMessage(),
+        "Project with id = '" + project.getId() + "' has been successfully deleted.");
 
-	}
+  }
 
-	private Project getProjectWithAnalyzerAttributes(Long projectId, boolean indexingRunning) {
-		Project project = new Project();
-		project.setProjectAttributes(Sets.newHashSet(
-				getProjectAttribute(project, getAttribute("analyzer.isAutoAnalyzerEnabled"), "false"),
-				getProjectAttribute(project, getAttribute("analyzer.minDocFreq"), "7"),
-				getProjectAttribute(project, getAttribute("analyzer.minTermFreq"), "2"),
-				getProjectAttribute(project, getAttribute("analyzer.minShouldMatch"), "80"),
-				getProjectAttribute(project, getAttribute("analyzer.numberOfLogLines"), "5"),
-				getProjectAttribute(project, getAttribute("analyzer.indexingRunning"), String.valueOf(indexingRunning))
-		));
-		project.setId(projectId);
-		return project;
-	}
+  private Project getProjectWithAnalyzerAttributes(Long projectId, boolean indexingRunning) {
+    Project project = new Project();
+    project.setProjectAttributes(Sets.newHashSet(
+        getProjectAttribute(project, getAttribute("analyzer.isAutoAnalyzerEnabled"), "false"),
+        getProjectAttribute(project, getAttribute("analyzer.minDocFreq"), "7"),
+        getProjectAttribute(project, getAttribute("analyzer.minTermFreq"), "2"),
+        getProjectAttribute(project, getAttribute("analyzer.minShouldMatch"), "80"),
+        getProjectAttribute(project, getAttribute("analyzer.numberOfLogLines"), "5"),
+        getProjectAttribute(project, getAttribute("analyzer.indexingRunning"),
+            String.valueOf(indexingRunning))
+    ));
+    project.setId(projectId);
+    return project;
+  }
 
-	private ProjectAttribute getProjectAttribute(Project project, Attribute attribute, String value) {
-		return new ProjectAttribute().withProject(project).withAttribute(attribute).withValue(value);
-	}
+  private ProjectAttribute getProjectAttribute(Project project, Attribute attribute, String value) {
+    return new ProjectAttribute().withProject(project).withAttribute(attribute).withValue(value);
+  }
 
-	private Attribute getAttribute(String name) {
-		Attribute attribute = new Attribute();
-		attribute.setName(name);
-		return attribute;
-	}
+  private Attribute getAttribute(String name) {
+    Attribute attribute = new Attribute();
+    attribute.setName(name);
+    return attribute;
+  }
 }

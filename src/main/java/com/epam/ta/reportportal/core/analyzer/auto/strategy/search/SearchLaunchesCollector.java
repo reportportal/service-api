@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.analyzer.auto.strategy.search;
 
 import com.epam.ta.reportportal.entity.launch.Launch;
-
 import java.util.List;
 
 /**
@@ -25,7 +24,7 @@ import java.util.List;
  */
 public interface SearchLaunchesCollector {
 
-	int LAUNCHES_FILTER_LIMIT = 10;
+  int LAUNCHES_FILTER_LIMIT = 10;
 
-	List<Long> collect(Long filerId, Launch launch);
+  List<Long> collect(Long filerId, Launch launch);
 }

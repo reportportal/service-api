@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.item.identity;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
-
 import java.util.List;
 
 /**
@@ -25,5 +24,5 @@ import java.util.List;
  */
 public interface TestCaseHashGenerator {
 
-	Integer generate(TestItem item, List<Long> parentIds, Long projectId);
+  Integer generate(TestItem item, List<Long> parentIds, Long projectId);
 }

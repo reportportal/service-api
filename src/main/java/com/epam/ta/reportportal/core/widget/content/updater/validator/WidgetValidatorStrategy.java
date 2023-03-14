@@ -2,10 +2,9 @@ package com.epam.ta.reportportal.core.widget.content.updater.validator;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import org.springframework.data.domain.Sort;
-
 import java.util.List;
 import java.util.Map;
+import org.springframework.data.domain.Sort;
 
 /**
  * Interface for widget parameters validation.
@@ -14,5 +13,6 @@ import java.util.Map;
  */
 public interface WidgetValidatorStrategy {
 
-	void validate(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions, int limit);
+  void validate(List<String> contentFields, Map<Filter, Sort> filterSortMap,
+      WidgetOptions widgetOptions, int limit);
 }

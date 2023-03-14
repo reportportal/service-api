@@ -16,6 +16,13 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validate;
+import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validateRoles;
+import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateLaunchLink;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
+
 import com.epam.reportportal.extension.event.LaunchFinishedPluginEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
@@ -28,21 +35,13 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validate;
-import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validateRoles;
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateLaunchLink;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
 
 /**
  * Default implementation of {@link FinishLaunchHandler}
@@ -54,72 +53,78 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
 @Transactional
 public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
-	private final LaunchRepository launchRepository;
-	private final FinishHierarchyHandler<Launch> finishHierarchyHandler;
-	private final ApplicationEventPublisher eventPublisher;
+  private final LaunchRepository launchRepository;
+  private final FinishHierarchyHandler<Launch> finishHierarchyHandler;
+  private final ApplicationEventPublisher eventPublisher;
 
-	@Autowired
-	public FinishLaunchHandlerImpl(LaunchRepository launchRepository,
-			@Qualifier("finishLaunchHierarchyHandler") FinishHierarchyHandler<Launch> finishHierarchyHandler,
-			ApplicationEventPublisher eventPublisher) {
-		this.launchRepository = launchRepository;
-		this.finishHierarchyHandler = finishHierarchyHandler;
-		this.eventPublisher = eventPublisher;
-	}
+  @Autowired
+  public FinishLaunchHandlerImpl(LaunchRepository launchRepository,
+      @Qualifier("finishLaunchHierarchyHandler") FinishHierarchyHandler<Launch> finishHierarchyHandler,
+      ApplicationEventPublisher eventPublisher) {
+    this.launchRepository = launchRepository;
+    this.finishHierarchyHandler = finishHierarchyHandler;
+    this.eventPublisher = eventPublisher;
+  }
 
-	@Override
-	public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, String baseUrl) {
-		Launch launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+  @Override
+  public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ,
+      ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, String baseUrl) {
+    Launch launch = launchRepository.findByUuid(launchId)
+        .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 
-		validateRoles(launch, user, projectDetails);
-		validate(launch, finishLaunchRQ);
+    validateRoles(launch, user, projectDetails);
+    validate(launch, finishLaunchRQ);
 
-		Optional<StatusEnum> status = StatusEnum.fromValue(finishLaunchRQ.getStatus());
+    Optional<StatusEnum> status = StatusEnum.fromValue(finishLaunchRQ.getStatus());
 
-		Long id = launch.getId();
+    Long id = launch.getId();
 
-		final int finishedCount = finishHierarchyHandler.finishDescendants(launch,
-				status.orElse(StatusEnum.INTERRUPTED),
-				finishLaunchRQ.getEndTime(),
-				user,
-				projectDetails
-		);
-		if (finishedCount > 0) {
-			launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(id,
-					StatusEnum.PASSED.name(),
-					StatusEnum.INFO.name(),
-					StatusEnum.WARN.name()
-			) ? FAILED : PASSED);
-		} else {
-			launch.setStatus(status.orElseGet(() -> launchRepository.hasRootItemsWithStatusNotEqual(id,
-					StatusEnum.PASSED.name(),
-					StatusEnum.INFO.name(),
-					StatusEnum.WARN.name()
-			) ? FAILED : PASSED));
-		}
+    final int finishedCount = finishHierarchyHandler.finishDescendants(launch,
+        status.orElse(StatusEnum.INTERRUPTED),
+        finishLaunchRQ.getEndTime(),
+        user,
+        projectDetails
+    );
+    if (finishedCount > 0) {
+      launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(id,
+          StatusEnum.PASSED.name(),
+          StatusEnum.INFO.name(),
+          StatusEnum.WARN.name()
+      ) ? FAILED : PASSED);
+    } else {
+      launch.setStatus(status.orElseGet(() -> launchRepository.hasRootItemsWithStatusNotEqual(id,
+          StatusEnum.PASSED.name(),
+          StatusEnum.INFO.name(),
+          StatusEnum.WARN.name()
+      ) ? FAILED : PASSED));
+    }
 
-		launch = new LaunchBuilder(launch).addDescription(buildDescription(launch.getDescription(), finishLaunchRQ.getDescription()))
-				.addAttributes(finishLaunchRQ.getAttributes())
-				.addEndTime(finishLaunchRQ.getEndTime())
-				.get();
+    launch = new LaunchBuilder(launch).addDescription(
+            buildDescription(launch.getDescription(), finishLaunchRQ.getDescription()))
+        .addAttributes(finishLaunchRQ.getAttributes())
+        .addEndTime(finishLaunchRQ.getEndTime())
+        .get();
 
-		eventPublisher.publishEvent(new LaunchFinishedPluginEvent(launch.getId(), launch.getProjectId()));
-		eventPublisher.publishEvent(new LaunchFinishedEvent(launch, user, baseUrl));
+    eventPublisher.publishEvent(
+        new LaunchFinishedPluginEvent(launch.getId(), launch.getProjectId()));
+    eventPublisher.publishEvent(new LaunchFinishedEvent(launch, user, baseUrl));
 
-		FinishLaunchRS response = new FinishLaunchRS();
-		response.setId(launch.getUuid());
-		response.setNumber(launch.getNumber());
-		response.setLink(generateLaunchLink(baseUrl, projectDetails.getProjectName(), String.valueOf(launch.getId())));
-		return response;
-	}
+    FinishLaunchRS response = new FinishLaunchRS();
+    response.setId(launch.getUuid());
+    response.setNumber(launch.getNumber());
+    response.setLink(generateLaunchLink(baseUrl, projectDetails.getProjectName(),
+        String.valueOf(launch.getId())));
+    return response;
+  }
 
-	private String buildDescription(String existDescription, String fromRequestDescription) {
-		if (null != existDescription) {
-			return null != fromRequestDescription ? existDescription + " " + fromRequestDescription : existDescription;
-		} else {
-			return null;
-		}
-	}
+  private String buildDescription(String existDescription, String fromRequestDescription) {
+    if (null != existDescription) {
+      return null != fromRequestDescription ? existDescription + " " + fromRequestDescription
+          : existDescription;
+    } else {
+      return null;
+    }
+  }
 
 }

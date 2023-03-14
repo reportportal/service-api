@@ -16,6 +16,10 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter.TO_ACTIVITY_RESOURCE;
+import static com.epam.ta.reportportal.ws.model.ErrorType.USER_FILTER_NOT_FOUND;
+
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -26,43 +30,44 @@ import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import java.util.function.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.function.Predicate;
-
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.USER_FILTER_NOT_FOUND;
 
 @Service
 public class DeleteUserFilterHandlerImpl implements DeleteUserFilterHandler {
 
-	private final UserFilterRepository userFilterRepository;
-	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
-	private final MessageBus messageBus;
-	private final ShareableObjectsHandler aclHandler;
+  private final UserFilterRepository userFilterRepository;
+  private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
+  private final MessageBus messageBus;
+  private final ShareableObjectsHandler aclHandler;
 
-	@Autowired
-	public DeleteUserFilterHandlerImpl(UserFilterRepository userFilterRepository, GetUserFilterHandler getFilterHandler,
-			GetShareableEntityHandler<UserFilter> getShareableEntityHandler, MessageBus messageBus, ShareableObjectsHandler aclHandler) {
-		this.userFilterRepository = userFilterRepository;
-		this.getShareableEntityHandler = getShareableEntityHandler;
-		this.messageBus = messageBus;
-		this.aclHandler = aclHandler;
-	}
+  @Autowired
+  public DeleteUserFilterHandlerImpl(UserFilterRepository userFilterRepository,
+      GetUserFilterHandler getFilterHandler,
+      GetShareableEntityHandler<UserFilter> getShareableEntityHandler, MessageBus messageBus,
+      ShareableObjectsHandler aclHandler) {
+    this.userFilterRepository = userFilterRepository;
+    this.getShareableEntityHandler = getShareableEntityHandler;
+    this.messageBus = messageBus;
+    this.aclHandler = aclHandler;
+  }
 
-	@Override
-	public OperationCompletionRS deleteFilter(Long id, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		UserFilter userFilter = getShareableEntityHandler.getAdministrated(id, projectDetails);
-		expect(userFilter.getProject().getId(), Predicate.isEqual(projectDetails.getProjectId())).verify(USER_FILTER_NOT_FOUND,
-				id,
-				projectDetails.getProjectId(),
-				user.getUserId()
-		);
-		userFilterRepository.delete(userFilter);
-		aclHandler.deleteAclForObject(userFilter);
-		messageBus.publishActivity(new FilterDeletedEvent(TO_ACTIVITY_RESOURCE.apply(userFilter), user.getUserId(), user.getUsername()));
-		return new OperationCompletionRS("User filter with ID = '" + id + "' successfully deleted.");
-	}
+  @Override
+  public OperationCompletionRS deleteFilter(Long id, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user) {
+    UserFilter userFilter = getShareableEntityHandler.getAdministrated(id, projectDetails);
+    expect(userFilter.getProject().getId(),
+        Predicate.isEqual(projectDetails.getProjectId())).verify(USER_FILTER_NOT_FOUND,
+        id,
+        projectDetails.getProjectId(),
+        user.getUserId()
+    );
+    userFilterRepository.delete(userFilter);
+    aclHandler.deleteAclForObject(userFilter);
+    messageBus.publishActivity(
+        new FilterDeletedEvent(TO_ACTIVITY_RESOURCE.apply(userFilter), user.getUserId(),
+            user.getUsername()));
+    return new OperationCompletionRS("User filter with ID = '" + id + "' successfully deleted.");
+  }
 }

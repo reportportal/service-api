@@ -16,6 +16,11 @@
 
 package com.epam.ta.reportportal.core.item.impl.status;
 
+import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -24,24 +29,23 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.dao.IssueEntityRepository;
+import com.epam.ta.reportportal.dao.ItemAttributeRepository;
+import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
-import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-
-import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
-import static java.util.Optional.ofNullable;
+import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -50,72 +54,80 @@ import static java.util.Optional.ofNullable;
 @Service
 public class ToSkippedStatusChangingStrategy extends AbstractStatusChangingStrategy {
 
-	public static final String SKIPPED_ISSUE_KEY = "skippedIssue";
+  public static final String SKIPPED_ISSUE_KEY = "skippedIssue";
 
-	private final ItemAttributeRepository itemAttributeRepository;
+  private final ItemAttributeRepository itemAttributeRepository;
 
-	@Autowired
-	protected ToSkippedStatusChangingStrategy(TestItemService testItemService, ProjectRepository projectRepository,
-			LaunchRepository launchRepository, TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
-			MessageBus messageBus, IssueEntityRepository issueEntityRepository, LogRepository logRepository, LogIndexer logIndexer,
-			ItemAttributeRepository itemAttributeRepository) {
-		super(testItemService,
-				projectRepository,
-				launchRepository,
-				testItemRepository,
-				issueTypeHandler,
-				messageBus,
-				issueEntityRepository,
-				logRepository,
-				logIndexer
-		);
-		this.itemAttributeRepository = itemAttributeRepository;
-	}
+  @Autowired
+  protected ToSkippedStatusChangingStrategy(TestItemService testItemService,
+      ProjectRepository projectRepository,
+      LaunchRepository launchRepository, TestItemRepository testItemRepository,
+      IssueTypeHandler issueTypeHandler,
+      MessageBus messageBus, IssueEntityRepository issueEntityRepository,
+      LogRepository logRepository, LogIndexer logIndexer,
+      ItemAttributeRepository itemAttributeRepository) {
+    super(testItemService,
+        projectRepository,
+        launchRepository,
+        testItemRepository,
+        issueTypeHandler,
+        messageBus,
+        issueEntityRepository,
+        logRepository,
+        logIndexer
+    );
+    this.itemAttributeRepository = itemAttributeRepository;
+  }
 
-	@Override
-	protected void updateStatus(Project project, Launch launch, TestItem testItem, StatusEnum providedStatus, ReportPortalUser user) {
-		BusinessRule.expect(providedStatus, statusIn(StatusEnum.SKIPPED))
-				.verify(INCORRECT_REQUEST,
-						Suppliers.formattedSupplier("Incorrect status - '{}', only '{}' is allowed", providedStatus, StatusEnum.SKIPPED)
-								.get()
-				);
+  @Override
+  protected void updateStatus(Project project, Launch launch, TestItem testItem,
+      StatusEnum providedStatus, ReportPortalUser user) {
+    BusinessRule.expect(providedStatus, statusIn(StatusEnum.SKIPPED))
+        .verify(INCORRECT_REQUEST,
+            Suppliers.formattedSupplier("Incorrect status - '{}', only '{}' is allowed",
+                    providedStatus, StatusEnum.SKIPPED)
+                .get()
+        );
 
-		testItem.getItemResults().setStatus(providedStatus);
+    testItem.getItemResults().setStatus(providedStatus);
 
-		if (Objects.isNull(testItem.getRetryOf())) {
-			Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(testItem.getLaunchId(),
-					SKIPPED_ISSUE_KEY,
-					true
-			);
+    if (Objects.isNull(testItem.getRetryOf())) {
+      Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(
+          testItem.getLaunchId(),
+          SKIPPED_ISSUE_KEY,
+          true
+      );
 
-			boolean issueRequired = skippedIssueAttribute.isPresent() && BooleanUtils.toBoolean(skippedIssueAttribute.get().getValue());
+      boolean issueRequired = skippedIssueAttribute.isPresent() && BooleanUtils.toBoolean(
+          skippedIssueAttribute.get().getValue());
 
-			if (issueRequired) {
-				if (testItem.getItemResults().getIssue() == null && testItem.isHasStats()) {
-					addToInvestigateIssue(testItem, project.getId());
-				}
-			} else {
-				ofNullable(testItem.getItemResults().getIssue()).map(issue -> {
-					issue.setTestItemResults(null);
-					testItem.getItemResults().setIssue(null);
-					return issue.getIssueId();
-				}).ifPresent(issueEntityRepository::deleteById);
-			}
+      if (issueRequired) {
+        if (testItem.getItemResults().getIssue() == null && testItem.isHasStats()) {
+          addToInvestigateIssue(testItem, project.getId());
+        }
+      } else {
+        ofNullable(testItem.getItemResults().getIssue()).map(issue -> {
+          issue.setTestItemResults(null);
+          testItem.getItemResults().setIssue(null);
+          return issue.getIssueId();
+        }).ifPresent(issueEntityRepository::deleteById);
+      }
 
-			List<Long> itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
-			itemsToReindex.add(testItem.getItemId());
-			logIndexer.indexItemsRemove(project.getId(), itemsToReindex);
+      List<Long> itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
+      itemsToReindex.add(testItem.getItemId());
+      logIndexer.indexItemsRemove(project.getId(), itemsToReindex);
 
-			if (!issueRequired) {
-				itemsToReindex.remove(itemsToReindex.size() - 1);
-			}
+      if (!issueRequired) {
+        itemsToReindex.remove(itemsToReindex.size() - 1);
+      }
 
-			logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemsToReindex, AnalyzerUtils.getAnalyzerConfig(project));
-		}
-	}
+      logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemsToReindex,
+          AnalyzerUtils.getAnalyzerConfig(project));
+    }
+  }
 
-	@Override
-	protected StatusEnum evaluateParentItemStatus(TestItem parentItem, TestItem childItem) {
-		return FAILED;
-	}
+  @Override
+  protected StatusEnum evaluateParentItemStatus(TestItem parentItem, TestItem childItem) {
+    return FAILED;
+  }
 }

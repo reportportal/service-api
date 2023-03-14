@@ -16,8 +16,6 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-
 import java.util.Collection;
 
 /**
@@ -25,7 +23,7 @@ import java.util.Collection;
  */
 public interface ResourceUpdater<T> {
 
-	void update(T resource);
+  void update(T resource);
 
-	void update(Collection<T> resources);
+  void update(Collection<T> resources);
 }

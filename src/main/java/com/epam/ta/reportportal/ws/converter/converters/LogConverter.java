@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.log.impl.PagedLogResource;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
@@ -23,12 +26,8 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
 import com.google.common.base.Preconditions;
-
 import java.util.function.BiFunction;
 import java.util.function.Function;
-
-import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 /**
  * Converts internal DB model to DTO
@@ -37,53 +36,53 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
  */
 public final class LogConverter {
 
-	private LogConverter() {
-		//static only
-	}
+  public static final Function<Log, LogResource> TO_RESOURCE = model -> {
+    Preconditions.checkNotNull(model);
+    LogResource resource = new LogResource();
+    fillWithLogContent(model, resource);
+    return resource;
+  };
+  public static final BiFunction<Log, PagedLogResource, PagedLogResource> FILL_WITH_LOG_CONTENT = (model, pagedLog) -> {
+    fillWithLogContent(model, pagedLog);
+    return pagedLog;
+  };
+  public static final Function<Log, SearchLogRs.LogEntry> TO_LOG_ENTRY = log -> {
+    SearchLogRs.LogEntry logEntry = new SearchLogRs.LogEntry();
+    logEntry.setMessage(log.getLogMessage());
+    logEntry.setLevel(LogLevel.toLevel(log.getLogLevel()).name());
+    return logEntry;
+  };
 
-	public static final Function<Log, LogResource> TO_RESOURCE = model -> {
-		Preconditions.checkNotNull(model);
-		LogResource resource = new LogResource();
-		fillWithLogContent(model, resource);
-		return resource;
-	};
+  private LogConverter() {
+    //static only
+  }
 
-	private static void fillWithLogContent(Log model, LogResource resource) {
-		resource.setId(model.getId());
-		resource.setUuid(model.getUuid());
-		resource.setMessage(ofNullable(model.getLogMessage()).orElse("NULL"));
-		resource.setLogTime(EntityUtils.TO_DATE.apply(model.getLogTime()));
+  private static void fillWithLogContent(Log model, LogResource resource) {
+    resource.setId(model.getId());
+    resource.setUuid(model.getUuid());
+    resource.setMessage(ofNullable(model.getLogMessage()).orElse("NULL"));
+    resource.setLogTime(EntityUtils.TO_DATE.apply(model.getLogTime()));
 
-		if (isBinaryDataExists(model)) {
+    if (isBinaryDataExists(model)) {
 
-			LogResource.BinaryContent binaryContent = new LogResource.BinaryContent();
+      LogResource.BinaryContent binaryContent = new LogResource.BinaryContent();
 
-			binaryContent.setBinaryDataId(String.valueOf(model.getAttachment().getId()));
-			binaryContent.setContentType(model.getAttachment().getContentType());
-			binaryContent.setThumbnailId(model.getAttachment().getThumbnailId());
-			resource.setBinaryContent(binaryContent);
-		}
+      binaryContent.setBinaryDataId(String.valueOf(model.getAttachment().getId()));
+      binaryContent.setContentType(model.getAttachment().getContentType());
+      binaryContent.setThumbnailId(model.getAttachment().getThumbnailId());
+      resource.setBinaryContent(binaryContent);
+    }
 
-		ofNullable(model.getTestItem()).ifPresent(testItem -> resource.setItemId(testItem.getItemId()));
-		ofNullable(model.getLaunch()).ifPresent(launch -> resource.setLaunchId(launch.getId()));
-		ofNullable(model.getLogLevel()).ifPresent(level -> resource.setLevel(LogLevel.toLevel(level).toString()));
-	}
+    ofNullable(model.getTestItem()).ifPresent(testItem -> resource.setItemId(testItem.getItemId()));
+    ofNullable(model.getLaunch()).ifPresent(launch -> resource.setLaunchId(launch.getId()));
+    ofNullable(model.getLogLevel()).ifPresent(
+        level -> resource.setLevel(LogLevel.toLevel(level).toString()));
+  }
 
-	public static final BiFunction<Log, PagedLogResource, PagedLogResource> FILL_WITH_LOG_CONTENT = (model, pagedLog) -> {
-		fillWithLogContent(model, pagedLog);
-		return pagedLog;
-	};
-
-	public static final Function<Log, SearchLogRs.LogEntry> TO_LOG_ENTRY = log -> {
-		SearchLogRs.LogEntry logEntry = new SearchLogRs.LogEntry();
-		logEntry.setMessage(log.getLogMessage());
-		logEntry.setLevel(LogLevel.toLevel(log.getLogLevel()).name());
-		return logEntry;
-	};
-
-	private static boolean isBinaryDataExists(Log log) {
-		return ofNullable(log.getAttachment()).map(a -> isNotEmpty(a.getContentType()) || isNotEmpty(a.getThumbnailId())
-				|| isNotEmpty(a.getFileId())).orElse(false);
-	}
+  private static boolean isBinaryDataExists(Log log) {
+    return ofNullable(log.getAttachment()).map(
+        a -> isNotEmpty(a.getContentType()) || isNotEmpty(a.getThumbnailId())
+            || isNotEmpty(a.getFileId())).orElse(false);
+  }
 
 }

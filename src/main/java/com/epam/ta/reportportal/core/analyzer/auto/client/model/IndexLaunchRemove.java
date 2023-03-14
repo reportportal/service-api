@@ -16,7 +16,6 @@
 package com.epam.ta.reportportal.core.analyzer.auto.client.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Collection;
 import java.util.Objects;
 
@@ -25,47 +24,47 @@ import java.util.Objects;
  */
 public class IndexLaunchRemove {
 
-	@JsonProperty("project")
-	private Long projectId;
+  @JsonProperty("project")
+  private Long projectId;
 
-	@JsonProperty("launch_ids")
-	private Collection<Long> launchIds;
+  @JsonProperty("launch_ids")
+  private Collection<Long> launchIds;
 
-	public IndexLaunchRemove(Long projectId, Collection<Long> launchIds) {
-		this.projectId = projectId;
-		this.launchIds = launchIds;
-	}
+  public IndexLaunchRemove(Long projectId, Collection<Long> launchIds) {
+    this.projectId = projectId;
+    this.launchIds = launchIds;
+  }
 
-	public Long getProjectId() {
-		return projectId;
-	}
+  public Long getProjectId() {
+    return projectId;
+  }
 
-	public void setProjectId(Long projectId) {
-		this.projectId = projectId;
-	}
+  public void setProjectId(Long projectId) {
+    this.projectId = projectId;
+  }
 
-	public Collection<Long> getLaunchIds() {
-		return launchIds;
-	}
+  public Collection<Long> getLaunchIds() {
+    return launchIds;
+  }
 
-	public void setLaunchIds(Collection<Long> launchIds) {
-		this.launchIds = launchIds;
-	}
+  public void setLaunchIds(Collection<Long> launchIds) {
+    this.launchIds = launchIds;
+  }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		IndexLaunchRemove that = (IndexLaunchRemove) o;
-		return Objects.equals(projectId, that.projectId) && Objects.equals(launchIds, that.launchIds);
-	}
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    IndexLaunchRemove that = (IndexLaunchRemove) o;
+    return Objects.equals(projectId, that.projectId) && Objects.equals(launchIds, that.launchIds);
+  }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(projectId, launchIds);
-	}
+  @Override
+  public int hashCode() {
+    return Objects.hash(projectId, launchIds);
+  }
 }

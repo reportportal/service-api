@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.google.common.base.CharMatcher;
-
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiPredicate;
@@ -36,39 +35,41 @@ import java.util.function.Predicate;
  */
 public class Predicates {
 
-	private static final Set<TestItemTypeEnum> INDEXED_ITEM_TYPES = Set.of(TestItemTypeEnum.STEP,
-			TestItemTypeEnum.BEFORE_METHOD,
-			TestItemTypeEnum.AFTER_METHOD
-	);
+  /**
+   * Checks if the launch is suitable for indexing in analyzer
+   */
+  public static final Predicate<Launch> LAUNCH_CAN_BE_INDEXED = launch -> launch != null
+      && LaunchModeEnum.DEFAULT.equals(launch.getMode());
+  /**
+   * Checks if not system item attribute has specified key and value
+   */
+  public static final BiPredicate<ItemAttribute, ItemAttributeResource> ITEM_ATTRIBUTE_EQUIVALENCE = (attribute, resource) -> {
+    boolean valueAndSystemEquivalence =
+        attribute.getValue().equals(resource.getValue()) && !attribute.isSystem();
+    return Objects.isNull(attribute.getKey()) ?
+        Objects.isNull(resource.getKey()) && valueAndSystemEquivalence :
+        attribute.getKey().equals(resource.getKey()) && valueAndSystemEquivalence;
+  };
+  private static final Set<TestItemTypeEnum> INDEXED_ITEM_TYPES = Set.of(TestItemTypeEnum.STEP,
+      TestItemTypeEnum.BEFORE_METHOD,
+      TestItemTypeEnum.AFTER_METHOD
+  );
+  /**
+   * Checks if the test item is suitable for indexing in analyzer.
+   */
+  public static final Predicate<TestItem> ITEM_CAN_BE_INDEXED = testItem -> testItem != null
+      && INDEXED_ITEM_TYPES.contains(testItem.getType())
+      && testItem.getItemResults().getIssue() != null && !testItem.getItemResults()
+      .getIssue()
+      .getIgnoreAnalyzer();
+  private static final String SPECIAL_CHARACTERS = "-/@#$%^&_+=()";
+  /**
+   * Checker whether string contains special characters only
+   */
+  public static final Predicate<String> SPECIAL_CHARS_ONLY = str -> CharMatcher.anyOf(
+      SPECIAL_CHARACTERS).matchesAllOf(str);
 
-	/**
-	 * Checks if the test item is suitable for indexing in analyzer.
-	 */
-	public static final Predicate<TestItem> ITEM_CAN_BE_INDEXED = testItem -> testItem != null
-			&& INDEXED_ITEM_TYPES.contains(testItem.getType()) && testItem.getItemResults().getIssue() != null && !testItem.getItemResults()
-			.getIssue()
-			.getIgnoreAnalyzer();
-	/**
-	 * Checks if the launch is suitable for indexing in analyzer
-	 */
-	public static final Predicate<Launch> LAUNCH_CAN_BE_INDEXED = launch -> launch != null
-			&& LaunchModeEnum.DEFAULT.equals(launch.getMode());
-	/**
-	 * Checks if not system item attribute has specified key and value
-	 */
-	public static final BiPredicate<ItemAttribute, ItemAttributeResource> ITEM_ATTRIBUTE_EQUIVALENCE = (attribute, resource) -> {
-		boolean valueAndSystemEquivalence = attribute.getValue().equals(resource.getValue()) && !attribute.isSystem();
-		return Objects.isNull(attribute.getKey()) ?
-				Objects.isNull(resource.getKey()) && valueAndSystemEquivalence :
-				attribute.getKey().equals(resource.getKey()) && valueAndSystemEquivalence;
-	};
-	private static final String SPECIAL_CHARACTERS = "-/@#$%^&_+=()";
-	/**
-	 * Checker whether string contains special characters only
-	 */
-	public static final Predicate<String> SPECIAL_CHARS_ONLY = str -> CharMatcher.anyOf(SPECIAL_CHARACTERS).matchesAllOf(str);
-
-	private Predicates() {
-		//statics only
-	}
+  private Predicates() {
+    //statics only
+  }
 }

@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.starter.decorator;
 
-import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
 import com.epam.ta.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
+import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
 import org.springframework.core.task.TaskExecutor;
 
 /**
@@ -25,16 +25,17 @@ import org.springframework.core.task.TaskExecutor;
  */
 public class AsyncAutoAnalysisStarter implements LaunchAutoAnalysisStarter {
 
-	private final TaskExecutor executor;
-	private final LaunchAutoAnalysisStarter launchAutoAnalysisStarter;
+  private final TaskExecutor executor;
+  private final LaunchAutoAnalysisStarter launchAutoAnalysisStarter;
 
-	public AsyncAutoAnalysisStarter(TaskExecutor executor, LaunchAutoAnalysisStarter launchAutoAnalysisStarter) {
-		this.executor = executor;
-		this.launchAutoAnalysisStarter = launchAutoAnalysisStarter;
-	}
+  public AsyncAutoAnalysisStarter(TaskExecutor executor,
+      LaunchAutoAnalysisStarter launchAutoAnalysisStarter) {
+    this.executor = executor;
+    this.launchAutoAnalysisStarter = launchAutoAnalysisStarter;
+  }
 
-	@Override
-	public void start(StartLaunchAutoAnalysisConfig config) {
-		executor.execute(() -> launchAutoAnalysisStarter.start(config));
-	}
+  @Override
+  public void start(StartLaunchAutoAnalysisConfig config) {
+    executor.execute(() -> launchAutoAnalysisStarter.start(config));
+  }
 }

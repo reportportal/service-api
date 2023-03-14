@@ -23,32 +23,32 @@ import com.epam.ta.reportportal.core.events.Event;
  */
 public class ItemRetryEvent implements Event {
 
-	private final Long projectId;
+  private final Long projectId;
 
-	private final Long launchId;
+  private final Long launchId;
 
-	private final Long itemId;
+  private final Long itemId;
 
-	private ItemRetryEvent(Long projectId, Long launchId, Long itemId) {
-		this.projectId = projectId;
-		this.launchId = launchId;
-		this.itemId = itemId;
-	}
+  private ItemRetryEvent(Long projectId, Long launchId, Long itemId) {
+    this.projectId = projectId;
+    this.launchId = launchId;
+    this.itemId = itemId;
+  }
 
-	public Long getProjectId() {
-		return projectId;
-	}
+  public static ItemRetryEvent of(Long projectId, Long launchId, Long itemId) {
+    return new ItemRetryEvent(projectId, launchId, itemId);
+  }
 
-	public Long getLaunchId() {
-		return launchId;
-	}
+  public Long getProjectId() {
+    return projectId;
+  }
 
-	public Long getItemId() {
-		return itemId;
-	}
+  public Long getLaunchId() {
+    return launchId;
+  }
 
-	public static ItemRetryEvent of(Long projectId, Long launchId, Long itemId) {
-		return new ItemRetryEvent(projectId, launchId, itemId);
-	}
+  public Long getItemId() {
+    return itemId;
+  }
 
 }

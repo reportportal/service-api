@@ -16,6 +16,16 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
+import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -41,154 +51,150 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
-import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class UpdateUserFilterHandlerTest {
 
-	public static final String SAME_NAME = "name";
-	public static final String ANOTHER_NAME = "another name";
+  public static final String SAME_NAME = "name";
+  public static final String ANOTHER_NAME = "another name";
 
-	private UserFilter userFilter = mock(UserFilter.class);
+  private UserFilter userFilter = mock(UserFilter.class);
 
-	private Project project = mock(Project.class);
+  private Project project = mock(Project.class);
 
-	private ProjectRepository projectRepository = mock(ProjectRepository.class);
-	private ProjectUserRepository projectUserRepository = mock(ProjectUserRepository.class);
+  private ProjectRepository projectRepository = mock(ProjectRepository.class);
+  private ProjectUserRepository projectUserRepository = mock(ProjectUserRepository.class);
 
-	private ProjectExtractor projectExtractor = new ProjectExtractor(projectRepository, projectUserRepository);
+  private ProjectExtractor projectExtractor = new ProjectExtractor(projectRepository,
+      projectUserRepository);
+  private UpdateUserFilterHandler updateUserFilterHandler = new UpdateUserFilterHandlerImpl(
+      projectExtractor, getShareableEntityHandler,
+      userFilterRepository, widgetRepository, aclHandler,
+      messageBus
+  );
+  private UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
+  private WidgetRepository widgetRepository = mock(WidgetRepository.class);
+  private ShareableObjectsHandler aclHandler = mock(ShareableObjectsHandler.class);
+  private MessageBus messageBus = mock(MessageBus.class);
+  private GetShareableEntityHandler<UserFilter> getShareableEntityHandler = mock(
+      GetShareableEntityHandler.class);
 
-	private UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
+  @Test
+  void updateUserFilterWithTheSameName() {
 
-	private WidgetRepository widgetRepository = mock(WidgetRepository.class);
+    final ReportPortalUser rpUser = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+        1L);
 
-	private ShareableObjectsHandler aclHandler = mock(ShareableObjectsHandler.class);
+    UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(SAME_NAME);
 
-	private MessageBus messageBus = mock(MessageBus.class);
+    ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, "test_project");
+    when(getShareableEntityHandler.getAdministrated(1L, projectDetails)).thenReturn(userFilter);
 
-	private GetShareableEntityHandler<UserFilter> getShareableEntityHandler = mock(GetShareableEntityHandler.class);
+    when(userFilter.getId()).thenReturn(1L);
+    when(userFilter.getName()).thenReturn(SAME_NAME);
+    when(userFilter.getProject()).thenReturn(project);
+    when(project.getId()).thenReturn(1L);
 
-	private UpdateUserFilterHandler updateUserFilterHandler = new UpdateUserFilterHandlerImpl(projectExtractor, getShareableEntityHandler,
-			userFilterRepository, widgetRepository, aclHandler,
-			messageBus
-	);
+    doNothing().when(aclHandler).initAcl(userFilter, "user", 1L, updateUserFilterRQ.getShare());
+    doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
 
-	@Test
-	void updateUserFilterWithTheSameName() {
+    OperationCompletionRS operationCompletionRS = updateUserFilterHandler.updateUserFilter(1L,
+        updateUserFilterRQ,
+        projectDetails,
+        rpUser
+    );
 
-		final ReportPortalUser rpUser = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
+    assertEquals("User filter with ID = '" + userFilter.getId() + "' successfully updated.",
+        operationCompletionRS.getResultMessage());
+  }
 
-		UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(SAME_NAME);
+  @Test
+  void updateUserFilterWithAnotherNamePositive() {
 
-		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, "test_project");
-		when(getShareableEntityHandler.getAdministrated(1L, projectDetails)).thenReturn(userFilter);
+    final ReportPortalUser rpUser = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+        1L);
 
-		when(userFilter.getId()).thenReturn(1L);
-		when(userFilter.getName()).thenReturn(SAME_NAME);
-		when(userFilter.getProject()).thenReturn(project);
-		when(project.getId()).thenReturn(1L);
+    UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(ANOTHER_NAME);
 
-		doNothing().when(aclHandler).initAcl(userFilter, "user", 1L, updateUserFilterRQ.getShare());
-		doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
+    ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, "test_project");
+    when(getShareableEntityHandler.getAdministrated(1L, projectDetails)).thenReturn(userFilter);
 
-		OperationCompletionRS operationCompletionRS = updateUserFilterHandler.updateUserFilter(1L,
-				updateUserFilterRQ,
-				projectDetails,
-				rpUser
-		);
+    when(userFilter.getId()).thenReturn(1L);
+    when(userFilter.getName()).thenReturn(SAME_NAME);
+    when(userFilter.getProject()).thenReturn(project);
+    when(project.getId()).thenReturn(1L);
 
-		assertEquals("User filter with ID = '" + userFilter.getId() + "' successfully updated.", operationCompletionRS.getResultMessage());
-	}
+    when(userFilterRepository.existsByNameAndOwnerAndProjectId(updateUserFilterRQ.getName(), "user",
+        1L)).thenReturn(Boolean.FALSE);
 
-	@Test
-	void updateUserFilterWithAnotherNamePositive() {
+    doNothing().when(aclHandler).initAcl(userFilter, "user", 1L, updateUserFilterRQ.getShare());
+    doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
 
-		final ReportPortalUser rpUser = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
+    OperationCompletionRS operationCompletionRS = updateUserFilterHandler.updateUserFilter(1L,
+        updateUserFilterRQ,
+        projectDetails,
+        rpUser
+    );
 
-		UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(ANOTHER_NAME);
+    assertEquals("User filter with ID = '" + userFilter.getId() + "' successfully updated.",
+        operationCompletionRS.getResultMessage());
+  }
 
-		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, "test_project");
-		when(getShareableEntityHandler.getAdministrated(1L, projectDetails)).thenReturn(userFilter);
+  @Test
+  void updateUserFilterWithAnotherNameNegative() {
 
-		when(userFilter.getId()).thenReturn(1L);
-		when(userFilter.getName()).thenReturn(SAME_NAME);
-		when(userFilter.getProject()).thenReturn(project);
-		when(project.getId()).thenReturn(1L);
+    final ReportPortalUser rpUser = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+        1L);
 
-		when(userFilterRepository.existsByNameAndOwnerAndProjectId(updateUserFilterRQ.getName(), "user", 1L)).thenReturn(Boolean.FALSE);
+    UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(ANOTHER_NAME);
 
-		doNothing().when(aclHandler).initAcl(userFilter, "user", 1L, updateUserFilterRQ.getShare());
-		doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
+    ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, "test_project");
+    when(getShareableEntityHandler.getAdministrated(1L, projectDetails)).thenReturn(userFilter);
 
-		OperationCompletionRS operationCompletionRS = updateUserFilterHandler.updateUserFilter(1L,
-				updateUserFilterRQ,
-				projectDetails,
-				rpUser
-		);
+    when(userFilter.getId()).thenReturn(1L);
+    when(userFilter.getName()).thenReturn(SAME_NAME);
+    when(userFilter.getProject()).thenReturn(project);
+    when(userFilter.getOwner()).thenReturn("user");
+    when(project.getId()).thenReturn(1L);
 
-		assertEquals("User filter with ID = '" + userFilter.getId() + "' successfully updated.", operationCompletionRS.getResultMessage());
-	}
+    when(userFilterRepository.existsByNameAndOwnerAndProjectId(updateUserFilterRQ.getName(),
+        userFilter.getOwner(),
+        projectDetails.getProjectId()
+    )).thenReturn(Boolean.TRUE);
 
-	@Test
-	void updateUserFilterWithAnotherNameNegative() {
+    doNothing().when(aclHandler).initAcl(userFilter, "user", 1L, updateUserFilterRQ.getShare());
+    doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
 
-		final ReportPortalUser rpUser = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> updateUserFilterHandler.updateUserFilter(1L, updateUserFilterRQ, projectDetails,
+            rpUser)
+    );
+    assertEquals(Suppliers.formattedSupplier(
+        "User filter with name '{}' already exists for user '{}' under the project '{}'. You couldn't create the duplicate.",
+        ANOTHER_NAME,
+        "user",
+        projectDetails.getProjectName()
+    ).get(), exception.getMessage());
+  }
 
-		UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(ANOTHER_NAME);
+  private UpdateUserFilterRQ getUpdateRequest(String name) {
 
-		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, "test_project");
-		when(getShareableEntityHandler.getAdministrated(1L, projectDetails)).thenReturn(userFilter);
+    UpdateUserFilterRQ updateUserFilterRQ = new UpdateUserFilterRQ();
 
-		when(userFilter.getId()).thenReturn(1L);
-		when(userFilter.getName()).thenReturn(SAME_NAME);
-		when(userFilter.getProject()).thenReturn(project);
-		when(userFilter.getOwner()).thenReturn("user");
-		when(project.getId()).thenReturn(1L);
+    updateUserFilterRQ.setName(name);
+    updateUserFilterRQ.setObjectType("Launch");
+    updateUserFilterRQ.setShare(false);
 
-		when(userFilterRepository.existsByNameAndOwnerAndProjectId(updateUserFilterRQ.getName(),
-				userFilter.getOwner(),
-				projectDetails.getProjectId()
-		)).thenReturn(Boolean.TRUE);
+    Order order = new Order();
+    order.setIsAsc(true);
+    order.setSortingColumnName(CRITERIA_NAME);
+    updateUserFilterRQ.setOrders(Lists.newArrayList(order));
 
-		doNothing().when(aclHandler).initAcl(userFilter, "user", 1L, updateUserFilterRQ.getShare());
-		doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
+    UserFilterCondition condition = new UserFilterCondition(CRITERIA_NAME, "cnt", "we");
+    updateUserFilterRQ.setConditions(Sets.newHashSet(condition));
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> updateUserFilterHandler.updateUserFilter(1L, updateUserFilterRQ, projectDetails, rpUser)
-		);
-		assertEquals(Suppliers.formattedSupplier(
-				"User filter with name '{}' already exists for user '{}' under the project '{}'. You couldn't create the duplicate.",
-				ANOTHER_NAME,
-				"user",
-				projectDetails.getProjectName()
-		).get(), exception.getMessage());
-	}
-
-	private UpdateUserFilterRQ getUpdateRequest(String name) {
-
-		UpdateUserFilterRQ updateUserFilterRQ = new UpdateUserFilterRQ();
-
-		updateUserFilterRQ.setName(name);
-		updateUserFilterRQ.setObjectType("Launch");
-		updateUserFilterRQ.setShare(false);
-
-		Order order = new Order();
-		order.setIsAsc(true);
-		order.setSortingColumnName(CRITERIA_NAME);
-		updateUserFilterRQ.setOrders(Lists.newArrayList(order));
-
-		UserFilterCondition condition = new UserFilterCondition(CRITERIA_NAME, "cnt", "we");
-		updateUserFilterRQ.setConditions(Sets.newHashSet(condition));
-
-		return updateUserFilterRQ;
-	}
+    return updateUserFilterRQ;
+  }
 
 }

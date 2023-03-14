@@ -38,41 +38,47 @@ import org.springframework.stereotype.Service;
 @Service
 public class UpdatePreferenceHandlerImpl implements UpdatePreferenceHandler {
 
-	private final UserPreferenceRepository userPreferenceRepository;
-	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
+  private final UserPreferenceRepository userPreferenceRepository;
+  private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 
-	@Autowired
-	public UpdatePreferenceHandlerImpl(UserPreferenceRepository userPreferenceRepository,
-			GetShareableEntityHandler<UserFilter> getShareableEntityHandler) {
-		this.userPreferenceRepository = userPreferenceRepository;
-		this.getShareableEntityHandler = getShareableEntityHandler;
-	}
+  @Autowired
+  public UpdatePreferenceHandlerImpl(UserPreferenceRepository userPreferenceRepository,
+      GetShareableEntityHandler<UserFilter> getShareableEntityHandler) {
+    this.userPreferenceRepository = userPreferenceRepository;
+    this.getShareableEntityHandler = getShareableEntityHandler;
+  }
 
-	@Override
-	public OperationCompletionRS addPreference(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long filterId) {
+  @Override
+  public OperationCompletionRS addPreference(ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, Long filterId) {
 
-		if (userPreferenceRepository.findByProjectIdAndUserIdAndFilterId(projectDetails.getProjectId(), user.getUserId(), filterId)
-				.isPresent()) {
-			throw new ReportPortalException(ErrorType.RESOURCE_ALREADY_EXISTS, "User Preference");
-		}
+    if (userPreferenceRepository.findByProjectIdAndUserIdAndFilterId(projectDetails.getProjectId(),
+            user.getUserId(), filterId)
+        .isPresent()) {
+      throw new ReportPortalException(ErrorType.RESOURCE_ALREADY_EXISTS, "User Preference");
+    }
 
-		UserFilter filter = getShareableEntityHandler.getPermitted(filterId, projectDetails);
-		UserPreference userPreference = new UserPreferenceBuilder().withUser(user.getUserId())
-				.withProject(projectDetails.getProjectId())
-				.withFilter(filter)
-				.get();
-		userPreferenceRepository.save(userPreference);
-		return new OperationCompletionRS("Filter with id = " + filterId + " successfully added to launches tab.");
-	}
+    UserFilter filter = getShareableEntityHandler.getPermitted(filterId, projectDetails);
+    UserPreference userPreference = new UserPreferenceBuilder().withUser(user.getUserId())
+        .withProject(projectDetails.getProjectId())
+        .withFilter(filter)
+        .get();
+    userPreferenceRepository.save(userPreference);
+    return new OperationCompletionRS(
+        "Filter with id = " + filterId + " successfully added to launches tab.");
+  }
 
-	@Override
-	public OperationCompletionRS removePreference(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long filterId) {
-		UserPreference userPreference = userPreferenceRepository.findByProjectIdAndUserIdAndFilterId(projectDetails.getProjectId(),
-				user.getUserId(),
-				filterId
-		)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, filterId));
-		userPreferenceRepository.delete(userPreference);
-		return new OperationCompletionRS("Filter with id = " + filterId + " successfully removed from launches tab.");
-	}
+  @Override
+  public OperationCompletionRS removePreference(ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, Long filterId) {
+    UserPreference userPreference = userPreferenceRepository.findByProjectIdAndUserIdAndFilterId(
+            projectDetails.getProjectId(),
+            user.getUserId(),
+            filterId
+        )
+        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, filterId));
+    userPreferenceRepository.delete(userPreference);
+    return new OperationCompletionRS(
+        "Filter with id = " + filterId + " successfully removed from launches tab.");
+  }
 }

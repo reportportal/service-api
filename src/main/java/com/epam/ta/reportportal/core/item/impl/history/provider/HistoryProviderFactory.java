@@ -18,11 +18,10 @@ package com.epam.ta.reportportal.core.item.impl.history.provider;
 
 import com.epam.ta.reportportal.core.item.impl.history.ItemHistoryBaselineEnum;
 import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -30,14 +29,16 @@ import java.util.Optional;
 @Service
 public class HistoryProviderFactory {
 
-	private Map<ItemHistoryBaselineEnum, HistoryProvider> historyProviderMapping;
+  private Map<ItemHistoryBaselineEnum, HistoryProvider> historyProviderMapping;
 
-	@Autowired
-	public HistoryProviderFactory(Map<ItemHistoryBaselineEnum, HistoryProvider> historyProviderMapping) {
-		this.historyProviderMapping = historyProviderMapping;
-	}
+  @Autowired
+  public HistoryProviderFactory(
+      Map<ItemHistoryBaselineEnum, HistoryProvider> historyProviderMapping) {
+    this.historyProviderMapping = historyProviderMapping;
+  }
 
-	public Optional<HistoryProvider> getProvider(HistoryRequestParams historyRequestParams) {
-		return ItemHistoryBaselineEnum.resolveType(historyRequestParams).map(this.historyProviderMapping::get);
-	}
+  public Optional<HistoryProvider> getProvider(HistoryRequestParams historyRequestParams) {
+    return ItemHistoryBaselineEnum.resolveType(historyRequestParams)
+        .map(this.historyProviderMapping::get);
+  }
 }

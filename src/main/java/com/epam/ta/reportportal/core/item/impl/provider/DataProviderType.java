@@ -16,32 +16,33 @@
 
 package com.epam.ta.reportportal.core.item.impl.provider;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Optional;
+import javax.annotation.Nullable;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public enum DataProviderType {
 
-	WIDGET_BASED("widget"),
-	LAUNCH_BASED("launch"),
-	FILTER_BASED("filter"),
-	CLUSTER_BASED("cluster"),
-	BASELINE_BASED("baseline");
+  WIDGET_BASED("widget"),
+  LAUNCH_BASED("launch"),
+  FILTER_BASED("filter"),
+  CLUSTER_BASED("cluster"),
+  BASELINE_BASED("baseline");
 
-	private final String type;
+  private final String type;
 
-	DataProviderType(String type) {
-		this.type = type;
-	}
+  DataProviderType(String type) {
+    this.type = type;
+  }
 
-	public String getType() {
-		return this.type;
-	}
+  public static Optional<DataProviderType> findByName(@Nullable String name) {
+    return Arrays.stream(DataProviderType.values())
+        .filter(type -> type.getType().equalsIgnoreCase(name)).findAny();
+  }
 
-	public static Optional<DataProviderType> findByName(@Nullable String name) {
-		return Arrays.stream(DataProviderType.values()).filter(type -> type.getType().equalsIgnoreCase(name)).findAny();
-	}
+  public String getType() {
+    return this.type;
+  }
 }

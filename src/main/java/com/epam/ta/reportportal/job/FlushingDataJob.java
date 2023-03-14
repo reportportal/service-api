@@ -31,6 +31,8 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.jclouds.blobstore.BlobStore;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -43,133 +45,132 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class FlushingDataJob implements Job {
 
-	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass().getName());
-	private static final String SUPERADMIN_PERSONAL = "superadmin_personal";
-	private static final String SUPERADMIN = "superadmin";
+  private static final String SUPERADMIN_PERSONAL = "superadmin_personal";
+  private static final String SUPERADMIN = "superadmin";
+  private final Logger LOGGER = LoggerFactory.getLogger(this.getClass().getName());
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
 
-	@Autowired
-	private JdbcTemplate jdbcTemplate;
+  @Autowired
+  private PersonalProjectService personalProjectService;
 
-	@Autowired
-	private PersonalProjectService personalProjectService;
+  @Autowired
+  private AnalyzerServiceClient analyzerServiceClient;
 
-	@Autowired
-	private AnalyzerServiceClient analyzerServiceClient;
+  @Autowired
+  private ProjectRepository projectRepository;
 
-	@Autowired
-	private ProjectRepository projectRepository;
+  @Autowired
+  private UserRepository userRepository;
 
-	@Autowired
-	private UserRepository userRepository;
+  @Autowired
+  private LogIndexer logIndexer;
 
-	@Autowired
-	private LogIndexer logIndexer;
+  @Autowired
+  private IssueTypeRepository issueTypeRepository;
 
-	@Autowired
-	private IssueTypeRepository issueTypeRepository;
+  @Autowired
+  private AttachmentRepository attachmentRepository;
 
-	@Autowired
-	private AttachmentRepository attachmentRepository;
+  @Autowired
+  private UserBinaryDataService dataStore;
 
-	@Autowired
-	private UserBinaryDataService dataStore;
+  @Autowired
+  private BlobStore blobStore;
 
-	@Autowired
-	private BlobStore blobStore;
+  @Autowired
+  private PasswordEncoder passwordEncoder;
 
-	@Autowired
-	private PasswordEncoder passwordEncoder;
+  @Value("${datastore.minio.bucketPrefix}")
+  private String bucketPrefix;
 
-	@Value("${datastore.minio.bucketPrefix}")
-	private String bucketPrefix;
+  @Override
+  @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+  public void execute(JobExecutionContext context) {
+    LOGGER.info("Flushing demo instance data is starting...");
+    truncateTables();
+    projectRepository.findAllProjectNames()
+        .stream()
+        .filter(it -> !it.equalsIgnoreCase(SUPERADMIN_PERSONAL))
+        .collect(Collectors.toList())
+        .forEach(name -> projectRepository.findByName(name).ifPresent(this::deleteProject));
+    userRepository.findAll().stream().filter(it -> !it.getLogin().equalsIgnoreCase(SUPERADMIN))
+        .forEach(this::deleteUser);
+    restartSequences();
+    createDefaultUser();
+    LOGGER.info("Flushing demo instance data finished");
+  }
 
-	@Override
-	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
-	public void execute(JobExecutionContext context) {
-		LOGGER.info("Flushing demo instance data is starting...");
-		truncateTables();
-		projectRepository.findAllProjectNames()
-				.stream()
-				.filter(it -> !it.equalsIgnoreCase(SUPERADMIN_PERSONAL))
-				.collect(Collectors.toList())
-				.forEach(name -> projectRepository.findByName(name).ifPresent(this::deleteProject));
-		userRepository.findAll().stream().filter(it -> !it.getLogin().equalsIgnoreCase(SUPERADMIN)).forEach(this::deleteUser);
-		restartSequences();
-		createDefaultUser();
-		LOGGER.info("Flushing demo instance data finished");
-	}
+  /**
+   * Get exclusive lock. Kill all running transactions. Truncate tables
+   */
+  private void truncateTables() {
+    jdbcTemplate.execute("BEGIN; " + "SELECT PG_ADVISORY_XACT_LOCK(1);"
+        + "SELECT PG_TERMINATE_BACKEND(pid) FROM pg_stat_activity WHERE datname = 'reportportal'\n"
+        + "AND pid <> PG_BACKEND_PID()\n"
+        + "AND state IN ('idle', 'idle in transaction', 'idle in transaction (aborted)', 'disabled'); "
+        + "TRUNCATE TABLE launch RESTART IDENTITY CASCADE;"
+        + "TRUNCATE TABLE activity RESTART IDENTITY CASCADE;"
+        + "TRUNCATE TABLE shareable_entity RESTART IDENTITY CASCADE;"
+        + "TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;"
+        + "TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE;" + "COMMIT;");
+  }
 
-	/**
-	 * Get exclusive lock. Kill all running transactions. Truncate tables
-	 */
-	private void truncateTables() {
-		jdbcTemplate.execute("BEGIN; " + "SELECT PG_ADVISORY_XACT_LOCK(1);"
-				+ "SELECT PG_TERMINATE_BACKEND(pid) FROM pg_stat_activity WHERE datname = 'reportportal'\n"
-				+ "AND pid <> PG_BACKEND_PID()\n"
-				+ "AND state IN ('idle', 'idle in transaction', 'idle in transaction (aborted)', 'disabled'); "
-				+ "TRUNCATE TABLE launch RESTART IDENTITY CASCADE;" + "TRUNCATE TABLE activity RESTART IDENTITY CASCADE;"
-				+ "TRUNCATE TABLE shareable_entity RESTART IDENTITY CASCADE;" + "TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;"
-				+ "TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE;" + "COMMIT;");
-	}
+  private void restartSequences() {
+    jdbcTemplate.execute("ALTER SEQUENCE project_id_seq RESTART WITH 2");
+    jdbcTemplate.execute("ALTER SEQUENCE users_id_seq RESTART WITH 2");
+    jdbcTemplate.execute("ALTER SEQUENCE oauth_access_token_id_seq RESTART WITH 2");
+    jdbcTemplate.execute("ALTER SEQUENCE project_attribute_attribute_id_seq RESTART WITH 15");
+    jdbcTemplate.execute("ALTER SEQUENCE statistics_field_sf_id_seq RESTART WITH 15");
+  }
 
-	private void restartSequences() {
-		jdbcTemplate.execute("ALTER SEQUENCE project_id_seq RESTART WITH 2");
-		jdbcTemplate.execute("ALTER SEQUENCE users_id_seq RESTART WITH 2");
-		jdbcTemplate.execute("ALTER SEQUENCE oauth_access_token_id_seq RESTART WITH 2");
-		jdbcTemplate.execute("ALTER SEQUENCE project_attribute_attribute_id_seq RESTART WITH 15");
-		jdbcTemplate.execute("ALTER SEQUENCE statistics_field_sf_id_seq RESTART WITH 15");
-	}
+  private void createDefaultUser() {
+    final CreateUserRQFull request = new CreateUserRQFull();
+    request.setLogin("default");
+    request.setPassword(passwordEncoder.encode("1q2w3e"));
+    request.setEmail("defaultemail@domain.com");
+    User user = new UserBuilder().addCreateUserFullRQ(request)
+        .addUserRole(UserRole.USER)
+        .addPassword(passwordEncoder.encode(request.getPassword()))
+        .get();
+    projectRepository.save(personalProjectService.generatePersonalProject(user));
+    userRepository.save(user);
+    LOGGER.info("Default user has been successfully created.");
+  }
 
-	private void createDefaultUser() {
-		final CreateUserRQFull request = new CreateUserRQFull();
-		request.setLogin("default");
-		request.setPassword(passwordEncoder.encode("1q2w3e"));
-		request.setEmail("defaultemail@domain.com");
-		User user = new UserBuilder().addCreateUserFullRQ(request)
-				.addUserRole(UserRole.USER)
-				.addPassword(passwordEncoder.encode(request.getPassword()))
-				.get();
-		projectRepository.save(personalProjectService.generatePersonalProject(user));
-		userRepository.save(user);
-		LOGGER.info("Default user has been successfully created.");
-	}
+  private void deleteUser(User user) {
+    dataStore.deleteUserPhoto(user);
+    userRepository.delete(user);
+    userRepository.flush();
+    LOGGER.info("User with id = '" + user.getId() + "' has been successfully deleted.");
+  }
 
-	private void deleteUser(User user) {
-		dataStore.deleteUserPhoto(user);
-		userRepository.delete(user);
-		userRepository.flush();
-		LOGGER.info("User with id = '" + user.getId() + "' has been successfully deleted.");
-	}
-
-	private void deleteProject(Project project) {
-		Set<Long> defaultIssueTypeIds = issueTypeRepository.getDefaultIssueTypes()
-				.stream()
-				.map(IssueType::getId)
-				.collect(Collectors.toSet());
-		Set<IssueType> issueTypesToRemove = project.getProjectIssueTypes()
-				.stream()
-				.map(ProjectIssueType::getIssueType)
-				.filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
-				.collect(Collectors.toSet());
-		projectRepository.delete(project);
-		analyzerServiceClient.removeSuggest(project.getId());
-		issueTypeRepository.deleteAll(issueTypesToRemove);
-		try {
-			blobStore.deleteContainer(bucketPrefix + project.getId());
-		} catch (Exception e) {
-			LOGGER.warn("Cannot delete attachments bucket " + bucketPrefix + project.getId());
-		}
-		logIndexer.deleteIndex(project.getId());
-		projectRepository.flush();
-		attachmentRepository.moveForDeletionByProjectId(project.getId());
-		LOGGER.info("Project with id = '" + project.getId() + "' has been successfully deleted.");
-	}
+  private void deleteProject(Project project) {
+    Set<Long> defaultIssueTypeIds = issueTypeRepository.getDefaultIssueTypes()
+        .stream()
+        .map(IssueType::getId)
+        .collect(Collectors.toSet());
+    Set<IssueType> issueTypesToRemove = project.getProjectIssueTypes()
+        .stream()
+        .map(ProjectIssueType::getIssueType)
+        .filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
+        .collect(Collectors.toSet());
+    projectRepository.delete(project);
+    analyzerServiceClient.removeSuggest(project.getId());
+    issueTypeRepository.deleteAll(issueTypesToRemove);
+    try {
+      blobStore.deleteContainer(bucketPrefix + project.getId());
+    } catch (Exception e) {
+      LOGGER.warn("Cannot delete attachments bucket " + bucketPrefix + project.getId());
+    }
+    logIndexer.deleteIndex(project.getId());
+    projectRepository.flush();
+    attachmentRepository.moveForDeletionByProjectId(project.getId());
+    LOGGER.info("Project with id = '" + project.getId() + "' has been successfully deleted.");
+  }
 }

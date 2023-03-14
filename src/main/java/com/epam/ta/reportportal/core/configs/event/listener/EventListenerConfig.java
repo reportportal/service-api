@@ -20,12 +20,11 @@ import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
 import com.epam.ta.reportportal.core.events.listener.LaunchFinishedEventListener;
 import com.epam.ta.reportportal.core.events.listener.TestItemFinishedEventListener;
-import com.epam.ta.reportportal.core.events.subscriber.impl.launch.finish.LaunchFinishedMessagePublisher;
 import com.epam.ta.reportportal.core.events.subscriber.impl.delegate.ProjectConfigDelegatingSubscriber;
+import com.epam.ta.reportportal.core.events.subscriber.impl.launch.finish.LaunchFinishedMessagePublisher;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -33,16 +32,18 @@ import java.util.List;
 @Configuration
 public class EventListenerConfig {
 
-	@Bean
-	public LaunchFinishedEventListener launchFinishedEventListener(LaunchFinishedMessagePublisher finishedMessagePublisher,
-			ProjectConfigDelegatingSubscriber<LaunchFinishedEvent> launchFinishedDelegatingSubscriber) {
-		return new LaunchFinishedEventListener(List.of(finishedMessagePublisher, launchFinishedDelegatingSubscriber));
-	}
+  @Bean
+  public LaunchFinishedEventListener launchFinishedEventListener(
+      LaunchFinishedMessagePublisher finishedMessagePublisher,
+      ProjectConfigDelegatingSubscriber<LaunchFinishedEvent> launchFinishedDelegatingSubscriber) {
+    return new LaunchFinishedEventListener(
+        List.of(finishedMessagePublisher, launchFinishedDelegatingSubscriber));
+  }
 
-	@Bean
-	public TestItemFinishedEventListener testItemFinishedEventListener(
-			ProjectConfigDelegatingSubscriber<ItemFinishedEvent> itemFinishedDelegatingSubscriber) {
-		return new TestItemFinishedEventListener(List.of(itemFinishedDelegatingSubscriber));
-	}
+  @Bean
+  public TestItemFinishedEventListener testItemFinishedEventListener(
+      ProjectConfigDelegatingSubscriber<ItemFinishedEvent> itemFinishedDelegatingSubscriber) {
+    return new TestItemFinishedEventListener(List.of(itemFinishedDelegatingSubscriber));
+  }
 
 }

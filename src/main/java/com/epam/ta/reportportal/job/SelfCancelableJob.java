@@ -16,41 +16,40 @@
 
 package com.epam.ta.reportportal.job;
 
+import java.util.Date;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 
-import java.util.Date;
-
 /**
- * Job contains run method and trigger. The main idea to provide possibility to
- * cancel next execution from run method. User can override job, call
- * {@link SelfCancelableJob#oneMoreTime(boolean)} method and this way cancel
- * next execution. In case if we need job to keep executed, we do not call
- * anything, next execution time calculation delegated to provided trigger
+ * Job contains run method and trigger. The main idea to provide possibility to cancel next
+ * execution from run method. User can override job, call
+ * {@link SelfCancelableJob#oneMoreTime(boolean)} method and this way cancel next execution. In case
+ * if we need job to keep executed, we do not call anything, next execution time calculation
+ * delegated to provided trigger
  *
  * @author Andrei Varabyeu
  */
 public abstract class SelfCancelableJob implements Runnable, Trigger {
 
-	private Trigger triggerDelegate;
+  private Trigger triggerDelegate;
 
-	private boolean oneMoreTime = true;
+  private boolean oneMoreTime = true;
 
-	public SelfCancelableJob(Trigger trigger) {
-		this.triggerDelegate = trigger;
-	}
+  public SelfCancelableJob(Trigger trigger) {
+    this.triggerDelegate = trigger;
+  }
 
-	@Override
-	public Date nextExecutionTime(TriggerContext triggerContext) {
-		if (oneMoreTime) {
-			return triggerDelegate.nextExecutionTime(triggerContext);
-		} else {
-			return null;
-		}
-	}
+  @Override
+  public Date nextExecutionTime(TriggerContext triggerContext) {
+    if (oneMoreTime) {
+      return triggerDelegate.nextExecutionTime(triggerContext);
+    } else {
+      return null;
+    }
+  }
 
-	protected void oneMoreTime(boolean oneMoreTime) {
-		this.oneMoreTime = oneMoreTime;
-	}
+  protected void oneMoreTime(boolean oneMoreTime) {
+    this.oneMoreTime = oneMoreTime;
+  }
 
 }

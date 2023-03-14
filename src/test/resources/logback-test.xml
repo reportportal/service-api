@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <include resource="org/springframework/boot/logging/logback/base.xml"/>
-    <logger name="org.springframework" level="ERROR"/>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger{36}.%M - %msg%n</pattern>
-        </encoder>
-    </appender>
+  <appender class="ch.qos.logback.core.ConsoleAppender" name="STDOUT">
+    <encoder>
+      <pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger{36}.%M -
+        %msg%n
+      </pattern>
+    </encoder>
+  </appender>
+  <include resource="org/springframework/boot/logging/logback/base.xml"/>
+  <logger level="ERROR" name="org.springframework"/>
 
-    <logger name="org.springframework.security" level="info"/>
+  <logger level="info" name="org.springframework.security"/>
 
-    <root level="info">
-        <appender-ref ref="STDOUT"/>
-    </root>
+  <root level="info">
+    <appender-ref ref="STDOUT"/>
+  </root>
 </configuration>

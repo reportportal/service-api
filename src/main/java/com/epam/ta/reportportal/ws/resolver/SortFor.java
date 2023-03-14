@@ -15,7 +15,11 @@
  */
 package com.epam.ta.reportportal.ws.resolver;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Remaps WS domain model to internal domain model in sorting request parameters
@@ -27,10 +31,10 @@ import java.lang.annotation.*;
 @Documented
 public @interface SortFor {
 
-	/**
-	 * Domain Object class sorting parameters will be applied to
-	 *
-	 * @return Class
-	 */
-	Class<?> value();
+  /**
+   * Domain Object class sorting parameters will be applied to
+   *
+   * @return Class
+   */
+  Class<?> value();
 }

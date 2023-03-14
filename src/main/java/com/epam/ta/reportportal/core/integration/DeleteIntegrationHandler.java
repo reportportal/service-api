@@ -24,31 +24,33 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
  */
 public interface DeleteIntegrationHandler {
 
-	/**
-	 * @param integrationId Integration id
-	 * @return Response data
-	 */
-	OperationCompletionRS deleteGlobalIntegration(Long integrationId);
+  /**
+   * @param integrationId Integration id
+   * @return Response data
+   */
+  OperationCompletionRS deleteGlobalIntegration(Long integrationId);
 
-	/**
-	 * @param type {@link com.epam.ta.reportportal.entity.integration.IntegrationType#name}
-	 * @return Response data
-	 */
-	OperationCompletionRS deleteGlobalIntegrationsByType(String type);
+  /**
+   * @param type {@link com.epam.ta.reportportal.entity.integration.IntegrationType#name}
+   * @return Response data
+   */
+  OperationCompletionRS deleteGlobalIntegrationsByType(String type);
 
-	/**
-	 * @param integrationId Integration id
-	 * @param projectName   Project name
-	 * @param user          {@link ReportPortalUser}
-	 * @return Response data
-	 */
-	OperationCompletionRS deleteProjectIntegration(Long integrationId, String projectName, ReportPortalUser user);
+  /**
+   * @param integrationId Integration id
+   * @param projectName   Project name
+   * @param user          {@link ReportPortalUser}
+   * @return Response data
+   */
+  OperationCompletionRS deleteProjectIntegration(Long integrationId, String projectName,
+      ReportPortalUser user);
 
-	/**
-	 * @param type        {@link com.epam.ta.reportportal.entity.integration.IntegrationType#name}
-	 * @param projectName Project name
-	 * @param user        {@link ReportPortalUser}
-	 * @return Response data
-	 */
-	OperationCompletionRS deleteProjectIntegrationsByType(String type, String projectName, ReportPortalUser user);
+  /**
+   * @param type        {@link com.epam.ta.reportportal.entity.integration.IntegrationType#name}
+   * @param projectName Project name
+   * @param user        {@link ReportPortalUser}
+   * @return Response data
+   */
+  OperationCompletionRS deleteProjectIntegrationsByType(String type, String projectName,
+      ReportPortalUser user);
 }

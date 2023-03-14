@@ -16,12 +16,25 @@
 
 package com.epam.ta.reportportal.core.integration.migration;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.ws.converter.builders.IntegrationBuilder;
 import com.google.common.collect.Maps;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,72 +44,64 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @ExtendWith(MockitoExtension.class)
 class LdapSecretMigrationServiceTest {
 
-	@Mock
-	private IntegrationRepository integrationRepository;
+  private static BasicTextEncryptor staticSaltEncryptor;
+  @Mock
+  private IntegrationRepository integrationRepository;
+  @Mock
+  private BasicTextEncryptor encryptor;
+  @InjectMocks
+  private LdapSecretMigrationService migrationService;
 
-	@Mock
-	private BasicTextEncryptor encryptor;
+  @BeforeEach
+  void before() {
+    ReflectionTestUtils.setField(migrationService, "salt", "reportportal");
+    staticSaltEncryptor = new BasicTextEncryptor();
+    staticSaltEncryptor.setPassword("reportportal");
+  }
 
-	@InjectMocks
-	private LdapSecretMigrationService migrationService;
+  @Test
+  void emptyIntegrationListTest() {
+    when(integrationRepository.findAllByTypeIn("ldap")).thenReturn(Collections.emptyList());
+    migrationService.migrate();
+    verify(encryptor, never()).encrypt(anyString());
+  }
 
-	private static BasicTextEncryptor staticSaltEncryptor;
+  @Test
+  void integrationWithoutPasswordParameterTest() {
+    Integration integration = testIntegration(BtsProperties.URL.getName(), "url");
+    when(integrationRepository.findAllByTypeIn("ldap")).thenReturn(List.of(integration));
+    migrationService.migrate();
+    verify(encryptor, never()).encrypt(anyString());
+    assertTrue(Objects.isNull(integration.getParams().getParams().get("managerPassword")));
+  }
 
-	@BeforeEach
-	void before() {
-		ReflectionTestUtils.setField(migrationService, "salt", "reportportal");
-		staticSaltEncryptor = new BasicTextEncryptor();
-		staticSaltEncryptor.setPassword("reportportal");
-	}
+  @Test
+  void passwordShouldBeEncrypted() {
+    String unencrypted = "unencrypted";
+    String encrypted = "new-encrypted-pass";
+    Integration integration = testIntegration("managerPassword",
+        staticSaltEncryptor.encrypt(unencrypted));
+    when(integrationRepository.findAllByTypeIn("ldap")).thenReturn(List.of(integration));
+    when(encryptor.encrypt(unencrypted)).thenReturn(encrypted);
+    migrationService.migrate();
+    verify(encryptor, times(1)).encrypt(unencrypted);
+    Optional<String> parameterOptional = Optional.ofNullable(
+            integration.getParams().getParams().get("managerPassword"))
+        .map(it -> (String) it);
+    assertTrue(parameterOptional.isPresent());
+    assertEquals(encrypted, parameterOptional.get());
+  }
 
-	@Test
-	void emptyIntegrationListTest() {
-		when(integrationRepository.findAllByTypeIn("ldap")).thenReturn(Collections.emptyList());
-		migrationService.migrate();
-		verify(encryptor, never()).encrypt(anyString());
-	}
-
-	@Test
-	void integrationWithoutPasswordParameterTest() {
-		Integration integration = testIntegration(BtsProperties.URL.getName(), "url");
-		when(integrationRepository.findAllByTypeIn("ldap")).thenReturn(List.of(integration));
-		migrationService.migrate();
-		verify(encryptor, never()).encrypt(anyString());
-		assertTrue(Objects.isNull(integration.getParams().getParams().get("managerPassword")));
-	}
-
-	@Test
-	void passwordShouldBeEncrypted() {
-		String unencrypted = "unencrypted";
-		String encrypted = "new-encrypted-pass";
-		Integration integration = testIntegration("managerPassword", staticSaltEncryptor.encrypt(unencrypted));
-		when(integrationRepository.findAllByTypeIn("ldap")).thenReturn(List.of(integration));
-		when(encryptor.encrypt(unencrypted)).thenReturn(encrypted);
-		migrationService.migrate();
-		verify(encryptor, times(1)).encrypt(unencrypted);
-		Optional<String> parameterOptional = Optional.ofNullable(integration.getParams().getParams().get("managerPassword"))
-				.map(it -> (String) it);
-		assertTrue(parameterOptional.isPresent());
-		assertEquals(encrypted, parameterOptional.get());
-	}
-
-	private Integration testIntegration(String key, String value) {
-		final HashMap<String, Object> params = Maps.newHashMap();
-		params.put(key, value);
-		return new IntegrationBuilder().withParams(new IntegrationParams(params)).get();
-	}
+  private Integration testIntegration(String key, String value) {
+    final HashMap<String, Object> params = Maps.newHashMap();
+    params.put(key, value);
+    return new IntegrationBuilder().withParams(new IntegrationParams(params)).get();
+  }
 
 }

@@ -19,28 +19,28 @@ package com.epam.ta.reportportal.ws.converter.resource.handler.attribute.launch;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ResourceAttributeHandler;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class LaunchResourceAttributeLogger implements ResourceAttributeHandler<LaunchResource> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(LaunchResourceAttributeLogger.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(LaunchResourceAttributeLogger.class);
 
-	private final String baseMessage;
+  private final String baseMessage;
 
-	public LaunchResourceAttributeLogger(String baseMessage) {
-		this.baseMessage = baseMessage;
-	}
+  public LaunchResourceAttributeLogger(String baseMessage) {
+    this.baseMessage = baseMessage;
+  }
 
-	@Override
-	public void handle(LaunchResource resource, Collection<ItemAttribute> attributes) {
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug(baseMessage + " Launch - {}, attributes - {}", resource.getLaunchId(), attributes);
-		}
-	}
+  @Override
+  public void handle(LaunchResource resource, Collection<ItemAttribute> attributes) {
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(baseMessage + " Launch - {}, attributes - {}", resource.getLaunchId(),
+          attributes);
+    }
+  }
 }

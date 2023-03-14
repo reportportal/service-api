@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.configs.Conditions;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.rabbitmq.http.client.Client;
+import java.net.URI;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -33,8 +34,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
-import java.net.URI;
-
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
@@ -42,39 +41,41 @@ import java.net.URI;
 @Conditional(Conditions.NotTestCondition.class)
 public class AnalyzerRabbitMqConfiguration {
 
-	@Autowired
-	private MessageConverter messageConverter;
+  @Autowired
+  private MessageConverter messageConverter;
 
-	@Bean
-	public RabbitMqManagementClient managementTemplate(@Value("${rp.amqp.api-address}") String address,
-			@Value("${rp.amqp.analyzer-vhost}") String virtualHost) {
-		Client rabbitClient;
-		try {
-			rabbitClient = new Client(address);
-		} catch (Exception e) {
-			throw new ReportPortalException(
-					ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
-					"Cannot create a HTTP rabbit client instance. Incorrect api address " + address
-			);
-		}
-		return new RabbitMqManagementClientTemplate(rabbitClient, virtualHost);
-	}
+  @Bean
+  public RabbitMqManagementClient managementTemplate(
+      @Value("${rp.amqp.api-address}") String address,
+      @Value("${rp.amqp.analyzer-vhost}") String virtualHost) {
+    Client rabbitClient;
+    try {
+      rabbitClient = new Client(address);
+    } catch (Exception e) {
+      throw new ReportPortalException(
+          ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
+          "Cannot create a HTTP rabbit client instance. Incorrect api address " + address
+      );
+    }
+    return new RabbitMqManagementClientTemplate(rabbitClient, virtualHost);
+  }
 
-	@Bean(name = "analyzerConnectionFactory")
-	public ConnectionFactory analyzerConnectionFactory(@Value("${rp.amqp.addresses}") URI addresses,
-			@Value("${rp.amqp.analyzer-vhost}") String virtualHost) {
-		CachingConnectionFactory factory = new CachingConnectionFactory(addresses);
-		factory.setVirtualHost(virtualHost);
-		return factory;
-	}
+  @Bean(name = "analyzerConnectionFactory")
+  public ConnectionFactory analyzerConnectionFactory(@Value("${rp.amqp.addresses}") URI addresses,
+      @Value("${rp.amqp.analyzer-vhost}") String virtualHost) {
+    CachingConnectionFactory factory = new CachingConnectionFactory(addresses);
+    factory.setVirtualHost(virtualHost);
+    return factory;
+  }
 
-	@Bean(name = "analyzerRabbitTemplate")
-	public RabbitTemplate analyzerRabbitTemplate(@Autowired @Qualifier("analyzerConnectionFactory") ConnectionFactory connectionFactory,
-			@Value("${rp.amqp.reply-timeout}") long replyTimeout) {
-		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-		rabbitTemplate.setMessageConverter(messageConverter);
-		rabbitTemplate.setReplyTimeout(replyTimeout);
-		return rabbitTemplate;
-	}
+  @Bean(name = "analyzerRabbitTemplate")
+  public RabbitTemplate analyzerRabbitTemplate(
+      @Autowired @Qualifier("analyzerConnectionFactory") ConnectionFactory connectionFactory,
+      @Value("${rp.amqp.reply-timeout}") long replyTimeout) {
+    RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+    rabbitTemplate.setMessageConverter(messageConverter);
+    rabbitTemplate.setReplyTimeout(replyTimeout);
+    return rabbitTemplate;
+  }
 
 }

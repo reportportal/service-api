@@ -2,7 +2,7 @@ package com.epam.ta.reportportal.core.log;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.entity.log.LogMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,7 +29,7 @@ class ElasticLogServiceTest {
     @InjectMocks
     private ElasticLogService elasticLogService;
 
-    private Log log;
+    private LogFull logFull;
 
     private LogMessage logMessage;
 
@@ -37,23 +37,23 @@ class ElasticLogServiceTest {
     public void setUp() {
         Long itemId = 1L;
         Long launchId = 1L;
-        log = new Log();
-        log.setTestItem(new TestItem(itemId));
-        log.setLaunch(new Launch(launchId));
+        logFull = new LogFull();
+        logFull.setTestItem(new TestItem(itemId));
+        logFull.setLaunch(new Launch(launchId));
 
-        logMessage = new LogMessage(log.getId(), log.getLogTime(), log.getLogMessage(), itemId, launchId, log.getProjectId());
+        logMessage = new LogMessage(logFull.getId(), logFull.getLogTime(), logFull.getLogMessage(), itemId, launchId, logFull.getProjectId());
     }
 
     @Test
     void saveLogMessage() {
-        elasticLogService.saveLogMessage(log, log.getLaunch().getId());
+        elasticLogService.saveLogMessage(logFull, logFull.getLaunch().getId());
 
         verify(amqpTemplate, times(1)).convertAndSend(eq(PROCESSING_EXCHANGE_NAME), eq(LOG_MESSAGE_SAVING_ROUTING_KEY), eq(logMessage));
     }
 
     @Test
     void saveLogMessageList() {
-        elasticLogService.saveLogMessageList(List.of(log), log.getLaunch().getId());
+        elasticLogService.saveLogMessageList(List.of(logFull), logFull.getLaunch().getId());
 
         verify(amqpTemplate, times(1)).convertAndSend(eq(PROCESSING_EXCHANGE_NAME), eq(LOG_MESSAGE_SAVING_ROUTING_KEY), eq(logMessage));
     }

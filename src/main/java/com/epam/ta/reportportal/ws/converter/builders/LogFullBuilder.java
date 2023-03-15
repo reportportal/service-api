@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 
 import java.util.UUID;
@@ -31,40 +31,40 @@ import static java.util.Optional.ofNullable;
 /**
  * @author Pavel Bortnik
  */
-public class LogBuilder implements Supplier<Log> {
+public class LogFullBuilder implements Supplier<LogFull> {
 
-	private final Log log;
+	private final LogFull logFull;
 
-	public LogBuilder() {
-		log = new Log();
+	public LogFullBuilder() {
+		logFull = new LogFull();
 	}
 
-	public LogBuilder addSaveLogRq(SaveLogRQ createLogRQ) {
-		log.setLogLevel(LogLevel.toCustomLogLevel(createLogRQ.getLevel()));
-		log.setLogMessage(ofNullable(createLogRQ.getMessage()).orElse("NULL"));
-		log.setLogTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(createLogRQ.getLogTime()));
-		log.setUuid(ofNullable(createLogRQ.getUuid()).orElse(UUID.randomUUID().toString()));
+	public LogFullBuilder addSaveLogRq(SaveLogRQ createLogRQ) {
+		logFull.setLogLevel(LogLevel.toCustomLogLevel(createLogRQ.getLevel()));
+		logFull.setLogMessage(ofNullable(createLogRQ.getMessage()).orElse("NULL"));
+		logFull.setLogTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(createLogRQ.getLogTime()));
+		logFull.setUuid(ofNullable(createLogRQ.getUuid()).orElse(UUID.randomUUID().toString()));
 		return this;
 	}
 
-	public LogBuilder addTestItem(TestItem testItem) {
-		log.setTestItem(testItem);
+	public LogFullBuilder addTestItem(TestItem testItem) {
+		logFull.setTestItem(testItem);
 		return this;
 	}
 
-	public LogBuilder addLaunch(Launch launch) {
-		log.setLaunch(launch);
+	public LogFullBuilder addLaunch(Launch launch) {
+		logFull.setLaunch(launch);
 		return this;
 	}
 
-	public LogBuilder addProjectId(Long projectId) {
-		log.setProjectId(projectId);
+	public LogFullBuilder addProjectId(Long projectId) {
+		logFull.setProjectId(projectId);
 		return this;
 	}
 
 	@Override
-	public Log get() {
-		return log;
+	public LogFull get() {
+		return logFull;
 	}
 
 }

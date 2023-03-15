@@ -35,9 +35,10 @@ import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
+import com.epam.ta.reportportal.ws.converter.builders.LogFullBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
@@ -67,6 +68,7 @@ import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.*;
+import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.LOG_FULL_TO_LOG;
 
 /**
  * @author Konstantin Antipin
@@ -290,27 +292,31 @@ public class AsyncReportingListener implements MessageListener {
 	}
 
 	private void createItemLog(SaveLogRQ request, TestItem item, BinaryDataMetaInfo metaInfo, Long projectId) {
-		Log log = new LogBuilder().addSaveLogRq(request).addTestItem(item).addProjectId(projectId).get();
+		LogFull logFull = new LogFullBuilder().addSaveLogRq(request).addTestItem(item).addProjectId(projectId).get();
+		Log log = LOG_FULL_TO_LOG.apply(logFull);
 		logRepository.save(log);
+		logFull.setId(log.getId());
 		Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
-		logService.saveLogMessage(log, effectiveLaunch.getId());
+		logService.saveLogMessage(logFull, effectiveLaunch.getId());
 
 		saveAttachment(metaInfo,
-				log.getId(),
+				logFull.getId(),
 				projectId,
 				effectiveLaunch.getId(),
 				item.getItemId(),
 				effectiveLaunch.getUuid(),
-				log.getUuid()
+				logFull.getUuid()
 		);
 	}
 
 	private void createLaunchLog(SaveLogRQ request, Launch launch, BinaryDataMetaInfo metaInfo, Long projectId) {
-		Log log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).addProjectId(projectId).get();
+		LogFull logFull = new LogFullBuilder().addSaveLogRq(request).addLaunch(launch).addProjectId(projectId).get();
+		Log log = LOG_FULL_TO_LOG.apply(logFull);
 		logRepository.save(log);
-		logService.saveLogMessage(log, launch.getId());
+		logFull.setId(log.getId());
+		logService.saveLogMessage(logFull, launch.getId());
 
-		saveAttachment(metaInfo, log.getId(), projectId, launch.getId(), null, launch.getUuid(), log.getUuid());
+		saveAttachment(metaInfo, logFull.getId(), projectId, launch.getId(), null, launch.getUuid(), logFull.getUuid());
 	}
 
 	private void saveAttachment(BinaryDataMetaInfo metaInfo, Long logId, Long projectId, Long launchId, Long itemId, String launchUuid,

@@ -169,7 +169,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 				projectDetails.getProjectId(),
 				elementsCounterService.countNumberOfItemElements(items)
 		));
-		logService.deleteLogMessageByTestItemSet(projectDetails.getProjectId(), idsToDelete);
+		logService.deleteLogMessageByTestItemSet(projectDetails.getProjectId(), removedItems);
 		testItemRepository.deleteAllByItemIdIn(idsToDelete);
 
 		launches.forEach(it -> it.setHasRetries(launchRepository.hasRetries(it.getId())));

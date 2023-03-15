@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.analyzer.pattern.selector.impl;
 
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,13 +32,13 @@ import java.util.Set;
 public class StringPartPatternAnalysisSelector extends AbstractPatternAnalysisSelector {
 
 	@Autowired
-	public StringPartPatternAnalysisSelector(TestItemRepository testItemRepository) {
-		super(testItemRepository);
+	public StringPartPatternAnalysisSelector(TestItemRepository testItemRepository, LogService logService) {
+		super(testItemRepository, logService);
 	}
 
 	@Override
 	protected List<Long> getItemsWithMatches(String pattern, Set<Long> itemIds) {
-		return testItemRepository.selectIdsByStringLogMessage(itemIds,
+		return logService.selectTestItemIdsByStringLogMessage(itemIds,
 				LogLevel.ERROR_INT,
 				pattern
 		);
@@ -45,7 +46,7 @@ public class StringPartPatternAnalysisSelector extends AbstractPatternAnalysisSe
 
 	@Override
 	protected List<Long> getItemsWithNestedStepsMatches(Long launchId, String pattern, List<Long> itemsWithNestedSteps) {
-		return testItemRepository.selectIdsUnderByStringLogMessage(launchId,
+		return logService.selectTestItemIdsUnderByStringLogMessage(launchId,
 				itemsWithNestedSteps,
 				LogLevel.ERROR_INT,
 				pattern

@@ -27,8 +27,9 @@ import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
+import com.epam.ta.reportportal.ws.converter.builders.LogFullBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
@@ -45,6 +46,7 @@ import javax.inject.Provider;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
+import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.LOG_FULL_TO_LOG;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -92,19 +94,21 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 	public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, MultipartFile file, ReportPortalUser.ProjectDetails projectDetails) {
 		validate(request);
 
-		final LogBuilder logBuilder = new LogBuilder().addSaveLogRq(request).addProjectId(projectDetails.getProjectId());
+		final LogFullBuilder logFullBuilder = new LogFullBuilder().addSaveLogRq(request).addProjectId(projectDetails.getProjectId());
 
 		final Launch launch = testItemRepository.findByUuid(request.getItemUuid()).map(item -> {
-			logBuilder.addTestItem(item);
+			logFullBuilder.addTestItem(item);
 			return testItemService.getEffectiveLaunch(item);
 		}).orElseGet(() -> launchRepository.findByUuid(request.getLaunchUuid()).map(l -> {
-			logBuilder.addLaunch(l);
+			logFullBuilder.addLaunch(l);
 			return l;
 		}).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, request.getLaunchUuid())));
 
-		final Log log = logBuilder.get();
-		logRepository.save(log);
-		logService.saveLogMessage(log, launch.getId());
+		final LogFull logFull = logFullBuilder.get();
+		final Log log = LOG_FULL_TO_LOG.apply(logFull);
+		logRepository.saveAndFlush(log);
+		logFull.setId(log.getId());
+		logService.saveLogMessage(logFull, launch.getId());
 
 		ofNullable(file).ifPresent(f -> saveBinaryData(f, launch, log));
 

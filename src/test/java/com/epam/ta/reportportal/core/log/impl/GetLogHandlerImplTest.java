@@ -4,6 +4,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.*;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.log.GetLogHandler;
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -36,11 +37,13 @@ class GetLogHandlerTest {
 
 	private final LogRepository logRepository = mock(LogRepository.class);
 
+	private final LogService logService = mock(LogService.class);
+
 	private final TestItemRepository testItemRepository = mock(TestItemRepository.class);
 
 	private final TestItemService testItemService = mock(TestItemService.class);
 
-	private final GetLogHandler getLogHandler = new GetLogHandlerImpl(logRepository, testItemRepository, testItemService);
+	private final GetLogHandler getLogHandler = new GetLogHandlerImpl(logRepository, logService, testItemRepository, testItemService);
 
 	@Test
 	void getLogs() {
@@ -72,7 +75,7 @@ class GetLogHandlerTest {
 		when(testItemService.getEffectiveLaunch(testItem)).thenReturn(launch);
 
 		ArgumentCaptor<Queryable> queryableArgumentCaptor = ArgumentCaptor.forClass(Queryable.class);
-		when(logRepository.findByFilter(queryableArgumentCaptor.capture(), any(Pageable.class))).thenReturn(Page.empty(pageable));
+		when(logService.findByFilter(queryableArgumentCaptor.capture(), any(Pageable.class))).thenReturn(Page.empty(pageable));
 
 		getLogHandler.getLogs(correctPath, extractProjectDetails(user, "test_project"), idFilter, pageable);
 

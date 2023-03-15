@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.search.CurrentLaunchCollector;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.search.SearchCollectorFactory;
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -31,6 +32,7 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.ws.model.analyzer.SearchRq;
@@ -67,7 +69,7 @@ class SearchLogServiceImplTest {
 
 	private final TestItemRepository testItemRepository = mock(TestItemRepository.class);
 
-	private final LogRepository logRepository = mock(LogRepository.class);
+	private final LogService logService = mock(LogService.class);
 
 	private final AnalyzerServiceClient analyzerServiceClient = mock(AnalyzerServiceClient.class);
 
@@ -80,8 +82,7 @@ class SearchLogServiceImplTest {
 	private final SearchLogServiceImpl searchLogService = new SearchLogServiceImpl(projectRepository,
 			launchRepository,
 			testItemRepository,
-			logRepository,
-			analyzerServiceClient,
+			logService, analyzerServiceClient,
 			searchCollectorFactory
 	);
 
@@ -117,7 +118,7 @@ class SearchLogServiceImplTest {
 		when(userFilter.getTargetClass()).thenReturn(ObjectType.Launch);
 		when(userFilter.getFilterCondition()).thenReturn(Collections.emptySet());
 
-		when(logRepository.findMessagesByLaunchIdAndItemIdAndPathAndLevelGte(launch.getId(),
+		when(logService.findMessagesByLaunchIdAndItemIdAndPathAndLevelGte(launch.getId(),
 				testItem.getItemId(),
 				testItem.getPath(),
 				LogLevel.ERROR_INT
@@ -126,12 +127,12 @@ class SearchLogServiceImplTest {
 		searchRs.setLogId(1L);
 		searchRs.setTestItemId(2L);
 		when(analyzerServiceClient.searchLogs(any(SearchRq.class))).thenReturn(Lists.newArrayList(searchRs));
-		Log log = new Log();
+		LogFull log = new LogFull();
 		log.setId(1L);
 		log.setTestItem(testItem);
 		log.setLogMessage("message");
 		log.setLogLevel(40000);
-		when(logRepository.findAllById(any())).thenReturn(Lists.newArrayList(log));
+		when(logService.findAllById(any())).thenReturn(Lists.newArrayList(log));
 
 		SearchLogRq searchLogRq = new SearchLogRq();
 		searchLogRq.setSearchMode(CURRENT_LAUNCH.getValue());

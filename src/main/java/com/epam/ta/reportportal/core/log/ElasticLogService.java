@@ -3,6 +3,7 @@ package com.epam.ta.reportportal.core.log;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.custom.ElasticSearchClient;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
@@ -35,12 +36,14 @@ public class ElasticLogService implements LogService {
     private final ElasticSearchClient elasticSearchClient;
     private final LogRepository logRepository;
     private final LaunchRepository launchRepository;
+    private final TestItemRepository testItemRepository;
 
-    public ElasticLogService(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate, ElasticSearchClient elasticSearchClient, LogRepository logRepository, LaunchRepository launchRepository) {
+    public ElasticLogService(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate, ElasticSearchClient elasticSearchClient, LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository) {
         this.amqpTemplate = amqpTemplate;
         this.elasticSearchClient = elasticSearchClient;
         this.logRepository = logRepository;
         this.launchRepository = launchRepository;
+        this.testItemRepository = testItemRepository;
     }
 
     public void saveLogMessage(LogFull logFull, Long launchId) {
@@ -146,6 +149,130 @@ public class ElasticLogService implements LogService {
     @Override
     public List<Log> findByTestItemId(Long itemId, int limit) {
         return logRepository.findByTestItemId(itemId, limit);
+    }
+
+    @Override
+    public List<Log> findByTestItemId(Long itemId) {
+        return logRepository.findByTestItemId(itemId);
+    }
+
+    @Override
+    public List<LogFull> findByFilter(Queryable filter) {
+        return wrapLogsWithLogMessages(logRepository.findByFilter(filter));
+    }
+
+    @Override
+    // Possibly need to be refactored after filter investigation
+    public Page<LogFull> findByFilter(Queryable filter, Pageable pageable) {
+        Page<Log> byFilter = logRepository.findByFilter(filter, pageable);
+        return byFilter.map(this::getLogFull);
+    }
+
+    @Override
+    public List<LogFull> findAllById(Iterable<Long> ids) {
+        return wrapLogsWithLogMessages(logRepository.findAllById(ids));
+    }
+
+    @Override
+    public Optional<LogFull> findById(Long id) {
+        return logRepository.findById(id).map(this::getLogFull);
+    }
+
+    @Override
+    public Optional<LogFull> findByUuid(String uuid) {
+        return logRepository.findByUuid(uuid).map(this::getLogFull);
+    }
+
+    private LogMessage convertLogToLogMessage(LogFull logFull, Long launchId) {
+        Long itemId = Objects.nonNull(logFull.getTestItem()) ? logFull.getTestItem().getItemId() : null;
+        return new LogMessage(logFull.getId(), logFull.getLogTime(), logFull.getLogMessage(), itemId, launchId, logFull.getProjectId());
+    }
+
+    private List<LogFull> wrapLogsWithLogMessages(List<Log> logList) {
+        List<LogFull> logFullList = new ArrayList<>();
+
+        if (CollectionUtils.isNotEmpty(logList)) {
+            // This part of code for optimization receiving all needed message from elastic
+            // instead of get by single
+            // And for getting message from elastic we need projectId
+            // we get all message per projectId
+            logFullList = new ArrayList<>(logList.size());
+            Map<Long, LogMessage> logMessageMap = new HashMap<>();
+            Map<Long, List<Long>> logIdsGroupByProject = logList.stream().collect(
+                    groupingBy(Log::getProjectId, mapping(Log::getId, Collectors.toList()))
+            );
+
+            for (Map.Entry<Long, List<Long>> logIdsPerProject : logIdsGroupByProject.entrySet()) {
+                Long projectId = logIdsPerProject.getKey();
+                List<Long> logIds = logIdsPerProject.getValue();
+                logMessageMap.putAll(elasticSearchClient.getLogMessagesByProjectIdAndIds(projectId, logIds));
+            }
+
+            for (Log log : logList) {
+                String logMessage = (logMessageMap.get(log.getId()) != null)
+                        ? logMessageMap.get(log.getId()).getLogMessage() : log.getLogMessage();
+                LogFull logFull = getLogFull(log, logMessage);
+
+                logFullList.add(logFull);
+            }
+        }
+
+        return  logFullList;
+    }
+
+    private LogFull getLogFull(Log log) {
+        LogMessage logMessage = elasticSearchClient.getLogMessageByProjectIdAndId(log.getProjectId(), log.getId());
+        String message = (logMessage != null) ? logMessage.getLogMessage() : null;
+
+        return getLogFull(log, message);
+    }
+
+    private LogFull getLogFull(Log log, String logMessage) {
+        LogFull logFull = LOG_TO_LOG_FULL.apply(log);
+        if (Strings.isNotBlank(logMessage)) {
+            logFull.setLogMessage(logMessage);
+        }
+
+        return logFull;
+    }
+
+    @Override
+    public List<Long> selectTestItemIdsByStringLogMessage(Collection<Long> itemIds, Integer logLevel, String string) {
+        Long projectId = getProjectId(itemIds);
+        List<Long> logIdsPg = testItemRepository.selectLogIdsWithLogLevelCondition(itemIds, logLevel);
+
+        return elasticSearchClient.searchTestItemIdsByLogIdsAndString(projectId, logIdsPg, string);
+    }
+
+    @Override
+    public List<Long> selectTestItemIdsUnderByStringLogMessage(Long launchId, Collection<Long> itemIds, Integer logLevel, String string) {
+        Long projectId = getProjectId(itemIds);
+        List<Long> logIdsPg = testItemRepository.selectLogIdsUnderWithLogLevelCondition(launchId, itemIds, logLevel);
+
+        return elasticSearchClient.searchTestItemIdsByLogIdsAndString(projectId, logIdsPg, string);
+    }
+
+    @Override
+    public List<Long> selectTestItemIdsByRegexLogMessage(Collection<Long> itemIds, Integer logLevel, String pattern) {
+        Long projectId = getProjectId(itemIds);
+        List<Long> logIdsPg = testItemRepository.selectLogIdsWithLogLevelCondition(itemIds, logLevel);
+
+        return elasticSearchClient.searchTestItemIdsByLogIdsAndRegexp(projectId, logIdsPg, pattern);
+    }
+
+    @Override
+    public List<Long> selectTestItemIdsUnderByRegexLogMessage(Long launchId, Collection<Long> itemIds, Integer logLevel, String pattern) {
+        Long projectId = getProjectId(itemIds);
+        List<Long> logIdsPg = testItemRepository.selectLogIdsUnderWithLogLevelCondition(launchId, itemIds, logLevel);
+
+        return elasticSearchClient.searchTestItemIdsByLogIdsAndRegexp(projectId, logIdsPg, pattern);
+    }
+
+    // TODO : refactoring pattern analyzer and add projectId as parameter
+    // Instead of this method.
+    private Long getProjectId(Collection<Long> itemIds) {
+        Long id = itemIds.stream().findFirst().get();
+        return testItemRepository.findById(id).map(testItem -> launchRepository.findById(testItem.getLaunchId()).map(Launch::getProjectId).orElseThrow()).orElseThrow();
     }
 
     @Override

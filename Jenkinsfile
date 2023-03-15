@@ -38,6 +38,7 @@ node {
         withEnv(["AWS_URI=${AWS_URI}"]) {
             sh 'docker rmi ${AWS_URI}/service-api:SNAPSHOT-${BUILD_NUMBER}'
             sh 'docker rmi reportportal-dev/service-api:latest'
+            sh './gradlew removeScripts'
         }
     }
 }

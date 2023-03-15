@@ -106,7 +106,7 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 
 		final LogFull logFull = logFullBuilder.get();
 		final Log log = LOG_FULL_TO_LOG.apply(logFull);
-		logRepository.save(log);
+		logRepository.saveAndFlush(log);
 		logFull.setId(log.getId());
 		logService.saveLogMessage(logFull, launch.getId());
 

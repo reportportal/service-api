@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.log;
 
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
@@ -22,9 +23,11 @@ import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.LOG_
 @Service
 public class EmptyLogService implements LogService {
     private final LogRepository logRepository;
+    private final TestItemRepository testItemRepository;
 
-    public EmptyLogService(LogRepository logRepository) {
+    public EmptyLogService(LogRepository logRepository, TestItemRepository testItemRepository) {
         this.logRepository = logRepository;
+        this.testItemRepository = testItemRepository;
     }
 
     @Override
@@ -141,5 +144,25 @@ public class EmptyLogService implements LogService {
 
     private LogFull getLogFull(Log log) {
         return LOG_TO_LOG_FULL.apply(log);
+    }
+
+    @Override
+    public List<Long> selectTestItemIdsByStringLogMessage(Collection<Long> itemIds, Integer logLevel, String pattern) {
+        return testItemRepository.selectIdsByStringLogMessage(itemIds, logLevel, pattern);
+    }
+
+    @Override
+    public List<Long> selectTestItemIdsUnderByStringLogMessage(Long launchId, Collection<Long> itemIds, Integer logLevel, String pattern) {
+        return testItemRepository.selectIdsUnderByStringLogMessage(launchId, itemIds, logLevel, pattern);
+    }
+
+    @Override
+    public List<Long> selectTestItemIdsByRegexLogMessage(Collection<Long> itemIds, Integer logLevel, String pattern) {
+        return testItemRepository.selectIdsByRegexLogMessage(itemIds, logLevel, pattern);
+    }
+
+    @Override
+    public List<Long> selectTestItemIdsUnderByRegexLogMessage(Long launchId, Collection<Long> itemIds, Integer logLevel, String pattern) {
+        return testItemRepository.selectIdsUnderByRegexLogMessage(launchId, itemIds, logLevel, pattern);
     }
 }

@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.core.analyzer.pattern.selector.impl;
 
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.PatternAnalysisSelector;
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
@@ -15,9 +16,11 @@ import java.util.Set;
 public abstract class AbstractPatternAnalysisSelector implements PatternAnalysisSelector {
 
 	protected final TestItemRepository testItemRepository;
+	protected final LogService logService;
 
-	public AbstractPatternAnalysisSelector(TestItemRepository testItemRepository) {
+	public AbstractPatternAnalysisSelector(TestItemRepository testItemRepository, LogService logService) {
 		this.testItemRepository = testItemRepository;
+		this.logService = logService;
 	}
 
 	protected abstract List<Long> getItemsWithMatches(String pattern, Set<Long> itemIds);

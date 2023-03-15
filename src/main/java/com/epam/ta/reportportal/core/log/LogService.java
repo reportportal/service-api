@@ -9,10 +9,7 @@ import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public interface LogService {
 
@@ -131,4 +128,46 @@ public interface LogService {
     Optional<LogFull> findById(Long id);
 
     Optional<LogFull> findByUuid(String uuid);
+
+    /**
+     * Select item IDs which log's level is greater than or equal to provided and log's message match to the STRING pattern
+     *
+     * @param itemIds  {@link Collection} of {@link TestItem#getItemId()} which logs should match
+     * @param logLevel {@link Log#getLogLevel()}
+     * @param pattern  CASE SENSITIVE STRING pattern for log message search
+     * @return The {@link List} of the {@link TestItem#getItemId()}
+     */
+    List<Long> selectTestItemIdsByStringLogMessage(Collection<Long> itemIds, Integer logLevel, String pattern);
+
+    /**
+     * Select item IDs which descendants' log's level is greater than or equal to provided and log's message match to the REGEX pattern
+     *
+     * @param launchId {@link TestItem#getLaunchId()}
+     * @param itemIds  {@link Collection} of {@link TestItem#getItemId()} which logs should match
+     * @param logLevel {@link Log#getLogLevel()}
+     * @param pattern  REGEX pattern for log message search
+     * @return The {@link List} of the {@link TestItem#getItemId()}
+     */
+    List<Long> selectTestItemIdsUnderByStringLogMessage(Long launchId, Collection<Long> itemIds, Integer logLevel, String pattern);
+
+    /**
+     * Select item IDs which log's level is greater than or equal to provided and log's message match to the REGEX pattern
+     *
+     * @param itemIds  {@link Collection} of {@link TestItem#getItemId()} which logs should match
+     * @param logLevel {@link Log#getLogLevel()}
+     * @param pattern  REGEX pattern for log message search
+     * @return The {@link List} of the {@link TestItem#getItemId()}
+     */
+    List<Long> selectTestItemIdsByRegexLogMessage(Collection<Long> itemIds, Integer logLevel, String pattern);
+
+    /**
+     * Select item IDs which descendants' log's level is greater than or equal to provided and log's message match to the REGEX pattern
+     *
+     * @param launchId {@link TestItem#getLaunchId()}
+     * @param itemIds  {@link Collection} of {@link TestItem#getItemId()} which logs should match
+     * @param logLevel {@link Log#getLogLevel()}
+     * @param pattern  REGEX pattern for log message search
+     * @return The {@link List} of the {@link TestItem#getItemId()}
+     */
+    List<Long> selectTestItemIdsUnderByRegexLogMessage(Long launchId, Collection<Long> itemIds, Integer logLevel, String pattern);
 }

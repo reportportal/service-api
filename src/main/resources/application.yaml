@@ -2,7 +2,7 @@ spring:
   application:
     name: api
     quartz:
-#      org.quartz.jobStore.class: org.quartz.impl.jdbcjobstore.JobStoreTX
+      #      org.quartz.jobStore.class: org.quartz.impl.jdbcjobstore.JobStoreTX
       org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
       org.quartz.jobStore.dataSource: dataSource
       org.quartz.jobStore.tablePrefix: quartz.scheduler_

@@ -20,10 +20,9 @@ import com.epam.ta.reportportal.core.widget.content.materialized.generator.Mater
 import com.epam.ta.reportportal.dao.StaleMaterializedViewRepository;
 import com.epam.ta.reportportal.entity.materialized.StaleMaterializedView;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -31,26 +30,26 @@ import java.time.ZoneOffset;
 @Service
 public class StaleMaterializedViewRemover implements WidgetContentRemover {
 
-	private final MaterializedViewNameGenerator materializedViewNameGenerator;
-	private final StaleMaterializedViewRepository staleMaterializedViewRepository;
+  private final MaterializedViewNameGenerator materializedViewNameGenerator;
+  private final StaleMaterializedViewRepository staleMaterializedViewRepository;
 
-	public StaleMaterializedViewRemover(MaterializedViewNameGenerator materializedViewNameGenerator,
-			StaleMaterializedViewRepository staleMaterializedViewRepository) {
-		this.materializedViewNameGenerator = materializedViewNameGenerator;
-		this.staleMaterializedViewRepository = staleMaterializedViewRepository;
-	}
+  public StaleMaterializedViewRemover(MaterializedViewNameGenerator materializedViewNameGenerator,
+      StaleMaterializedViewRepository staleMaterializedViewRepository) {
+    this.materializedViewNameGenerator = materializedViewNameGenerator;
+    this.staleMaterializedViewRepository = staleMaterializedViewRepository;
+  }
 
-	@Override
-	public void removeContent(Widget widget) {
-		final StaleMaterializedView staleView = getStaleView(widget);
-		staleMaterializedViewRepository.insert(staleView);
-	}
+  @Override
+  public void removeContent(Widget widget) {
+    final StaleMaterializedView staleView = getStaleView(widget);
+    staleMaterializedViewRepository.insert(staleView);
+  }
 
-	private StaleMaterializedView getStaleView(Widget widget) {
-		final String viewName = materializedViewNameGenerator.generate(widget);
-		final StaleMaterializedView view = new StaleMaterializedView();
-		view.setName(viewName);
-		view.setCreationDate(LocalDateTime.now(ZoneOffset.UTC));
-		return view;
-	}
+  private StaleMaterializedView getStaleView(Widget widget) {
+    final String viewName = materializedViewNameGenerator.generate(widget);
+    final StaleMaterializedView view = new StaleMaterializedView();
+    view.setName(viewName);
+    view.setCreationDate(LocalDateTime.now(ZoneOffset.UTC));
+    return view;
+  }
 }

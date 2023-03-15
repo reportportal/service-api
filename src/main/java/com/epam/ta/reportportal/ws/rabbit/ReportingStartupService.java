@@ -17,15 +17,13 @@
 package com.epam.ta.reportportal.ws.rabbit;
 
 import com.epam.ta.reportportal.core.configs.Conditions;
+import java.util.List;
+import javax.annotation.PostConstruct;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-
-import java.util.List;
 
 /**
  * @author Konstantin Antipin
@@ -34,15 +32,15 @@ import java.util.List;
 @Conditional(Conditions.NotTestCondition.class)
 public class ReportingStartupService {
 
-    @Autowired
-    @Qualifier("reportingListenerContainers")
-    private List<AbstractMessageListenerContainer> listenerContainers;
+  @Autowired
+  @Qualifier("reportingListenerContainers")
+  private List<AbstractMessageListenerContainer> listenerContainers;
 
-    @PostConstruct
-    public void init() {
-        for (AbstractMessageListenerContainer listenerContainer : listenerContainers) {
-            listenerContainer.start();
-        }
+  @PostConstruct
+  public void init() {
+    for (AbstractMessageListenerContainer listenerContainer : listenerContainers) {
+      listenerContainer.start();
     }
+  }
 
 }

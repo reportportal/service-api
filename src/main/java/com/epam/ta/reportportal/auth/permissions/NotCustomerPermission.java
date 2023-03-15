@@ -23,27 +23,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Validates this is {@link ProjectRole#MEMBER} or higher authority in the
- * authentication context
+ * Validates this is {@link ProjectRole#MEMBER} or higher authority in the authentication context
  *
  * @author Andrei Varabyeu
  */
 @Component
-@LookupPermission({ "notCustomerPermission" })
+@LookupPermission({"notCustomerPermission"})
 public class NotCustomerPermission extends BaseProjectPermission {
 
-	@Autowired
-	public NotCustomerPermission(ProjectExtractor projectExtractor) {
-		super(projectExtractor);
-	}
+  @Autowired
+  public NotCustomerPermission(ProjectExtractor projectExtractor) {
+    super(projectExtractor);
+  }
 
-	/**
-	 * Validates this is not a {@link ProjectRole#CUSTOMER} or higher authority in the
-	 * authentication context
-	 */
-	@Override
-	protected boolean checkAllowed(ReportPortalUser user, String project, ProjectRole role) {
-		return (null != role) && role.compareTo(ProjectRole.CUSTOMER) != 0;
-	}
+  /**
+   * Validates this is not a {@link ProjectRole#CUSTOMER} or higher authority in the authentication
+   * context
+   */
+  @Override
+  protected boolean checkAllowed(ReportPortalUser user, String project, ProjectRole role) {
+    return (null != role) && role.compareTo(ProjectRole.CUSTOMER) != 0;
+  }
 
 }

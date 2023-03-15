@@ -16,6 +16,13 @@
 
 package com.epam.ta.reportportal.core.item.impl.status;
 
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.INFO;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.WARN;
+import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.item.TestItemStatusChangedEvent;
@@ -29,15 +36,10 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.google.common.collect.Lists;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.Map;
 import java.util.Optional;
-
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
-import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
-import static java.util.Optional.ofNullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -45,82 +47,89 @@ import static java.util.Optional.ofNullable;
 @Service
 public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
 
-	private final TestItemRepository testItemRepository;
-	private final IssueEntityRepository issueEntityRepository;
-	private final MessageBus messageBus;
-	private final LaunchRepository launchRepository;
-	private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
+  private final TestItemRepository testItemRepository;
+  private final IssueEntityRepository issueEntityRepository;
+  private final MessageBus messageBus;
+  private final LaunchRepository launchRepository;
+  private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
-	@Autowired
-	public ChangeStatusHandlerImpl(TestItemRepository testItemRepository, IssueEntityRepository issueEntityRepository,
-			MessageBus messageBus, LaunchRepository launchRepository,
-			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
-		this.testItemRepository = testItemRepository;
-		this.issueEntityRepository = issueEntityRepository;
-		this.messageBus = messageBus;
-		this.launchRepository = launchRepository;
-		this.statusChangingStrategyMapping = statusChangingStrategyMapping;
-	}
+  @Autowired
+  public ChangeStatusHandlerImpl(TestItemRepository testItemRepository,
+      IssueEntityRepository issueEntityRepository,
+      MessageBus messageBus, LaunchRepository launchRepository,
+      Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
+    this.testItemRepository = testItemRepository;
+    this.issueEntityRepository = issueEntityRepository;
+    this.messageBus = messageBus;
+    this.launchRepository = launchRepository;
+    this.statusChangingStrategyMapping = statusChangingStrategyMapping;
+  }
 
-	@Override
-	public void changeParentStatus(TestItem childItem, Long projectId, ReportPortalUser user) {
-		ofNullable(childItem.getParentId()).flatMap(testItemRepository::findById).ifPresent(parent -> {
-			if (parent.isHasChildren()) {
-				ofNullable(parent.getItemResults().getIssue()).map(IssueEntity::getIssueId).ifPresent(issueEntityRepository::deleteById);
-			}
-			if (isParentStatusUpdateRequired(parent)) {
-				StatusEnum resolvedStatus = resolveStatus(parent.getItemId());
-				if (parent.getItemResults().getStatus() != resolvedStatus) {
-					TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent, projectId);
-					changeStatus(parent, resolvedStatus, user);
-					messageBus.publishActivity(new TestItemStatusChangedEvent(before,
-							TO_ACTIVITY_RESOURCE.apply(parent, projectId),
-							user.getUserId(),
-							user.getUsername()
-					));
-					changeParentStatus(parent, projectId, user);
-				}
+  @Override
+  public void changeParentStatus(TestItem childItem, Long projectId, ReportPortalUser user) {
+    ofNullable(childItem.getParentId()).flatMap(testItemRepository::findById).ifPresent(parent -> {
+      if (parent.isHasChildren()) {
+        ofNullable(parent.getItemResults().getIssue()).map(IssueEntity::getIssueId)
+            .ifPresent(issueEntityRepository::deleteById);
+      }
+      if (isParentStatusUpdateRequired(parent)) {
+        StatusEnum resolvedStatus = resolveStatus(parent.getItemId());
+        if (parent.getItemResults().getStatus() != resolvedStatus) {
+          TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent, projectId);
+          changeStatus(parent, resolvedStatus, user);
+          messageBus.publishActivity(new TestItemStatusChangedEvent(before,
+              TO_ACTIVITY_RESOURCE.apply(parent, projectId),
+              user.getUserId(),
+              user.getUsername()
+          ));
+          changeParentStatus(parent, projectId, user);
+        }
 
-			}
-		});
-	}
+      }
+    });
+  }
 
-	private boolean isParentStatusUpdateRequired(TestItem parent) {
-		return parent.getItemResults().getStatus() != StatusEnum.IN_PROGRESS
-				&& !testItemRepository.hasItemsInStatusByParent(parent.getItemId(), parent.getPath(), StatusEnum.IN_PROGRESS.name());
-	}
+  private boolean isParentStatusUpdateRequired(TestItem parent) {
+    return parent.getItemResults().getStatus() != StatusEnum.IN_PROGRESS
+        && !testItemRepository.hasItemsInStatusByParent(parent.getItemId(), parent.getPath(),
+        StatusEnum.IN_PROGRESS.name());
+  }
 
-	private StatusEnum resolveStatus(Long itemId) {
-		return testItemRepository.hasDescendantsNotInStatus(itemId, StatusEnum.PASSED.name(), INFO.name(), WARN.name()) ?
-				FAILED :
-				PASSED;
-	}
+  private StatusEnum resolveStatus(Long itemId) {
+    return
+        testItemRepository.hasDescendantsNotInStatus(itemId, StatusEnum.PASSED.name(), INFO.name(),
+            WARN.name()) ?
+            FAILED :
+            PASSED;
+  }
 
-	private void changeStatus(TestItem parent, StatusEnum resolvedStatus, ReportPortalUser user) {
-		if (parent.isHasChildren() || !parent.isHasStats()) {
-			parent.getItemResults().setStatus(resolvedStatus);
-		} else {
-			Optional<StatusChangingStrategy> statusChangingStrategy = ofNullable(statusChangingStrategyMapping.get(resolvedStatus));
-			if (statusChangingStrategy.isPresent()) {
-				statusChangingStrategy.get().changeStatus(parent, resolvedStatus, user);
-			} else {
-				parent.getItemResults().setStatus(resolvedStatus);
-			}
-		}
+  private void changeStatus(TestItem parent, StatusEnum resolvedStatus, ReportPortalUser user) {
+    if (parent.isHasChildren() || !parent.isHasStats()) {
+      parent.getItemResults().setStatus(resolvedStatus);
+    } else {
+      Optional<StatusChangingStrategy> statusChangingStrategy = ofNullable(
+          statusChangingStrategyMapping.get(resolvedStatus));
+      if (statusChangingStrategy.isPresent()) {
+        statusChangingStrategy.get().changeStatus(parent, resolvedStatus, user);
+      } else {
+        parent.getItemResults().setStatus(resolvedStatus);
+      }
+    }
 
-	}
+  }
 
-	@Override
-	public void changeLaunchStatus(Launch launch) {
-		if (launch.getStatus() != StatusEnum.IN_PROGRESS) {
-			if (!launchRepository.hasItemsInStatuses(launch.getId(), Lists.newArrayList(JStatusEnum.IN_PROGRESS))) {
-				StatusEnum launchStatus = launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(),
-						StatusEnum.PASSED.name(),
-						INFO.name(),
-						WARN.name()
-				) ? FAILED : PASSED;
-				launch.setStatus(launchStatus);
-			}
-		}
-	}
+  @Override
+  public void changeLaunchStatus(Launch launch) {
+    if (launch.getStatus() != StatusEnum.IN_PROGRESS) {
+      if (!launchRepository.hasItemsInStatuses(launch.getId(),
+          Lists.newArrayList(JStatusEnum.IN_PROGRESS))) {
+        StatusEnum launchStatus = launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(),
+            StatusEnum.PASSED.name(),
+            INFO.name(),
+            WARN.name()
+        ) ? FAILED : PASSED;
+        launch.setStatus(launchStatus);
+      }
+    }
+  }
 }

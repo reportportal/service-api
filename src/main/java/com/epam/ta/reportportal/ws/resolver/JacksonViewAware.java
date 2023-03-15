@@ -23,27 +23,27 @@ package com.epam.ta.reportportal.ws.resolver;
  */
 public class JacksonViewAware {
 
-	/*
-	 * Java bean to be wrapped
-	 */
-	private final Object pojo;
+  /*
+   * Java bean to be wrapped
+   */
+  private final Object pojo;
 
-	/*
-	 * Jackson's JSON View
-	 */
-	private final Class<?> view;
+  /*
+   * Jackson's JSON View
+   */
+  private final Class<?> view;
 
-	public JacksonViewAware(Object pojo, Class<?> view) {
-		this.pojo = pojo;
-		this.view = view;
-	}
+  public JacksonViewAware(Object pojo, Class<?> view) {
+    this.pojo = pojo;
+    this.view = view;
+  }
 
-	public Object getPojo() {
-		return pojo;
-	}
+  public Object getPojo() {
+    return pojo;
+  }
 
-	public Class<?> getView() {
-		return view;
-	}
+  public Class<?> getView() {
+    return view;
+  }
 
 }

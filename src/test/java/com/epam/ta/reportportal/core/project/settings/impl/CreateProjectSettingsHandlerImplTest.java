@@ -16,6 +16,12 @@
 
 package com.epam.ta.reportportal.core.project.settings.impl;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
@@ -28,21 +34,14 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-
-import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -50,73 +49,79 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CreateProjectSettingsHandlerImplTest {
 
-	@Mock
-	private ProjectRepository projectRepository;
+  @Mock
+  private ProjectRepository projectRepository;
 
-	@InjectMocks
-	private CreateProjectSettingsHandlerImpl handler;
+  @InjectMocks
+  private CreateProjectSettingsHandlerImpl handler;
 
-	@Test
-	void createSubtypeOnNotExistProject() {
-		long projectId = 1L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+  @Test
+  void createSubtypeOnNotExistProject() {
+    long projectId = 1L;
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+        projectId);
 
-		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
+    when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.createProjectIssueSubType(TEST_PROJECT_NAME, user, new CreateIssueSubTypeRQ())
-		);
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.createProjectIssueSubType(TEST_PROJECT_NAME, user, new CreateIssueSubTypeRQ())
+    );
 
-		assertEquals("Project 'test_project' not found. Did you use correct project name?", exception.getMessage());
-	}
+    assertEquals("Project 'test_project' not found. Did you use correct project name?",
+        exception.getMessage());
+  }
 
-	@Test
-	void createSubtypeWithWrongGroup() {
-		long projectId = 1L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+  @Test
+  void createSubtypeWithWrongGroup() {
+    long projectId = 1L;
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+        projectId);
 
-		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
+    when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
 
-		CreateIssueSubTypeRQ createIssueSubTypeRQ = new CreateIssueSubTypeRQ();
-		createIssueSubTypeRQ.setTypeRef("wrongType");
+    CreateIssueSubTypeRQ createIssueSubTypeRQ = new CreateIssueSubTypeRQ();
+    createIssueSubTypeRQ.setTypeRef("wrongType");
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.createProjectIssueSubType(TEST_PROJECT_NAME, user, createIssueSubTypeRQ)
-		);
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.createProjectIssueSubType(TEST_PROJECT_NAME, user, createIssueSubTypeRQ)
+    );
 
-		assertEquals("Error in handled Request. Please, check specified parameters: 'wrongType'", exception.getMessage());
-	}
+    assertEquals("Error in handled Request. Please, check specified parameters: 'wrongType'",
+        exception.getMessage());
+  }
 
-	@Test
-	void maxSubtypesCount() {
-		Project project = new Project();
-		project.setProjectIssueTypes(getSubTypes());
+  @Test
+  void maxSubtypesCount() {
+    Project project = new Project();
+    project.setProjectIssueTypes(getSubTypes());
 
-		long projectId = 1L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+    long projectId = 1L;
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+        projectId);
 
-		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(project));
+    when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(project));
 
-		CreateIssueSubTypeRQ createIssueSubTypeRQ = new CreateIssueSubTypeRQ();
-		createIssueSubTypeRQ.setTypeRef("product_bug");
+    CreateIssueSubTypeRQ createIssueSubTypeRQ = new CreateIssueSubTypeRQ();
+    createIssueSubTypeRQ.setTypeRef("product_bug");
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.createProjectIssueSubType(TEST_PROJECT_NAME, user, createIssueSubTypeRQ)
-		);
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.createProjectIssueSubType(TEST_PROJECT_NAME, user, createIssueSubTypeRQ)
+    );
 
-		assertEquals("Incorrect Request. Sub Issues count is bound of size limit", exception.getMessage());
-	}
+    assertEquals("Incorrect Request. Sub Issues count is bound of size limit",
+        exception.getMessage());
+  }
 
-	private Set<ProjectIssueType> getSubTypes() {
-		HashSet<ProjectIssueType> subTypes = new HashSet<>();
-		for (int i = 1; i < ValidationConstraints.MAX_ISSUE_TYPES_AND_SUBTYPES + 1; i++) {
-			IssueType issueType = new IssueType();
-			issueType.setId((long) i);
-			issueType.setIssueGroup(new IssueGroup(TestItemIssueGroup.PRODUCT_BUG));
-			ProjectIssueType projectIssueType = new ProjectIssueType();
-			projectIssueType.setIssueType(issueType);
-			subTypes.add(projectIssueType);
-		}
-		return subTypes;
-	}
+  private Set<ProjectIssueType> getSubTypes() {
+    HashSet<ProjectIssueType> subTypes = new HashSet<>();
+    for (int i = 1; i < ValidationConstraints.MAX_ISSUE_TYPES_AND_SUBTYPES + 1; i++) {
+      IssueType issueType = new IssueType();
+      issueType.setId((long) i);
+      issueType.setIssueGroup(new IssueGroup(TestItemIssueGroup.PRODUCT_BUG));
+      ProjectIssueType projectIssueType = new ProjectIssueType();
+      projectIssueType.setIssueType(issueType);
+      subTypes.add(projectIssueType);
+    }
+    return subTypes;
+  }
 }

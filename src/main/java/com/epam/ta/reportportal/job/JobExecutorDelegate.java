@@ -28,20 +28,20 @@ import org.springframework.stereotype.Service;
 @Service
 public class JobExecutorDelegate {
 
-	/**
-	 * Default TaskScheduler
-	 *
-	 * @see org.springframework.scheduling.TaskScheduler
-	 */
-	@Autowired
-	private TaskScheduler taskScheduler;
+  /**
+   * Default TaskScheduler
+   *
+   * @see org.springframework.scheduling.TaskScheduler
+   */
+  @Autowired
+  private TaskScheduler taskScheduler;
 
-	/**
-	 * Submits self cancelable job
-	 *
-	 * @param selfCancelableJob
-	 */
-	public void submitJob(SelfCancelableJob selfCancelableJob) {
-		taskScheduler.schedule(selfCancelableJob, selfCancelableJob);
-	}
+  /**
+   * Submits self cancelable job
+   *
+   * @param selfCancelableJob
+   */
+  public void submitJob(SelfCancelableJob selfCancelableJob) {
+    taskScheduler.schedule(selfCancelableJob, selfCancelableJob);
+  }
 }

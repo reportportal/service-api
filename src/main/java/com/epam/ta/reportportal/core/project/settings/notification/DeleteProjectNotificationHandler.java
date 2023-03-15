@@ -26,5 +26,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
  */
 public interface DeleteProjectNotificationHandler {
-	OperationCompletionRS deleteNotification(Project project, Long notificationId, ReportPortalUser user);
+
+  OperationCompletionRS deleteNotification(Project project, Long notificationId,
+      ReportPortalUser user);
 }

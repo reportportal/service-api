@@ -16,6 +16,14 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EMAIL;
+import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EXPIRED;
+import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER;
+import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toMap;
+
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -42,6 +50,11 @@ import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.UserBidRS;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.google.common.base.Preconditions;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
@@ -52,18 +65,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.*;
-import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toMap;
-
 /**
  * Implementation for GET user operations
  *
@@ -72,129 +73,139 @@ import static java.util.stream.Collectors.toMap;
 @Service
 public class GetUserHandlerImpl implements GetUserHandler {
 
-	private final UserRepository userRepository;
+  private final UserRepository userRepository;
 
-	private final UserCreationBidRepository userCreationBidRepository;
+  private final UserCreationBidRepository userCreationBidRepository;
 
-	private final ProjectRepository projectRepository;
+  private final ProjectRepository projectRepository;
 
-	private final PersonalProjectService personalProjectService;
+  private final PersonalProjectService personalProjectService;
 
-	private final GetJasperReportHandler<User> jasperReportHandler;
+  private final GetJasperReportHandler<User> jasperReportHandler;
 
-	@Autowired
-	public GetUserHandlerImpl(UserRepository userRepo, UserCreationBidRepository userCreationBidRepository,
-			ProjectRepository projectRepository, PersonalProjectService personalProjectService,
-			@Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler) {
-		this.userRepository = Preconditions.checkNotNull(userRepo);
-		this.userCreationBidRepository = Preconditions.checkNotNull(userCreationBidRepository);
-		this.projectRepository = projectRepository;
-		this.personalProjectService = personalProjectService;
-		this.jasperReportHandler = jasperReportHandler;
-	}
+  @Autowired
+  public GetUserHandlerImpl(UserRepository userRepo,
+      UserCreationBidRepository userCreationBidRepository,
+      ProjectRepository projectRepository, PersonalProjectService personalProjectService,
+      @Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler) {
+    this.userRepository = Preconditions.checkNotNull(userRepo);
+    this.userCreationBidRepository = Preconditions.checkNotNull(userCreationBidRepository);
+    this.projectRepository = projectRepository;
+    this.personalProjectService = personalProjectService;
+    this.jasperReportHandler = jasperReportHandler;
+  }
 
-	@Override
-	public UserResource getUser(String username, ReportPortalUser loggedInUser) {
+  @Override
+  public UserResource getUser(String username, ReportPortalUser loggedInUser) {
 
-		User user = userRepository.findByLogin(username.toLowerCase())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
-		return UserConverter.TO_RESOURCE.apply(user);
-	}
+    User user = userRepository.findByLogin(username.toLowerCase())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
+    return UserConverter.TO_RESOURCE.apply(user);
+  }
 
-	@Override
-	public UserResource getUser(ReportPortalUser loggedInUser) {
-		User user = userRepository.findByLogin(loggedInUser.getUsername())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
-		return UserConverter.TO_RESOURCE.apply(user);
-	}
+  @Override
+  public UserResource getUser(ReportPortalUser loggedInUser) {
+    User user = userRepository.findByLogin(loggedInUser.getUsername())
+        .orElseThrow(
+            () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
+    return UserConverter.TO_RESOURCE.apply(user);
+  }
 
-	@Override
-	public Iterable<UserResource> getUsers(Filter filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails) {
-		// Active users only
-		filter.withCondition(new FilterCondition(Condition.EQUALS, false, "false", CRITERIA_EXPIRED));
-		filter.withCondition(new FilterCondition(Condition.EQUALS,
-				false,
-				String.valueOf(projectDetails.getProjectId()),
-				CRITERIA_PROJECT_ID
-		));
+  @Override
+  public Iterable<UserResource> getUsers(Filter filter, Pageable pageable,
+      ReportPortalUser.ProjectDetails projectDetails) {
+    // Active users only
+    filter.withCondition(new FilterCondition(Condition.EQUALS, false, "false", CRITERIA_EXPIRED));
+    filter.withCondition(new FilterCondition(Condition.EQUALS,
+        false,
+        String.valueOf(projectDetails.getProjectId()),
+        CRITERIA_PROJECT_ID
+    ));
 
-		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE)
-				.apply(userRepository.findByFilterExcluding(filter, pageable, "email"));
-	}
+    return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE)
+        .apply(userRepository.findByFilterExcluding(filter, pageable, "email"));
+  }
 
-	@Override
-	public UserBidRS getBidInformation(String uuid) {
-		Optional<UserCreationBid> bid = userCreationBidRepository.findByUuidAndType(uuid, INTERNAL_BID_TYPE);
-		return bid.map(b -> {
-			UserBidRS rs = new UserBidRS();
-			rs.setIsActive(true);
-			rs.setEmail(b.getEmail());
-			rs.setUuid(b.getUuid());
-			return rs;
-		}).orElseGet(() -> {
-			UserBidRS rs = new UserBidRS();
-			rs.setIsActive(false);
-			return rs;
-		});
-	}
+  @Override
+  public UserBidRS getBidInformation(String uuid) {
+    Optional<UserCreationBid> bid = userCreationBidRepository.findByUuidAndType(uuid,
+        INTERNAL_BID_TYPE);
+    return bid.map(b -> {
+      UserBidRS rs = new UserBidRS();
+      rs.setIsActive(true);
+      rs.setEmail(b.getEmail());
+      rs.setUuid(b.getUuid());
+      return rs;
+    }).orElseGet(() -> {
+      UserBidRS rs = new UserBidRS();
+      rs.setIsActive(false);
+      return rs;
+    });
+  }
 
-	@Override
-	public YesNoRS validateInfo(String username, String email) {
-		if (null != username) {
-			Optional<User> user = userRepository.findByLogin(EntityUtils.normalizeId(username));
-			return user.isPresent() ? new YesNoRS(true) : new YesNoRS(false);
-		} else if (null != email) {
-			Optional<User> user = userRepository.findByEmail(EntityUtils.normalizeId(email));
-			return user.isPresent() ? new YesNoRS(true) : new YesNoRS(false);
-		}
-		return new YesNoRS(false);
-	}
+  @Override
+  public YesNoRS validateInfo(String username, String email) {
+    if (null != username) {
+      Optional<User> user = userRepository.findByLogin(EntityUtils.normalizeId(username));
+      return user.isPresent() ? new YesNoRS(true) : new YesNoRS(false);
+    } else if (null != email) {
+      Optional<User> user = userRepository.findByEmail(EntityUtils.normalizeId(email));
+      return user.isPresent() ? new YesNoRS(true) : new YesNoRS(false);
+    }
+    return new YesNoRS(false);
+  }
 
-	@Override
-	public Map<String, UserResource.AssignedProject> getUserProjects(String userName) {
-		return projectRepository.findUserProjects(userName).stream().collect(toMap(Project::getName, it -> {
-			UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-			assignedProject.setEntryType(it.getProjectType().name());
-			ProjectUser projectUser = ProjectUtils.findUserConfigByLogin(it, userName);
+  @Override
+  public Map<String, UserResource.AssignedProject> getUserProjects(String userName) {
+    return projectRepository.findUserProjects(userName).stream()
+        .collect(toMap(Project::getName, it -> {
+          UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
+          assignedProject.setEntryType(it.getProjectType().name());
+          ProjectUser projectUser = ProjectUtils.findUserConfigByLogin(it, userName);
 
-			ofNullable(ofNullable(projectUser).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userName))
-					.getProjectRole()).ifPresent(role -> assignedProject.setProjectRole(role.name()));
+          ofNullable(ofNullable(projectUser).orElseThrow(
+                  () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userName))
+              .getProjectRole()).ifPresent(role -> assignedProject.setProjectRole(role.name()));
 
-			return assignedProject;
-		}));
-	}
+          return assignedProject;
+        }));
+  }
 
-	@Override
-	public Iterable<UserResource> getAllUsers(Queryable filter, Pageable pageable) {
-		final Page<User> users = userRepository.findByFilter(filter, pageable);
-		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(users);
-	}
+  @Override
+  public Iterable<UserResource> getAllUsers(Queryable filter, Pageable pageable) {
+    final Page<User> users = userRepository.findByFilter(filter, pageable);
+    return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(users);
+  }
 
-	@Override
-	public void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter) {
+  @Override
+  public void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter) {
 
-		final List<User> users = userRepository.findByFilter(filter);
+    final List<User> users = userRepository.findByFilter(filter);
 
-		List<? extends Map<String, ?>> data = users.stream().map(jasperReportHandler::convertParams).collect(Collectors.toList());
+    List<? extends Map<String, ?>> data = users.stream().map(jasperReportHandler::convertParams)
+        .collect(Collectors.toList());
 
-		JRDataSource jrDataSource = new JRBeanCollectionDataSource(data);
+    JRDataSource jrDataSource = new JRBeanCollectionDataSource(data);
 
-		//don't provide any params to not overwrite params from the Jasper template
-		JasperPrint jasperPrint = jasperReportHandler.getJasperPrint(null, jrDataSource);
+    //don't provide any params to not overwrite params from the Jasper template
+    JasperPrint jasperPrint = jasperReportHandler.getJasperPrint(null, jrDataSource);
 
-		jasperReportHandler.writeReport(reportFormat, outputStream, jasperPrint);
-	}
+    jasperReportHandler.writeReport(reportFormat, outputStream, jasperPrint);
+  }
 
-	@Override
-	public Iterable<UserResource> searchUsers(String term, Pageable pageable) {
+  @Override
+  public Iterable<UserResource> searchUsers(String term, Pageable pageable) {
 
-		Filter filter = Filter.builder()
-				.withTarget(User.class)
-				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_USER))
-				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_EMAIL))
-				.build();
-		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(userRepository.findByFilter(filter, pageable));
+    Filter filter = Filter.builder()
+        .withTarget(User.class)
+        .withCondition(
+            new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_USER))
+        .withCondition(
+            new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_EMAIL))
+        .build();
+    return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE)
+        .apply(userRepository.findByFilter(filter, pageable));
 
-	}
+  }
 
 }

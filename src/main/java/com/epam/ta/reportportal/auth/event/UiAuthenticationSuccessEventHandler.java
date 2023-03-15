@@ -24,16 +24,17 @@ import org.springframework.stereotype.Component;
  * @author Andrei Varabyeu
  */
 @Component
-public class UiAuthenticationSuccessEventHandler implements ApplicationListener<UiUserSignedInEvent> {
+public class UiAuthenticationSuccessEventHandler implements
+    ApplicationListener<UiUserSignedInEvent> {
 
-	//    @Autowired
-	//    private UserRepository userRepository;
-	//	@Autowired
-	//	private DSLContext dsl;
+  //    @Autowired
+  //    private UserRepository userRepository;
+  //	@Autowired
+  //	private DSLContext dsl;
 
-	@Override
-	public void onApplicationEvent(UiUserSignedInEvent event) {
-		//		dsl.update(Users.USERS).set(Users.USERS.)
-		//        userRepository.updateLastLoginDate(event.getAuthentication().getName(), new Date(event.getTimestamp()));
-	}
+  @Override
+  public void onApplicationEvent(UiUserSignedInEvent event) {
+    //		dsl.update(Users.USERS).set(Users.USERS.)
+    //        userRepository.updateLastLoginDate(event.getAuthentication().getName(), new Date(event.getTimestamp()));
+  }
 }

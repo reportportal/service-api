@@ -16,15 +16,15 @@
 
 package com.epam.ta.reportportal.job;
 
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.scheduling.TaskScheduler;
-
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 /**
  * Created by Andrey_Ivanov1 on 31-May-17.
@@ -33,17 +33,17 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class JobExecutorDelegateTest {
 
-	@InjectMocks
-	private JobExecutorDelegate jobExecutorDelegate = new JobExecutorDelegate();
-	@Mock
-	private SelfCancelableJob selfCancalableJob;
-	@Mock
-	private TaskScheduler taskScheduler;
+  @InjectMocks
+  private JobExecutorDelegate jobExecutorDelegate = new JobExecutorDelegate();
+  @Mock
+  private SelfCancelableJob selfCancalableJob;
+  @Mock
+  private TaskScheduler taskScheduler;
 
-	@Test
-	void submitJobTest() {
-		jobExecutorDelegate.submitJob(selfCancalableJob);
-		verify(taskScheduler, times(1)).schedule(selfCancalableJob, selfCancalableJob);
-	}
+  @Test
+  void submitJobTest() {
+    jobExecutorDelegate.submitJob(selfCancalableJob);
+    verify(taskScheduler, times(1)).schedule(selfCancalableJob, selfCancalableJob);
+  }
 
 }

@@ -28,23 +28,24 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
  */
 public class ReportPortalUserUtil {
 
-	public static final String TEST_PROJECT_NAME = "test_project";
+  public static final String TEST_PROJECT_NAME = "test_project";
 
-	private ReportPortalUserUtil() {
-		//static only
-	}
+  private ReportPortalUserUtil() {
+    //static only
+  }
 
-	public static ReportPortalUser getRpUser(String login, UserRole userRole, ProjectRole projectRole, Long projectId) {
-		return ReportPortalUser.userBuilder()
-				.withUserName(login)
-				.withPassword("test")
-				.withAuthorities(Sets.newHashSet(new SimpleGrantedAuthority(userRole.getAuthority())))
-				.withUserId(1L)
-				.withEmail("test@email.com")
-				.withUserRole(userRole)
-				.withProjectDetails(Maps.newHashMap("test_project",
-						new ReportPortalUser.ProjectDetails(projectId, TEST_PROJECT_NAME, projectRole)
-				))
-				.build();
-	}
+  public static ReportPortalUser getRpUser(String login, UserRole userRole, ProjectRole projectRole,
+      Long projectId) {
+    return ReportPortalUser.userBuilder()
+        .withUserName(login)
+        .withPassword("test")
+        .withAuthorities(Sets.newHashSet(new SimpleGrantedAuthority(userRole.getAuthority())))
+        .withUserId(1L)
+        .withEmail("test@email.com")
+        .withUserRole(userRole)
+        .withProjectDetails(Maps.newHashMap("test_project",
+            new ReportPortalUser.ProjectDetails(projectId, TEST_PROJECT_NAME, projectRole)
+        ))
+        .build();
+  }
 }

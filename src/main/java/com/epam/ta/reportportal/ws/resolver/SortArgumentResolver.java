@@ -16,11 +16,16 @@
 
 package com.epam.ta.reportportal.ws.resolver;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
+import static java.util.stream.Collectors.toList;
+
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
 import com.epam.ta.reportportal.commons.querygen.FilterTarget;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.Optional;
+import java.util.stream.StreamSupport;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.SortHandlerMethodArgumentResolver;
@@ -28,56 +33,52 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import java.util.Optional;
-import java.util.stream.StreamSupport;
-
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
-import static java.util.stream.Collectors.toList;
-
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class SortArgumentResolver extends SortHandlerMethodArgumentResolver {
 
-	@Override
-	public Sort resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest,
-			WebDataBinderFactory binderFactory) {
+  @Override
+  public Sort resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+      NativeWebRequest webRequest,
+      WebDataBinderFactory binderFactory) {
 
-		/*
-		 * Resolve sort argument in default way
-		 */
-		Sort defaultSort = super.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
+    /*
+     * Resolve sort argument in default way
+     */
+    Sort defaultSort = super.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
 
-		/*
-		 * Try to find parameter to be sorted in internal-external mapping
-		 */
-		if (null != parameter.getParameterAnnotation(SortFor.class)) {
+    /*
+     * Try to find parameter to be sorted in internal-external mapping
+     */
+    if (null != parameter.getParameterAnnotation(SortFor.class)) {
 
-			Class<?> domainModelType = parameter.getParameterAnnotation(SortFor.class).value();
-			FilterTarget filterTarget = FilterTarget.findByClass(domainModelType);
+      Class<?> domainModelType = parameter.getParameterAnnotation(SortFor.class).value();
+      FilterTarget filterTarget = FilterTarget.findByClass(domainModelType);
 
-			/*
-			 * Hack. Adds sort by id to each query to avoid problems with
-			 * lost data while paging
-			 */
-			defaultSort = defaultSort.and(Sort.by(CRITERIA_ID));
+      /*
+       * Hack. Adds sort by id to each query to avoid problems with
+       * lost data while paging
+       */
+      defaultSort = defaultSort.and(Sort.by(CRITERIA_ID));
 
-			/*
-			 * Build Sort with search criteria from internal domain model
-			 */
-			return Sort.by(StreamSupport.stream(defaultSort.spliterator(), false).map(order -> {
-				Optional<CriteriaHolder> criteriaHolder = filterTarget.getCriteriaByFilter(order.getProperty());
-				BusinessRule.expect(criteriaHolder, Preconditions.IS_PRESENT)
-						.verify(ErrorType.INCORRECT_SORTING_PARAMETERS, order.getProperty());
-				return new Sort.Order(order.getDirection(), order.getProperty());
-			}).collect(toList()));
-		} else {
-			/*
-			 * Return default sort in case there are no SortFor annotation
-			 */
-			return defaultSort;
-		}
+      /*
+       * Build Sort with search criteria from internal domain model
+       */
+      return Sort.by(StreamSupport.stream(defaultSort.spliterator(), false).map(order -> {
+        Optional<CriteriaHolder> criteriaHolder = filterTarget.getCriteriaByFilter(
+            order.getProperty());
+        BusinessRule.expect(criteriaHolder, Preconditions.IS_PRESENT)
+            .verify(ErrorType.INCORRECT_SORTING_PARAMETERS, order.getProperty());
+        return new Sort.Order(order.getDirection(), order.getProperty());
+      }).collect(toList()));
+    } else {
+      /*
+       * Return default sort in case there are no SortFor annotation
+       */
+      return defaultSort;
+    }
 
-	}
+  }
 
 }

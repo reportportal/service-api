@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.analyzer.auto;
 
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-
 import java.util.List;
 
 /**
@@ -29,19 +28,19 @@ import java.util.List;
  */
 public interface AnalyzerService {
 
-	/**
-	 * Run analyzers for provided launch with concrete config
-	 *
-	 * @param launch         Launch
-	 * @param testItemIds    Ids of items to be analyzed
-	 * @param analyzerConfig Analyzer Configuration
-	 */
-	void runAnalyzers(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig);
+  /**
+   * Run analyzers for provided launch with concrete config
+   *
+   * @param launch         Launch
+   * @param testItemIds    Ids of items to be analyzed
+   * @param analyzerConfig Analyzer Configuration
+   */
+  void runAnalyzers(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig);
 
-	/**
-	 * Checks if any analyzer is available
-	 *
-	 * @return <code>true</code> if some exists
-	 */
-	boolean hasAnalyzers();
+  /**
+   * Checks if any analyzer is available
+   *
+   * @return <code>true</code> if some exists
+   */
+  boolean hasAnalyzers();
 }

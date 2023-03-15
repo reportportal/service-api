@@ -17,6 +17,9 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
+import java.sql.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -26,24 +29,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Date;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Service
 public class CleanExpiredCreationBidsJob implements Job {
-	private static final Logger LOGGER = LoggerFactory.getLogger(CleanExpiredCreationBidsJob.class);
 
-	@Autowired
-	private UserCreationBidRepository repository;
+  private static final Logger LOGGER = LoggerFactory.getLogger(CleanExpiredCreationBidsJob.class);
 
-	@Override
-	@Transactional
-	public void execute(JobExecutionContext context) throws JobExecutionException {
-		int deletedCount = repository.expireBidsOlderThan(Date.from(LocalDateTime.now().minusDays(1).toInstant(ZoneOffset.UTC)));
-		LOGGER.info("Cleaning expired user creation bids finished. Deleted {} bids", deletedCount);
-	}
+  @Autowired
+  private UserCreationBidRepository repository;
+
+  @Override
+  @Transactional
+  public void execute(JobExecutionContext context) throws JobExecutionException {
+    int deletedCount = repository.expireBidsOlderThan(
+        Date.from(LocalDateTime.now().minusDays(1).toInstant(ZoneOffset.UTC)));
+    LOGGER.info("Cleaning expired user creation bids finished. Deleted {} bids", deletedCount);
+  }
 }

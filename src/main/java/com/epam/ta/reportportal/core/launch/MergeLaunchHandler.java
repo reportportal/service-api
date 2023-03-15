@@ -27,14 +27,15 @@ import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
  */
 public interface MergeLaunchHandler {
 
-	/**
-	 * Merges launches.
-	 *
-	 * @param projectDetails  Project Details
-	 * @param user            User
-	 * @param mergeLaunchesRQ Request data
-	 * @return OperationCompletionsRS
-	 */
-	LaunchResource mergeLaunches(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, MergeLaunchesRQ mergeLaunchesRQ);
+  /**
+   * Merges launches.
+   *
+   * @param projectDetails  Project Details
+   * @param user            User
+   * @param mergeLaunchesRQ Request data
+   * @return OperationCompletionsRS
+   */
+  LaunchResource mergeLaunches(ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, MergeLaunchesRQ mergeLaunchesRQ);
 
 }

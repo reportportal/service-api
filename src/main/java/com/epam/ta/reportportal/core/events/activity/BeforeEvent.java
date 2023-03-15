@@ -24,21 +24,21 @@ import com.google.common.base.Preconditions;
  */
 public class BeforeEvent<T> extends AbstractEvent {
 
-	private T before;
+  private T before;
 
-	public BeforeEvent() {
-	}
+  public BeforeEvent() {
+  }
 
-	public BeforeEvent(Long userId, String userLogin, T before) {
-		super(userId, userLogin);
-		this.before = Preconditions.checkNotNull(before);
-	}
+  public BeforeEvent(Long userId, String userLogin, T before) {
+    super(userId, userLogin);
+    this.before = Preconditions.checkNotNull(before);
+  }
 
-	public T getBefore() {
-		return before;
-	}
+  public T getBefore() {
+    return before;
+  }
 
-	public void setBefore(T before) {
-		this.before = before;
-	}
+  public void setBefore(T before) {
+    this.before = before;
+  }
 }

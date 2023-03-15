@@ -22,22 +22,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DemoDataRq {
 
-	@JsonProperty(defaultValue = "true")
-	private boolean createDashboard = true;
+  @JsonProperty(defaultValue = "true")
+  private boolean createDashboard = true;
 
-	public boolean isCreateDashboard() {
-		return createDashboard;
-	}
+  public boolean isCreateDashboard() {
+    return createDashboard;
+  }
 
-	public void setCreateDashboard(boolean createDashboard) {
-		this.createDashboard = createDashboard;
-	}
+  public void setCreateDashboard(boolean createDashboard) {
+    this.createDashboard = createDashboard;
+  }
 
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder("DemoDataRq{");
-		sb.append("createDashboard=").append(createDashboard);
-		sb.append('}');
-		return sb.toString();
-	}
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder("DemoDataRq{");
+    sb.append("createDashboard=").append(createDashboard);
+    sb.append('}');
+    return sb.toString();
+  }
 }

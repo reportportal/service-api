@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
+import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
+
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -32,40 +34,43 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
-
 /**
  * @author Pavel Bortnik
  */
 @Service
 public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
 
-	private final DashboardRepository dashboardRepository;
-	private final MessageBus messageBus;
-	private final ShareableObjectsHandler aclHandler;
+  private final DashboardRepository dashboardRepository;
+  private final MessageBus messageBus;
+  private final ShareableObjectsHandler aclHandler;
 
-	@Autowired
-	public CreateDashboardHandlerImpl(DashboardRepository dashboardRepository, MessageBus messageBus, ShareableObjectsHandler aclHandler) {
-		this.dashboardRepository = dashboardRepository;
-		this.messageBus = messageBus;
-		this.aclHandler = aclHandler;
-	}
+  @Autowired
+  public CreateDashboardHandlerImpl(DashboardRepository dashboardRepository, MessageBus messageBus,
+      ShareableObjectsHandler aclHandler) {
+    this.dashboardRepository = dashboardRepository;
+    this.messageBus = messageBus;
+    this.aclHandler = aclHandler;
+  }
 
-	@Override
-	public EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails, CreateDashboardRQ rq, ReportPortalUser user) {
+  @Override
+  public EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails,
+      CreateDashboardRQ rq, ReportPortalUser user) {
 
-		BusinessRule.expect(dashboardRepository.existsByNameAndOwnerAndProjectId(rq.getName(),
-				user.getUsername(),
-				projectDetails.getProjectId()
-		), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
+    BusinessRule.expect(dashboardRepository.existsByNameAndOwnerAndProjectId(rq.getName(),
+        user.getUsername(),
+        projectDetails.getProjectId()
+    ), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
 
-		Dashboard dashboard = new DashboardBuilder().addDashboardRq(rq)
-				.addProject(projectDetails.getProjectId())
-				.addOwner(user.getUsername())
-				.get();
-		dashboardRepository.save(dashboard);
-		aclHandler.initAcl(dashboard, user.getUsername(), projectDetails.getProjectId(), BooleanUtils.isTrue(rq.getShare()));
-		messageBus.publishActivity(new DashboardCreatedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(), user.getUsername()));
-		return new EntryCreatedRS(dashboard.getId());
-	}
+    Dashboard dashboard = new DashboardBuilder().addDashboardRq(rq)
+        .addProject(projectDetails.getProjectId())
+        .addOwner(user.getUsername())
+        .get();
+    dashboardRepository.save(dashboard);
+    aclHandler.initAcl(dashboard, user.getUsername(), projectDetails.getProjectId(),
+        BooleanUtils.isTrue(rq.getShare()));
+    messageBus.publishActivity(
+        new DashboardCreatedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(),
+            user.getUsername()));
+    return new EntryCreatedRS(dashboard.getId());
+  }
 }

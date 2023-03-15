@@ -18,6 +18,11 @@
 
 package com.epam.ta.reportportal.core.project.settings.notification;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
@@ -25,60 +30,58 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
+import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
  */
 class DeleteProjectNotificationHandlerImplTest {
-	private final SenderCaseRepository senderCaseRepository = mock(SenderCaseRepository.class);
-	private final MessageBus messageBus = mock(MessageBus.class);
-	private final ProjectConverter projectConverter = mock(ProjectConverter.class);
 
-	private final DeleteProjectNotificationHandlerImpl service = new DeleteProjectNotificationHandlerImpl(senderCaseRepository, messageBus,
-			projectConverter);
+  private final SenderCaseRepository senderCaseRepository = mock(SenderCaseRepository.class);
+  private final MessageBus messageBus = mock(MessageBus.class);
+  private final ProjectConverter projectConverter = mock(ProjectConverter.class);
 
-	private Project project;
-	private ReportPortalUser rpUser;
+  private final DeleteProjectNotificationHandlerImpl service = new DeleteProjectNotificationHandlerImpl(
+      senderCaseRepository, messageBus,
+      projectConverter);
 
-	@BeforeEach
-	public void beforeEach() {
-		project = mock(Project.class);
-		when(project.getId()).thenReturn(1L);
+  private Project project;
+  private ReportPortalUser rpUser;
 
-		rpUser = mock(ReportPortalUser.class);
-	}
+  @BeforeEach
+  public void beforeEach() {
+    project = mock(Project.class);
+    when(project.getId()).thenReturn(1L);
 
-	@Test
-	public void deleteNonExistingNotificationTest() {
-		Assertions.assertTrue(
-				assertThrows(ReportPortalException.class, () -> service.deleteNotification(project, 1L, rpUser))
-						.getMessage().contains("Did you use correct Notification ID?")
-		);
-	}
+    rpUser = mock(ReportPortalUser.class);
+  }
 
-	@Test
-	public void deleteNotificationButWithDifferentProjectTest() {
-		SenderCase sc = mock(SenderCase.class);
-		Project scProject = mock(Project.class);
+  @Test
+  public void deleteNonExistingNotificationTest() {
+    Assertions.assertTrue(
+        assertThrows(ReportPortalException.class,
+            () -> service.deleteNotification(project, 1L, rpUser))
+            .getMessage().contains("Did you use correct Notification ID?")
+    );
+  }
 
-		when(scProject.getId()).thenReturn(2L);
-		when(sc.getProject()).thenReturn(scProject);
-		when(senderCaseRepository.findById(any())).thenReturn(Optional.of(sc));
+  @Test
+  public void deleteNotificationButWithDifferentProjectTest() {
+    SenderCase sc = mock(SenderCase.class);
+    Project scProject = mock(Project.class);
 
-		Assertions.assertTrue(
-				assertThrows(ReportPortalException.class, () -> service.deleteNotification(project, 1L, rpUser))
-						.getMessage().contains("Did you use correct Notification ID?")
-		);
-	}
+    when(scProject.getId()).thenReturn(2L);
+    when(sc.getProject()).thenReturn(scProject);
+    when(senderCaseRepository.findById(any())).thenReturn(Optional.of(sc));
+
+    Assertions.assertTrue(
+        assertThrows(ReportPortalException.class,
+            () -> service.deleteNotification(project, 1L, rpUser))
+            .getMessage().contains("Did you use correct Notification ID?")
+    );
+  }
 
 }

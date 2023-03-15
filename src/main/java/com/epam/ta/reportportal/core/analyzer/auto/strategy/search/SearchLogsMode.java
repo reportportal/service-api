@@ -24,21 +24,21 @@ import java.util.Optional;
  */
 public enum SearchLogsMode {
 
-	BY_LAUNCH_NAME("launchName"),
-	CURRENT_LAUNCH("currentLaunch"),
-	FILTER("filter");
+  BY_LAUNCH_NAME("launchName"),
+  CURRENT_LAUNCH("currentLaunch"),
+  FILTER("filter");
 
-	private String value;
+  private String value;
 
-	SearchLogsMode(String value) {
-		this.value = value;
-	}
+  SearchLogsMode(String value) {
+    this.value = value;
+  }
 
-	public String getValue() {
-		return value;
-	}
+  public String getValue() {
+    return value;
+  }
 
-	public static Optional<SearchLogsMode> fromString(String mode) {
-		return Arrays.stream(values()).filter(it -> it.getValue().equalsIgnoreCase(mode)).findFirst();
-	}
+  public static Optional<SearchLogsMode> fromString(String mode) {
+    return Arrays.stream(values()).filter(it -> it.getValue().equalsIgnoreCase(mode)).findFirst();
+  }
 }

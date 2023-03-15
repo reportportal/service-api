@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.analyzer.pattern;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.launch.Launch;
-
 import java.util.Set;
 
 /**
@@ -27,17 +26,20 @@ import java.util.Set;
  */
 public interface PatternAnalyzer {
 
-	/**
-	 * Analyze by {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate#value}
-	 * all {@link com.epam.ta.reportportal.entity.log.Log#logMessage} of {@link com.epam.ta.reportportal.entity.item.TestItem}
-	 * with {@link TestItemIssueGroup#TO_INVESTIGATE} for {@link com.epam.ta.reportportal.entity.launch.Launch} with provided ID.
-	 * Every matched {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} will be attached
-	 * to the {@link com.epam.ta.reportportal.entity.item.TestItem}
-	 * using {@link com.epam.ta.reportportal.entity.pattern.PatternTemplateTestItem} relation
-	 *
-	 * @param launch       {@link com.epam.ta.reportportal.entity.launch.Launch}, which {@link com.epam.ta.reportportal.entity.item.TestItem}
-	 *                     should be analyzed
-	 * @param analyzeModes {@link AnalyzeItemsMode} to modify {@link com.epam.ta.reportportal.entity.item.TestItem} query conditions
-	 */
-	void analyzeTestItems(Launch launch, Set<AnalyzeItemsMode> analyzeModes);
+  /**
+   * Analyze by {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate#value} all
+   * {@link com.epam.ta.reportportal.entity.log.Log#logMessage} of
+   * {@link com.epam.ta.reportportal.entity.item.TestItem} with
+   * {@link TestItemIssueGroup#TO_INVESTIGATE} for
+   * {@link com.epam.ta.reportportal.entity.launch.Launch} with provided ID. Every matched
+   * {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} will be attached to the
+   * {@link com.epam.ta.reportportal.entity.item.TestItem} using
+   * {@link com.epam.ta.reportportal.entity.pattern.PatternTemplateTestItem} relation
+   *
+   * @param launch       {@link com.epam.ta.reportportal.entity.launch.Launch}, which
+   *                     {@link com.epam.ta.reportportal.entity.item.TestItem} should be analyzed
+   * @param analyzeModes {@link AnalyzeItemsMode} to modify
+   *                     {@link com.epam.ta.reportportal.entity.item.TestItem} query conditions
+   */
+  void analyzeTestItems(Launch launch, Set<AnalyzeItemsMode> analyzeModes);
 }

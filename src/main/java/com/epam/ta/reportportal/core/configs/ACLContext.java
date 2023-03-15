@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.auth.acl.ReportPortalAclAuthorizationStrategyImp
 import com.epam.ta.reportportal.auth.acl.ReportPortalAclService;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cache.caffeine.CaffeineCache;
@@ -35,56 +36,56 @@ import org.springframework.security.acls.jdbc.LookupStrategy;
 import org.springframework.security.acls.model.PermissionGrantingStrategy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import javax.sql.DataSource;
-
 @Configuration
 @EnableAutoConfiguration
 public class ACLContext {
 
-	@Autowired
-	DataSource dataSource;
+  @Autowired
+  DataSource dataSource;
 
-	@Bean
-	public SpringCacheBasedAclCache aclCache() {
-		return new SpringCacheBasedAclCache(coffeinCache(), permissionGrantingStrategy(), aclAuthorizationStrategy());
-	}
+  @Bean
+  public SpringCacheBasedAclCache aclCache() {
+    return new SpringCacheBasedAclCache(coffeinCache(), permissionGrantingStrategy(),
+        aclAuthorizationStrategy());
+  }
 
-	@Bean
-	public CaffeineCache coffeinCache() {
-		// empty cache for avoiding the situation when user
-		// is removed from db but still exists in cache in another api
-		return new CaffeineCache("aclCache", Caffeine.newBuilder().maximumSize(0).build());
-	}
+  @Bean
+  public CaffeineCache coffeinCache() {
+    // empty cache for avoiding the situation when user
+    // is removed from db but still exists in cache in another api
+    return new CaffeineCache("aclCache", Caffeine.newBuilder().maximumSize(0).build());
+  }
 
-	@Bean
-	public PermissionGrantingStrategy permissionGrantingStrategy() {
-		return new DefaultPermissionGrantingStrategy(new ConsoleAuditLogger());
-	}
+  @Bean
+  public PermissionGrantingStrategy permissionGrantingStrategy() {
+    return new DefaultPermissionGrantingStrategy(new ConsoleAuditLogger());
+  }
 
-	@Bean
-	public AclAuthorizationStrategy aclAuthorizationStrategy() {
-		return new ReportPortalAclAuthorizationStrategyImpl(new SimpleGrantedAuthority(UserRole.ADMINISTRATOR.getAuthority()));
-	}
+  @Bean
+  public AclAuthorizationStrategy aclAuthorizationStrategy() {
+    return new ReportPortalAclAuthorizationStrategyImpl(
+        new SimpleGrantedAuthority(UserRole.ADMINISTRATOR.getAuthority()));
+  }
 
-	@Bean
-	public LookupStrategy lookupStrategy() {
-		BasicLookupStrategy lookupStrategy = new BasicLookupStrategy(dataSource,
-				aclCache(),
-				aclAuthorizationStrategy(),
-				new ConsoleAuditLogger()
-		);
-		lookupStrategy.setAclClassIdSupported(true);
-		return lookupStrategy;
-	}
+  @Bean
+  public LookupStrategy lookupStrategy() {
+    BasicLookupStrategy lookupStrategy = new BasicLookupStrategy(dataSource,
+        aclCache(),
+        aclAuthorizationStrategy(),
+        new ConsoleAuditLogger()
+    );
+    lookupStrategy.setAclClassIdSupported(true);
+    return lookupStrategy;
+  }
 
-	@Bean
-	public ReportPortalAclService aclService() {
-		return new ReportPortalAclService(dataSource, lookupStrategy(), aclCache());
-	}
+  @Bean
+  public ReportPortalAclService aclService() {
+    return new ReportPortalAclService(dataSource, lookupStrategy(), aclCache());
+  }
 
-	@Bean
-	public AclPermissionEvaluator aclPermissionEvaluator() {
-		return new AclPermissionEvaluator(aclService());
-	}
+  @Bean
+  public AclPermissionEvaluator aclPermissionEvaluator() {
+    return new AclPermissionEvaluator(aclService());
+  }
 
 }

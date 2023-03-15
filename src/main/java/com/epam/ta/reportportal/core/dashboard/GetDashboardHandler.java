@@ -29,25 +29,27 @@ import org.springframework.data.domain.Pageable;
  */
 public interface GetDashboardHandler {
 
-	/**
-	 * Get permitted projects for concrete user for concrete project
-	 *
-	 * @param projectDetails Project details
-	 * @param user           User
-	 * @return Page of permitted dashboard resources
-	 */
-	Iterable<DashboardResource> getPermitted(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
-			ReportPortalUser user);
+  /**
+   * Get permitted projects for concrete user for concrete project
+   *
+   * @param projectDetails Project details
+   * @param user           User
+   * @return Page of permitted dashboard resources
+   */
+  Iterable<DashboardResource> getPermitted(ReportPortalUser.ProjectDetails projectDetails,
+      Pageable pageable, Filter filter,
+      ReportPortalUser user);
 
-	/**
-	 * Get shared dashboards entities for current project.
-	 *
-	 * @param projectDetails Project
-	 * @param pageable       Pageable
-	 * @param filter         Filter
-	 * @param user           User
-	 * @return {@link Iterable}
-	 */
-	Iterable<SharedEntity> getSharedDashboardsNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
-			ReportPortalUser user);
+  /**
+   * Get shared dashboards entities for current project.
+   *
+   * @param projectDetails Project
+   * @param pageable       Pageable
+   * @param filter         Filter
+   * @param user           User
+   * @return {@link Iterable}
+   */
+  Iterable<SharedEntity> getSharedDashboardsNames(ReportPortalUser.ProjectDetails projectDetails,
+      Pageable pageable, Filter filter,
+      ReportPortalUser user);
 }

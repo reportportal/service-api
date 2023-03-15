@@ -25,14 +25,15 @@ import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
  */
 public interface CreateDashboardHandler {
 
-	/**
-	 * Creates a new dashboard.
-	 *
-	 * @param projectDetails Project details
-	 * @param rq             Dashboard details
-	 * @param user           User
-	 * @return EntryCreatedRS
-	 */
-	EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails, CreateDashboardRQ rq, ReportPortalUser user);
+  /**
+   * Creates a new dashboard.
+   *
+   * @param projectDetails Project details
+   * @param rq             Dashboard details
+   * @param user           User
+   * @return EntryCreatedRS
+   */
+  EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails,
+      CreateDashboardRQ rq, ReportPortalUser user);
 
 }

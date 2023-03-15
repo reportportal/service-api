@@ -26,101 +26,103 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Component
 public abstract class AbstractImportStrategy implements ImportStrategy {
-	protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractImportStrategy.class);
-	private static final Date initialStartTime = new Date(0);
-	protected static final ExecutorService service = Executors.newFixedThreadPool(5);
 
-	private StartLaunchHandler startLaunchHandler;
+  protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractImportStrategy.class);
+  private static final Date initialStartTime = new Date(0);
+  protected static final ExecutorService service = Executors.newFixedThreadPool(5);
 
-	private FinishLaunchHandler finishLaunchHandler;
+  private StartLaunchHandler startLaunchHandler;
 
-	private LaunchRepository launchRepository;
+  private FinishLaunchHandler finishLaunchHandler;
 
-	@Autowired
-	public void setStartLaunchHandler(StartLaunchHandler startLaunchHandler) {
-		this.startLaunchHandler = startLaunchHandler;
-	}
+  private LaunchRepository launchRepository;
 
-	@Autowired
-	public void setFinishLaunchHandler(FinishLaunchHandler finishLaunchHandler) {
-		this.finishLaunchHandler = finishLaunchHandler;
-	}
+  @Autowired
+  public void setStartLaunchHandler(StartLaunchHandler startLaunchHandler) {
+    this.startLaunchHandler = startLaunchHandler;
+  }
 
-	@Autowired
-	public void setLaunchRepository(LaunchRepository launchRepository) {
-		this.launchRepository = launchRepository;
-	}
+  @Autowired
+  public void setFinishLaunchHandler(FinishLaunchHandler finishLaunchHandler) {
+    this.finishLaunchHandler = finishLaunchHandler;
+  }
 
-	protected ParseResults processResults(CompletableFuture... futures) {
-		ParseResults results = new ParseResults();
-		Arrays.stream(futures).map(it -> (ParseResults) it.join()).forEach(res -> {
-			results.checkAndSetStartLaunchTime(res.getStartTime());
-			results.increaseDuration(res.getDuration());
-		});
-		return results;
-	}
+  @Autowired
+  public void setLaunchRepository(LaunchRepository launchRepository) {
+    this.launchRepository = launchRepository;
+  }
 
-	protected String startLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String launchName) {
-		StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
-		startLaunchRQ.setStartTime(initialStartTime);
-		startLaunchRQ.setName(launchName);
-		startLaunchRQ.setMode(Mode.DEFAULT);
-		return startLaunchHandler.startLaunch(user, projectDetails, startLaunchRQ).getId();
-	}
+  protected ParseResults processResults(CompletableFuture... futures) {
+    ParseResults results = new ParseResults();
+    Arrays.stream(futures).map(it -> (ParseResults) it.join()).forEach(res -> {
+      results.checkAndSetStartLaunchTime(res.getStartTime());
+      results.increaseDuration(res.getDuration());
+    });
+    return results;
+  }
 
-	protected void finishLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			ParseResults results, String baseUrl) {
-		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-		finishExecutionRQ.setEndTime(results.getEndTime());
-		finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectDetails, user, baseUrl);
-		Launch launch = launchRepository.findByUuid(launchId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-		launch.setStartTime(results.getStartTime());
-		launchRepository.save(launch);
-	}
+  protected String startLaunch(ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, String launchName) {
+    StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
+    startLaunchRQ.setStartTime(initialStartTime);
+    startLaunchRQ.setName(launchName);
+    startLaunchRQ.setMode(Mode.DEFAULT);
+    return startLaunchHandler.startLaunch(user, projectDetails, startLaunchRQ).getId();
+  }
 
-	/**
-	 * Got a cause exception message if it has any.
-	 *
-	 * @param e Exception
-	 * @return Clean exception message
-	 */
-	protected String cleanMessage(Exception e) {
-		if (e.getCause() != null) {
-			return e.getCause().getMessage();
-		}
-		return e.getMessage();
-	}
+  protected void finishLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user,
+      ParseResults results, String baseUrl) {
+    FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
+    finishExecutionRQ.setEndTime(results.getEndTime());
+    finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectDetails, user, baseUrl);
+    Launch launch = launchRepository.findByUuid(launchId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+    launch.setStartTime(results.getStartTime());
+    launchRepository.save(launch);
+  }
 
-	/*
-	 * if the importing results do not contain initial timestamp a launch gets
-	 * a default date if the launch is broken, time should be updated to not to broke
-	 * the statistics
-	 */
-	protected void updateBrokenLaunch(String savedLaunchId) {
-		if (savedLaunchId != null) {
-			Launch launch = launchRepository.findByUuid(savedLaunchId)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
-			launch.setStartTime(LocalDateTime.now());
-			launch.setStatus(StatusEnum.INTERRUPTED);
-			launchRepository.save(launch);
-		}
-	}
+  /**
+   * Got a cause exception message if it has any.
+   *
+   * @param e Exception
+   * @return Clean exception message
+   */
+  protected String cleanMessage(Exception e) {
+    if (e.getCause() != null) {
+      return e.getCause().getMessage();
+    }
+    return e.getMessage();
+  }
+
+  /*
+   * if the importing results do not contain initial timestamp a launch gets
+   * a default date if the launch is broken, time should be updated to not to broke
+   * the statistics
+   */
+  protected void updateBrokenLaunch(String savedLaunchId) {
+    if (savedLaunchId != null) {
+      Launch launch = launchRepository.findByUuid(savedLaunchId)
+          .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
+      launch.setStartTime(LocalDateTime.now());
+      launch.setStatus(StatusEnum.INTERRUPTED);
+      launchRepository.save(launch);
+    }
+  }
 }

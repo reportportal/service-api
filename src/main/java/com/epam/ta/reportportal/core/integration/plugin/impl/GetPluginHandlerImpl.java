@@ -20,39 +20,39 @@ import com.epam.ta.reportportal.core.integration.plugin.GetPluginHandler;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.ws.converter.converters.IntegrationTypeConverter;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
 public class GetPluginHandlerImpl implements GetPluginHandler {
-	private static final String ACCESS_TYPE_PUBLIC_NAME = "public";
 
-	private final IntegrationTypeRepository integrationTypeRepository;
+  private static final String ACCESS_TYPE_PUBLIC_NAME = "public";
 
-	@Autowired
-	public GetPluginHandlerImpl(IntegrationTypeRepository integrationTypeRepository) {
-		this.integrationTypeRepository = integrationTypeRepository;
-	}
+  private final IntegrationTypeRepository integrationTypeRepository;
 
-	@Override
-	public List<IntegrationTypeResource> getPlugins() {
-		return integrationTypeRepository.findAllByOrderByCreationDate()
-				.stream()
-				.map(IntegrationTypeConverter.TO_RESOURCE)
-				.collect(Collectors.toList());
-	}
+  @Autowired
+  public GetPluginHandlerImpl(IntegrationTypeRepository integrationTypeRepository) {
+    this.integrationTypeRepository = integrationTypeRepository;
+  }
 
-	@Override
-	public List<IntegrationTypeResource> getPublicPlugins() {
-		return integrationTypeRepository.findAllByAccessType(ACCESS_TYPE_PUBLIC_NAME)
-				.stream()
-				.map(IntegrationTypeConverter.TO_RESOURCE)
-				.collect(Collectors.toList());
-	}
+  @Override
+  public List<IntegrationTypeResource> getPlugins() {
+    return integrationTypeRepository.findAllByOrderByCreationDate()
+        .stream()
+        .map(IntegrationTypeConverter.TO_RESOURCE)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<IntegrationTypeResource> getPublicPlugins() {
+    return integrationTypeRepository.findAllByAccessType(ACCESS_TYPE_PUBLIC_NAME)
+        .stream()
+        .map(IntegrationTypeConverter.TO_RESOURCE)
+        .collect(Collectors.toList());
+  }
 }

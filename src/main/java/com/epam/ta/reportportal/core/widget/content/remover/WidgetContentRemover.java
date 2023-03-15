@@ -23,6 +23,6 @@ import com.epam.ta.reportportal.entity.widget.Widget;
  */
 public interface WidgetContentRemover {
 
-	void removeContent(Widget widget);
+  void removeContent(Widget widget);
 
 }

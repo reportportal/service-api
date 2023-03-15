@@ -17,6 +17,10 @@ package com.epam.ta.reportportal.info;
 
 import com.epam.ta.reportportal.core.configs.Conditions;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.collections.MapUtils;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -29,14 +33,8 @@ import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 /**
- * Collects info about existing jobs and how much it is left
- * to the next trigger execution
+ * Collects info about existing jobs and how much it is left to the next trigger execution
  *
  * @author Pavel Bortnik
  */
@@ -44,37 +42,39 @@ import java.util.stream.Stream;
 @Conditional(Conditions.NotTestCondition.class)
 public class JobSchedulerInfoContributor implements InfoContributor {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerInfoContributor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerInfoContributor.class);
 
-	@Autowired
-	private Scheduler scheduler;
+  @Autowired
+  private Scheduler scheduler;
 
-	@Override
-	public void contribute(Info.Builder builder) {
-		try {
-			Map<String, Map<String, Long>> triggersInfo = scheduler.getTriggerGroupNames().stream().flatMap(name -> {
-				try {
-					return scheduler.getJobKeys(GroupMatcher.groupEquals(name)).stream();
-				} catch (SchedulerException e) {
-					LOGGER.warn(e.getMessage());
-					return Stream.empty();
-				}
-			}).collect(Collectors.toList()).stream().flatMap(key -> {
-				try {
-					return scheduler.getTriggersOfJob(key).stream();
-				} catch (SchedulerException e) {
-					LOGGER.warn(e.getMessage());
-					return Stream.empty();
-				}
-			}).collect(Collectors.toMap(
-					t -> t.getKey().getName(),
-					t -> Collections.singletonMap("triggersIn", t.getNextFireTime().getTime() - System.currentTimeMillis())
-			));
-			if (MapUtils.isNotEmpty(triggersInfo)) {
-				builder.withDetail("jobs", triggersInfo);
-			}
-		} catch (SchedulerException e) {
-			throw new ReportPortalException(e.getMessage());
-		}
-	}
+  @Override
+  public void contribute(Info.Builder builder) {
+    try {
+      Map<String, Map<String, Long>> triggersInfo = scheduler.getTriggerGroupNames().stream()
+          .flatMap(name -> {
+            try {
+              return scheduler.getJobKeys(GroupMatcher.groupEquals(name)).stream();
+            } catch (SchedulerException e) {
+              LOGGER.warn(e.getMessage());
+              return Stream.empty();
+            }
+          }).collect(Collectors.toList()).stream().flatMap(key -> {
+            try {
+              return scheduler.getTriggersOfJob(key).stream();
+            } catch (SchedulerException e) {
+              LOGGER.warn(e.getMessage());
+              return Stream.empty();
+            }
+          }).collect(Collectors.toMap(
+              t -> t.getKey().getName(),
+              t -> Collections.singletonMap("triggersIn",
+                  t.getNextFireTime().getTime() - System.currentTimeMillis())
+          ));
+      if (MapUtils.isNotEmpty(triggersInfo)) {
+        builder.withDetail("jobs", triggersInfo);
+      }
+    } catch (SchedulerException e) {
+      throw new ReportPortalException(e.getMessage());
+    }
+  }
 }

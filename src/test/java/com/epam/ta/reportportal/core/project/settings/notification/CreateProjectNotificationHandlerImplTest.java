@@ -16,6 +16,15 @@
 
 package com.epam.ta.reportportal.core.project.settings.notification;
 
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.RESOURCE_ALREADY_EXISTS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.project.validator.notification.ProjectNotificationValidator;
@@ -29,124 +38,126 @@ import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.google.common.collect.Sets;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
-
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.RESOURCE_ALREADY_EXISTS;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
  */
 class CreateProjectNotificationHandlerImplTest {
-	private static final long DEFAULT_PROJECT_ID = 1L;
-	private static final String DEFAULT_RULE_NAME = "Rule1";
 
-	private final SenderCaseRepository senderCaseRepository = mock(SenderCaseRepository.class);
-	private final MessageBus messageBus = mock(MessageBus.class);
-	private final ProjectConverter projectConverter = mock(ProjectConverter.class);
-	private final ProjectNotificationValidator projectNotificationValidator = new ProjectNotificationValidator(senderCaseRepository);
+  private static final long DEFAULT_PROJECT_ID = 1L;
+  private static final String DEFAULT_RULE_NAME = "Rule1";
 
-	private final CreateProjectNotificationHandlerImpl service = new CreateProjectNotificationHandlerImpl(senderCaseRepository, messageBus,
-			projectConverter, projectNotificationValidator);
+  private final SenderCaseRepository senderCaseRepository = mock(SenderCaseRepository.class);
+  private final MessageBus messageBus = mock(MessageBus.class);
+  private final ProjectConverter projectConverter = mock(ProjectConverter.class);
+  private final ProjectNotificationValidator projectNotificationValidator = new ProjectNotificationValidator(
+      senderCaseRepository);
 
-	private SenderCaseDTO createNotificationRQ;
-	private Project project;
-	private ReportPortalUser rpUser;
+  private final CreateProjectNotificationHandlerImpl service = new CreateProjectNotificationHandlerImpl(
+      senderCaseRepository, messageBus,
+      projectConverter, projectNotificationValidator);
 
-	@BeforeEach
-	public void beforeEach() {
-		createNotificationRQ = new SenderCaseDTO();
-		createNotificationRQ.setSendCase("always");
-		createNotificationRQ.setRuleName(DEFAULT_RULE_NAME);
-		createNotificationRQ.setRecipients(Collections.singletonList("OWNER"));
-		createNotificationRQ.setLaunchNames(Collections.singletonList("test launch"));
-		createNotificationRQ.setEnabled(true);
-		ItemAttributeResource launchAttribute = new ItemAttributeResource();
-		launchAttribute.setKey("key");
-		launchAttribute.setValue("val");
-		createNotificationRQ.setAttributes(Sets.newHashSet(launchAttribute));
+  private SenderCaseDTO createNotificationRQ;
+  private Project project;
+  private ReportPortalUser rpUser;
 
-		project = mock(Project.class);
-		when(project.getId()).thenReturn(DEFAULT_PROJECT_ID);
+  @BeforeEach
+  public void beforeEach() {
+    createNotificationRQ = new SenderCaseDTO();
+    createNotificationRQ.setSendCase("always");
+    createNotificationRQ.setRuleName(DEFAULT_RULE_NAME);
+    createNotificationRQ.setRecipients(Collections.singletonList("OWNER"));
+    createNotificationRQ.setLaunchNames(Collections.singletonList("test launch"));
+    createNotificationRQ.setEnabled(true);
+    ItemAttributeResource launchAttribute = new ItemAttributeResource();
+    launchAttribute.setKey("key");
+    launchAttribute.setValue("val");
+    createNotificationRQ.setAttributes(Sets.newHashSet(launchAttribute));
 
-		rpUser = mock(ReportPortalUser.class);
-	}
+    project = mock(Project.class);
+    when(project.getId()).thenReturn(DEFAULT_PROJECT_ID);
 
-	@Test
-	public void createNotificationWithExistingRuleNameTest() {
-		SenderCase existingSenderCase = mock(SenderCase.class);
+    rpUser = mock(ReportPortalUser.class);
+  }
 
-		when(senderCaseRepository.findByProjectIdAndRuleNameIgnoreCase(DEFAULT_PROJECT_ID, DEFAULT_RULE_NAME))
-				.thenReturn(Optional.of(existingSenderCase));
+  @Test
+  public void createNotificationWithExistingRuleNameTest() {
+    SenderCase existingSenderCase = mock(SenderCase.class);
 
-		assertEquals(
-				assertThrows(ReportPortalException.class,
-						() -> service.createNotification(project, createNotificationRQ, rpUser)
-				).getMessage(),
-				formattedSupplier(RESOURCE_ALREADY_EXISTS.getDescription(), createNotificationRQ.getRuleName()).get()
-		);
-	}
+    when(senderCaseRepository.findByProjectIdAndRuleNameIgnoreCase(DEFAULT_PROJECT_ID,
+        DEFAULT_RULE_NAME))
+        .thenReturn(Optional.of(existingSenderCase));
 
-	@Test
-	public void createNotificationWithNonExistingSendCaseTest() {
-		createNotificationRQ.setSendCase("NonExistingSendCase");
+    assertEquals(
+        assertThrows(ReportPortalException.class,
+            () -> service.createNotification(project, createNotificationRQ, rpUser)
+        ).getMessage(),
+        formattedSupplier(RESOURCE_ALREADY_EXISTS.getDescription(),
+            createNotificationRQ.getRuleName()).get()
+    );
+  }
 
-		assertEquals(
-				assertThrows(ReportPortalException.class,
-						() -> service.createNotification(project, createNotificationRQ, rpUser)
-				).getMessage(),
-				formattedSupplier(BAD_REQUEST_ERROR.getDescription(), createNotificationRQ.getSendCase()).get()
-		);
-	}
+  @Test
+  public void createNotificationWithNonExistingSendCaseTest() {
+    createNotificationRQ.setSendCase("NonExistingSendCase");
 
-	@Test
-	public void createNotificationWithNullOrEmptyRecipientsTest() {
-		createNotificationRQ.setRecipients(null);
+    assertEquals(
+        assertThrows(ReportPortalException.class,
+            () -> service.createNotification(project, createNotificationRQ, rpUser)
+        ).getMessage(),
+        formattedSupplier(BAD_REQUEST_ERROR.getDescription(),
+            createNotificationRQ.getSendCase()).get()
+    );
+  }
 
-		assertTrue(
-				assertThrows(ReportPortalException.class, () -> service.createNotification(project, createNotificationRQ, rpUser))
-						.getMessage().contains("Recipients list should not be null")
-		);
+  @Test
+  public void createNotificationWithNullOrEmptyRecipientsTest() {
+    createNotificationRQ.setRecipients(null);
 
-		createNotificationRQ.setRecipients(Collections.emptyList());
+    assertTrue(
+        assertThrows(ReportPortalException.class,
+            () -> service.createNotification(project, createNotificationRQ, rpUser))
+            .getMessage().contains("Recipients list should not be null")
+    );
 
-		assertTrue(
-				assertThrows(ReportPortalException.class, () -> service.createNotification(project, createNotificationRQ, rpUser))
-						.getMessage().contains("Empty recipients list for email case")
-		);
-	}
+    createNotificationRQ.setRecipients(Collections.emptyList());
 
-	@Test
-	public void createNotificationWithDuplicateContentButWithDifferentRuleNameTest() {
-		SenderCase dupeCreateNotificationRQ = mock(SenderCase.class);
-		when(dupeCreateNotificationRQ.getSendCase()).thenReturn(SendCase.ALWAYS);
-		when(dupeCreateNotificationRQ.getRuleName()).thenReturn("Rule2");
-		when(dupeCreateNotificationRQ.getRecipients()).thenReturn(Collections.singleton("OWNER"));
-		when(dupeCreateNotificationRQ.getLaunchNames()).thenReturn(Collections.singleton("test launch"));
-		when(dupeCreateNotificationRQ.isEnabled()).thenReturn(true);
-		when(dupeCreateNotificationRQ.getProject()).thenReturn(project);
+    assertTrue(
+        assertThrows(ReportPortalException.class,
+            () -> service.createNotification(project, createNotificationRQ, rpUser))
+            .getMessage().contains("Empty recipients list for email case")
+    );
+  }
 
-		LaunchAttributeRule launchAttribute = mock(LaunchAttributeRule.class);
-		when(launchAttribute.getKey()).thenReturn("key");
-		when(launchAttribute.getValue()).thenReturn("val");
-		when(dupeCreateNotificationRQ.getLaunchAttributeRules()).thenReturn(Collections.singleton(launchAttribute));
+  @Test
+  public void createNotificationWithDuplicateContentButWithDifferentRuleNameTest() {
+    SenderCase dupeCreateNotificationRQ = mock(SenderCase.class);
+    when(dupeCreateNotificationRQ.getSendCase()).thenReturn(SendCase.ALWAYS);
+    when(dupeCreateNotificationRQ.getRuleName()).thenReturn("Rule2");
+    when(dupeCreateNotificationRQ.getRecipients()).thenReturn(Collections.singleton("OWNER"));
+    when(dupeCreateNotificationRQ.getLaunchNames()).thenReturn(
+        Collections.singleton("test launch"));
+    when(dupeCreateNotificationRQ.isEnabled()).thenReturn(true);
+    when(dupeCreateNotificationRQ.getProject()).thenReturn(project);
 
-		when(senderCaseRepository.findAllByProjectId(DEFAULT_PROJECT_ID)).thenReturn(Collections.singletonList(dupeCreateNotificationRQ));
+    LaunchAttributeRule launchAttribute = mock(LaunchAttributeRule.class);
+    when(launchAttribute.getKey()).thenReturn("key");
+    when(launchAttribute.getValue()).thenReturn("val");
+    when(dupeCreateNotificationRQ.getLaunchAttributeRules()).thenReturn(
+        Collections.singleton(launchAttribute));
 
-		assertTrue(
-				assertThrows(ReportPortalException.class, () -> service.createNotification(project, createNotificationRQ, rpUser))
-						.getMessage().contains("Project email settings contain duplicate cases")
-		);
-	}
+    when(senderCaseRepository.findAllByProjectId(DEFAULT_PROJECT_ID)).thenReturn(
+        Collections.singletonList(dupeCreateNotificationRQ));
+
+    assertTrue(
+        assertThrows(ReportPortalException.class,
+            () -> service.createNotification(project, createNotificationRQ, rpUser))
+            .getMessage().contains("Project email settings contain duplicate cases")
+    );
+  }
 
 }

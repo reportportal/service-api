@@ -24,14 +24,15 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
  */
 public interface DeleteDashboardHandler {
 
-	/**
-	 * Delete {@link com.epam.ta.reportportal.entity.dashboard.Dashboard} instance with specified id
-	 *
-	 * @param dashboardId    Dashboard id
-	 * @param projectDetails Project details
-	 * @param user           User
-	 * @return {@link OperationCompletionRS}
-	 */
-	OperationCompletionRS deleteDashboard(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+  /**
+   * Delete {@link com.epam.ta.reportportal.entity.dashboard.Dashboard} instance with specified id
+   *
+   * @param dashboardId    Dashboard id
+   * @param projectDetails Project details
+   * @param user           User
+   * @return {@link OperationCompletionRS}
+   */
+  OperationCompletionRS deleteDashboard(Long dashboardId,
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 }

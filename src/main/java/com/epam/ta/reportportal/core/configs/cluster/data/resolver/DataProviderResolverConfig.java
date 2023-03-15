@@ -18,10 +18,9 @@ package com.epam.ta.reportportal.core.configs.cluster.data.resolver;
 
 import com.epam.ta.reportportal.core.launch.cluster.pipeline.data.resolver.ClusterDataProviderResolver;
 import com.epam.ta.reportportal.core.launch.cluster.pipeline.data.resolver.evaluator.ClusterDataProviderEvaluator;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -29,10 +28,12 @@ import java.util.List;
 @Configuration
 public class DataProviderResolverConfig {
 
-	@Bean
-	public ClusterDataProviderResolver clusterDataProviderResolver(ClusterDataProviderEvaluator launchClusterDataProviderEvaluator,
-			ClusterDataProviderEvaluator itemClusterDataProviderEvaluator) {
-		return new ClusterDataProviderResolver(List.of(launchClusterDataProviderEvaluator, itemClusterDataProviderEvaluator));
-	}
+  @Bean
+  public ClusterDataProviderResolver clusterDataProviderResolver(
+      ClusterDataProviderEvaluator launchClusterDataProviderEvaluator,
+      ClusterDataProviderEvaluator itemClusterDataProviderEvaluator) {
+    return new ClusterDataProviderResolver(
+        List.of(launchClusterDataProviderEvaluator, itemClusterDataProviderEvaluator));
+  }
 
 }

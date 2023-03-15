@@ -16,61 +16,71 @@
 
 package com.epam.ta.reportportal.core.launch.cluster.pipeline;
 
+import static com.epam.ta.reportportal.core.launch.cluster.pipeline.SaveLastRunAttributePartProvider.RP_CLUSTER_LAST_RUN_KEY;
+import static com.epam.ta.reportportal.core.launch.cluster.utils.ConfigProvider.getConfig;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.pipeline.PipelinePart;
 import org.junit.jupiter.api.Test;
-
-import static com.epam.ta.reportportal.core.launch.cluster.pipeline.SaveLastRunAttributePartProvider.RP_CLUSTER_LAST_RUN_KEY;
-import static com.epam.ta.reportportal.core.launch.cluster.utils.ConfigProvider.getConfig;
-import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class SaveLastRunAttributePartProviderTest {
 
-	private final ItemAttributeRepository itemAttributeRepository = mock(ItemAttributeRepository.class);
+  private final ItemAttributeRepository itemAttributeRepository = mock(
+      ItemAttributeRepository.class);
 
-	private final SaveLastRunAttributePartProvider provider = new SaveLastRunAttributePartProvider(itemAttributeRepository);
+  private final SaveLastRunAttributePartProvider provider = new SaveLastRunAttributePartProvider(
+      itemAttributeRepository);
 
-	@Test
-	void shouldDeletePreviousAndSaveNew() {
-		final GenerateClustersConfig config = getConfig(false);
+  @Test
+  void shouldDeletePreviousAndSaveNew() {
+    final GenerateClustersConfig config = getConfig(false);
 
-		final PipelinePart pipelinePart = provider.provide(config);
+    final PipelinePart pipelinePart = provider.provide(config);
 
-		pipelinePart.handle();
+    pipelinePart.handle();
 
-		verify(itemAttributeRepository, times(1)).deleteAllByLaunchIdAndKeyAndSystem(eq(config.getEntityContext().getLaunchId()),
-				eq(RP_CLUSTER_LAST_RUN_KEY),
-				eq(true)
-		);
+    verify(itemAttributeRepository, times(1)).deleteAllByLaunchIdAndKeyAndSystem(
+        eq(config.getEntityContext().getLaunchId()),
+        eq(RP_CLUSTER_LAST_RUN_KEY),
+        eq(true)
+    );
 
-		verify(itemAttributeRepository, times(1)).saveByLaunchId(eq(config.getEntityContext().getLaunchId()),
-				eq(RP_CLUSTER_LAST_RUN_KEY),
-				anyString(),
-				eq(true)
-		);
-	}
+    verify(itemAttributeRepository, times(1)).saveByLaunchId(
+        eq(config.getEntityContext().getLaunchId()),
+        eq(RP_CLUSTER_LAST_RUN_KEY),
+        anyString(),
+        eq(true)
+    );
+  }
 
-	@Test
-	void shouldNotSaveLastRunWhenForUpdate() {
-		final GenerateClustersConfig config = getConfig(true);
+  @Test
+  void shouldNotSaveLastRunWhenForUpdate() {
+    final GenerateClustersConfig config = getConfig(true);
 
-		final PipelinePart pipelinePart = provider.provide(config);
+    final PipelinePart pipelinePart = provider.provide(config);
 
-		pipelinePart.handle();
+    pipelinePart.handle();
 
-		verify(itemAttributeRepository, times(0)).deleteAllByLaunchIdAndKeyAndSystem(eq(config.getEntityContext().getLaunchId()),
-				eq(RP_CLUSTER_LAST_RUN_KEY),
-				eq(true)
-		);
-		verify(itemAttributeRepository, times(0)).saveByLaunchId(eq(config.getEntityContext().getLaunchId()),
-				eq(RP_CLUSTER_LAST_RUN_KEY),
-				anyString(),
-				eq(true)
-		);
-	}
+    verify(itemAttributeRepository, times(0)).deleteAllByLaunchIdAndKeyAndSystem(
+        eq(config.getEntityContext().getLaunchId()),
+        eq(RP_CLUSTER_LAST_RUN_KEY),
+        eq(true)
+    );
+    verify(itemAttributeRepository, times(0)).saveByLaunchId(
+        eq(config.getEntityContext().getLaunchId()),
+        eq(RP_CLUSTER_LAST_RUN_KEY),
+        anyString(),
+        eq(true)
+    );
+  }
 
 }

@@ -16,6 +16,12 @@
 
 package com.epam.ta.reportportal.core.item.impl.provider;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
+import static com.epam.ta.reportportal.ws.controller.TestItemController.IS_LATEST_LAUNCHES_REQUEST_PARAM;
+import static com.epam.ta.reportportal.ws.controller.TestItemController.LAUNCHES_LIMIT_REQUEST_PARAM;
+import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.utils.DefaultLaunchFilterProvider;
@@ -28,22 +34,15 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
-
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
-import static com.epam.ta.reportportal.ws.controller.TestItemController.IS_LATEST_LAUNCHES_REQUEST_PARAM;
-import static com.epam.ta.reportportal.ws.controller.TestItemController.LAUNCHES_LIMIT_REQUEST_PARAM;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -51,56 +50,63 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
 @Component
 public class FilterDataProviderImpl implements DataProviderHandler {
 
-	private static final String FILTER_ID_PARAM = "filterId";
+  private static final String FILTER_ID_PARAM = "filterId";
 
-	@Autowired
-	private GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
+  @Autowired
+  private GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 
-	@Autowired
-	private TestItemRepository testItemRepository;
+  @Autowired
+  private TestItemRepository testItemRepository;
 
-	@Override
-	public Set<Statistics> accumulateStatistics(Queryable filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			Map<String, String> params) {
-		validateProjectRole(projectDetails, user);
-		Optional.ofNullable(params.get(FILTER_ID_PARAM))
-				.map(ControllerUtils::safeParseLong)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-						"Filter id must be provided for filter based items provider"
-				));
-		return testItemRepository.accumulateStatisticsByFilter(filter);
-	}
+  @Override
+  public Set<Statistics> accumulateStatistics(Queryable filter,
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      Map<String, String> params) {
+    validateProjectRole(projectDetails, user);
+    Optional.ofNullable(params.get(FILTER_ID_PARAM))
+        .map(ControllerUtils::safeParseLong)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            "Filter id must be provided for filter based items provider"
+        ));
+    return testItemRepository.accumulateStatisticsByFilter(filter);
+  }
 
-	@Override
-	public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, Map<String, String> params) {
-		validateProjectRole(projectDetails, user);
+  @Override
+  public Page<TestItem> getTestItems(Queryable filter, Pageable pageable,
+      ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, Map<String, String> params) {
+    validateProjectRole(projectDetails, user);
 
-		Long launchFilterId = Optional.ofNullable(params.get(FILTER_ID_PARAM))
-				.map(ControllerUtils::safeParseLong)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-						"Filter id must be provided for filter based items provider"
-				));
+    Long launchFilterId = Optional.ofNullable(params.get(FILTER_ID_PARAM))
+        .map(ControllerUtils::safeParseLong)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            "Filter id must be provided for filter based items provider"
+        ));
 
-		Integer launchesLimit = Optional.ofNullable(params.get(LAUNCHES_LIMIT_REQUEST_PARAM))
-				.map(ControllerUtils::safeParseInt)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-						"Launches limit must be provided for filter based items provider"
-				));
+    Integer launchesLimit = Optional.ofNullable(params.get(LAUNCHES_LIMIT_REQUEST_PARAM))
+        .map(ControllerUtils::safeParseInt)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            "Launches limit must be provided for filter based items provider"
+        ));
 
-		Boolean isLatest = Optional.ofNullable(params.get(IS_LATEST_LAUNCHES_REQUEST_PARAM)).map(Boolean::parseBoolean).orElse(false);
+    Boolean isLatest = Optional.ofNullable(params.get(IS_LATEST_LAUNCHES_REQUEST_PARAM))
+        .map(Boolean::parseBoolean).orElse(false);
 
-		Pair<Queryable, Pageable> queryablePair = DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(projectDetails,
-				getShareableEntityHandler.getPermitted(launchFilterId, projectDetails),
-				launchesLimit
-		);
+    Pair<Queryable, Pageable> queryablePair = DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(
+        projectDetails,
+        getShareableEntityHandler.getPermitted(launchFilterId, projectDetails),
+        launchesLimit
+    );
 
-		return testItemRepository.findByFilter(isLatest, queryablePair.getKey(), filter, queryablePair.getValue(), pageable);
-	}
+    return testItemRepository.findByFilter(isLatest, queryablePair.getKey(), filter,
+        queryablePair.getValue(), pageable);
+  }
 
-	protected void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(projectDetails.getProjectRole() == OPERATOR, Predicate.isEqual(false)).verify(ACCESS_DENIED);
-		}
-	}
+  protected void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user) {
+    if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+      expect(projectDetails.getProjectRole() == OPERATOR, Predicate.isEqual(false)).verify(
+          ACCESS_DENIED);
+    }
+  }
 }

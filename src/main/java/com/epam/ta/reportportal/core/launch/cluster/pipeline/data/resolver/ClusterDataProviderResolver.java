@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.launch.cluster.pipeline.data.resolver;
 import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.core.launch.cluster.pipeline.data.ClusterDataProvider;
 import com.epam.ta.reportportal.core.launch.cluster.pipeline.data.resolver.evaluator.ClusterDataProviderEvaluator;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -28,13 +27,14 @@ import java.util.Optional;
  */
 public class ClusterDataProviderResolver {
 
-	private final List<ClusterDataProviderEvaluator> evaluators;
+  private final List<ClusterDataProviderEvaluator> evaluators;
 
-	public ClusterDataProviderResolver(List<ClusterDataProviderEvaluator> evaluators) {
-		this.evaluators = evaluators;
-	}
+  public ClusterDataProviderResolver(List<ClusterDataProviderEvaluator> evaluators) {
+    this.evaluators = evaluators;
+  }
 
-	public Optional<ClusterDataProvider> resolve(GenerateClustersConfig config) {
-		return evaluators.stream().filter(e -> e.supports(config)).map(ClusterDataProviderEvaluator::getProvider).findFirst();
-	}
+  public Optional<ClusterDataProvider> resolve(GenerateClustersConfig config) {
+    return evaluators.stream().filter(e -> e.supports(config))
+        .map(ClusterDataProviderEvaluator::getProvider).findFirst();
+  }
 }

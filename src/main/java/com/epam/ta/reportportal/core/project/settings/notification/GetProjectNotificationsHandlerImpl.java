@@ -19,11 +19,10 @@ package com.epam.ta.reportportal.core.project.settings.notification;
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
@@ -31,17 +30,17 @@ import java.util.stream.Collectors;
 @Service
 public class GetProjectNotificationsHandlerImpl implements GetProjectNotificationsHandler {
 
-	private final SenderCaseRepository senderCaseRepository;
+  private final SenderCaseRepository senderCaseRepository;
 
-	@Autowired
-	public GetProjectNotificationsHandlerImpl(SenderCaseRepository senderCaseRepository) {
-		this.senderCaseRepository = senderCaseRepository;
-	}
+  @Autowired
+  public GetProjectNotificationsHandlerImpl(SenderCaseRepository senderCaseRepository) {
+    this.senderCaseRepository = senderCaseRepository;
+  }
 
-	@Override
-	public List<SenderCaseDTO> getProjectNotifications(Long projectId) {
-		return senderCaseRepository.findAllByProjectId(projectId).stream()
-				.map(NotificationConfigConverter.TO_CASE_RESOURCE)
-				.collect(Collectors.toList());
-	}
+  @Override
+  public List<SenderCaseDTO> getProjectNotifications(Long projectId) {
+    return senderCaseRepository.findAllByProjectId(projectId).stream()
+        .map(NotificationConfigConverter.TO_CASE_RESOURCE)
+        .collect(Collectors.toList());
+  }
 }

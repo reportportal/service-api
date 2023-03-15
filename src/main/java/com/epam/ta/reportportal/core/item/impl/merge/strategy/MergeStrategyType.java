@@ -22,10 +22,11 @@ import java.util.Arrays;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public enum MergeStrategyType {
-	DEEP,
-	BASIC;
+  DEEP,
+  BASIC;
 
-	public static MergeStrategyType fromValue(String value) {
-		return Arrays.stream(MergeStrategyType.values()).filter(type -> type.name().equalsIgnoreCase(value)).findFirst().orElse(null);
-	}
+  public static MergeStrategyType fromValue(String value) {
+    return Arrays.stream(MergeStrategyType.values())
+        .filter(type -> type.name().equalsIgnoreCase(value)).findFirst().orElse(null);
+  }
 }

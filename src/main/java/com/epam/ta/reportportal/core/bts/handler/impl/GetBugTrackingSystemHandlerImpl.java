@@ -24,10 +24,9 @@ import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -35,56 +34,62 @@ import java.util.Optional;
 @Service
 public class GetBugTrackingSystemHandlerImpl implements GetBugTrackingSystemHandler {
 
-	private final IntegrationRepository integrationRepository;
+  private final IntegrationRepository integrationRepository;
 
-	@Autowired
-	public GetBugTrackingSystemHandlerImpl(IntegrationRepository integrationRepository) {
-		this.integrationRepository = integrationRepository;
-	}
+  @Autowired
+  public GetBugTrackingSystemHandlerImpl(IntegrationRepository integrationRepository) {
+    this.integrationRepository = integrationRepository;
+  }
 
-	@Override
-	public Optional<Integration> getEnabledProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, String url,
-			String btsProject) {
+  @Override
+  public Optional<Integration> getEnabledProjectIntegration(
+      ReportPortalUser.ProjectDetails projectDetails, String url,
+      String btsProject) {
 
-		Optional<Integration> integration = integrationRepository.findProjectBtsByUrlAndLinkedProject(url,
-				btsProject,
-				projectDetails.getProjectId()
-		);
-		integration.ifPresent(this::validateBtsIntegration);
-		return integration;
-	}
+    Optional<Integration> integration = integrationRepository.findProjectBtsByUrlAndLinkedProject(
+        url,
+        btsProject,
+        projectDetails.getProjectId()
+    );
+    integration.ifPresent(this::validateBtsIntegration);
+    return integration;
+  }
 
-	@Override
-	public Optional<Integration> getEnabledProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, Long integrationId) {
+  @Override
+  public Optional<Integration> getEnabledProjectIntegration(
+      ReportPortalUser.ProjectDetails projectDetails, Long integrationId) {
 
-		Optional<Integration> integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId());
-		integration.ifPresent(this::validateBtsIntegration);
-		return integration;
-	}
+    Optional<Integration> integration = integrationRepository.findByIdAndProjectId(integrationId,
+        projectDetails.getProjectId());
+    integration.ifPresent(this::validateBtsIntegration);
+    return integration;
+  }
 
-	@Override
-	public Optional<Integration> getEnabledGlobalIntegration(String url, String btsProject) {
+  @Override
+  public Optional<Integration> getEnabledGlobalIntegration(String url, String btsProject) {
 
-		Optional<Integration> integration = integrationRepository.findGlobalBtsByUrlAndLinkedProject(url, btsProject);
-		integration.ifPresent(this::validateBtsIntegration);
-		return integration;
-	}
+    Optional<Integration> integration = integrationRepository.findGlobalBtsByUrlAndLinkedProject(
+        url, btsProject);
+    integration.ifPresent(this::validateBtsIntegration);
+    return integration;
+  }
 
-	@Override
-	public Optional<Integration> getEnabledGlobalIntegration(Long integrationId) {
+  @Override
+  public Optional<Integration> getEnabledGlobalIntegration(Long integrationId) {
 
-		Optional<Integration> integration = integrationRepository.findGlobalById(integrationId);
-		integration.ifPresent(this::validateBtsIntegration);
-		return integration;
-	}
+    Optional<Integration> integration = integrationRepository.findGlobalById(integrationId);
+    integration.ifPresent(this::validateBtsIntegration);
+    return integration;
+  }
 
-	private void validateBtsIntegration(Integration integration) {
+  private void validateBtsIntegration(Integration integration) {
 
-		BusinessRule.expect(integration, it -> IntegrationGroupEnum.BTS == it.getType().getIntegrationGroup())
-				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, Suppliers.formattedSupplier(
-						"Unable to test connection to the integration with type - '{}', Allowed type(es): '{}'",
-						integration.getType().getIntegrationGroup(),
-						IntegrationGroupEnum.BTS
-				));
-	}
+    BusinessRule.expect(integration,
+            it -> IntegrationGroupEnum.BTS == it.getType().getIntegrationGroup())
+        .verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, Suppliers.formattedSupplier(
+            "Unable to test connection to the integration with type - '{}', Allowed type(es): '{}'",
+            integration.getType().getIntegrationGroup(),
+            IntegrationGroupEnum.BTS
+        ));
+  }
 }

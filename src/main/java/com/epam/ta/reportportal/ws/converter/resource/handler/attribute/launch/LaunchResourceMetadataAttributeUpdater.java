@@ -16,42 +16,44 @@
 
 package com.epam.ta.reportportal.ws.converter.resource.handler.attribute.launch;
 
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ResourceAttributeHandler;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.google.common.collect.Maps;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import static java.util.Optional.ofNullable;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class LaunchResourceMetadataAttributeUpdater implements ResourceAttributeHandler<LaunchResource> {
+public class LaunchResourceMetadataAttributeUpdater implements
+    ResourceAttributeHandler<LaunchResource> {
 
-	private final Set<String> supportedKeys;
+  private final Set<String> supportedKeys;
 
-	public LaunchResourceMetadataAttributeUpdater(Set<String> supportedKeys) {
-		this.supportedKeys = supportedKeys;
-	}
+  public LaunchResourceMetadataAttributeUpdater(Set<String> supportedKeys) {
+    this.supportedKeys = supportedKeys;
+  }
 
-	@Override
-	public void handle(LaunchResource resource, Collection<ItemAttribute> attributes) {
-		attributes.forEach(it -> {
-			if (supportedKeys.contains(it.getKey())) {
-				ofNullable(resource.getMetadata()).ifPresentOrElse(metadata -> updateMetadata(it, metadata), () -> {
-					final Map<String, Object> metadata = Maps.newHashMapWithExpectedSize(supportedKeys.size());
-					updateMetadata(it, metadata);
-					resource.setMetadata(metadata);
-				});
-			}
-		});
-	}
+  @Override
+  public void handle(LaunchResource resource, Collection<ItemAttribute> attributes) {
+    attributes.forEach(it -> {
+      if (supportedKeys.contains(it.getKey())) {
+        ofNullable(resource.getMetadata()).ifPresentOrElse(metadata -> updateMetadata(it, metadata),
+            () -> {
+              final Map<String, Object> metadata = Maps.newHashMapWithExpectedSize(
+                  supportedKeys.size());
+              updateMetadata(it, metadata);
+              resource.setMetadata(metadata);
+            });
+      }
+    });
+  }
 
-	private void updateMetadata(ItemAttribute it, Map<String, Object> metadata) {
-		metadata.put(it.getKey(), it.getValue());
-	}
+  private void updateMetadata(ItemAttribute it, Map<String, Object> metadata) {
+    metadata.put(it.getKey(), it.getValue());
+  }
 }

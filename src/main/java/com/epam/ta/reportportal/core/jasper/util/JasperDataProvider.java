@@ -15,16 +15,15 @@
  */
 package com.epam.ta.reportportal.core.jasper.util;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.epam.ta.reportportal.core.jasper.TestItemPojo;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * Initial {@link net.sf.jasperreports.engine.JRDataSource} provider class for RP Jasper Reports
@@ -34,18 +33,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Service("jasperDataProvider")
 public class JasperDataProvider {
 
-	private TestItemRepository testItemRepository;
+  private TestItemRepository testItemRepository;
 
-	@Autowired
-	public JasperDataProvider(TestItemRepository testItemRepository) {
-		this.testItemRepository = checkNotNull(testItemRepository);
-	}
+  @Autowired
+  public JasperDataProvider(TestItemRepository testItemRepository) {
+    this.testItemRepository = checkNotNull(testItemRepository);
+  }
 
-	public List<TestItemPojo> getTestItemsOfLaunch(Launch launch) {
-		/* Get launch referred test items with SORT! */
-		return testItemRepository.findTestItemsByLaunchIdOrderByStartTimeAsc(launch.getId())
-				.stream()
-				.map(TestItemPojo::new)
-				.collect(Collectors.toList());
-	}
+  public List<TestItemPojo> getTestItemsOfLaunch(Launch launch) {
+    /* Get launch referred test items with SORT! */
+    return testItemRepository.findTestItemsByLaunchIdOrderByStartTimeAsc(launch.getId())
+        .stream()
+        .map(TestItemPojo::new)
+        .collect(Collectors.toList());
+  }
 }

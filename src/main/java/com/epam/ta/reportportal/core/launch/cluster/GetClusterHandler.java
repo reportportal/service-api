@@ -26,7 +26,7 @@ import org.springframework.data.domain.Pageable;
  */
 public interface GetClusterHandler {
 
-	Cluster getById(Long id);
+  Cluster getById(Long id);
 
-	Iterable<ClusterInfoResource> getResources(Launch launch, Pageable pageable);
+  Iterable<ClusterInfoResource> getResources(Launch launch, Pageable pageable);
 }

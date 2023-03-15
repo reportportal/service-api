@@ -16,69 +16,72 @@
 
 package com.epam.ta.reportportal.core.launch.cluster.pipeline;
 
+import static com.epam.ta.reportportal.core.launch.cluster.utils.ConfigProvider.getConfig;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
 import com.epam.ta.reportportal.core.launch.cluster.CreateClusterHandler;
 import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.core.launch.cluster.pipeline.data.ClusterDataProvider;
 import com.epam.ta.reportportal.core.launch.cluster.pipeline.data.resolver.ClusterDataProviderResolver;
 import com.epam.ta.reportportal.pipeline.PipelinePart;
-import org.junit.jupiter.api.Test;
-
 import java.util.Optional;
-
-import static com.epam.ta.reportportal.core.launch.cluster.utils.ConfigProvider.getConfig;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class SaveClusterDataPartProviderTest {
 
-	private final ClusterDataProvider dataProvider = mock(ClusterDataProvider.class);
-	private final ClusterDataProviderResolver resolver = mock(ClusterDataProviderResolver.class);
-	private final CreateClusterHandler createClusterHandler = mock(CreateClusterHandler.class);
+  private final ClusterDataProvider dataProvider = mock(ClusterDataProvider.class);
+  private final ClusterDataProviderResolver resolver = mock(ClusterDataProviderResolver.class);
+  private final CreateClusterHandler createClusterHandler = mock(CreateClusterHandler.class);
 
-	private final SaveClusterDataPartProvider provider = new SaveClusterDataPartProvider(resolver, createClusterHandler);
+  private final SaveClusterDataPartProvider provider = new SaveClusterDataPartProvider(resolver,
+      createClusterHandler);
 
-	@Test
-	void shouldSaveWhenProviderAndDataExists() {
-		final GenerateClustersConfig config = getConfig(false);
+  @Test
+  void shouldSaveWhenProviderAndDataExists() {
+    final GenerateClustersConfig config = getConfig(false);
 
-		final ClusterData clusterData = new ClusterData();
-		when(dataProvider.provide(config)).thenReturn(Optional.of(clusterData));
-		when(resolver.resolve(config)).thenReturn(Optional.of(dataProvider));
+    final ClusterData clusterData = new ClusterData();
+    when(dataProvider.provide(config)).thenReturn(Optional.of(clusterData));
+    when(resolver.resolve(config)).thenReturn(Optional.of(dataProvider));
 
-		final PipelinePart pipelinePart = provider.provide(config);
-		pipelinePart.handle();
+    final PipelinePart pipelinePart = provider.provide(config);
+    pipelinePart.handle();
 
-		verify(createClusterHandler, times(1)).create(clusterData);
-	}
+    verify(createClusterHandler, times(1)).create(clusterData);
+  }
 
-	@Test
-	void shouldSaveWhenProviderNotExists() {
-		final GenerateClustersConfig config = getConfig(false);
+  @Test
+  void shouldSaveWhenProviderNotExists() {
+    final GenerateClustersConfig config = getConfig(false);
 
-		final ClusterData clusterData = new ClusterData();
-		when(resolver.resolve(config)).thenReturn(Optional.empty());
+    final ClusterData clusterData = new ClusterData();
+    when(resolver.resolve(config)).thenReturn(Optional.empty());
 
-		final PipelinePart pipelinePart = provider.provide(config);
-		pipelinePart.handle();
+    final PipelinePart pipelinePart = provider.provide(config);
+    pipelinePart.handle();
 
-		verify(createClusterHandler, times(0)).create(clusterData);
-	}
+    verify(createClusterHandler, times(0)).create(clusterData);
+  }
 
-	@Test
-	void shouldNotSaveWhenProviderExistsAndNoDataExists() {
-		final GenerateClustersConfig config = getConfig(false);
+  @Test
+  void shouldNotSaveWhenProviderExistsAndNoDataExists() {
+    final GenerateClustersConfig config = getConfig(false);
 
-		final ClusterData clusterData = new ClusterData();
-		when(dataProvider.provide(config)).thenReturn(Optional.of(clusterData));
-		when(resolver.resolve(config)).thenReturn(Optional.empty());
+    final ClusterData clusterData = new ClusterData();
+    when(dataProvider.provide(config)).thenReturn(Optional.of(clusterData));
+    when(resolver.resolve(config)).thenReturn(Optional.empty());
 
-		final PipelinePart pipelinePart = provider.provide(config);
-		pipelinePart.handle();
+    final PipelinePart pipelinePart = provider.provide(config);
+    pipelinePart.handle();
 
-		verify(createClusterHandler, times(0)).create(clusterData);
-	}
+    verify(createClusterHandler, times(0)).create(clusterData);
+  }
 
 }

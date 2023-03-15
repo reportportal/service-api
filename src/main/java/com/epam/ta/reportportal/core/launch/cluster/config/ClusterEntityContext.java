@@ -24,40 +24,40 @@ import java.util.List;
  */
 public class ClusterEntityContext {
 
-	private final Long launchId;
-	private final Long projectId;
+  private final Long launchId;
+  private final Long projectId;
 
-	private final List<Long> itemIds;
+  private final List<Long> itemIds;
 
-	private ClusterEntityContext(Long launchId, Long projectId) {
-		this.launchId = launchId;
-		this.projectId = projectId;
-		this.itemIds = Collections.emptyList();
-	}
+  private ClusterEntityContext(Long launchId, Long projectId) {
+    this.launchId = launchId;
+    this.projectId = projectId;
+    this.itemIds = Collections.emptyList();
+  }
 
-	private ClusterEntityContext(Long launchId, Long projectId, List<Long> itemIds) {
-		this.launchId = launchId;
-		this.projectId = projectId;
-		this.itemIds = itemIds;
-	}
+  private ClusterEntityContext(Long launchId, Long projectId, List<Long> itemIds) {
+    this.launchId = launchId;
+    this.projectId = projectId;
+    this.itemIds = itemIds;
+  }
 
-	public Long getLaunchId() {
-		return launchId;
-	}
+  public Long getLaunchId() {
+    return launchId;
+  }
 
-	public Long getProjectId() {
-		return projectId;
-	}
+  public Long getProjectId() {
+    return projectId;
+  }
 
-	public List<Long> getItemIds() {
-		return itemIds;
-	}
+  public List<Long> getItemIds() {
+    return itemIds;
+  }
 
-	public static ClusterEntityContext  of(Long launchId, Long projectId) {
-		return new ClusterEntityContext(launchId, projectId);
-	}
+  public static ClusterEntityContext of(Long launchId, Long projectId) {
+    return new ClusterEntityContext(launchId, projectId);
+  }
 
-	public static ClusterEntityContext  of(Long launchId, Long projectId, List<Long> itemIds) {
-		return new ClusterEntityContext(launchId, projectId, itemIds);
-	}
+  public static ClusterEntityContext of(Long launchId, Long projectId, List<Long> itemIds) {
+    return new ClusterEntityContext(launchId, projectId, itemIds);
+  }
 }

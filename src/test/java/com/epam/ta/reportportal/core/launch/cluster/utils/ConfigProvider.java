@@ -25,19 +25,19 @@ import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
  */
 public class ConfigProvider {
 
-	private ConfigProvider() {
+  private ConfigProvider() {
 
-	}
+  }
 
-	public static final GenerateClustersConfig getConfig(boolean forUpdate) {
-		final GenerateClustersConfig config = new GenerateClustersConfig();
-		final AnalyzerConfig analyzerConfig = new AnalyzerConfig();
-		analyzerConfig.setNumberOfLogLines(1);
-		config.setAnalyzerConfig(analyzerConfig);
-		final ClusterEntityContext entityContext = ClusterEntityContext.of(1L, 1L);
-		config.setEntityContext(entityContext);
-		config.setForUpdate(forUpdate);
-		config.setCleanNumbers(false);
-		return config;
-	}
+  public static final GenerateClustersConfig getConfig(boolean forUpdate) {
+    final GenerateClustersConfig config = new GenerateClustersConfig();
+    final AnalyzerConfig analyzerConfig = new AnalyzerConfig();
+    analyzerConfig.setNumberOfLogLines(1);
+    config.setAnalyzerConfig(analyzerConfig);
+    final ClusterEntityContext entityContext = ClusterEntityContext.of(1L, 1L);
+    config.setEntityContext(entityContext);
+    config.setForUpdate(forUpdate);
+    config.setCleanNumbers(false);
+    return config;
+  }
 }

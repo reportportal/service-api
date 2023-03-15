@@ -31,24 +31,28 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class RallySecretMigrationService extends AbstractSecretMigrationService {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RallySecretMigrationService.class);
-	private static final String RALLY_INTEGRATION_TYPE_NAME = "rally";
+  private static final Logger LOGGER = LoggerFactory.getLogger(RallySecretMigrationService.class);
+  private static final String RALLY_INTEGRATION_TYPE_NAME = "rally";
 
-	@Autowired
-	public RallySecretMigrationService(IntegrationRepository integrationRepository, BasicTextEncryptor encryptor) {
-		super(integrationRepository, encryptor);
-	}
+  @Autowired
+  public RallySecretMigrationService(IntegrationRepository integrationRepository,
+      BasicTextEncryptor encryptor) {
+    super(integrationRepository, encryptor);
+  }
 
-	@Transactional
-	public void migrate() {
-		LOGGER.debug("Migration of rally secrets has been started");
-		integrationRepository.findAllByTypeIn(RALLY_INTEGRATION_TYPE_NAME).forEach(it -> extractParams(it).ifPresent(params -> {
-			BtsProperties.OAUTH_ACCESS_KEY.getParam(params)
-					.ifPresent(key -> BtsProperties.OAUTH_ACCESS_KEY.setParam(it.getParams(), encryptor.encrypt(key)));
-			BtsProperties.PASSWORD.getParam(params)
-					.ifPresent(pass -> BtsProperties.PASSWORD.setParam(it.getParams(), encryptor.encrypt(pass)));
-		}));
-		LOGGER.debug("Migration of rally secrets has been finished");
-	}
+  @Transactional
+  public void migrate() {
+    LOGGER.debug("Migration of rally secrets has been started");
+    integrationRepository.findAllByTypeIn(RALLY_INTEGRATION_TYPE_NAME)
+        .forEach(it -> extractParams(it).ifPresent(params -> {
+          BtsProperties.OAUTH_ACCESS_KEY.getParam(params)
+              .ifPresent(key -> BtsProperties.OAUTH_ACCESS_KEY.setParam(it.getParams(),
+                  encryptor.encrypt(key)));
+          BtsProperties.PASSWORD.getParam(params)
+              .ifPresent(
+                  pass -> BtsProperties.PASSWORD.setParam(it.getParams(), encryptor.encrypt(pass)));
+        }));
+    LOGGER.debug("Migration of rally secrets has been finished");
+  }
 
 }

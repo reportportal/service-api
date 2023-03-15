@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
  */
 public interface UpdateProjectNotificationHandler {
 
-	OperationCompletionRS updateNotification(Project project, SenderCaseDTO updateNotificationRQ, ReportPortalUser user);
+  OperationCompletionRS updateNotification(Project project, SenderCaseDTO updateNotificationRQ,
+      ReportPortalUser user);
 
 }

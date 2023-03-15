@@ -16,19 +16,18 @@
 
 package com.epam.ta.reportportal.core.widget.content.updater.validator;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.collections.CollectionUtils;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
 
 /**
  * Content loader for {@link com.epam.ta.reportportal.entity.widget.WidgetType#TOP_TEST_CASES}
@@ -38,21 +37,23 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 @Service
 public class TopTestCasesContentValidator implements WidgetValidatorStrategy {
 
-	@Override
-	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions, int limit) {
-		validateContentFields(contentFields);
-	}
+  @Override
+  public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping,
+      WidgetOptions widgetOptions, int limit) {
+    validateContentFields(contentFields);
+  }
 
-	/**
-	 * Validate provided content fields. For current widget it should be only one field specified in content fields.
-	 * Example is 'executions$failed', so widget would be created by 'failed' criteria.
-	 *
-	 * @param contentFields List of provided content.
-	 */
-	private void validateContentFields(List<String> contentFields) {
-		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
-		BusinessRule.expect(contentFields.size(), Predicate.isEqual(1))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Only one content field could be specified.");
-	}
+  /**
+   * Validate provided content fields. For current widget it should be only one field specified in
+   * content fields. Example is 'executions$failed', so widget would be created by 'failed'
+   * criteria.
+   *
+   * @param contentFields List of provided content.
+   */
+  private void validateContentFields(List<String> contentFields) {
+    BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
+        .verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
+    BusinessRule.expect(contentFields.size(), Predicate.isEqual(1))
+        .verify(ErrorType.BAD_REQUEST_ERROR, "Only one content field could be specified.");
+  }
 }

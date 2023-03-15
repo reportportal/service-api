@@ -15,6 +15,9 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.LAUNCH;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.FINISH_LAUNCH;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.ProjectIdAwareEvent;
@@ -23,111 +26,109 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.LAUNCH;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.FINISH_LAUNCH;
-
 /**
  * Lifecycle events.
  *
  * @author Andrei Varabyeu
  */
-public class LaunchFinishedEvent extends AbstractEvent implements ActivityEvent, ProjectIdAwareEvent {
+public class LaunchFinishedEvent extends AbstractEvent implements ActivityEvent,
+    ProjectIdAwareEvent {
 
-	private Long id;
-	private String name;
-	private LaunchModeEnum mode;
+  private Long id;
+  private String name;
+  private LaunchModeEnum mode;
 
-	private Long projectId;
+  private Long projectId;
 
-	private ReportPortalUser user;
+  private ReportPortalUser user;
 
-	private String baseUrl;
+  private String baseUrl;
 
-	public LaunchFinishedEvent(Launch launch) {
-		this.id = launch.getId();
-		this.name = launch.getName();
-		this.mode = launch.getMode();
-		this.projectId = launch.getProjectId();
-	}
+  public LaunchFinishedEvent(Launch launch) {
+    this.id = launch.getId();
+    this.name = launch.getName();
+    this.mode = launch.getMode();
+    this.projectId = launch.getProjectId();
+  }
 
-	public LaunchFinishedEvent(Launch launch, Long userId, String userLogin) {
-		super(userId, userLogin);
-		this.id = launch.getId();
-		this.name = launch.getName();
-		this.mode = launch.getMode();
-		this.projectId = launch.getProjectId();
-	}
+  public LaunchFinishedEvent(Launch launch, Long userId, String userLogin) {
+    super(userId, userLogin);
+    this.id = launch.getId();
+    this.name = launch.getName();
+    this.mode = launch.getMode();
+    this.projectId = launch.getProjectId();
+  }
 
-	public LaunchFinishedEvent(Launch launch, Long userId, String userLogin, String baseUrl) {
-		this(launch, userId, userLogin);
-		this.baseUrl = baseUrl;
-	}
+  public LaunchFinishedEvent(Launch launch, Long userId, String userLogin, String baseUrl) {
+    this(launch, userId, userLogin);
+    this.baseUrl = baseUrl;
+  }
 
-	public LaunchFinishedEvent(Launch launch, ReportPortalUser user, String baseUrl) {
-		this(launch, user.getUserId(), user.getUsername());
-		this.user = user;
-		this.baseUrl = baseUrl;
-	}
+  public LaunchFinishedEvent(Launch launch, ReportPortalUser user, String baseUrl) {
+    this(launch, user.getUserId(), user.getUsername());
+    this.user = user;
+    this.baseUrl = baseUrl;
+  }
 
-	public Long getId() {
-		return id;
-	}
+  public Long getId() {
+    return id;
+  }
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-	public String getName() {
-		return name;
-	}
+  public String getName() {
+    return name;
+  }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+  public void setName(String name) {
+    this.name = name;
+  }
 
-	public LaunchModeEnum getMode() {
-		return mode;
-	}
+  public LaunchModeEnum getMode() {
+    return mode;
+  }
 
-	public void setMode(LaunchModeEnum mode) {
-		this.mode = mode;
-	}
+  public void setMode(LaunchModeEnum mode) {
+    this.mode = mode;
+  }
 
-	@Override
-	public Long getProjectId() {
-		return projectId;
-	}
+  @Override
+  public Long getProjectId() {
+    return projectId;
+  }
 
-	public void setProjectId(Long projectId) {
-		this.projectId = projectId;
-	}
+  public void setProjectId(Long projectId) {
+    this.projectId = projectId;
+  }
 
-	public String getBaseUrl() {
-		return baseUrl;
-	}
+  public String getBaseUrl() {
+    return baseUrl;
+  }
 
-	public void setBaseUrl(String baseUrl) {
-		this.baseUrl = baseUrl;
-	}
+  public void setBaseUrl(String baseUrl) {
+    this.baseUrl = baseUrl;
+  }
 
-	public ReportPortalUser getUser() {
-		return user;
-	}
+  public ReportPortalUser getUser() {
+    return user;
+  }
 
-	public void setUser(ReportPortalUser user) {
-		this.user = user;
-	}
+  public void setUser(ReportPortalUser user) {
+    this.user = user;
+  }
 
-	@Override
-	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(FINISH_LAUNCH)
-				.addActivityEntityType(LAUNCH)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(id)
-				.addObjectName(name)
-				.addProjectId(projectId)
-				.get();
-	}
+  @Override
+  public Activity toActivity() {
+    return new ActivityBuilder().addCreatedNow()
+        .addAction(FINISH_LAUNCH)
+        .addActivityEntityType(LAUNCH)
+        .addUserId(getUserId())
+        .addUserName(getUserLogin())
+        .addObjectId(id)
+        .addObjectName(name)
+        .addProjectId(projectId)
+        .get();
+  }
 }

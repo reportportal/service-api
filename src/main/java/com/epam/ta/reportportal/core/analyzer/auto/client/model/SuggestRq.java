@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.analyzer.auto.client.model;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.fasterxml.jackson.annotation.JsonInclude;
-
 import java.util.Set;
 
 /**
@@ -27,96 +26,96 @@ import java.util.Set;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SuggestRq {
 
-	private Long testItemId;
+  private Long testItemId;
 
-	private String uniqueId;
+  private String uniqueId;
 
-	private Integer testCaseHash;
+  private Integer testCaseHash;
 
-	private Long clusterId;
+  private Long clusterId;
 
-	private Long launchId;
+  private Long launchId;
 
-	private String launchName;
+  private String launchName;
 
-	private Long project;
+  private Long project;
 
-	private AnalyzerConfig analyzerConfig;
+  private AnalyzerConfig analyzerConfig;
 
-	private Set<IndexLog> logs;
+  private Set<IndexLog> logs;
 
-	public SuggestRq() {
-	}
+  public SuggestRq() {
+  }
 
-	public Long getTestItemId() {
-		return testItemId;
-	}
+  public Long getTestItemId() {
+    return testItemId;
+  }
 
-	public void setTestItemId(Long testItemId) {
-		this.testItemId = testItemId;
-	}
+  public void setTestItemId(Long testItemId) {
+    this.testItemId = testItemId;
+  }
 
-	public String getUniqueId() {
-		return uniqueId;
-	}
+  public String getUniqueId() {
+    return uniqueId;
+  }
 
-	public void setUniqueId(String uniqueId) {
-		this.uniqueId = uniqueId;
-	}
+  public void setUniqueId(String uniqueId) {
+    this.uniqueId = uniqueId;
+  }
 
-	public Integer getTestCaseHash() {
-		return testCaseHash;
-	}
+  public Integer getTestCaseHash() {
+    return testCaseHash;
+  }
 
-	public void setTestCaseHash(Integer testCaseHash) {
-		this.testCaseHash = testCaseHash;
-	}
+  public void setTestCaseHash(Integer testCaseHash) {
+    this.testCaseHash = testCaseHash;
+  }
 
-	public Long getClusterId() {
-		return clusterId;
-	}
+  public Long getClusterId() {
+    return clusterId;
+  }
 
-	public void setClusterId(Long clusterId) {
-		this.clusterId = clusterId;
-	}
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
+  }
 
-	public Long getLaunchId() {
-		return launchId;
-	}
+  public Long getLaunchId() {
+    return launchId;
+  }
 
-	public void setLaunchId(Long launchId) {
-		this.launchId = launchId;
-	}
+  public void setLaunchId(Long launchId) {
+    this.launchId = launchId;
+  }
 
-	public String getLaunchName() {
-		return launchName;
-	}
+  public String getLaunchName() {
+    return launchName;
+  }
 
-	public void setLaunchName(String launchName) {
-		this.launchName = launchName;
-	}
+  public void setLaunchName(String launchName) {
+    this.launchName = launchName;
+  }
 
-	public Long getProject() {
-		return project;
-	}
+  public Long getProject() {
+    return project;
+  }
 
-	public void setProject(Long project) {
-		this.project = project;
-	}
+  public void setProject(Long project) {
+    this.project = project;
+  }
 
-	public AnalyzerConfig getAnalyzerConfig() {
-		return analyzerConfig;
-	}
+  public AnalyzerConfig getAnalyzerConfig() {
+    return analyzerConfig;
+  }
 
-	public void setAnalyzerConfig(AnalyzerConfig analyzerConfig) {
-		this.analyzerConfig = analyzerConfig;
-	}
+  public void setAnalyzerConfig(AnalyzerConfig analyzerConfig) {
+    this.analyzerConfig = analyzerConfig;
+  }
 
-	public Set<IndexLog> getLogs() {
-		return logs;
-	}
+  public Set<IndexLog> getLogs() {
+    return logs;
+  }
 
-	public void setLogs(Set<IndexLog> logs) {
-		this.logs = logs;
-	}
+  public void setLogs(Set<IndexLog> logs) {
+    this.logs = logs;
+  }
 }

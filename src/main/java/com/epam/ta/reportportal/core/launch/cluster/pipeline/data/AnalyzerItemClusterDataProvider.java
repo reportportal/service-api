@@ -25,36 +25,36 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
-import org.apache.commons.collections4.CollectionUtils;
-
 import java.util.List;
 import java.util.Optional;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class AnalyzerItemClusterDataProvider extends AnalyzerClusterDataProvider {
 
-	private final GetLaunchHandler getLaunchHandler;
-	private final TestItemRepository testItemRepository;
-	private final LaunchPreparerService launchPreparerService;
+  private final GetLaunchHandler getLaunchHandler;
+  private final TestItemRepository testItemRepository;
+  private final LaunchPreparerService launchPreparerService;
 
-	public AnalyzerItemClusterDataProvider(AnalyzerServiceClient analyzerServiceClient, GetLaunchHandler getLaunchHandler,
-			TestItemRepository testItemRepository, LaunchPreparerService launchPreparerService) {
-		super(analyzerServiceClient);
-		this.getLaunchHandler = getLaunchHandler;
-		this.testItemRepository = testItemRepository;
-		this.launchPreparerService = launchPreparerService;
-	}
+  public AnalyzerItemClusterDataProvider(AnalyzerServiceClient analyzerServiceClient,
+      GetLaunchHandler getLaunchHandler,
+      TestItemRepository testItemRepository, LaunchPreparerService launchPreparerService) {
+    super(analyzerServiceClient);
+    this.getLaunchHandler = getLaunchHandler;
+    this.testItemRepository = testItemRepository;
+    this.launchPreparerService = launchPreparerService;
+  }
 
-	@Override
-	protected Optional<IndexLaunch> prepareIndexLaunch(GenerateClustersConfig config) {
-		final ClusterEntityContext entityContext = config.getEntityContext();
-		if (CollectionUtils.isEmpty(entityContext.getItemIds())) {
-			return Optional.empty();
-		}
-		final Launch launch = getLaunchHandler.get(entityContext.getLaunchId());
-		final List<TestItem> testItems = testItemRepository.findAllById(entityContext.getItemIds());
-		return launchPreparerService.prepare(launch, testItems, config.getAnalyzerConfig());
-	}
+  @Override
+  protected Optional<IndexLaunch> prepareIndexLaunch(GenerateClustersConfig config) {
+    final ClusterEntityContext entityContext = config.getEntityContext();
+    if (CollectionUtils.isEmpty(entityContext.getItemIds())) {
+      return Optional.empty();
+    }
+    final Launch launch = getLaunchHandler.get(entityContext.getLaunchId());
+    final List<TestItem> testItems = testItemRepository.findAllById(entityContext.getItemIds());
+    return launchPreparerService.prepare(launch, testItems, config.getAnalyzerConfig());
+  }
 }

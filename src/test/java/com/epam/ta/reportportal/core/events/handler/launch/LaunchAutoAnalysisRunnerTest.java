@@ -16,6 +16,12 @@
 
 package com.epam.ta.reportportal.core.events.handler.launch;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
 import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
@@ -28,38 +34,34 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.collect.ImmutableMap;
-import org.junit.jupiter.api.Test;
-
 import java.util.Map;
-
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class LaunchAutoAnalysisRunnerTest {
 
-	private final LaunchAutoAnalysisStarter starter = mock(LaunchAutoAnalysisStarter.class);
+  private final LaunchAutoAnalysisStarter starter = mock(LaunchAutoAnalysisStarter.class);
 
-	private final LaunchAutoAnalysisRunner runner = new LaunchAutoAnalysisRunner(starter);
+  private final LaunchAutoAnalysisRunner runner = new LaunchAutoAnalysisRunner(starter);
 
-	@Test
-	void shouldAnalyzeWhenEnabled() {
+  @Test
+  void shouldAnalyzeWhenEnabled() {
 
-		final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
-		final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, launch.getProjectId());
-		final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl");
+    final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER,
+        launch.getProjectId());
+    final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl");
 
-		final Map<String, String> projectConfig = ImmutableMap.<String, String>builder()
-				.put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), "true")
-				.build();
+    final Map<String, String> projectConfig = ImmutableMap.<String, String>builder()
+        .put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), "true")
+        .build();
 
-		runner.handle(event, projectConfig);
+    runner.handle(event, projectConfig);
 
-		verify(starter, times(1)).start(any(StartLaunchAutoAnalysisConfig.class));
+    verify(starter, times(1)).start(any(StartLaunchAutoAnalysisConfig.class));
 
-	}
+  }
 
 }

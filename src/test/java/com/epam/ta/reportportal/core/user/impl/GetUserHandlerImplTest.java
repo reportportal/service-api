@@ -16,6 +16,15 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -24,18 +33,12 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.UserBidRS;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -43,79 +46,80 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class GetUserHandlerImplTest {
 
-	@Mock
-	private UserRepository userRepository;
+  @Mock
+  private UserRepository userRepository;
 
-	@Mock
-	private UserCreationBidRepository userCreationBidRepository;
+  @Mock
+  private UserCreationBidRepository userCreationBidRepository;
 
-	@InjectMocks
-	private GetUserHandlerImpl handler;
+  @InjectMocks
+  private GetUserHandlerImpl handler;
 
-	@Test
-	void getNotExistedUserByUsername() {
-		when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
+  @Test
+  void getNotExistedUserByUsername() {
+    when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getUser("not_exist", getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L))
-		);
-		assertEquals("User 'not_exist' not found.", exception.getMessage());
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.getUser("not_exist", getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L))
+    );
+    assertEquals("User 'not_exist' not found.", exception.getMessage());
+  }
 
-	@Test
-	void getNotExistedUserByLoggedInUser() {
-		when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
+  @Test
+  void getNotExistedUserByLoggedInUser() {
+    when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getUser(getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L))
-		);
-		assertEquals("User 'not_exist' not found.", exception.getMessage());
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.getUser(getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L))
+    );
+    assertEquals("User 'not_exist' not found.", exception.getMessage());
+  }
 
-	@Test
-	void getEmptyBidInfo() {
-		String uuid = "uuid";
+  @Test
+  void getEmptyBidInfo() {
+    String uuid = "uuid";
 
-		when(userCreationBidRepository.findByUuidAndType(uuid, INTERNAL_BID_TYPE)).thenReturn(Optional.empty());
+    when(userCreationBidRepository.findByUuidAndType(uuid, INTERNAL_BID_TYPE)).thenReturn(
+        Optional.empty());
 
-		UserBidRS bidInformation = handler.getBidInformation(uuid);
-		assertFalse(bidInformation.getIsActive());
-		assertNull(bidInformation.getEmail());
-		assertNull(bidInformation.getUuid());
-	}
+    UserBidRS bidInformation = handler.getBidInformation(uuid);
+    assertFalse(bidInformation.getIsActive());
+    assertNull(bidInformation.getEmail());
+    assertNull(bidInformation.getUuid());
+  }
 
-	@Test
-	void validateInfoByNotExistUsername() {
-		String username = "not_exist";
-		when(userRepository.findByLogin(username)).thenReturn(Optional.empty());
+  @Test
+  void validateInfoByNotExistUsername() {
+    String username = "not_exist";
+    when(userRepository.findByLogin(username)).thenReturn(Optional.empty());
 
-		YesNoRS yesNoRS = handler.validateInfo(username, null);
+    YesNoRS yesNoRS = handler.validateInfo(username, null);
 
-		assertFalse(yesNoRS.getIs());
-	}
+    assertFalse(yesNoRS.getIs());
+  }
 
-	@Test
-	void validateInfoByExistEmail() {
-		String email = "exist@domain.com";
-		when(userRepository.findByEmail(email)).thenReturn(Optional.of(new User()));
+  @Test
+  void validateInfoByExistEmail() {
+    String email = "exist@domain.com";
+    when(userRepository.findByEmail(email)).thenReturn(Optional.of(new User()));
 
-		YesNoRS yesNoRS = handler.validateInfo(null, email);
+    YesNoRS yesNoRS = handler.validateInfo(null, email);
 
-		assertTrue(yesNoRS.getIs());
-	}
+    assertTrue(yesNoRS.getIs());
+  }
 
-	@Test
-	void validateInfoByNotExistEmail() {
-		String email = "not_exist@domain.com";
-		when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+  @Test
+  void validateInfoByNotExistEmail() {
+    String email = "not_exist@domain.com";
+    when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
-		YesNoRS yesNoRS = handler.validateInfo(null, email);
+    YesNoRS yesNoRS = handler.validateInfo(null, email);
 
-		assertFalse(yesNoRS.getIs());
-	}
+    assertFalse(yesNoRS.getIs());
+  }
 
-	@Test
-	void validateInfoNullRequest() {
-		assertFalse(handler.validateInfo(null, null).getIs());
-	}
+  @Test
+  void validateInfoNullRequest() {
+    assertFalse(handler.validateInfo(null, null).getIs());
+  }
 }

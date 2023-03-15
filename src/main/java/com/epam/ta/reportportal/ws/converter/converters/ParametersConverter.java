@@ -17,7 +17,6 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
-
 import java.util.function.Function;
 
 /**
@@ -27,22 +26,22 @@ import java.util.function.Function;
  */
 public final class ParametersConverter {
 
-	private ParametersConverter() {
-		//static only
-	}
+  private ParametersConverter() {
+    //static only
+  }
 
-	public static final Function<ParameterResource, Parameter> TO_MODEL = resource -> {
-		Parameter parameters = new Parameter();
-		parameters.setKey(resource.getKey());
-		parameters.setValue(resource.getValue());
-		return parameters;
-	};
+  public static final Function<ParameterResource, Parameter> TO_MODEL = resource -> {
+    Parameter parameters = new Parameter();
+    parameters.setKey(resource.getKey());
+    parameters.setValue(resource.getValue());
+    return parameters;
+  };
 
-	public static final Function<Parameter, ParameterResource> TO_RESOURCE = model -> {
-		ParameterResource parameter = new ParameterResource();
-		parameter.setKey(model.getKey());
-		parameter.setValue(model.getValue());
-		return parameter;
-	};
+  public static final Function<Parameter, ParameterResource> TO_RESOURCE = model -> {
+    ParameterResource parameter = new ParameterResource();
+    parameter.setKey(model.getKey());
+    parameter.setValue(model.getValue());
+    return parameter;
+  };
 
 }

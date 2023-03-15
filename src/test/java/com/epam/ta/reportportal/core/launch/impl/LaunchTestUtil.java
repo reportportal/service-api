@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.User;
-
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -29,25 +28,25 @@ import java.util.Optional;
  */
 public class LaunchTestUtil {
 
-	private LaunchTestUtil() {
-		//static only
-	}
+  private LaunchTestUtil() {
+    //static only
+  }
 
-	public static Optional<Launch> getLaunch(StatusEnum status, LaunchModeEnum mode) {
-		Launch launch = new Launch();
-		launch.setId(1L);
-		launch.setNumber(1L);
-		launch.setProjectId(1L);
-		launch.setStatus(status);
-		launch.setStartTime(LocalDateTime.now().minusHours(3));
-		User user = new User();
-		user.setId(1L);
-		user.setLogin("owner");
-		launch.setUserId(user.getId());
-		launch.setMode(mode);
-		launch.setUuid("uuid");
-		launch.setDescription("description");
-		launch.setName("launch name");
-		return Optional.of(launch);
-	}
+  public static Optional<Launch> getLaunch(StatusEnum status, LaunchModeEnum mode) {
+    Launch launch = new Launch();
+    launch.setId(1L);
+    launch.setNumber(1L);
+    launch.setProjectId(1L);
+    launch.setStatus(status);
+    launch.setStartTime(LocalDateTime.now().minusHours(3));
+    User user = new User();
+    user.setId(1L);
+    user.setLogin("owner");
+    launch.setUserId(user.getId());
+    launch.setMode(mode);
+    launch.setUuid("uuid");
+    launch.setDescription("description");
+    launch.setName("launch name");
+    return Optional.of(launch);
+  }
 }

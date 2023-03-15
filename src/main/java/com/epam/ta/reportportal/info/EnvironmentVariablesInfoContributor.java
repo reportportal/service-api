@@ -17,11 +17,10 @@
 package com.epam.ta.reportportal.info;
 
 import com.google.common.collect.ImmutableMap;
-import org.springframework.boot.actuate.info.MapInfoContributor;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.boot.actuate.info.MapInfoContributor;
+import org.springframework.stereotype.Component;
 
 /**
  * Collects provided environment variables with rp prefix.
@@ -31,15 +30,16 @@ import java.util.stream.Collectors;
 @Component
 public class EnvironmentVariablesInfoContributor extends MapInfoContributor {
 
-	private static final String RP_ENV_PREFIX = "RP_ENVIRONMENT_VARIABLE_";
+  private static final String RP_ENV_PREFIX = "RP_ENVIRONMENT_VARIABLE_";
 
-	public EnvironmentVariablesInfoContributor() {
-		super(ImmutableMap.<String, Object>builder().put("environment",
-				System.getenv()
-						.entrySet()
-						.stream()
-						.filter(it -> it.getKey().startsWith(RP_ENV_PREFIX))
-						.collect(Collectors.toMap(e -> e.getKey().replaceFirst(RP_ENV_PREFIX, "").toLowerCase(), Map.Entry::getValue))
-		).build());
-	}
+  public EnvironmentVariablesInfoContributor() {
+    super(ImmutableMap.<String, Object>builder().put("environment",
+        System.getenv()
+            .entrySet()
+            .stream()
+            .filter(it -> it.getKey().startsWith(RP_ENV_PREFIX))
+            .collect(Collectors.toMap(e -> e.getKey().replaceFirst(RP_ENV_PREFIX, "").toLowerCase(),
+                Map.Entry::getValue))
+    ).build());
+  }
 }

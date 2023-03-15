@@ -16,6 +16,10 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -28,10 +32,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.core.AmqpTemplate;
 
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-
 /**
  * @author Konstantin Antipin
  */
@@ -39,22 +39,24 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class FinishLaunchHandlerAsyncImplTest {
 
-    @Mock
-    AmqpTemplate amqpTemplate;
+  @Mock
+  AmqpTemplate amqpTemplate;
 
-    @Mock
-    ReportingQueueService reportingQueueService;
+  @Mock
+  ReportingQueueService reportingQueueService;
 
-    @InjectMocks
-    FinishLaunchHandlerAsyncImpl finishLaunchHandlerAsync;
+  @InjectMocks
+  FinishLaunchHandlerAsyncImpl finishLaunchHandlerAsync;
 
-    @Test
-    void finishLaunch() {
-        FinishExecutionRQ request = new FinishExecutionRQ();
-        ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+  @Test
+  void finishLaunch() {
+    FinishExecutionRQ request = new FinishExecutionRQ();
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+        1L);
 
-        finishLaunchHandlerAsync.finishLaunch("0", request, user.getProjectDetails().get("test_project"), user, "http://base");
-        verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
-        verify(reportingQueueService).getReportingQueueKey(any());
-    }
+    finishLaunchHandlerAsync.finishLaunch("0", request,
+        user.getProjectDetails().get("test_project"), user, "http://base");
+    verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
+    verify(reportingQueueService).getReportingQueueKey(any());
+  }
 }

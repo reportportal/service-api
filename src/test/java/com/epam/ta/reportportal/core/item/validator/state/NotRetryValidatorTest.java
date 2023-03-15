@@ -20,33 +20,31 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class NotRetryValidatorTest {
 
-	private final NotRetryValidator validator = new NotRetryValidator();
+  private final NotRetryValidator validator = new NotRetryValidator();
 
-	@Test
-	void shouldReturnTrueWhenRetryOfIsNullAndLaunchIdIsNotNull() {
-		final TestItem testItem = new TestItem();
-		testItem.setLaunchId(1L);
-		Assertions.assertTrue(validator.validate(testItem));
-	}
+  @Test
+  void shouldReturnTrueWhenRetryOfIsNullAndLaunchIdIsNotNull() {
+    final TestItem testItem = new TestItem();
+    testItem.setLaunchId(1L);
+    Assertions.assertTrue(validator.validate(testItem));
+  }
 
-	@Test
-	void shouldReturnFalseWhenRetryOfIsNotNull() {
-		final TestItem testItem = new TestItem();
-		testItem.setRetryOf(1L);
-		Assertions.assertFalse(validator.validate(testItem));
-	}
+  @Test
+  void shouldReturnFalseWhenRetryOfIsNotNull() {
+    final TestItem testItem = new TestItem();
+    testItem.setRetryOf(1L);
+    Assertions.assertFalse(validator.validate(testItem));
+  }
 
-	@Test
-	void shouldReturnFalseWhenLaunchIdIsNull() {
-		final TestItem testItem = new TestItem();
-		Assertions.assertFalse(validator.validate(testItem));
-	}
+  @Test
+  void shouldReturnFalseWhenLaunchIdIsNull() {
+    final TestItem testItem = new TestItem();
+    Assertions.assertFalse(validator.validate(testItem));
+  }
 
 }

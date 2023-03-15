@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.events.handler;
 
+import static com.epam.ta.reportportal.util.MultipartFileUtils.getMultipartFile;
+
 import com.epam.ta.reportportal.binary.UserBinaryDataService;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
@@ -31,8 +33,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.epam.ta.reportportal.util.MultipartFileUtils.getMultipartFile;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
@@ -41,31 +41,35 @@ import static com.epam.ta.reportportal.util.MultipartFileUtils.getMultipartFile;
 @Transactional
 public class AttachDefaultPhotoEventHandler {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(UserCreatedEvent.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(UserCreatedEvent.class);
 
-	private final UserRepository userRepository;
+  private final UserRepository userRepository;
 
-	private final UserBinaryDataService userBinaryDataService;
+  private final UserBinaryDataService userBinaryDataService;
 
-	@Autowired
-	public AttachDefaultPhotoEventHandler(UserRepository userRepository, UserBinaryDataService userBinaryDataService) {
-		this.userRepository = userRepository;
-		this.userBinaryDataService = userBinaryDataService;
-	}
+  @Autowired
+  public AttachDefaultPhotoEventHandler(UserRepository userRepository,
+      UserBinaryDataService userBinaryDataService) {
+    this.userRepository = userRepository;
+    this.userBinaryDataService = userBinaryDataService;
+  }
 
-	@EventListener
-	public void handleContextRefresh(ContextRefreshedEvent event) {
-		userRepository.findByLogin("superadmin").ifPresent(it -> attachPhoto(it, "image/superAdminPhoto.jpg"));
-		userRepository.findByLogin("default").ifPresent(it -> attachPhoto(it, "image/defaultUserPhoto.jpg"));
-	}
+  @EventListener
+  public void handleContextRefresh(ContextRefreshedEvent event) {
+    userRepository.findByLogin("superadmin")
+        .ifPresent(it -> attachPhoto(it, "image/superAdminPhoto.jpg"));
+    userRepository.findByLogin("default")
+        .ifPresent(it -> attachPhoto(it, "image/defaultUserPhoto.jpg"));
+  }
 
-	private void attachPhoto(User user, String photoPath) {
-		if (StringUtils.isEmpty(user.getAttachment())) {
-			try {
-				userBinaryDataService.saveUserPhoto(user, getMultipartFile(photoPath));
-			} catch (Exception exception) {
-				LOGGER.error(Suppliers.formattedSupplier("Cannot attach default photo to user '{}'.", user.getLogin()).get(), exception);
-			}
-		}
-	}
+  private void attachPhoto(User user, String photoPath) {
+    if (StringUtils.isEmpty(user.getAttachment())) {
+      try {
+        userBinaryDataService.saveUserPhoto(user, getMultipartFile(photoPath));
+      } catch (Exception exception) {
+        LOGGER.error(Suppliers.formattedSupplier("Cannot attach default photo to user '{}'.",
+            user.getLogin()).get(), exception);
+      }
+    }
+  }
 }

@@ -16,47 +16,46 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
+
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
 import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
-import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
-
-import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 class UserCreatedEventTest {
 
-	private static Activity getExpectedActivity() {
-		Activity activity = new Activity();
-		activity.setAction(ActivityAction.CREATE_USER.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.USER.getValue());
-		activity.setUserId(1L);
-		activity.setUsername("user");
-		activity.setProjectId(3L);
-		activity.setObjectId(2L);
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails("Jaja Juja"));
-		return activity;
-	}
+  private static Activity getExpectedActivity() {
+    Activity activity = new Activity();
+    activity.setAction(ActivityAction.CREATE_USER.getValue());
+    activity.setActivityEntityType(Activity.ActivityEntityType.USER.getValue());
+    activity.setUserId(1L);
+    activity.setUsername("user");
+    activity.setProjectId(3L);
+    activity.setObjectId(2L);
+    activity.setCreatedAt(LocalDateTime.now());
+    activity.setDetails(new ActivityDetails("Jaja Juja"));
+    return activity;
+  }
 
-	private static UserActivityResource getUser() {
-		UserActivityResource user = new UserActivityResource();
-		user.setId(2L);
-		user.setFullName("Jaja Juja");
-		user.setDefaultProjectId(3L);
-		return user;
-	}
+  private static UserActivityResource getUser() {
+    UserActivityResource user = new UserActivityResource();
+    user.setId(2L);
+    user.setFullName("Jaja Juja");
+    user.setDefaultProjectId(3L);
+    return user;
+  }
 
-	@Test
-	void toActivity() {
-		final Activity actual = new UserCreatedEvent(getUser(), 1L, "user").toActivity();
-		final Activity expected = getExpectedActivity();
-		checkActivity(expected, actual);
+  @Test
+  void toActivity() {
+    final Activity actual = new UserCreatedEvent(getUser(), 1L, "user").toActivity();
+    final Activity expected = getExpectedActivity();
+    checkActivity(expected, actual);
 
-	}
+  }
 }

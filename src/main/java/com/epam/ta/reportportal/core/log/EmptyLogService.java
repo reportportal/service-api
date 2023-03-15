@@ -1,49 +1,48 @@
 package com.epam.ta.reportportal.core.log;
 
 import com.epam.ta.reportportal.entity.log.Log;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Set;
+import org.springframework.stereotype.Service;
 
 @Service
 public class EmptyLogService implements LogService {
 
-    public EmptyLogService() {
-    }
+  public EmptyLogService() {
+  }
 
-    @Override
-    public void saveLogMessage(Log log, Long launchId) {
+  @Override
+  public void saveLogMessage(Log log, Long launchId) {
 
-    }
+  }
 
-    @Override
-    public void saveLogMessageList(List<Log> logList, Long launchId) {
+  @Override
+  public void saveLogMessageList(List<Log> logList, Long launchId) {
 
-    }
+  }
 
-    @Override
-    public void deleteLogMessage(Long projectId, Long logId) {
+  @Override
+  public void deleteLogMessage(Long projectId, Long logId) {
 
-    }
+  }
 
-    @Override
-    public void deleteLogMessageByTestItemSet(Long projectId, Set<Long> itemIds) {
+  @Override
+  public void deleteLogMessageByTestItemSet(Long projectId, Set<Long> itemIds) {
 
-    }
+  }
 
-    @Override
-    public void deleteLogMessageByLaunch(Long projectId, Long launchId) {
+  @Override
+  public void deleteLogMessageByLaunch(Long projectId, Long launchId) {
 
-    }
+  }
 
-    @Override
-    public void deleteLogMessageByLaunchList(Long projectId, List<Long> launchIds) {
+  @Override
+  public void deleteLogMessageByLaunchList(Long projectId, List<Long> launchIds) {
 
-    }
+  }
 
-    @Override
-    public void deleteLogMessageByProject(Long projectId) {
+  @Override
+  public void deleteLogMessageByProject(Long projectId) {
 
-    }
+  }
 }

@@ -21,5 +21,5 @@ package com.epam.ta.reportportal.util.message;
  */
 public interface MessageProvider<T> {
 
-	String provide(T source);
+  String provide(T source);
 }

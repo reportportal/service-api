@@ -21,13 +21,12 @@ import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
+import java.util.Collections;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -35,33 +34,33 @@ import java.util.List;
 @Component
 public class AutoAnalyzedCollector implements AnalyzeItemsCollector {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(AutoAnalyzedCollector.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AutoAnalyzedCollector.class);
 
-	private final TestItemRepository testItemRepository;
+  private final TestItemRepository testItemRepository;
 
-	private final LogIndexer logIndexer;
+  private final LogIndexer logIndexer;
 
-	private final UpdateTestItemHandler updateTestItemHandler;
+  private final UpdateTestItemHandler updateTestItemHandler;
 
-	@Autowired
-	public AutoAnalyzedCollector(TestItemRepository testItemRepository, LogIndexer logIndexer,
-			UpdateTestItemHandler updateTestItemHandler) {
-		this.testItemRepository = testItemRepository;
-		this.logIndexer = logIndexer;
-		this.updateTestItemHandler = updateTestItemHandler;
-	}
+  @Autowired
+  public AutoAnalyzedCollector(TestItemRepository testItemRepository, LogIndexer logIndexer,
+      UpdateTestItemHandler updateTestItemHandler) {
+    this.testItemRepository = testItemRepository;
+    this.logIndexer = logIndexer;
+    this.updateTestItemHandler = updateTestItemHandler;
+  }
 
-	@Override
-	public List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user) {
-		List<Long> itemIds = testItemRepository.selectIdsByAnalyzedWithLevelGteExcludingIssueTypes(true,
-				false,
-				launchId,
-				LogLevel.ERROR.toInt(),
-				Collections.emptyList()
-		);
-		int deletedLogsCount = logIndexer.indexItemsRemove(projectId, itemIds);
-		LOGGER.debug("{} logs deleted from analyzer", deletedLogsCount);
-		updateTestItemHandler.resetItemsIssue(itemIds, projectId, user);
-		return itemIds;
-	}
+  @Override
+  public List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user) {
+    List<Long> itemIds = testItemRepository.selectIdsByAnalyzedWithLevelGteExcludingIssueTypes(true,
+        false,
+        launchId,
+        LogLevel.ERROR.toInt(),
+        Collections.emptyList()
+    );
+    int deletedLogsCount = logIndexer.indexItemsRemove(projectId, itemIds);
+    LOGGER.debug("{} logs deleted from analyzer", deletedLogsCount);
+    updateTestItemHandler.resetItemsIssue(itemIds, projectId, user);
+    return itemIds;
+  }
 }

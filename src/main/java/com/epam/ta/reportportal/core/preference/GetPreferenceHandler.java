@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
  */
 public interface GetPreferenceHandler {
 
-	PreferenceResource getPreference(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+  PreferenceResource getPreference(ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user);
 
 }

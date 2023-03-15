@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -27,30 +26,30 @@ import java.util.stream.Collectors;
  */
 public enum AnalyzeItemsMode {
 
-	TO_INVESTIGATE("TO_INVESTIGATE"),
-	AUTO_ANALYZED("AUTO_ANALYZED"),
-	MANUALLY_ANALYZED("MANUALLY_ANALYZED");
+  TO_INVESTIGATE("TO_INVESTIGATE"),
+  AUTO_ANALYZED("AUTO_ANALYZED"),
+  MANUALLY_ANALYZED("MANUALLY_ANALYZED");
 
-	private String value;
+  private String value;
 
-	AnalyzeItemsMode(String value) {
-		this.value = value;
-	}
+  AnalyzeItemsMode(String value) {
+    this.value = value;
+  }
 
-	public static AnalyzeItemsMode fromString(String mode) {
-		return Arrays.stream(AnalyzeItemsMode.values())
-				.filter(it -> it.getValue().equalsIgnoreCase(mode))
-				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(
-						ErrorType.INCORRECT_REQUEST,
-						"Incorrect analyze items mode. Allowed are: " + Arrays.stream(AnalyzeItemsMode.values())
-								.map(AnalyzeItemsMode::getValue)
-								.collect(Collectors.toList())
-				));
-	}
+  public static AnalyzeItemsMode fromString(String mode) {
+    return Arrays.stream(AnalyzeItemsMode.values())
+        .filter(it -> it.getValue().equalsIgnoreCase(mode))
+        .findFirst()
+        .orElseThrow(() -> new ReportPortalException(
+            ErrorType.INCORRECT_REQUEST,
+            "Incorrect analyze items mode. Allowed are: " + Arrays.stream(AnalyzeItemsMode.values())
+                .map(AnalyzeItemsMode::getValue)
+                .collect(Collectors.toList())
+        ));
+  }
 
-	public String getValue() {
-		return value;
-	}
+  public String getValue() {
+    return value;
+  }
 
 }

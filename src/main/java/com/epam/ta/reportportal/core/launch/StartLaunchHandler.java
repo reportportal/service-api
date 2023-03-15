@@ -16,16 +16,15 @@
 
 package com.epam.ta.reportportal.core.launch;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
-
 import java.util.function.Predicate;
-
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 /**
  * Start Launch operation handler
@@ -34,27 +33,30 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
  */
 public interface StartLaunchHandler {
 
-	/**
-	 * Creates new launch for specified project
-	 *
-	 * @param user           ReportPortal user
-	 * @param projectDetails Project Details
-	 * @param startLaunchRQ  Request Data
-	 * @return StartLaunchRS
-	 */
-	StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ);
+  /**
+   * Creates new launch for specified project
+   *
+   * @param user           ReportPortal user
+   * @param projectDetails Project Details
+   * @param startLaunchRQ  Request Data
+   * @return StartLaunchRS
+   */
+  StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
+      StartLaunchRQ startLaunchRQ);
 
-	/**
-	 * Validate {@link ReportPortalUser} credentials. User with a {@link ProjectRole#CUSTOMER} role can't report
-	 * launches in a debug mode.
-	 *
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @param startLaunchRQ  {@link StartLaunchRQ}
-	 */
-	default void validateRoles(ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ) {
-		expect(
-				Mode.DEBUG.equals(startLaunchRQ.getMode()) && ProjectRole.CUSTOMER.equals(projectDetails.getProjectRole()),
-				Predicate.isEqual(false)
-		).verify(ErrorType.FORBIDDEN_OPERATION);
-	}
+  /**
+   * Validate {@link ReportPortalUser} credentials. User with a {@link ProjectRole#CUSTOMER} role
+   * can't report launches in a debug mode.
+   *
+   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param startLaunchRQ  {@link StartLaunchRQ}
+   */
+  default void validateRoles(ReportPortalUser.ProjectDetails projectDetails,
+      StartLaunchRQ startLaunchRQ) {
+    expect(
+        Mode.DEBUG.equals(startLaunchRQ.getMode()) && ProjectRole.CUSTOMER.equals(
+            projectDetails.getProjectRole()),
+        Predicate.isEqual(false)
+    ).verify(ErrorType.FORBIDDEN_OPERATION);
+  }
 }

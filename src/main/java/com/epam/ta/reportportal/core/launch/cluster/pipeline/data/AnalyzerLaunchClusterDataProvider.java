@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerS
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
-
 import java.util.Optional;
 
 /**
@@ -29,16 +28,17 @@ import java.util.Optional;
  */
 public class AnalyzerLaunchClusterDataProvider extends AnalyzerClusterDataProvider {
 
-	private final LaunchPreparerService launchPreparerService;
+  private final LaunchPreparerService launchPreparerService;
 
-	public AnalyzerLaunchClusterDataProvider(AnalyzerServiceClient analyzerServiceClient, LaunchPreparerService launchPreparerService) {
-		super(analyzerServiceClient);
-		this.launchPreparerService = launchPreparerService;
-	}
+  public AnalyzerLaunchClusterDataProvider(AnalyzerServiceClient analyzerServiceClient,
+      LaunchPreparerService launchPreparerService) {
+    super(analyzerServiceClient);
+    this.launchPreparerService = launchPreparerService;
+  }
 
-	@Override
-	protected Optional<IndexLaunch> prepareIndexLaunch(GenerateClustersConfig config) {
-		final ClusterEntityContext entityContext = config.getEntityContext();
-		return launchPreparerService.prepare(entityContext.getLaunchId(), config.getAnalyzerConfig());
-	}
+  @Override
+  protected Optional<IndexLaunch> prepareIndexLaunch(GenerateClustersConfig config) {
+    final ClusterEntityContext entityContext = config.getEntityContext();
+    return launchPreparerService.prepare(entityContext.getLaunchId(), config.getAnalyzerConfig());
+  }
 }

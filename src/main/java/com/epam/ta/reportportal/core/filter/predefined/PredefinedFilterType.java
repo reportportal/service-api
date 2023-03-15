@@ -24,22 +24,23 @@ import java.util.Optional;
  */
 public enum PredefinedFilterType {
 
-	COLLAPSED("collapsed"),
-	USERS("users"),
-	PROJECTS("projects"),
-	ACTIVITIES("activities");
+  COLLAPSED("collapsed"),
+  USERS("users"),
+  PROJECTS("projects"),
+  ACTIVITIES("activities");
 
-	private String type;
+  private String type;
 
-	PredefinedFilterType(String type) {
-		this.type = type;
-	}
+  PredefinedFilterType(String type) {
+    this.type = type;
+  }
 
-	public static Optional<PredefinedFilterType> fromString(String value) {
-		return Arrays.stream(PredefinedFilterType.values()).filter(it -> it.getType().equalsIgnoreCase(value)).findFirst();
-	}
+  public static Optional<PredefinedFilterType> fromString(String value) {
+    return Arrays.stream(PredefinedFilterType.values())
+        .filter(it -> it.getType().equalsIgnoreCase(value)).findFirst();
+  }
 
-	public String getType() {
-		return type;
-	}
+  public String getType() {
+    return type;
+  }
 }

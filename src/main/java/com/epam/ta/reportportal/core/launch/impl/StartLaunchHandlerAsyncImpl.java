@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.util.ReportingQueueService;
@@ -23,15 +25,12 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
 import com.epam.ta.reportportal.ws.rabbit.RequestType;
+import java.util.Map;
+import java.util.UUID;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
-import java.util.UUID;
-
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
 
 /**
  * @author Konstantin Antipin
@@ -40,30 +39,32 @@ import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguratio
 @Qualifier("startLaunchHandlerAsync")
 public class StartLaunchHandlerAsyncImpl implements StartLaunchHandler {
 
-	@Autowired
-	@Qualifier(value = "rabbitTemplate")
-	AmqpTemplate amqpTemplate;
+  @Autowired
+  @Qualifier(value = "rabbitTemplate")
+  AmqpTemplate amqpTemplate;
 
-	@Autowired
-	private ReportingQueueService reportingQueueService;
+  @Autowired
+  private ReportingQueueService reportingQueueService;
 
-	@Override
-	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ request) {
-		validateRoles(projectDetails, request);
+  @Override
+  public StartLaunchRS startLaunch(ReportPortalUser user,
+      ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ request) {
+    validateRoles(projectDetails, request);
 
-		if (request.getUuid() == null) {
-			request.setUuid(UUID.randomUUID().toString());
-		}
-		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, reportingQueueService.getReportingQueueKey(request.getUuid()), request, message -> {
-			Map<String, Object> headers = message.getMessageProperties().getHeaders();
-			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_LAUNCH);
-			headers.put(MessageHeaders.USERNAME, user.getUsername());
-			headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
-			return message;
-		});
+    if (request.getUuid() == null) {
+      request.setUuid(UUID.randomUUID().toString());
+    }
+    amqpTemplate.convertAndSend(EXCHANGE_REPORTING,
+        reportingQueueService.getReportingQueueKey(request.getUuid()), request, message -> {
+          Map<String, Object> headers = message.getMessageProperties().getHeaders();
+          headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_LAUNCH);
+          headers.put(MessageHeaders.USERNAME, user.getUsername());
+          headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
+          return message;
+        });
 
-		StartLaunchRS response = new StartLaunchRS();
-		response.setId(request.getUuid());
-		return response;
-	}
+    StartLaunchRS response = new StartLaunchRS();
+    response.setId(request.getUuid());
+    return response;
+  }
 }

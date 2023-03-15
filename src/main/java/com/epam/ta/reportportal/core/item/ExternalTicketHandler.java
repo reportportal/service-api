@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRQ;
-
 import java.util.List;
 import java.util.Set;
 
@@ -29,10 +28,12 @@ import java.util.Set;
  */
 public interface ExternalTicketHandler {
 
-	void linkExternalTickets(String submitter, List<IssueEntity> issueEntities, List<Issue.ExternalSystemIssue> tickets);
+  void linkExternalTickets(String submitter, List<IssueEntity> issueEntities,
+      List<Issue.ExternalSystemIssue> tickets);
 
-	void unlinkExternalTickets(List<TestItem> items, UnlinkExternalIssueRQ request);
+  void unlinkExternalTickets(List<TestItem> items, UnlinkExternalIssueRQ request);
 
-	void updateLinking(String submitter, IssueEntity newEntity, Set<Issue.ExternalSystemIssue> externalTickets);
+  void updateLinking(String submitter, IssueEntity newEntity,
+      Set<Issue.ExternalSystemIssue> externalTickets);
 
 }

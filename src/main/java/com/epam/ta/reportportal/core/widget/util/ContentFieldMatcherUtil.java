@@ -25,13 +25,13 @@ import java.util.regex.Pattern;
  */
 public final class ContentFieldMatcherUtil {
 
-	private ContentFieldMatcherUtil() {
-		//static only
-	}
+  private ContentFieldMatcherUtil() {
+    //static only
+  }
 
-	public static boolean match(final String patternValue, Collection<String> contentFields) {
-		Pattern pattern = Pattern.compile(patternValue);
-		return contentFields.stream().map(pattern::matcher).allMatch(Matcher::matches);
+  public static boolean match(final String patternValue, Collection<String> contentFields) {
+    Pattern pattern = Pattern.compile(patternValue);
+    return contentFields.stream().map(pattern::matcher).allMatch(Matcher::matches);
 
-	}
+  }
 }

@@ -26,21 +26,21 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
  */
 public interface DeleteProjectHandler {
 
-	/**
-	 * Delete specified project
-	 *
-	 * @param projectId Project id
-	 * @return Result of operation
-	 * @throws ReportPortalException
-	 */
-	OperationCompletionRS deleteProject(Long projectId);
+  /**
+   * Delete specified project
+   *
+   * @param projectId Project id
+   * @return Result of operation
+   * @throws ReportPortalException
+   */
+  OperationCompletionRS deleteProject(Long projectId);
 
-	/**
-	 * Delete project index
-	 *
-	 * @param projectName Project name
-	 * @param username    User name
-	 */
-	OperationCompletionRS deleteProjectIndex(String projectName, String username);
+  /**
+   * Delete project index
+   *
+   * @param projectName Project name
+   * @param username    User name
+   */
+  OperationCompletionRS deleteProjectIndex(String projectName, String username);
 
 }

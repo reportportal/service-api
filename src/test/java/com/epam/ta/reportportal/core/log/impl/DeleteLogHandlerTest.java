@@ -16,6 +16,16 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.TestItemService;
@@ -34,20 +44,13 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.collect.Sets;
+import java.util.Collections;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Collections;
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -55,157 +58,160 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class DeleteLogHandlerTest {
 
-	@Mock
-	private ProjectRepository projectRepository;
+  @Mock
+  private ProjectRepository projectRepository;
 
-	@Mock
-	private LogRepository logRepository;
+  @Mock
+  private LogRepository logRepository;
 
-	@Mock
-	private AttachmentRepository attachmentRepository;
+  @Mock
+  private AttachmentRepository attachmentRepository;
 
-	@Mock
-	private TestItemService testItemService;
+  @Mock
+  private TestItemService testItemService;
 
-	@Mock
-	private LogIndexer logIndexer;
+  @Mock
+  private LogIndexer logIndexer;
 
-	@Mock
-	private LogService logService;
+  @Mock
+  private LogService logService;
 
-	@InjectMocks
-	private DeleteLogHandlerImpl handler;
+  @InjectMocks
+  private DeleteLogHandlerImpl handler;
 
-	@Test
-	void deleteLogOnNotExistProject() {
-		long projectId = 1L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+  @Test
+  void deleteLogOnNotExistProject() {
+    long projectId = 1L;
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+        projectId);
 
-		when(projectRepository.existsById(projectId)).thenReturn(false);
+    when(projectRepository.existsById(projectId)).thenReturn(false);
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.deleteLog(1L, extractProjectDetails(user, "test_project"), user)
-		);
-		assertEquals("Project '1' not found. Did you use correct project name?", exception.getMessage());
-	}
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.deleteLog(1L, extractProjectDetails(user, "test_project"), user)
+    );
+    assertEquals("Project '1' not found. Did you use correct project name?",
+        exception.getMessage());
+  }
 
-	@Test
-	void deleteNotExistLog() {
-		long projectId = 1L;
-		long logId = 2L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+  @Test
+  void deleteNotExistLog() {
+    long projectId = 1L;
+    long logId = 2L;
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+        projectId);
 
-		when(projectRepository.existsById(projectId)).thenReturn(true);
-		when(logRepository.findById(logId)).thenReturn(Optional.empty());
+    when(projectRepository.existsById(projectId)).thenReturn(true);
+    when(logRepository.findById(logId)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user)
-		);
-		assertEquals("Log '2' not found. Did you use correct Log ID?", exception.getMessage());
-	}
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user)
+    );
+    assertEquals("Log '2' not found. Did you use correct Log ID?", exception.getMessage());
+  }
 
-	@Test
-	void deleteLogByNotOwner() {
-		long projectId = 1L;
-		long logId = 2L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
+  @Test
+  void deleteLogByNotOwner() {
+    long projectId = 1L;
+    long logId = 2L;
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
 
-		Log log = new Log();
-		TestItem testItem = new TestItem();
-		TestItemResults itemResults = new TestItemResults();
-		itemResults.setStatistics(Sets.newHashSet(new Statistics()));
-		testItem.setItemResults(itemResults);
-		Launch launch = new Launch();
-		launch.setId(1L);
-		launch.setProjectId(projectId);
-		User user1 = new User();
-		user1.setId(1L);
-		user1.setLogin("owner");
-		launch.setUserId(2L);
-		testItem.setLaunchId(launch.getId());
-		log.setTestItem(testItem);
+    Log log = new Log();
+    TestItem testItem = new TestItem();
+    TestItemResults itemResults = new TestItemResults();
+    itemResults.setStatistics(Sets.newHashSet(new Statistics()));
+    testItem.setItemResults(itemResults);
+    Launch launch = new Launch();
+    launch.setId(1L);
+    launch.setProjectId(projectId);
+    User user1 = new User();
+    user1.setId(1L);
+    user1.setLogin("owner");
+    launch.setUserId(2L);
+    testItem.setLaunchId(launch.getId());
+    log.setTestItem(testItem);
 
-		when(testItemService.getEffectiveLaunch(any(TestItem.class))).thenReturn(launch);
-		when(projectRepository.existsById(projectId)).thenReturn(true);
-		when(logRepository.findById(logId)).thenReturn(Optional.of(log));
+    when(testItemService.getEffectiveLaunch(any(TestItem.class))).thenReturn(launch);
+    when(projectRepository.existsById(projectId)).thenReturn(true);
+    when(logRepository.findById(logId)).thenReturn(Optional.of(log));
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user)
-		);
-		assertEquals("You do not have enough permissions.", exception.getMessage());
-	}
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user)
+    );
+    assertEquals("You do not have enough permissions.", exception.getMessage());
+  }
 
-	@Test
-	void cleanUpLogDataTest() {
-		long projectId = 1L;
-		long logId = 2L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
+  @Test
+  void cleanUpLogDataTest() {
+    long projectId = 1L;
+    long logId = 2L;
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
 
-		Log log = new Log();
-		TestItem testItem = new TestItem();
-		TestItemResults itemResults = new TestItemResults();
-		itemResults.setStatistics(Sets.newHashSet(new Statistics()));
-		testItem.setItemResults(itemResults);
-		Launch launch = new Launch();
-		launch.setId(1L);
-		launch.setProjectId(projectId);
-		User user1 = new User();
-		user1.setId(1L);
-		user1.setLogin("owner");
-		launch.setUserId(user1.getId());
-		testItem.setLaunchId(launch.getId());
-		log.setTestItem(testItem);
-		Attachment attachment = new Attachment();
-		String attachmentPath = "attachmentPath";
-		attachment.setFileId(attachmentPath);
-		String attachmentThumbnailPath = "attachmentThumbnail";
-		attachment.setThumbnailId(attachmentThumbnailPath);
-		log.setAttachment(attachment);
+    Log log = new Log();
+    TestItem testItem = new TestItem();
+    TestItemResults itemResults = new TestItemResults();
+    itemResults.setStatistics(Sets.newHashSet(new Statistics()));
+    testItem.setItemResults(itemResults);
+    Launch launch = new Launch();
+    launch.setId(1L);
+    launch.setProjectId(projectId);
+    User user1 = new User();
+    user1.setId(1L);
+    user1.setLogin("owner");
+    launch.setUserId(user1.getId());
+    testItem.setLaunchId(launch.getId());
+    log.setTestItem(testItem);
+    Attachment attachment = new Attachment();
+    String attachmentPath = "attachmentPath";
+    attachment.setFileId(attachmentPath);
+    String attachmentThumbnailPath = "attachmentThumbnail";
+    attachment.setThumbnailId(attachmentThumbnailPath);
+    log.setAttachment(attachment);
 
-		when(testItemService.getEffectiveLaunch(any(TestItem.class))).thenReturn(launch);
-		when(projectRepository.existsById(projectId)).thenReturn(true);
-		when(logRepository.findById(logId)).thenReturn(Optional.of(log));
+    when(testItemService.getEffectiveLaunch(any(TestItem.class))).thenReturn(launch);
+    when(projectRepository.existsById(projectId)).thenReturn(true);
+    when(logRepository.findById(logId)).thenReturn(Optional.of(log));
 
-		handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user);
+    handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user);
 
-		verify(logRepository, times(1)).delete(log);
-		verify(logIndexer, times(1)).cleanIndex(projectId, Collections.singletonList(logId));
-	}
+    verify(logRepository, times(1)).delete(log);
+    verify(logIndexer, times(1)).cleanIndex(projectId, Collections.singletonList(logId));
+  }
 
-	@Test
-	void cleanUpLogDataNegative() {
-		long projectId = 1L;
-		long logId = 2L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
+  @Test
+  void cleanUpLogDataNegative() {
+    long projectId = 1L;
+    long logId = 2L;
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
 
-		Log log = new Log();
-		TestItem testItem = new TestItem();
-		TestItemResults itemResults = new TestItemResults();
-		itemResults.setStatistics(Sets.newHashSet(new Statistics()));
-		testItem.setItemResults(itemResults);
-		Launch launch = new Launch();
-		launch.setId(1L);
-		launch.setProjectId(projectId);
-		User user1 = new User();
-		user1.setId(1L);
-		user1.setLogin("owner");
-		launch.setUserId(user1.getId());
-		testItem.setLaunchId(launch.getId());
-		log.setTestItem(testItem);
-		Attachment attachment = new Attachment();
-		String attachmentPath = "attachmentPath";
-		attachment.setFileId(attachmentPath);
-		String attachmentThumbnailPath = "attachmentThumbnail";
-		attachment.setThumbnailId(attachmentThumbnailPath);
-		log.setAttachment(attachment);
-		when(testItemService.getEffectiveLaunch(any(TestItem.class))).thenReturn(launch);
-		when(projectRepository.existsById(projectId)).thenReturn(true);
-		when(logRepository.findById(logId)).thenReturn(Optional.of(log));
-		doThrow(IllegalArgumentException.class).when(logRepository).delete(log);
+    Log log = new Log();
+    TestItem testItem = new TestItem();
+    TestItemResults itemResults = new TestItemResults();
+    itemResults.setStatistics(Sets.newHashSet(new Statistics()));
+    testItem.setItemResults(itemResults);
+    Launch launch = new Launch();
+    launch.setId(1L);
+    launch.setProjectId(projectId);
+    User user1 = new User();
+    user1.setId(1L);
+    user1.setLogin("owner");
+    launch.setUserId(user1.getId());
+    testItem.setLaunchId(launch.getId());
+    log.setTestItem(testItem);
+    Attachment attachment = new Attachment();
+    String attachmentPath = "attachmentPath";
+    attachment.setFileId(attachmentPath);
+    String attachmentThumbnailPath = "attachmentThumbnail";
+    attachment.setThumbnailId(attachmentThumbnailPath);
+    log.setAttachment(attachment);
+    when(testItemService.getEffectiveLaunch(any(TestItem.class))).thenReturn(launch);
+    when(projectRepository.existsById(projectId)).thenReturn(true);
+    when(logRepository.findById(logId)).thenReturn(Optional.of(log));
+    doThrow(IllegalArgumentException.class).when(logRepository).delete(log);
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user)
-		);
-		assertEquals("Error while Log instance deleting.", exception.getMessage());
-	}
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user)
+    );
+    assertEquals("Error while Log instance deleting.", exception.getMessage());
+  }
 }

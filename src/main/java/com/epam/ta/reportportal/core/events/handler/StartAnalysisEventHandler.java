@@ -29,24 +29,25 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 public class StartAnalysisEventHandler {
 
-	private final AnalyzerServiceAsync analyzerServiceAsync;
+  private final AnalyzerServiceAsync analyzerServiceAsync;
 
-	private final LogIndexer logIndexer;
+  private final LogIndexer logIndexer;
 
-	@Autowired
-	public StartAnalysisEventHandler(AnalyzerServiceAsync analyzerServiceAsync, LogIndexer logIndexer) {
-		this.analyzerServiceAsync = analyzerServiceAsync;
-		this.logIndexer = logIndexer;
-	}
+  @Autowired
+  public StartAnalysisEventHandler(AnalyzerServiceAsync analyzerServiceAsync,
+      LogIndexer logIndexer) {
+    this.analyzerServiceAsync = analyzerServiceAsync;
+    this.logIndexer = logIndexer;
+  }
 
-	@TransactionalEventListener
-	public void handleEvent(AnalysisEvent event) {
-		analyzerServiceAsync.analyze(event.getLaunch(), event.getItemIds(), event.getAnalyzerConfig())
-				.thenApply(it -> logIndexer.indexItemsLogs(event.getLaunch().getProjectId(),
-						event.getLaunch().getId(),
-						event.getItemIds(),
-						event.getAnalyzerConfig()
-				));
-	}
+  @TransactionalEventListener
+  public void handleEvent(AnalysisEvent event) {
+    analyzerServiceAsync.analyze(event.getLaunch(), event.getItemIds(), event.getAnalyzerConfig())
+        .thenApply(it -> logIndexer.indexItemsLogs(event.getLaunch().getProjectId(),
+            event.getLaunch().getId(),
+            event.getItemIds(),
+            event.getAnalyzerConfig()
+        ));
+  }
 
 }

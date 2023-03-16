@@ -20,22 +20,22 @@ package com.epam.ta.reportportal.core.imprt.impl;
  */
 public final class DateUtils {
 
-	private DateUtils() {
-		//static only
-	}
+  private DateUtils() {
+    //static only
+  }
 
-	/**
-	 * Converts string representation of seconds to millis
-	 *
-	 * @param duration String seconds
-	 * @return long millis
-	 */
-	public static long toMillis(String duration) {
-		if (null != duration) {
-			Double value = Double.valueOf(duration) * 1000;
-			return value.longValue();
-		}
-		return 0;
-	}
+  /**
+   * Converts string representation of seconds to millis
+   *
+   * @param duration String seconds
+   * @return long millis
+   */
+  public static long toMillis(String duration) {
+    if (null != duration) {
+      Double value = Double.valueOf(duration) * 1000;
+      return value.longValue();
+    }
+    return 0;
+  }
 
 }

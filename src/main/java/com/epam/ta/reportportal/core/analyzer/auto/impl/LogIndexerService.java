@@ -29,6 +29,11 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,140 +44,142 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Service
 public class LogIndexerService implements LogIndexer {
-	private static Logger LOGGER = LoggerFactory.getLogger(LogIndexerService.class);
 
-	private final BatchLogIndexer batchLogIndexer;
+  private static Logger LOGGER = LoggerFactory.getLogger(LogIndexerService.class);
 
-	private final TaskExecutor taskExecutor;
+  private final BatchLogIndexer batchLogIndexer;
 
-	private final LaunchRepository launchRepository;
+  private final TaskExecutor taskExecutor;
 
-	private final TestItemRepository testItemRepository;
+  private final LaunchRepository launchRepository;
 
-	private final IndexerServiceClient indexerServiceClient;
+  private final TestItemRepository testItemRepository;
 
-	private final LaunchPreparerService launchPreparerService;
+  private final IndexerServiceClient indexerServiceClient;
 
-	private final IndexerStatusCache indexerStatusCache;
+  private final LaunchPreparerService launchPreparerService;
 
-	@Autowired
-	public LogIndexerService(BatchLogIndexer batchLogIndexer, @Qualifier("logIndexTaskExecutor") TaskExecutor taskExecutor,
-			LaunchRepository launchRepository, TestItemRepository testItemRepository, IndexerServiceClient indexerServiceClient,
-			LaunchPreparerService launchPreparerService, IndexerStatusCache indexerStatusCache) {
-		this.batchLogIndexer = batchLogIndexer;
-		this.taskExecutor = taskExecutor;
-		this.launchRepository = launchRepository;
-		this.testItemRepository = testItemRepository;
-		this.indexerServiceClient = indexerServiceClient;
-		this.launchPreparerService = launchPreparerService;
-		this.indexerStatusCache = indexerStatusCache;
-	}
+  private final IndexerStatusCache indexerStatusCache;
 
-	@Override
-	public CompletableFuture<Long> index(Long projectId, AnalyzerConfig analyzerConfig) {
-		return CompletableFuture.supplyAsync(() -> {
-			try {
-				LOGGER.info("Start indexing for project: {}", projectId);
-				indexerStatusCache.indexingStarted(projectId);
-				final Long indexed = batchLogIndexer.index(projectId, analyzerConfig);
-				LOGGER.info("Indexing finished for project: {}. Logs indexed: {}", projectId, indexed);
-				return indexed;
-			} catch (Exception e) {
-				LOGGER.error(e.getMessage(), e);
-				throw new ReportPortalException(e.getMessage());
-			} finally {
-				indexerStatusCache.indexingFinished(projectId);
-			}
-		}, taskExecutor);
-	}
+  @Autowired
+  public LogIndexerService(BatchLogIndexer batchLogIndexer,
+      @Qualifier("logIndexTaskExecutor") TaskExecutor taskExecutor,
+      LaunchRepository launchRepository, TestItemRepository testItemRepository,
+      IndexerServiceClient indexerServiceClient,
+      LaunchPreparerService launchPreparerService, IndexerStatusCache indexerStatusCache) {
+    this.batchLogIndexer = batchLogIndexer;
+    this.taskExecutor = taskExecutor;
+    this.launchRepository = launchRepository;
+    this.testItemRepository = testItemRepository;
+    this.indexerServiceClient = indexerServiceClient;
+    this.launchPreparerService = launchPreparerService;
+    this.indexerStatusCache = indexerStatusCache;
+  }
 
-	@Override
-	@Transactional(readOnly = true)
-	public Long indexLaunchLogs(Launch launch, AnalyzerConfig analyzerConfig) {
-		try {
-			indexerStatusCache.indexingStarted(launch.getProjectId());
-			final List<Long> itemIds = testItemRepository.selectIdsWithIssueByLaunch(launch.getId());
-			return batchLogIndexer.index(analyzerConfig, launch, itemIds);
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			throw new ReportPortalException(e.getMessage());
-		} finally {
-			indexerStatusCache.indexingFinished(launch.getProjectId());
-		}
-	}
+  @Override
+  public CompletableFuture<Long> index(Long projectId, AnalyzerConfig analyzerConfig) {
+    return CompletableFuture.supplyAsync(() -> {
+      try {
+        LOGGER.info("Start indexing for project: {}", projectId);
+        indexerStatusCache.indexingStarted(projectId);
+        final Long indexed = batchLogIndexer.index(projectId, analyzerConfig);
+        LOGGER.info("Indexing finished for project: {}. Logs indexed: {}", projectId, indexed);
+        return indexed;
+      } catch (Exception e) {
+        LOGGER.error(e.getMessage(), e);
+        throw new ReportPortalException(e.getMessage());
+      } finally {
+        indexerStatusCache.indexingFinished(projectId);
+      }
+    }, taskExecutor);
+  }
 
-	@Override
-	@Transactional(readOnly = true)
-	public Long indexItemsLogs(Long projectId, Long launchId, List<Long> itemIds, AnalyzerConfig analyzerConfig) {
-		try {
-			indexerStatusCache.indexingStarted(projectId);
-			Launch launch = launchRepository.findById(launchId)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-			return batchLogIndexer.index(analyzerConfig, launch, itemIds);
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			throw new ReportPortalException(e.getMessage());
-		} finally {
-			indexerStatusCache.indexingFinished(projectId);
-		}
-	}
+  @Override
+  @Transactional(readOnly = true)
+  public Long indexLaunchLogs(Launch launch, AnalyzerConfig analyzerConfig) {
+    try {
+      indexerStatusCache.indexingStarted(launch.getProjectId());
+      final List<Long> itemIds = testItemRepository.selectIdsWithIssueByLaunch(launch.getId());
+      return batchLogIndexer.index(analyzerConfig, launch, itemIds);
+    } catch (Exception e) {
+      LOGGER.error(e.getMessage(), e);
+      throw new ReportPortalException(e.getMessage());
+    } finally {
+      indexerStatusCache.indexingFinished(launch.getProjectId());
+    }
+  }
 
-	@Override
-	public void deleteIndex(Long project) {
-		indexerServiceClient.deleteIndex(project);
-	}
+  @Override
+  @Transactional(readOnly = true)
+  public Long indexItemsLogs(Long projectId, Long launchId, List<Long> itemIds,
+      AnalyzerConfig analyzerConfig) {
+    try {
+      indexerStatusCache.indexingStarted(projectId);
+      Launch launch = launchRepository.findById(launchId)
+          .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+      return batchLogIndexer.index(analyzerConfig, launch, itemIds);
+    } catch (Exception e) {
+      LOGGER.error(e.getMessage(), e);
+      throw new ReportPortalException(e.getMessage());
+    } finally {
+      indexerStatusCache.indexingFinished(projectId);
+    }
+  }
 
-	@Override
-	public CompletableFuture<Long> cleanIndex(Long index, List<Long> ids) {
-		return CollectionUtils.isEmpty(ids) ?
-				CompletableFuture.completedFuture(0L) :
-				CompletableFuture.supplyAsync(() -> indexerServiceClient.cleanIndex(index, ids));
-	}
+  @Override
+  public void deleteIndex(Long project) {
+    indexerServiceClient.deleteIndex(project);
+  }
 
-	@Async
-	@Override
-	public void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig, List<TestItem> testItems) {
-		if (CollectionUtils.isEmpty(testItems)) {
-			return;
-		}
+  @Override
+  public CompletableFuture<Long> cleanIndex(Long index, List<Long> ids) {
+    return CollectionUtils.isEmpty(ids) ?
+        CompletableFuture.completedFuture(0L) :
+        CompletableFuture.supplyAsync(() -> indexerServiceClient.cleanIndex(index, ids));
+  }
 
-		Map<Long, String> itemsForIndexUpdate = testItems.stream()
-				.collect(Collectors.toMap(TestItem::getItemId, it -> it.getItemResults().getIssue().getIssueType().getLocator()));
+  @Async
+  @Override
+  public void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig,
+      List<TestItem> testItems) {
+    if (CollectionUtils.isEmpty(testItems)) {
+      return;
+    }
 
-		List<Long> missedItemIds = indexerServiceClient.indexDefectsUpdate(projectId, itemsForIndexUpdate);
-		List<TestItem> missedItems = testItems.stream().filter(it -> missedItemIds.contains(it.getItemId())).collect(Collectors.toList());
+    Map<Long, String> itemsForIndexUpdate = testItems.stream()
+        .collect(Collectors.toMap(TestItem::getItemId,
+            it -> it.getItemResults().getIssue().getIssueType().getLocator()));
 
-		List<IndexLaunch> indexLaunchList = launchPreparerService.prepare(analyzerConfig, missedItems);
+    List<Long> missedItemIds = indexerServiceClient.indexDefectsUpdate(projectId,
+        itemsForIndexUpdate);
+    List<TestItem> missedItems = testItems.stream()
+        .filter(it -> missedItemIds.contains(it.getItemId())).collect(Collectors.toList());
 
-		indexerServiceClient.index(indexLaunchList);
-	}
+    List<IndexLaunch> indexLaunchList = launchPreparerService.prepare(analyzerConfig, missedItems);
 
-	@Override
-	public int indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove) {
-		return indexerServiceClient.indexItemsRemove(projectId, itemsForIndexRemove);
-	}
+    indexerServiceClient.index(indexLaunchList);
+  }
 
-	@Async
-	@Override
-	public void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove) {
-		indexerServiceClient.indexItemsRemoveAsync(projectId, itemsForIndexRemove);
-	}
+  @Override
+  public int indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove) {
+    return indexerServiceClient.indexItemsRemove(projectId, itemsForIndexRemove);
+  }
 
-	@Async
-	@Override
-	public void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove) {
-		indexerServiceClient.indexLaunchesRemove(projectId, launchesForIndexRemove);
-	}
+  @Async
+  @Override
+  public void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove) {
+    indexerServiceClient.indexItemsRemoveAsync(projectId, itemsForIndexRemove);
+  }
+
+  @Async
+  @Override
+  public void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove) {
+    indexerServiceClient.indexLaunchesRemove(projectId, launchesForIndexRemove);
+  }
 
 }

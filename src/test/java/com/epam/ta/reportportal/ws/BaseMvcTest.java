@@ -51,56 +51,57 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 @ActiveProfiles("unittest")
 @ContextConfiguration(classes = TestConfig.class)
-@TestExecutionListeners(listeners = { FlywayTestExecutionListener.class }, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
+@TestExecutionListeners(listeners = {
+    FlywayTestExecutionListener.class}, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
 @Transactional
 public abstract class BaseMvcTest {
 
-	protected static final String DEFAULT_PROJECT_BASE_URL = "/v1/default_personal";
-	protected static final String SUPERADMIN_PROJECT_BASE_URL = "/v1/superadmin_personal";
+  protected static final String DEFAULT_PROJECT_BASE_URL = "/v1/default_personal";
+  protected static final String SUPERADMIN_PROJECT_BASE_URL = "/v1/superadmin_personal";
 
-	@Autowired
-	protected OAuthHelper oAuthHelper;
+  @Autowired
+  protected OAuthHelper oAuthHelper;
 
-	@Autowired
-	protected MockMvc mockMvc;
+  @Autowired
+  protected MockMvc mockMvc;
 
-	@MockBean
-	protected MessageBus messageBus;
+  @MockBean
+  protected MessageBus messageBus;
 
-	@MockBean
-	protected MailServiceFactory mailServiceFactory;
+  @MockBean
+  protected MailServiceFactory mailServiceFactory;
 
-	@MockBean
-	protected Pf4jPluginBox pluginBox;
+  @MockBean
+  protected Pf4jPluginBox pluginBox;
 
-	@MockBean(name = "pluginFilesProvider")
-	protected PluginFilesProvider pluginFilesProvider;
+  @MockBean(name = "pluginFilesProvider")
+  protected PluginFilesProvider pluginFilesProvider;
 
-	@MockBean(name = "pluginPublicFilesProvider")
-	protected PluginFilesProvider pluginPublicFilesProvider;
+  @MockBean(name = "pluginPublicFilesProvider")
+  protected PluginFilesProvider pluginPublicFilesProvider;
 
-	@MockBean
-	protected BinaryDataResponseWriter binaryDataResponseWriter;
+  @MockBean
+  protected BinaryDataResponseWriter binaryDataResponseWriter;
 
-	@MockBean
-	protected ExecuteIntegrationHandler executeIntegrationHandler;
+  @MockBean
+  protected ExecuteIntegrationHandler executeIntegrationHandler;
 
-	@Mock
-	protected BtsExtension extension;
+  @Mock
+  protected BtsExtension extension;
 
-	@Mock
-	protected EmailService emailService;
+  @Mock
+  protected EmailService emailService;
 
-	@FlywayTest
-	@BeforeAll
-	public static void before() {
-	}
+  @FlywayTest
+  @BeforeAll
+  public static void before() {
+  }
 
-	protected RequestPostProcessor token(String tokenValue) {
-		return mockRequest -> {
-			mockRequest.addHeader("Authorization", "Bearer " + tokenValue);
-			return mockRequest;
-		};
-	}
+  protected RequestPostProcessor token(String tokenValue) {
+    return mockRequest -> {
+      mockRequest.addHeader("Authorization", "Bearer " + tokenValue);
+      return mockRequest;
+    };
+  }
 
 }

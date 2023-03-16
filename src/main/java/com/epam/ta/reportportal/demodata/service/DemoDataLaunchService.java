@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.demodata.service;
 
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
+
 import com.epam.reportportal.extension.event.LaunchFinishedPluginEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -29,20 +32,16 @@ import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.collect.Sets;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
-
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -50,66 +49,73 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
 @Service
 public class DemoDataLaunchService {
 
-	private final String[] platformValues = { "linux", "windows", "macos", "ios", "android", "windows mobile", "ubuntu", "mint", "arch",
-			"windows 10", "windows 7", "windows server", "debian", "alpine" };
+  private final String[] platformValues = {"linux", "windows", "macos", "ios", "android",
+      "windows mobile", "ubuntu", "mint", "arch",
+      "windows 10", "windows 7", "windows server", "debian", "alpine"};
 
-	private final LaunchRepository launchRepository;
-	private final TestItemRepository testItemRepository;
-	private final ApplicationEventPublisher eventPublisher;
+  private final LaunchRepository launchRepository;
+  private final TestItemRepository testItemRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
-	@Autowired
-	public DemoDataLaunchService(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			ApplicationEventPublisher eventPublisher) {
-		this.launchRepository = launchRepository;
-		this.testItemRepository = testItemRepository;
-		this.eventPublisher = eventPublisher;
-	}
+  @Autowired
+  public DemoDataLaunchService(LaunchRepository launchRepository,
+      TestItemRepository testItemRepository,
+      ApplicationEventPublisher eventPublisher) {
+    this.launchRepository = launchRepository;
+    this.testItemRepository = testItemRepository;
+    this.eventPublisher = eventPublisher;
+  }
 
-	@Transactional
-	public Launch startLaunch(String name, User user, ReportPortalUser.ProjectDetails projectDetails) {
-		StartLaunchRQ rq = new StartLaunchRQ();
-		rq.setMode(Mode.DEFAULT);
-		rq.setDescription(ContentUtils.getLaunchDescription());
-		LocalDateTime now = LocalDateTime.now();
-		rq.setName(name);
-		rq.setStartTime(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()));
-		rq.setUuid(UUID.randomUUID().toString());
-		Set<ItemAttributesRQ> attributes = Sets.newHashSet(new ItemAttributesRQ("platform",
-						platformValues[new Random().nextInt(platformValues.length)]
-				),
-				new ItemAttributesRQ(null, "demo"),
-				new ItemAttributesRQ("build",
-						"3." + now.getDayOfMonth() + "." + now.getHour() + "." + now.getMinute() + "." + now.getSecond()
-				)
-		);
-		Launch launch = new LaunchBuilder().addStartRQ(rq).addAttributes(attributes).addProject(projectDetails.getProjectId()).get();
-		launch.setUserId(user.getId());
-		launchRepository.save(launch);
-		launchRepository.refresh(launch);
-		return launch;
-	}
+  @Transactional
+  public Launch startLaunch(String name, User user,
+      ReportPortalUser.ProjectDetails projectDetails) {
+    StartLaunchRQ rq = new StartLaunchRQ();
+    rq.setMode(Mode.DEFAULT);
+    rq.setDescription(ContentUtils.getLaunchDescription());
+    LocalDateTime now = LocalDateTime.now();
+    rq.setName(name);
+    rq.setStartTime(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()));
+    rq.setUuid(UUID.randomUUID().toString());
+    Set<ItemAttributesRQ> attributes = Sets.newHashSet(new ItemAttributesRQ("platform",
+            platformValues[new Random().nextInt(platformValues.length)]
+        ),
+        new ItemAttributesRQ(null, "demo"),
+        new ItemAttributesRQ("build",
+            "3." + now.getDayOfMonth() + "." + now.getHour() + "." + now.getMinute() + "."
+                + now.getSecond()
+        )
+    );
+    Launch launch = new LaunchBuilder().addStartRQ(rq).addAttributes(attributes)
+        .addProject(projectDetails.getProjectId()).get();
+    launch.setUserId(user.getId());
+    launchRepository.save(launch);
+    launchRepository.refresh(launch);
+    return launch;
+  }
 
-	@Transactional
-	public void finishLaunch(String launchId) {
-		Launch launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+  @Transactional
+  public void finishLaunch(String launchId) {
+    Launch launch = launchRepository.findByUuid(launchId)
+        .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 
-		if (testItemRepository.hasItemsInStatusByLaunch(launch.getId(), StatusEnum.IN_PROGRESS)) {
-			testItemRepository.interruptInProgressItems(launch.getId());
-		}
+    if (testItemRepository.hasItemsInStatusByLaunch(launch.getId(), StatusEnum.IN_PROGRESS)) {
+      testItemRepository.interruptInProgressItems(launch.getId());
+    }
 
-		launch = new LaunchBuilder(launch).addEndTime(new Date()).get();
+    launch = new LaunchBuilder(launch).addEndTime(new Date()).get();
 
-		StatusEnum fromStatisticsStatus = PASSED;
-		if (launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(),
-				StatusEnum.PASSED.name(),
-				StatusEnum.INFO.name(),
-				StatusEnum.WARN.name()
-		)) {
-			fromStatisticsStatus = StatusEnum.FAILED;
-		}
-		launch.setStatus(fromStatisticsStatus);
+    StatusEnum fromStatisticsStatus = PASSED;
+    if (launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(),
+        StatusEnum.PASSED.name(),
+        StatusEnum.INFO.name(),
+        StatusEnum.WARN.name()
+    )) {
+      fromStatisticsStatus = StatusEnum.FAILED;
+    }
+    launch.setStatus(fromStatisticsStatus);
 
-		launchRepository.save(launch);
-		eventPublisher.publishEvent(new LaunchFinishedPluginEvent(launch.getId(), launch.getProjectId()));
-	}
+    launchRepository.save(launch);
+    eventPublisher.publishEvent(
+        new LaunchFinishedPluginEvent(launch.getId(), launch.getProjectId()));
+  }
 }

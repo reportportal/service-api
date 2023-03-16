@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -29,59 +28,62 @@ import java.util.Optional;
  */
 public interface GetIntegrationHandler {
 
-	/**
-	 * @param integrationId Integration id
-	 * @param projectName   Project name
-	 * @return {@link IntegrationResource}
-	 */
-	IntegrationResource getProjectIntegrationById(Long integrationId, String projectName);
+  /**
+   * @param integrationId Integration id
+   * @param projectName   Project name
+   * @return {@link IntegrationResource}
+   */
+  IntegrationResource getProjectIntegrationById(Long integrationId, String projectName);
 
-	IntegrationResource getGlobalIntegrationById(Long integrationId);
+  IntegrationResource getGlobalIntegrationById(Long integrationId);
 
-	Optional<Integration> getEnabledByProjectIdOrGlobalAndIntegrationGroup(Long projectId, IntegrationGroupEnum integrationGroup);
+  Optional<Integration> getEnabledByProjectIdOrGlobalAndIntegrationGroup(Long projectId,
+      IntegrationGroupEnum integrationGroup);
 
-	Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails, String url, String btsProject);
+  Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails, String url,
+      String btsProject);
 
-	Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails, Long integrationId);
+  Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails,
+      Long integrationId);
 
-	Integration getEnabledBtsIntegration(Long integrationId);
+  Integration getEnabledBtsIntegration(Long integrationId);
 
-	List<IntegrationResource> getGlobalIntegrations();
+  List<IntegrationResource> getGlobalIntegrations();
 
-	List<IntegrationResource> getGlobalIntegrations(String pluginName);
+  List<IntegrationResource> getGlobalIntegrations(String pluginName);
 
-	/**
-	 * Get project integrations
-	 *
-	 * @param projectName Project nam
-	 * @return List of integrations
-	 */
-	List<IntegrationResource> getProjectIntegrations(String projectName);
+  /**
+   * Get project integrations
+   *
+   * @param projectName Project nam
+   * @return List of integrations
+   */
+  List<IntegrationResource> getProjectIntegrations(String projectName);
 
-	/**
-	 * Get project integrations with plugin
-	 *
-	 * @param pluginName  Plugin name
-	 * @param projectName Project nam
-	 * @return List of integrations
-	 */
-	List<IntegrationResource> getProjectIntegrations(String pluginName, String projectName);
+  /**
+   * Get project integrations with plugin
+   *
+   * @param pluginName  Plugin name
+   * @param projectName Project nam
+   * @return List of integrations
+   */
+  List<IntegrationResource> getProjectIntegrations(String pluginName, String projectName);
 
-	/**
-	 * Test integration connection. Firstly tries to find a project integration.
-	 * If doesn't exist it tries to find Global integration
-	 *
-	 * @param integrationId Integration id
-	 * @param projectName   Project name
-	 * @return True if a connection is established
-	 */
-	boolean testConnection(Long integrationId, String projectName);
+  /**
+   * Test integration connection. Firstly tries to find a project integration. If doesn't exist it
+   * tries to find Global integration
+   *
+   * @param integrationId Integration id
+   * @param projectName   Project name
+   * @return True if a connection is established
+   */
+  boolean testConnection(Long integrationId, String projectName);
 
-	/**
-	 * Test integration connection. Connection attempt to the global integration
-	 *
-	 * @param integrationId Integration id
-	 * @return True if a connection is established
-	 */
-	boolean testConnection(Long integrationId);
+  /**
+   * Test integration connection. Connection attempt to the global integration
+   *
+   * @param integrationId Integration id
+   * @return True if a connection is established
+   */
+  boolean testConnection(Long integrationId);
 }

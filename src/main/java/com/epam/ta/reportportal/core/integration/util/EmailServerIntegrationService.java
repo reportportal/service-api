@@ -16,6 +16,12 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.ws.model.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
+import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandlerImpl;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
@@ -28,6 +34,9 @@ import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.Maps;
 import com.mchange.lang.IntegerUtils;
+import java.util.Map;
+import java.util.Optional;
+import javax.mail.MessagingException;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -36,128 +45,131 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import javax.mail.MessagingException;
-import java.util.Map;
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.model.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
-import static java.util.Optional.ofNullable;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
 public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ServerAdminHandlerImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ServerAdminHandlerImpl.class);
 
-	private final BasicTextEncryptor basicTextEncryptor;
+  private final BasicTextEncryptor basicTextEncryptor;
 
-	private final MailServiceFactory emailServiceFactory;
+  private final MailServiceFactory emailServiceFactory;
 
-	public EmailServerIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox,
-			BasicTextEncryptor basicTextEncryptor, MailServiceFactory emailServiceFactory) {
-		super(integrationRepository, pluginBox);
-		this.basicTextEncryptor = basicTextEncryptor;
-		this.emailServiceFactory = emailServiceFactory;
-	}
+  public EmailServerIntegrationService(IntegrationRepository integrationRepository,
+      PluginBox pluginBox,
+      BasicTextEncryptor basicTextEncryptor, MailServiceFactory emailServiceFactory) {
+    super(integrationRepository, pluginBox);
+    this.basicTextEncryptor = basicTextEncryptor;
+    this.emailServiceFactory = emailServiceFactory;
+  }
 
-	@Override
-	public Map<String, Object> retrieveCreateParams(String integrationType, Map<String, Object> integrationParams) {
-		BusinessRule.expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
+  @Override
+  public Map<String, Object> retrieveCreateParams(String integrationType,
+      Map<String, Object> integrationParams) {
+    BusinessRule.expect(integrationParams, MapUtils::isNotEmpty)
+        .verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
 
-		Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(EmailSettingsEnum.values().length);
+    Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(
+        EmailSettingsEnum.values().length);
 
-		Optional<String> fromAttribute = EmailSettingsEnum.FROM.getAttribute(integrationParams);
+    Optional<String> fromAttribute = EmailSettingsEnum.FROM.getAttribute(integrationParams);
 
-		fromAttribute.ifPresent(from -> resultParams.put(EmailSettingsEnum.FROM.getAttribute(), from));
+    fromAttribute.ifPresent(from -> resultParams.put(EmailSettingsEnum.FROM.getAttribute(), from));
 
-		ofNullable(integrationParams.get(EmailSettingsEnum.PORT.getAttribute())).ifPresent(p -> {
-			int port = IntegerUtils.parseInt(String.valueOf(p), -1);
-			if ((port <= 0) || (port > 65535)) {
-				BusinessRule.fail().withError(ErrorType.INCORRECT_REQUEST, "Incorrect 'Port' value. Allowed value is [1..65535]");
-			}
-			resultParams.put(EmailSettingsEnum.PORT.getAttribute(), p);
-		});
+    ofNullable(integrationParams.get(EmailSettingsEnum.PORT.getAttribute())).ifPresent(p -> {
+      int port = IntegerUtils.parseInt(String.valueOf(p), -1);
+      if ((port <= 0) || (port > 65535)) {
+        BusinessRule.fail().withError(ErrorType.INCORRECT_REQUEST,
+            "Incorrect 'Port' value. Allowed value is [1..65535]");
+      }
+      resultParams.put(EmailSettingsEnum.PORT.getAttribute(), p);
+    });
 
-		EmailSettingsEnum.PROTOCOL.getAttribute(integrationParams)
-				.ifPresent(protocol -> resultParams.put(EmailSettingsEnum.PROTOCOL.getAttribute(), protocol));
+    EmailSettingsEnum.PROTOCOL.getAttribute(integrationParams)
+        .ifPresent(
+            protocol -> resultParams.put(EmailSettingsEnum.PROTOCOL.getAttribute(), protocol));
 
-		EmailSettingsEnum.USERNAME.getAttribute(integrationParams)
-				.ifPresent(username -> resultParams.put(EmailSettingsEnum.USERNAME.getAttribute(), username));
+    EmailSettingsEnum.USERNAME.getAttribute(integrationParams)
+        .ifPresent(
+            username -> resultParams.put(EmailSettingsEnum.USERNAME.getAttribute(), username));
 
-		ofNullable(integrationParams.get(EmailSettingsEnum.AUTH_ENABLED.getAttribute())).ifPresent(authEnabledAttribute -> {
-			boolean isAuthEnabled = BooleanUtils.toBoolean(String.valueOf(authEnabledAttribute));
-			if (isAuthEnabled) {
-				EmailSettingsEnum.PASSWORD.getAttribute(integrationParams)
-						.ifPresent(password -> resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(),
-								basicTextEncryptor.encrypt(password)
-						));
-			} else {
-				/* Auto-drop values on switched-off authentication */
-				resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(), null);
-			}
-			resultParams.put(EmailSettingsEnum.AUTH_ENABLED.getAttribute(), isAuthEnabled);
-		});
+    ofNullable(integrationParams.get(EmailSettingsEnum.AUTH_ENABLED.getAttribute())).ifPresent(
+        authEnabledAttribute -> {
+          boolean isAuthEnabled = BooleanUtils.toBoolean(String.valueOf(authEnabledAttribute));
+          if (isAuthEnabled) {
+            EmailSettingsEnum.PASSWORD.getAttribute(integrationParams)
+                .ifPresent(password -> resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(),
+                    basicTextEncryptor.encrypt(password)
+                ));
+          } else {
+            /* Auto-drop values on switched-off authentication */
+            resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(), null);
+          }
+          resultParams.put(EmailSettingsEnum.AUTH_ENABLED.getAttribute(), isAuthEnabled);
+        });
 
-		EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute(integrationParams)
-				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute(), BooleanUtils.toBoolean(attr)));
-		EmailSettingsEnum.SSL_ENABLED.getAttribute(integrationParams)
-				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.SSL_ENABLED.getAttribute(), BooleanUtils.toBoolean(attr)));
-		EmailSettingsEnum.HOST.getAttribute(integrationParams)
-				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.HOST.getAttribute(), attr));
-		EmailSettingsEnum.RP_HOST.getAttribute(integrationParams)
-				.filter(UrlValidator.getInstance()::isValid)
-				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.RP_HOST.getAttribute(), attr));
+    EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute(integrationParams)
+        .ifPresent(attr -> resultParams.put(EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute(),
+            BooleanUtils.toBoolean(attr)));
+    EmailSettingsEnum.SSL_ENABLED.getAttribute(integrationParams)
+        .ifPresent(attr -> resultParams.put(EmailSettingsEnum.SSL_ENABLED.getAttribute(),
+            BooleanUtils.toBoolean(attr)));
+    EmailSettingsEnum.HOST.getAttribute(integrationParams)
+        .ifPresent(attr -> resultParams.put(EmailSettingsEnum.HOST.getAttribute(), attr));
+    EmailSettingsEnum.RP_HOST.getAttribute(integrationParams)
+        .filter(UrlValidator.getInstance()::isValid)
+        .ifPresent(attr -> resultParams.put(EmailSettingsEnum.RP_HOST.getAttribute(), attr));
 
-		return resultParams;
-	}
+    return resultParams;
+  }
 
-	@Override
-	public Map<String, Object> retrieveUpdatedParams(String integrationType, Map<String, Object> integrationParams) {
-		return retrieveCreateParams(integrationType, integrationParams);
-	}
+  @Override
+  public Map<String, Object> retrieveUpdatedParams(String integrationType,
+      Map<String, Object> integrationParams) {
+    return retrieveCreateParams(integrationType, integrationParams);
+  }
 
-	@Override
-	public boolean checkConnection(Integration integration) {
-		Optional<EmailService> emailService = emailServiceFactory.getEmailService(integration);
-		if (emailService.isPresent()) {
-			try {
-				emailService.get().testConnection();
-			} catch (MessagingException ex) {
-				LOGGER.error("Cannot send email to user", ex);
-				fail().withError(FORBIDDEN_OPERATION,
-						"Email configuration is incorrect. Please, check your configuration. " + ex.getMessage()
-				);
-			}
+  @Override
+  public boolean checkConnection(Integration integration) {
+    Optional<EmailService> emailService = emailServiceFactory.getEmailService(integration);
+    if (emailService.isPresent()) {
+      try {
+        emailService.get().testConnection();
+      } catch (MessagingException ex) {
+        LOGGER.error("Cannot send email to user", ex);
+        fail().withError(FORBIDDEN_OPERATION,
+            "Email configuration is incorrect. Please, check your configuration. " + ex.getMessage()
+        );
+      }
 
-			// if an email integration is new and not saved at db yet - try to send a creation integration message
-			if (integration.getId() == null) {
-				try {
-					EmailSettingsEnum.AUTH_ENABLED.getAttribute(integration.getParams().getParams()).ifPresent(authEnabled -> {
-						if (BooleanUtils.toBoolean(authEnabled)) {
-							String sendTo = EmailSettingsEnum.USERNAME.getAttribute(integration.getParams().getParams())
-									.orElseThrow(() -> new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
-											"Email server username is not specified."
-									));
-							emailService.get().sendConnectionTestEmail(sendTo);
-						}
-					});
-				} catch (Exception ex) {
-					fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
-							formattedSupplier("Unable to send connection test email. " + ex.getMessage())
-					);
-				}
-			}
+      // if an email integration is new and not saved at db yet - try to send a creation integration message
+      if (integration.getId() == null) {
+        try {
+          EmailSettingsEnum.AUTH_ENABLED.getAttribute(integration.getParams().getParams())
+              .ifPresent(authEnabled -> {
+                if (BooleanUtils.toBoolean(authEnabled)) {
+                  String sendTo = EmailSettingsEnum.USERNAME.getAttribute(
+                          integration.getParams().getParams())
+                      .orElseThrow(() -> new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
+                          "Email server username is not specified."
+                      ));
+                  emailService.get().sendConnectionTestEmail(sendTo);
+                }
+              });
+        } catch (Exception ex) {
+          fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
+              formattedSupplier("Unable to send connection test email. " + ex.getMessage())
+          );
+        }
+      }
 
-		} else {
-			return false;
-		}
-		return true;
-	}
+    } else {
+      return false;
+    }
+    return true;
+  }
 
 }
 

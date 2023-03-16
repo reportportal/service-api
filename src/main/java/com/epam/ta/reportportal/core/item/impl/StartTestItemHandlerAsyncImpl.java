@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.util.ReportingQueueService;
@@ -23,16 +25,13 @@ import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
 import com.epam.ta.reportportal.ws.rabbit.RequestType;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
 
 /**
  * @author Konstantin Antipin
@@ -41,58 +40,60 @@ import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguratio
 @Qualifier("startTestItemHandlerAsync")
 class StartTestItemHandlerAsyncImpl implements StartTestItemHandler {
 
-	@Autowired
-	@Qualifier(value = "rabbitTemplate")
-	AmqpTemplate amqpTemplate;
+  @Autowired
+  @Qualifier(value = "rabbitTemplate")
+  AmqpTemplate amqpTemplate;
 
-	@Autowired
-	private ReportingQueueService reportingQueueService;
+  @Autowired
+  private ReportingQueueService reportingQueueService;
 
-	@Override
-	public ItemCreatedRS startRootItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ request) {
+  @Override
+  public ItemCreatedRS startRootItem(ReportPortalUser user,
+      ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ request) {
 
-		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
-		request.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
-		amqpTemplate.convertAndSend(EXCHANGE_REPORTING,
-				reportingQueueService.getReportingQueueKey(request.getLaunchUuid()),
-				request,
-				message -> {
-					Map<String, Object> headers = message.getMessageProperties().getHeaders();
-					headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
-					headers.put(MessageHeaders.USERNAME, user.getUsername());
-					headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
-					headers.put(MessageHeaders.PARENT_ITEM_ID, "");
-					return message;
-				}
-		);
+    // todo: may be problem - no access to repository, so no possibility to validateRoles() here
+    request.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
+    amqpTemplate.convertAndSend(EXCHANGE_REPORTING,
+        reportingQueueService.getReportingQueueKey(request.getLaunchUuid()),
+        request,
+        message -> {
+          Map<String, Object> headers = message.getMessageProperties().getHeaders();
+          headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
+          headers.put(MessageHeaders.USERNAME, user.getUsername());
+          headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
+          headers.put(MessageHeaders.PARENT_ITEM_ID, "");
+          return message;
+        }
+    );
 
-		ItemCreatedRS response = new ItemCreatedRS();
-		response.setId(request.getUuid());
-		return response;
-	}
+    ItemCreatedRS response = new ItemCreatedRS();
+    response.setId(request.getUuid());
+    return response;
+  }
 
-	@Override
-	public ItemCreatedRS startChildItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ request,
-			String parentId) {
+  @Override
+  public ItemCreatedRS startChildItem(ReportPortalUser user,
+      ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ request,
+      String parentId) {
 
-		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
-		request.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
-		amqpTemplate.convertAndSend(
-				EXCHANGE_REPORTING,
-				reportingQueueService.getReportingQueueKey(request.getLaunchUuid()),
-				request,
-				message -> {
-					Map<String, Object> headers = message.getMessageProperties().getHeaders();
-					headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
-					headers.put(MessageHeaders.USERNAME, user.getUsername());
-					headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
-					headers.put(MessageHeaders.PARENT_ITEM_ID, parentId);
-					return message;
-				}
-		);
+    // todo: may be problem - no access to repository, so no possibility to validateRoles() here
+    request.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
+    amqpTemplate.convertAndSend(
+        EXCHANGE_REPORTING,
+        reportingQueueService.getReportingQueueKey(request.getLaunchUuid()),
+        request,
+        message -> {
+          Map<String, Object> headers = message.getMessageProperties().getHeaders();
+          headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
+          headers.put(MessageHeaders.USERNAME, user.getUsername());
+          headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
+          headers.put(MessageHeaders.PARENT_ITEM_ID, parentId);
+          return message;
+        }
+    );
 
-		ItemCreatedRS response = new ItemCreatedRS();
-		response.setId(request.getUuid());
-		return response;
-	}
+    ItemCreatedRS response = new ItemCreatedRS();
+    response.setId(request.getUuid());
+    return response;
+  }
 }

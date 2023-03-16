@@ -20,9 +20,9 @@ import org.springframework.security.authentication.AccountExpiredException;
 
 public class UserAccountExpiredException extends AccountExpiredException {
 
-	private static final long serialVersionUID = -1313818913697889296L;
+  private static final long serialVersionUID = -1313818913697889296L;
 
-	public UserAccountExpiredException(String msg) {
-		super(msg);
-	}
+  public UserAccountExpiredException(String msg) {
+    super(msg);
+  }
 }

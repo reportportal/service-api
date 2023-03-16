@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.project.settings.notification;
 
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
-
 import java.util.List;
 
 /**
@@ -25,6 +24,6 @@ import java.util.List;
  */
 public interface GetProjectNotificationsHandler {
 
-	List<SenderCaseDTO> getProjectNotifications(Long projectId);
+  List<SenderCaseDTO> getProjectNotifications(Long projectId);
 
 }

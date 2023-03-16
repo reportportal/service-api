@@ -16,20 +16,20 @@
 
 package com.epam.ta.reportportal.auth.permissions;
 
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * * Specifies list of permission names to be assigned to some
  * {@link com.epam.ta.reportportal.auth.permissions.Permission} implementation<br>
  * <b>BE AWARE</b> that each permissions should be marked with
- * {@link com.epam.ta.reportportal.auth.permissions.LookupPermission} annotation
- * to be assigned to some permission name. Without this permission will be
- * ignored by {@link org.springframework.security.access.PermissionEvaluator}
+ * {@link com.epam.ta.reportportal.auth.permissions.LookupPermission} annotation to be assigned to
+ * some permission name. Without this permission will be ignored by
+ * {@link org.springframework.security.access.PermissionEvaluator}
  *
  * @author Andrei Varabyeu
  */
@@ -37,5 +37,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Documented
 public @interface LookupPermission {
-	String[] value();
+
+  String[] value();
 }

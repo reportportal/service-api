@@ -23,5 +23,5 @@ import com.epam.ta.reportportal.core.events.Event;
  */
 public interface ConfigurableEventHandler<T extends Event, C> {
 
-	void handle(T event, C config);
+  void handle(T event, C config);
 }

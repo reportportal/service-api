@@ -11,10 +11,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class MaterializedWidgetStateUpdater implements WidgetUpdater {
 
-	public static final String STATE = "state";
+  public static final String STATE = "state";
 
-	@Override
-	public void update(Widget widget) {
-		new WidgetBuilder(widget).addOption(STATE, WidgetState.CREATED.getValue());
-	}
+  @Override
+  public void update(Widget widget) {
+    new WidgetBuilder(widget).addOption(STATE, WidgetState.CREATED.getValue());
+  }
 }

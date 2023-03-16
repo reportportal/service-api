@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.core.widget.content.filter;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
+import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_STATUS;
+
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -23,11 +26,7 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.springframework.stereotype.Service;
-
-import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
-import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_STATUS;
 
 /**
  * @author Pavel Bortnik
@@ -35,13 +34,14 @@ import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaC
 @Service("generalLaunchFilterStrategy")
 public class GeneralLaunchFilterStrategy extends ProjectFilterStrategy {
 
-	@Override
-	protected Filter buildDefaultFilter(Widget widget, Long projectId) {
-		Filter filter = super.buildDefaultFilter(widget, projectId);
-		filter.withConditions(Lists.newArrayList(
-				new FilterCondition(Condition.NOT_EQUALS, false, StatusEnum.IN_PROGRESS.name(), CRITERIA_LAUNCH_STATUS),
-				new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.toString(), CRITERIA_LAUNCH_MODE)
-		));
-		return filter;
-	}
+  @Override
+  protected Filter buildDefaultFilter(Widget widget, Long projectId) {
+    Filter filter = super.buildDefaultFilter(widget, projectId);
+    filter.withConditions(Lists.newArrayList(
+        new FilterCondition(Condition.NOT_EQUALS, false, StatusEnum.IN_PROGRESS.name(),
+            CRITERIA_LAUNCH_STATUS),
+        new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.toString(), CRITERIA_LAUNCH_MODE)
+    ));
+    return filter;
+  }
 }

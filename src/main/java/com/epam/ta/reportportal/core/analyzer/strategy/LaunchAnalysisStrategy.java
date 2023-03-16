@@ -24,5 +24,6 @@ import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
  */
 public interface LaunchAnalysisStrategy {
 
-	void analyze(AnalyzeLaunchRQ analyzeLaunchRequest, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+  void analyze(AnalyzeLaunchRQ analyzeLaunchRequest, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user);
 }

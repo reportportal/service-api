@@ -23,5 +23,5 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterD
  */
 public interface CreateClusterHandler {
 
-	void create(ClusterData clusterData);
+  void create(ClusterData clusterData);
 }

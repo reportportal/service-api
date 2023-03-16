@@ -16,41 +16,40 @@
 
 package com.epam.ta.reportportal.core.launch.cluster;
 
+import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
+import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getUniqueErrorConfig;
+
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.epam.ta.reportportal.ws.model.project.UniqueErrorConfig;
-import org.apache.commons.collections4.CollectionUtils;
-
 import java.util.Map;
-
-import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
-import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getUniqueErrorConfig;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class UniqueErrorAnalysisStarter {
 
-	private final ClusterGenerator clusterGenerator;
+  private final ClusterGenerator clusterGenerator;
 
-	public UniqueErrorAnalysisStarter(ClusterGenerator clusterGenerator) {
-		this.clusterGenerator = clusterGenerator;
-	}
+  public UniqueErrorAnalysisStarter(ClusterGenerator clusterGenerator) {
+    this.clusterGenerator = clusterGenerator;
+  }
 
-	public void start(ClusterEntityContext entityContext, Map<String, String> projectConfig) {
+  public void start(ClusterEntityContext entityContext, Map<String, String> projectConfig) {
 
-		final GenerateClustersConfig clustersConfig = new GenerateClustersConfig();
+    final GenerateClustersConfig clustersConfig = new GenerateClustersConfig();
 
-		clustersConfig.setEntityContext(entityContext);
-		clustersConfig.setForUpdate(CollectionUtils.isNotEmpty(entityContext.getItemIds()));
+    clustersConfig.setEntityContext(entityContext);
+    clustersConfig.setForUpdate(CollectionUtils.isNotEmpty(entityContext.getItemIds()));
 
-		final UniqueErrorConfig uniqueErrorConfig = getUniqueErrorConfig(projectConfig);
-		clustersConfig.setCleanNumbers(uniqueErrorConfig.isRemoveNumbers());
+    final UniqueErrorConfig uniqueErrorConfig = getUniqueErrorConfig(projectConfig);
+    clustersConfig.setCleanNumbers(uniqueErrorConfig.isRemoveNumbers());
 
-		final AnalyzerConfig analyzerConfig = getAnalyzerConfig(projectConfig);
-		clustersConfig.setAnalyzerConfig(analyzerConfig);
+    final AnalyzerConfig analyzerConfig = getAnalyzerConfig(projectConfig);
+    clustersConfig.setAnalyzerConfig(analyzerConfig);
 
-		clusterGenerator.generate(clustersConfig);
-	}
+    clusterGenerator.generate(clustersConfig);
+  }
 }

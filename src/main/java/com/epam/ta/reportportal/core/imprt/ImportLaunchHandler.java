@@ -24,14 +24,15 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public interface ImportLaunchHandler {
 
-	/**
-	 * Import launch from file with specified format.
-	 *
-	 * @param projectDetails Project Details
-	 * @param user  user
-	 * @param format    report format
-	 * @param file      file with report
-	 * @return OperationCompletionRS
-	 */
-	OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String format, MultipartFile file, String baseUrl);
+  /**
+   * Import launch from file with specified format.
+   *
+   * @param projectDetails Project Details
+   * @param user           user
+   * @param format         report format
+   * @param file           file with report
+   * @return OperationCompletionRS
+   */
+  OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, String format, MultipartFile file, String baseUrl);
 }

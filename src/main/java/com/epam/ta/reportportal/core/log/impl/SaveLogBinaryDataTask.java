@@ -23,41 +23,40 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * Save binary data task. Expected to be executed asynchronously. Statefull, so
- * cannot be a singleton bean. Saves binary data, then updates related log entry
- * with saved data id
+ * Save binary data task. Expected to be executed asynchronously. Statefull, so cannot be a
+ * singleton bean. Saves binary data, then updates related log entry with saved data id
  * <p>
- * NOTE: run asynchronously in sense of run in Executor. This class is not used with RabbitMQ.
- * It is original implementation for synchronous LogController
+ * NOTE: run asynchronously in sense of run in Executor. This class is not used with RabbitMQ. It is
+ * original implementation for synchronous LogController
  *
  * @author Andrei Varabyeu
  */
 public class SaveLogBinaryDataTask implements Runnable {
 
-	@Autowired
-	private AttachmentBinaryDataService attachmentBinaryDataService;
+  @Autowired
+  private AttachmentBinaryDataService attachmentBinaryDataService;
 
-	/**
-	 * Binary data representation
-	 */
-	private MultipartFile file;
+  /**
+   * Binary data representation
+   */
+  private MultipartFile file;
 
-	private AttachmentMetaInfo attachmentMetaInfo;
+  private AttachmentMetaInfo attachmentMetaInfo;
 
-	@Override
-	public void run() {
-		attachmentBinaryDataService.saveFileAndAttachToLog(file, attachmentMetaInfo);
-	}
+  @Override
+  public void run() {
+    attachmentBinaryDataService.saveFileAndAttachToLog(file, attachmentMetaInfo);
+  }
 
-	public SaveLogBinaryDataTask withFile(MultipartFile file) {
-		Preconditions.checkNotNull(file, "Binary data shouldn't be null");
-		this.file = file;
-		return this;
-	}
+  public SaveLogBinaryDataTask withFile(MultipartFile file) {
+    Preconditions.checkNotNull(file, "Binary data shouldn't be null");
+    this.file = file;
+    return this;
+  }
 
-	public SaveLogBinaryDataTask withAttachmentMetaInfo(AttachmentMetaInfo metaInfo) {
-		Preconditions.checkNotNull(metaInfo);
-		this.attachmentMetaInfo = metaInfo;
-		return this;
-	}
+  public SaveLogBinaryDataTask withAttachmentMetaInfo(AttachmentMetaInfo metaInfo) {
+    Preconditions.checkNotNull(metaInfo);
+    this.attachmentMetaInfo = metaInfo;
+    return this;
+  }
 }

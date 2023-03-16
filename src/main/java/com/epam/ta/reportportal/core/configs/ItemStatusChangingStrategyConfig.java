@@ -22,11 +22,10 @@ import com.epam.ta.reportportal.core.item.impl.status.ToPassedStatusChangingStra
 import com.epam.ta.reportportal.core.item.impl.status.ToSkippedStatusChangingStrategy;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Map;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -34,28 +33,30 @@ import java.util.Map;
 @Configuration
 public class ItemStatusChangingStrategyConfig {
 
-	private final ToFailedStatusChangingStrategy toFailedStatusChangingStrategy;
+  private final ToFailedStatusChangingStrategy toFailedStatusChangingStrategy;
 
-	private final ToPassedStatusChangingStrategy toPassedStatusChangingStrategy;
+  private final ToPassedStatusChangingStrategy toPassedStatusChangingStrategy;
 
-	private final ToSkippedStatusChangingStrategy toSkippedStatusChangingStrategy;
+  private final ToSkippedStatusChangingStrategy toSkippedStatusChangingStrategy;
 
-	@Autowired
-	public ItemStatusChangingStrategyConfig(ToFailedStatusChangingStrategy toFailedStatusChangingStrategy,
-			ToPassedStatusChangingStrategy toPassedStatusChangingStrategy,
-			ToSkippedStatusChangingStrategy toSkippedStatusChangingStrategy) {
-		this.toFailedStatusChangingStrategy = toFailedStatusChangingStrategy;
-		this.toPassedStatusChangingStrategy = toPassedStatusChangingStrategy;
-		this.toSkippedStatusChangingStrategy = toSkippedStatusChangingStrategy;
-	}
+  @Autowired
+  public ItemStatusChangingStrategyConfig(
+      ToFailedStatusChangingStrategy toFailedStatusChangingStrategy,
+      ToPassedStatusChangingStrategy toPassedStatusChangingStrategy,
+      ToSkippedStatusChangingStrategy toSkippedStatusChangingStrategy) {
+    this.toFailedStatusChangingStrategy = toFailedStatusChangingStrategy;
+    this.toPassedStatusChangingStrategy = toPassedStatusChangingStrategy;
+    this.toSkippedStatusChangingStrategy = toSkippedStatusChangingStrategy;
+  }
 
-	@Bean
-	public Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping() {
-		return ImmutableMap.<StatusEnum, StatusChangingStrategy>builder().put(StatusEnum.PASSED, toPassedStatusChangingStrategy)
-				.put(StatusEnum.INFO, toPassedStatusChangingStrategy)
-				.put(StatusEnum.WARN, toPassedStatusChangingStrategy)
-				.put(StatusEnum.FAILED, toFailedStatusChangingStrategy)
-				.put(StatusEnum.SKIPPED, toSkippedStatusChangingStrategy)
-				.build();
-	}
+  @Bean
+  public Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping() {
+    return ImmutableMap.<StatusEnum, StatusChangingStrategy>builder()
+        .put(StatusEnum.PASSED, toPassedStatusChangingStrategy)
+        .put(StatusEnum.INFO, toPassedStatusChangingStrategy)
+        .put(StatusEnum.WARN, toPassedStatusChangingStrategy)
+        .put(StatusEnum.FAILED, toFailedStatusChangingStrategy)
+        .put(StatusEnum.SKIPPED, toSkippedStatusChangingStrategy)
+        .build();
+  }
 }

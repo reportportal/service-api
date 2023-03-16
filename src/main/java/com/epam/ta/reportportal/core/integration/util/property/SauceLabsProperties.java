@@ -16,39 +16,38 @@
 
 package com.epam.ta.reportportal.core.integration.util.property;
 
-import com.epam.ta.reportportal.entity.integration.IntegrationParams;
+import static java.util.Optional.ofNullable;
 
+import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public enum SauceLabsProperties {
-	USERNAME("username"),
-	ACCESS_TOKEN("accessToken");
+  USERNAME("username"),
+  ACCESS_TOKEN("accessToken");
 
-	private String name;
+  private String name;
 
-	SauceLabsProperties(String name) {
-		this.name = name;
-	}
+  SauceLabsProperties(String name) {
+    this.name = name;
+  }
 
-	public String getName() {
-		return name;
-	}
+  public String getName() {
+    return name;
+  }
 
-	public Optional<String> getParameter(Map<String, Object> parameters) {
-		return ofNullable(parameters.get(this.name)).map(String::valueOf);
-	}
+  public Optional<String> getParameter(Map<String, Object> parameters) {
+    return ofNullable(parameters.get(this.name)).map(String::valueOf);
+  }
 
-	public void setParameter(IntegrationParams params, String value) {
-		if (null == params.getParams()) {
-			params.setParams(new HashMap<>());
-		}
-		params.getParams().put(this.name, value);
-	}
+  public void setParameter(IntegrationParams params, String value) {
+    if (null == params.getParams()) {
+      params.setParams(new HashMap<>());
+    }
+    params.getParams().put(this.name, value);
+  }
 }

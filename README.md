@@ -1,4 +1,5 @@
 # ReportPortal. Main API Module
+
 [![Docker Pulls](https://img.shields.io/docker/pulls/reportportal/service-api.svg?maxAge=159200)](https://hub.docker.com/r/reportportal/service-api/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![stackoverflow](https://img.shields.io/badge/reportportal-stackoverflow-orange.svg?style=flat)](http://stackoverflow.com/questions/tagged/reportportal)
@@ -10,5 +11,6 @@
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/reportportal/service-api.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/reportportal/service-api/alerts/)
 
 ## Copyright Notice
+
 Licensed under the [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0)
 license (see the LICENSE file).

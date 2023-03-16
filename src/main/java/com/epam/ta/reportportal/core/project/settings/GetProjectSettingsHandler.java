@@ -23,11 +23,11 @@ import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
  */
 public interface GetProjectSettingsHandler {
 
-	/**
-	 * Provide additional settings for specified project
-	 *
-	 * @param projectName Project name
-	 * @return ProjectSettingsResource
-	 */
-	ProjectSettingsResource getProjectSettings(String projectName);
+  /**
+   * Provide additional settings for specified project
+   *
+   * @param projectName Project name
+   * @return ProjectSettingsResource
+   */
+  ProjectSettingsResource getProjectSettings(String projectName);
 }

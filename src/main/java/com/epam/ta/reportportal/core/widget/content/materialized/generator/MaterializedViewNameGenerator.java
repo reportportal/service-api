@@ -25,10 +25,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class MaterializedViewNameGenerator {
 
-	private static final String VIEW_PREFIX = "widget";
-	private static final String NAME_SEPARATOR = "_";
+  private static final String VIEW_PREFIX = "widget";
+  private static final String NAME_SEPARATOR = "_";
 
-	public String generate(Widget widget) {
-		return String.join(NAME_SEPARATOR, VIEW_PREFIX, String.valueOf(widget.getProject().getId()), String.valueOf(widget.getId()));
-	}
+  public String generate(Widget widget) {
+    return String.join(NAME_SEPARATOR, VIEW_PREFIX, String.valueOf(widget.getProject().getId()),
+        String.valueOf(widget.getId()));
+  }
 }

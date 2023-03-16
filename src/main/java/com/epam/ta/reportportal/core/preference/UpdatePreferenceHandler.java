@@ -25,23 +25,26 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
  * @author Pavel Bortnik
  */
 public interface UpdatePreferenceHandler {
-	/**
-	 * Add user preference
-	 *
-	 * @param projectDetails Project Details
-	 * @param user           User
-	 * @param filterId       Adding filter id
-	 * @return {@link OperationCompletionRS}
-	 */
-	OperationCompletionRS addPreference(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long filterId);
 
-	/**
-	 * Remove user preference
-	 *
-	 * @param projectDetails Project Details
-	 * @param user           User
-	 * @param filterId       Removing filter id
-	 * @return {@link OperationCompletionRS}
-	 */
-	OperationCompletionRS removePreference(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long filterId);
+  /**
+   * Add user preference
+   *
+   * @param projectDetails Project Details
+   * @param user           User
+   * @param filterId       Adding filter id
+   * @return {@link OperationCompletionRS}
+   */
+  OperationCompletionRS addPreference(ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, Long filterId);
+
+  /**
+   * Remove user preference
+   *
+   * @param projectDetails Project Details
+   * @param user           User
+   * @param filterId       Removing filter id
+   * @return {@link OperationCompletionRS}
+   */
+  OperationCompletionRS removePreference(ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, Long filterId);
 }

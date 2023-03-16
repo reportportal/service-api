@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
  */
 public interface CreateProjectNotificationHandler {
 
-	EntryCreatedRS createNotification(Project project, SenderCaseDTO createNotificationRQ, ReportPortalUser user);
+  EntryCreatedRS createNotification(Project project, SenderCaseDTO createNotificationRQ,
+      ReportPortalUser user);
 
 }

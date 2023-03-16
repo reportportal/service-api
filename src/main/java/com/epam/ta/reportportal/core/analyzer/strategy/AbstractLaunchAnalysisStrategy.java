@@ -16,6 +16,11 @@
 
 package com.epam.ta.reportportal.core.analyzer.strategy;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -23,35 +28,33 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class AbstractLaunchAnalysisStrategy implements LaunchAnalysisStrategy {
 
-	protected final ProjectRepository projectRepository;
-	protected final LaunchRepository launchRepository;
+  protected final ProjectRepository projectRepository;
+  protected final LaunchRepository launchRepository;
 
-	protected AbstractLaunchAnalysisStrategy(ProjectRepository projectRepository, LaunchRepository launchRepository) {
-		this.projectRepository = projectRepository;
-		this.launchRepository = launchRepository;
-	}
+  protected AbstractLaunchAnalysisStrategy(ProjectRepository projectRepository,
+      LaunchRepository launchRepository) {
+    this.projectRepository = projectRepository;
+    this.launchRepository = launchRepository;
+  }
 
-	protected void validateLaunch(Launch launch, ReportPortalUser.ProjectDetails projectDetails) {
+  protected void validateLaunch(Launch launch, ReportPortalUser.ProjectDetails projectDetails) {
 
-		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-				Suppliers.formattedSupplier("Launch with ID '{}' is not under '{}' project.",
-						launch.getId(),
-						projectDetails.getProjectName()
-				)
-		);
+    expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
+        FORBIDDEN_OPERATION,
+        Suppliers.formattedSupplier("Launch with ID '{}' is not under '{}' project.",
+            launch.getId(),
+            projectDetails.getProjectName()
+        )
+    );
 
-		/* Do not process debug launches */
-		expect(launch.getMode(), equalTo(LaunchModeEnum.DEFAULT)).verify(INCORRECT_REQUEST, "Cannot analyze launches in debug mode.");
+    /* Do not process debug launches */
+    expect(launch.getMode(), equalTo(LaunchModeEnum.DEFAULT)).verify(INCORRECT_REQUEST,
+        "Cannot analyze launches in debug mode.");
 
-	}
+  }
 }

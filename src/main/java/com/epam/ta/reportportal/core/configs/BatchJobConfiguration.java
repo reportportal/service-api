@@ -38,37 +38,37 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @ConditionalOnBean(name = "attachmentSizeConfig")
 public class BatchJobConfiguration {
 
-	@Autowired
-	private JobBuilderFactory jobBuilderFactory;
+  @Autowired
+  private JobBuilderFactory jobBuilderFactory;
 
-	@Autowired
-	private Step attachmentSizeStep;
+  @Autowired
+  private Step attachmentSizeStep;
 
-	@Autowired
-	private JdbcTemplate jdbcTemplate;
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
 
-	@Bean
-	public JobExecutionListener jobExecutionListener() {
-		return new JobExecutionListener() {
-			@Override
-			public void beforeJob(JobExecution jobExecution) {
+  @Bean
+  public JobExecutionListener jobExecutionListener() {
+    return new JobExecutionListener() {
+      @Override
+      public void beforeJob(JobExecution jobExecution) {
 
-			}
+      }
 
-			@Override
-			public void afterJob(JobExecution jobExecution) {
-				jdbcTemplate.update(
-						"UPDATE project AS prj SET allocated_storage = (SELECT coalesce(sum(attachment.file_size), 0) FROM attachment WHERE project_id = prj.id)");
-			}
-		};
-	}
+      @Override
+      public void afterJob(JobExecution jobExecution) {
+        jdbcTemplate.update(
+            "UPDATE project AS prj SET allocated_storage = (SELECT coalesce(sum(attachment.file_size), 0) FROM attachment WHERE project_id = prj.id)");
+      }
+    };
+  }
 
-	@Bean
-	public Job job() {
-		SimpleJobBuilder job = jobBuilderFactory.get("attachmentSize")
-				.incrementer(new RunIdIncrementer())
-				.listener(jobExecutionListener())
-				.start(attachmentSizeStep);
-		return job.build();
-	}
+  @Bean
+  public Job job() {
+    SimpleJobBuilder job = jobBuilderFactory.get("attachmentSize")
+        .incrementer(new RunIdIncrementer())
+        .listener(jobExecutionListener())
+        .start(attachmentSizeStep);
+    return job.build();
+  }
 }

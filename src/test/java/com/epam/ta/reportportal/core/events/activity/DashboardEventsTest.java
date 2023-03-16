@@ -16,96 +16,103 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.DESCRIPTION;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.SHARE;
+
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
 import java.util.List;
-
-import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.*;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 class DashboardEventsTest {
 
-	private static Activity getExpectedDashboardActivity(ActivityAction action, String name) {
-		Activity activity = new Activity();
-		activity.setAction(action.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.DASHBOARD.getValue());
-		activity.setUserId(1L);
-		activity.setUsername("user");
-		activity.setProjectId(3L);
-		activity.setObjectId(2L);
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails(name));
-		return activity;
-	}
+  private static Activity getExpectedDashboardActivity(ActivityAction action, String name) {
+    Activity activity = new Activity();
+    activity.setAction(action.getValue());
+    activity.setActivityEntityType(Activity.ActivityEntityType.DASHBOARD.getValue());
+    activity.setUserId(1L);
+    activity.setUsername("user");
+    activity.setProjectId(3L);
+    activity.setObjectId(2L);
+    activity.setCreatedAt(LocalDateTime.now());
+    activity.setDetails(new ActivityDetails(name));
+    return activity;
+  }
 
-	@Test
-	void created() {
-		final String name = "name";
+  @Test
+  void created() {
+    final String name = "name";
 
-		final Activity actual = new DashboardCreatedEvent(getTestDashboard(name, false, "description"), 1L, "user").toActivity();
-		final Activity expected = getExpectedDashboardActivity(ActivityAction.CREATE_DASHBOARD, name);
-		checkActivity(actual, expected);
-	}
+    final Activity actual = new DashboardCreatedEvent(getTestDashboard(name, false, "description"),
+        1L, "user").toActivity();
+    final Activity expected = getExpectedDashboardActivity(ActivityAction.CREATE_DASHBOARD, name);
+    checkActivity(actual, expected);
+  }
 
-	@Test
-	void deleted() {
-		final String name = "name";
+  @Test
+  void deleted() {
+    final String name = "name";
 
-		final Activity actual = new DashboardDeletedEvent(getTestDashboard(name, false, "description"), 1L, "user").toActivity();
-		final Activity expected = getExpectedDashboardActivity(ActivityAction.DELETE_DASHBOARD, name);
-		checkActivity(actual, expected);
-	}
+    final Activity actual = new DashboardDeletedEvent(getTestDashboard(name, false, "description"),
+        1L, "user").toActivity();
+    final Activity expected = getExpectedDashboardActivity(ActivityAction.DELETE_DASHBOARD, name);
+    checkActivity(actual, expected);
+  }
 
-	private static DashboardActivityResource getTestDashboard(String name, boolean shared, String description) {
-		DashboardActivityResource dashboard = new DashboardActivityResource();
-		dashboard.setShared(shared);
-		dashboard.setDescription(description);
-		dashboard.setProjectId(3L);
-		dashboard.setName(name);
-		dashboard.setId(2L);
-		return dashboard;
-	}
+  private static DashboardActivityResource getTestDashboard(String name, boolean shared,
+      String description) {
+    DashboardActivityResource dashboard = new DashboardActivityResource();
+    dashboard.setShared(shared);
+    dashboard.setDescription(description);
+    dashboard.setProjectId(3L);
+    dashboard.setName(name);
+    dashboard.setId(2L);
+    return dashboard;
+  }
 
-	@Test
-	void updated() {
-		final String oldName = "oldName";
-		final boolean oldShared = true;
-		final String oldDescription = "oldDescription";
-		final String newName = "newName";
-		final boolean newShared = false;
-		final String newDescription = "newDescription";
+  @Test
+  void updated() {
+    final String oldName = "oldName";
+    final boolean oldShared = true;
+    final String oldDescription = "oldDescription";
+    final String newName = "newName";
+    final boolean newShared = false;
+    final String newDescription = "newDescription";
 
-		final Activity actual = new DashboardUpdatedEvent(getTestDashboard(oldName, oldShared, oldDescription),
-				getTestDashboard(newName, newShared, newDescription),
-				1L,
-				"user"
-		).toActivity();
-		final Activity expected = getExpectedDashboardActivity(ActivityAction.UPDATE_DASHBOARD, newName);
-		expected.getDetails()
-				.setHistory(getExpectedHistory(Pair.of(oldName, newName),
-						Pair.of(oldShared, newShared),
-						Pair.of(oldDescription, newDescription)
-				));
-		checkActivity(actual, expected);
-	}
+    final Activity actual = new DashboardUpdatedEvent(
+        getTestDashboard(oldName, oldShared, oldDescription),
+        getTestDashboard(newName, newShared, newDescription),
+        1L,
+        "user"
+    ).toActivity();
+    final Activity expected = getExpectedDashboardActivity(ActivityAction.UPDATE_DASHBOARD,
+        newName);
+    expected.getDetails()
+        .setHistory(getExpectedHistory(Pair.of(oldName, newName),
+            Pair.of(oldShared, newShared),
+            Pair.of(oldDescription, newDescription)
+        ));
+    checkActivity(actual, expected);
+  }
 
-	private static List<HistoryField> getExpectedHistory(Pair<String, String> name, Pair<Boolean, Boolean> shared,
-			Pair<String, String> description) {
-		return Lists.newArrayList(HistoryField.of(NAME, name.getLeft(), name.getRight()),
-				HistoryField.of(SHARE, shared.getLeft().toString(), shared.getRight().toString()),
-				HistoryField.of(DESCRIPTION, description.getLeft(), description.getRight())
-		);
-	}
+  private static List<HistoryField> getExpectedHistory(Pair<String, String> name,
+      Pair<Boolean, Boolean> shared,
+      Pair<String, String> description) {
+    return Lists.newArrayList(HistoryField.of(NAME, name.getLeft(), name.getRight()),
+        HistoryField.of(SHARE, shared.getLeft().toString(), shared.getRight().toString()),
+        HistoryField.of(DESCRIPTION, description.getLeft(), description.getRight())
+    );
+  }
 
 }

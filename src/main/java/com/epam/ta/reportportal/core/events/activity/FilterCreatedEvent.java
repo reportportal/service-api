@@ -16,47 +16,48 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.FILTER;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_FILTER;
+
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
-
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.FILTER;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_FILTER;
 
 /**
  * @author pavel_bortnik
  */
 public class FilterCreatedEvent extends AbstractEvent implements ActivityEvent {
 
-	private UserFilterActivityResource userFilterActivityResource;
+  private UserFilterActivityResource userFilterActivityResource;
 
-	public FilterCreatedEvent() {
-	}
+  public FilterCreatedEvent() {
+  }
 
-	public FilterCreatedEvent(UserFilterActivityResource userFilterActivityResource, Long userId, String userLogin) {
-		super(userId, userLogin);
-		this.userFilterActivityResource = userFilterActivityResource;
-	}
+  public FilterCreatedEvent(UserFilterActivityResource userFilterActivityResource, Long userId,
+      String userLogin) {
+    super(userId, userLogin);
+    this.userFilterActivityResource = userFilterActivityResource;
+  }
 
-	public UserFilterActivityResource getUserFilterActivityResource() {
-		return userFilterActivityResource;
-	}
+  public UserFilterActivityResource getUserFilterActivityResource() {
+    return userFilterActivityResource;
+  }
 
-	public void setUserFilterActivityResource(UserFilterActivityResource userFilterActivityResource) {
-		this.userFilterActivityResource = userFilterActivityResource;
-	}
+  public void setUserFilterActivityResource(UserFilterActivityResource userFilterActivityResource) {
+    this.userFilterActivityResource = userFilterActivityResource;
+  }
 
-	@Override
-	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(CREATE_FILTER)
-				.addActivityEntityType(FILTER)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(userFilterActivityResource.getId())
-				.addObjectName(userFilterActivityResource.getName())
-				.addProjectId(userFilterActivityResource.getProjectId())
-				.get();
-	}
+  @Override
+  public Activity toActivity() {
+    return new ActivityBuilder().addCreatedNow()
+        .addAction(CREATE_FILTER)
+        .addActivityEntityType(FILTER)
+        .addUserId(getUserId())
+        .addUserName(getUserLogin())
+        .addObjectId(userFilterActivityResource.getId())
+        .addObjectName(userFilterActivityResource.getName())
+        .addProjectId(userFilterActivityResource.getProjectId())
+        .get();
+  }
 }

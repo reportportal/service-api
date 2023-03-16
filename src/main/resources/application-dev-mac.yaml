@@ -14,7 +14,7 @@ rp:
   datasource:
     maximumPoolSize: 12
   binarystore:
-#    path: /Users/pavel_bortnik/ReportPortal5/data/storage
+    #    path: /Users/pavel_bortnik/ReportPortal5/data/storage
     type: minio
     minio:
       endpoint: http://localhost:9000

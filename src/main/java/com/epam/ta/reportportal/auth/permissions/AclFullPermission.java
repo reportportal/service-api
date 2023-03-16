@@ -26,14 +26,15 @@ import org.springframework.stereotype.Component;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Component
-@LookupPermission({ "aclFullPermission" })
+@LookupPermission({"aclFullPermission"})
 public class AclFullPermission implements Permission {
 
-	@Autowired
-	public AclPermissionEvaluator aclPermissionEvaluator;
+  @Autowired
+  public AclPermissionEvaluator aclPermissionEvaluator;
 
-	@Override
-	public boolean isAllowed(Authentication authentication, Object targetDomainObject) {
-		return aclPermissionEvaluator.hasPermission(authentication, targetDomainObject, BasePermission.ADMINISTRATION);
-	}
+  @Override
+  public boolean isAllowed(Authentication authentication, Object targetDomainObject) {
+    return aclPermissionEvaluator.hasPermission(authentication, targetDomainObject,
+        BasePermission.ADMINISTRATION);
+  }
 }

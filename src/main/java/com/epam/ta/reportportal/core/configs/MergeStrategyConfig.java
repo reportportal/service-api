@@ -16,8 +16,15 @@
 
 package com.epam.ta.reportportal.core.configs;
 
+import static java.util.Collections.singletonMap;
+
 import com.epam.ta.reportportal.core.item.identity.TestItemUniqueIdGenerator;
-import com.epam.ta.reportportal.core.item.impl.merge.strategy.*;
+import com.epam.ta.reportportal.core.item.impl.merge.strategy.BasicLaunchMergeStrategy;
+import com.epam.ta.reportportal.core.item.impl.merge.strategy.BasicStatisticsCalculationStrategy;
+import com.epam.ta.reportportal.core.item.impl.merge.strategy.DeepLaunchMergeStrategy;
+import com.epam.ta.reportportal.core.item.impl.merge.strategy.LaunchMergeFactory;
+import com.epam.ta.reportportal.core.item.impl.merge.strategy.MergeStrategyType;
+import com.epam.ta.reportportal.core.item.impl.merge.strategy.StatisticsCalculationFactory;
 import com.epam.ta.reportportal.core.item.merge.LaunchMergeStrategy;
 import com.epam.ta.reportportal.core.item.merge.StatisticsCalculationStrategy;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
@@ -25,13 +32,10 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Map;
-
-import static java.util.Collections.singletonMap;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -39,60 +43,63 @@ import static java.util.Collections.singletonMap;
 @Configuration
 public class MergeStrategyConfig {
 
-	private final TestItemRepository testItemRepository;
+  private final TestItemRepository testItemRepository;
 
-	private final LaunchRepository launchRepository;
+  private final LaunchRepository launchRepository;
 
-	private final TestItemUniqueIdGenerator testItemUniqueIdGenerator;
+  private final TestItemUniqueIdGenerator testItemUniqueIdGenerator;
 
-	private final LogRepository logRepository;
+  private final LogRepository logRepository;
 
-	private final AttachmentRepository attachmentRepository;
+  private final AttachmentRepository attachmentRepository;
 
-	@Autowired
-	public MergeStrategyConfig(TestItemRepository testItemRepository, LaunchRepository launchRepository,
-			TestItemUniqueIdGenerator testItemUniqueIdGenerator, LogRepository logRepository, AttachmentRepository attachmentRepository) {
-		this.testItemRepository = testItemRepository;
-		this.launchRepository = launchRepository;
-		this.testItemUniqueIdGenerator = testItemUniqueIdGenerator;
-		this.logRepository = logRepository;
-		this.attachmentRepository = attachmentRepository;
-	}
+  @Autowired
+  public MergeStrategyConfig(TestItemRepository testItemRepository,
+      LaunchRepository launchRepository,
+      TestItemUniqueIdGenerator testItemUniqueIdGenerator, LogRepository logRepository,
+      AttachmentRepository attachmentRepository) {
+    this.testItemRepository = testItemRepository;
+    this.launchRepository = launchRepository;
+    this.testItemUniqueIdGenerator = testItemUniqueIdGenerator;
+    this.logRepository = logRepository;
+    this.attachmentRepository = attachmentRepository;
+  }
 
-	@Bean
-	public Map<MergeStrategyType, StatisticsCalculationStrategy> statisticsCalculationStrategyMaping() {
-		return singletonMap(MergeStrategyType.BASIC, new BasicStatisticsCalculationStrategy());
-	}
+  @Bean
+  public Map<MergeStrategyType, StatisticsCalculationStrategy> statisticsCalculationStrategyMaping() {
+    return singletonMap(MergeStrategyType.BASIC, new BasicStatisticsCalculationStrategy());
+  }
 
-	@Bean
-	public StatisticsCalculationFactory statisticsCalculationFactory() {
-		return new StatisticsCalculationFactory(statisticsCalculationStrategyMaping());
-	}
+  @Bean
+  public StatisticsCalculationFactory statisticsCalculationFactory() {
+    return new StatisticsCalculationFactory(statisticsCalculationStrategyMaping());
+  }
 
-	@Bean
-	public Map<MergeStrategyType, LaunchMergeStrategy> launchMergeStrategyMapping() {
-		return ImmutableMap.<MergeStrategyType, LaunchMergeStrategy>builder().put(MergeStrategyType.BASIC,
-				new BasicLaunchMergeStrategy(launchRepository,
-						testItemRepository,
-						logRepository,
-						attachmentRepository,
-						testItemUniqueIdGenerator,
-						statisticsCalculationFactory()
-				)
-		)
-				.put(MergeStrategyType.DEEP,
-						new DeepLaunchMergeStrategy(launchRepository,
-								testItemRepository,
-								logRepository,
-								attachmentRepository,
-								testItemUniqueIdGenerator
-						)
-				)
-				.build();
-	}
+  @Bean
+  public Map<MergeStrategyType, LaunchMergeStrategy> launchMergeStrategyMapping() {
+    return ImmutableMap.<MergeStrategyType, LaunchMergeStrategy>builder()
+        .put(MergeStrategyType.BASIC,
+            new BasicLaunchMergeStrategy(launchRepository,
+                testItemRepository,
+                logRepository,
+                attachmentRepository,
+                testItemUniqueIdGenerator,
+                statisticsCalculationFactory()
+            )
+        )
+        .put(MergeStrategyType.DEEP,
+            new DeepLaunchMergeStrategy(launchRepository,
+                testItemRepository,
+                logRepository,
+                attachmentRepository,
+                testItemUniqueIdGenerator
+            )
+        )
+        .build();
+  }
 
-	@Bean
-	public LaunchMergeFactory launchMergeFactory() {
-		return new LaunchMergeFactory(launchMergeStrategyMapping());
-	}
+  @Bean
+  public LaunchMergeFactory launchMergeFactory() {
+    return new LaunchMergeFactory(launchMergeStrategyMapping());
+  }
 }

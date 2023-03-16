@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.integration.migration;
 
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
@@ -24,36 +26,37 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import static java.util.Optional.ofNullable;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Component
 public class LdapSecretMigrationService extends AbstractSecretMigrationService {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(LdapSecretMigrationService.class);
-	private static final String LDAP_INTEGRATION_TYPE_NAME = "ldap";
-	private static final String LDAP_SECURE_PROPERTY = "managerPassword";
+  private static final Logger LOGGER = LoggerFactory.getLogger(LdapSecretMigrationService.class);
+  private static final String LDAP_INTEGRATION_TYPE_NAME = "ldap";
+  private static final String LDAP_SECURE_PROPERTY = "managerPassword";
 
-	@Value("${rp.auth.encryptor.password:reportportal}")
-	private String salt;
+  @Value("${rp.auth.encryptor.password:reportportal}")
+  private String salt;
 
-	public LdapSecretMigrationService(IntegrationRepository integrationRepository, BasicTextEncryptor encryptor) {
-		super(integrationRepository, encryptor);
-	}
+  public LdapSecretMigrationService(IntegrationRepository integrationRepository,
+      BasicTextEncryptor encryptor) {
+    super(integrationRepository, encryptor);
+  }
 
-	@Transactional
-	public void migrate() {
-		LOGGER.debug("Migration of LDAP secrets has been started");
+  @Transactional
+  public void migrate() {
+    LOGGER.debug("Migration of LDAP secrets has been started");
 
-		BasicTextEncryptor propertySaltEncryptor = new BasicTextEncryptor();
-		propertySaltEncryptor.setPassword(salt);
+    BasicTextEncryptor propertySaltEncryptor = new BasicTextEncryptor();
+    propertySaltEncryptor.setPassword(salt);
 
-		integrationRepository.findAllByTypeIn(LDAP_INTEGRATION_TYPE_NAME)
-				.forEach(it -> extractParams(it).ifPresent(params -> ofNullable(params.get(LDAP_SECURE_PROPERTY)).map(param -> (String) param)
-						.ifPresent(param -> params.put(LDAP_SECURE_PROPERTY, encryptor.encrypt(propertySaltEncryptor.decrypt(param))))));
+    integrationRepository.findAllByTypeIn(LDAP_INTEGRATION_TYPE_NAME)
+        .forEach(it -> extractParams(it).ifPresent(
+            params -> ofNullable(params.get(LDAP_SECURE_PROPERTY)).map(param -> (String) param)
+                .ifPresent(param -> params.put(LDAP_SECURE_PROPERTY,
+                    encryptor.encrypt(propertySaltEncryptor.decrypt(param))))));
 
-		LOGGER.debug("Migration of LDAP secrets has been finished");
-	}
+    LOGGER.debug("Migration of LDAP secrets has been finished");
+  }
 }

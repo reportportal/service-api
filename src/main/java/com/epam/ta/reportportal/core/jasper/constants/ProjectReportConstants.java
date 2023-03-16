@@ -21,15 +21,15 @@ package com.epam.ta.reportportal.core.jasper.constants;
  */
 public final class ProjectReportConstants {
 
-	public static final String PROJECT_TYPE = "Project type";
-	public static final String PROJECT_NAME = "Project name";
-	public static final String ORGANIZATION = "Organization";
-	public static final String MEMBERS = "Members";
-	public static final String LAUNCHES = "Launches";
-	public static final String LAST_LAUNCH_DATE = "Last launch date";
+  public static final String PROJECT_TYPE = "Project type";
+  public static final String PROJECT_NAME = "Project name";
+  public static final String ORGANIZATION = "Organization";
+  public static final String MEMBERS = "Members";
+  public static final String LAUNCHES = "Launches";
+  public static final String LAST_LAUNCH_DATE = "Last launch date";
 
-	private ProjectReportConstants() {
+  private ProjectReportConstants() {
 
-		//static only
-	}
+    //static only
+  }
 }

@@ -15,14 +15,14 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl;
 
+import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
+import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.ZIP_EXTENSION;
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.imprt.impl.junit.XunitParseJob;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import javax.inject.Provider;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,60 +30,64 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
-import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.ZIP_EXTENSION;
-import static java.util.Optional.ofNullable;
+import javax.inject.Provider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
 public class ZipImportStrategy extends AbstractImportStrategy {
-	private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
-	private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().endsWith(XML_EXTENSION);
 
-	@Autowired
-	private Provider<XunitParseJob> xmlParseJobProvider;
+  private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
+  private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName()
+      .endsWith(XML_EXTENSION);
 
-	@Override
-	public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file, String baseUrl) {
-		try {
-			return processZipFile(file, projectDetails, user, baseUrl);
-		} finally {
-			try {
-				ofNullable(file).ifPresent(File::delete);
-			} catch (Exception e) {
-				LOGGER.error("File '{}' was not successfully deleted.", file.getName(), e);
-			}
-		}
-	}
+  @Autowired
+  private Provider<XunitParseJob> xmlParseJobProvider;
 
-	private String processZipFile(File zip, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
-		//copy of the launch's id to use it in catch block if something goes wrong
-		String savedLaunchId = null;
-		try (ZipFile zipFile = new ZipFile(zip)) {
-			String launchId = startLaunch(projectDetails, user, zip.getName().substring(0, zip.getName().indexOf("." + ZIP_EXTENSION)));
-			savedLaunchId = launchId;
-			CompletableFuture[] futures = zipFile.stream().filter(isFile.and(isXml)).map(zipEntry -> {
-				XunitParseJob job = xmlParseJobProvider.get()
-						.withParameters(projectDetails, launchId, user, getEntryStream(zipFile, zipEntry));
-				return CompletableFuture.supplyAsync(job::call, service);
-			}).toArray(CompletableFuture[]::new);
-			ParseResults parseResults = processResults(futures);
-			finishLaunch(launchId, projectDetails, user, parseResults, baseUrl);
-			return launchId;
-		} catch (Exception e) {
-			updateBrokenLaunch(savedLaunchId);
-			throw new ReportPortalException(ErrorType.IMPORT_FILE_ERROR, cleanMessage(e));
-		}
-	}
+  @Override
+  public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      File file, String baseUrl) {
+    try {
+      return processZipFile(file, projectDetails, user, baseUrl);
+    } finally {
+      try {
+        ofNullable(file).ifPresent(File::delete);
+      } catch (Exception e) {
+        LOGGER.error("File '{}' was not successfully deleted.", file.getName(), e);
+      }
+    }
+  }
 
-	private InputStream getEntryStream(ZipFile file, ZipEntry zipEntry) {
-		try {
-			return file.getInputStream(zipEntry);
-		} catch (IOException e) {
-			throw new ReportPortalException(ErrorType.IMPORT_FILE_ERROR, e.getMessage());
-		}
-	}
+  private String processZipFile(File zip, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, String baseUrl) {
+    //copy of the launch's id to use it in catch block if something goes wrong
+    String savedLaunchId = null;
+    try (ZipFile zipFile = new ZipFile(zip)) {
+      String launchId = startLaunch(projectDetails, user,
+          zip.getName().substring(0, zip.getName().indexOf("." + ZIP_EXTENSION)));
+      savedLaunchId = launchId;
+      CompletableFuture[] futures = zipFile.stream().filter(isFile.and(isXml)).map(zipEntry -> {
+        XunitParseJob job = xmlParseJobProvider.get()
+            .withParameters(projectDetails, launchId, user, getEntryStream(zipFile, zipEntry));
+        return CompletableFuture.supplyAsync(job::call, service);
+      }).toArray(CompletableFuture[]::new);
+      ParseResults parseResults = processResults(futures);
+      finishLaunch(launchId, projectDetails, user, parseResults, baseUrl);
+      return launchId;
+    } catch (Exception e) {
+      updateBrokenLaunch(savedLaunchId);
+      throw new ReportPortalException(ErrorType.IMPORT_FILE_ERROR, cleanMessage(e));
+    }
+  }
+
+  private InputStream getEntryStream(ZipFile file, ZipEntry zipEntry) {
+    try {
+      return file.getInputStream(zipEntry);
+    } catch (IOException e) {
+      throw new ReportPortalException(ErrorType.IMPORT_FILE_ERROR, e.getMessage());
+    }
+  }
 }

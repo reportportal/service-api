@@ -24,17 +24,19 @@ import com.epam.ta.reportportal.entity.launch.Launch;
  */
 public interface LaunchAccessValidator {
 
-	/**
-	 * @param launch       {@link com.epam.ta.reportportal.entity.launch.Launch}
-	 * @param projectDetails {@link ReportPortalUser.ProjectDetails}
-	 * @param user           {@link ReportPortalUser}
-	 */
-	void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+  /**
+   * @param launch         {@link com.epam.ta.reportportal.entity.launch.Launch}
+   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param user           {@link ReportPortalUser}
+   */
+  void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user);
 
-	/**
-	 * @param launchId       {@link com.epam.ta.reportportal.entity.launch.Launch#getId()}
-	 * @param projectDetails {@link ReportPortalUser.ProjectDetails}
-	 * @param user           {@link ReportPortalUser}
-	 */
-	void validate(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+  /**
+   * @param launchId       {@link com.epam.ta.reportportal.entity.launch.Launch#getId()}
+   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param user           {@link ReportPortalUser}
+   */
+  void validate(Long launchId, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user);
 }

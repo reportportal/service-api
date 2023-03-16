@@ -16,6 +16,10 @@
 
 package com.epam.ta.reportportal.core.item.impl.provider.impl;
 
+import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
+import static com.epam.ta.reportportal.core.widget.content.updater.MaterializedWidgetStateUpdater.STATE;
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -31,18 +35,13 @@ import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
-import static com.epam.ta.reportportal.core.widget.content.updater.MaterializedWidgetStateUpdater.STATE;
-import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -50,46 +49,54 @@ import static java.util.Optional.ofNullable;
 @Component
 public class MaterializedWidgetProviderHandlerImpl implements DataProviderHandler {
 
-	private static final String WIDGET_ID_PARAM = "widgetId";
+  private static final String WIDGET_ID_PARAM = "widgetId";
 
-	@Autowired
-	private Map<WidgetType, DataProviderHandler> testItemWidgetDataProviders;
+  @Autowired
+  private Map<WidgetType, DataProviderHandler> testItemWidgetDataProviders;
 
-	@Autowired
-	private GetShareableEntityHandler<Widget> getShareableEntityHandler;
+  @Autowired
+  private GetShareableEntityHandler<Widget> getShareableEntityHandler;
 
-	@Override
-	public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, Map<String, String> providerParams) {
-		WidgetType widgetType = updateProviderParams(projectDetails, providerParams);
-		return testItemWidgetDataProviders.get(widgetType).getTestItems(filter, pageable, projectDetails, user, providerParams);
-	}
+  @Override
+  public Page<TestItem> getTestItems(Queryable filter, Pageable pageable,
+      ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, Map<String, String> providerParams) {
+    WidgetType widgetType = updateProviderParams(projectDetails, providerParams);
+    return testItemWidgetDataProviders.get(widgetType)
+        .getTestItems(filter, pageable, projectDetails, user, providerParams);
+  }
 
-	@Override
-	public Set<Statistics> accumulateStatistics(Queryable filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			Map<String, String> providerParams) {
-		WidgetType widgetType = updateProviderParams(projectDetails, providerParams);
-		return testItemWidgetDataProviders.get(widgetType).accumulateStatistics(filter, projectDetails, user, providerParams);
-	}
+  @Override
+  public Set<Statistics> accumulateStatistics(Queryable filter,
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      Map<String, String> providerParams) {
+    WidgetType widgetType = updateProviderParams(projectDetails, providerParams);
+    return testItemWidgetDataProviders.get(widgetType)
+        .accumulateStatistics(filter, projectDetails, user, providerParams);
+  }
 
-	private WidgetType updateProviderParams(ReportPortalUser.ProjectDetails projectDetails, Map<String, String> providerParams) {
-		Long widgetId = Optional.ofNullable(providerParams.get(WIDGET_ID_PARAM))
-				.map(ControllerUtils::safeParseLong)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-						"Widget id must be provided for widget based items provider"
-				));
-		Widget widget = getShareableEntityHandler.getPermitted(widgetId, projectDetails);
-		validateState(widget.getWidgetOptions());
-		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
-		providerParams.put(VIEW_NAME, widget.getWidgetOptions().getOptions().get(VIEW_NAME).toString());
-		return widgetType;
-	}
+  private WidgetType updateProviderParams(ReportPortalUser.ProjectDetails projectDetails,
+      Map<String, String> providerParams) {
+    Long widgetId = Optional.ofNullable(providerParams.get(WIDGET_ID_PARAM))
+        .map(ControllerUtils::safeParseLong)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            "Widget id must be provided for widget based items provider"
+        ));
+    Widget widget = getShareableEntityHandler.getPermitted(widgetId, projectDetails);
+    validateState(widget.getWidgetOptions());
+    WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
+    providerParams.put(VIEW_NAME, widget.getWidgetOptions().getOptions().get(VIEW_NAME).toString());
+    return widgetType;
+  }
 
-	private void validateState(WidgetOptions widgetOptions) {
-		WidgetState widgetState = ofNullable(WidgetOptionUtil.getValueByKey(STATE, widgetOptions)).flatMap(WidgetState::findByName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_UPDATE_WIDGET_REQUEST, "Widget state not provided"));
-		BusinessRule.expect(widgetState, it -> !WidgetState.RENDERING.equals(it))
-				.verify(ErrorType.BAD_UPDATE_WIDGET_REQUEST, "Unable to remove widget in 'rendering' state");
-	}
+  private void validateState(WidgetOptions widgetOptions) {
+    WidgetState widgetState = ofNullable(
+        WidgetOptionUtil.getValueByKey(STATE, widgetOptions)).flatMap(WidgetState::findByName)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_UPDATE_WIDGET_REQUEST,
+            "Widget state not provided"));
+    BusinessRule.expect(widgetState, it -> !WidgetState.RENDERING.equals(it))
+        .verify(ErrorType.BAD_UPDATE_WIDGET_REQUEST,
+            "Unable to remove widget in 'rendering' state");
+  }
 }

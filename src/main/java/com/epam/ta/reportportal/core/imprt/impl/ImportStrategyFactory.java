@@ -16,19 +16,19 @@
 package com.epam.ta.reportportal.core.imprt.impl;
 
 /**
- * Factory for launch import handlers.
- * Could be implemented other imports in future versions.
+ * Factory for launch import handlers. Could be implemented other imports in future versions.
  *
  * @author Pavel_Bortnik
  */
 
 public interface ImportStrategyFactory {
-	/**
-	 * Return import handler for specified type of import.
-	 *
-	 * @param type     import type
-	 * @param fileName file name with extension
-	 * @return handler
-	 */
-	ImportStrategy getImportStrategy(ImportType type, String fileName);
+
+  /**
+   * Return import handler for specified type of import.
+   *
+   * @param type     import type
+   * @param fileName file name with extension
+   * @return handler
+   */
+  ImportStrategy getImportStrategy(ImportType type, String fileName);
 }

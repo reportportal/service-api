@@ -1,6 +1,6 @@
 #!groovy
 properties([
-        parameters ([
+        parameters([
                 string(
                         name: "VERSION",
                         defaultValue: "",

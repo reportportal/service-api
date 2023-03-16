@@ -16,67 +16,68 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
-
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.PROJECT;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_INDEX;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.GENERATE_INDEX;
+
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 
 /**
  * @author Pavel Bortnik
  */
 public class ProjectIndexEvent extends AbstractEvent implements ActivityEvent {
 
-	private Long projectId;
-	private String projectName;
-	private boolean indexing;
+  private Long projectId;
+  private String projectName;
+  private boolean indexing;
 
-	public ProjectIndexEvent() {
-	}
+  public ProjectIndexEvent() {
+  }
 
-	public ProjectIndexEvent(Long userId, String userLogin, Long projectId, String projectName, boolean indexing) {
-		super(userId, userLogin);
-		this.projectId = projectId;
-		this.projectName = projectName;
-		this.indexing = indexing;
-	}
+  public ProjectIndexEvent(Long userId, String userLogin, Long projectId, String projectName,
+      boolean indexing) {
+    super(userId, userLogin);
+    this.projectId = projectId;
+    this.projectName = projectName;
+    this.indexing = indexing;
+  }
 
-	public Long getProjectId() {
-		return projectId;
-	}
+  public Long getProjectId() {
+    return projectId;
+  }
 
-	public void setProjectId(Long projectId) {
-		this.projectId = projectId;
-	}
+  public void setProjectId(Long projectId) {
+    this.projectId = projectId;
+  }
 
-	public String getProjectName() {
-		return projectName;
-	}
+  public String getProjectName() {
+    return projectName;
+  }
 
-	public void setProjectName(String projectName) {
-		this.projectName = projectName;
-	}
+  public void setProjectName(String projectName) {
+    this.projectName = projectName;
+  }
 
-	public boolean isIndexing() {
-		return indexing;
-	}
+  public boolean isIndexing() {
+    return indexing;
+  }
 
-	public void setIndexing(boolean indexing) {
-		this.indexing = indexing;
-	}
+  public void setIndexing(boolean indexing) {
+    this.indexing = indexing;
+  }
 
-	@Override
-	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(indexing ? GENERATE_INDEX : DELETE_INDEX)
-				.addActivityEntityType(PROJECT)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(projectId)
-				.addObjectName(projectName)
-				.addProjectId(projectId)
-				.get();
-	}
+  @Override
+  public Activity toActivity() {
+    return new ActivityBuilder().addCreatedNow()
+        .addAction(indexing ? GENERATE_INDEX : DELETE_INDEX)
+        .addActivityEntityType(PROJECT)
+        .addUserId(getUserId())
+        .addUserName(getUserLogin())
+        .addObjectId(projectId)
+        .addObjectName(projectName)
+        .addProjectId(projectId)
+        .get();
+  }
 }

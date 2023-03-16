@@ -16,7 +16,16 @@
 
 package com.epam.ta.reportportal.plugin;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
+import java.io.File;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.pf4j.PluginDescriptor;
 import org.pf4j.PluginManager;
@@ -24,99 +33,101 @@ import org.pf4j.PluginWrapper;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory;
 
-import java.io.File;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class ReportPortalExtensionFactoryTest {
 
-	private final String RESOURCES_DIR = "resources";
+  private final String RESOURCES_DIR = "resources";
 
-	private final PluginManager pluginManager = mock(PluginManager.class);
-	private final PluginWrapper pluginWrapper = mock(PluginWrapper.class);
-	private final PluginDescriptor pluginDescriptor = mock(PluginDescriptor.class);
+  private final PluginManager pluginManager = mock(PluginManager.class);
+  private final PluginWrapper pluginWrapper = mock(PluginWrapper.class);
+  private final PluginDescriptor pluginDescriptor = mock(PluginDescriptor.class);
 
-	private final AbstractAutowireCapableBeanFactory beanFactory = mock(AbstractAutowireCapableBeanFactory.class);
+  private final AbstractAutowireCapableBeanFactory beanFactory = mock(
+      AbstractAutowireCapableBeanFactory.class);
 
-	private final ReportPortalExtensionFactory reportPortalExtensionFactory = new ReportPortalExtensionFactory(RESOURCES_DIR,
-			pluginManager,
-			beanFactory
-	);
+  private final ReportPortalExtensionFactory reportPortalExtensionFactory = new ReportPortalExtensionFactory(
+      RESOURCES_DIR,
+      pluginManager,
+      beanFactory
+  );
 
-	@Test
-	public void shouldReturnExistingBean() {
+  @Test
+  public void shouldReturnExistingBean() {
 
-		when(pluginWrapper.getPluginId()).thenReturn("testId");
-		when(pluginManager.whichPlugin(any())).thenReturn(pluginWrapper);
-		when(beanFactory.containsSingleton(pluginWrapper.getPluginId())).thenReturn(true);
-		when(beanFactory.getSingleton("testId")).thenReturn(new DummyPluginBean("testId"));
+    when(pluginWrapper.getPluginId()).thenReturn("testId");
+    when(pluginManager.whichPlugin(any())).thenReturn(pluginWrapper);
+    when(beanFactory.containsSingleton(pluginWrapper.getPluginId())).thenReturn(true);
+    when(beanFactory.getSingleton("testId")).thenReturn(new DummyPluginBean("testId"));
 
-		DummyPluginBean pluginBean = (DummyPluginBean) reportPortalExtensionFactory.create(DummyPluginBean.class);
+    DummyPluginBean pluginBean = (DummyPluginBean) reportPortalExtensionFactory.create(
+        DummyPluginBean.class);
 
-		assertEquals(pluginWrapper.getPluginId(), pluginBean.getId());
-	}
+    assertEquals(pluginWrapper.getPluginId(), pluginBean.getId());
+  }
 
-	@Test
-	public void shouldCreateNewBean() {
+  @Test
+  public void shouldCreateNewBean() {
 
-		when(pluginWrapper.getPluginId()).thenReturn("testId");
-		when(pluginDescriptor.getPluginId()).thenReturn("testId");
-		when(pluginWrapper.getDescriptor()).thenReturn(pluginDescriptor);
-		when(pluginManager.whichPlugin(any())).thenReturn(pluginWrapper);
-		when(beanFactory.containsSingleton(pluginWrapper.getPluginId())).thenReturn(false);
+    when(pluginWrapper.getPluginId()).thenReturn("testId");
+    when(pluginDescriptor.getPluginId()).thenReturn("testId");
+    when(pluginWrapper.getDescriptor()).thenReturn(pluginDescriptor);
+    when(pluginManager.whichPlugin(any())).thenReturn(pluginWrapper);
+    when(beanFactory.containsSingleton(pluginWrapper.getPluginId())).thenReturn(false);
 
-		DummyPluginBean pluginBean = (DummyPluginBean) reportPortalExtensionFactory.create(DummyPluginBean.class);
+    DummyPluginBean pluginBean = (DummyPluginBean) reportPortalExtensionFactory.create(
+        DummyPluginBean.class);
 
-		assertEquals("resources" + File.separator + "testId",
-				String.valueOf(pluginBean.getInitParams().get(IntegrationTypeProperties.RESOURCES_DIRECTORY.getAttribute()))
-		);
+    assertEquals("resources" + File.separator + "testId",
+        String.valueOf(pluginBean.getInitParams()
+            .get(IntegrationTypeProperties.RESOURCES_DIRECTORY.getAttribute()))
+    );
 
-		verify(beanFactory, times(1)).autowireBean(pluginBean);
-		verify(beanFactory, times(1)).initializeBean(pluginBean, pluginWrapper.getDescriptor().getPluginId());
-		verify(beanFactory, times(1)).registerSingleton(pluginWrapper.getDescriptor().getPluginId(), pluginBean);
-		verify(beanFactory, times(1)).registerDisposableBean(pluginWrapper.getDescriptor().getPluginId(), (DisposableBean) pluginBean);
+    verify(beanFactory, times(1)).autowireBean(pluginBean);
+    verify(beanFactory, times(1)).initializeBean(pluginBean,
+        pluginWrapper.getDescriptor().getPluginId());
+    verify(beanFactory, times(1)).registerSingleton(pluginWrapper.getDescriptor().getPluginId(),
+        pluginBean);
+    verify(beanFactory, times(1)).registerDisposableBean(
+        pluginWrapper.getDescriptor().getPluginId(), (DisposableBean) pluginBean);
 
-	}
+  }
 
-	private static class DummyPluginBean implements DisposableBean {
-		private String id;
+  private static class DummyPluginBean implements DisposableBean {
 
-		private Map<String, Object> initParams;
+    private String id;
 
-		public DummyPluginBean(String id) {
-			this.id = id;
-		}
+    private Map<String, Object> initParams;
 
-		public DummyPluginBean(Map<String, Object> initParams) {
-			this.initParams = initParams;
-		}
+    public DummyPluginBean(String id) {
+      this.id = id;
+    }
 
-		public String getId() {
-			return id;
-		}
+    public DummyPluginBean(Map<String, Object> initParams) {
+      this.initParams = initParams;
+    }
 
-		public void setId(String id) {
-			this.id = id;
-		}
+    public String getId() {
+      return id;
+    }
 
-		public Map<String, Object> getInitParams() {
-			return initParams;
-		}
+    public void setId(String id) {
+      this.id = id;
+    }
 
-		public void setInitParams(Map<String, Object> initParams) {
-			this.initParams = initParams;
-		}
+    public Map<String, Object> getInitParams() {
+      return initParams;
+    }
 
-		@Override
-		public void destroy() throws Exception {
+    public void setInitParams(Map<String, Object> initParams) {
+      this.initParams = initParams;
+    }
 
-		}
-	}
+    @Override
+    public void destroy() throws Exception {
+
+    }
+  }
 
 }

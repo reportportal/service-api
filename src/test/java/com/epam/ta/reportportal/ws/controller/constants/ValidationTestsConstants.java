@@ -21,16 +21,17 @@ package com.epam.ta.reportportal.ws.controller.constants;
  */
 public final class ValidationTestsConstants {
 
-	public static final String ID_PATH = "/555";
+  public static final String ID_PATH = "/555";
 
-	public static final String WHITESPACES_NAME_VALUE = "    ";
-	public static final String SHORT_NAME_VALUE = "cc";
-	public static final String LONG_NAME_VALUE = "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt";
+  public static final String WHITESPACES_NAME_VALUE = "    ";
+  public static final String SHORT_NAME_VALUE = "cc";
+  public static final String LONG_NAME_VALUE = "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt";
 
-	public static final String INCORRECT_REQUEST_MESSAGE = "Incorrect Request. ";
-	public static final String FIELD_NAME_IS_NULL_MESSAGE = "[Field 'name' should not be null.] ";
-	public static final String FIELD_NAME_IS_BLANK_MESSAGE = "Field 'name' should not contain only white spaces and shouldn't be empty.";
-	public static final String FIELD_NAME_SIZE_MESSAGE_WITH_FORMAT = "Field 'name' should have size from '%d' to '%d'.";
+  public static final String INCORRECT_REQUEST_MESSAGE = "Incorrect Request. ";
+  public static final String FIELD_NAME_IS_NULL_MESSAGE = "[Field 'name' should not be null.] ";
+  public static final String FIELD_NAME_IS_BLANK_MESSAGE = "Field 'name' should not contain only white spaces and shouldn't be empty.";
+  public static final String FIELD_NAME_SIZE_MESSAGE_WITH_FORMAT = "Field 'name' should have size from '%d' to '%d'.";
 
-	private ValidationTestsConstants() {}
+  private ValidationTestsConstants() {
+  }
 }

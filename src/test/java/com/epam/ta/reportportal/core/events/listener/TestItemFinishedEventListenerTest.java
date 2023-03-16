@@ -16,31 +16,33 @@
 
 package com.epam.ta.reportportal.core.events.listener;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
 import com.epam.ta.reportportal.core.events.subscriber.impl.delegate.ProjectConfigDelegatingSubscriber;
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class TestItemFinishedEventListenerTest {
 
-	private final ProjectConfigDelegatingSubscriber<ItemFinishedEvent> delegatingSubscriber = (ProjectConfigDelegatingSubscriber<ItemFinishedEvent>) mock(
-			ProjectConfigDelegatingSubscriber.class);
+  private final ProjectConfigDelegatingSubscriber<ItemFinishedEvent> delegatingSubscriber = (ProjectConfigDelegatingSubscriber<ItemFinishedEvent>) mock(
+      ProjectConfigDelegatingSubscriber.class);
 
-	private final TestItemFinishedEventListener eventListener = new TestItemFinishedEventListener(List.of(delegatingSubscriber));
+  private final TestItemFinishedEventListener eventListener = new TestItemFinishedEventListener(
+      List.of(delegatingSubscriber));
 
-	@Test
-	void shouldHandle() {
-		final ItemFinishedEvent event = new ItemFinishedEvent(3L, 2L, 1L);
+  @Test
+  void shouldHandle() {
+    final ItemFinishedEvent event = new ItemFinishedEvent(3L, 2L, 1L);
 
-		eventListener.onApplicationEvent(event);
+    eventListener.onApplicationEvent(event);
 
-		verify(delegatingSubscriber, times(1)).handleEvent(event);
-	}
+    verify(delegatingSubscriber, times(1)).handleEvent(event);
+  }
 
 }

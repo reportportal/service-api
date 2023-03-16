@@ -18,12 +18,11 @@ package com.epam.ta.reportportal.info;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.Plugin;
 import com.google.common.collect.ImmutableMap;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Shows list of supported extensions providers.
@@ -34,16 +33,17 @@ import java.util.stream.Collectors;
 @Component
 public class ExtensionsInfoContributor implements ExtensionContributor {
 
-	private static final String EXTENSION_KEY = "extension";
+  private static final String EXTENSION_KEY = "extension";
 
-	private static final String BUGTRACKING_KEY = "bugtracking";
+  private static final String BUGTRACKING_KEY = "bugtracking";
 
-	@Autowired
-	private Pf4jPluginBox pluginBox;
+  @Autowired
+  private Pf4jPluginBox pluginBox;
 
-	@Override
-	public Map<String, ?> contribute() {
-		Set<String> names = pluginBox.getPlugins().stream().map(Plugin::getId).collect(Collectors.toSet());
-		return ImmutableMap.<String, Object>builder().put(EXTENSION_KEY, names).build();
-	}
+  @Override
+  public Map<String, ?> contribute() {
+    Set<String> names = pluginBox.getPlugins().stream().map(Plugin::getId)
+        .collect(Collectors.toSet());
+    return ImmutableMap.<String, Object>builder().put(EXTENSION_KEY, names).build();
+  }
 }

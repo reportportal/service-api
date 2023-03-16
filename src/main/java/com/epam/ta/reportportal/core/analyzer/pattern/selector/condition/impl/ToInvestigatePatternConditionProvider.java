@@ -16,37 +16,37 @@
 
 package com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_ISSUE_GROUP_ID;
+
 import com.epam.ta.reportportal.commons.querygen.CompositeFilterCondition;
 import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
 import com.google.common.collect.Lists;
-import org.jooq.Operator;
-
 import java.util.function.Supplier;
-
-import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_ISSUE_GROUP_ID;
+import org.jooq.Operator;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ToInvestigatePatternConditionProvider extends AbstractPatternConditionProvider {
 
-	//TODO ADD OPTIONAL<ISSUEGROUP>
-	private final Supplier<IssueGroup> issueGroupSupplier;
+  //TODO ADD OPTIONAL<ISSUEGROUP>
+  private final Supplier<IssueGroup> issueGroupSupplier;
 
-	public ToInvestigatePatternConditionProvider(AnalyzeItemsMode analyzeItemsMode, Supplier<IssueGroup> issueGroupSupplier) {
-		super(analyzeItemsMode);
-		this.issueGroupSupplier = issueGroupSupplier;
-	}
+  public ToInvestigatePatternConditionProvider(AnalyzeItemsMode analyzeItemsMode,
+      Supplier<IssueGroup> issueGroupSupplier) {
+    super(analyzeItemsMode);
+    this.issueGroupSupplier = issueGroupSupplier;
+  }
 
-	@Override
-	protected ConvertibleCondition provideCondition() {
-		return new CompositeFilterCondition(Lists.newArrayList(FilterCondition.builder()
-				.eq(CRITERIA_ISSUE_GROUP_ID, String.valueOf(issueGroupSupplier.get().getId()))
-				.build()), Operator.OR);
+  @Override
+  protected ConvertibleCondition provideCondition() {
+    return new CompositeFilterCondition(Lists.newArrayList(FilterCondition.builder()
+        .eq(CRITERIA_ISSUE_GROUP_ID, String.valueOf(issueGroupSupplier.get().getId()))
+        .build()), Operator.OR);
 
-	}
+  }
 
 }

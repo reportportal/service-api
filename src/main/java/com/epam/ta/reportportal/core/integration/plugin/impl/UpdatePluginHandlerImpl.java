@@ -37,74 +37,81 @@ import org.springframework.stereotype.Service;
 @Service
 public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 
-	private final Pf4jPluginBox pluginBox;
-	private final IntegrationTypeRepository integrationTypeRepository;
+  private final Pf4jPluginBox pluginBox;
+  private final IntegrationTypeRepository integrationTypeRepository;
 
-	@Autowired
-	public UpdatePluginHandlerImpl(Pf4jPluginBox pluginBox, IntegrationTypeRepository integrationTypeRepository) {
-		this.pluginBox = pluginBox;
-		this.integrationTypeRepository = integrationTypeRepository;
-	}
+  @Autowired
+  public UpdatePluginHandlerImpl(Pf4jPluginBox pluginBox,
+      IntegrationTypeRepository integrationTypeRepository) {
+    this.pluginBox = pluginBox;
+    this.integrationTypeRepository = integrationTypeRepository;
+  }
 
-	@Override
-	public OperationCompletionRS updatePluginState(Long id, UpdatePluginStateRQ updatePluginStateRQ) {
+  @Override
+  public OperationCompletionRS updatePluginState(Long id, UpdatePluginStateRQ updatePluginStateRQ) {
 
-		IntegrationType integrationType = integrationTypeRepository.findById(id)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						Suppliers.formattedSupplier("Integration type with id - '{}' not found.", id).get()
-				));
+    IntegrationType integrationType = integrationTypeRepository.findById(id)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+            Suppliers.formattedSupplier("Integration type with id - '{}' not found.", id).get()
+        ));
 
-		boolean isEnabled = updatePluginStateRQ.getEnabled();
-		integrationType.setEnabled(isEnabled);
-		return handlePluginState(integrationType, isEnabled);
-	}
+    boolean isEnabled = updatePluginStateRQ.getEnabled();
+    integrationType.setEnabled(isEnabled);
+    return handlePluginState(integrationType, isEnabled);
+  }
 
-	private OperationCompletionRS handlePluginState(IntegrationType integrationType, boolean isEnabled) {
+  private OperationCompletionRS handlePluginState(IntegrationType integrationType,
+      boolean isEnabled) {
 
-		/*
-		 *	hack: while email and ldap isn't a plugin - it shouldn't be proceeded as a plugin
-		 *  it is configured as a integration type on the database startup
-		 *  should be replaced as a separate tables for both 'email' or 'ldap' or remove them
-		 *  and rewrite as a plugin
-		 */
-		if (ReservedIntegrationTypeEnum.fromName(integrationType.getName()).isPresent()) {
-			return new OperationCompletionRS(Suppliers.formattedSupplier("Enabled state of the plugin with id = '{}' has been switched to - '{}'",
-					integrationType.getName(),
-					isEnabled
-			).get());
-		}
+    /*
+     *	hack: while email and ldap isn't a plugin - it shouldn't be proceeded as a plugin
+     *  it is configured as a integration type on the database startup
+     *  should be replaced as a separate tables for both 'email' or 'ldap' or remove them
+     *  and rewrite as a plugin
+     */
+    if (ReservedIntegrationTypeEnum.fromName(integrationType.getName()).isPresent()) {
+      return new OperationCompletionRS(Suppliers.formattedSupplier(
+          "Enabled state of the plugin with id = '{}' has been switched to - '{}'",
+          integrationType.getName(),
+          isEnabled
+      ).get());
+    }
 
+    if (isEnabled) {
+      loadPlugin(integrationType);
+    } else {
+      unloadPlugin(integrationType);
+    }
 
-		if (isEnabled) {
-			loadPlugin(integrationType);
-		} else {
-			unloadPlugin(integrationType);
-		}
+    return new OperationCompletionRS(Suppliers.formattedSupplier(
+        "Enabled state of the plugin with id = '{}' has been switched to - '{}'",
+        integrationType.getName(),
+        isEnabled
+    ).get());
+  }
 
-		return new OperationCompletionRS(Suppliers.formattedSupplier("Enabled state of the plugin with id = '{}' has been switched to - '{}'",
-				integrationType.getName(),
-				isEnabled
-		).get());
-	}
+  private void loadPlugin(IntegrationType integrationType) {
+    if (pluginBox.getPluginById(integrationType.getName()).isEmpty()) {
+      boolean isLoaded = pluginBox.loadPlugin(integrationType.getName(),
+          integrationType.getDetails());
+      BusinessRule.expect(isLoaded, BooleanUtils::isTrue)
+          .verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+              Suppliers.formattedSupplier("Error during loading the plugin with id = '{}'",
+                  integrationType.getName()).get()
+          );
+    }
+  }
 
-	private void loadPlugin(IntegrationType integrationType) {
-		if (pluginBox.getPluginById(integrationType.getName()).isEmpty()) {
-			boolean isLoaded = pluginBox.loadPlugin(integrationType.getName(), integrationType.getDetails());
-			BusinessRule.expect(isLoaded, BooleanUtils::isTrue).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-					Suppliers.formattedSupplier("Error during loading the plugin with id = '{}'", integrationType.getName()).get()
-			);
-		}
-	}
+  private void unloadPlugin(IntegrationType integrationType) {
 
-	private void unloadPlugin(IntegrationType integrationType) {
+    pluginBox.getPluginById(integrationType.getName()).ifPresent(plugin -> {
 
-		pluginBox.getPluginById(integrationType.getName()).ifPresent(plugin -> {
-
-			if (!pluginBox.unloadPlugin(integrationType)) {
-				throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'", integrationType.getName()).get()
-				);
-			}
-		});
-	}
+      if (!pluginBox.unloadPlugin(integrationType)) {
+        throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+            Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'",
+                integrationType.getName()).get()
+        );
+      }
+    });
+  }
 }

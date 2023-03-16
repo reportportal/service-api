@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.demodata.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 
 /**
@@ -27,25 +26,25 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DemoDataRs {
 
-	@JsonProperty
-	private Long dashboardId;
+  @JsonProperty
+  private Long dashboardId;
 
-	@JsonProperty
-	private List<Long> launchIds;
+  @JsonProperty
+  private List<Long> launchIds;
 
-	public Long getDashboardId() {
-		return dashboardId;
-	}
+  public Long getDashboardId() {
+    return dashboardId;
+  }
 
-	public void setDashboardId(Long dashboardId) {
-		this.dashboardId = dashboardId;
-	}
+  public void setDashboardId(Long dashboardId) {
+    this.dashboardId = dashboardId;
+  }
 
-	public List<Long> getLaunchIds() {
-		return launchIds;
-	}
+  public List<Long> getLaunchIds() {
+    return launchIds;
+  }
 
-	public void setLaunchIds(List<Long> launchIds) {
-		this.launchIds = launchIds;
-	}
+  public void setLaunchIds(List<Long> launchIds) {
+    this.launchIds = launchIds;
+  }
 }

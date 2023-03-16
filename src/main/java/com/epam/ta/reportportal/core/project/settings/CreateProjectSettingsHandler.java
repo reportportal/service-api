@@ -27,23 +27,25 @@ import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTem
  */
 public interface CreateProjectSettingsHandler {
 
-	/**
-	 * Create issue sub-type for specified project
-	 *
-	 * @param projectName Project name
-	 * @param user        User
-	 * @param rq          Create issue sub type rq
-	 * @return EntryCreatedRS
-	 */
-	IssueSubTypeCreatedRS createProjectIssueSubType(String projectName, ReportPortalUser user, CreateIssueSubTypeRQ rq);
+  /**
+   * Create issue sub-type for specified project
+   *
+   * @param projectName Project name
+   * @param user        User
+   * @param rq          Create issue sub type rq
+   * @return EntryCreatedRS
+   */
+  IssueSubTypeCreatedRS createProjectIssueSubType(String projectName, ReportPortalUser user,
+      CreateIssueSubTypeRQ rq);
 
-	/**
-	 * Create {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} entity
-	 *
-	 * @param projectName             {@link com.epam.ta.reportportal.entity.project.Project#name}
-	 * @param createPatternTemplateRQ {@link CreatePatternTemplateRQ}
-	 * @param user                    {@link ReportPortalUser}
-	 * @return {@link EntryCreatedRS}
-	 */
-	EntryCreatedRS createPatternTemplate(String projectName, CreatePatternTemplateRQ createPatternTemplateRQ, ReportPortalUser user);
+  /**
+   * Create {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} entity
+   *
+   * @param projectName             {@link com.epam.ta.reportportal.entity.project.Project#name}
+   * @param createPatternTemplateRQ {@link CreatePatternTemplateRQ}
+   * @param user                    {@link ReportPortalUser}
+   * @return {@link EntryCreatedRS}
+   */
+  EntryCreatedRS createPatternTemplate(String projectName,
+      CreatePatternTemplateRQ createPatternTemplateRQ, ReportPortalUser user);
 }

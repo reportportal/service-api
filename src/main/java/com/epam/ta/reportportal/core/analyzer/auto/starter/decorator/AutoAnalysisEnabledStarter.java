@@ -24,16 +24,16 @@ import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConf
  */
 public class AutoAnalysisEnabledStarter implements LaunchAutoAnalysisStarter {
 
-	private final LaunchAutoAnalysisStarter launchAutoAnalysisStarter;
+  private final LaunchAutoAnalysisStarter launchAutoAnalysisStarter;
 
-	public AutoAnalysisEnabledStarter(LaunchAutoAnalysisStarter launchAutoAnalysisStarter) {
-		this.launchAutoAnalysisStarter = launchAutoAnalysisStarter;
-	}
+  public AutoAnalysisEnabledStarter(LaunchAutoAnalysisStarter launchAutoAnalysisStarter) {
+    this.launchAutoAnalysisStarter = launchAutoAnalysisStarter;
+  }
 
-	@Override
-	public void start(StartLaunchAutoAnalysisConfig config) {
-		if (config.getAnalyzerConfig().getIsAutoAnalyzerEnabled()) {
-			launchAutoAnalysisStarter.start(config);
-		}
-	}
+  @Override
+  public void start(StartLaunchAutoAnalysisConfig config) {
+    if (config.getAnalyzerConfig().getIsAutoAnalyzerEnabled()) {
+      launchAutoAnalysisStarter.start(config);
+    }
+  }
 }

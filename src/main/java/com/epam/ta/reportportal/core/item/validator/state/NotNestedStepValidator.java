@@ -27,18 +27,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class NotNestedStepValidator implements TestItemValidator, Ordered {
 
-	@Override
-	public boolean validate(TestItem item) {
-		return item.isHasStats();
-	}
+  @Override
+  public boolean validate(TestItem item) {
+    return item.isHasStats();
+  }
 
-	@Override
-	public String provide(TestItem item) {
-		return Suppliers.formattedSupplier("Test item = {} is a nested step", item.getItemId()).get();
-	}
+  @Override
+  public String provide(TestItem item) {
+    return Suppliers.formattedSupplier("Test item = {} is a nested step", item.getItemId()).get();
+  }
 
-	@Override
-	public int getOrder() {
-		return 1;
-	}
+  @Override
+  public int getOrder() {
+    return 1;
+  }
 }

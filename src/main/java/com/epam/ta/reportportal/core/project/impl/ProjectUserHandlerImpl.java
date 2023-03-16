@@ -14,28 +14,30 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProjectUserHandlerImpl implements ProjectUserHandler {
 
-	private final ProjectUserRepository projectUserRepository;
-	private final ShareableObjectsHandler aclHandler;
+  private final ProjectUserRepository projectUserRepository;
+  private final ShareableObjectsHandler aclHandler;
 
-	@Autowired
-	public ProjectUserHandlerImpl(ProjectUserRepository projectUserRepository, ShareableObjectsHandler aclHandler) {
-		this.projectUserRepository = projectUserRepository;
-		this.aclHandler = aclHandler;
-	}
+  @Autowired
+  public ProjectUserHandlerImpl(ProjectUserRepository projectUserRepository,
+      ShareableObjectsHandler aclHandler) {
+    this.projectUserRepository = projectUserRepository;
+    this.aclHandler = aclHandler;
+  }
 
-	@Override
-	public ProjectUser assign(User user, Project project, ProjectRole projectRole) {
-		final ProjectUser projectUser = new ProjectUser().withProjectRole(projectRole)
-				.withUser(user)
-				.withProject(project);
-		projectUserRepository.save(projectUser);
+  @Override
+  public ProjectUser assign(User user, Project project, ProjectRole projectRole) {
+    final ProjectUser projectUser = new ProjectUser().withProjectRole(projectRole)
+        .withUser(user)
+        .withProject(project);
+    projectUserRepository.save(projectUser);
 
-		if (projectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
-			aclHandler.permitSharedObjects(project.getId(), user.getLogin(), BasePermission.ADMINISTRATION);
-		} else {
-			aclHandler.permitSharedObjects(project.getId(), user.getLogin(), BasePermission.READ);
-		}
+    if (projectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
+      aclHandler.permitSharedObjects(project.getId(), user.getLogin(),
+          BasePermission.ADMINISTRATION);
+    } else {
+      aclHandler.permitSharedObjects(project.getId(), user.getLogin(), BasePermission.READ);
+    }
 
-		return projectUser;
-	}
+    return projectUser;
+  }
 }

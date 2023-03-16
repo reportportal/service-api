@@ -37,30 +37,34 @@ import org.springframework.stereotype.Service;
 @Service
 public class GetDashboardHandlerImpl implements GetDashboardHandler {
 
-	private DashboardRepository dashboardRepository;
+  private DashboardRepository dashboardRepository;
 
-	@Autowired
-	public void setDashboardRepository(DashboardRepository dashboardRepository) {
-		this.dashboardRepository = dashboardRepository;
-	}
+  @Autowired
+  public void setDashboardRepository(DashboardRepository dashboardRepository) {
+    this.dashboardRepository = dashboardRepository;
+  }
 
-	@Override
-	public Iterable<DashboardResource> getPermitted(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
-			ReportPortalUser user) {
-		Page<Dashboard> permitted = dashboardRepository.getPermitted(ProjectFilter.of(filter, projectDetails.getProjectId()),
-				pageable,
-				user.getUsername()
-		);
-		return PagedResourcesAssembler.pageConverter(DashboardConverter.TO_RESOURCE).apply(permitted);
-	}
+  @Override
+  public Iterable<DashboardResource> getPermitted(ReportPortalUser.ProjectDetails projectDetails,
+      Pageable pageable, Filter filter,
+      ReportPortalUser user) {
+    Page<Dashboard> permitted = dashboardRepository.getPermitted(
+        ProjectFilter.of(filter, projectDetails.getProjectId()),
+        pageable,
+        user.getUsername()
+    );
+    return PagedResourcesAssembler.pageConverter(DashboardConverter.TO_RESOURCE).apply(permitted);
+  }
 
-	@Override
-	public Iterable<SharedEntity> getSharedDashboardsNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
-			ReportPortalUser user) {
-		Page<Dashboard> shared = dashboardRepository.getShared(ProjectFilter.of(filter, projectDetails.getProjectId()),
-				pageable,
-				user.getUsername()
-		);
-		return PagedResourcesAssembler.pageConverter(DashboardConverter.TO_SHARED_ENTITY).apply(shared);
-	}
+  @Override
+  public Iterable<SharedEntity> getSharedDashboardsNames(
+      ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+      ReportPortalUser user) {
+    Page<Dashboard> shared = dashboardRepository.getShared(
+        ProjectFilter.of(filter, projectDetails.getProjectId()),
+        pageable,
+        user.getUsername()
+    );
+    return PagedResourcesAssembler.pageConverter(DashboardConverter.TO_SHARED_ENTITY).apply(shared);
+  }
 }

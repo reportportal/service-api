@@ -16,9 +16,13 @@
 
 package com.epam.ta.reportportal.job;
 
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTask;
 import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,34 +30,32 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
-import java.nio.charset.StandardCharsets;
-
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @ExtendWith(MockitoExtension.class)
 class SaveLogBinaryDataTaskTest {
 
-	@Mock
-	private AttachmentBinaryDataService attachmentBinaryDataService;
+  @Mock
+  private AttachmentBinaryDataService attachmentBinaryDataService;
 
-	@InjectMocks
-	private SaveLogBinaryDataTask saveLogBinaryDataTask;
+  @InjectMocks
+  private SaveLogBinaryDataTask saveLogBinaryDataTask;
 
-	@Test
-	void saveBinaryDataPositive() {
-		long logId = 1L;
-		MockMultipartFile file = new MockMultipartFile("file", "filename", "text/plain", "some data".getBytes(StandardCharsets.UTF_8));
-		long projectId = 2L;
-		AttachmentMetaInfo attachmentMetaInfo = AttachmentMetaInfo.builder().withLogId(logId).withProjectId(projectId).build();
-		SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.withFile(file).withAttachmentMetaInfo(attachmentMetaInfo);
+  @Test
+  void saveBinaryDataPositive() {
+    long logId = 1L;
+    MockMultipartFile file = new MockMultipartFile("file", "filename", "text/plain",
+        "some data".getBytes(StandardCharsets.UTF_8));
+    long projectId = 2L;
+    AttachmentMetaInfo attachmentMetaInfo = AttachmentMetaInfo.builder().withLogId(logId)
+        .withProjectId(projectId).build();
+    SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.withFile(file)
+        .withAttachmentMetaInfo(attachmentMetaInfo);
 
-		saveLogBinaryDataTask.run();
+    saveLogBinaryDataTask.run();
 
-		verify(attachmentBinaryDataService, times(1)).saveFileAndAttachToLog(file, attachmentMetaInfo);
+    verify(attachmentBinaryDataService, times(1)).saveFileAndAttachToLog(file, attachmentMetaInfo);
 
-	}
+  }
 }

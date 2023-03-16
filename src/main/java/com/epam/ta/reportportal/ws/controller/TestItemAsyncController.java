@@ -16,6 +16,11 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
@@ -31,12 +36,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Controller implementation for async reporting client API for
@@ -50,46 +56,53 @@ import static org.springframework.http.HttpStatus.OK;
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class TestItemAsyncController {
 
-	private final ProjectExtractor projectExtractor;
-	private final StartTestItemHandler startTestItemHandler;
-	private final FinishTestItemHandler finishTestItemHandler;
+  private final ProjectExtractor projectExtractor;
+  private final StartTestItemHandler startTestItemHandler;
+  private final FinishTestItemHandler finishTestItemHandler;
 
-	@Autowired
-	public TestItemAsyncController(ProjectExtractor projectExtractor, @Qualifier("startTestItemHandlerAsync") StartTestItemHandler startTestItemHandler,
-			@Qualifier("finishTestItemHandlerAsync") FinishTestItemHandler finishTestItemHandler) {
-		this.projectExtractor = projectExtractor;
-		this.startTestItemHandler = startTestItemHandler;
-		this.finishTestItemHandler = finishTestItemHandler;
-	}
+  @Autowired
+  public TestItemAsyncController(ProjectExtractor projectExtractor,
+      @Qualifier("startTestItemHandlerAsync") StartTestItemHandler startTestItemHandler,
+      @Qualifier("finishTestItemHandlerAsync") FinishTestItemHandler finishTestItemHandler) {
+    this.projectExtractor = projectExtractor;
+    this.startTestItemHandler = startTestItemHandler;
+    this.finishTestItemHandler = finishTestItemHandler;
+  }
 
-	@HttpLogging
-	@PostMapping
-	@ResponseStatus(CREATED)
-	@ApiOperation("Start a root test item")
-	@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedAsyncRS startRootItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@RequestBody @Validated StartTestItemRQ startTestItemRQ) {
-		return startTestItemHandler.startRootItem(user, projectExtractor.extractProjectDetails(user, projectName), startTestItemRQ);
-	}
+  @HttpLogging
+  @PostMapping
+  @ResponseStatus(CREATED)
+  @ApiOperation("Start a root test item")
+  @PreAuthorize(ALLOWED_TO_REPORT)
+  public EntryCreatedAsyncRS startRootItem(@PathVariable String projectName,
+      @AuthenticationPrincipal ReportPortalUser user,
+      @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
+    return startTestItemHandler.startRootItem(user,
+        projectExtractor.extractProjectDetails(user, projectName), startTestItemRQ);
+  }
 
-	@HttpLogging
-	@PostMapping("/{parentItem}")
-	@ResponseStatus(CREATED)
-	@ApiOperation("Start a child test item")
-	@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedAsyncRS startChildItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@PathVariable String parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
-		return startTestItemHandler.startChildItem(user, projectExtractor.extractProjectDetails(user, projectName), startTestItemRQ, parentItem);
-	}
+  @HttpLogging
+  @PostMapping("/{parentItem}")
+  @ResponseStatus(CREATED)
+  @ApiOperation("Start a child test item")
+  @PreAuthorize(ALLOWED_TO_REPORT)
+  public EntryCreatedAsyncRS startChildItem(@PathVariable String projectName,
+      @AuthenticationPrincipal ReportPortalUser user,
+      @PathVariable String parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
+    return startTestItemHandler.startChildItem(user,
+        projectExtractor.extractProjectDetails(user, projectName), startTestItemRQ, parentItem);
+  }
 
-	@HttpLogging
-	@PutMapping("/{testItemId}")
-	@ResponseStatus(OK)
-	@ApiOperation("Finish test item")
-	@PreAuthorize(ALLOWED_TO_REPORT)
-	public OperationCompletionRS finishTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@PathVariable String testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
-		return finishTestItemHandler.finishTestItem(user, projectExtractor.extractProjectDetails(user, projectName), testItemId, finishExecutionRQ);
-	}
+  @HttpLogging
+  @PutMapping("/{testItemId}")
+  @ResponseStatus(OK)
+  @ApiOperation("Finish test item")
+  @PreAuthorize(ALLOWED_TO_REPORT)
+  public OperationCompletionRS finishTestItem(@PathVariable String projectName,
+      @AuthenticationPrincipal ReportPortalUser user,
+      @PathVariable String testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
+    return finishTestItemHandler.finishTestItem(user,
+        projectExtractor.extractProjectDetails(user, projectName), testItemId, finishExecutionRQ);
+  }
 
 }

@@ -21,22 +21,22 @@ package com.epam.ta.reportportal.ws.rabbit;
  */
 public final class MessageHeaders {
 
-	public static final String REQUEST_TYPE = "requestType";
-	public static final String USERNAME = "username";
-	public static final String PROJECT_NAME = "projectName";
-	public static final String PROJECT_ID = "projectId";
-	public static final String LAUNCH_ID = "launchId";
-	public static final String ITEM_ID = "itemId";
-	public static final String PARENT_ITEM_ID = "parentItemId";
-	public static final String XD_HEADER = "x-death";
-	public static final String BASE_URL = "baseUrl";
+  public static final String REQUEST_TYPE = "requestType";
+  public static final String USERNAME = "username";
+  public static final String PROJECT_NAME = "projectName";
+  public static final String PROJECT_ID = "projectId";
+  public static final String LAUNCH_ID = "launchId";
+  public static final String ITEM_ID = "itemId";
+  public static final String PARENT_ITEM_ID = "parentItemId";
+  public static final String XD_HEADER = "x-death";
+  public static final String BASE_URL = "baseUrl";
 
-	public static final String ITEM_REF = "itemRef";
-	public static final String LIMIT = "limit";
-	public static final String IS_LOAD_BINARY_DATA = "isLoadBinaryData";
+  public static final String ITEM_REF = "itemRef";
+  public static final String LIMIT = "limit";
+  public static final String IS_LOAD_BINARY_DATA = "isLoadBinaryData";
 
-	private MessageHeaders() {
-		//static only
-	}
+  private MessageHeaders() {
+    //static only
+  }
 
 }

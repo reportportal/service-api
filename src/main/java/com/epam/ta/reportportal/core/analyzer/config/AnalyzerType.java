@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.analyzer.config;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -27,28 +26,28 @@ import java.util.stream.Collectors;
  */
 public enum AnalyzerType {
 
-	AUTO_ANALYZER("autoAnalyzer"),
-	PATTERN_ANALYZER("patternAnalyzer");
+  AUTO_ANALYZER("autoAnalyzer"),
+  PATTERN_ANALYZER("patternAnalyzer");
 
-	private final String name;
+  private final String name;
 
-	AnalyzerType(String name) {
-		this.name = name;
-	}
+  AnalyzerType(String name) {
+    this.name = name;
+  }
 
-	public static AnalyzerType fromString(String type) {
-		return Arrays.stream(AnalyzerType.values())
-				.filter(it -> it.getName().equalsIgnoreCase(type))
-				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(
-						ErrorType.INCORRECT_REQUEST,
-						"Incorrect analyzer type. Allowed are: " + Arrays.stream(AnalyzerType.values())
-								.map(AnalyzerType::getName)
-								.collect(Collectors.toList())
-				));
-	}
+  public static AnalyzerType fromString(String type) {
+    return Arrays.stream(AnalyzerType.values())
+        .filter(it -> it.getName().equalsIgnoreCase(type))
+        .findFirst()
+        .orElseThrow(() -> new ReportPortalException(
+            ErrorType.INCORRECT_REQUEST,
+            "Incorrect analyzer type. Allowed are: " + Arrays.stream(AnalyzerType.values())
+                .map(AnalyzerType::getName)
+                .collect(Collectors.toList())
+        ));
+  }
 
-	public String getName() {
-		return name;
-	}
+  public String getName() {
+    return name;
+  }
 }

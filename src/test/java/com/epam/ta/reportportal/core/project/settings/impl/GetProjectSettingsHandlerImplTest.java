@@ -16,24 +16,19 @@
 
 package com.epam.ta.reportportal.core.project.settings.impl;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
+import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -41,19 +36,21 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class GetProjectSettingsHandlerImplTest {
 
-	@Mock
-	private ProjectRepository repository;
+  @Mock
+  private ProjectRepository repository;
 
-	@InjectMocks
-	private GetProjectSettingsHandlerImpl handler;
+  @InjectMocks
+  private GetProjectSettingsHandlerImpl handler;
 
-	@Test
-	void getProjectSettingOnNotExistProject() {
+  @Test
+  void getProjectSettingOnNotExistProject() {
 
-		when(repository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
+    when(repository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.getProjectSettings(TEST_PROJECT_NAME));
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.getProjectSettings(TEST_PROJECT_NAME));
 
-		assertEquals("Project 'test_project' not found. Did you use correct project name?", exception.getMessage());
-	}
+    assertEquals("Project 'test_project' not found. Did you use correct project name?",
+        exception.getMessage());
+  }
 }

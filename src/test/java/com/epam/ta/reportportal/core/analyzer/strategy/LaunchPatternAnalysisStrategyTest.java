@@ -16,6 +16,12 @@
 
 package com.epam.ta.reportportal.core.analyzer.strategy;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.analyzer.pattern.PatternAnalyzer;
@@ -23,7 +29,6 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
-import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
@@ -32,54 +37,53 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.junit.jupiter.api.Test;
-
 import java.util.Optional;
-
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class LaunchPatternAnalysisStrategyTest {
 
-	private final Launch launch = mock(Launch.class);
-	private final Project project = mock(Project.class);
+  private final Launch launch = mock(Launch.class);
+  private final Project project = mock(Project.class);
 
-	private final ProjectRepository projectRepository = mock(ProjectRepository.class);
-	private final LaunchRepository launchRepository = mock(LaunchRepository.class);
-	private final PatternAnalyzer patternAnalyzer = mock(PatternAnalyzer.class);
+  private final ProjectRepository projectRepository = mock(ProjectRepository.class);
+  private final LaunchRepository launchRepository = mock(LaunchRepository.class);
+  private final PatternAnalyzer patternAnalyzer = mock(PatternAnalyzer.class);
 
-	private final LaunchPatternAnalysisStrategy launchPatternAnalysisStrategy = new LaunchPatternAnalysisStrategy(projectRepository,
-			launchRepository,
-			patternAnalyzer
-	);
+  private final LaunchPatternAnalysisStrategy launchPatternAnalysisStrategy = new LaunchPatternAnalysisStrategy(
+      projectRepository,
+      launchRepository,
+      patternAnalyzer
+  );
 
-	@Test
-	void analyzeTest() {
+  @Test
+  void analyzeTest() {
 
-		when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
-		when(launch.getProjectId()).thenReturn(1L);
-		when(launch.getMode()).thenReturn(LaunchModeEnum.DEFAULT);
-		when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
+    when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
+    when(launch.getProjectId()).thenReturn(1L);
+    when(launch.getMode()).thenReturn(LaunchModeEnum.DEFAULT);
+    when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
 
-		ProjectAttribute projectAttribute = new ProjectAttribute();
-		projectAttribute.setValue("true");
-		Attribute attribute = new Attribute();
-		projectAttribute.setAttribute(attribute);
+    ProjectAttribute projectAttribute = new ProjectAttribute();
+    projectAttribute.setValue("true");
+    Attribute attribute = new Attribute();
+    projectAttribute.setAttribute(attribute);
 
-		when(project.getProjectAttributes()).thenReturn(Sets.newHashSet(projectAttribute));
+    when(project.getProjectAttributes()).thenReturn(Sets.newHashSet(projectAttribute));
 
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
-		ReportPortalUser.ProjectDetails projectDetails = new ReportPortalUser.ProjectDetails(1L, "name", ProjectRole.PROJECT_MANAGER);
-		AnalyzeLaunchRQ analyzeLaunchRQ = new AnalyzeLaunchRQ();
-		analyzeLaunchRQ.setLaunchId(1L);
-		analyzeLaunchRQ.setAnalyzeItemsModes(Lists.newArrayList("TO_INVESTIGATE"));
-		analyzeLaunchRQ.setAnalyzerTypeName("patternAnalyzer");
-		launchPatternAnalysisStrategy.analyze(analyzeLaunchRQ, projectDetails, user);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
+    ReportPortalUser.ProjectDetails projectDetails = new ReportPortalUser.ProjectDetails(1L, "name",
+        ProjectRole.PROJECT_MANAGER);
+    AnalyzeLaunchRQ analyzeLaunchRQ = new AnalyzeLaunchRQ();
+    analyzeLaunchRQ.setLaunchId(1L);
+    analyzeLaunchRQ.setAnalyzeItemsModes(Lists.newArrayList("TO_INVESTIGATE"));
+    analyzeLaunchRQ.setAnalyzerTypeName("patternAnalyzer");
+    launchPatternAnalysisStrategy.analyze(analyzeLaunchRQ, projectDetails, user);
 
-		verify(patternAnalyzer, times(1)).analyzeTestItems(launch, Sets.newHashSet(AnalyzeItemsMode.TO_INVESTIGATE));
+    verify(patternAnalyzer, times(1)).analyzeTestItems(launch,
+        Sets.newHashSet(AnalyzeItemsMode.TO_INVESTIGATE));
 
-	}
+  }
 }

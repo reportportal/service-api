@@ -16,10 +16,15 @@
 
 package com.epam.ta.reportportal.core.analyzer.strategy;
 
+import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
 import com.epam.ta.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
@@ -28,15 +33,11 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -44,50 +45,54 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Service
 public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
 
-	private final LaunchAutoAnalysisStarter manualAnalysisStarter;
+  private final LaunchAutoAnalysisStarter manualAnalysisStarter;
 
-	@Autowired
-	public LaunchAutoAnalysisStrategy(ProjectRepository projectRepository, LaunchRepository launchRepository,
-			LaunchAutoAnalysisStarter manualAnalysisStarter) {
-		super(projectRepository, launchRepository);
-		this.manualAnalysisStarter = manualAnalysisStarter;
-	}
+  @Autowired
+  public LaunchAutoAnalysisStrategy(ProjectRepository projectRepository,
+      LaunchRepository launchRepository,
+      LaunchAutoAnalysisStarter manualAnalysisStarter) {
+    super(projectRepository, launchRepository);
+    this.manualAnalysisStarter = manualAnalysisStarter;
+  }
 
-	public void analyze(AnalyzeLaunchRQ analyzeRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+  public void analyze(AnalyzeLaunchRQ analyzeRQ, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user) {
 
-		final AnalyzeMode analyzeMode = AnalyzeMode.fromString(analyzeRQ.getAnalyzerHistoryMode())
-				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, analyzeRQ.getAnalyzerHistoryMode()));
-		final Set<AnalyzeItemsMode> analyzeItemsModes = getAnalyzeItemsModes(analyzeRQ);
+    final AnalyzeMode analyzeMode = AnalyzeMode.fromString(analyzeRQ.getAnalyzerHistoryMode())
+        .orElseThrow(
+            () -> new ReportPortalException(BAD_REQUEST_ERROR, analyzeRQ.getAnalyzerHistoryMode()));
+    final Set<AnalyzeItemsMode> analyzeItemsModes = getAnalyzeItemsModes(analyzeRQ);
 
-		if (analyzeItemsModes.isEmpty()) {
-			return;
-		}
+    if (analyzeItemsModes.isEmpty()) {
+      return;
+    }
 
-		Launch launch = launchRepository.findById(analyzeRQ.getLaunchId())
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, analyzeRQ.getLaunchId()));
-		validateLaunch(launch, projectDetails);
+    Launch launch = launchRepository.findById(analyzeRQ.getLaunchId())
+        .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, analyzeRQ.getLaunchId()));
+    validateLaunch(launch, projectDetails);
 
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+    Project project = projectRepository.findById(projectDetails.getProjectId())
+        .orElseThrow(
+            () -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
-		AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
-		analyzerConfig.setAnalyzerMode(analyzeMode.getValue());
+    AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
+    analyzerConfig.setAnalyzerMode(analyzeMode.getValue());
 
-		final StartLaunchAutoAnalysisConfig autoAnalysisConfig = StartLaunchAutoAnalysisConfig.of(
-				launch.getId(),
-				analyzerConfig,
-				analyzeItemsModes,
-				user
-		);
+    final StartLaunchAutoAnalysisConfig autoAnalysisConfig = StartLaunchAutoAnalysisConfig.of(
+        launch.getId(),
+        analyzerConfig,
+        analyzeItemsModes,
+        user
+    );
 
-		manualAnalysisStarter.start(autoAnalysisConfig);
-	}
+    manualAnalysisStarter.start(autoAnalysisConfig);
+  }
 
-	private LinkedHashSet<AnalyzeItemsMode> getAnalyzeItemsModes(AnalyzeLaunchRQ analyzeRQ) {
-		return analyzeRQ.getAnalyzeItemsModes()
-				.stream()
-				.map(AnalyzeItemsMode::fromString)
-				.collect(Collectors.toCollection(LinkedHashSet::new));
-	}
+  private LinkedHashSet<AnalyzeItemsMode> getAnalyzeItemsModes(AnalyzeLaunchRQ analyzeRQ) {
+    return analyzeRQ.getAnalyzeItemsModes()
+        .stream()
+        .map(AnalyzeItemsMode::fromString)
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
 
 }

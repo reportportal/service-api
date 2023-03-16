@@ -16,19 +16,18 @@
 
 package com.epam.ta.reportportal.core.configs.event.publisher;
 
+import static org.springframework.context.support.AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME;
+
 import com.epam.reportportal.extension.event.LaunchAutoAnalysisFinishEvent;
 import com.epam.reportportal.extension.event.LaunchStartUniqueErrorAnalysisEvent;
 import com.epam.reportportal.extension.event.LaunchUniqueErrorAnalysisFinishEvent;
 import com.epam.ta.reportportal.core.events.multicaster.DelegatingApplicationEventMulticaster;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.util.ErrorHandler;
-
-import java.util.Set;
-
-import static org.springframework.context.support.AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -36,22 +35,23 @@ import static org.springframework.context.support.AbstractApplicationContext.APP
 @Configuration
 public class EventPublisherConfig {
 
-	private final ErrorHandler loggingEventErrorHandler;
+  private final ErrorHandler loggingEventErrorHandler;
 
-	@Autowired
-	public EventPublisherConfig(ErrorHandler loggingEventErrorHandler) {
-		this.loggingEventErrorHandler = loggingEventErrorHandler;
-	}
+  @Autowired
+  public EventPublisherConfig(ErrorHandler loggingEventErrorHandler) {
+    this.loggingEventErrorHandler = loggingEventErrorHandler;
+  }
 
-	@Bean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME)
-	public ApplicationEventMulticaster applicationEventMulticaster() {
-		final DelegatingApplicationEventMulticaster eventMulticaster = new DelegatingApplicationEventMulticaster(Set.of(
-				LaunchAutoAnalysisFinishEvent.class,
-				LaunchUniqueErrorAnalysisFinishEvent.class,
-				LaunchStartUniqueErrorAnalysisEvent.class
-		));
-		eventMulticaster.setErrorHandler(loggingEventErrorHandler);
-		return eventMulticaster;
-	}
+  @Bean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME)
+  public ApplicationEventMulticaster applicationEventMulticaster() {
+    final DelegatingApplicationEventMulticaster eventMulticaster = new DelegatingApplicationEventMulticaster(
+        Set.of(
+            LaunchAutoAnalysisFinishEvent.class,
+            LaunchUniqueErrorAnalysisFinishEvent.class,
+            LaunchStartUniqueErrorAnalysisEvent.class
+        ));
+    eventMulticaster.setErrorHandler(loggingEventErrorHandler);
+    return eventMulticaster;
+  }
 
 }

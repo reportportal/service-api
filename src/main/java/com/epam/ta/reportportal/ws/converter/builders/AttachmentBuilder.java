@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
-
 import java.util.function.Supplier;
 
 /**
@@ -26,48 +25,49 @@ import java.util.function.Supplier;
  */
 public class AttachmentBuilder implements Supplier<Attachment> {
 
-	private final Attachment attachment;
+  private final Attachment attachment;
 
-	public AttachmentBuilder() {
-		this.attachment = new Attachment();
-	}
+  public AttachmentBuilder() {
+    this.attachment = new Attachment();
+  }
 
-	public AttachmentBuilder withFileId(String fileId) {
-		attachment.setFileId(fileId);
-		return this;
-	}
+  public AttachmentBuilder withFileId(String fileId) {
+    attachment.setFileId(fileId);
+    return this;
+  }
 
-	public AttachmentBuilder withThumbnailId(String thumbnailId) {
-		attachment.setThumbnailId(thumbnailId);
-		return this;
-	}
+  public AttachmentBuilder withThumbnailId(String thumbnailId) {
+    attachment.setThumbnailId(thumbnailId);
+    return this;
+  }
 
-	public AttachmentBuilder withContentType(String contentType) {
-		attachment.setContentType(contentType);
-		return this;
-	}
+  public AttachmentBuilder withContentType(String contentType) {
+    attachment.setContentType(contentType);
+    return this;
+  }
 
-	public AttachmentBuilder withProjectId(Long projectId) {
-		attachment.setProjectId(projectId);
-		return this;
-	}
+  public AttachmentBuilder withProjectId(Long projectId) {
+    attachment.setProjectId(projectId);
+    return this;
+  }
 
-	public AttachmentBuilder withLaunchId(Long launchId) {
-		attachment.setLaunchId(launchId);
-		return this;
-	}
+  public AttachmentBuilder withLaunchId(Long launchId) {
+    attachment.setLaunchId(launchId);
+    return this;
+  }
 
-	public AttachmentBuilder withItemId(Long itemId) {
-		attachment.setItemId(itemId);
-		return this;
-	}
+  public AttachmentBuilder withItemId(Long itemId) {
+    attachment.setItemId(itemId);
+    return this;
+  }
 
-	public AttachmentBuilder withMetaInfo(BinaryDataMetaInfo metaInfo) {
-		return withFileId(metaInfo.getFileId()).withThumbnailId(metaInfo.getThumbnailFileId()).withContentType(metaInfo.getContentType());
-	}
+  public AttachmentBuilder withMetaInfo(BinaryDataMetaInfo metaInfo) {
+    return withFileId(metaInfo.getFileId()).withThumbnailId(metaInfo.getThumbnailFileId())
+        .withContentType(metaInfo.getContentType());
+  }
 
-	@Override
-	public Attachment get() {
-		return attachment;
-	}
+  @Override
+  public Attachment get() {
+    return attachment;
+  }
 }

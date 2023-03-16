@@ -16,22 +16,23 @@
 
 package com.epam.ta.reportportal.ws.converter.resource.handler.attribute.launch;
 
+import static java.util.stream.Collectors.toSet;
+
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ResourceAttributeHandler;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-
 import java.util.Collection;
-
-import static java.util.stream.Collectors.toSet;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class LaunchResourceAttributeUpdater implements ResourceAttributeHandler<LaunchResource> {
 
-	@Override
-	public void handle(LaunchResource resource, Collection<ItemAttribute> attributes) {
-		resource.setAttributes(attributes.stream().map(it -> new ItemAttributeResource(it.getKey(), it.getValue())).collect(toSet()));
-	}
+  @Override
+  public void handle(LaunchResource resource, Collection<ItemAttribute> attributes) {
+    resource.setAttributes(
+        attributes.stream().map(it -> new ItemAttributeResource(it.getKey(), it.getValue()))
+            .collect(toSet()));
+  }
 }

@@ -21,5 +21,5 @@ package com.epam.ta.reportportal.ws.converter.utils;
  */
 public interface ResourceUpdater<R> {
 
-	void updateResource(R resource);
+  void updateResource(R resource);
 }

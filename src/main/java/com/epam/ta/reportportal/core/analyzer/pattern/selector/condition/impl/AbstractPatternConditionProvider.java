@@ -19,33 +19,33 @@ package com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl;
 import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.PatternConditionProvider;
-import org.apache.commons.collections4.CollectionUtils;
-
 import java.util.Optional;
 import java.util.Set;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class AbstractPatternConditionProvider implements PatternConditionProvider {
 
-	private final AnalyzeItemsMode analyzeItemsMode;
+  private final AnalyzeItemsMode analyzeItemsMode;
 
-	public AbstractPatternConditionProvider(AnalyzeItemsMode analyzeItemsMode) {
-		this.analyzeItemsMode = analyzeItemsMode;
-	}
+  public AbstractPatternConditionProvider(AnalyzeItemsMode analyzeItemsMode) {
+    this.analyzeItemsMode = analyzeItemsMode;
+  }
 
-	@Override
-	public Optional<ConvertibleCondition> provideCondition(Set<AnalyzeItemsMode> analyzeItemsModes) {
-		if (isModificationRequired(analyzeItemsModes)) {
-			return Optional.of(provideCondition());
-		}
-		return Optional.empty();
-	}
+  @Override
+  public Optional<ConvertibleCondition> provideCondition(Set<AnalyzeItemsMode> analyzeItemsModes) {
+    if (isModificationRequired(analyzeItemsModes)) {
+      return Optional.of(provideCondition());
+    }
+    return Optional.empty();
+  }
 
-	protected boolean isModificationRequired(Set<AnalyzeItemsMode> analyzeItemsModes) {
-		return CollectionUtils.isNotEmpty(analyzeItemsModes) && analyzeItemsModes.contains(analyzeItemsMode);
-	}
+  protected boolean isModificationRequired(Set<AnalyzeItemsMode> analyzeItemsModes) {
+    return CollectionUtils.isNotEmpty(analyzeItemsModes) && analyzeItemsModes.contains(
+        analyzeItemsMode);
+  }
 
-	protected abstract ConvertibleCondition provideCondition();
+  protected abstract ConvertibleCondition provideCondition();
 }

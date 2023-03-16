@@ -21,30 +21,30 @@ package com.epam.ta.reportportal.core.jasper.constants;
  */
 public final class LaunchReportConstants {
 
-	/* Defined fields in JRXML template */
-	public final static String LAUNCH_NAME = "LAUNCH_NAME";
-	public final static String LAUNCH_DESC = "LAUNCH_DESCRIPTION";
-	public final static String LAUNCH_TAGS = "LAUNCH_TAGS";
-	public final static String DURATION = "LAUNCH_DURATION";
-	public final static String OWNER = "LAUNCH_OWNER";
+  /* Defined fields in JRXML template */
+  public final static String LAUNCH_NAME = "LAUNCH_NAME";
+  public final static String LAUNCH_DESC = "LAUNCH_DESCRIPTION";
+  public final static String LAUNCH_TAGS = "LAUNCH_TAGS";
+  public final static String DURATION = "LAUNCH_DURATION";
+  public final static String OWNER = "LAUNCH_OWNER";
 
-	/* Launch statistics fields */
-	// TODO could be inject in report as DataSource
-	public final static String TOTAL = "TOTAL";
-	public final static String PASSED = "PASSED";
-	public final static String FAILED = "FAILED";
-	public final static String SKIPPED = "SKIPPED";
-	public final static String AB = "AB";
-	public final static String PB = "PB";
-	public final static String SI = "SI";
-	public final static String ND = "ND";
-	public final static String TI = "TI";
+  /* Launch statistics fields */
+  // TODO could be inject in report as DataSource
+  public final static String TOTAL = "TOTAL";
+  public final static String PASSED = "PASSED";
+  public final static String FAILED = "FAILED";
+  public final static String SKIPPED = "SKIPPED";
+  public final static String AB = "AB";
+  public final static String PB = "PB";
+  public final static String SI = "SI";
+  public final static String ND = "ND";
+  public final static String TI = "TI";
 
-	/* Data sets */
-	public final static String TEST_ITEMS = "TEST_ITEMS";
+  /* Data sets */
+  public final static String TEST_ITEMS = "TEST_ITEMS";
 
-	public LaunchReportConstants() {
+  public LaunchReportConstants() {
 
-		//static only
-	}
+    //static only
+  }
 }

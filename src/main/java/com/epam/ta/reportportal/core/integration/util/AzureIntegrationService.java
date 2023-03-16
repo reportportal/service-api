@@ -17,10 +17,9 @@ package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -28,22 +27,24 @@ import java.util.Map;
 @Service
 public class AzureIntegrationService extends BasicIntegrationServiceImpl {
 
-	private BtsIntegrationService btsIntegrationService;
+  private BtsIntegrationService btsIntegrationService;
 
-	@Autowired
-	public AzureIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox,
-			BtsIntegrationService btsIntegrationService) {
-		super(integrationRepository, pluginBox);
-		this.btsIntegrationService = btsIntegrationService;
-	}
+  @Autowired
+  public AzureIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox,
+      BtsIntegrationService btsIntegrationService) {
+    super(integrationRepository, pluginBox);
+    this.btsIntegrationService = btsIntegrationService;
+  }
 
-	@Override
-	public Map<String, Object> retrieveCreateParams(String integrationType, Map<String, Object> integrationParams) {
-		return btsIntegrationService.retrieveCreateParams(integrationType, integrationParams);
-	}
+  @Override
+  public Map<String, Object> retrieveCreateParams(String integrationType,
+      Map<String, Object> integrationParams) {
+    return btsIntegrationService.retrieveCreateParams(integrationType, integrationParams);
+  }
 
-	@Override
-	public Map<String, Object> retrieveUpdatedParams(String integrationType, Map<String, Object> integrationParams) {
-		return btsIntegrationService.retrieveUpdatedParams(integrationType, integrationParams);
-	}
+  @Override
+  public Map<String, Object> retrieveUpdatedParams(String integrationType,
+      Map<String, Object> integrationParams) {
+    return btsIntegrationService.retrieveUpdatedParams(integrationType, integrationParams);
+  }
 }

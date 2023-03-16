@@ -11,5 +11,5 @@ import com.epam.ta.reportportal.entity.user.User;
  */
 public interface ProjectRecipientHandler {
 
-	void handle(Iterable<User> users, Project project);
+  void handle(Iterable<User> users, Project project);
 }

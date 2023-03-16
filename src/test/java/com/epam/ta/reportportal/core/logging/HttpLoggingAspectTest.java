@@ -16,11 +16,18 @@
 
 package com.epam.ta.reportportal.core.logging;
 
+import static com.epam.ta.reportportal.core.logging.HelperUtil.checkLoggingRecords;
+import static org.mockito.Mockito.when;
+
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+import javax.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,121 +42,118 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static com.epam.ta.reportportal.core.logging.HelperUtil.checkLoggingRecords;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class HttpLoggingAspectTest {
-	private static HelperController proxy;
 
-	private static HttpLoggingAspect aspect;
+  private static HelperController proxy;
 
-	private static MockHttpServletRequest request;
+  private static HttpLoggingAspect aspect;
 
-	private static Map<Object, Object> payload;
+  private static MockHttpServletRequest request;
 
-	private static Logger logger;
+  private static Map<Object, Object> payload;
 
-	@Mock
-	private static Appender<ILoggingEvent> appender;
+  private static Logger logger;
 
-	@Mock
-	private static HttpLogging annotation;
+  @Mock
+  private static Appender<ILoggingEvent> appender;
 
-	private static String requestLog;
+  @Mock
+  private static HttpLogging annotation;
 
-	private static String responseLog;
+  private static String requestLog;
 
-	private static AtomicLong COUNT = new AtomicLong();
+  private static String responseLog;
 
-	@BeforeAll
-	static void beforeAll() {
-		aspect = new HttpLoggingAspect();
-		ReflectionTestUtils.setField(aspect, "objectMapper", new ObjectMapper());
+  private static AtomicLong COUNT = new AtomicLong();
 
-		HelperController controller = new HelperController();
-		AspectJProxyFactory factory = new AspectJProxyFactory(controller);
-		factory.addAspect(aspect);
-		proxy = factory.getProxy();
+  @BeforeAll
+  static void beforeAll() {
+    aspect = new HttpLoggingAspect();
+    ReflectionTestUtils.setField(aspect, "objectMapper", new ObjectMapper());
 
-		request = new MockHttpServletRequest("GET", "/request/path/is/here");
-		request.setQueryString("ddd=qwerty");
-		request.addHeader("Content-Type", "application/json");
-		request.addHeader("Host", "localhost");
-		RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+    HelperController controller = new HelperController();
+    AspectJProxyFactory factory = new AspectJProxyFactory(controller);
+    factory.addAspect(aspect);
+    proxy = factory.getProxy();
 
-		payload = new HashMap<>();
-		payload.put("key1", "one");
-		payload.put("key2", "two");
-		payload.put("key3", "three");
+    request = new MockHttpServletRequest("GET", "/request/path/is/here");
+    request.setQueryString("ddd=qwerty");
+    request.addHeader("Content-Type", "application/json");
+    request.addHeader("Host", "localhost");
+    RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 
-		logger = (Logger) LoggerFactory.getLogger(HelperController.class);
-		logger.setLevel(Level.DEBUG);
-		logger.setAdditive(false);
-	}
+    payload = new HashMap<>();
+    payload.put("key1", "one");
+    payload.put("key2", "two");
+    payload.put("key3", "three");
 
-	@BeforeEach
-	void setup() {
-		logger.detachAndStopAllAppenders();
-		logger.addAppender(appender);
-	}
+    logger = (Logger) LoggerFactory.getLogger(HelperController.class);
+    logger.setLevel(Level.DEBUG);
+    logger.setAdditive(false);
+  }
 
-	@Test
-	void testFull() throws Exception {
+  @BeforeEach
+  void setup() {
+    logger.detachAndStopAllAppenders();
+    logger.addAppender(appender);
+  }
 
-		when(annotation.logHeaders()).thenReturn(true);
-		when(annotation.logRequestBody()).thenReturn(true);
-		when(annotation.logResponseBody()).thenReturn(true);
-		when(annotation.logExecutionTime()).thenReturn(false);
+  @Test
+  void testFull() throws Exception {
 
-		long count = COUNT.incrementAndGet();
-		ResponseEntity<Map<String, Object>> response = proxy.logFull(payload);
-		formatRequestResponseAndPrint(count, "logFull", request, response);
+    when(annotation.logHeaders()).thenReturn(true);
+    when(annotation.logRequestBody()).thenReturn(true);
+    when(annotation.logResponseBody()).thenReturn(true);
+    when(annotation.logExecutionTime()).thenReturn(false);
 
-		checkLoggingRecords(appender, 2, new Level[] { Level.DEBUG, Level.DEBUG }, requestLog, responseLog);
-	}
+    long count = COUNT.incrementAndGet();
+    ResponseEntity<Map<String, Object>> response = proxy.logFull(payload);
+    formatRequestResponseAndPrint(count, "logFull", request, response);
 
-	@Test
-	void testWithoutHeaders() throws Exception {
+    checkLoggingRecords(appender, 2, new Level[]{Level.DEBUG, Level.DEBUG}, requestLog,
+        responseLog);
+  }
 
-		when(annotation.logHeaders()).thenReturn(false);
-		when(annotation.logRequestBody()).thenReturn(true);
-		when(annotation.logResponseBody()).thenReturn(true);
-		when(annotation.logExecutionTime()).thenReturn(false);
+  @Test
+  void testWithoutHeaders() throws Exception {
 
-		long count = COUNT.incrementAndGet();
-		ResponseEntity<Map<String, Object>> response = proxy.logWithoutHeaders(payload);
-		formatRequestResponseAndPrint(count, "logWithoutHeaders", request, response);
+    when(annotation.logHeaders()).thenReturn(false);
+    when(annotation.logRequestBody()).thenReturn(true);
+    when(annotation.logResponseBody()).thenReturn(true);
+    when(annotation.logExecutionTime()).thenReturn(false);
 
-		checkLoggingRecords(appender, 2, new Level[] { Level.DEBUG, Level.DEBUG }, requestLog, responseLog);
-	}
+    long count = COUNT.incrementAndGet();
+    ResponseEntity<Map<String, Object>> response = proxy.logWithoutHeaders(payload);
+    formatRequestResponseAndPrint(count, "logWithoutHeaders", request, response);
 
-	@Test
-	void testWithoutBody() throws Exception {
+    checkLoggingRecords(appender, 2, new Level[]{Level.DEBUG, Level.DEBUG}, requestLog,
+        responseLog);
+  }
 
-		when(annotation.logHeaders()).thenReturn(true);
-		when(annotation.logRequestBody()).thenReturn(false);
-		when(annotation.logResponseBody()).thenReturn(false);
-		when(annotation.logExecutionTime()).thenReturn(false);
+  @Test
+  void testWithoutBody() throws Exception {
 
-		long count = COUNT.incrementAndGet();
-		ResponseEntity<Map<String, Object>> response = proxy.logWithoutBody(payload);
-		formatRequestResponseAndPrint(count, "logWithoutBody", request, response);
+    when(annotation.logHeaders()).thenReturn(true);
+    when(annotation.logRequestBody()).thenReturn(false);
+    when(annotation.logResponseBody()).thenReturn(false);
+    when(annotation.logExecutionTime()).thenReturn(false);
 
-		checkLoggingRecords(appender, 2, new Level[] { Level.DEBUG, Level.DEBUG }, requestLog, responseLog);
-	}
+    long count = COUNT.incrementAndGet();
+    ResponseEntity<Map<String, Object>> response = proxy.logWithoutBody(payload);
+    formatRequestResponseAndPrint(count, "logWithoutBody", request, response);
 
-	private void formatRequestResponseAndPrint(long count, String prefix, HttpServletRequest request, ResponseEntity response)
-			throws Exception {
-		requestLog = aspect.formatRequestRecord(count, prefix, request, payload, annotation);
-		responseLog = aspect.formatResponseRecord(count, prefix, response, annotation, 0L);
-		System.out.println(requestLog);
-		System.out.println(responseLog);
-	}
+    checkLoggingRecords(appender, 2, new Level[]{Level.DEBUG, Level.DEBUG}, requestLog,
+        responseLog);
+  }
+
+  private void formatRequestResponseAndPrint(long count, String prefix, HttpServletRequest request,
+      ResponseEntity response)
+      throws Exception {
+    requestLog = aspect.formatRequestRecord(count, prefix, request, payload, annotation);
+    responseLog = aspect.formatResponseRecord(count, prefix, response, annotation, 0L);
+    System.out.println(requestLog);
+    System.out.println(responseLog);
+  }
 
 }

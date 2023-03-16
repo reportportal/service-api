@@ -25,13 +25,15 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
  * @author Aliaksandr_Kazantsau
  */
 public interface DeleteUserHandler {
-	/**
-	 * Delete User, User Personal Project, User Photo. User Dashboard, Widgets, Filters still available.
-	 *
-	 * @param userId      User to be deleted
-	 * @param currentUser User performing the edit operation
-	 * @return Operation result
-	 */
-	OperationCompletionRS deleteUser(Long userId, ReportPortalUser currentUser);
+
+  /**
+   * Delete User, User Personal Project, User Photo. User Dashboard, Widgets, Filters still
+   * available.
+   *
+   * @param userId      User to be deleted
+   * @param currentUser User performing the edit operation
+   * @return Operation result
+   */
+  OperationCompletionRS deleteUser(Long userId, ReportPortalUser currentUser);
 
 }

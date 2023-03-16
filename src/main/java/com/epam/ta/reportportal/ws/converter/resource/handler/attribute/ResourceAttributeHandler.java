@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.ws.converter.resource.handler.attribute;
 
 import com.epam.ta.reportportal.entity.ItemAttribute;
-
 import java.util.Collection;
 
 /**
@@ -25,6 +24,6 @@ import java.util.Collection;
  */
 public interface ResourceAttributeHandler<T> {
 
-	void handle(T resource, Collection<ItemAttribute> attributes);
+  void handle(T resource, Collection<ItemAttribute> attributes);
 
 }

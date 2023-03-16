@@ -38,58 +38,60 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class CombinedTokenStore extends JwtTokenStore {
 
-	@Autowired
-	private OAuth2AccessTokenRepository oAuth2AccessTokenRepository;
+  @Autowired
+  private OAuth2AccessTokenRepository oAuth2AccessTokenRepository;
 
-	@Autowired
-	private UserDetailsService userDetailsService;
+  @Autowired
+  private UserDetailsService userDetailsService;
 
-	@Autowired
-	public CombinedTokenStore(JwtAccessTokenConverter jwtTokenEnhancer) {
-		super(jwtTokenEnhancer);
-	}
+  @Autowired
+  public CombinedTokenStore(JwtAccessTokenConverter jwtTokenEnhancer) {
+    super(jwtTokenEnhancer);
+  }
 
-	@Override
-	public OAuth2Authentication readAuthentication(OAuth2AccessToken token) {
-		try {
-			return super.readAuthentication(token);
-		} catch (InvalidTokenException e) {
-			return this.readAuthentication(token.getValue());
-		}
-	}
+  @Override
+  public OAuth2Authentication readAuthentication(OAuth2AccessToken token) {
+    try {
+      return super.readAuthentication(token);
+    } catch (InvalidTokenException e) {
+      return this.readAuthentication(token.getValue());
+    }
+  }
 
-	@Override
-	public OAuth2Authentication readAuthentication(String tokenId) {
-		try {
-			return super.readAuthentication(tokenId);
-		} catch (InvalidTokenException e) {
-			StoredAccessToken accessToken = oAuth2AccessTokenRepository.findByTokenId(tokenId);
-			ReportPortalUser userDetails = (ReportPortalUser) userDetailsService.loadUserByUsername(accessToken.getUserName());
-			OAuth2Authentication authentication = AuthUtils.deserializeSafely(accessToken.getAuthentication(), auth -> {
-				// if we are at the place, there was InvalidClassException,
-				// and we successfully recovered auth object
-				// let's save it back to DB then, since now it has correct version UUID
-				accessToken.setAuthentication(SerializationUtils.serialize(auth));
-				oAuth2AccessTokenRepository.save(accessToken);
-			});
+  @Override
+  public OAuth2Authentication readAuthentication(String tokenId) {
+    try {
+      return super.readAuthentication(tokenId);
+    } catch (InvalidTokenException e) {
+      StoredAccessToken accessToken = oAuth2AccessTokenRepository.findByTokenId(tokenId);
+      ReportPortalUser userDetails = (ReportPortalUser) userDetailsService.loadUserByUsername(
+          accessToken.getUserName());
+      OAuth2Authentication authentication = AuthUtils.deserializeSafely(
+          accessToken.getAuthentication(), auth -> {
+            // if we are at the place, there was InvalidClassException,
+            // and we successfully recovered auth object
+            // let's save it back to DB then, since now it has correct version UUID
+            accessToken.setAuthentication(SerializationUtils.serialize(auth));
+            oAuth2AccessTokenRepository.save(accessToken);
+          });
 
-			ReportPortalUser reportPortalUser = (ReportPortalUser) authentication.getPrincipal();
-			reportPortalUser.setProjectDetails(userDetails.getProjectDetails());
-			reportPortalUser.setUserRole(userDetails.getUserRole());
-			return authentication;
-		}
-	}
+      ReportPortalUser reportPortalUser = (ReportPortalUser) authentication.getPrincipal();
+      reportPortalUser.setProjectDetails(userDetails.getProjectDetails());
+      reportPortalUser.setUserRole(userDetails.getUserRole());
+      return authentication;
+    }
+  }
 
-	@Override
-	public OAuth2AccessToken readAccessToken(String tokenValue) {
-		try {
-			return super.readAccessToken(tokenValue);
-		} catch (InvalidTokenException e) {
-			StoredAccessToken token = oAuth2AccessTokenRepository.findByTokenId(tokenValue);
-			if (token == null) {
-				return null; //let spring security handle the invalid token
-			}
-			return SerializationUtils.deserialize(token.getToken());
-		}
-	}
+  @Override
+  public OAuth2AccessToken readAccessToken(String tokenValue) {
+    try {
+      return super.readAccessToken(tokenValue);
+    } catch (InvalidTokenException e) {
+      StoredAccessToken token = oAuth2AccessTokenRepository.findByTokenId(tokenValue);
+      if (token == null) {
+        return null; //let spring security handle the invalid token
+      }
+      return SerializationUtils.deserialize(token.getToken());
+    }
+  }
 }

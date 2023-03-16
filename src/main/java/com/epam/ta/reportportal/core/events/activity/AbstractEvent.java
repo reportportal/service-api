@@ -21,30 +21,30 @@ package com.epam.ta.reportportal.core.events.activity;
  */
 public abstract class AbstractEvent {
 
-	private Long userId;
-	private String userLogin;
+  private Long userId;
+  private String userLogin;
 
-	public AbstractEvent() {
-	}
+  public AbstractEvent() {
+  }
 
-	public AbstractEvent(Long userId, String userLogin) {
-		this.userId = userId;
-		this.userLogin = userLogin;
-	}
+  public AbstractEvent(Long userId, String userLogin) {
+    this.userId = userId;
+    this.userLogin = userLogin;
+  }
 
-	public Long getUserId() {
-		return userId;
-	}
+  public Long getUserId() {
+    return userId;
+  }
 
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
+  public void setUserId(Long userId) {
+    this.userId = userId;
+  }
 
-	public String getUserLogin() {
-		return userLogin;
-	}
+  public String getUserLogin() {
+    return userLogin;
+  }
 
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
-	}
+  public void setUserLogin(String userLogin) {
+    this.userLogin = userLogin;
+  }
 }

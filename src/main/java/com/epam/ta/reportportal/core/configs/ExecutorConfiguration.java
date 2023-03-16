@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTask;
 import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTaskAsync;
+import java.util.concurrent.ThreadPoolExecutor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -31,8 +32,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
-import java.util.concurrent.ThreadPoolExecutor;
-
 /**
  * Configs for beans related to job execution
  *
@@ -42,138 +41,148 @@ import java.util.concurrent.ThreadPoolExecutor;
 @EnableAsync
 public class ExecutorConfiguration {
 
-	@Bean
-	@Primary
-	public TaskScheduler taskScheduler() {
-		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-		scheduler.setPoolSize(5);
-		scheduler.setThreadNamePrefix("default-task-sched");
-		scheduler.setWaitForTasksToCompleteOnShutdown(true);
-		return scheduler;
-	}
+  @Bean
+  @Primary
+  public TaskScheduler taskScheduler() {
+    ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+    scheduler.setPoolSize(5);
+    scheduler.setThreadNamePrefix("default-task-sched");
+    scheduler.setWaitForTasksToCompleteOnShutdown(true);
+    return scheduler;
+  }
 
-	@Bean(name = "saveLogsTaskExecutor")
-	public TaskExecutor saveLogsTaskExecutor(@Value("${rp.environment.variable.executor.pool.save-logs.core}") Integer corePoolSize,
-			@Value("${rp.environment.variable.executor.pool.save-logs.max}") Integer maxPoolSize,
-			@Value("${rp.environment.variable.executor.pool.save-logs.queue}") Integer queueCapacity) {
-		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(corePoolSize);
-		executor.setMaxPoolSize(maxPoolSize);
-		executor.setQueueCapacity(queueCapacity);
-		executor.setAllowCoreThreadTimeOut(true);
-		executor.setThreadNamePrefix("logs-task-exec");
-		executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
-		return executor;
-	}
+  @Bean(name = "saveLogsTaskExecutor")
+  public TaskExecutor saveLogsTaskExecutor(
+      @Value("${rp.environment.variable.executor.pool.save-logs.core}") Integer corePoolSize,
+      @Value("${rp.environment.variable.executor.pool.save-logs.max}") Integer maxPoolSize,
+      @Value("${rp.environment.variable.executor.pool.save-logs.queue}") Integer queueCapacity) {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(corePoolSize);
+    executor.setMaxPoolSize(maxPoolSize);
+    executor.setQueueCapacity(queueCapacity);
+    executor.setAllowCoreThreadTimeOut(true);
+    executor.setThreadNamePrefix("logs-task-exec");
+    executor.setRejectedExecutionHandler(
+        new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
+    return executor;
+  }
 
-	@Bean
-	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	public SaveLogBinaryDataTask saveLogBinaryDataTask() {
-		return new SaveLogBinaryDataTask();
-	}
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  public SaveLogBinaryDataTask saveLogBinaryDataTask() {
+    return new SaveLogBinaryDataTask();
+  }
 
-	@Bean
-	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	public SaveLogBinaryDataTaskAsync saveLogBinaryDataTaskAsync() {
-		return new SaveLogBinaryDataTaskAsync();
-	}
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  public SaveLogBinaryDataTaskAsync saveLogBinaryDataTaskAsync() {
+    return new SaveLogBinaryDataTaskAsync();
+  }
 
-	@EnableScheduling
-	public static class SchedulingConfiguration {
-	}
+  @EnableScheduling
+  public static class SchedulingConfiguration {
 
-	@Bean(name = "logIndexTaskExecutor")
-	public TaskExecutor logIndexTaskExecutor(@Value("${rp.environment.variable.executor.pool.log-index.core}") Integer corePoolSize,
-			@Value("${rp.environment.variable.executor.pool.log-index.max}") Integer maxPoolSize,
-			@Value("${rp.environment.variable.executor.pool.log-index.queue}") Integer queueCapacity) {
-		final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-		threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
-		threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
-		threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
-		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
-		threadPoolTaskExecutor.setThreadNamePrefix("log-index-exec");
-		return threadPoolTaskExecutor;
-	}
+  }
 
-	@Bean(name = "autoAnalyzeTaskExecutor")
-	public TaskExecutor autoAnalyzeTaskExecutor(@Value("${rp.environment.variable.executor.pool.auto-analyze.core}") Integer corePoolSize,
-			@Value("${rp.environment.variable.executor.pool.auto-analyze.max}") Integer maxPoolSize,
-			@Value("${rp.environment.variable.executor.pool.auto-analyze.queue}") Integer queueCapacity) {
-		final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-		threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
-		threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
-		threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
-		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
-		threadPoolTaskExecutor.setThreadNamePrefix("auto-analyze-exec");
-		return threadPoolTaskExecutor;
-	}
+  @Bean(name = "logIndexTaskExecutor")
+  public TaskExecutor logIndexTaskExecutor(
+      @Value("${rp.environment.variable.executor.pool.log-index.core}") Integer corePoolSize,
+      @Value("${rp.environment.variable.executor.pool.log-index.max}") Integer maxPoolSize,
+      @Value("${rp.environment.variable.executor.pool.log-index.queue}") Integer queueCapacity) {
+    final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+    threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
+    threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
+    threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
+    threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
+    threadPoolTaskExecutor.setThreadNamePrefix("log-index-exec");
+    return threadPoolTaskExecutor;
+  }
 
-	@Bean("patternAnalysisTaskExecutor")
-	public TaskExecutor patternAnalysisTaskExecutor(@Value("${rp.environment.variable.executor.pool.pattern-analyze.core}") Integer corePoolSize,
-			@Value("${rp.environment.variable.executor.pool.pattern-analyze.max}") Integer maxPoolSize,
-			@Value("${rp.environment.variable.executor.pool.pattern-analyze.queue}") Integer queueCapacity) {
-		ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-		taskExecutor.setCorePoolSize(corePoolSize);
-		taskExecutor.setMaxPoolSize(maxPoolSize);
-		taskExecutor.setQueueCapacity(queueCapacity);
-		taskExecutor.setThreadNamePrefix("pattern-analysis-task-exec");
-		taskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-		return taskExecutor;
-	}
+  @Bean(name = "autoAnalyzeTaskExecutor")
+  public TaskExecutor autoAnalyzeTaskExecutor(
+      @Value("${rp.environment.variable.executor.pool.auto-analyze.core}") Integer corePoolSize,
+      @Value("${rp.environment.variable.executor.pool.auto-analyze.max}") Integer maxPoolSize,
+      @Value("${rp.environment.variable.executor.pool.auto-analyze.queue}") Integer queueCapacity) {
+    final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+    threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
+    threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
+    threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
+    threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
+    threadPoolTaskExecutor.setThreadNamePrefix("auto-analyze-exec");
+    return threadPoolTaskExecutor;
+  }
 
-	@Bean(name = "demoDataTaskExecutor")
-	public TaskExecutor demoDataTaskExecutor(@Value("${rp.environment.variable.executor.pool.demo-data.core}") Integer corePoolSize,
-			@Value("${rp.environment.variable.executor.pool.demo-data.max}") Integer maxPoolSize,
-			@Value("${rp.environment.variable.executor.pool.demo-data.queue}") Integer queueCapacity) {
-		ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-		threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
-		threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
-		threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
-		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
-		threadPoolTaskExecutor.setAwaitTerminationSeconds(60);
-		threadPoolTaskExecutor.setThreadNamePrefix("demo-data-exec");
-		return threadPoolTaskExecutor;
-	}
+  @Bean("patternAnalysisTaskExecutor")
+  public TaskExecutor patternAnalysisTaskExecutor(
+      @Value("${rp.environment.variable.executor.pool.pattern-analyze.core}") Integer corePoolSize,
+      @Value("${rp.environment.variable.executor.pool.pattern-analyze.max}") Integer maxPoolSize,
+      @Value("${rp.environment.variable.executor.pool.pattern-analyze.queue}") Integer queueCapacity) {
+    ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+    taskExecutor.setCorePoolSize(corePoolSize);
+    taskExecutor.setMaxPoolSize(maxPoolSize);
+    taskExecutor.setQueueCapacity(queueCapacity);
+    taskExecutor.setThreadNamePrefix("pattern-analysis-task-exec");
+    taskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+    return taskExecutor;
+  }
 
-	@Bean(name = "widgetViewExecutor")
-	public TaskExecutor healthCheckTableExecutor(
-			@Value("${rp.environment.variable.executor.pool.widget-view.core}") Integer corePoolSize,
-			@Value("${rp.environment.variable.executor.pool.widget-view.max}") Integer maxPoolSize,
-			@Value("${rp.environment.variable.executor.pool.widget-view.queue}") Integer queueCapacity) {
-		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(corePoolSize);
-		executor.setMaxPoolSize(maxPoolSize);
-		executor.setQueueCapacity(queueCapacity);
-		executor.setAllowCoreThreadTimeOut(true);
-		executor.setThreadNamePrefix("generate-widget-view-task");
-		executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
-		return executor;
-	}
+  @Bean(name = "demoDataTaskExecutor")
+  public TaskExecutor demoDataTaskExecutor(
+      @Value("${rp.environment.variable.executor.pool.demo-data.core}") Integer corePoolSize,
+      @Value("${rp.environment.variable.executor.pool.demo-data.max}") Integer maxPoolSize,
+      @Value("${rp.environment.variable.executor.pool.demo-data.queue}") Integer queueCapacity) {
+    ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+    threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
+    threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
+    threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
+    threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
+    threadPoolTaskExecutor.setAwaitTerminationSeconds(60);
+    threadPoolTaskExecutor.setThreadNamePrefix("demo-data-exec");
+    return threadPoolTaskExecutor;
+  }
 
-	@Bean(name = "logClusterExecutor")
-	public TaskExecutor logClusterExecutor(@Value("${rp.environment.variable.executor.pool.log-cluster.core}") Integer corePoolSize,
-			@Value("${rp.environment.variable.executor.pool.log-cluster.max}") Integer maxPoolSize,
-			@Value("${rp.environment.variable.executor.pool.log-cluster.queue}") Integer queueCapacity) {
-		final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-		threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
-		threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
-		threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
-		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
-		threadPoolTaskExecutor.setThreadNamePrefix("log-cluster-exec");
-		return threadPoolTaskExecutor;
-	}
+  @Bean(name = "widgetViewExecutor")
+  public TaskExecutor healthCheckTableExecutor(
+      @Value("${rp.environment.variable.executor.pool.widget-view.core}") Integer corePoolSize,
+      @Value("${rp.environment.variable.executor.pool.widget-view.max}") Integer maxPoolSize,
+      @Value("${rp.environment.variable.executor.pool.widget-view.queue}") Integer queueCapacity) {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(corePoolSize);
+    executor.setMaxPoolSize(maxPoolSize);
+    executor.setQueueCapacity(queueCapacity);
+    executor.setAllowCoreThreadTimeOut(true);
+    executor.setThreadNamePrefix("generate-widget-view-task");
+    executor.setRejectedExecutionHandler(
+        new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
+    return executor;
+  }
 
-	@Bean(name = "eventListenerExecutor")
-	public TaskExecutor eventListenerExecutor(@Value("${rp.environment.variable.executor.pool.event-listener.core}") Integer corePoolSize,
-			@Value("${rp.environment.variable.executor.pool.event-listener.max}") Integer maxPoolSize,
-			@Value("${rp.environment.variable.executor.pool.event-listener.queue}") Integer queueCapacity) {
-		final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-		threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
-		threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
-		threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
-		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
-		threadPoolTaskExecutor.setThreadNamePrefix("event-listener-exec");
-		return threadPoolTaskExecutor;
-	}
+  @Bean(name = "logClusterExecutor")
+  public TaskExecutor logClusterExecutor(
+      @Value("${rp.environment.variable.executor.pool.log-cluster.core}") Integer corePoolSize,
+      @Value("${rp.environment.variable.executor.pool.log-cluster.max}") Integer maxPoolSize,
+      @Value("${rp.environment.variable.executor.pool.log-cluster.queue}") Integer queueCapacity) {
+    final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+    threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
+    threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
+    threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
+    threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
+    threadPoolTaskExecutor.setThreadNamePrefix("log-cluster-exec");
+    return threadPoolTaskExecutor;
+  }
+
+  @Bean(name = "eventListenerExecutor")
+  public TaskExecutor eventListenerExecutor(
+      @Value("${rp.environment.variable.executor.pool.event-listener.core}") Integer corePoolSize,
+      @Value("${rp.environment.variable.executor.pool.event-listener.max}") Integer maxPoolSize,
+      @Value("${rp.environment.variable.executor.pool.event-listener.queue}") Integer queueCapacity) {
+    final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+    threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
+    threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
+    threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
+    threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
+    threadPoolTaskExecutor.setThreadNamePrefix("event-listener-exec");
+    return threadPoolTaskExecutor;
+  }
 
 }

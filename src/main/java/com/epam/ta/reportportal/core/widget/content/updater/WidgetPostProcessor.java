@@ -9,14 +9,14 @@ import com.epam.ta.reportportal.entity.widget.Widget;
  */
 public interface WidgetPostProcessor {
 
-	/**
-	 * @param widget {@link Widget}
-	 * @return 'true' if provided widget is supported by post processor otherwise 'false'
-	 */
-	boolean supports(Widget widget);
+  /**
+   * @param widget {@link Widget}
+   * @return 'true' if provided widget is supported by post processor otherwise 'false'
+   */
+  boolean supports(Widget widget);
 
-	/**
-	 * @param widget {@link Widget} for post processing
-	 */
-	void postProcess(Widget widget);
+  /**
+   * @param widget {@link Widget} for post processing
+   */
+  void postProcess(Widget widget);
 }

@@ -21,7 +21,7 @@ package com.epam.ta.reportportal.auth;
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
  */
 public enum ReportPortalClient {
-	ui,
-	api,
-	internal
+  ui,
+  api,
+  internal
 }

@@ -16,48 +16,49 @@
 
 package com.epam.ta.reportportal.core.project.settings.notification;
 
+import static com.epam.ta.reportportal.entity.enums.SendCase.ALWAYS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
-import static com.epam.ta.reportportal.entity.enums.SendCase.ALWAYS;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
  */
 class GetProjectNotificationsHandlerImplTest {
-	private static final Long DEFAULT_PROJECT_ID = 1L;
-	private static final Long DEFAULT_SENDER_CASE_1_ID = 1L;
-	private static final Long DEFAULT_SENDER_CASE_2_ID = 2L;
-	private static final String DEFAULT_SENDER_CASE_1_RULE_NAME = "rule #" + DEFAULT_SENDER_CASE_1_ID;
-	private static final String DEFAULT_SENDER_CASE_2_RULE_NAME = "rule #" + DEFAULT_SENDER_CASE_2_ID;
 
-	private final SenderCaseRepository senderCaseRepository = mock(SenderCaseRepository.class);
-	private final GetProjectNotificationsHandlerImpl getProjectNotificationsHandler =
-			new GetProjectNotificationsHandlerImpl(senderCaseRepository);
+  private static final Long DEFAULT_PROJECT_ID = 1L;
+  private static final Long DEFAULT_SENDER_CASE_1_ID = 1L;
+  private static final Long DEFAULT_SENDER_CASE_2_ID = 2L;
+  private static final String DEFAULT_SENDER_CASE_1_RULE_NAME = "rule #" + DEFAULT_SENDER_CASE_1_ID;
+  private static final String DEFAULT_SENDER_CASE_2_RULE_NAME = "rule #" + DEFAULT_SENDER_CASE_2_ID;
 
-	@Test
-	public void getProjectNotificationsTest() {
-		SenderCase senderCase1 = mock(SenderCase.class);
-		SenderCase senderCase2 = mock(SenderCase.class);
+  private final SenderCaseRepository senderCaseRepository = mock(SenderCaseRepository.class);
+  private final GetProjectNotificationsHandlerImpl getProjectNotificationsHandler =
+      new GetProjectNotificationsHandlerImpl(senderCaseRepository);
 
-		when(senderCase1.getId()).thenReturn(DEFAULT_SENDER_CASE_1_ID);
-		when(senderCase1.getRuleName()).thenReturn(DEFAULT_SENDER_CASE_1_RULE_NAME);
-		when(senderCase1.getSendCase()).thenReturn(ALWAYS);
-		when(senderCase2.getId()).thenReturn(DEFAULT_SENDER_CASE_2_ID);
-		when(senderCase2.getRuleName()).thenReturn(DEFAULT_SENDER_CASE_2_RULE_NAME);
-		when(senderCase2.getSendCase()).thenReturn(ALWAYS);
+  @Test
+  public void getProjectNotificationsTest() {
+    SenderCase senderCase1 = mock(SenderCase.class);
+    SenderCase senderCase2 = mock(SenderCase.class);
 
-		when(senderCaseRepository.findAllByProjectId(DEFAULT_PROJECT_ID)).thenReturn(List.of(senderCase1, senderCase2));
+    when(senderCase1.getId()).thenReturn(DEFAULT_SENDER_CASE_1_ID);
+    when(senderCase1.getRuleName()).thenReturn(DEFAULT_SENDER_CASE_1_RULE_NAME);
+    when(senderCase1.getSendCase()).thenReturn(ALWAYS);
+    when(senderCase2.getId()).thenReturn(DEFAULT_SENDER_CASE_2_ID);
+    when(senderCase2.getRuleName()).thenReturn(DEFAULT_SENDER_CASE_2_RULE_NAME);
+    when(senderCase2.getSendCase()).thenReturn(ALWAYS);
 
-		List<SenderCaseDTO> result = getProjectNotificationsHandler.getProjectNotifications(DEFAULT_PROJECT_ID);
-		assertEquals(2, result.size());
-	}
+    when(senderCaseRepository.findAllByProjectId(DEFAULT_PROJECT_ID)).thenReturn(
+        List.of(senderCase1, senderCase2));
+
+    List<SenderCaseDTO> result = getProjectNotificationsHandler.getProjectNotifications(
+        DEFAULT_PROJECT_ID);
+    assertEquals(2, result.size());
+  }
 }

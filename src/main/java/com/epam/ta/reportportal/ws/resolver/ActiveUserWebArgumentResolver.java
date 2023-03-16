@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.resolver;
 
 import com.epam.ta.reportportal.entity.user.UserRole;
+import java.util.Optional;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.support.WebArgumentResolver;
@@ -25,47 +26,47 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import java.util.Optional;
-
 /**
- * {@link org.springframework.web.bind.support.WebArgumentResolver} for
- * ReportPortal User Roles. Will resolve {@link UserRole} in case if method
- * parameter annotated by {@link ActiveRole} annotation
+ * {@link org.springframework.web.bind.support.WebArgumentResolver} for ReportPortal User Roles.
+ * Will resolve {@link UserRole} in case if method parameter annotated by {@link ActiveRole}
+ * annotation
  *
  * @author Andrei Varabyeu
  */
 public class ActiveUserWebArgumentResolver implements HandlerMethodArgumentResolver {
 
-	/**
-	 * Returns TRUE if method argument is {@link UserRole} and annotated by
-	 * {@link ActiveRole} annotation
-	 */
-	@Override
-	public boolean supportsParameter(MethodParameter methodParameter) {
-		return methodParameter.getParameterType().equals(UserRole.class) && null != methodParameter.getParameterAnnotation(
-				ActiveRole.class);
-	}
+  /**
+   * Returns TRUE if method argument is {@link UserRole} and annotated by {@link ActiveRole}
+   * annotation
+   */
+  @Override
+  public boolean supportsParameter(MethodParameter methodParameter) {
+    return methodParameter.getParameterType().equals(UserRole.class)
+        && null != methodParameter.getParameterAnnotation(
+        ActiveRole.class);
+  }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.web.method.support.HandlerMethodArgumentResolver#
-	 * resolveArgument(org.springframework.core.MethodParameter,
-	 * org.springframework.web.method.support.ModelAndViewContainer,
-	 * org.springframework.web.context.request.NativeWebRequest,
-	 * org.springframework.web.bind.support.WebDataBinderFactory)
-	 */
-	@Override
-	public Object resolveArgument(MethodParameter methodParameter, ModelAndViewContainer paramModelAndViewContainer,
-			NativeWebRequest webRequest, WebDataBinderFactory paramWebDataBinderFactory) {
-		Authentication authentication = (Authentication) webRequest.getUserPrincipal();
-		if (!authentication.getAuthorities().isEmpty()) {
-			Optional<UserRole> userRole = UserRole.findByAuthority(
-					authentication.getAuthorities().iterator().next().getAuthority());
-			return userRole.isPresent() ? userRole.get() : WebArgumentResolver.UNRESOLVED;
-		}
-		return WebArgumentResolver.UNRESOLVED;
-	}
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * org.springframework.web.method.support.HandlerMethodArgumentResolver#
+   * resolveArgument(org.springframework.core.MethodParameter,
+   * org.springframework.web.method.support.ModelAndViewContainer,
+   * org.springframework.web.context.request.NativeWebRequest,
+   * org.springframework.web.bind.support.WebDataBinderFactory)
+   */
+  @Override
+  public Object resolveArgument(MethodParameter methodParameter,
+      ModelAndViewContainer paramModelAndViewContainer,
+      NativeWebRequest webRequest, WebDataBinderFactory paramWebDataBinderFactory) {
+    Authentication authentication = (Authentication) webRequest.getUserPrincipal();
+    if (!authentication.getAuthorities().isEmpty()) {
+      Optional<UserRole> userRole = UserRole.findByAuthority(
+          authentication.getAuthorities().iterator().next().getAuthority());
+      return userRole.isPresent() ? userRole.get() : WebArgumentResolver.UNRESOLVED;
+    }
+    return WebArgumentResolver.UNRESOLVED;
+  }
 
 }

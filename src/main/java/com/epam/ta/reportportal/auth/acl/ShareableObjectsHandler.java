@@ -20,12 +20,11 @@ import com.epam.ta.reportportal.dao.ShareableEntityRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.ShareableEntity;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -33,108 +32,114 @@ import java.util.List;
 @Service
 public class ShareableObjectsHandler {
 
-	@Autowired
-	private ReportPortalAclService aclService;
+  @Autowired
+  private ReportPortalAclService aclService;
 
-	@Autowired
-	private UserRepository userRepository;
+  @Autowired
+  private UserRepository userRepository;
 
-	@Autowired
-	private ShareableEntityRepository shareableEntityRepository;
+  @Autowired
+  private ShareableEntityRepository shareableEntityRepository;
 
-	/**
-	 * Initialize acl for sharable object. Give {@link BasePermission#ADMINISTRATION}
-	 * permissions to owner. If object is shared, give {@link BasePermission#READ}
-	 * permissions to users assigned to project.
-	 *
-	 * @param object    Object for acl
-	 * @param owner     Owner of object
-	 * @param projectId Project id
-	 * @param isShared  Shared or not
-	 */
-	public void initAcl(Object object, String owner, Long projectId, boolean isShared) {
-		aclService.createAcl(object);
-		aclService.addPermissions(object, owner, BasePermission.ADMINISTRATION);
-		if (isShared) {
-			userRepository.findUsernamesWithProjectRolesByProjectId(projectId)
-					.entrySet()
-					.stream()
-					.filter(entry -> !entry.getKey().equalsIgnoreCase(owner))
-					.forEach(entry -> {
-						if (entry.getValue().sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
-							aclService.addPermissions(object, entry.getKey(), BasePermission.ADMINISTRATION);
-						} else {
-							aclService.addPermissions(object, entry.getKey(), BasePermission.READ);
-						}
+  /**
+   * Initialize acl for sharable object. Give {@link BasePermission#ADMINISTRATION} permissions to
+   * owner. If object is shared, give {@link BasePermission#READ} permissions to users assigned to
+   * project.
+   *
+   * @param object    Object for acl
+   * @param owner     Owner of object
+   * @param projectId Project id
+   * @param isShared  Shared or not
+   */
+  public void initAcl(Object object, String owner, Long projectId, boolean isShared) {
+    aclService.createAcl(object);
+    aclService.addPermissions(object, owner, BasePermission.ADMINISTRATION);
+    if (isShared) {
+      userRepository.findUsernamesWithProjectRolesByProjectId(projectId)
+          .entrySet()
+          .stream()
+          .filter(entry -> !entry.getKey().equalsIgnoreCase(owner))
+          .forEach(entry -> {
+            if (entry.getValue().sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
+              aclService.addPermissions(object, entry.getKey(), BasePermission.ADMINISTRATION);
+            } else {
+              aclService.addPermissions(object, entry.getKey(), BasePermission.READ);
+            }
 
-					});
-		}
-	}
+          });
+    }
+  }
 
-	/**
-	 * Update acl for sharable object. If object is shared, give {@link BasePermission#READ}
-	 * permissions to users assigned to project.
-	 *
-	 * @param object    Object for acl
-	 * @param projectId Project id
-	 * @param isShared  Shared or not
-	 */
-	public void updateAcl(Object object, Long projectId, boolean isShared) {
-		if (isShared) {
-			userRepository.findUsernamesWithProjectRolesByProjectId(projectId).forEach((username, projectRole) -> {
-				if (projectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
-					aclService.addPermissions(object, username, BasePermission.ADMINISTRATION);
-				} else {
-					aclService.addPermissions(object, username, BasePermission.READ);
-				}
+  /**
+   * Update acl for sharable object. If object is shared, give {@link BasePermission#READ}
+   * permissions to users assigned to project.
+   *
+   * @param object    Object for acl
+   * @param projectId Project id
+   * @param isShared  Shared or not
+   */
+  public void updateAcl(Object object, Long projectId, boolean isShared) {
+    if (isShared) {
+      userRepository.findUsernamesWithProjectRolesByProjectId(projectId)
+          .forEach((username, projectRole) -> {
+            if (projectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
+              aclService.addPermissions(object, username, BasePermission.ADMINISTRATION);
+            } else {
+              aclService.addPermissions(object, username, BasePermission.READ);
+            }
 
-			});
-		} else {
-			userRepository.findNamesByProject(projectId).forEach(login -> aclService.removePermissions(object, login));
-		}
-	}
+          });
+    } else {
+      userRepository.findNamesByProject(projectId)
+          .forEach(login -> aclService.removePermissions(object, login));
+    }
+  }
 
-	/**
-	 * Prevent shared objects for concrete user
-	 *
-	 * @param projectId Project
-	 * @param userName  Username
-	 */
-	public void preventSharedObjects(Long projectId, String userName) {
-		List<ShareableEntity> sharedEntities = shareableEntityRepository.findAllByProjectIdAndShared(projectId, true);
-		sharedEntities.forEach(entity -> aclService.removePermissions(entity, userName));
-	}
+  /**
+   * Prevent shared objects for concrete user
+   *
+   * @param projectId Project
+   * @param userName  Username
+   */
+  public void preventSharedObjects(Long projectId, String userName) {
+    List<ShareableEntity> sharedEntities = shareableEntityRepository.findAllByProjectIdAndShared(
+        projectId, true);
+    sharedEntities.forEach(entity -> aclService.removePermissions(entity, userName));
+  }
 
-	/**
-	 * Permit shared objects for concrete user
-	 *
-	 * @param projectId Project
-	 * @param userName  Username
-	 */
-	public void permitSharedObjects(Long projectId, String userName, Permission permission) {
-		List<ShareableEntity> shareableEntities = shareableEntityRepository.findAllByProjectIdAndShared(projectId, true);
-		shareableEntities.forEach(entity -> aclService.addPermissions(entity, userName, permission));
-	}
+  /**
+   * Permit shared objects for concrete user
+   *
+   * @param projectId Project
+   * @param userName  Username
+   */
+  public void permitSharedObjects(Long projectId, String userName, Permission permission) {
+    List<ShareableEntity> shareableEntities = shareableEntityRepository.findAllByProjectIdAndShared(
+        projectId, true);
+    shareableEntities.forEach(entity -> aclService.addPermissions(entity, userName, permission));
+  }
 
-	/**
-	 * Update shared objects permission for concrete user
-	 *
-	 * @param projectId Project
-	 * @param userName  Username
-	 * @param permission {@link Permission}
-	 */
-	public void updateSharedObjectsPermission(Long projectId, String userName, Permission permission) {
-		List<ShareableEntity> shareableEntities = shareableEntityRepository.findAllByProjectIdAndShared(projectId, true);
-		shareableEntities.forEach(entity -> aclService.updatePermission(entity, userName, permission));
-	}
+  /**
+   * Update shared objects permission for concrete user
+   *
+   * @param projectId  Project
+   * @param userName   Username
+   * @param permission {@link Permission}
+   */
+  public void updateSharedObjectsPermission(Long projectId, String userName,
+      Permission permission) {
+    List<ShareableEntity> shareableEntities = shareableEntityRepository.findAllByProjectIdAndShared(
+        projectId, true);
+    shareableEntities.forEach(entity -> aclService.updatePermission(entity, userName, permission));
+  }
 
-	/**
-	 * Remove ACL for object.
-	 *
-	 * @param object Object to be removed
-	 */
-	public void deleteAclForObject(Object object) {
-		aclService.deleteAcl(object);
-	}
+  /**
+   * Remove ACL for object.
+   *
+   * @param object Object to be removed
+   */
+  public void deleteAclForObject(Object object) {
+    aclService.deleteAcl(object);
+  }
 
 }

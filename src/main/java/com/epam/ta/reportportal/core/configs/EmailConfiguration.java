@@ -24,30 +24,29 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
- * Global Email Configuration<br>
- * Probably will be replaces by configuration per project
+ * Global Email Configuration<br> Probably will be replaces by configuration per project
  *
  * @author Andrei_Ramanchuk
  */
 @Configuration
 public class EmailConfiguration {
 
-	@Bean
-	public ThreadPoolTaskExecutor emailExecutorService() {
-		ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-		threadPoolTaskExecutor.setCorePoolSize(5);
-		threadPoolTaskExecutor.setMaxPoolSize(20);
-		threadPoolTaskExecutor.setQueueCapacity(50);
-		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
-		threadPoolTaskExecutor.setAwaitTerminationSeconds(20);
-		threadPoolTaskExecutor.setThreadNamePrefix("email-sending-exec");
-		return threadPoolTaskExecutor;
-	}
+  @Bean
+  public ThreadPoolTaskExecutor emailExecutorService() {
+    ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+    threadPoolTaskExecutor.setCorePoolSize(5);
+    threadPoolTaskExecutor.setMaxPoolSize(20);
+    threadPoolTaskExecutor.setQueueCapacity(50);
+    threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
+    threadPoolTaskExecutor.setAwaitTerminationSeconds(20);
+    threadPoolTaskExecutor.setThreadNamePrefix("email-sending-exec");
+    return threadPoolTaskExecutor;
+  }
 
-	@Bean
-	@Primary
-	public TemplateEngine getTemplateEngine() {
-		return new TemplateEngineProvider("/templates/email").get();
-	}
+  @Bean
+  @Primary
+  public TemplateEngine getTemplateEngine() {
+    return new TemplateEngineProvider("/templates/email").get();
+  }
 
 }

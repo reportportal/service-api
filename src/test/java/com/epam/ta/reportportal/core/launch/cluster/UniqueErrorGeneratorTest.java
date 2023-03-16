@@ -16,6 +16,18 @@
 
 package com.epam.ta.reportportal.core.launch.cluster;
 
+import static com.epam.ta.reportportal.core.launch.cluster.utils.ConfigProvider.getConfig;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
@@ -24,82 +36,81 @@ import com.epam.ta.reportportal.pipeline.PipelineConstructor;
 import com.epam.ta.reportportal.pipeline.TransactionalPipeline;
 import org.junit.jupiter.api.Test;
 
-import static com.epam.ta.reportportal.core.launch.cluster.utils.ConfigProvider.getConfig;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class UniqueErrorGeneratorTest {
 
-	private final AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
+  private final AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
 
-	private final PipelineConstructor<GenerateClustersConfig> pipelineConstructor = (PipelineConstructor<GenerateClustersConfig>) mock(
-			PipelineConstructor.class);
+  private final PipelineConstructor<GenerateClustersConfig> pipelineConstructor = (PipelineConstructor<GenerateClustersConfig>) mock(
+      PipelineConstructor.class);
 
-	private final TransactionalPipeline transactionalPipeline = mock(TransactionalPipeline.class);
+  private final TransactionalPipeline transactionalPipeline = mock(TransactionalPipeline.class);
 
-	private final UniqueErrorGenerator clusterGenerator = new UniqueErrorGenerator(analyzerStatusCache,
-			pipelineConstructor,
-			transactionalPipeline
-	);
+  private final UniqueErrorGenerator clusterGenerator = new UniqueErrorGenerator(
+      analyzerStatusCache,
+      pipelineConstructor,
+      transactionalPipeline
+  );
 
-	@Test
-	void shouldFailWhenCacheContainsLaunchId() {
-		when(analyzerStatusCache.containsLaunchId(anyString(), anyLong())).thenReturn(true);
+  @Test
+  void shouldFailWhenCacheContainsLaunchId() {
+    when(analyzerStatusCache.containsLaunchId(anyString(), anyLong())).thenReturn(true);
 
-		final GenerateClustersConfig config = getConfig(false);
+    final GenerateClustersConfig config = getConfig(false);
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> clusterGenerator.generate(config));
-		assertEquals("Impossible interact with integration. Clusters creation is in progress.", exception.getMessage());
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> clusterGenerator.generate(config));
+    assertEquals("Impossible interact with integration. Clusters creation is in progress.",
+        exception.getMessage());
 
-		final ClusterEntityContext entityContext = config.getEntityContext();
-		verify(analyzerStatusCache, times(0)).analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY,
-				entityContext.getLaunchId(),
-				entityContext.getProjectId()
-		);
-	}
+    final ClusterEntityContext entityContext = config.getEntityContext();
+    verify(analyzerStatusCache, times(0)).analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY,
+        entityContext.getLaunchId(),
+        entityContext.getProjectId()
+    );
+  }
 
-	@Test
-	void shouldGenerate() {
-		when(analyzerStatusCache.containsLaunchId(anyString(), anyLong())).thenReturn(false);
+  @Test
+  void shouldGenerate() {
+    when(analyzerStatusCache.containsLaunchId(anyString(), anyLong())).thenReturn(false);
 
-		final GenerateClustersConfig config = getConfig(false);
+    final GenerateClustersConfig config = getConfig(false);
 
-		clusterGenerator.generate(config);
+    clusterGenerator.generate(config);
 
-		final ClusterEntityContext entityContext = config.getEntityContext();
-		verify(analyzerStatusCache, times(1)).analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY,
-				entityContext.getLaunchId(),
-				entityContext.getProjectId()
-		);
-		verify(pipelineConstructor, times(1)).construct(config);
-		verify(transactionalPipeline, times(1)).run(anyList());
-		verify(analyzerStatusCache, times(1)).analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, entityContext.getLaunchId());
-	}
+    final ClusterEntityContext entityContext = config.getEntityContext();
+    verify(analyzerStatusCache, times(1)).analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY,
+        entityContext.getLaunchId(),
+        entityContext.getProjectId()
+    );
+    verify(pipelineConstructor, times(1)).construct(config);
+    verify(transactionalPipeline, times(1)).run(anyList());
+    verify(analyzerStatusCache, times(1)).analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY,
+        entityContext.getLaunchId());
+  }
 
-	@Test
-	void shouldCleanCacheWhenExceptionThrown() {
-		when(analyzerStatusCache.containsLaunchId(anyString(), anyLong())).thenReturn(false);
+  @Test
+  void shouldCleanCacheWhenExceptionThrown() {
+    when(analyzerStatusCache.containsLaunchId(anyString(), anyLong())).thenReturn(false);
 
-		final GenerateClustersConfig config = getConfig(false);
+    final GenerateClustersConfig config = getConfig(false);
 
-		doThrow(new RuntimeException("Exception during generation")).when(transactionalPipeline).run(anyList());
+    doThrow(new RuntimeException("Exception during generation")).when(transactionalPipeline)
+        .run(anyList());
 
-		clusterGenerator.generate(config);
+    clusterGenerator.generate(config);
 
-		final ClusterEntityContext entityContext = config.getEntityContext();
-		verify(analyzerStatusCache, times(1)).analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY,
-				entityContext.getLaunchId(),
-				entityContext.getProjectId()
-		);
-		verify(pipelineConstructor, times(1)).construct(config);
-		verify(transactionalPipeline, times(1)).run(anyList());
-		verify(analyzerStatusCache, times(1)).analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, entityContext.getLaunchId());
-	}
+    final ClusterEntityContext entityContext = config.getEntityContext();
+    verify(analyzerStatusCache, times(1)).analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY,
+        entityContext.getLaunchId(),
+        entityContext.getProjectId()
+    );
+    verify(pipelineConstructor, times(1)).construct(config);
+    verify(transactionalPipeline, times(1)).run(anyList());
+    verify(analyzerStatusCache, times(1)).analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY,
+        entityContext.getLaunchId());
+  }
 
 }

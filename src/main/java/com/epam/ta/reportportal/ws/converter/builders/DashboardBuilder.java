@@ -16,77 +16,78 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
-
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
  */
 public class DashboardBuilder implements Supplier<Dashboard> {
 
-	private Dashboard dashboard;
+  private Dashboard dashboard;
 
-	public DashboardBuilder() {
-		dashboard = new Dashboard();
-	}
+  public DashboardBuilder() {
+    dashboard = new Dashboard();
+  }
 
-	public DashboardBuilder(Dashboard dashboard) {
-		this.dashboard = dashboard;
-	}
+  public DashboardBuilder(Dashboard dashboard) {
+    this.dashboard = dashboard;
+  }
 
-	public DashboardBuilder addDashboardRq(CreateDashboardRQ rq) {
-		dashboard.setName(rq.getName());
-		dashboard.setDescription(rq.getDescription());
-		ofNullable(rq.getShare()).ifPresent(it -> dashboard.setShared(it));
-		return this;
-	}
+  public DashboardBuilder addDashboardRq(CreateDashboardRQ rq) {
+    dashboard.setName(rq.getName());
+    dashboard.setDescription(rq.getDescription());
+    ofNullable(rq.getShare()).ifPresent(it -> dashboard.setShared(it));
+    return this;
+  }
 
-	public DashboardBuilder addProject(Long projectId) {
-		Project project = new Project();
-		project.setId(projectId);
-		dashboard.setProject(project);
-		return this;
-	}
+  public DashboardBuilder addProject(Long projectId) {
+    Project project = new Project();
+    project.setId(projectId);
+    dashboard.setProject(project);
+    return this;
+  }
 
-	public DashboardBuilder addUpdateRq(UpdateDashboardRQ rq) {
-		Optional.ofNullable(rq.getName()).ifPresent(name -> dashboard.setName(name));
-		Optional.ofNullable(rq.getDescription()).ifPresent(description -> dashboard.setDescription(description));
-		Optional.ofNullable(rq.getShare()).ifPresent(share -> dashboard.setShared(share));
-		Optional.ofNullable(rq.getWidgets()).ifPresent(widgets -> {
-			for (DashboardWidget dashboardWidget : dashboard.getDashboardWidgets()) {
-				widgets.stream()
-						.filter(updWidget -> Objects.equals(dashboardWidget.getId().getWidgetId(), updWidget.getWidgetId()))
-						.forEach(updWidget -> {
-							ofNullable(updWidget.getWidgetPosition()).ifPresent(position -> {
-								dashboardWidget.setPositionX(position.getX());
-								dashboardWidget.setPositionY(position.getY());
-							});
-							ofNullable(updWidget.getWidgetSize()).ifPresent(size -> {
-								dashboardWidget.setWidth(size.getWidth());
-								dashboardWidget.setHeight(size.getHeight());
-							});
-						});
-			}
-		});
-		return this;
-	}
+  public DashboardBuilder addUpdateRq(UpdateDashboardRQ rq) {
+    Optional.ofNullable(rq.getName()).ifPresent(name -> dashboard.setName(name));
+    Optional.ofNullable(rq.getDescription())
+        .ifPresent(description -> dashboard.setDescription(description));
+    Optional.ofNullable(rq.getShare()).ifPresent(share -> dashboard.setShared(share));
+    Optional.ofNullable(rq.getWidgets()).ifPresent(widgets -> {
+      for (DashboardWidget dashboardWidget : dashboard.getDashboardWidgets()) {
+        widgets.stream()
+            .filter(updWidget -> Objects.equals(dashboardWidget.getId().getWidgetId(),
+                updWidget.getWidgetId()))
+            .forEach(updWidget -> {
+              ofNullable(updWidget.getWidgetPosition()).ifPresent(position -> {
+                dashboardWidget.setPositionX(position.getX());
+                dashboardWidget.setPositionY(position.getY());
+              });
+              ofNullable(updWidget.getWidgetSize()).ifPresent(size -> {
+                dashboardWidget.setWidth(size.getWidth());
+                dashboardWidget.setHeight(size.getHeight());
+              });
+            });
+      }
+    });
+    return this;
+  }
 
-	public DashboardBuilder addOwner(String owner) {
-		dashboard.setOwner(owner);
-		return this;
-	}
+  public DashboardBuilder addOwner(String owner) {
+    dashboard.setOwner(owner);
+    return this;
+  }
 
-	@Override
-	public Dashboard get() {
-		return dashboard;
-	}
+  @Override
+  public Dashboard get() {
+    return dashboard;
+  }
 }

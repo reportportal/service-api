@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
  */
 public interface ChangeStatusHandler {
 
-	void changeParentStatus(TestItem childItem, Long projectId, ReportPortalUser user);
+  void changeParentStatus(TestItem childItem, Long projectId, ReportPortalUser user);
 
-	void changeLaunchStatus(Launch launch);
+  void changeLaunchStatus(Launch launch);
 }

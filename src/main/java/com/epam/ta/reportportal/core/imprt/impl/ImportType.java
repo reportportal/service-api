@@ -19,9 +19,10 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public enum ImportType {
-	XUNIT;
+  XUNIT;
 
-	public static Optional<ImportType> fromValue(String value) {
-		return Arrays.stream(ImportType.values()).filter(type -> type.name().equalsIgnoreCase(value)).findFirst();
-	}
+  public static Optional<ImportType> fromValue(String value) {
+    return Arrays.stream(ImportType.values()).filter(type -> type.name().equalsIgnoreCase(value))
+        .findFirst();
+  }
 }

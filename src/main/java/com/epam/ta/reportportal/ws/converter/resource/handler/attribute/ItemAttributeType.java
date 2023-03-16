@@ -20,7 +20,7 @@ package com.epam.ta.reportportal.ws.converter.resource.handler.attribute;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public enum ItemAttributeType {
-	PUBLIC,
-	SYSTEM,
-	UNRESOLVED
+  PUBLIC,
+  SYSTEM,
+  UNRESOLVED
 }

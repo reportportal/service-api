@@ -23,13 +23,12 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.google.common.base.Preconditions;
+import java.util.Optional;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.Optional;
-import java.util.function.Supplier;
 
 /**
  * Task to save log's binary data from MultipartFile for the use with queued RabbitMQ log saving.
@@ -39,44 +38,46 @@ import java.util.function.Supplier;
  */
 public class SaveLogBinaryDataTaskAsync implements Supplier<BinaryDataMetaInfo> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(SaveLogBinaryDataTaskAsync.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SaveLogBinaryDataTaskAsync.class);
 
-	@Autowired
-	private AttachmentBinaryDataService attachmentBinaryDataService;
+  @Autowired
+  private AttachmentBinaryDataService attachmentBinaryDataService;
 
-	private SaveLogRQ request;
+  private SaveLogRQ request;
 
-	private MultipartFile file;
+  private MultipartFile file;
 
-	private Long projectId;
+  private Long projectId;
 
-	@Override
-	public BinaryDataMetaInfo get() {
-		Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = attachmentBinaryDataService.saveAttachment(AttachmentMetaInfo.builder()
-				.withProjectId(projectId)
-				.withLaunchUuid(request.getLaunchUuid())
-				.withLogUuid(request.getUuid())
-				.build(), file);
-		return maybeBinaryDataMetaInfo.orElseGet(() -> {
-			LOGGER.error("Failed to save log content data into DataStore, projectId {}, itemId {} ", projectId, request.getItemUuid());
-			throw new ReportPortalException(ErrorType.BINARY_DATA_CANNOT_BE_SAVED);
-		});
-	}
+  @Override
+  public BinaryDataMetaInfo get() {
+    Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = attachmentBinaryDataService.saveAttachment(
+        AttachmentMetaInfo.builder()
+            .withProjectId(projectId)
+            .withLaunchUuid(request.getLaunchUuid())
+            .withLogUuid(request.getUuid())
+            .build(), file);
+    return maybeBinaryDataMetaInfo.orElseGet(() -> {
+      LOGGER.error("Failed to save log content data into DataStore, projectId {}, itemId {} ",
+          projectId, request.getItemUuid());
+      throw new ReportPortalException(ErrorType.BINARY_DATA_CANNOT_BE_SAVED);
+    });
+  }
 
-	public SaveLogBinaryDataTaskAsync withRequest(SaveLogRQ request) {
-		Preconditions.checkNotNull(request, "Request shouldn't be null");
-		this.request = request;
-		return this;
-	}
+  public SaveLogBinaryDataTaskAsync withRequest(SaveLogRQ request) {
+    Preconditions.checkNotNull(request, "Request shouldn't be null");
+    this.request = request;
+    return this;
+  }
 
-	public SaveLogBinaryDataTaskAsync withFile(MultipartFile file) {
-		this.file = file;
-		return this;
-	}
+  public SaveLogBinaryDataTaskAsync withFile(MultipartFile file) {
+    this.file = file;
+    return this;
+  }
 
-	public SaveLogBinaryDataTaskAsync withProjectId(Long projectId) {
-		Preconditions.checkNotNull(projectId, "Project id should not be null");
-		this.projectId = projectId;
-		return this;
-	}
+  public SaveLogBinaryDataTaskAsync withProjectId(Long projectId) {
+    Preconditions.checkNotNull(projectId, "Project id should not be null");
+    this.projectId = projectId;
+    return this;
+  }
 }

@@ -26,14 +26,15 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
  */
 public interface DeleteUserFilterHandler {
 
-	/**
-	 * Delete complex filter by id
-	 *
-	 * @param id             Filter id
-	 * @param projectDetails Project details
-	 * @param user           User
-	 * @return {@link OperationCompletionRS}
-	 */
-	OperationCompletionRS deleteFilter(Long id, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+  /**
+   * Delete complex filter by id
+   *
+   * @param id             Filter id
+   * @param projectDetails Project details
+   * @param user           User
+   * @return {@link OperationCompletionRS}
+   */
+  OperationCompletionRS deleteFilter(Long id, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user);
 
 }

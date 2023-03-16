@@ -16,45 +16,44 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
+
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
-import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
-
-import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 class ImportEventsTest {
 
-	private static final String FILE_NAME = "C:\\Windows\\winhlp32.exe";
+  private static final String FILE_NAME = "C:\\Windows\\winhlp32.exe";
 
-	private static Activity getExpectedActivity(ActivityAction action) {
-		Activity activity = new Activity();
-		activity.setAction(action.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.IMPORT.getValue());
-		activity.setUserId(1L);
-		activity.setUsername("user");
-		activity.setProjectId(3L);
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails(ImportEventsTest.FILE_NAME));
-		return activity;
-	}
+  private static Activity getExpectedActivity(ActivityAction action) {
+    Activity activity = new Activity();
+    activity.setAction(action.getValue());
+    activity.setActivityEntityType(Activity.ActivityEntityType.IMPORT.getValue());
+    activity.setUserId(1L);
+    activity.setUsername("user");
+    activity.setProjectId(3L);
+    activity.setCreatedAt(LocalDateTime.now());
+    activity.setDetails(new ActivityDetails(ImportEventsTest.FILE_NAME));
+    return activity;
+  }
 
-	@Test
-	void started() {
-		final Activity actual = new ImportStartedEvent(1L, "user", 3L, FILE_NAME).toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.START_IMPORT);
-		checkActivity(expected, actual);
-	}
+  @Test
+  void started() {
+    final Activity actual = new ImportStartedEvent(1L, "user", 3L, FILE_NAME).toActivity();
+    final Activity expected = getExpectedActivity(ActivityAction.START_IMPORT);
+    checkActivity(expected, actual);
+  }
 
-	@Test
-	void finished() {
-		final Activity actual = new ImportFinishedEvent(1L, "user", 3L, FILE_NAME).toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.FINISH_IMPORT);
-		checkActivity(expected, actual);
-	}
+  @Test
+  void finished() {
+    final Activity actual = new ImportFinishedEvent(1L, "user", 3L, FILE_NAME).toActivity();
+    final Activity expected = getExpectedActivity(ActivityAction.FINISH_IMPORT);
+    checkActivity(expected, actual);
+  }
 }

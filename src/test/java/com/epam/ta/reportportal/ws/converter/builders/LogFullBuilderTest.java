@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.epam.ta.reportportal.entity.item.TestItem;

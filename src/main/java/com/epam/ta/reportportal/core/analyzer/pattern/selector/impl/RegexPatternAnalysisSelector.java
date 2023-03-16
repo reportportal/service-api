@@ -19,11 +19,10 @@ package com.epam.ta.reportportal.core.analyzer.pattern.selector.impl;
 import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -31,22 +30,24 @@ import java.util.Set;
 @Service
 public class RegexPatternAnalysisSelector extends AbstractPatternAnalysisSelector {
 
-	@Autowired
-	public RegexPatternAnalysisSelector(TestItemRepository testItemRepository, LogService logService) {
-		super(testItemRepository, logService);
-	}
+  @Autowired
+  public RegexPatternAnalysisSelector(TestItemRepository testItemRepository,
+      LogService logService) {
+    super(testItemRepository, logService);
+  }
 
-	@Override
-	protected List<Long> getItemsWithMatches(String pattern, Set<Long> itemIds) {
-		return logService.selectTestItemIdsByRegexLogMessage(itemIds, LogLevel.ERROR_INT, pattern);
-	}
+  @Override
+  protected List<Long> getItemsWithMatches(String pattern, Set<Long> itemIds) {
+    return logService.selectTestItemIdsByRegexLogMessage(itemIds, LogLevel.ERROR_INT, pattern);
+  }
 
-	@Override
-	protected List<Long> getItemsWithNestedStepsMatches(Long launchId, String pattern, List<Long> itemsWithNestedSteps) {
-		return logService.selectTestItemIdsUnderByRegexLogMessage(launchId,
-				itemsWithNestedSteps,
-				LogLevel.ERROR_INT,
-				pattern
-		);
-	}
+  @Override
+  protected List<Long> getItemsWithNestedStepsMatches(Long launchId, String pattern,
+      List<Long> itemsWithNestedSteps) {
+    return logService.selectTestItemIdsUnderByRegexLogMessage(launchId,
+        itemsWithNestedSteps,
+        LogLevel.ERROR_INT,
+        pattern
+    );
+  }
 }

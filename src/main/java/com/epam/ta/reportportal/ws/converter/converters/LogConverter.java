@@ -16,21 +16,19 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.log.impl.PagedLogResource;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
-import com.epam.ta.reportportal.entity.log.LogMessage;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
 import com.google.common.base.Preconditions;
-
 import java.util.function.BiFunction;
 import java.util.function.Function;
-
-import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 /**
  * Converts internal DB model to DTO
@@ -39,87 +37,89 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
  */
 public final class LogConverter {
 
-	private LogConverter() {
-		//static only
-	}
+  private LogConverter() {
+    //static only
+  }
 
-	public static final Function<LogFull, LogResource> TO_RESOURCE = model -> {
-		Preconditions.checkNotNull(model);
-		LogResource resource = new LogResource();
-		fillWithLogContent(model, resource);
-		return resource;
-	};
+  public static final Function<LogFull, LogResource> TO_RESOURCE = model -> {
+    Preconditions.checkNotNull(model);
+    LogResource resource = new LogResource();
+    fillWithLogContent(model, resource);
+    return resource;
+  };
 
-	private static void fillWithLogContent(LogFull model, LogResource resource) {
-		resource.setId(model.getId());
-		resource.setUuid(model.getUuid());
-		resource.setMessage(ofNullable(model.getLogMessage()).orElse("NULL"));
-		resource.setLogTime(EntityUtils.TO_DATE.apply(model.getLogTime()));
+  private static void fillWithLogContent(LogFull model, LogResource resource) {
+    resource.setId(model.getId());
+    resource.setUuid(model.getUuid());
+    resource.setMessage(ofNullable(model.getLogMessage()).orElse("NULL"));
+    resource.setLogTime(EntityUtils.TO_DATE.apply(model.getLogTime()));
 
-		if (isBinaryDataExists(model)) {
+    if (isBinaryDataExists(model)) {
 
-			LogResource.BinaryContent binaryContent = new LogResource.BinaryContent();
+      LogResource.BinaryContent binaryContent = new LogResource.BinaryContent();
 
-			binaryContent.setBinaryDataId(String.valueOf(model.getAttachment().getId()));
-			binaryContent.setContentType(model.getAttachment().getContentType());
-			binaryContent.setThumbnailId(model.getAttachment().getThumbnailId());
-			resource.setBinaryContent(binaryContent);
-		}
+      binaryContent.setBinaryDataId(String.valueOf(model.getAttachment().getId()));
+      binaryContent.setContentType(model.getAttachment().getContentType());
+      binaryContent.setThumbnailId(model.getAttachment().getThumbnailId());
+      resource.setBinaryContent(binaryContent);
+    }
 
-		ofNullable(model.getTestItem()).ifPresent(testItem -> resource.setItemId(testItem.getItemId()));
-		ofNullable(model.getLaunch()).ifPresent(launch -> resource.setLaunchId(launch.getId()));
-		ofNullable(model.getLogLevel()).ifPresent(level -> resource.setLevel(LogLevel.toLevel(level).toString()));
-	}
+    ofNullable(model.getTestItem()).ifPresent(testItem -> resource.setItemId(testItem.getItemId()));
+    ofNullable(model.getLaunch()).ifPresent(launch -> resource.setLaunchId(launch.getId()));
+    ofNullable(model.getLogLevel()).ifPresent(
+        level -> resource.setLevel(LogLevel.toLevel(level).toString()));
+  }
 
-	public static final BiFunction<LogFull, PagedLogResource, PagedLogResource> FILL_WITH_LOG_CONTENT = (model, pagedLog) -> {
-		fillWithLogContent(model, pagedLog);
-		return pagedLog;
-	};
+  public static final BiFunction<LogFull, PagedLogResource, PagedLogResource> FILL_WITH_LOG_CONTENT = (model, pagedLog) -> {
+    fillWithLogContent(model, pagedLog);
+    return pagedLog;
+  };
 
-	public static final Function<LogFull, SearchLogRs.LogEntry> TO_LOG_ENTRY = log -> {
-		SearchLogRs.LogEntry logEntry = new SearchLogRs.LogEntry();
-		logEntry.setMessage(log.getLogMessage());
-		logEntry.setLevel(LogLevel.toLevel(log.getLogLevel()).name());
-		return logEntry;
-	};
+  public static final Function<LogFull, SearchLogRs.LogEntry> TO_LOG_ENTRY = log -> {
+    SearchLogRs.LogEntry logEntry = new SearchLogRs.LogEntry();
+    logEntry.setMessage(log.getLogMessage());
+    logEntry.setLevel(LogLevel.toLevel(log.getLogLevel()).name());
+    return logEntry;
+  };
 
-	public static final Function<LogFull, Log> LOG_FULL_TO_LOG = logFull -> {
-		Log log = new Log();
-		log.setAttachment(logFull.getAttachment());
-		log.setClusterId(logFull.getClusterId());
-		log.setId(logFull.getId());
-		log.setLastModified(logFull.getLastModified());
-		log.setLaunch(logFull.getLaunch());
-		log.setLogLevel(logFull.getLogLevel());
-		log.setLogMessage(logFull.getLogMessage());
-		log.setLogTime(logFull.getLogTime());
-		log.setProjectId(logFull.getProjectId());
-		log.setTestItem(logFull.getTestItem());
-		log.setUuid(logFull.getUuid());
-			
-		return log;
-	};
+  public static final Function<LogFull, Log> LOG_FULL_TO_LOG = logFull -> {
+    Log log = new Log();
+    log.setAttachment(logFull.getAttachment());
+    log.setClusterId(logFull.getClusterId());
+    log.setId(logFull.getId());
+    log.setLastModified(logFull.getLastModified());
+    log.setLaunch(logFull.getLaunch());
+    log.setLogLevel(logFull.getLogLevel());
+    log.setLogMessage(logFull.getLogMessage());
+    log.setLogTime(logFull.getLogTime());
+    log.setProjectId(logFull.getProjectId());
+    log.setTestItem(logFull.getTestItem());
+    log.setUuid(logFull.getUuid());
 
-	public static final Function<Log, LogFull> LOG_TO_LOG_FULL = log -> {
-		LogFull logFull = new LogFull();
-		logFull.setAttachment(log.getAttachment());
-		logFull.setClusterId(log.getClusterId());
-		logFull.setId(log.getId());
-		logFull.setLastModified(log.getLastModified());
-		logFull.setLaunch(log.getLaunch());
-		logFull.setLogLevel(log.getLogLevel());
-		logFull.setLogMessage(log.getLogMessage());
-		logFull.setLogTime(log.getLogTime());
-		logFull.setProjectId(log.getProjectId());
-		logFull.setTestItem(log.getTestItem());
-		logFull.setUuid(log.getUuid());
+    return log;
+  };
 
-		return logFull;
-	};
-	
-	private static boolean isBinaryDataExists(LogFull log) {
-		return ofNullable(log.getAttachment()).map(a -> isNotEmpty(a.getContentType()) || isNotEmpty(a.getThumbnailId())
-				|| isNotEmpty(a.getFileId())).orElse(false);
-	}
+  public static final Function<Log, LogFull> LOG_TO_LOG_FULL = log -> {
+    LogFull logFull = new LogFull();
+    logFull.setAttachment(log.getAttachment());
+    logFull.setClusterId(log.getClusterId());
+    logFull.setId(log.getId());
+    logFull.setLastModified(log.getLastModified());
+    logFull.setLaunch(log.getLaunch());
+    logFull.setLogLevel(log.getLogLevel());
+    logFull.setLogMessage(log.getLogMessage());
+    logFull.setLogTime(log.getLogTime());
+    logFull.setProjectId(log.getProjectId());
+    logFull.setTestItem(log.getTestItem());
+    logFull.setUuid(log.getUuid());
+
+    return logFull;
+  };
+
+  private static boolean isBinaryDataExists(LogFull log) {
+    return ofNullable(log.getAttachment()).map(
+        a -> isNotEmpty(a.getContentType()) || isNotEmpty(a.getThumbnailId())
+            || isNotEmpty(a.getFileId())).orElse(false);
+  }
 
 }

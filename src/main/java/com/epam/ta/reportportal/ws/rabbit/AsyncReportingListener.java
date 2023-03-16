@@ -16,11 +16,6 @@
 
 package com.epam.ta.reportportal.ws.rabbit;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING_RETRY;
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_DLQ;
-
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
@@ -40,9 +35,10 @@ import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
+import com.epam.ta.reportportal.ws.converter.builders.LogFullBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
@@ -50,12 +46,6 @@ import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.google.common.base.Strings;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,290 +59,285 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.*;
+import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.LOG_FULL_TO_LOG;
+
 /**
  * @author Konstantin Antipin
  */
 public class AsyncReportingListener implements MessageListener {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AsyncReportingListener.class);
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AsyncReportingListener.class);
+	@Autowired
+	private MessageConverter messageConverter;
 
-  @Autowired
-  private MessageConverter messageConverter;
+	@Autowired
+	@Qualifier("rabbitTemplate")
+	private AmqpTemplate amqpTemplate;
 
-  @Autowired
-  @Qualifier("rabbitTemplate")
-  private AmqpTemplate amqpTemplate;
+	@Autowired
+	private StartLaunchHandler startLaunchHandler;
 
-  @Autowired
-  private StartLaunchHandler startLaunchHandler;
+	@Autowired
+	private FinishLaunchHandler finishLaunchHandler;
 
-  @Autowired
-  private FinishLaunchHandler finishLaunchHandler;
+	@Autowired
+	private StartTestItemHandler startTestItemHandler;
 
-  @Autowired
-  private StartTestItemHandler startTestItemHandler;
+	@Autowired
+	private FinishTestItemHandler finishTestItemHandler;
 
-  @Autowired
-  private FinishTestItemHandler finishTestItemHandler;
+	@Autowired
+	private DatabaseUserDetailsService userDetailsService;
 
-  @Autowired
-  private DatabaseUserDetailsService userDetailsService;
+	@Autowired
+	private LogRepository logRepository;
 
-  @Autowired
-  private LogRepository logRepository;
+	@Autowired
+	private LaunchRepository launchRepository;
 
-  @Autowired
-  private LaunchRepository launchRepository;
+	@Autowired
+	private TestItemRepository testItemRepository;
 
-  @Autowired
-  private TestItemRepository testItemRepository;
+	@Autowired
+	private TestItemService testItemService;
 
-  @Autowired
-  private TestItemService testItemService;
+	@Autowired
+	private AttachmentBinaryDataService attachmentBinaryDataService;
 
-  @Autowired
-  private AttachmentBinaryDataService attachmentBinaryDataService;
+	@Autowired
+	private ProjectExtractor projectExtractor;
 
-  @Autowired
-  private ProjectExtractor projectExtractor;
+	@Autowired
+	private LogService logService;
 
-  @Autowired
-  private LogService logService;
+	@Override
+	@RabbitMessageLogging
+	public void onMessage(Message message) {
 
-  @Override
-  @RabbitMessageLogging
-  public void onMessage(Message message) {
+		try {
+			if (breakRetrying(message)) {
+				return;
+			}
 
-    try {
-      if (breakRetrying(message)) {
-        return;
-      }
+			RequestType requestType = getRequestType(message);
+			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 
-      RequestType requestType = getRequestType(message);
-      Map<String, Object> headers = message.getMessageProperties().getHeaders();
+			switch (requestType) {
+				case START_LAUNCH:
+					onStartLaunch((StartLaunchRQ) messageConverter.fromMessage(message),
+							(String) headers.get(MessageHeaders.USERNAME),
+							(String) headers.get(MessageHeaders.PROJECT_NAME)
+					);
+					break;
+				case FINISH_LAUNCH:
+					onFinishLaunch((FinishExecutionRQ) messageConverter.fromMessage(message),
+							(String) headers.get(MessageHeaders.USERNAME),
+							(String) headers.get(MessageHeaders.PROJECT_NAME),
+							(String) headers.get(MessageHeaders.LAUNCH_ID),
+							(String) headers.get(MessageHeaders.BASE_URL)
+					);
+					break;
+				case START_TEST:
+					onStartItem((StartTestItemRQ) messageConverter.fromMessage(message),
+							(String) headers.get(MessageHeaders.USERNAME),
+							(String) headers.get(MessageHeaders.PROJECT_NAME),
+							(String) headers.get(MessageHeaders.PARENT_ITEM_ID)
+					);
+					break;
+				case FINISH_TEST:
+					onFinishItem((FinishTestItemRQ) messageConverter.fromMessage(message),
+							(String) headers.get(MessageHeaders.USERNAME),
+							(String) headers.get(MessageHeaders.PROJECT_NAME),
+							(String) headers.get(MessageHeaders.ITEM_ID)
+					);
+					break;
+				case LOG:
+					Jackson2JsonMessageConverter converter = (Jackson2JsonMessageConverter) messageConverter;
+					onLogCreate((DeserializablePair) converter.fromMessage(message,
+							new ParameterizedTypeReference<DeserializablePair<SaveLogRQ, BinaryDataMetaInfo>>() {
+							}
+					), (Long) headers.get(MessageHeaders.PROJECT_ID));
+					break;
+				default:
+					LOGGER.error("Unknown message type");
+					break;
+			}
+		} catch (Throwable e) {
+			if (e instanceof ReportPortalException && e.getMessage().startsWith("Test Item ")) {
+				LOGGER.debug("exception : {}, message : {},  cause : {}",
+						e.getClass().getName(),
+						e.getMessage(),
+						e.getCause() != null ? e.getCause().getMessage() : ""
+				);
+			} else {
+				LOGGER.error("exception : {}, message : {},  cause : {}",
+						e.getClass().getName(),
+						e.getMessage(),
+						e.getCause() != null ? e.getCause().getMessage() : ""
+				);
+			}
+			throw new AmqpRejectAndDontRequeueException(e);
+		}
 
-      switch (requestType) {
-        case START_LAUNCH:
-          onStartLaunch((StartLaunchRQ) messageConverter.fromMessage(message),
-              (String) headers.get(MessageHeaders.USERNAME),
-              (String) headers.get(MessageHeaders.PROJECT_NAME)
-          );
-          break;
-        case FINISH_LAUNCH:
-          onFinishLaunch((FinishExecutionRQ) messageConverter.fromMessage(message),
-              (String) headers.get(MessageHeaders.USERNAME),
-              (String) headers.get(MessageHeaders.PROJECT_NAME),
-              (String) headers.get(MessageHeaders.LAUNCH_ID),
-              (String) headers.get(MessageHeaders.BASE_URL)
-          );
-          break;
-        case START_TEST:
-          onStartItem((StartTestItemRQ) messageConverter.fromMessage(message),
-              (String) headers.get(MessageHeaders.USERNAME),
-              (String) headers.get(MessageHeaders.PROJECT_NAME),
-              (String) headers.get(MessageHeaders.PARENT_ITEM_ID)
-          );
-          break;
-        case FINISH_TEST:
-          onFinishItem((FinishTestItemRQ) messageConverter.fromMessage(message),
-              (String) headers.get(MessageHeaders.USERNAME),
-              (String) headers.get(MessageHeaders.PROJECT_NAME),
-              (String) headers.get(MessageHeaders.ITEM_ID)
-          );
-          break;
-        case LOG:
-          Jackson2JsonMessageConverter converter = (Jackson2JsonMessageConverter) messageConverter;
-          onLogCreate((DeserializablePair) converter.fromMessage(message,
-              new ParameterizedTypeReference<DeserializablePair<SaveLogRQ, BinaryDataMetaInfo>>() {
-              }
-          ), (Long) headers.get(MessageHeaders.PROJECT_ID));
-          break;
-        default:
-          LOGGER.error("Unknown message type");
-          break;
-      }
-    } catch (Throwable e) {
-      if (e instanceof ReportPortalException && e.getMessage().startsWith("Test Item ")) {
-        LOGGER.debug("exception : {}, message : {},  cause : {}",
-            e.getClass().getName(),
-            e.getMessage(),
-            e.getCause() != null ? e.getCause().getMessage() : ""
-        );
-      } else {
-        LOGGER.error("exception : {}, message : {},  cause : {}",
-            e.getClass().getName(),
-            e.getMessage(),
-            e.getCause() != null ? e.getCause().getMessage() : ""
-        );
-      }
-      throw new AmqpRejectAndDontRequeueException(e);
-    }
+	}
 
-  }
+	public void onStartLaunch(StartLaunchRQ rq, String username, String projectName) {
+		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
+		startLaunchHandler.startLaunch(user, extractProjectDetails(user, projectName), rq);
+	}
 
-  public void onStartLaunch(StartLaunchRQ rq, String username, String projectName) {
-    ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-    startLaunchHandler.startLaunch(user, extractProjectDetails(user, projectName), rq);
-  }
+	public void onFinishLaunch(FinishExecutionRQ rq, String username, String projectName, String launchId, String baseUrl) {
+		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
+		finishLaunchHandler.finishLaunch(launchId, rq, extractProjectDetails(user, projectName), user, baseUrl);
+	}
 
-  public void onFinishLaunch(FinishExecutionRQ rq, String username, String projectName,
-      String launchId, String baseUrl) {
-    ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-    finishLaunchHandler.finishLaunch(launchId, rq, extractProjectDetails(user, projectName), user,
-        baseUrl);
-  }
+	public void onStartItem(StartTestItemRQ rq, String username, String projectName, String parentId) {
+		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
+		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(user, normalizeId(projectName));
+		if (!Strings.isNullOrEmpty(parentId)) {
+			startTestItemHandler.startChildItem(user, projectDetails, rq, parentId);
+		} else {
+			startTestItemHandler.startRootItem(user, projectDetails, rq);
+		}
+	}
 
-  public void onStartItem(StartTestItemRQ rq, String username, String projectName,
-      String parentId) {
-    ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-    ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(user,
-        normalizeId(projectName));
-    if (!Strings.isNullOrEmpty(parentId)) {
-      startTestItemHandler.startChildItem(user, projectDetails, rq, parentId);
-    } else {
-      startTestItemHandler.startRootItem(user, projectDetails, rq);
-    }
-  }
+	public void onFinishItem(FinishTestItemRQ rq, String username, String projectName, String itemId) {
+		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
+		finishTestItemHandler.finishTestItem(user, extractProjectDetails(user, normalizeId(projectName)), itemId, rq);
+	}
 
-  public void onFinishItem(FinishTestItemRQ rq, String username, String projectName,
-      String itemId) {
-    ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-    finishTestItemHandler.finishTestItem(user,
-        extractProjectDetails(user, normalizeId(projectName)), itemId, rq);
-  }
+	private ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user, String projectName) {
+		return projectExtractor.findProjectDetails(user, projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED, "Please check the list of your available projects."));
+	}
 
-  private ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user,
-      String projectName) {
-    return projectExtractor.findProjectDetails(user, projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
-            "Please check the list of your available projects."));
-  }
+	public void onLogCreate(DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload, Long projectId) {
+		SaveLogRQ request = payload.getLeft();
+		BinaryDataMetaInfo metaInfo = payload.getRight();
 
-  public void onLogCreate(DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload,
-      Long projectId) {
-    SaveLogRQ request = payload.getLeft();
-    BinaryDataMetaInfo metaInfo = payload.getRight();
+		Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemUuid());
 
-    Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemUuid());
+		if (StringUtils.isNotEmpty(payload.getLeft().getItemUuid()) && !itemOptional.isPresent()) {
+			throw new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, payload.getLeft().getItemUuid());
+		}
 
-    if (StringUtils.isNotEmpty(payload.getLeft().getItemUuid()) && !itemOptional.isPresent()) {
-      throw new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND,
-          payload.getLeft().getItemUuid());
-    }
+		if (itemOptional.isPresent()) {
+			createItemLog(request, itemOptional.get(), metaInfo, projectId);
+		} else {
+			Launch launch = launchRepository.findByUuid(request.getLaunchUuid())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, request.getLaunchUuid()));
+			createLaunchLog(request, launch, metaInfo, projectId);
+		}
+	}
 
-    if (itemOptional.isPresent()) {
-      createItemLog(request, itemOptional.get(), metaInfo, projectId);
-    } else {
-      Launch launch = launchRepository.findByUuid(request.getLaunchUuid())
-          .orElseThrow(
-              () -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, request.getLaunchUuid()));
-      createLaunchLog(request, launch, metaInfo, projectId);
-    }
-  }
+	/**
+	 * Process xdHeader of the message, breaking processing if maximum retry limit reached
+	 *
+	 * @param message
+	 * @return -
+	 */
+	private boolean breakRetrying(Message message) {
+		List<Map<String, ?>> xdHeader = (List<Map<String, ?>>) message.getMessageProperties().getHeaders().get(MessageHeaders.XD_HEADER);
 
-  /**
-   * Process xdHeader of the message, breaking processing if maximum retry limit reached
-   *
-   * @param message
-   * @return -
-   */
-  private boolean breakRetrying(Message message) {
-    List<Map<String, ?>> xdHeader = (List<Map<String, ?>>) message.getMessageProperties()
-        .getHeaders().get(MessageHeaders.XD_HEADER);
+		if (xdHeader != null) {
+			long count = (Long) xdHeader.get(0).get("count");
+			if (count > DEAD_LETTER_MAX_RETRY) {
+				LOGGER.error("Dropping on maximum retry limit request of type = {}, for target id = {} ",
+						getRequestType(message),
+						getTargetId(message)
+				);
 
-    if (xdHeader != null) {
-      long count = (Long) xdHeader.get(0).get("count");
-      if (count > DEAD_LETTER_MAX_RETRY) {
-        LOGGER.error("Dropping on maximum retry limit request of type = {}, for target id = {} ",
-            getRequestType(message),
-            getTargetId(message)
-        );
+				// log request : don't cleanup to not loose binary content of dropped DLQ message
+				// cleanup(payload);
 
-        // log request : don't cleanup to not loose binary content of dropped DLQ message
-        // cleanup(payload);
+				amqpTemplate.send(EXCHANGE_REPORTING_RETRY, QUEUE_DLQ, message);
+				return true;
+			}
+		}
+		return false;
+	}
 
-        amqpTemplate.send(EXCHANGE_REPORTING_RETRY, QUEUE_DLQ, message);
-        return true;
-      }
-    }
-    return false;
-  }
+	private String getTargetId(Message message) {
+		try {
+			switch (getRequestType(message)) {
+				case START_LAUNCH:
+					return ((StartLaunchRQ) messageConverter.fromMessage(message)).getUuid();
+				case FINISH_LAUNCH:
+					return (String) message.getMessageProperties().getHeaders().get(MessageHeaders.LAUNCH_ID);
+				case START_TEST:
+					return ((StartTestItemRQ) messageConverter.fromMessage(message)).getUuid();
+				case FINISH_TEST:
+					return (String) message.getMessageProperties().getHeaders().get(MessageHeaders.ITEM_ID);
+				case LOG:
+					Jackson2JsonMessageConverter converter = (Jackson2JsonMessageConverter) messageConverter;
+					return ((SaveLogRQ) ((DeserializablePair) converter.fromMessage(message,
+							new ParameterizedTypeReference<DeserializablePair<SaveLogRQ, BinaryDataMetaInfo>>() {
+							}
+					)).getLeft()).getUuid();
+				default:
+					return "";
+			}
+		} catch (Throwable e) {
+			return "";
+		}
+	}
 
-  private String getTargetId(Message message) {
-    try {
-      switch (getRequestType(message)) {
-        case START_LAUNCH:
-          return ((StartLaunchRQ) messageConverter.fromMessage(message)).getUuid();
-        case FINISH_LAUNCH:
-          return (String) message.getMessageProperties().getHeaders().get(MessageHeaders.LAUNCH_ID);
-        case START_TEST:
-          return ((StartTestItemRQ) messageConverter.fromMessage(message)).getUuid();
-        case FINISH_TEST:
-          return (String) message.getMessageProperties().getHeaders().get(MessageHeaders.ITEM_ID);
-        case LOG:
-          Jackson2JsonMessageConverter converter = (Jackson2JsonMessageConverter) messageConverter;
-          return ((SaveLogRQ) ((DeserializablePair) converter.fromMessage(message,
-              new ParameterizedTypeReference<DeserializablePair<SaveLogRQ, BinaryDataMetaInfo>>() {
-              }
-          )).getLeft()).getUuid();
-        default:
-          return "";
-      }
-    } catch (Throwable e) {
-      return "";
-    }
-  }
+	private void createItemLog(SaveLogRQ request, TestItem item, BinaryDataMetaInfo metaInfo, Long projectId) {
+		LogFull logFull = new LogFullBuilder().addSaveLogRq(request).addTestItem(item).addProjectId(projectId).get();
+		Log log = LOG_FULL_TO_LOG.apply(logFull);
+		logRepository.save(log);
+		logFull.setId(log.getId());
+		Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
+		logService.saveLogMessage(logFull, effectiveLaunch.getId());
 
-  private void createItemLog(SaveLogRQ request, TestItem item, BinaryDataMetaInfo metaInfo,
-      Long projectId) {
-    Log log = new LogBuilder().addSaveLogRq(request).addTestItem(item).addProjectId(projectId)
-        .get();
-    logRepository.save(log);
-    Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
-    logService.saveLogMessage(log, effectiveLaunch.getId());
+		saveAttachment(metaInfo,
+				logFull.getId(),
+				projectId,
+				effectiveLaunch.getId(),
+				item.getItemId(),
+				effectiveLaunch.getUuid(),
+				logFull.getUuid()
+		);
+	}
 
-    saveAttachment(metaInfo,
-        log.getId(),
-        projectId,
-        effectiveLaunch.getId(),
-        item.getItemId(),
-        effectiveLaunch.getUuid(),
-        log.getUuid()
-    );
-  }
+	private void createLaunchLog(SaveLogRQ request, Launch launch, BinaryDataMetaInfo metaInfo, Long projectId) {
+		LogFull logFull = new LogFullBuilder().addSaveLogRq(request).addLaunch(launch).addProjectId(projectId).get();
+		Log log = LOG_FULL_TO_LOG.apply(logFull);
+		logRepository.save(log);
+		logFull.setId(log.getId());
+		logService.saveLogMessage(logFull, launch.getId());
 
-  private void createLaunchLog(SaveLogRQ request, Launch launch, BinaryDataMetaInfo metaInfo,
-      Long projectId) {
-    Log log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).addProjectId(projectId)
-        .get();
-    logRepository.save(log);
-    logService.saveLogMessage(log, launch.getId());
+		saveAttachment(metaInfo, logFull.getId(), projectId, launch.getId(), null, launch.getUuid(), logFull.getUuid());
+	}
 
-    saveAttachment(metaInfo, log.getId(), projectId, launch.getId(), null, launch.getUuid(),
-        log.getUuid());
-  }
+	private void saveAttachment(BinaryDataMetaInfo metaInfo, Long logId, Long projectId, Long launchId, Long itemId, String launchUuid,
+			String logUuid) {
+		if (!Objects.isNull(metaInfo)) {
+			attachmentBinaryDataService.attachToLog(metaInfo,
+					AttachmentMetaInfo.builder()
+							.withProjectId(projectId)
+							.withLaunchId(launchId)
+							.withItemId(itemId)
+							.withLogId(logId)
+							.withLaunchUuid(launchUuid)
+							.withLogUuid(logUuid)
+							.withCreationDate(LocalDateTime.now(ZoneOffset.UTC))
+							.build()
+			);
+		}
+	}
 
-  private void saveAttachment(BinaryDataMetaInfo metaInfo, Long logId, Long projectId,
-      Long launchId, Long itemId, String launchUuid,
-      String logUuid) {
-    if (!Objects.isNull(metaInfo)) {
-      attachmentBinaryDataService.attachToLog(metaInfo,
-          AttachmentMetaInfo.builder()
-              .withProjectId(projectId)
-              .withLaunchId(launchId)
-              .withItemId(itemId)
-              .withLogId(logId)
-              .withLaunchUuid(launchUuid)
-              .withLogUuid(logUuid)
-              .withCreationDate(LocalDateTime.now(ZoneOffset.UTC))
-              .build()
-      );
-    }
-  }
-
-  private RequestType getRequestType(Message message) {
-    return RequestType.valueOf(
-        (String) message.getMessageProperties().getHeaders().get(MessageHeaders.REQUEST_TYPE));
-  }
+	private RequestType getRequestType(Message message) {
+		return RequestType.valueOf((String) message.getMessageProperties().getHeaders().get(MessageHeaders.REQUEST_TYPE));
+	}
 
 }

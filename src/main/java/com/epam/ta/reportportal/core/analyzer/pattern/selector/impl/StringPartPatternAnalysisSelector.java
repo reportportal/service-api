@@ -16,12 +16,14 @@
 
 package com.epam.ta.reportportal.core.analyzer.pattern.selector.impl;
 
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
-import java.util.List;
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -29,26 +31,25 @@ import org.springframework.stereotype.Service;
 @Service
 public class StringPartPatternAnalysisSelector extends AbstractPatternAnalysisSelector {
 
-  @Autowired
-  public StringPartPatternAnalysisSelector(TestItemRepository testItemRepository) {
-    super(testItemRepository);
-  }
+	@Autowired
+	public StringPartPatternAnalysisSelector(TestItemRepository testItemRepository, LogService logService) {
+		super(testItemRepository, logService);
+	}
 
-  @Override
-  protected List<Long> getItemsWithMatches(String pattern, Set<Long> itemIds) {
-    return testItemRepository.selectIdsByStringLogMessage(itemIds,
-        LogLevel.ERROR_INT,
-        pattern
-    );
-  }
+	@Override
+	protected List<Long> getItemsWithMatches(String pattern, Set<Long> itemIds) {
+		return logService.selectTestItemIdsByStringLogMessage(itemIds,
+				LogLevel.ERROR_INT,
+				pattern
+		);
+	}
 
-  @Override
-  protected List<Long> getItemsWithNestedStepsMatches(Long launchId, String pattern,
-      List<Long> itemsWithNestedSteps) {
-    return testItemRepository.selectIdsUnderByStringLogMessage(launchId,
-        itemsWithNestedSteps,
-        LogLevel.ERROR_INT,
-        pattern
-    );
-  }
+	@Override
+	protected List<Long> getItemsWithNestedStepsMatches(Long launchId, String pattern, List<Long> itemsWithNestedSteps) {
+		return logService.selectTestItemIdsUnderByStringLogMessage(launchId,
+				itemsWithNestedSteps,
+				LogLevel.ERROR_INT,
+				pattern
+		);
+	}
 }

@@ -63,7 +63,8 @@ public class ElasticLogService implements LogService {
       return;
     }
     amqpTemplate.convertAndSend(PROCESSING_EXCHANGE_NAME, LOG_MESSAGE_SAVING_ROUTING_KEY,
-        convertLogToLogMessage(logFull, launchId));
+        convertLogToLogMessage(logFull, launchId)
+    );
   }
 
   /**
@@ -109,8 +110,10 @@ public class ElasticLogService implements LogService {
   public Map<Long, List<IndexLog>> findAllIndexUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(
       Long launchId, List<Long> itemIds, int logLevel) {
     Long projectId = launchRepository.findById(launchId).map(Launch::getProjectId).orElseThrow();
-    Map<Long, List<IndexLog>> indexLogMap = logRepository.findAllIndexUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(
-        launchId, itemIds, logLevel);
+    Map<Long, List<IndexLog>> indexLogMap =
+        logRepository.findAllIndexUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId,
+            itemIds, logLevel
+        );
     return wrapLogsWithLogMessages(projectId, indexLogMap);
   }
 
@@ -118,27 +121,21 @@ public class ElasticLogService implements LogService {
       Map<Long, List<IndexLog>> indexLogMap) {
     Map<Long, List<IndexLog>> wrappedMap = new HashMap<>();
     if (indexLogMap != null && indexLogMap.size() > 0) {
-      List<Long> logIds = indexLogMap.values().stream()
-          .flatMap(Collection::stream)
-          .map(IndexLog::getLogId)
-          .collect(Collectors.toList());
-      Map<Long, LogMessage> logMessageMap = elasticSearchClient.getLogMessagesByProjectIdAndIds(
-          projectId, logIds);
+      List<Long> logIds =
+          indexLogMap.values().stream().flatMap(Collection::stream).map(IndexLog::getLogId)
+              .collect(Collectors.toList());
+      Map<Long, LogMessage> logMessageMap =
+          elasticSearchClient.getLogMessagesByProjectIdAndIds(projectId, logIds);
 
-      wrappedMap = indexLogMap.entrySet().stream()
-          .peek(indexLogEntry -> {
-                List<IndexLog> indexLogList = indexLogEntry.getValue().stream().peek(
-                    indexLog -> {
-                      LogMessage logMessage = logMessageMap.get(indexLog.getLogId());
-                      if (logMessage != null) {
-                        indexLog.setMessage(logMessage.getLogMessage());
-                      }
-                    }
-                ).collect(toList());
-                indexLogEntry.setValue(indexLogList);
-              }
-          )
-          .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+      wrappedMap = indexLogMap.entrySet().stream().peek(indexLogEntry -> {
+        List<IndexLog> indexLogList = indexLogEntry.getValue().stream().peek(indexLog -> {
+          LogMessage logMessage = logMessageMap.get(indexLog.getLogId());
+          if (logMessage != null) {
+            indexLog.setMessage(logMessage.getLogMessage());
+          }
+        }).collect(toList());
+        indexLogEntry.setValue(indexLogList);
+      }).collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     return wrappedMap;
@@ -148,11 +145,11 @@ public class ElasticLogService implements LogService {
   public List<String> findMessagesByLaunchIdAndItemIdAndPathAndLevelGte(Long launchId, Long itemId,
       String path, Integer level) {
     Long projectId = launchRepository.findById(launchId).map(Launch::getProjectId).orElseThrow();
-    List<Long> logIds = logRepository.findIdsByLaunchIdAndItemIdAndPathAndLevelGte(launchId, itemId,
-        path, level);
+    List<Long> logIds =
+        logRepository.findIdsByLaunchIdAndItemIdAndPathAndLevelGte(launchId, itemId, path, level);
 
-    return elasticSearchClient.getLogMessagesByProjectIdAndIds(projectId, logIds)
-        .values().stream().map(LogMessage::getLogMessage).collect(toList());
+    return elasticSearchClient.getLogMessagesByProjectIdAndIds(projectId, logIds).values().stream()
+        .map(LogMessage::getLogMessage).collect(toList());
   }
 
   @Override
@@ -160,7 +157,8 @@ public class ElasticLogService implements LogService {
       List<Long> itemIds, int logLevel) {
     return wrapLogsWithLogMessages(
         logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId, itemIds,
-            logLevel));
+            logLevel
+        ));
   }
 
   @Override
@@ -168,14 +166,16 @@ public class ElasticLogService implements LogService {
       Long itemId, int logLevel, int limit) {
     return wrapLogsWithLogMessages(
         logRepository.findLatestUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId,
-            itemId, logLevel, limit));
+            itemId, logLevel, limit
+        ));
   }
 
   @Override
   public List<Log> findAllUnderTestItemByLaunchIdAndTestItemIdsWithLimit(Long launchId,
       List<Long> itemIds, int limit) {
     return logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsWithLimit(launchId, itemIds,
-        limit);
+        limit
+    );
   }
 
   @Override
@@ -227,11 +227,7 @@ public class ElasticLogService implements LogService {
   @Override
   public List<Long> selectTestItemIdsUnderByStringLogMessage(Long launchId,
       Collection<Long> itemIds, Integer logLevel, String string) {
-    Long projectId = getProjectId(itemIds);
-    List<Long> logIdsPg = testItemRepository.selectLogIdsUnderWithLogLevelCondition(launchId,
-        itemIds, logLevel);
-
-    return elasticSearchClient.searchTestItemIdsByLogIdsAndString(projectId, logIdsPg, string);
+    return selectTestItemIdsUnderByLogMessage(launchId, itemIds, logLevel, string, false);
   }
 
   @Override
@@ -246,11 +242,7 @@ public class ElasticLogService implements LogService {
   @Override
   public List<Long> selectTestItemIdsUnderByRegexLogMessage(Long launchId, Collection<Long> itemIds,
       Integer logLevel, String pattern) {
-    Long projectId = getProjectId(itemIds);
-    List<Long> logIdsPg = testItemRepository.selectLogIdsUnderWithLogLevelCondition(launchId,
-        itemIds, logLevel);
-
-    return elasticSearchClient.searchTestItemIdsByLogIdsAndRegexp(projectId, logIdsPg, pattern);
+    return selectTestItemIdsUnderByLogMessage(launchId, itemIds, logLevel, pattern, true);
   }
 
   // TODO : refactoring pattern analyzer and add projectId as parameter
@@ -265,7 +257,8 @@ public class ElasticLogService implements LogService {
   private LogMessage convertLogToLogMessage(LogFull logFull, Long launchId) {
     Long itemId = Objects.nonNull(logFull.getTestItem()) ? logFull.getTestItem().getItemId() : null;
     return new LogMessage(logFull.getId(), logFull.getLogTime(), logFull.getLogMessage(), itemId,
-        launchId, logFull.getProjectId());
+        launchId, logFull.getProjectId()
+    );
   }
 
   private List<LogFull> wrapLogsWithLogMessages(List<Log> logList) {
@@ -278,9 +271,8 @@ public class ElasticLogService implements LogService {
       // we get all message per projectId
       logFullList = new ArrayList<>(logList.size());
       Map<Long, LogMessage> logMessageMap = new HashMap<>();
-      Map<Long, List<Long>> logIdsGroupByProject = logList.stream().collect(
-          groupingBy(Log::getProjectId, mapping(Log::getId, Collectors.toList()))
-      );
+      Map<Long, List<Long>> logIdsGroupByProject = logList.stream()
+          .collect(groupingBy(Log::getProjectId, mapping(Log::getId, Collectors.toList())));
 
       for (Map.Entry<Long, List<Long>> logIdsPerProject : logIdsGroupByProject.entrySet()) {
         Long projectId = logIdsPerProject.getKey();
@@ -290,8 +282,8 @@ public class ElasticLogService implements LogService {
       }
 
       for (Log log : logList) {
-        String logMessage = (logMessageMap.get(log.getId()) != null)
-            ? logMessageMap.get(log.getId()).getLogMessage() : log.getLogMessage();
+        String logMessage = (logMessageMap.get(log.getId()) != null) ?
+            logMessageMap.get(log.getId()).getLogMessage() : log.getLogMessage();
         LogFull logFull = getLogFull(log, logMessage);
 
         logFullList.add(logFull);
@@ -302,8 +294,8 @@ public class ElasticLogService implements LogService {
   }
 
   private LogFull getLogFull(Log log) {
-    LogMessage logMessage = elasticSearchClient.getLogMessageByProjectIdAndId(log.getProjectId(),
-        log.getId());
+    LogMessage logMessage =
+        elasticSearchClient.getLogMessageByProjectIdAndId(log.getProjectId(), log.getId());
     String message = (logMessage != null) ? logMessage.getLogMessage() : null;
 
     return getLogFull(log, message);
@@ -316,6 +308,30 @@ public class ElasticLogService implements LogService {
     }
 
     return logFull;
+  }
+
+  private List<Long> selectTestItemIdsUnderByLogMessage(Long launchId, Collection<Long> itemIds,
+      Integer logLevel, String string, boolean selectByPattern) {
+    Long projectId = getProjectId(itemIds);
+    List<Long> matchedItemIds = new ArrayList<>();
+    for (Long itemId : itemIds) {
+      List<Long> logIdsPg =
+          testItemRepository.selectLogIdsUnderWithLogLevelCondition(launchId, itemIds, logLevel);
+
+      List<Long> nestedItemsMatchedIds;
+      if (selectByPattern) {
+        nestedItemsMatchedIds =
+            elasticSearchClient.searchTestItemIdsByLogIdsAndRegexp(projectId, logIdsPg, string);
+      } else {
+        nestedItemsMatchedIds =
+            elasticSearchClient.searchTestItemIdsByLogIdsAndString(projectId, logIdsPg, string);
+      }
+
+      if (CollectionUtils.isNotEmpty(nestedItemsMatchedIds)) {
+        matchedItemIds.add(itemId);
+      }
+    }
+    return matchedItemIds;
   }
 
 }

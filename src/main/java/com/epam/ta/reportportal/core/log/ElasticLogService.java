@@ -227,21 +227,7 @@ public class ElasticLogService implements LogService {
   @Override
   public List<Long> selectTestItemIdsUnderByStringLogMessage(Long launchId,
       Collection<Long> itemIds, Integer logLevel, String string) {
-    Long projectId = getProjectId(itemIds);
-    List<Long> matchedItemIds = new ArrayList<>();
-    for (Long itemId : itemIds) {
-      List<Long> logIdsPg =
-          testItemRepository.selectLogIdsUnderWithLogLevelCondition(launchId, itemIds, logLevel);
-
-      List<Long> nestedItemsMatchedIds =
-          elasticSearchClient.searchTestItemIdsByLogIdsAndString(projectId, logIdsPg, string);
-
-      if (CollectionUtils.isNotEmpty(nestedItemsMatchedIds)) {
-        matchedItemIds.add(itemId);
-      }
-    }
-    return matchedItemIds;
-
+    return selectTestItemIdsUnderByLogMessage(launchId, itemIds, logLevel, string, false);
   }
 
   @Override
@@ -256,20 +242,7 @@ public class ElasticLogService implements LogService {
   @Override
   public List<Long> selectTestItemIdsUnderByRegexLogMessage(Long launchId, Collection<Long> itemIds,
       Integer logLevel, String pattern) {
-    Long projectId = getProjectId(itemIds);
-    List<Long> matchedItemIds = new ArrayList<>();
-    for (Long itemId : itemIds) {
-      List<Long> logIdsPg =
-          testItemRepository.selectLogIdsUnderWithLogLevelCondition(launchId, itemIds, logLevel);
-
-      List<Long> nestedItemsMatchedIds =
-          elasticSearchClient.searchTestItemIdsByLogIdsAndRegexp(projectId, logIdsPg, pattern);
-
-      if (CollectionUtils.isNotEmpty(nestedItemsMatchedIds)) {
-        matchedItemIds.add(itemId);
-      }
-    }
-    return matchedItemIds;
+    return selectTestItemIdsUnderByLogMessage(launchId, itemIds, logLevel, pattern, true);
   }
 
   // TODO : refactoring pattern analyzer and add projectId as parameter
@@ -335,6 +308,30 @@ public class ElasticLogService implements LogService {
     }
 
     return logFull;
+  }
+
+  private List<Long> selectTestItemIdsUnderByLogMessage(Long launchId, Collection<Long> itemIds,
+      Integer logLevel, String string, boolean selectByPattern) {
+    Long projectId = getProjectId(itemIds);
+    List<Long> matchedItemIds = new ArrayList<>();
+    for (Long itemId : itemIds) {
+      List<Long> logIdsPg =
+          testItemRepository.selectLogIdsUnderWithLogLevelCondition(launchId, itemIds, logLevel);
+
+      List<Long> nestedItemsMatchedIds;
+      if (selectByPattern) {
+        nestedItemsMatchedIds =
+            elasticSearchClient.searchTestItemIdsByLogIdsAndRegexp(projectId, logIdsPg, string);
+      } else {
+        nestedItemsMatchedIds =
+            elasticSearchClient.searchTestItemIdsByLogIdsAndString(projectId, logIdsPg, string);
+      }
+
+      if (CollectionUtils.isNotEmpty(nestedItemsMatchedIds)) {
+        matchedItemIds.add(itemId);
+      }
+    }
+    return matchedItemIds;
   }
 
 }

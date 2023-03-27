@@ -38,8 +38,10 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 import com.epam.ta.reportportal.ws.model.dashboard.AddWidgetRq;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
+import java.util.Set;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -108,15 +110,10 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 						dashboardId,
 						projectDetails.getProjectName()
 				));
-		BusinessRule.expect(dashboard.getDashboardWidgets()
-						.stream()
-						.map(dw -> dw.getId().getWidgetId())
-						.anyMatch(widgetId -> widgetId.equals(rq.getAddWidget().getWidgetId())), BooleanUtils::isFalse)
-				.verify(ErrorType.DASHBOARD_UPDATE_ERROR, Suppliers.formattedSupplier(
-						"Widget with ID = '{}' is already added to the dashboard with ID = '{}'",
-						rq.getAddWidget().getWidgetId(),
-						dashboard.getId()
-				));
+		Set<DashboardWidget> dashboardWidgets = dashboard.getDashboardWidgets();
+
+		validateWidgetBeforeAddingToDashboard(rq, dashboard, dashboardWidgets);
+
 		Widget widget = widgetRepository.findByIdAndProjectId(rq.getAddWidget().getWidgetId(), projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
 						rq.getAddWidget().getWidgetId(),
@@ -128,6 +125,27 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 		return new OperationCompletionRS(
 				"Widget with ID = '" + widget.getId() + "' was successfully added to the dashboard with ID = '" + dashboard.getId() + "'");
 
+	}
+
+	private void validateWidgetBeforeAddingToDashboard(AddWidgetRq rq, Dashboard dashboard,
+			Set<DashboardWidget> dashboardWidgets) {
+		BusinessRule.expect(dashboardWidgets.stream()
+						.anyMatch(dashboardWidget -> StringUtils.equals(dashboardWidget.getWidgetName(),
+								rq.getAddWidget().getName())), BooleanUtils::isFalse)
+				.verify(ErrorType.DASHBOARD_UPDATE_ERROR, Suppliers.formattedSupplier(
+						"Widget with name = '{}' is already added to the dashboard with name = '{}'",
+						rq.getAddWidget().getName(),
+						dashboard.getName()));
+
+		BusinessRule.expect(dashboardWidgets.stream()
+								.map(dw -> dw.getId().getWidgetId())
+								.anyMatch(widgetId -> widgetId.equals(rq.getAddWidget().getWidgetId())),
+						BooleanUtils::isFalse)
+				.verify(ErrorType.DASHBOARD_UPDATE_ERROR, Suppliers.formattedSupplier(
+						"Widget with ID = '{}' is already added to the dashboard with ID = '{}'",
+						rq.getAddWidget().getWidgetId(),
+						dashboard.getId()
+				));
 	}
 
 	@Override

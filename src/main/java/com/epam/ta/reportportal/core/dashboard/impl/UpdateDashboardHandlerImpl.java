@@ -54,151 +54,151 @@ import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverte
 @Service
 public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 
-	private static final int DELETE_WIDGET_COUNT_THRESHOLD = 1;
+  private static final int DELETE_WIDGET_COUNT_THRESHOLD = 1;
 
-	private final DashboardWidgetRepository dashboardWidgetRepository;
-	private final DashboardRepository dashboardRepository;
-	private final WidgetContentRemover widgetContentRemover;
-	private final WidgetRepository widgetRepository;
-	private final MessageBus messageBus;
+  private final DashboardWidgetRepository dashboardWidgetRepository;
+  private final DashboardRepository dashboardRepository;
+  private final WidgetContentRemover widgetContentRemover;
+  private final WidgetRepository widgetRepository;
+  private final MessageBus messageBus;
 
-	@Autowired
-	public UpdateDashboardHandlerImpl(DashboardRepository dashboardRepository,
-			@Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover, MessageBus messageBus,
-			DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository) {
-		this.dashboardRepository = dashboardRepository;
-		this.widgetContentRemover = widgetContentRemover;
-		this.messageBus = messageBus;
-		this.dashboardWidgetRepository = dashboardWidgetRepository;
-		this.widgetRepository = widgetRepository;
-	}
+  @Autowired
+  public UpdateDashboardHandlerImpl(DashboardRepository dashboardRepository,
+      @Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover, MessageBus messageBus,
+      DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository) {
+    this.dashboardRepository = dashboardRepository;
+    this.widgetContentRemover = widgetContentRemover;
+    this.messageBus = messageBus;
+    this.dashboardWidgetRepository = dashboardWidgetRepository;
+    this.widgetRepository = widgetRepository;
+  }
 
-	@Override
-	public OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails, UpdateDashboardRQ rq, Long dashboardId,
-			ReportPortalUser user) {
-		Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
-						dashboardId,
-						projectDetails.getProjectName()
-				));
-		DashboardActivityResource before = TO_ACTIVITY_RESOURCE.apply(dashboard);
+  @Override
+  public OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails, UpdateDashboardRQ rq, Long dashboardId,
+      ReportPortalUser user) {
+    Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
+            dashboardId,
+            projectDetails.getProjectName()
+        ));
+    DashboardActivityResource before = TO_ACTIVITY_RESOURCE.apply(dashboard);
 
-		if (!dashboard.getName().equals(rq.getName())) {
-			BusinessRule.expect(dashboardRepository.existsByNameAndOwnerAndProjectId(rq.getName(),
-							user.getUsername(),
-							projectDetails.getProjectId()
-					), BooleanUtils::isFalse)
-					.verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
-		}
+    if (!dashboard.getName().equals(rq.getName())) {
+      BusinessRule.expect(dashboardRepository.existsByNameAndOwnerAndProjectId(rq.getName(),
+              user.getUsername(),
+              projectDetails.getProjectId()
+          ), BooleanUtils::isFalse)
+          .verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
+    }
 
-		dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
-		dashboardRepository.save(dashboard);
+    dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
+    dashboardRepository.save(dashboard);
 
-		messageBus.publishActivity(new DashboardUpdatedEvent(before,
-				TO_ACTIVITY_RESOURCE.apply(dashboard),
-				user.getUserId(),
-				user.getUsername()
-		));
-		return new OperationCompletionRS("Dashboard with ID = '" + dashboard.getId() + "' successfully updated");
-	}
+    messageBus.publishActivity(new DashboardUpdatedEvent(before,
+        TO_ACTIVITY_RESOURCE.apply(dashboard),
+        user.getUserId(),
+        user.getUsername()
+    ));
+    return new OperationCompletionRS("Dashboard with ID = '" + dashboard.getId() + "' successfully updated");
+  }
 
-	@Override
-	public OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq,
-			ReportPortalUser user) {
-		final Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
-						dashboardId,
-						projectDetails.getProjectName()
-				));
-		Set<DashboardWidget> dashboardWidgets = dashboard.getDashboardWidgets();
+  @Override
+  public OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq,
+      ReportPortalUser user) {
+    final Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
+            dashboardId,
+            projectDetails.getProjectName()
+        ));
+    Set<DashboardWidget> dashboardWidgets = dashboard.getDashboardWidgets();
 
-		validateWidgetBeforeAddingToDashboard(rq, dashboard, dashboardWidgets);
+    validateWidgetBeforeAddingToDashboard(rq, dashboard, dashboardWidgets);
 
-		Widget widget = widgetRepository.findByIdAndProjectId(rq.getAddWidget().getWidgetId(), projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
-						rq.getAddWidget().getWidgetId(),
-						projectDetails.getProjectName()
-				));
-		boolean isCreatedOnDashboard = CollectionUtils.isEmpty(widget.getDashboardWidgets());
-		DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getAddWidget(), dashboard, widget, isCreatedOnDashboard);
-		dashboardWidgetRepository.save(dashboardWidget);
-		return new OperationCompletionRS(
-				"Widget with ID = '" + widget.getId() + "' was successfully added to the dashboard with ID = '" + dashboard.getId() + "'");
+    Widget widget = widgetRepository.findByIdAndProjectId(rq.getAddWidget().getWidgetId(), projectDetails.getProjectId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
+            rq.getAddWidget().getWidgetId(),
+            projectDetails.getProjectName()
+        ));
+    boolean isCreatedOnDashboard = CollectionUtils.isEmpty(widget.getDashboardWidgets());
+    DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getAddWidget(), dashboard, widget, isCreatedOnDashboard);
+    dashboardWidgetRepository.save(dashboardWidget);
+    return new OperationCompletionRS(
+        "Widget with ID = '" + widget.getId() + "' was successfully added to the dashboard with ID = '" + dashboard.getId() + "'");
 
-	}
+  }
 
-	private void validateWidgetBeforeAddingToDashboard(AddWidgetRq rq, Dashboard dashboard,
-			Set<DashboardWidget> dashboardWidgets) {
-		BusinessRule.expect(dashboardWidgets.stream()
-						.anyMatch(dashboardWidget -> StringUtils.equals(dashboardWidget.getWidgetName(),
-								rq.getAddWidget().getName())), BooleanUtils::isFalse)
-				.verify(ErrorType.DASHBOARD_UPDATE_ERROR, Suppliers.formattedSupplier(
-						"Widget with name = '{}' is already added to the dashboard with name = '{}'",
-						rq.getAddWidget().getName(),
-						dashboard.getName()));
+  private void validateWidgetBeforeAddingToDashboard(AddWidgetRq rq, Dashboard dashboard,
+      Set<DashboardWidget> dashboardWidgets) {
+    BusinessRule.expect(dashboardWidgets.stream()
+            .anyMatch(dashboardWidget -> StringUtils.equals(dashboardWidget.getWidgetName(),
+                rq.getAddWidget().getName())), BooleanUtils::isFalse)
+        .verify(ErrorType.DASHBOARD_UPDATE_ERROR, Suppliers.formattedSupplier(
+            "Widget with name = '{}' is already added to the dashboard with name = '{}'",
+            rq.getAddWidget().getName(),
+            dashboard.getName()));
 
-		BusinessRule.expect(dashboardWidgets.stream()
-								.map(dw -> dw.getId().getWidgetId())
-								.anyMatch(widgetId -> widgetId.equals(rq.getAddWidget().getWidgetId())),
-						BooleanUtils::isFalse)
-				.verify(ErrorType.DASHBOARD_UPDATE_ERROR, Suppliers.formattedSupplier(
-						"Widget with ID = '{}' is already added to the dashboard with ID = '{}'",
-						rq.getAddWidget().getWidgetId(),
-						dashboard.getId()
-				));
-	}
+    BusinessRule.expect(dashboardWidgets.stream()
+                .map(dw -> dw.getId().getWidgetId())
+                .anyMatch(widgetId -> widgetId.equals(rq.getAddWidget().getWidgetId())),
+            BooleanUtils::isFalse)
+        .verify(ErrorType.DASHBOARD_UPDATE_ERROR, Suppliers.formattedSupplier(
+            "Widget with ID = '{}' is already added to the dashboard with ID = '{}'",
+            rq.getAddWidget().getWidgetId(),
+            dashboard.getId()
+        ));
+  }
 
-	@Override
-	public OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
-		Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
-						dashboardId,
-						projectDetails.getProjectName()
-				));
-		Widget widget = widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
-						widgetId,
-						projectDetails.getProjectName()
-				));
+  @Override
+  public OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user) {
+    Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
+            dashboardId,
+            projectDetails.getProjectName()
+        ));
+    Widget widget = widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
+            widgetId,
+            projectDetails.getProjectName()
+        ));
 
-		if (shouldDelete(widget)) {
-			OperationCompletionRS result = deleteWidget(widget);
-			messageBus.publishActivity(new WidgetDeletedEvent(WidgetConverter.TO_ACTIVITY_RESOURCE.apply(widget),
-					user.getUserId(),
-					user.getUsername()
-			));
-			return result;
-		}
+    if (shouldDelete(widget)) {
+      OperationCompletionRS result = deleteWidget(widget);
+      messageBus.publishActivity(new WidgetDeletedEvent(WidgetConverter.TO_ACTIVITY_RESOURCE.apply(widget),
+          user.getUserId(),
+          user.getUsername()
+      ));
+      return result;
+    }
 
-		DashboardWidget toRemove = dashboard.getDashboardWidgets()
-				.stream()
-				.filter(dashboardWidget -> widget.getId().equals(dashboardWidget.getId().getWidgetId()))
-				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_DASHBOARD, widgetId, dashboardId));
+    DashboardWidget toRemove = dashboard.getDashboardWidgets()
+        .stream()
+        .filter(dashboardWidget -> widget.getId().equals(dashboardWidget.getId().getWidgetId()))
+        .findFirst()
+        .orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_DASHBOARD, widgetId, dashboardId));
 
-		dashboardWidgetRepository.delete(toRemove);
+    dashboardWidgetRepository.delete(toRemove);
 
-		return new OperationCompletionRS(
-				"Widget with ID = '" + widget.getId() + "' was successfully removed from the dashboard with ID = '" + dashboard.getId()
-						+ "'");
-	}
+    return new OperationCompletionRS(
+        "Widget with ID = '" + widget.getId() + "' was successfully removed from the dashboard with ID = '" + dashboard.getId()
+            + "'");
+  }
 
-	private boolean shouldDelete(Widget widget) {
-		return dashboardWidgetRepository.countAllByWidgetId(widget.getId()) <= DELETE_WIDGET_COUNT_THRESHOLD;
-	}
+  private boolean shouldDelete(Widget widget) {
+    return dashboardWidgetRepository.countAllByWidgetId(widget.getId()) <= DELETE_WIDGET_COUNT_THRESHOLD;
+  }
 
-	/**
-	 * Totally remove the widget from all dashboards
-	 *
-	 * @param widget Widget
-	 * @return OperationCompletionRS
-	 */
-	private OperationCompletionRS deleteWidget(Widget widget) {
-		widgetContentRemover.removeContent(widget);
-		dashboardWidgetRepository.deleteAll(widget.getDashboardWidgets());
-		widgetRepository.delete(widget);
-		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' was successfully deleted from the system.");
-	}
+  /**
+   * Totally remove the widget from all dashboards
+   *
+   * @param widget Widget
+   * @return OperationCompletionRS
+   */
+  private OperationCompletionRS deleteWidget(Widget widget) {
+    widgetContentRemover.removeContent(widget);
+    dashboardWidgetRepository.deleteAll(widget.getDashboardWidgets());
+    widgetRepository.delete(widget);
+    return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' was successfully deleted from the system.");
+  }
 
 }

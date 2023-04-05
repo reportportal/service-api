@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.core.log;
 
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.entity.item.NestedItem;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
@@ -129,6 +130,9 @@ public interface LogService {
    * @return List of logFulls found
    */
   Page<LogFull> findByFilter(Queryable filter, Pageable pageable);
+
+  Page<NestedItem> findNestedByLogMessageFilter(Long parentItemId, String path, Long projectId,
+      Long launchId, Queryable filter, Pageable pageable);
 
   List<LogFull> findAllById(Iterable<Long> ids);
 

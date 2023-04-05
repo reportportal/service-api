@@ -8,11 +8,15 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.custom.ElasticSearchClient;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.item.NestedItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
@@ -21,6 +25,7 @@ import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -201,6 +206,86 @@ public class ElasticLogService implements LogService {
   }
 
   @Override
+  public Page<NestedItem> findNestedByLogMessageFilter(Long parentItemId, String path, Long projectId,
+      Long launchId, Queryable filter, Pageable pageable) {
+
+    Optional<String> message = getLogMessageFromCondition(filter);
+    if (message.isEmpty()) {
+      return Page.empty();
+    }
+
+    Optional<StatusEnum> status = getStatusFromCondition(filter);
+    List<Long> childTestItems;
+
+    //Check filter by status
+    if (status.isPresent()) {
+      childTestItems = testItemRepository.findAllDescendantIdsByParentIdAndStatus(parentItemId,
+          status.get().toString().toUpperCase()
+      );
+      childTestItems.add(parentItemId);
+    } else {
+      childTestItems = testItemRepository.selectAllDescendantsIds(path);
+    }
+
+    //Get logs by message from elastic
+    Map<Long, List<Long>> testItemIdLogIdMap =
+        elasticSearchClient.searchTestItemAndLogIdsByLogIdsAndString(projectId, childTestItems,
+            message.get()
+        );
+
+    if (testItemIdLogIdMap.isEmpty()){
+      return Page.empty();
+    }
+
+    List<Long> logIds = new ArrayList<>();
+    for (Map.Entry<Long, List<Long>> entry : testItemIdLogIdMap.entrySet()) {
+      logIds.addAll(entry.getValue());
+    }
+    //Check logs with attachment filter
+    if (isWithAttachments(filter)) {
+      logIds = logRepository.findLogsByHasAttachment(logIds);
+      List<Long> testItemsToRemove = new ArrayList<>();
+      for (Map.Entry<Long, List<Long>> entry : testItemIdLogIdMap.entrySet()) {
+        boolean hasLogsWithAttachment = false;
+        List<Long> logsByTestItem = entry.getValue();
+        for (Long logId : logsByTestItem) {
+          if (logIds.contains(logId)) {
+            hasLogsWithAttachment = true;
+            break;
+          }
+        }
+        if (!hasLogsWithAttachment) {
+          testItemsToRemove.add(entry.getKey());
+        }
+      }
+      testItemsToRemove.forEach(testItemIdLogIdMap::remove);
+      if (testItemIdLogIdMap.isEmpty()){
+        return Page.empty();
+      }
+    }
+
+    List<Long> testItemIds = new LinkedList<>(testItemIdLogIdMap.keySet());
+
+    //Get logs which have item id equal to parent id
+    List<Long> resultLogIds = testItemIdLogIdMap.get(parentItemId);
+    if (resultLogIds != null) {
+      logIds.removeAll(resultLogIds);
+    }
+    testItemIds.remove(parentItemId);
+
+    //Find all test child test items for parentId that contain logs returned from Elastic
+    List<Long> resultTestItemIds = new ArrayList<>();
+    if (CollectionUtils.isNotEmpty(testItemIds) || CollectionUtils.isNotEmpty(logIds)) {
+      resultTestItemIds =
+          logRepository.findTestItemIdsByNestedLogIds(logIds, parentItemId);
+    }
+
+    return logRepository.getPageWithNestedItemsByTestItemIdsAndLogIds(resultTestItemIds,
+        resultLogIds, pageable
+    );
+  }
+
+  @Override
   public List<LogFull> findAllById(Iterable<Long> ids) {
     return wrapLogsWithLogMessages(logRepository.findAllById(ids));
   }
@@ -334,4 +419,33 @@ public class ElasticLogService implements LogService {
     return matchedItemIds;
   }
 
+  private int getLogLevelFromCondition(Queryable filter) {
+    Optional<String> logLevelString = filter.getFilterConditions().stream()
+        .filter(condition -> ((FilterCondition) condition).getSearchCriteria().equals("level"))
+        .map(condition -> ((FilterCondition) condition).getValue()).findFirst();
+    return logLevelString.map(LogLevel::toCustomLogLevel).orElse(0);
+  }
+
+  private Optional<String> getLogMessageFromCondition(Queryable filter) {
+    return filter.getFilterConditions().stream()
+        .filter(condition -> ((FilterCondition) condition).getSearchCriteria().equals("message"))
+        .map(condition -> ((FilterCondition) condition).getValue()).findFirst();
+  }
+
+  private Optional<StatusEnum> getStatusFromCondition(Queryable filter) {
+    Optional<String> statusString = filter.getFilterConditions().stream()
+        .filter(condition -> ((FilterCondition) condition).getSearchCriteria().equals("status"))
+        .map(condition -> ((FilterCondition) condition).getValue()).findFirst();
+
+    if (statusString.isPresent()) {
+      return StatusEnum.fromValue(statusString.get());
+    } else {
+      return Optional.empty();
+    }
+  }
+
+  private boolean isWithAttachments(Queryable filter) {
+    return filter.getFilterConditions().stream().anyMatch(
+        condition -> ((FilterCondition) condition).getSearchCriteria().equals("binaryContent"));
+  }
 }

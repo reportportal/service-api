@@ -5,6 +5,7 @@ import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.LOG_
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.item.NestedItem;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
@@ -74,14 +75,16 @@ public class EmptyLogService implements LogService {
   public Map<Long, List<IndexLog>> findAllIndexUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(
       Long launchId, List<Long> itemIds, int logLevel) {
     return logRepository.findAllIndexUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId,
-        itemIds, logLevel);
+        itemIds, logLevel
+    );
   }
 
   @Override
   public List<String> findMessagesByLaunchIdAndItemIdAndPathAndLevelGte(Long launchId, Long itemId,
       String path, Integer level) {
     return logRepository.findMessagesByLaunchIdAndItemIdAndPathAndLevelGte(launchId, itemId, path,
-        level);
+        level
+    );
   }
 
   @Override
@@ -89,7 +92,8 @@ public class EmptyLogService implements LogService {
       List<Long> itemIds, int logLevel) {
     return wrapLogsWithLogMessages(
         logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId, itemIds,
-            logLevel));
+            logLevel
+        ));
   }
 
   @Override
@@ -97,14 +101,16 @@ public class EmptyLogService implements LogService {
       Long itemId, int logLevel, int limit) {
     return wrapLogsWithLogMessages(
         logRepository.findLatestUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId,
-            itemId, logLevel, limit));
+            itemId, logLevel, limit
+        ));
   }
 
   @Override
   public List<Log> findAllUnderTestItemByLaunchIdAndTestItemIdsWithLimit(Long launchId,
       List<Long> itemIds, int limit) {
     return logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsWithLimit(launchId, itemIds,
-        limit);
+        limit
+    );
   }
 
   @Override
@@ -126,6 +132,12 @@ public class EmptyLogService implements LogService {
   public Page<LogFull> findByFilter(Queryable filter, Pageable pageable) {
     Page<Log> byFilter = logRepository.findByFilter(filter, pageable);
     return byFilter.map(this::getLogFull);
+  }
+
+  @Override
+  public Page<NestedItem> findNestedByLogMessageFilter(Long parentItemId, String path,
+      Long projectId, Long launchId, Queryable filter, Pageable pageable) {
+    return Page.empty();
   }
 
   @Override
@@ -173,7 +185,8 @@ public class EmptyLogService implements LogService {
   public List<Long> selectTestItemIdsUnderByStringLogMessage(Long launchId,
       Collection<Long> itemIds, Integer logLevel, String pattern) {
     return testItemRepository.selectIdsUnderByStringLogMessage(launchId, itemIds, logLevel,
-        pattern);
+        pattern
+    );
   }
 
   @Override

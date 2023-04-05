@@ -2,7 +2,6 @@
   {
     "name": "LAUNCH STATISTICS AREA",
     "widgetType": "statisticTrend",
-    "share": true,
     "contentParameters": {
       "itemsCount": 50,
       "contentFields": [
@@ -25,7 +24,6 @@
   {
     "name": "LAUNCH STATISTICS BAR",
     "widgetType": "statisticTrend",
-    "share": true,
     "contentParameters": {
       "itemsCount": 50,
       "contentFields": [
@@ -43,7 +41,6 @@
   {
     "name": "INVESTIGATED PERCENTAGE OF LAUNCHES",
     "widgetType": "investigatedTrend",
-    "share": true,
     "contentParameters": {
       "itemsCount": 50,
       "contentFields": [
@@ -56,7 +53,6 @@
   {
     "name": "TEST CASES GROWTH TREND CHART",
     "widgetType": "casesTrend",
-    "share": true,
     "contentParameters": {
       "itemsCount": 50,
       "contentFields": [
@@ -69,7 +65,6 @@
   {
     "name": "OVERALL STATISTICS PANEL",
     "widgetType": "overallStatistics",
-    "share": true,
     "contentParameters": {
       "itemsCount": 50,
       "contentFields": [
@@ -91,7 +86,6 @@
   {
     "name": "LAUNCHES DURATION CHART",
     "widgetType": "launchesDurationChart",
-    "share": true,
     "contentParameters": {
       "itemsCount": 50,
       "contentFields": [
@@ -104,7 +98,6 @@
   {
     "name": "OVERALL STATISTICS DONUT",
     "widgetType": "overallStatistics",
-    "share": true,
     "contentParameters": {
       "itemsCount": 50,
       "contentFields": [
@@ -126,7 +119,6 @@
   {
     "name": "FAILED CASES TREND CHART",
     "widgetType": "bugTrend",
-    "share": true,
     "contentParameters": {
       "itemsCount": 50,
       "contentFields": [
@@ -139,7 +131,6 @@
   {
     "name": "LAUNCH TABLE",
     "widgetType": "launchesTable",
-    "share": true,
     "contentParameters": {
       "itemsCount": 50,
       "contentFields": [
@@ -168,7 +159,6 @@
   {
     "name": "MOST FAILED TEST CASES",
     "widgetType": "topTestCases",
-    "share": true,
     "contentParameters": {
       "itemsCount": 30,
       "contentFields": [
@@ -182,7 +172,6 @@
   },
   {
     "name": "PASSING RATE SUMMARY",
-    "share": true,
     "widgetType": "passingRateSummary",
     "contentParameters": {
       "itemsCount": 50,
@@ -198,7 +187,6 @@
   {
     "name": "FLAKY TEST CASES",
     "widgetType": "flakyTestCases",
-    "share": true,
     "contentParameters": {
       "itemsCount": 30,
       "contentFields": [

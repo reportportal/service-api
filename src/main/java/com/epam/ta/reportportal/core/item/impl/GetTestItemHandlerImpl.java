@@ -29,10 +29,10 @@ import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
 import com.epam.ta.reportportal.core.item.impl.provider.DataProviderType;
 import com.epam.ta.reportportal.core.item.utils.DefaultLaunchFilterProvider;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.TicketRepository;
+import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -92,7 +92,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	private final TicketRepository ticketRepository;
 
-	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
+	private final UserFilterRepository filterRepository;
 
 	@Autowired
 	private Map<DataProviderType, DataProviderHandler> testItemDataProviders;
@@ -101,14 +101,14 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, TestItemService testItemService,
 			LaunchAccessValidator launchAccessValidator, ItemAttributeRepository itemAttributeRepository,
 			List<ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource>> resourceUpdaterProviders,
-			TicketRepository ticketRepository, GetShareableEntityHandler<UserFilter> getShareableEntityHandler1) {
+			TicketRepository ticketRepository, UserFilterRepository filterRepository) {
 		this.testItemRepository = testItemRepository;
 		this.testItemService = testItemService;
 		this.launchAccessValidator = launchAccessValidator;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.resourceUpdaterProviders = resourceUpdaterProviders;
 		this.ticketRepository = ticketRepository;
-		this.getShareableEntityHandler = getShareableEntityHandler1;
+		this.filterRepository = filterRepository;
 	}
 
 	@Override
@@ -204,8 +204,15 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	private Page<TestItem> getItemsWithLaunchesFiltering(Queryable testItemFilter, Pageable testItemPageable,
 			ReportPortalUser.ProjectDetails projectDetails, Long launchFilterId, boolean isLatest, int launchesLimit) {
+
+		UserFilter userFilter = filterRepository.findByIdAndProjectId(launchFilterId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
+						launchFilterId,
+						projectDetails.getProjectName()
+				));
+
 		Pair<Queryable, Pageable> queryablePair = DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(projectDetails,
-				getShareableEntityHandler.getPermitted(launchFilterId, projectDetails),
+				userFilter,
 				launchesLimit
 		);
 
@@ -243,8 +250,15 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	@Override
 	public List<String> getAttributeKeys(Long launchFilterId, boolean isLatest, int launchesLimit,
 			ReportPortalUser.ProjectDetails projectDetails, String keyPart) {
+
+		UserFilter userFilter = filterRepository.findByIdAndProjectId(launchFilterId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
+						launchFilterId,
+						projectDetails.getProjectName()
+				));
+
 		Pair<Queryable, Pageable> queryablePair = DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(projectDetails,
-				getShareableEntityHandler.getPermitted(launchFilterId, projectDetails),
+				userFilter,
 				launchesLimit
 		);
 		return itemAttributeRepository.findAllKeysByLaunchFilter(queryablePair.getKey(),
@@ -271,8 +285,15 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	}
 
 	@Override
-	public List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String launchName, String key, String valuePart) {
-		return itemAttributeRepository.findTestItemValuesByProjectIdAndLaunchName(projectDetails.getProjectId(), launchName, key, valuePart, false);
+	public List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String launchName, String key,
+			String valuePart) {
+		return itemAttributeRepository.findTestItemValuesByProjectIdAndLaunchName(
+				projectDetails.getProjectId(),
+				launchName,
+				key,
+				valuePart,
+				false
+		);
 	}
 
 	@Override

@@ -68,7 +68,7 @@ ext['spring-boot.version'] = '2.5.12'
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + getProperty('bom.version') : 'com.github.reportportal:commons-bom:f0b6bb6b')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + getProperty('bom.version') : 'com.github.reportportal:commons-bom:c34166e')
     }
 }
 
@@ -81,9 +81,9 @@ dependencies {
         compile 'com.epam.reportportal:commons-fonts'
         compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-dao:bf7f4474d7'
+        compile 'com.github.reportportal:commons-dao:fb1d7835'
         compile 'com.github.reportportal:commons-rules:5.3.0'
-        compile 'com.github.reportportal:commons-model:a0479c55'
+        compile 'com.github.reportportal:commons-model:a046458'
         compile 'com.github.reportportal:commons:7480d61'
         compile 'com.github.reportportal:commons-fonts:10d1054'
         compile 'com.github.reportportal:plugin-api:886ac55'
@@ -100,12 +100,10 @@ dependencies {
 
     compile group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
 
-    //https://nvd.nist.gov/vuln/detail/CVE-2020-11996 AND https://nvd.nist.gov/vuln/detail/CVE-2020-9484
-    //AND https://nvd.nist.gov/vuln/detail/CVE-2020-13934 AND https://nvd.nist.gov/vuln/detail/CVE-2020-13935
-    //AND https://nvd.nist.gov/vuln/detail/CVE-2020-8022
-    compile 'org.apache.tomcat.embed:tomcat-embed-core:9.0.43'
-    compile 'org.apache.tomcat.embed:tomcat-embed-el:9.0.43'
-    compile 'org.apache.tomcat.embed:tomcat-embed-websocket:9.0.43'
+    // Fix CVE-2021-41079, CVE-2022-23181, CVE-2021-33037, CVE-2021-30640, CVE-2022-42252
+    compile 'org.apache.tomcat.embed:tomcat-embed-core:9.0.68'
+    compile 'org.apache.tomcat.embed:tomcat-embed-el:9.0.68'
+    compile 'org.apache.tomcat.embed:tomcat-embed-websocket:9.0.68'
     //
 
     //https://nvd.nist.gov/vuln/detail/CVE-2020-5411
@@ -130,11 +128,20 @@ dependencies {
     compile 'org.springframework.security:spring-security-web:5.5.8'
     //
 
-    compile 'org.springframework.security.oauth:spring-security-oauth2:2.4.0.RELEASE'
+    // Fix CVE-2022-22969
+    compile 'org.springframework.security.oauth:spring-security-oauth2:2.5.2.RELEASE'
     compile 'org.springframework.security:spring-security-jwt:1.0.11.RELEASE'
     compile 'org.springframework.security:spring-security-acl'
     compile 'com.github.ben-manes.caffeine:caffeine:2.8.0'
 
+    // Fix CVE-2022-22965, CVE-2022-22970
+    compile 'org.springframework:spring-beans:5.3.20'
+    // Fix CVE-2021-22060, CVE-2021-22096
+    compile 'org.springframework:spring-core:5.3.20'
+    // Fix CVE-2022-45685, CVE-2022-40150, CVE-2022-40149
+    compile 'org.codehaus.jettison:jettison:1.5.2'
+    // Fix CVE-2020-15522
+    compile 'org.bouncycastle:bcprov-jdk15on:1.69'
     compile 'org.apache.commons:commons-compress:1.21'
     compile 'org.yaml:snakeyaml:1.32'
     compile 'org.hibernate:hibernate-core:5.4.24.Final'

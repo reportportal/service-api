@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.filter;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
-import com.epam.ta.reportportal.ws.model.SharedEntity;
+import com.epam.ta.reportportal.ws.model.OwnedEntityResource;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
 import org.springframework.data.domain.Pageable;
 
@@ -33,18 +33,16 @@ import java.util.List;
 public interface GetUserFilterHandler {
 
 	/**
-	 * Get shared and own {@link UserFilterResource} objects
+	 * Get {@link UserFilterResource} by provided id
 	 *
-	 * @param projectName Project Name
-	 * @param pageable    Page request
-	 * @param filter      Filter representation
-	 * @param user        Report Portal User
-	 * @return {@link Iterable}
+	 * @param id             Provided id
+	 * @param projectDetails Projcet details
+	 * @return {@link UserFilterResource}
 	 */
-	Iterable<UserFilterResource> getPermitted(String projectName, Pageable pageable, Filter filter, ReportPortalUser user);
+	UserFilterResource getUserFilter(Long id, ReportPortalUser.ProjectDetails projectDetails);
 
 	/**
-	 * Get own {@link UserFilterResource} objects
+	 * Get {@link UserFilterResource} objects
 	 *
 	 * @param projectName Project Name
 	 * @param pageable    Page request
@@ -52,31 +50,19 @@ public interface GetUserFilterHandler {
 	 * @param user        Report Portal User
 	 * @return {@link Iterable}
 	 */
-	Iterable<UserFilterResource> getOwn(String projectName, Pageable pageable, Filter filter, ReportPortalUser user);
-
-	/**
-	 * Get shared {@link UserFilterResource} objects
-	 *
-	 * @param projectName Project Name
-	 * @param pageable    Page request
-	 * @param filter      Filter representation
-	 * @param user        Report Portal User
-	 * @return {@link Iterable}
-	 */
-	Iterable<UserFilterResource> getShared(String projectName, Pageable pageable, Filter filter, ReportPortalUser user);
+	Iterable<UserFilterResource> getUserFilters(String projectName, Pageable pageable, Filter filter, ReportPortalUser user);
 
 	/**
 	 * Get all {@link com.epam.ta.reportportal.entity.filter.UserFilter}'s names
 	 *
 	 * @param projectDetails Project details
-	 * @param user           Report Portal user
 	 * @param pageable       Page request
 	 * @param filter         Filter representation
-	 * @param isShared       Is shared
-	 * @return List of {@link SharedEntity}
+	 * @param user           Report Portal user
+	 * @return List of {@link OwnedEntityResource}
 	 */
-	Iterable<SharedEntity> getFiltersNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
-			ReportPortalUser user, boolean isShared);
+	Iterable<OwnedEntityResource> getFiltersNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+			ReportPortalUser user);
 
 	/**
 	 * Get all

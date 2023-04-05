@@ -197,12 +197,12 @@ VALUES (134, null, 'flaky', 93, null, false);
 INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
 VALUES (135, 'os', 'ios', 93, null, false);
 
-INSERT INTO public.shareable_entity (id, shared, owner, project_id) VALUES (1, false, 'superadmin', 1);
+INSERT INTO public.owned_entity (id, owner, project_id) VALUES (1, 'superadmin', 1);
 INSERT INTO public.filter (id, name, target, description) VALUES (1, 'New_filter', 'Launch', null);
 INSERT INTO public.filter_condition (id, filter_id, condition, value, search_criteria, negative) VALUES (1, 1, 'IN', '6,8,9', 'id', false);
 INSERT INTO public.filter_sort (id, filter_id, field, direction) VALUES (1, 1, 'name', 'ASC');
 
-INSERT INTO public.shareable_entity (id, shared, owner, project_id) VALUES (2, false, 'superadmin', 1);
+INSERT INTO public.owned_entity (id, owner, project_id) VALUES (2, 'superadmin', 1);
 INSERT INTO public.widget (id, name, description, widget_type, items_count, widget_options) VALUES (2, 'health', null, 'componentHealthCheck', 10, '{"options": {"latest": "", "minPassingRate": 50, "attributeKeys": [
 "build", "platform", "os"
 ]}}');

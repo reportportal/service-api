@@ -16,10 +16,12 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.filter.Order;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
@@ -100,15 +102,9 @@ class UserFilterControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	void getOwnFiltersPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/filter/own").with(token(oAuthHelper.getDefaultToken())))
-				.andExpect(status().isOk());
-	}
-
-	@Test
 	void getSharedFiltersPositive() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/filter/shared").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isOk());
+				.andExpect(status().isBadRequest());
 	}
 
 	@Test
@@ -141,7 +137,6 @@ class UserFilterControllerTest extends BaseMvcTest {
 		updateUserFilterRQ.setName("new name");
 		updateUserFilterRQ.setObjectType("Launch");
 		updateUserFilterRQ.setDescription("new description");
-		updateUserFilterRQ.setShare(true);
 		Order order = new Order();
 		order.setIsAsc(true);
 		order.setSortingColumnName("name");
@@ -175,5 +170,33 @@ class UserFilterControllerTest extends BaseMvcTest {
 		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/filter").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().is4xxClientError());
+	}
+
+	@Test
+	void updateUserFilterWithKeyAndValueLongerThan512() throws Exception {
+		UpdateUserFilterRQ updateUserFilterRQ = new UpdateUserFilterRQ();
+		updateUserFilterRQ.setName("new name");
+		updateUserFilterRQ.setObjectType("Launch");
+		updateUserFilterRQ.setDescription("new description");
+		Order order = new Order();
+		order.setIsAsc(true);
+		order.setSortingColumnName("name");
+		updateUserFilterRQ.setOrders(Lists.newArrayList(order));
+		String key = StringUtils.leftPad("", ValidationConstraints.MAX_ATTRIBUTE_LENGTH + 1, "a");
+		String value = key + ":" + key;
+		updateUserFilterRQ.setConditions(Sets.newHashSet(new UserFilterCondition("name", "eq", value)));
+
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/filter/3").with(token(oAuthHelper.getDefaultToken()))
+				.content(objectMapper.writeValueAsBytes(updateUserFilterRQ))
+				.contentType(APPLICATION_JSON)).andExpect(status().isOk());
+		final Optional<UserFilter> optionalUserFilter = repository.findById(3L);
+		assertTrue(optionalUserFilter.isPresent());
+		assertEquals("new description", optionalUserFilter.get().getDescription());
+		assertEquals("new name", optionalUserFilter.get().getName());
+		FilterCondition filterCondition = (FilterCondition) optionalUserFilter.get().getFilterCondition().toArray()[0];
+		String actualKey = filterCondition.getValue().substring(0, filterCondition.getValue().indexOf(":"));
+		String actualValue = filterCondition.getValue().substring(filterCondition.getValue().indexOf(":") + 1);
+		assertEquals(ValidationConstraints.MAX_ATTRIBUTE_LENGTH, actualKey.length());
+		assertEquals(ValidationConstraints.MAX_ATTRIBUTE_LENGTH, actualValue.length());
 	}
 }

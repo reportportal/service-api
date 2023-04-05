@@ -41,6 +41,8 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 
 @Service
 public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
+	private static final int MAX_FILE_SIZE = 32 * 1024 * 1024;
+
 	private ImportStrategyFactory importStrategyFactory;
 	private MessageBus messageBus;
 
@@ -81,6 +83,7 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 		expect(file.getOriginalFilename(), it -> it.endsWith(ZIP_EXTENSION) || it.endsWith(XML_EXTENSION)).verify(INCORRECT_REQUEST,
 				"Should be a zip archive or an xml file " + file.getOriginalFilename()
 		);
+		expect(file.getSize(), size -> size <= MAX_FILE_SIZE).verify(INCORRECT_REQUEST, "File size is more than 32 Mb.");
 	}
 
 	private File transferToTempFile(MultipartFile file) {

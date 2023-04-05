@@ -52,7 +52,6 @@ class UserFilterBuilderTest {
 		final String description = "description";
 		request.setDescription(description);
 		final boolean share = true;
-		request.setShare(share);
 		final String owner = "owner";
 		final Long projectId = 1L;
 
@@ -60,7 +59,6 @@ class UserFilterBuilderTest {
 
 		assertEquals(name, userFilter.getName());
 		assertEquals(description, userFilter.getDescription());
-		assertEquals(share, userFilter.isShared());
 		assertEquals(owner, userFilter.getOwner());
 		assertEquals(projectId, userFilter.getProject().getId());
 		assertEquals(Launch.class, userFilter.getTargetClass().getClassObject());

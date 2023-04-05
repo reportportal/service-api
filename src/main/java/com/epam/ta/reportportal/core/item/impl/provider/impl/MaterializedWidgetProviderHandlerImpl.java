@@ -20,8 +20,8 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
+import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.entity.widget.Widget;
@@ -56,7 +56,7 @@ public class MaterializedWidgetProviderHandlerImpl implements DataProviderHandle
 	private Map<WidgetType, DataProviderHandler> testItemWidgetDataProviders;
 
 	@Autowired
-	private GetShareableEntityHandler<Widget> getShareableEntityHandler;
+	private WidgetRepository widgetRepository;
 
 	@Override
 	public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
@@ -78,7 +78,11 @@ public class MaterializedWidgetProviderHandlerImpl implements DataProviderHandle
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
 						"Widget id must be provided for widget based items provider"
 				));
-		Widget widget = getShareableEntityHandler.getPermitted(widgetId, projectDetails);
+		Widget widget = widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
+						widgetId,
+						projectDetails.getProjectName()
+				));
 		validateState(widget.getWidgetOptions());
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));

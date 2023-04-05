@@ -66,6 +66,9 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 @Service
 public class GetProjectHandlerImpl implements GetProjectHandler {
 
+	private static final String LENGTH_LESS_THAN_1_SYMBOL_MSG = "Length of the filtering string "
+			+ "'{}' is less than 1 symbol";
+
 	private final ProjectRepository projectRepository;
 
 	private final UserRepository userRepository;
@@ -133,19 +136,19 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	@Override
 	public List<String> getUserNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
-		BusinessRule.expect(value.length() > 2, Predicates.equalTo(true))
-				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
-				);
+		checkBusinessRuleLessThan1Symbol(value);
 		return userRepository.findNamesByProject(projectDetails.getProjectId(), value);
+	}
+
+	private void checkBusinessRuleLessThan1Symbol(String value) {
+		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true))
+				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+						Suppliers.formattedSupplier(LENGTH_LESS_THAN_1_SYMBOL_MSG, value));
 	}
 
 	@Override
 	public Iterable<SearchUserResource> getUserNames(String value, ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
-		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true))
-				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 1 symbol", value)
-				);
+		checkBusinessRuleLessThan1Symbol(value);
 
 		final CompositeFilterCondition userCondition = getUserSearchCondition(value);
 

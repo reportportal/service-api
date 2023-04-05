@@ -52,9 +52,9 @@ where result_id = 5;
 insert into issue(issue_id, issue_type, issue_description, auto_analyzed, ignore_analyzer)
 values (5, 1, 'to investigate', false, true);
 
-INSERT INTO public.shareable_entity (id, shared, owner, project_id)
-VALUES (1, false, 'superadmin', 1),
-       (2, false, 'superadmin', 1);
+INSERT INTO public.owned_entity (id, owner, project_id)
+VALUES (1, 'superadmin', 1),
+       (2, 'superadmin', 1);
 
 INSERT INTO public.filter (id, name, target, description)
 VALUES (1, 'Admin Filter', 'Launch', null);

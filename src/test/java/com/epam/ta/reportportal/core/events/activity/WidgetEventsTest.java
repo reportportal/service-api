@@ -55,7 +55,6 @@ class WidgetEventsTest {
 			Pair<String, String> description, Pair<Integer, Integer> itemsCount, Pair<Set<String>, Set<String>> contentFields,
 			Pair<String, String> options) {
 		return Lists.newArrayList(HistoryField.of(NAME, name.getLeft(), name.getRight()),
-				HistoryField.of(SHARE, shared.getLeft().toString(), shared.getRight().toString()),
 				HistoryField.of(DESCRIPTION, description.getLeft(), description.getRight()),
 				HistoryField.of(ITEMS_COUNT, itemsCount.getLeft().toString(), itemsCount.getRight().toString()),
 				HistoryField.of(CONTENT_FIELDS, String.join(", ", contentFields.getLeft()), String.join(", ", contentFields.getRight())),
@@ -83,7 +82,6 @@ class WidgetEventsTest {
 		widget.setName(name);
 		widget.setId(2L);
 		widget.setDescription(description);
-		widget.setShared(shared);
 		widget.setProjectId(3L);
 		widget.setItemsCount(itemsCount);
 		widget.setContentFields(contentFields);

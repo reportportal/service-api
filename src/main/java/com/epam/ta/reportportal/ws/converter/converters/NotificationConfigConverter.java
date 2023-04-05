@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.entity.enums.LogicalOperator;
 import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
@@ -64,6 +65,7 @@ public final class NotificationConfigConverter {
 		resource.setSendCase(model.getSendCase().getCaseString());
 		resource.setRecipients(Lists.newArrayList(model.getRecipients()));
 		resource.setEnabled(model.isEnabled());
+		resource.setAttributesOperator(model.getAttributesOperator().getOperator());
 		return resource;
 	};
 
@@ -90,6 +92,7 @@ public final class NotificationConfigConverter {
 						"Incorrect send case type " + resource.getSendCase()
 				)));
 		senderCase.setEnabled(resource.isEnabled());
+		senderCase.setAttributesOperator(LogicalOperator.valueOf(resource.getAttributesOperator()));
 		return senderCase;
 	};
 }

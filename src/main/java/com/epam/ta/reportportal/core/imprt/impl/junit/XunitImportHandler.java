@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.google.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +60,8 @@ public class XunitImportHandler extends DefaultHandler {
 	private final FinishTestItemHandler finishTestItemHandler;
 
 	private final CreateLogHandler createLogHandler;
+
+	private static final int MAX_LAUNCH_NAME_LENGTH = 256;
 
 	@Autowired
 	public XunitImportHandler(StartTestItemHandler startTestItemHandler, FinishTestItemHandler finishTestItemHandler,
@@ -112,6 +115,7 @@ public class XunitImportHandler extends DefaultHandler {
 				break;
 			case TESTCASE:
 				startStepItem(attributes.getValue(XunitReportTag.ATTR_NAME.getValue()),
+						attributes.getValue(XunitReportTag.START_TIME.getValue()),
 						attributes.getValue(XunitReportTag.ATTR_TIME.getValue())
 				);
 				break;
@@ -216,12 +220,12 @@ public class XunitImportHandler extends DefaultHandler {
 		itemUuids.push(id);
 	}
 
-	private void startStepItem(String name, String duration) {
+	private void startStepItem(String name, String startTime, String duration) {
 		StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setLaunchUuid(launchUuid);
-		rq.setStartTime(EntityUtils.TO_DATE.apply(startItemTime));
+		rq.setStartTime(EntityUtils.TO_DATE.apply(startTime != null ? parseTimeStamp(startTime) : startItemTime));
 		rq.setType(TestItemTypeEnum.STEP.name());
-		rq.setName(name);
+		rq.setName(StringUtils.abbreviate(name, MAX_LAUNCH_NAME_LENGTH));
 		String id = startTestItemHandler.startChildItem(user, projectDetails, rq, itemUuids.peek()).getId();
 		currentDuration = toMillis(duration);
 		currentItemUuid = id;

@@ -26,8 +26,8 @@ values (3, 3, 'MEMBER');
 insert into project_user(user_id, project_id, project_role)
 values (1, 3, 'PROJECT_MANAGER');
 
-insert into shareable_entity(id, shared, owner, project_id)
-values (1, true, 'superadmin', 3);
+insert into owned_entity(id, owner, project_id)
+values (1, 'superadmin', 3);
 insert into filter(id, name, target, description)
 values (1, 'test filter', 'Launch', 'decription');
 insert into filter_sort(filter_id, field)
@@ -38,8 +38,8 @@ values (1, 1, 'CONTAINS', 'asdf', 'name', false);
 insert into user_preference(project_id, user_id, filter_id)
 values (3, 1, 1);
 
-insert into shareable_entity(id, shared, owner, project_id)
-values (2, true, 'superadmin', 3);
+insert into owned_entity(id, owner, project_id)
+values (2, 'superadmin', 3);
 insert into filter(id, name, target, description)
 values (2, 'test filter2', 'Launch', 'decription');
 insert into filter_sort(filter_id, field)

@@ -68,6 +68,9 @@ public enum XunitReportTag {
 	// timestamp of test cases
 	TIMESTAMP("timestamp"),
 
+	// timestamp of start test cases
+	START_TIME("startTime"),
+
 	//unknown tag
 	UNKNOWN("unknown");
 

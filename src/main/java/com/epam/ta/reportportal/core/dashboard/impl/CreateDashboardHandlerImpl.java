@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
-import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.dashboard.CreateDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardCreatedEvent;
@@ -42,18 +42,23 @@ public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
 
 	private final DashboardRepository dashboardRepository;
 	private final MessageBus messageBus;
-	private final ShareableObjectsHandler aclHandler;
+
+	private final static int DASHBOARD_LIMIT = 300;
 
 	@Autowired
-	public CreateDashboardHandlerImpl(DashboardRepository dashboardRepository, MessageBus messageBus, ShareableObjectsHandler aclHandler) {
+	public CreateDashboardHandlerImpl(DashboardRepository dashboardRepository, MessageBus messageBus) {
 		this.dashboardRepository = dashboardRepository;
 		this.messageBus = messageBus;
-		this.aclHandler = aclHandler;
 	}
 
 	@Override
 	public EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails, CreateDashboardRQ rq, ReportPortalUser user) {
 
+		BusinessRule.expect(dashboardRepository.findAllByProjectId(projectDetails.getProjectId()).size() >= DASHBOARD_LIMIT,
+				BooleanUtils::isFalse).verify(ErrorType.DASHBOARD_UPDATE_ERROR, Suppliers.formattedSupplier(
+				"The limit of {} dashboards has been reached. To create a new one you need to delete at least one created previously.",
+				DASHBOARD_LIMIT
+		));
 		BusinessRule.expect(dashboardRepository.existsByNameAndOwnerAndProjectId(rq.getName(),
 				user.getUsername(),
 				projectDetails.getProjectId()
@@ -64,7 +69,6 @@ public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
 				.addOwner(user.getUsername())
 				.get();
 		dashboardRepository.save(dashboard);
-		aclHandler.initAcl(dashboard, user.getUsername(), projectDetails.getProjectId(), BooleanUtils.isTrue(rq.getShare()));
 		messageBus.publishActivity(new DashboardCreatedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(), user.getUsername()));
 		return new EntryCreatedRS(dashboard.getId());
 	}

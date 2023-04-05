@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.demodata.service;
 
-import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -75,8 +74,6 @@ class DemoDashboardsService {
 
 	private final ProjectRepository projectRepository;
 
-	private final ShareableObjectsHandler aclHandler;
-
 	private final ObjectMapper objectMapper;
 
 	private Resource resource;
@@ -84,13 +81,12 @@ class DemoDashboardsService {
 	@Autowired
 	public DemoDashboardsService(UserFilterRepository userFilterRepository, DashboardRepository dashboardRepository,
 			DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository, ProjectRepository projectRepository,
-			ShareableObjectsHandler aclHandler, ObjectMapper objectMapper) {
+			ObjectMapper objectMapper) {
 		this.userFilterRepository = userFilterRepository;
 		this.dashboardRepository = dashboardRepository;
 		this.dashboardWidgetRepository = dashboardWidgetRepository;
 		this.widgetRepository = widgetRepository;
 		this.projectRepository = projectRepository;
-		this.aclHandler = aclHandler;
 		this.objectMapper = objectMapper;
 	}
 
@@ -129,7 +125,6 @@ class DemoDashboardsService {
 				return widgetBuilder.get();
 			}).collect(toList());
 			widgetRepository.saveAll(widgets);
-			widgets.forEach(it -> aclHandler.initAcl(it, user.getUsername(), projectId, it.isShared()));
 			return widgets;
 		} catch (IOException e) {
 			throw new ReportPortalException("Unable to load demo_widgets.json. " + e.getMessage(), e);
@@ -137,14 +132,14 @@ class DemoDashboardsService {
 	}
 
 	private UserFilter createDemoFilter(ReportPortalUser user, Project project) {
-		List<UserFilter> existedFilterList = userFilterRepository.getPermitted(ProjectFilter.of(Filter.builder()
+		List<UserFilter> existedFilterList = userFilterRepository.findByFilter(ProjectFilter.of(Filter.builder()
 				.withTarget(UserFilter.class)
 				.withCondition(FilterCondition.builder()
 						.withCondition(Condition.EQUALS)
 						.withSearchCriteria(CRITERIA_NAME)
 						.withValue(FILTER_NAME)
 						.build())
-				.build(), project.getId()), Pageable.unpaged(), user.getUsername()).getContent();
+				.build(), project.getId()), Pageable.unpaged()).getContent();
 
 		if (!existedFilterList.isEmpty()) {
 			return existedFilterList.get(0);
@@ -166,10 +161,8 @@ class DemoDashboardsService {
 		userFilter.setFilterSorts(Sets.newHashSet(filterSort));
 
 		userFilter.setOwner(user.getUsername());
-		userFilter.setShared(SHARED);
 
 		userFilterRepository.save(userFilter);
-		aclHandler.initAcl(userFilter, user.getUsername(), project.getId(), SHARED);
 
 		return userFilter;
 	}
@@ -180,7 +173,6 @@ class DemoDashboardsService {
 		dashboard.setProject(project);
 		dashboard.setCreationDate(LocalDateTime.now());
 		dashboard.setOwner(user.getUsername());
-		dashboard.setShared(SHARED);
 
 		dashboardRepository.save(dashboard);
 
@@ -197,7 +189,6 @@ class DemoDashboardsService {
 		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(10), 7, 24, 5, 5));
 		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(11), 0, 29, 12, 4));
 
-		aclHandler.initAcl(dashboard, user.getUsername(), project.getId(), SHARED);
 		return dashboard;
 	}
 

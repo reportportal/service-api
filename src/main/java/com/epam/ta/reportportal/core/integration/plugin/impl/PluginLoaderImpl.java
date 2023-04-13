@@ -54,6 +54,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Service responsible for plugin load.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
@@ -67,7 +69,7 @@ public class PluginLoaderImpl implements PluginLoader {
   private final FeatureFlagHandler featureFlagHandler;
 
   /**
-   * Creates instance of {@link PluginLoader}
+   * Creates instance of {@link PluginLoader}.
    *
    * @param dataStore                 {@link DataStore}
    * @param integrationTypeRepository {@link IntegrationTypeRepository}
@@ -97,7 +99,8 @@ public class PluginLoaderImpl implements PluginLoader {
         .flatMap(it -> ofNullable(it.getDetails())).flatMap(
             typeDetails -> IntegrationTypeProperties.VERSION.getValue(typeDetails.getDetails())
                 .map(String::valueOf)).ifPresent(
-            version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(pluginInfo.getVersion()))
+                    version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(
+                pluginInfo.getVersion()))
                 .verify(
                     ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
                         "Plugin with ID = '{}' of the same VERSION = '{}' "

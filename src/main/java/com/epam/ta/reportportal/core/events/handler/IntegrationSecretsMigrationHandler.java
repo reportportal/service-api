@@ -95,7 +95,6 @@ public class IntegrationSecretsMigrationHandler {
    * Migration of user info from Auth Provider.
    *
    * @param event {@link ApplicationReadyEvent}
-   * @throws IOException
    */
   @EventListener
   public void migrate(ApplicationReadyEvent event) throws IOException {

@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.filesystem.DataStore;
+import com.epam.ta.reportportal.util.FeatureFlagHandler;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.pf4j.*;
@@ -42,7 +43,6 @@ class PluginLoaderTest {
 	private static final String PLUGIN_VERSION = "1.0.0";
 	private static final String FILE_NAME = "file.jar";
 
-	private final static String PLUGIN_ROOT_PATH = "plugins";
 
 	private final DataStore dataStore = mock(DataStore.class);
 
@@ -58,11 +58,13 @@ class PluginLoaderTest {
 
 	private final PluginInfo pluginInfo = mock(PluginInfo.class);
 
+	private final FeatureFlagHandler featureFlagHandler = mock(FeatureFlagHandler.class);
+
 	private final PluginLoader pluginLoader = new PluginLoaderImpl(
-			PLUGIN_ROOT_PATH,
 			dataStore,
 			integrationTypeRepository,
-			pluginDescriptorFinder
+			pluginDescriptorFinder,
+			featureFlagHandler
 	);
 
 	@Test

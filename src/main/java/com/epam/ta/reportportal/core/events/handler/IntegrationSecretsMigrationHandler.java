@@ -20,8 +20,14 @@ import com.epam.ta.reportportal.core.integration.migration.JiraEmailSecretMigrat
 import com.epam.ta.reportportal.core.integration.migration.LdapSecretMigrationService;
 import com.epam.ta.reportportal.core.integration.migration.RallySecretMigrationService;
 import com.epam.ta.reportportal.core.integration.migration.SaucelabsSecretMigrationService;
+import com.epam.ta.reportportal.entity.enums.FeatureFlag;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
+import com.epam.ta.reportportal.util.FeatureFlagHandler;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +37,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
@@ -42,46 +44,74 @@ import java.io.InputStream;
 @Profile("!unittest")
 public class IntegrationSecretsMigrationHandler {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(IntegrationSecretsMigrationHandler.class);
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(IntegrationSecretsMigrationHandler.class);
 
-	@Value("${rp.integration.salt.path:keystore}")
-	private String integrationSaltPath;
+  private static final String SECRETS_PATH = "integration-secrets";
+  @Value("${rp.integration.salt.path:keystore}")
+  private String integrationSaltPath;
 
-	@Value("${rp.integration.salt.migration:migration}")
-	private String migrationFile;
+  @Value("${rp.integration.salt.migration:migration}")
+  private String migrationFile;
 
-	private final DataStore dataStore;
+  private final DataStore dataStore;
 
-	private final JiraEmailSecretMigrationService jiraEmailSecretMigrationService;
+  private final JiraEmailSecretMigrationService jiraEmailSecretMigrationService;
 
-	private final RallySecretMigrationService rallySecretMigrationService;
+  private final RallySecretMigrationService rallySecretMigrationService;
 
-	private final SaucelabsSecretMigrationService saucelabsSecretMigrationService;
+  private final SaucelabsSecretMigrationService saucelabsSecretMigrationService;
 
-	private final LdapSecretMigrationService ldapSecretMigrationService;
+  private final LdapSecretMigrationService ldapSecretMigrationService;
 
-	@Autowired
-	public IntegrationSecretsMigrationHandler(DataStore dataStore, JiraEmailSecretMigrationService jiraEmailSecretMigrationService,
-			RallySecretMigrationService rallySecretMigrationService, SaucelabsSecretMigrationService saucelabsSecretMigrationService,
-			LdapSecretMigrationService ldapSecretMigrationService) {
-		this.dataStore = dataStore;
-		this.jiraEmailSecretMigrationService = jiraEmailSecretMigrationService;
-		this.rallySecretMigrationService = rallySecretMigrationService;
-		this.saucelabsSecretMigrationService = saucelabsSecretMigrationService;
-		this.ldapSecretMigrationService = ldapSecretMigrationService;
-	}
+  private final FeatureFlagHandler featureFlagHandler;
 
-	@EventListener
-	public void migrate(ApplicationReadyEvent event) throws IOException {
-		final String migrationFilePath = integrationSaltPath + File.separator + migrationFile;
-		try (InputStream load = dataStore.load(migrationFilePath)) {
-			jiraEmailSecretMigrationService.migrate();
-			rallySecretMigrationService.migrate();
-			saucelabsSecretMigrationService.migrate();
-			ldapSecretMigrationService.migrate();
-			dataStore.delete(migrationFilePath);
-		} catch (ReportPortalException ex) {
-			LOGGER.info("Secrets migration is not needed");
-		}
-	}
+  /**
+   * Creates instance of IntegrationSecretsMigrationHandler.
+   *
+   * @param dataStore                       {@link DataStore}
+   * @param jiraEmailSecretMigrationService {@link JiraEmailSecretMigrationService}
+   * @param rallySecretMigrationService     {@link RallySecretMigrationService}
+   * @param saucelabsSecretMigrationService {@link SaucelabsSecretMigrationService}
+   * @param ldapSecretMigrationService      {@link LdapSecretMigrationService}
+   * @param featureFlagHandler              {@link FeatureFlagHandler}
+   */
+  @Autowired
+  public IntegrationSecretsMigrationHandler(DataStore dataStore,
+      JiraEmailSecretMigrationService jiraEmailSecretMigrationService,
+      RallySecretMigrationService rallySecretMigrationService,
+      SaucelabsSecretMigrationService saucelabsSecretMigrationService,
+      LdapSecretMigrationService ldapSecretMigrationService,
+      FeatureFlagHandler featureFlagHandler) {
+    this.dataStore = dataStore;
+    this.jiraEmailSecretMigrationService = jiraEmailSecretMigrationService;
+    this.rallySecretMigrationService = rallySecretMigrationService;
+    this.saucelabsSecretMigrationService = saucelabsSecretMigrationService;
+    this.ldapSecretMigrationService = ldapSecretMigrationService;
+    this.featureFlagHandler = featureFlagHandler;
+  }
+
+  /**
+   * Migration of user info from Auth Provider.
+   *
+   * @param event {@link ApplicationReadyEvent}
+   */
+  @EventListener
+  public void migrate(ApplicationReadyEvent event) throws IOException {
+    String migrationFilePath;
+    if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
+      migrationFilePath = Paths.get(SECRETS_PATH, migrationFile).toString();
+    } else {
+      migrationFilePath = integrationSaltPath + File.separator + migrationFile;
+    }
+    try (InputStream load = dataStore.load(migrationFilePath)) {
+      jiraEmailSecretMigrationService.migrate();
+      rallySecretMigrationService.migrate();
+      saucelabsSecretMigrationService.migrate();
+      ldapSecretMigrationService.migrate();
+      dataStore.delete(migrationFilePath);
+    } catch (ReportPortalException ex) {
+      LOGGER.info("Secrets migration is not needed");
+    }
+  }
 }

@@ -39,6 +39,8 @@ import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -73,6 +75,8 @@ import static java.util.Optional.ofNullable;
 @Service
 public class EditUserHandlerImpl implements EditUserHandler {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(EditUserHandlerImpl.class);
+
 	private final UserRepository userRepository;
 
 	private final ProjectRepository projectRepository;
@@ -81,21 +85,18 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	private final PasswordEncoder passwordEncoder;
 
-	private final MimetypesFileTypeMap mimetypesFileTypeMap;
-
 	private final AutoDetectParser autoDetectParser;
 
 	private final MailServiceFactory emailServiceFactory;
 
 	@Autowired
 	public EditUserHandlerImpl(PasswordEncoder passwordEncoder, UserRepository userRepository, ProjectRepository projectRepository,
-			UserBinaryDataService userBinaryDataService, MimetypesFileTypeMap mimetypesFileTypeMap, AutoDetectParser autoDetectParser,
+			UserBinaryDataService userBinaryDataService, AutoDetectParser autoDetectParser,
 			MailServiceFactory emailServiceFactory) {
 		this.passwordEncoder = passwordEncoder;
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.userBinaryDataService = userBinaryDataService;
-		this.mimetypesFileTypeMap = mimetypesFileTypeMap;
 		this.autoDetectParser = autoDetectParser;
 		this.emailServiceFactory = emailServiceFactory;
 	}
@@ -176,11 +177,15 @@ public class EditUserHandlerImpl implements EditUserHandler {
 		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
 		userRepository.save(user);
 
-		emailServiceFactory.getDefaultEmailService(true)
+		try {
+			emailServiceFactory.getDefaultEmailService(true)
 				.sendChangePasswordConfirmation("Change password confirmation",
-						new String[]{loggedInUser.getEmail()},
-						loggedInUser.getUsername()
+					new String[]{loggedInUser.getEmail()},
+					loggedInUser.getUsername()
 				);
+		} catch (Exception e) {
+			LOGGER.warn("Unable to send email.", e);
+		}
 
 		return new OperationCompletionRS("Password has been changed successfully");
 	}

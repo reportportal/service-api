@@ -66,6 +66,14 @@ public class PluginLoaderImpl implements PluginLoader {
 
   private final FeatureFlagHandler featureFlagHandler;
 
+  /**
+   * Creates instance of {@link PluginLoader}
+   *
+   * @param dataStore                 {@link DataStore}
+   * @param integrationTypeRepository {@link IntegrationTypeRepository}
+   * @param pluginDescriptorFinder    {@link PluginDescriptorFinder}
+   * @param featureFlagHandler        {@link FeatureFlagHandler}
+   */
   @Autowired
   public PluginLoaderImpl(DataStore dataStore, IntegrationTypeRepository integrationTypeRepository,
       PluginDescriptorFinder pluginDescriptorFinder, FeatureFlagHandler featureFlagHandler) {
@@ -92,8 +100,9 @@ public class PluginLoaderImpl implements PluginLoader {
             version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(pluginInfo.getVersion()))
                 .verify(
                     ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
-                        "Plugin with ID = '{}' of the same VERSION = '{}' has already been uploaded.",
-                        pluginInfo.getId(), pluginInfo.getVersion()
+                        "Plugin with ID = '{}' of the same VERSION = '{}' "
+                            + "has already been uploaded.", pluginInfo.getId(),
+                        pluginInfo.getVersion()
                     )));
 
     IntegrationTypeDetails pluginDetails = IntegrationTypeBuilder.createIntegrationTypeDetails();

@@ -66,6 +66,16 @@ public class IntegrationSecretsMigrationHandler {
 
   private final FeatureFlagHandler featureFlagHandler;
 
+  /**
+   * Creates instance of IntegrationSecretsMigrationHandler.
+   *
+   * @param dataStore                       {@link DataStore}
+   * @param jiraEmailSecretMigrationService {@link JiraEmailSecretMigrationService}
+   * @param rallySecretMigrationService     {@link RallySecretMigrationService}
+   * @param saucelabsSecretMigrationService {@link SaucelabsSecretMigrationService}
+   * @param ldapSecretMigrationService      {@link LdapSecretMigrationService}
+   * @param featureFlagHandler              {@link FeatureFlagHandler}
+   */
   @Autowired
   public IntegrationSecretsMigrationHandler(DataStore dataStore,
       JiraEmailSecretMigrationService jiraEmailSecretMigrationService,
@@ -81,6 +91,12 @@ public class IntegrationSecretsMigrationHandler {
     this.featureFlagHandler = featureFlagHandler;
   }
 
+  /**
+   * Migration of user info from Auth Provider.
+   *
+   * @param event {@link ApplicationReadyEvent}
+   * @throws IOException
+   */
   @EventListener
   public void migrate(ApplicationReadyEvent event) throws IOException {
     String migrationFilePath;

@@ -148,11 +148,7 @@ public class PluginLoaderImpl implements PluginLoader {
 
   @Override
   public void deleteFromDataStore(String fileId) {
-    if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
-      dataStore.delete(PLUGINS_ROOT_PATH + fileId);
-    } else {
-      dataStore.delete(fileId);
-    }
+    dataStore.delete(fileId);
   }
 
   @Override

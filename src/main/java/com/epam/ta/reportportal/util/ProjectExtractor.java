@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,17 +59,17 @@ public class ProjectExtractor {
     final String normalizedProjectName = normalizeId(projectName);
 
     if (user.getUserRole().equals(ADMINISTRATOR)) {
-			return extractProjectDetailsAdmin(user, projectName);
-		}
-		return user.getProjectDetails()
-				.computeIfAbsent(normalizedProjectName,
-						k -> findProjectDetails(user,
-								normalizedProjectName
-						).orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
-								"Please check the list of your available projects."
-						))
-				);
-	}
+      return extractProjectDetailsAdmin(user, projectName);
+    }
+    return user.getProjectDetails()
+      .computeIfAbsent(normalizedProjectName,
+        k -> findProjectDetails(user,
+          normalizedProjectName
+        ).orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
+          "Please check the list of your available projects."
+        ))
+      );
+  }
 
 
   /**

@@ -78,4 +78,11 @@ class AssignedToProjectPermission implements Permission {
     projectDetailsMapping.put(resolvedProjectName, projectDetails);
     rpUser.setProjectDetails(projectDetailsMapping);
   }
+
+  private boolean hasProjectAuthority(Collection<? extends GrantedAuthority> authorityList,
+    String project) {
+    return authorityList.stream()
+      .filter(a -> a instanceof ProjectAuthority)
+      .anyMatch(pa -> ((ProjectAuthority) pa).getProject().equals(project));
+  }
 }

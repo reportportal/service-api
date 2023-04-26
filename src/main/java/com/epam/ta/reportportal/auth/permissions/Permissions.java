@@ -23,22 +23,22 @@ package com.epam.ta.reportportal.auth.permissions;
  */
 public final class Permissions {
 
-	private Permissions() {
-		// constants holder
-	}
+  private Permissions() {
+    // constants holder
+  }
 
-	public static final String ALLOWED_TO_EDIT_USER = "(#login.toLowerCase() == authentication.name) || hasRole('ADMINISTRATOR')";
+  public static final String ALLOWED_TO_EDIT_USER = "(#login.toLowerCase() == authentication.name) || hasRole('ADMINISTRATOR')";
 
-	public static final String ADMIN_ONLY = "hasRole('ADMINISTRATOR')";
+  public static final String ADMIN_ONLY = "hasRole('ADMINISTRATOR')";
 
-	public static final String ALLOWED_TO_REPORT = "hasPermission(#projectName.toLowerCase(), 'reporterPermission')";
+  public static final String ALLOWED_TO_REPORT = "hasPermission(#projectName.toLowerCase(), 'reporterPermission')";
 
-	public static final String ASSIGNED_TO_PROJECT = "hasPermission(#projectName.toLowerCase(), 'isAssignedToProject')";
+  public static final String ASSIGNED_TO_PROJECT = "hasPermission(#projectName.toLowerCase(), 'isAssignedToProject')";
 
-	public static final String PROJECT_MANAGER = "hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')";
+  public static final String PROJECT_MANAGER = "hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')";
 
-	public static final String NOT_CUSTOMER = "hasPermission(#projectName.toLowerCase(), 'notCustomerPermission')";
+  public static final String NOT_CUSTOMER = "hasPermission(#projectName.toLowerCase(), 'notCustomerPermission')";
 
-	public static final String PROJECT_MANAGER_OR_ADMIN =
-			"hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')" + "||" + ADMIN_ONLY;
+  public static final String PROJECT_MANAGER_OR_ADMIN =
+    "hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')" + "||" + ADMIN_ONLY;
 }

@@ -42,7 +42,7 @@ public class ProjectExtractor {
 
   @Autowired
   public ProjectExtractor(ProjectRepository projectRepository,
-    ProjectUserRepository projectUserRepository) {
+      ProjectUserRepository projectUserRepository) {
     this.projectRepository = projectRepository;
     this.projectUserRepository = projectUserRepository;
   }
@@ -55,20 +55,20 @@ public class ProjectExtractor {
    * @return Project Details
    */
   public ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user,
-    String projectName) {
+      String projectName) {
     final String normalizedProjectName = normalizeId(projectName);
 
     if (user.getUserRole().equals(ADMINISTRATOR)) {
       return extractProjectDetailsAdmin(user, projectName);
     }
     return user.getProjectDetails()
-      .computeIfAbsent(normalizedProjectName,
-        k -> findProjectDetails(user,
-          normalizedProjectName
-        ).orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
-          "Please check the list of your available projects."
-        ))
-      );
+        .computeIfAbsent(normalizedProjectName,
+            k -> findProjectDetails(user,
+                normalizedProjectName
+            ).orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
+                "Please check the list of your available projects."
+            ))
+        );
   }
 
 
@@ -80,7 +80,7 @@ public class ProjectExtractor {
    * @return {@link Optional} with Project Details
    */
   public Optional<ReportPortalUser.ProjectDetails> findProjectDetails(ReportPortalUser user,
-    String projectName) {
+      String projectName) {
     return projectUserRepository.findDetailsByUserIdAndProjectName(user.getUserId(), projectName);
   }
 
@@ -93,20 +93,20 @@ public class ProjectExtractor {
    * @return Project Details
    */
   public ReportPortalUser.ProjectDetails extractProjectDetailsAdmin(ReportPortalUser user,
-    String projectName) {
+      String projectName) {
 
     //dirty hack to allow everything for user with 'admin' authority
     if (user.getUserRole().getAuthority().equals(ADMINISTRATOR.getAuthority())) {
       Project project = projectRepository.findByName(normalizeId(projectName))
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+          .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
       user.getProjectDetails()
-        .put(projectName, new ReportPortalUser.ProjectDetails(project.getId(), project.getName(),
-          ProjectRole.PROJECT_MANAGER));
+          .put(projectName, new ReportPortalUser.ProjectDetails(project.getId(), project.getName(),
+              ProjectRole.PROJECT_MANAGER));
     }
 
     return Optional.ofNullable(user.getProjectDetails().get(normalizeId(projectName)))
-      .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
-        "Please check the list of your available projects."));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
+            "Please check the list of your available projects."));
   }
 
 }

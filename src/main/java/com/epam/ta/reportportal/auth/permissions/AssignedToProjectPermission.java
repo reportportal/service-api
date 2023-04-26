@@ -64,24 +64,17 @@ class AssignedToProjectPermission implements Permission {
 
     final String resolvedProjectName = String.valueOf(targetDomainObject);
     final Optional<ReportPortalUser.ProjectDetails> projectDetails = projectExtractor.findProjectDetails(
-      rpUser, resolvedProjectName);
+        rpUser, resolvedProjectName);
     projectDetails.ifPresent(
-      details -> fillProjectDetails(rpUser, resolvedProjectName, details));
+        details -> fillProjectDetails(rpUser, resolvedProjectName, details));
     return projectDetails.isPresent();
   }
 
   private void fillProjectDetails(ReportPortalUser rpUser, String resolvedProjectName,
-    ReportPortalUser.ProjectDetails projectDetails) {
+      ReportPortalUser.ProjectDetails projectDetails) {
     final Map<String, ReportPortalUser.ProjectDetails> projectDetailsMapping = Maps.newHashMapWithExpectedSize(
-      1);
+        1);
     projectDetailsMapping.put(resolvedProjectName, projectDetails);
     rpUser.setProjectDetails(projectDetailsMapping);
-  }
-
-  private boolean hasProjectAuthority(Collection<? extends GrantedAuthority> authorityList,
-    String project) {
-    return authorityList.stream()
-      .filter(a -> a instanceof ProjectAuthority)
-      .anyMatch(pa -> ((ProjectAuthority) pa).getProject().equals(project));
   }
 }

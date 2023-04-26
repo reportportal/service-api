@@ -30,19 +30,19 @@ public final class Permissions {
   public static final String ADMIN_ONLY = "hasRole('ADMINISTRATOR')";
 
   public static final String ALLOWED_TO_EDIT_USER =
-    "(#login.toLowerCase() == authentication.name)" + "||" + ADMIN_ONLY;
+      "(#login.toLowerCase() == authentication.name)" + "||" + ADMIN_ONLY;
 
   public static final String ALLOWED_TO_REPORT =
-    "hasPermission(#projectName.toLowerCase(), 'reporterPermission')" + "||" + ADMIN_ONLY;
+      "hasPermission(#projectName.toLowerCase(), 'reporterPermission')" + "||" + ADMIN_ONLY;
 
   public static final String ASSIGNED_TO_PROJECT = "hasPermission(#projectName.toLowerCase(), 'isAssignedToProject')";
 
   public static final String PROJECT_MANAGER =
-    "hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')" + "||" + ADMIN_ONLY;
+      "hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')" + "||" + ADMIN_ONLY;
 
   public static final String NOT_CUSTOMER =
-    "hasPermission(#projectName.toLowerCase(), 'notCustomerPermission')" + "||" + ADMIN_ONLY;
+      "hasPermission(#projectName.toLowerCase(), 'notCustomerPermission')" + "||" + ADMIN_ONLY;
 
   public static final String PROJECT_MANAGER_OR_ADMIN =
-    "hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')" + "||" + ADMIN_ONLY;
+      "hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')" + "||" + ADMIN_ONLY;
 }

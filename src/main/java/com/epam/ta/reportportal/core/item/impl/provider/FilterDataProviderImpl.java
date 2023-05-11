@@ -19,8 +19,8 @@ package com.epam.ta.reportportal.core.item.impl.provider;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.utils.DefaultLaunchFilterProvider;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
@@ -54,7 +54,7 @@ public class FilterDataProviderImpl implements DataProviderHandler {
 	private static final String FILTER_ID_PARAM = "filterId";
 
 	@Autowired
-	private GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
+	private UserFilterRepository filterRepository;
 
 	@Autowired
 	private TestItemRepository testItemRepository;
@@ -90,8 +90,14 @@ public class FilterDataProviderImpl implements DataProviderHandler {
 
 		Boolean isLatest = Optional.ofNullable(params.get(IS_LATEST_LAUNCHES_REQUEST_PARAM)).map(Boolean::parseBoolean).orElse(false);
 
+		UserFilter userFilter = filterRepository.findByIdAndProjectId(launchFilterId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
+						launchFilterId,
+						projectDetails.getProjectName()
+				));
+
 		Pair<Queryable, Pageable> queryablePair = DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(projectDetails,
-				getShareableEntityHandler.getPermitted(launchFilterId, projectDetails),
+				userFilter,
 				launchesLimit
 		);
 

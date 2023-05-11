@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.enums.LogicalOperator;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
@@ -513,6 +514,7 @@ class ProjectControllerTest extends BaseMvcTest {
 		launchAttribute.setKey("key");
 		launchAttribute.setValue("val");
 		senderCaseDTO.setAttributes(Sets.newHashSet(launchAttribute));
+		senderCaseDTO.setAttributesOperator(LogicalOperator.AND.getOperator());
 
 		request.setSenderCases(singletonList(senderCaseDTO));
 

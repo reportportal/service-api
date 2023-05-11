@@ -111,10 +111,12 @@ class GetProjectHandlerImplTest {
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getUserNames(extractProjectDetails(user, "test_project"), "qw")
+				() -> handler.getUserNames(extractProjectDetails(user, "test_project"), "")
 		);
 
-		assertEquals("Incorrect filtering parameters. Length of the filtering string 'qw' is less than 3 symbols", exception.getMessage());
+		assertEquals(
+				"Incorrect filtering parameters. Length of the filtering string '' is less than 1 symbol",
+				exception.getMessage());
 	}
 
 	@Test

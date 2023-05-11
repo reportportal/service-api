@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.plugin;
 
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
+import java.io.File;
 import org.junit.jupiter.api.Test;
 import org.pf4j.PluginDescriptor;
 import org.pf4j.PluginManager;
@@ -72,7 +73,7 @@ class ReportPortalExtensionFactoryTest {
 
 		DummyPluginBean pluginBean = (DummyPluginBean) reportPortalExtensionFactory.create(DummyPluginBean.class);
 
-		assertEquals("resources/testId",
+		assertEquals("resources" + File.separator + "testId",
 				String.valueOf(pluginBean.getInitParams().get(IntegrationTypeProperties.RESOURCES_DIRECTORY.getAttribute()))
 		);
 

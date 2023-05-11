@@ -263,6 +263,10 @@ class UserControllerTest extends BaseMvcTest {
 		ChangePasswordRQ rq = new ChangePasswordRQ();
 		rq.setOldPassword("1q2w3e");
 		rq.setNewPassword("12345");
+
+		when(mailServiceFactory.getDefaultEmailService(true)).thenReturn(emailService);
+		doNothing().when(emailService).sendChangePasswordConfirmation(any(), any(), any());
+
 		mockMvc.perform(post("/v1/user/password/change").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)).andExpect(status().isOk());

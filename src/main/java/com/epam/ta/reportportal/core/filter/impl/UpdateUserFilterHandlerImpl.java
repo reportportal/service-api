@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
-import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
@@ -27,27 +26,20 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterCreatedEvent;
 import com.epam.ta.reportportal.core.events.activity.FilterUpdatedEvent;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
-import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
-import com.epam.ta.reportportal.ws.model.CollectionsRQ;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
 import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -60,21 +52,19 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.USER_FILTER_NOT_FOUND;
 @Service
 public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
+	private final static String KEY_AND_VALUE_DELIMITER = ":";
+
+	private final static String ATTRIBUTES_DELIMITER = ",";
 	private final ProjectExtractor projectExtractor;
-	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 	private final UserFilterRepository userFilterRepository;
-	private final WidgetRepository widgetRepository;
-	private final ShareableObjectsHandler aclHandler;
 	private final MessageBus messageBus;
 
 	@Autowired
-	public UpdateUserFilterHandlerImpl(ProjectExtractor projectExtractor, GetShareableEntityHandler<UserFilter> getShareableEntityHandler,
-			UserFilterRepository userFilterRepository, WidgetRepository widgetRepository, ShareableObjectsHandler aclHandler, MessageBus messageBus) {
+	public UpdateUserFilterHandlerImpl(ProjectExtractor projectExtractor, UserFilterRepository userFilterRepository,
+
+			MessageBus messageBus) {
 		this.projectExtractor = projectExtractor;
-		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.userFilterRepository = userFilterRepository;
-		this.widgetRepository = widgetRepository;
-		this.aclHandler = aclHandler;
 		this.messageBus = messageBus;
 	}
 
@@ -85,9 +75,9 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 		validateFilterRq(createFilterRQ);
 
 		BusinessRule.expect(userFilterRepository.existsByNameAndOwnerAndProjectId(createFilterRQ.getName(),
-				user.getUsername(),
-				projectDetails.getProjectId()
-		), BooleanUtils::isFalse)
+						user.getUsername(),
+						projectDetails.getProjectId()
+				), BooleanUtils::isFalse)
 				.verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName(), user.getUsername(), projectName);
 
 		UserFilter filter = new UserFilterBuilder().addFilterRq(createFilterRQ)
@@ -96,7 +86,6 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 				.get();
 
 		userFilterRepository.save(filter);
-		aclHandler.initAcl(filter, user.getUsername(), projectDetails.getProjectId(), BooleanUtils.isTrue(createFilterRQ.getShare()));
 		messageBus.publishActivity(new FilterCreatedEvent(TO_ACTIVITY_RESOURCE.apply(filter), user.getUserId(), user.getUsername()));
 		return new EntryCreatedRS(filter.getId());
 	}
@@ -105,7 +94,11 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 	public OperationCompletionRS updateUserFilter(Long userFilterId, UpdateUserFilterRQ updateRQ,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		validateFilterRq(updateRQ);
-		UserFilter userFilter = getShareableEntityHandler.getAdministrated(userFilterId, projectDetails);
+		UserFilter userFilter = userFilterRepository.findByIdAndProjectId(userFilterId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
+						userFilterId,
+						projectDetails.getProjectName()
+				));
 		expect(userFilter.getProject().getId(), Predicate.isEqual(projectDetails.getProjectId())).verify(USER_FILTER_NOT_FOUND,
 				userFilterId,
 				projectDetails.getProjectId(),
@@ -115,9 +108,9 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 		if (!userFilter.getName().equals(updateRQ.getName())) {
 
 			BusinessRule.expect(userFilterRepository.existsByNameAndOwnerAndProjectId(updateRQ.getName(),
-					userFilter.getOwner(),
-					projectDetails.getProjectId()
-			), BooleanUtils::isFalse)
+							userFilter.getOwner(),
+							projectDetails.getProjectId()
+					), BooleanUtils::isFalse)
 					.verify(ErrorType.USER_FILTER_ALREADY_EXISTS,
 							updateRQ.getName(),
 							userFilter.getOwner(),
@@ -127,10 +120,6 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 		UserFilterActivityResource before = TO_ACTIVITY_RESOURCE.apply(userFilter);
 		UserFilter updated = new UserFilterBuilder(userFilter).addFilterRq(updateRQ).get();
-
-		if (before.isShared() != updated.isShared()) {
-			aclHandler.updateAcl(updated, projectDetails.getProjectId(), updated.isShared());
-		}
 
 		messageBus.publishActivity(new FilterUpdatedEvent(before,
 				TO_ACTIVITY_RESOURCE.apply(updated),
@@ -144,18 +133,6 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 	public List<OperationCompletionRS> updateUserFilter(CollectionsRQ<BulkUpdateFilterRQ> updateRQ,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	@Override
-	public void updateSharing(Collection<UserFilter> filters, Long projectId, boolean isShared) {
-		List<Long> filtersToUpdate = Lists.newLinkedList();
-		filters.forEach(filter -> {
-			if (filter.isShared() != isShared) {
-				aclHandler.updateAcl(filter, projectId, isShared);
-				filtersToUpdate.add(filter.getId());
-			}
-		});
-		userFilterRepository.updateSharingFlag(filtersToUpdate, isShared);
 	}
 
 	/**
@@ -184,8 +161,11 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 			Condition condition = Condition.findByMarker(it.getCondition())
 					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS, it.getCondition()));
 			boolean isNegative = Condition.isNegative(it.getCondition());
-			condition.validate(criteriaHolder, it.getValue(), isNegative, ErrorType.INCORRECT_FILTER_PARAMETERS);
-			condition.castValue(criteriaHolder, it.getValue(), ErrorType.INCORRECT_FILTER_PARAMETERS);
+			String value = cutAttributesToMaxLength(it.getValue());
+
+			condition.validate(criteriaHolder, value, isNegative, ErrorType.INCORRECT_FILTER_PARAMETERS);
+			condition.castValue(criteriaHolder, value, ErrorType.INCORRECT_FILTER_PARAMETERS);
+			it.setValue(value);
 		});
 
 		//order conditions validation
@@ -194,5 +174,52 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 						.verify(ErrorType.INCORRECT_SORTING_PARAMETERS,
 								"Unable to find sort parameter '" + order.getSortingColumnName() + "'"
 						));
+	}
+
+	private String cutAttributesToMaxLength(String keyAndValue) {
+		if (keyAndValue == null || keyAndValue.isEmpty()) {
+			return keyAndValue;
+		}
+		String[] attributeArray = keyAndValue.split(ATTRIBUTES_DELIMITER);
+		if (attributeArray.length == 0) {
+			return cutAttributeToLength(keyAndValue, ValidationConstraints.MAX_ATTRIBUTE_LENGTH);
+		}
+		StringBuilder result = new StringBuilder();
+		for (int i = 0; i < attributeArray.length; i++) {
+			String attribute = attributeArray[i];
+			attribute = cutAttributeToLength(attribute, ValidationConstraints.MAX_ATTRIBUTE_LENGTH);
+			result.append(attribute);
+			if (i != attributeArray.length - 1){
+				result.append(ATTRIBUTES_DELIMITER);
+			}
+		}
+		return result.toString();
+	}
+
+	private String cutAttributeToLength(String attribute, int length){
+		String[] keyAndValueArray = attribute.split(KEY_AND_VALUE_DELIMITER);
+		if (keyAndValueArray.length == 0) {
+			attribute = cutStringToLength(attribute, length);
+		} else {
+			if (keyAndValueArray.length == 1) {
+				if (attribute.contains(KEY_AND_VALUE_DELIMITER)) {
+					attribute = cutStringToLength(keyAndValueArray[0], length) + KEY_AND_VALUE_DELIMITER;
+				} else {
+					attribute = cutStringToLength(attribute, length);
+				}
+			} else {
+				String key = cutStringToLength(keyAndValueArray[0], length);
+				String value = cutStringToLength(keyAndValueArray[1], length);
+				attribute = key + KEY_AND_VALUE_DELIMITER + value;
+			}
+		}
+		return attribute;
+	}
+	private String cutStringToLength(String string, int length) {
+		if (string.length() > length) {
+			string = string.substring(0, length);
+		}
+
+		return string;
 	}
 }

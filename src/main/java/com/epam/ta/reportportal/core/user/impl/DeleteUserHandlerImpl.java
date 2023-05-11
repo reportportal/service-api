@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.binary.UserBinaryDataService;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -57,8 +56,6 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 	private final DeleteProjectHandler deleteProjectHandler;
 
-	private final ShareableObjectsHandler shareableObjectsHandler;
-
 	private final ContentRemover<User> userContentRemover;
 
 	private final ProjectRecipientHandler projectRecipientHandler;
@@ -67,11 +64,10 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 	@Autowired
 	public DeleteUserHandlerImpl(UserRepository userRepository, DeleteProjectHandler deleteProjectHandler,
-			ShareableObjectsHandler shareableObjectsHandler, UserBinaryDataService dataStore, ContentRemover<User> userContentRemover,
+			ContentRemover<User> userContentRemover, UserBinaryDataService dataStore,
 			ProjectRecipientHandler projectRecipientHandler, ProjectRepository projectRepository) {
 		this.userRepository = userRepository;
 		this.deleteProjectHandler = deleteProjectHandler;
-		this.shareableObjectsHandler = shareableObjectsHandler;
 		this.dataStore = dataStore;
 		this.userContentRemover = userContentRemover;
 		this.projectRecipientHandler = projectRecipientHandler;
@@ -91,7 +87,6 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 			if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(), user.getLogin())) {
 				deleteProjectHandler.deleteProject(project.getId());
 			} else {
-				shareableObjectsHandler.preventSharedObjects(project.getId(), user.getLogin());
 				projectRecipientHandler.handle(Lists.newArrayList(user), project);
 			}
 		});

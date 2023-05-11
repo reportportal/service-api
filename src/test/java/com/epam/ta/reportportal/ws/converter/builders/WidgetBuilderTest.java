@@ -43,7 +43,6 @@ class WidgetBuilderTest {
 		final String description = "description";
 		widgetRQ.setDescription(description);
 		final boolean share = true;
-		widgetRQ.setShare(share);
 		final String widgetType = "oldLineChart";
 		widgetRQ.setWidgetType(widgetType);
 		final ContentParameters contentParameters = new ContentParameters();
@@ -61,7 +60,6 @@ class WidgetBuilderTest {
 
 		assertEquals(name, widget.getName());
 		assertEquals(description, widget.getDescription());
-		assertEquals(share, widget.isShared());
 		assertEquals(owner, widget.getOwner());
 		assertEquals(widgetType, widget.getWidgetType());
 		assertThat(widget.getFilters()).containsExactly(userFilter);

@@ -74,7 +74,7 @@
                 <tr>
                     <td height="130">
                         <img class="mainimg" src="cid:create-user.png" border="0" width="540" height="130"
-                             alt="You have been successfully registered on Report Portal">
+                             alt="You have been successfully registered on ReportPortal">
                     </td>
                 </tr>
                 </tbody>
@@ -83,8 +83,8 @@
                 <tbody>
                 <tr>
                     <td align="left" height="170">
-                        <h2 style="font-size: 20px; color: #777777;" align="center">Welcome to Report Portal!</h2>
-                        <p style="font-size: 14px; color: #777777;">You have been successfully registered on Report Portal.</p>
+                        <h2 style="font-size: 20px; color: #777777;" align="center">Welcome to ReportPortal!</h2>
+                        <p style="font-size: 14px; color: #777777;">You have been successfully registered on ReportPortal.</p>
                         <p style="font-size: 14px; line-height: 1.7; color: #777777">Please, use the following information to login:<br>
                             Login: <b>${login}</b><br>
                             Password: <b>${password}</b></p>
@@ -100,8 +100,8 @@
                             </tr>
                             </tbody>
                         </table>
-                        <p style="font-size: 14px; color: #777777;">New to Report Portal? Check out all the details in the <a
-                                href="http://reportportal.io/#documentation/User-Guide" target="_blank">User Guide</a>.</p>
+                        <p style="font-size: 14px; color: #777777;">New to ReportPortal? Check out the <a
+                                href="https://reportportal.io/docs/reportportal-tutorial/?utm_source=trigger&utm_medium=email&utm_campaign=tutorial&utm_content=invitation" target="_blank">ReportPortal Tutorial</a>.</p>
                         <br>
                         <p style="font-size: 14px; line-height: 1.7; color: #777777;">Thanks,<br>
                             ReportPortal.io Team</p>
@@ -120,19 +120,14 @@
                                 <td><a href="https://github.com/reportportal" target="_blank"><img src="cid:ic-github.png" border="0"
                                                                                                    width="20" height="21" alt="github"></a>
                                 </td>
-                                <td><a href="https://www.facebook.com/ReportPortal.io" target="_blank"><img src="cid:ic-fb.png" border="0"
-                                                                                                            width="18" height="18"
-                                                                                                            alt="facebook"></a></td>
                                 <td><a href="http://twitter.com/ReportPortal_io" target="_blank"><img src="cid:ic-twitter.png" border="0"
                                                                                                       width="20" height="16" alt="twitter"></a>
                                 </td>
-                                <td><a href="http://youtube.com/c/ReportPortalCommunity" target="_blank"><img src="cid:ic-youtube.png"
+                                <td><a href="https://www.youtube.com/c/ReportPortal" target="_blank"><img src="cid:ic-youtube.png"
                                                                                                               border="0" width="20"
                                                                                                               height="15" alt="youtube"></a>
                                 </td>
-                                <td><a href="https://vk.com/reportportal_io" target="_blank"><img src="cid:ic-vk.png" border="0" width="21"
-                                                                                                  height="12" alt="vk"></a></td>
-                                <td><a href="https://reportportal-slack-auto.herokuapp.com" target="_blank"><img src="cid:ic-slack.png"
+                                <td><a href="https://slack.epmrpp.reportportal.io" target="_blank"><img src="cid:ic-slack.png"
                                                                                                                  border="0" width="18"
                                                                                                                  height="18"
                                                                                                                  alt="slack"></a></td>
@@ -155,7 +150,7 @@
                 <tr>
                     <td align="center" height="85" class="footercontent" style="padding: 4px;">
                         <p style="font-size: 11px; line-height: 1.5; color: #6d6d6d">
-                            <b>Report Portal Notification Center</b><br>
+                            <b>ReportPortal Notification Center</b><br>
                             This is an automatically generated notification - please do not reply to this message. You are receiving this
                             email to complete the registration initiated on the ReportPortal application; if you are not waiting
                             for the ReportPortal's invitation then just ignore this message.

@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.Maps;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 
@@ -35,50 +34,47 @@ import java.util.*;
  * @author Andrei Varabyeu
  */
 @Component("assignedToProjectPermission")
-@LookupPermission({ "isAssignedToProject" })
+@LookupPermission({"isAssignedToProject"})
 class AssignedToProjectPermission implements Permission {
 
-	/*
-	 * Due to Spring's framework flow, Security API loads first. So, context
-	 * doesn't know anything about Repository beans. We have to load this beans
-	 * lazily
-	 */
-	private final ProjectExtractor projectExtractor;
+  /*
+   * Due to Spring's framework flow, Security API loads first. So, context
+   * doesn't know anything about Repository beans. We have to load this beans
+   * lazily
+   */
+  private final ProjectExtractor projectExtractor;
 
-	@Autowired
-	AssignedToProjectPermission(ProjectExtractor projectExtractor) {
-		this.projectExtractor = projectExtractor;
-	}
+  @Autowired
+  AssignedToProjectPermission(ProjectExtractor projectExtractor) {
+    this.projectExtractor = projectExtractor;
+  }
 
-	/**
-	 * Check whether user assigned to project<br>
-	 * Or user is ADMIN who is GOD of ReportPortal
-	 */
-	@Override
-	public boolean isAllowed(Authentication authentication, Object targetDomainObject) {
-		if (!authentication.isAuthenticated()) {
-			return false;
-		}
+  /**
+   * Check whether user assigned to project<br> Or user is ADMIN who is GOD of ReportPortal
+   */
+  @Override
+  public boolean isAllowed(Authentication authentication, Object targetDomainObject) {
+    if (!authentication.isAuthenticated()) {
+      return false;
+    }
 
-		OAuth2Authentication oauth = (OAuth2Authentication) authentication;
-		ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
-		BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
+    OAuth2Authentication oauth = (OAuth2Authentication) authentication;
+    ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
+    BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
-		final String resolvedProjectName = String.valueOf(targetDomainObject);
-		final Optional<ReportPortalUser.ProjectDetails> projectDetails = projectExtractor.findProjectDetails(rpUser, resolvedProjectName);
-		projectDetails.ifPresent(details -> fillProjectDetails(rpUser, resolvedProjectName, details));
-		return projectDetails.isPresent();
-	}
+    final String resolvedProjectName = String.valueOf(targetDomainObject);
+    final Optional<ReportPortalUser.ProjectDetails> projectDetails = projectExtractor.findProjectDetails(
+        rpUser, resolvedProjectName);
+    projectDetails.ifPresent(
+        details -> fillProjectDetails(rpUser, resolvedProjectName, details));
+    return projectDetails.isPresent();
+  }
 
-	private void fillProjectDetails(ReportPortalUser rpUser, String resolvedProjectName, ReportPortalUser.ProjectDetails projectDetails) {
-		final Map<String, ReportPortalUser.ProjectDetails> projectDetailsMapping = Maps.newHashMapWithExpectedSize(1);
-		projectDetailsMapping.put(resolvedProjectName, projectDetails);
-		rpUser.setProjectDetails(projectDetailsMapping);
-	}
-
-	private boolean hasProjectAuthority(Collection<? extends GrantedAuthority> authorityList, String project) {
-		return authorityList.stream()
-				.filter(a -> a instanceof ProjectAuthority)
-				.anyMatch(pa -> ((ProjectAuthority) pa).getProject().equals(project));
-	}
+  private void fillProjectDetails(ReportPortalUser rpUser, String resolvedProjectName,
+      ReportPortalUser.ProjectDetails projectDetails) {
+    final Map<String, ReportPortalUser.ProjectDetails> projectDetailsMapping = Maps.newHashMapWithExpectedSize(
+        1);
+    projectDetailsMapping.put(resolvedProjectName, projectDetails);
+    rpUser.setProjectDetails(projectDetailsMapping);
+  }
 }

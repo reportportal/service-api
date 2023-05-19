@@ -128,6 +128,9 @@ rp:
     #TODO currently we wait for log clusterization finish that may last for ~20 mins
     reply-timeout: 1200000 #milliseconds
 
+  feature:
+    flags:
+
   requestLogging: true
 
   jwt:

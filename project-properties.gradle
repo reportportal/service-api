@@ -58,7 +58,7 @@ project.ext {
             (migrationsUrl + '/migrations/59_stale_materialized_view.up.sql')          : 'V059__stale_materialized_view.sql',
             (migrationsUrl + '/migrations/60_sender_case_operator.up.sql')             : 'V060__sender_case_operator.sql',
             (migrationsUrl + '/migrations/61_remove_acl.up.sql')                       : 'V061__remove_acl.sql',
-            (migrationsUrl + '/migrations/62_remove_dashboard_cascade_drop.up.sql')    : 'V062_remove_dashboard_cascade_drop.sql',
+            (migrationsUrl + '/migrations/62_remove_dashboard_cascade_drop.up.sql')    : 'V062__remove_dashboard_cascade_drop.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

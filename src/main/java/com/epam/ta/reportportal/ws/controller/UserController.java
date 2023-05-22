@@ -270,26 +270,26 @@ public class UserController {
 		}
 	}
 
-	@PostMapping(value = "/{userId}/api-keys")
-	@ResponseStatus(CREATED)
-	@ApiOperation("Create new Api Key for current user")
-	public ApiKeyRS createApiKey(@RequestBody @Validated ApiKeyRQ apiKeyRQ,
-			@AuthenticationPrincipal ReportPortalUser currentUser, @PathVariable Long userId) {
-		return apiKeyHandler.createApiKey(apiKeyRQ.getName(), currentUser.getUserId());
-	}
+  @PostMapping(value = "/{userId}/api-keys")
+  @ResponseStatus(CREATED)
+  @ApiOperation("Create new Api Key for current user")
+  public ApiKeyRS createApiKey(@RequestBody @Validated ApiKeyRQ apiKeyRQ,
+      @AuthenticationPrincipal ReportPortalUser currentUser, @PathVariable Long userId) {
+    return apiKeyHandler.createApiKey(apiKeyRQ.getName(), currentUser.getUserId());
+  }
 
-	@DeleteMapping(value = "/{userId}/api-keys/{keyId}")
-	@ResponseStatus(OK)
-	@ApiOperation("Delete specified Api Key")
-	public OperationCompletionRS deleteApiKey(@PathVariable Long keyId, @PathVariable Long userId) {
-		return apiKeyHandler.deleteApiKey(keyId);
-	}
+  @DeleteMapping(value = "/{userId}/api-keys/{keyId}")
+  @ResponseStatus(OK)
+  @ApiOperation("Delete specified Api Key")
+  public OperationCompletionRS deleteApiKey(@PathVariable Long keyId, @PathVariable Long userId) {
+    return apiKeyHandler.deleteApiKey(keyId);
+  }
 
-	@GetMapping(value = "/{userId}/api-keys")
-	@ResponseStatus(OK)
-	@ApiOperation("Get List of users Api Keys")
-	public ApiKeysRS getUsersApiKeys(@AuthenticationPrincipal ReportPortalUser currentUser,
-			@PathVariable Long userId) {
-		return apiKeyHandler.getAllUsersApiKeys(currentUser.getUserId());
-	}
+  @GetMapping(value = "/{userId}/api-keys")
+  @ResponseStatus(OK)
+  @ApiOperation("Get List of users Api Keys")
+  public ApiKeysRS getUsersApiKeys(@AuthenticationPrincipal ReportPortalUser currentUser,
+      @PathVariable Long userId) {
+    return apiKeyHandler.getAllUsersApiKeys(currentUser.getUserId());
+  }
 }

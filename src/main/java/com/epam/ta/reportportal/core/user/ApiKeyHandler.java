@@ -22,14 +22,14 @@ import com.epam.ta.reportportal.ws.model.ApiKeysRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 /**
- * Api keys handler
+ * Api keys handler.
  *
  * @author Andrei Piankouski
  */
 public interface ApiKeyHandler {
 
   /**
-   * Generate api key for user
+   * Generate api key for user.
    *
    * @param keyName name of Api Key
    * @return generated api key.
@@ -37,7 +37,7 @@ public interface ApiKeyHandler {
   ApiKeyRS createApiKey(String keyName, Long userId);
 
   /**
-   * Delete users ApiKey by id
+   * Delete users ApiKey by id.
    *
    * @param id Api Key id
    * @return {@link OperationCompletionRS}
@@ -45,7 +45,7 @@ public interface ApiKeyHandler {
   OperationCompletionRS deleteApiKey(Long id);
 
   /**
-   * Return all users ApiKeys
+   * Return all users ApiKeys.
    *
    * @param userId User id
    * @return list of {@link ApiKeyRQ}

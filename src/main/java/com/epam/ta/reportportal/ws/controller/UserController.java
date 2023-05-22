@@ -84,7 +84,8 @@ public class UserController {
 	private final GetJasperReportHandler<User> jasperReportHandler;
 
 	@Autowired
-	public UserController(CreateUserHandler createUserMessageHandler, EditUserHandler editUserMessageHandler,
+	public UserController(CreateUserHandler createUserMessageHandler,
+			EditUserHandler editUserMessageHandler,
 			DeleteUserHandler deleteUserHandler, GetUserHandler getUserHandler,
 			@Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler,
 			ApiKeyHandler apiKeyHandler) {
@@ -272,7 +273,8 @@ public class UserController {
 	@PostMapping(value = "/{userId}/api-keys")
 	@ResponseStatus(CREATED)
 	@ApiOperation("Create new Api Key for current user")
-	public ApiKeyRS createApiKey(@RequestBody @Validated ApiKeyRQ apiKeyRQ, @AuthenticationPrincipal ReportPortalUser currentUser, @PathVariable Long userId) {
+	public ApiKeyRS createApiKey(@RequestBody @Validated ApiKeyRQ apiKeyRQ,
+			@AuthenticationPrincipal ReportPortalUser currentUser, @PathVariable Long userId) {
 		return apiKeyHandler.createApiKey(apiKeyRQ.getName(), currentUser.getUserId());
 	}
 
@@ -286,7 +288,8 @@ public class UserController {
 	@GetMapping(value = "/{userId}/api-keys")
 	@ResponseStatus(OK)
 	@ApiOperation("Get List of users Api Keys")
-	public ApiKeysRS getUsersApiKeys(@AuthenticationPrincipal ReportPortalUser currentUser, @PathVariable Long userId) {
+	public ApiKeysRS getUsersApiKeys(@AuthenticationPrincipal ReportPortalUser currentUser,
+			@PathVariable Long userId) {
 		return apiKeyHandler.getAllUsersApiKeys(currentUser.getUserId());
 	}
 }

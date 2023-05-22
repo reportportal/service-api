@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.ws.converter;
+package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.user.ApiKey;
@@ -23,6 +23,8 @@ import com.epam.ta.reportportal.ws.model.ApiKeyRS;
 import java.util.function.Function;
 
 /**
+ * Converts internal DB model to DTO
+ * 
  * @author Andrei Piankouski
  */
 public class ApiKeyConverter {

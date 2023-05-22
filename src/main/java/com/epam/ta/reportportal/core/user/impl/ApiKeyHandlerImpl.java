@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.ws.converter.converters.ApiKeyConverter;
 import com.epam.ta.reportportal.ws.model.ApiKeyRS;
 import com.epam.ta.reportportal.ws.model.ApiKeysRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.google.common.annotations.VisibleForTesting;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -107,7 +108,8 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
     );
   }
 
-  private String generateApiKey(String keyName) {
+  @VisibleForTesting
+  String generateApiKey(String keyName) {
     byte[] keyBytes = keyName.getBytes(StandardCharsets.UTF_8);
 
     UUID uuid = UUID.randomUUID();

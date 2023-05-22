@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.core.user;
 
 import com.epam.ta.reportportal.ws.model.ApiKeyRQ;
+import com.epam.ta.reportportal.ws.model.ApiKeyRS;
+import com.epam.ta.reportportal.ws.model.ApiKeysRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import java.util.List;
 
@@ -31,7 +33,7 @@ public interface ApiKeyHandler {
    * @param keyName name of Api Key
    * @return generated api key.
    */
-  String createApiKey(String keyName, Long userId);
+  ApiKeyRS createApiKey(String keyName, Long userId);
 
   /**
    *
@@ -45,6 +47,6 @@ public interface ApiKeyHandler {
    * @param userId User id
    * @return list of {@link ApiKeyRQ}
    */
-  List<ApiKeyRQ> getAllUsersApiKeys(Long userId);
+  ApiKeysRS getAllUsersApiKeys(Long userId);
 
 }

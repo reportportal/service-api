@@ -16,37 +16,38 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.user.ApiKeyHandler;
 import com.epam.ta.reportportal.dao.ApiKeyRepository;
-import com.epam.ta.reportportal.dao.ServerSettingsRepository;
-import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.entity.user.ApiKey;
 import com.epam.ta.reportportal.ws.converter.ApiKeyConverter;
-import com.epam.ta.reportportal.ws.model.ApiKeyRQ;
+import com.epam.ta.reportportal.ws.model.ApiKeyRS;
+import com.epam.ta.reportportal.ws.model.ApiKeysRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import java.nio.ByteBuffer;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.zip.CRC32;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 
 /**
  * @author Andrei Piankouski
  */
+@Service
+@Transactional
 public class ApiKeyHandlerImpl implements ApiKeyHandler {
 
-  private static final String SECRET_KEY = "secret.key";
-
-  private static final String DELIMITER = "delimiter";
+  private static final String DELIMITER = "_";
 
   private static final int KEY_MIN_LENGTH = 1;
 
@@ -54,17 +55,13 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
 
   private final ApiKeyRepository apiKeyRepository;
 
-  private final ServerSettingsRepository serverSettingsRepository;
-
   @Autowired
-  public ApiKeyHandlerImpl(ApiKeyRepository apiKeyRepository,
-      ServerSettingsRepository serverSettingsRepository) {
+  public ApiKeyHandlerImpl(ApiKeyRepository apiKeyRepository) {
     this.apiKeyRepository = apiKeyRepository;
-    this.serverSettingsRepository = serverSettingsRepository;
   }
 
   @Override
-  public String createApiKey(String name, Long userId) {
+  public ApiKeyRS createApiKey(String name, Long userId) {
     validateKeyName(name, userId);
 
     String apiToken = generateApiKey(name);
@@ -77,7 +74,9 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
     apiKey.setHash(hashedApiToken);
 
     apiKeyRepository.save(apiKey);
-    return null;
+    ApiKeyRS apiKeyRS = ApiKeyConverter.TO_RESOURCE.apply(apiKey);
+    apiKeyRS.setApiKey(apiToken);
+    return apiKeyRS;
   }
 
   @Override
@@ -87,50 +86,47 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
   }
 
   @Override
-  public List<ApiKeyRQ> getAllUsersApiKeys(Long userId) {
+  public ApiKeysRS getAllUsersApiKeys(Long userId) {
     List<ApiKey> apiKeys = apiKeyRepository.findByUserId(userId);
-    return apiKeys.stream().map(ApiKeyConverter.TO_RESOURCE).collect(Collectors.toList());
+    ApiKeysRS apiKeysRS = new ApiKeysRS();
+    apiKeysRS.setApiKeys(
+        apiKeys.stream().map(ApiKeyConverter.TO_RESOURCE).collect(Collectors.toList()));
+    return apiKeysRS;
   }
 
   private void validateKeyName(String keyName, Long userId) {
-    expect(KEY_MIN_LENGTH <= keyName.length() && keyName.length() <= KEY_MAX_LENGTH, Predicates.equalTo(true)).verify(BAD_REQUEST_ERROR,
-        Suppliers.formattedSupplier("API Key name should have size from {} to {} characters.", KEY_MIN_LENGTH, KEY_MAX_LENGTH)
+    expect(KEY_MIN_LENGTH <= keyName.length() && keyName.length() <= KEY_MAX_LENGTH,
+        Predicates.equalTo(true)).verify(BAD_REQUEST_ERROR,
+        Suppliers.formattedSupplier("API Key name should have size from {} to {} characters.",
+            KEY_MIN_LENGTH, KEY_MAX_LENGTH)
     );
-    expect(apiKeyRepository.existsByNameAndUserId(keyName, userId), Predicates.equalTo(false)).verify(BAD_REQUEST_ERROR,
+    expect(apiKeyRepository.existsByNameAndUserId(keyName, userId),
+        Predicates.equalTo(false)).verify(BAD_REQUEST_ERROR,
         Suppliers.formattedSupplier("API Key with the same name already exists.")
     );
   }
 
   private String generateApiKey(String keyName) {
-    StringBuilder apiKey = new StringBuilder(keyName);
-    String generatedString = RandomStringUtils.random(16, true, true);
-    apiKey.append(DELIMITER).append(generatedString);
+    byte[] keyBytes = keyName.getBytes(StandardCharsets.UTF_8);
 
-    String secret = getSecret();
+    UUID uuid = UUID.randomUUID();
+    byte[] uuidBytes = convertUUIDToBytes(uuid);
+    byte[] keyUuidBytes = ArrayUtils.addAll(keyBytes, uuidBytes);
+    byte[] hash = DigestUtils.sha3_256(keyUuidBytes);
+    byte[] uuidHashBytes = ArrayUtils.addAll(uuidBytes, hash);
 
-    String enc = getCRC32(generatedString, secret);
-
-    apiKey.append(DELIMITER).append(enc);
-
-    return apiKey.toString();
-  }
-
-  private String getCRC32(String generatedString, String secret) {
-    ByteBuffer buffer = ByteBuffer.allocate(secret.length() + generatedString.length());
-    buffer.put(secret.getBytes());
-    buffer.put(generatedString.getBytes());
-
-    CRC32 crc = new CRC32();
-    crc.update(buffer.array());
-    return Long.toHexString(crc.getValue());
+    return keyName + DELIMITER + Base64.getUrlEncoder().withoutPadding()
+        .encodeToString(uuidHashBytes);
   }
 
   private String getHash(String key) {
-    return DigestUtils.sha256Hex(key);
+    return new String(DigestUtils.sha3_256(key.getBytes()));
   }
 
-  private String getSecret() {
-    Optional<ServerSettings> secretKey = serverSettingsRepository.findByKey(SECRET_KEY);
-    return secretKey.isPresent() ? secretKey.get().getValue() : serverSettingsRepository.generateSecret();
+  private static byte[] convertUUIDToBytes(UUID uuid) {
+    ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+    bb.putLong(uuid.getMostSignificantBits());
+    bb.putLong(uuid.getLeastSignificantBits());
+    return bb.array();
   }
 }

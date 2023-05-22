@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.core.user.DeleteUserHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
-import com.epam.ta.reportportal.entity.user.ApiKey;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -270,27 +269,24 @@ public class UserController {
 		}
 	}
 
-	@PostMapping(value = "/api-key")
+	@PostMapping(value = "/{userId}/api-keys")
 	@ResponseStatus(CREATED)
-	@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	@ApiOperation("Create new Api Key for current user")
-	public String createApiKey(@RequestBody @Validated ApiKeyRQ apiKeyRQ, @AuthenticationPrincipal ReportPortalUser currentUser) {
+	public ApiKeyRS createApiKey(@RequestBody @Validated ApiKeyRQ apiKeyRQ, @AuthenticationPrincipal ReportPortalUser currentUser, @PathVariable Long userId) {
 		return apiKeyHandler.createApiKey(apiKeyRQ.getName(), currentUser.getUserId());
 	}
 
-	@DeleteMapping(value = "/api-key/{keyId}")
+	@DeleteMapping(value = "/{userId}/api-keys/{keyId}")
 	@ResponseStatus(OK)
-	@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	@ApiOperation("Delete specified Api Key")
-	public OperationCompletionRS deleteApiKey(@PathVariable Long keyId) {
+	public OperationCompletionRS deleteApiKey(@PathVariable Long keyId, @PathVariable Long userId) {
 		return apiKeyHandler.deleteApiKey(keyId);
 	}
 
-	@GetMapping(value = "/api-key")
+	@GetMapping(value = "/{userId}/api-keys")
 	@ResponseStatus(OK)
-	@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	@ApiOperation("Get List of users Api Keys")
-	public List<ApiKeyRQ> getUsersApiKeys(@AuthenticationPrincipal ReportPortalUser currentUser) {
+	public ApiKeysRS getUsersApiKeys(@AuthenticationPrincipal ReportPortalUser currentUser, @PathVariable Long userId) {
 		return apiKeyHandler.getAllUsersApiKeys(currentUser.getUserId());
 	}
 }

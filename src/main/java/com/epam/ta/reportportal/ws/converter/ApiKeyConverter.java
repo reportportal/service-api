@@ -16,8 +16,10 @@
 
 package com.epam.ta.reportportal.ws.converter;
 
+import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.user.ApiKey;
-import com.epam.ta.reportportal.ws.model.ApiKeyRQ;
+import com.epam.ta.reportportal.ws.model.ApiKeyRS;
+
 import java.util.function.Function;
 
 /**
@@ -29,11 +31,12 @@ public class ApiKeyConverter {
     //static only
   }
 
-  public static final Function<ApiKey, ApiKeyRQ> TO_RESOURCE = apiKey -> {
-    ApiKeyRQ resource = new ApiKeyRQ();
+  public static final Function<ApiKey, ApiKeyRS> TO_RESOURCE = apiKey -> {
+    ApiKeyRS resource = new ApiKeyRS();
+    resource.setId(apiKey.getId());
     resource.setName(apiKey.getName());
     resource.setUserId(apiKey.getUserId());
-    resource.setCreatedAt(apiKey.getCreatedAt().toLocalDate());
+    resource.setCreatedAt(EntityUtils.TO_DATE.apply(apiKey.getCreatedAt()));
     return resource;
   };
 

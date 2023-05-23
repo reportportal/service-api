@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
+import com.epam.ta.reportportal.core.user.ApiKeyHandler;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
@@ -76,19 +77,24 @@ public class UserController {
 
 	private final DeleteUserHandler deleteUserHandler;
 
+	private final ApiKeyHandler apiKeyHandler;
+
 	private final GetUserHandler getUserHandler;
 
 	private final GetJasperReportHandler<User> jasperReportHandler;
 
 	@Autowired
-	public UserController(CreateUserHandler createUserMessageHandler, EditUserHandler editUserMessageHandler,
+	public UserController(CreateUserHandler createUserMessageHandler,
+			EditUserHandler editUserMessageHandler,
 			DeleteUserHandler deleteUserHandler, GetUserHandler getUserHandler,
-			@Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler) {
+			@Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler,
+			ApiKeyHandler apiKeyHandler) {
 		this.createUserMessageHandler = createUserMessageHandler;
 		this.editUserMessageHandler = editUserMessageHandler;
 		this.deleteUserHandler = deleteUserHandler;
 		this.getUserHandler = getUserHandler;
 		this.jasperReportHandler = jasperReportHandler;
+		this.apiKeyHandler = apiKeyHandler;
 	}
 
 	@PostMapping
@@ -264,4 +270,26 @@ public class UserController {
 		}
 	}
 
+  @PostMapping(value = "/{userId}/api-keys")
+  @ResponseStatus(CREATED)
+  @ApiOperation("Create new Api Key for current user")
+  public ApiKeyRS createApiKey(@RequestBody @Validated ApiKeyRQ apiKeyRQ,
+      @AuthenticationPrincipal ReportPortalUser currentUser, @PathVariable Long userId) {
+    return apiKeyHandler.createApiKey(apiKeyRQ.getName(), currentUser.getUserId());
+  }
+
+  @DeleteMapping(value = "/{userId}/api-keys/{keyId}")
+  @ResponseStatus(OK)
+  @ApiOperation("Delete specified Api Key")
+  public OperationCompletionRS deleteApiKey(@PathVariable Long keyId, @PathVariable Long userId) {
+    return apiKeyHandler.deleteApiKey(keyId);
+  }
+
+  @GetMapping(value = "/{userId}/api-keys")
+  @ResponseStatus(OK)
+  @ApiOperation("Get List of users Api Keys")
+  public ApiKeysRS getUsersApiKeys(@AuthenticationPrincipal ReportPortalUser currentUser,
+      @PathVariable Long userId) {
+    return apiKeyHandler.getAllUsersApiKeys(currentUser.getUserId());
+  }
 }

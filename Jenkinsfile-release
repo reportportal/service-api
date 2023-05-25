@@ -1,0 +1,42 @@
+pipeline {
+  agent any
+
+  environment {
+    JAVA_HOME = "${tool 'openjdk-11'}"
+    PATH = "${env.JAVA_HOME}/bin:${env.PATH}"
+    DOCKERHUB = credentials('dockerhub')
+    GITHUB = credentials('github_token')
+  }
+
+  stages {
+    stage('Assemble') {
+      steps {
+        sh './gradlew clean assemble -P buildNumber=$VERSION'
+      }
+    }
+
+    stage('Test') {
+      steps {
+          sh './gradlew test --full-stacktrace'
+      }
+    }
+
+    stage('Build Artifact'){
+      steps{
+        sh './gradlew build -PreleaseMode=true -PgithubUserName=$GITHUB_USR -PgithubToken=$GITHUB_PSW -Pscripts.version=master -Pmigrations.version=master -Pbom.version=$VERSION'
+      }
+    }
+
+    stage('Build Docker Image'){
+      steps{
+        sh './gradlew buildDocker -P dockerTag=reportportal/service-api:$VERSION'
+      }
+    }
+
+    stage('Push to DockerHub') {
+      steps {
+        sh 'echo $DOCKERHUB_PSW | docker login -u $DOCKERHUB_USR --password-stdin && docker push reportportal/service-api:$VERSION'
+      }
+    }
+  }
+}

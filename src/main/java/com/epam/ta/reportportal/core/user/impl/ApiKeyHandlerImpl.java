@@ -64,6 +64,7 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
 
   @Override
   public ApiKeyRS createApiKey(String name, Long userId) {
+    name = name.trim();
     validateKeyName(name, userId);
 
     String apiToken = generateApiKey(name);
@@ -110,6 +111,7 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
 
   @VisibleForTesting
   String generateApiKey(String keyName) {
+    keyName = keyName.replaceAll("[ _]", "-");
     byte[] keyBytes = keyName.getBytes(StandardCharsets.UTF_8);
 
     UUID uuid = UUID.randomUUID();

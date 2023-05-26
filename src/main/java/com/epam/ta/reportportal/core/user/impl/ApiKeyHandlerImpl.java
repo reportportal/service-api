@@ -51,6 +51,9 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
 
   private static final String DELIMITER = "_";
 
+  private static final String FORBIDDEN_SYMBOLS_PATTERN = "[ _]";
+  private static final String REPLACE_PATTERN = "-";
+
   private static final int KEY_MIN_LENGTH = 1;
 
   private static final int KEY_MAX_LENGTH = 40;
@@ -64,6 +67,7 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
 
   @Override
   public ApiKeyRS createApiKey(String name, Long userId) {
+    name = name.trim();
     validateKeyName(name, userId);
 
     String apiToken = generateApiKey(name);
@@ -110,6 +114,7 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
 
   @VisibleForTesting
   String generateApiKey(String keyName) {
+    keyName = keyName.replaceAll(FORBIDDEN_SYMBOLS_PATTERN, REPLACE_PATTERN);
     byte[] keyBytes = keyName.getBytes(StandardCharsets.UTF_8);
 
     UUID uuid = UUID.randomUUID();

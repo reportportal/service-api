@@ -162,7 +162,6 @@ class UserControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	@Disabled
 	void deleteUserPositive() throws Exception {
 		mockMvc.perform(delete("/v1/user/2").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
@@ -235,6 +234,7 @@ class UserControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	@Disabled
 	void getUserPositiveUsingApiToken() throws Exception {
 		mockMvc.perform(get("/v1/user/default").with(token("1089a992-a931-4b5c-8194-09c925168b37"))).andExpect(status().isOk());
 	}

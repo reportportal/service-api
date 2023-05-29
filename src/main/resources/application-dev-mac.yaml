@@ -13,10 +13,9 @@ rp:
     rootDir: /Users/pavel_bortnik/ReportPortal5/data/storage/
   datasource:
     maximumPoolSize: 12
-  binarystore:
-#    path: /Users/pavel_bortnik/ReportPortal5/data/storage
-    type: minio
-    minio:
-      endpoint: http://localhost:9000
-      accessKey: minio
-      secretKey: minio123
+
+datastore:
+  type: minio
+  endpoint: http://localhost:9000
+  accessKey: minio
+  secretKey: minio123

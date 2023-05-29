@@ -76,7 +76,7 @@ public class CombinedTokenStore extends JwtTokenStore {
       String hashedKey = new String(DigestUtils.sha3_256(tokenId.getBytes()));
       ApiKey apiKey = apiKeyRepository.findByHash(hashedKey);
       if (apiKey != null) {
-        return getAuthentication(userRepository.getById(apiKey.getId()));
+        return getAuthentication(userRepository.getById(apiKey.getUserId()));
       }
       return null;
     }

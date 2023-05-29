@@ -36,7 +36,7 @@ public class ApiKeyConverter {
     ApiKeyRS resource = new ApiKeyRS();
     resource.setId(apiKey.getId());
     resource.setName(apiKey.getName());
-    resource.setUserId(apiKey.getUserId());
+    resource.setUserId(apiKey.getUser().getId());
     resource.setCreatedAt(EntityUtils.TO_DATE.apply(apiKey.getCreatedAt()));
     return resource;
   };

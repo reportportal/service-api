@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.user.ApiKeyHandler;
 import com.epam.ta.reportportal.dao.ApiKeyRepository;
 import com.epam.ta.reportportal.entity.user.ApiKey;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.ws.converter.converters.ApiKeyConverter;
 import com.epam.ta.reportportal.ws.model.ApiKeyRS;
 import com.epam.ta.reportportal.ws.model.ApiKeysRS;
@@ -76,7 +77,9 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
     ApiKey apiKey = new ApiKey();
     apiKey.setName(name);
     apiKey.setCreatedAt(LocalDateTime.now());
-    apiKey.setUserId(userId);
+    User user = new User();
+    user.setId(userId);
+    apiKey.setUser(user);
     apiKey.setHash(hashedApiToken);
 
     apiKeyRepository.save(apiKey);

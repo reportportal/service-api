@@ -32,6 +32,7 @@ public interface ApiKeyHandler {
    * Generate api key for user.
    *
    * @param keyName name of Api Key
+   * @param userId User id
    * @return generated api key.
    */
   ApiKeyRS createApiKey(String keyName, Long userId);

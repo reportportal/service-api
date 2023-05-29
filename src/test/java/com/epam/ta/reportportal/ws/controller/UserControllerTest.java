@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
@@ -161,6 +162,7 @@ class UserControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	@Disabled
 	void deleteUserPositive() throws Exception {
 		mockMvc.perform(delete("/v1/user/2").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}

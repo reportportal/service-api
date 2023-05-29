@@ -21,6 +21,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.bts.handler.GetTicketHandler;
 import com.epam.ta.reportportal.core.user.ApiKeyHandler;
 import com.epam.ta.reportportal.dao.ApiKeyRepository;
 import com.epam.ta.reportportal.entity.user.ApiKey;
@@ -44,6 +45,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Default implementation of {@link ApiKeyHandler}
+ *
  * @author Andrei Piankouski
  */
 @Service
@@ -77,9 +80,7 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
     ApiKey apiKey = new ApiKey();
     apiKey.setName(name);
     apiKey.setCreatedAt(LocalDateTime.now());
-    User user = new User();
-    user.setId(userId);
-    apiKey.setUser(user);
+    apiKey.setUserId(userId);
     apiKey.setHash(hashedApiToken);
 
     apiKeyRepository.save(apiKey);

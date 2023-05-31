@@ -20,9 +20,13 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.commons.codec.digest.DigestUtils;
 
 public class ApiKeyUtils {
+
+  private static final String UUID_PATTERN = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
 
   private ApiKeyUtils() {
   }
@@ -31,7 +35,13 @@ public class ApiKeyUtils {
    * Validate token sign
    */
   public static boolean validateToken(String apiKey) {
+    if (isUUID(apiKey)) {
+      return true;
+    }
     String[] nameChecksum = apiKey.split("_", 2);
+    if (nameChecksum.length < 2) {
+      return false;
+    }
     byte[] checksumBytes = Base64.getUrlDecoder().decode(nameChecksum[1]);
     byte[] actualUuid = Arrays.copyOf(checksumBytes, 16);
     byte[] actualHash = Arrays.copyOfRange(checksumBytes, 16, checksumBytes.length);
@@ -44,6 +54,12 @@ public class ApiKeyUtils {
     byte[] expected = DigestUtils.sha3_256(nameUuidBb.array());
 
     return Arrays.equals(actualHash, expected);
+  }
+
+  private static boolean isUUID(String uuidStr) {
+    Pattern pattern = Pattern.compile(UUID_PATTERN);
+    Matcher matcher = pattern.matcher(uuidStr);
+    return matcher.matches();
   }
 
 }

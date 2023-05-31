@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -73,7 +74,7 @@ public class CombinedTokenStore extends JwtTokenStore {
     try {
       return super.readAuthentication(tokenId);
     } catch (InvalidTokenException e) {
-      String hashedKey = new String(DigestUtils.sha3_256(tokenId.getBytes()));
+      String hashedKey = DatatypeConverter.printHexBinary(DigestUtils.sha3_256(tokenId));
       ApiKey apiKey = apiKeyRepository.findByHash(hashedKey);
       if (apiKey != null) {
         return getAuthentication(userRepository.getById(apiKey.getUserId()));
@@ -90,7 +91,7 @@ public class CombinedTokenStore extends JwtTokenStore {
       if (ApiKeyUtils.validateToken(tokenValue)) {
         DefaultOAuth2AccessToken defaultOAuth2AccessToken = new DefaultOAuth2AccessToken(
             tokenValue);
-        defaultOAuth2AccessToken.setExpiration(new Date(System.currentTimeMillis() + 10 * 1000L));
+        defaultOAuth2AccessToken.setExpiration(new Date(System.currentTimeMillis() + 60 * 1000L));
         return defaultOAuth2AccessToken;
       }
       return null; //let spring security handle the invalid token

@@ -38,6 +38,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,7 +133,7 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
   }
 
   private String getHash(String key) {
-    return new String(DigestUtils.sha3_256(key.getBytes()));
+    return DatatypeConverter.printHexBinary(DigestUtils.sha3_256(key));
   }
 
   private static byte[] convertUUIDToBytes(UUID uuid) {

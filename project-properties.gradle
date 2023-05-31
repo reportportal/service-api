@@ -10,7 +10,7 @@ project.ext {
     limits = [
             'instruction': 70,
             'branch'     : 53,
-            'line'       : 74,
+            'line'       : 75,
             'complexity' : 60,
             'method'     : 65,
             'class'      : 90

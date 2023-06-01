@@ -26,7 +26,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 public class ApiKeyUtils {
 
-  private static final String UUID_PATTERN = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
+  private static final String UUID_PATTERN =
+      "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
 
   private ApiKeyUtils() {
   }
@@ -35,25 +36,26 @@ public class ApiKeyUtils {
    * Validate token sign
    */
   public static boolean validateToken(String apiKey) {
-    if (isUUID(apiKey)) {
+    if (isUUID(apiKey) || (apiKey.length() == 27 && Base64.getUrlDecoder().decode(apiKey.getBytes(
+        StandardCharsets.US_ASCII)).length == 20)) {
       return true;
     }
     String[] nameChecksum = apiKey.split("_", 2);
-    if (nameChecksum.length < 2) {
+    try {
+      byte[] checksumBytes = Base64.getUrlDecoder().decode(nameChecksum[1]);
+      byte[] actualUuid = Arrays.copyOf(checksumBytes, 16);
+      byte[] actualHash = Arrays.copyOfRange(checksumBytes, 16, checksumBytes.length);
+
+      byte[] nameBytes = nameChecksum[0].getBytes(StandardCharsets.UTF_8);
+      ByteBuffer nameUuidBb = ByteBuffer.wrap(new byte[nameBytes.length + actualUuid.length]);
+      nameUuidBb.put(nameBytes);
+      nameUuidBb.put(actualUuid);
+
+      byte[] expected = DigestUtils.sha3_256(nameUuidBb.array());
+      return Arrays.equals(actualHash, expected);
+    } catch (Exception e) {
       return false;
     }
-    byte[] checksumBytes = Base64.getUrlDecoder().decode(nameChecksum[1]);
-    byte[] actualUuid = Arrays.copyOf(checksumBytes, 16);
-    byte[] actualHash = Arrays.copyOfRange(checksumBytes, 16, checksumBytes.length);
-
-    byte[] nameBytes = nameChecksum[0].getBytes(StandardCharsets.UTF_8);
-    ByteBuffer nameUuidBb = ByteBuffer.wrap(new byte[nameBytes.length + actualUuid.length]);
-    nameUuidBb.put(nameBytes);
-    nameUuidBb.put(actualUuid);
-
-    byte[] expected = DigestUtils.sha3_256(nameUuidBb.array());
-
-    return Arrays.equals(actualHash, expected);
   }
 
   private static boolean isUUID(String uuidStr) {

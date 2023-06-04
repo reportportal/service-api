@@ -119,7 +119,8 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
 
   @VisibleForTesting
   String generateApiKey(String keyName) {
-    keyName = keyName.replaceAll(FORBIDDEN_SYMBOLS_PATTERN, REPLACE_PATTERN);
+    keyName = keyName.replaceAll(FORBIDDEN_SYMBOLS_PATTERN, REPLACE_PATTERN)
+        .replaceAll(",", "");
     byte[] keyBytes = keyName.getBytes(StandardCharsets.UTF_8);
 
     UUID uuid = UUID.randomUUID();

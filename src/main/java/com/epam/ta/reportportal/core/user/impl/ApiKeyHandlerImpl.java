@@ -21,9 +21,11 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.bts.handler.GetTicketHandler;
 import com.epam.ta.reportportal.core.user.ApiKeyHandler;
 import com.epam.ta.reportportal.dao.ApiKeyRepository;
 import com.epam.ta.reportportal.entity.user.ApiKey;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.ws.converter.converters.ApiKeyConverter;
 import com.epam.ta.reportportal.ws.model.ApiKeyRS;
 import com.epam.ta.reportportal.ws.model.ApiKeysRS;
@@ -36,6 +38,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +46,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Default implementation of {@link ApiKeyHandler}
+ *
  * @author Andrei Piankouski
  */
 @Service
@@ -114,7 +119,8 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
 
   @VisibleForTesting
   String generateApiKey(String keyName) {
-    keyName = keyName.replaceAll(FORBIDDEN_SYMBOLS_PATTERN, REPLACE_PATTERN);
+    keyName = keyName.replaceAll(FORBIDDEN_SYMBOLS_PATTERN, REPLACE_PATTERN)
+        .replaceAll(",", "");
     byte[] keyBytes = keyName.getBytes(StandardCharsets.UTF_8);
 
     UUID uuid = UUID.randomUUID();
@@ -128,7 +134,7 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
   }
 
   private String getHash(String key) {
-    return new String(DigestUtils.sha3_256(key.getBytes()));
+    return DatatypeConverter.printHexBinary(DigestUtils.sha3_256(key));
   }
 
   private static byte[] convertUUIDToBytes(UUID uuid) {

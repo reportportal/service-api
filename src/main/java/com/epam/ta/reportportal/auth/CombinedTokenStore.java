@@ -16,16 +16,27 @@
 
 package com.epam.ta.reportportal.auth;
 
-import com.epam.ta.reportportal.auth.util.AuthUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.dao.OAuth2AccessTokenRepository;
-import com.epam.ta.reportportal.entity.user.StoredAccessToken;
+import com.epam.ta.reportportal.dao.ApiKeyRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.user.ApiKey;
+import com.epam.ta.reportportal.entity.user.User;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import javax.xml.bind.DatatypeConverter;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
-import org.springframework.security.oauth2.common.util.SerializationUtils;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.stereotype.Component;
@@ -38,58 +49,79 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class CombinedTokenStore extends JwtTokenStore {
 
-	@Autowired
-	private OAuth2AccessTokenRepository oAuth2AccessTokenRepository;
+  @Autowired
+  private ApiKeyRepository apiKeyRepository;
 
-	@Autowired
-	private UserDetailsService userDetailsService;
+  @Autowired
+  private UserRepository userRepository;
 
-	@Autowired
-	public CombinedTokenStore(JwtAccessTokenConverter jwtTokenEnhancer) {
-		super(jwtTokenEnhancer);
-	}
+  @Autowired
+  public CombinedTokenStore(JwtAccessTokenConverter jwtTokenEnhancer) {
+    super(jwtTokenEnhancer);
+  }
 
-	@Override
-	public OAuth2Authentication readAuthentication(OAuth2AccessToken token) {
-		try {
-			return super.readAuthentication(token);
-		} catch (InvalidTokenException e) {
-			return this.readAuthentication(token.getValue());
-		}
-	}
+  @Override
+  public OAuth2Authentication readAuthentication(OAuth2AccessToken token) {
+    try {
+      return super.readAuthentication(token);
+    } catch (InvalidTokenException e) {
+      return this.readAuthentication(token.getValue());
+    }
+  }
 
-	@Override
-	public OAuth2Authentication readAuthentication(String tokenId) {
-		try {
-			return super.readAuthentication(tokenId);
-		} catch (InvalidTokenException e) {
-			StoredAccessToken accessToken = oAuth2AccessTokenRepository.findByTokenId(tokenId);
-			ReportPortalUser userDetails = (ReportPortalUser) userDetailsService.loadUserByUsername(accessToken.getUserName());
-			OAuth2Authentication authentication = AuthUtils.deserializeSafely(accessToken.getAuthentication(), auth -> {
-				// if we are at the place, there was InvalidClassException,
-				// and we successfully recovered auth object
-				// let's save it back to DB then, since now it has correct version UUID
-				accessToken.setAuthentication(SerializationUtils.serialize(auth));
-				oAuth2AccessTokenRepository.save(accessToken);
-			});
+  @Override
+  public OAuth2Authentication readAuthentication(String tokenId) {
+    try {
+      return super.readAuthentication(tokenId);
+    } catch (InvalidTokenException e) {
+      String hashedKey = DatatypeConverter.printHexBinary(DigestUtils.sha3_256(tokenId));
+      ApiKey apiKey = apiKeyRepository.findByHash(hashedKey);
+      if (apiKey != null) {
+        return getAuthentication(userRepository.getById(apiKey.getUserId()));
+      }
+      return null;
+    }
+  }
 
-			ReportPortalUser reportPortalUser = (ReportPortalUser) authentication.getPrincipal();
-			reportPortalUser.setProjectDetails(userDetails.getProjectDetails());
-			reportPortalUser.setUserRole(userDetails.getUserRole());
-			return authentication;
-		}
-	}
+  @Override
+  public OAuth2AccessToken readAccessToken(String tokenValue) {
+    try {
+      return super.readAccessToken(tokenValue);
+    } catch (InvalidTokenException e) {
+      if (ApiKeyUtils.validateToken(tokenValue)) {
+        DefaultOAuth2AccessToken defaultOAuth2AccessToken = new DefaultOAuth2AccessToken(
+            tokenValue);
+        defaultOAuth2AccessToken.setExpiration(new Date(System.currentTimeMillis() + 60 * 1000L));
+        return defaultOAuth2AccessToken;
+      }
+      return null; //let spring security handle the invalid token
+    }
+  }
 
-	@Override
-	public OAuth2AccessToken readAccessToken(String tokenValue) {
-		try {
-			return super.readAccessToken(tokenValue);
-		} catch (InvalidTokenException e) {
-			StoredAccessToken token = oAuth2AccessTokenRepository.findByTokenId(tokenValue);
-			if (token == null) {
-				return null; //let spring security handle the invalid token
-			}
-			return SerializationUtils.deserialize(token.getToken());
-		}
-	}
+  private OAuth2Authentication getAuthentication(User user) {
+    HashMap<String, String> requestParameters = new HashMap<>();
+    requestParameters.put("username", user.getLogin());
+    requestParameters.put("client_id", ReportPortalClient.api.name());
+
+    Set<GrantedAuthority> authorities = new HashSet<>();
+    authorities.add(new SimpleGrantedAuthority(user.getRole().getAuthority()));
+
+    Set<String> scopes = Collections.singleton(ReportPortalClient.api.name());
+
+    OAuth2Request authorizationRequest = new OAuth2Request(
+        requestParameters, ReportPortalClient.api.name(),
+        authorities, true, scopes, Collections.emptySet(), null,
+        Collections.emptySet(), null);
+
+    ReportPortalUser reportPortalUser = ReportPortalUser.userBuilder().fromUser(user);
+
+    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+        reportPortalUser, null, authorities);
+
+    OAuth2Authentication authenticationRequest = new OAuth2Authentication(
+        authorizationRequest, authenticationToken);
+    authenticationRequest.setAuthenticated(true);
+
+    return authenticationRequest;
+  }
 }

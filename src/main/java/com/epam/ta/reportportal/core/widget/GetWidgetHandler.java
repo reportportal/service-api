@@ -20,58 +20,60 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
+import java.util.Map;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.MultiValueMap;
-
-import java.util.Map;
 
 /**
  * @author Pavel Bortnik
  */
 public interface GetWidgetHandler {
 
-	/**
-	 * Get widget by id
-	 *
-	 * @param widgetId       Widget id
-	 * @param projectDetails Project details
-	 * @param user           User
-	 * @return WidgetResource
-	 */
-	WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+  /**
+   * Get widget by id
+   *
+   * @param widgetId       Widget id
+   * @param projectDetails Project details
+   * @param user           User
+   * @return WidgetResource
+   */
+  WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user);
 
-	/**
-	 * Get specified widget level by id and attributes
-	 *
-	 * @param widgetId       Widget id
-	 * @param projectDetails Project details
-	 * @param attributes     Attributes
-	 * @param params         Additional widget params
-	 * @param user           User
-	 * @return WidgetResource
-	 */
-	WidgetResource getWidget(Long widgetId, String[] attributes, MultiValueMap<String, String> params, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+  /**
+   * Get specified widget level by id and attributes
+   *
+   * @param widgetId       Widget id
+   * @param projectDetails Project details
+   * @param attributes     Attributes
+   * @param params         Additional widget params
+   * @param user           User
+   * @return WidgetResource
+   */
+  WidgetResource getWidget(Long widgetId, String[] attributes, MultiValueMap<String, String> params,
+      ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user);
 
-	/**
-	 * Get content for building preview while creating widget
-	 *
-	 * @param previewRQ      Widget parameters
-	 * @param projectDetails Project name
-	 * @param user           Username
-	 * @return Widget content
-	 */
-	Map<String, ?> getWidgetPreview(WidgetPreviewRQ previewRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+  /**
+   * Get content for building preview while creating widget
+   *
+   * @param previewRQ      Widget parameters
+   * @param projectDetails Project name
+   * @param user           Username
+   * @return Widget content
+   */
+  Map<String, ?> getWidgetPreview(WidgetPreviewRQ previewRQ,
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
-	/**
-	 * Get widget names that belong to user
-	 *
-	 * @param projectDetails Project details
-	 * @param pageable       Paging
-	 * @param filter         Filter
-	 * @param user           User
-	 * @return List of widget names
-	 */
-	Iterable<Object> getOwnNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter, ReportPortalUser user);
-
+  /**
+   * Get widget names that belong to user
+   *
+   * @param projectDetails Project details
+   * @param pageable       Paging
+   * @param filter         Filter
+   * @param user           User
+   * @return List of widget names
+   */
+  Iterable<Object> getOwnNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable,
+      Filter filter, ReportPortalUser user);
 }

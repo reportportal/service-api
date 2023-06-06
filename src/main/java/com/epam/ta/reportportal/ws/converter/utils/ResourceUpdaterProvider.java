@@ -21,5 +21,5 @@ package com.epam.ta.reportportal.ws.converter.utils;
  */
 public interface ResourceUpdaterProvider<C extends ResourceUpdaterContent, R> {
 
-	ResourceUpdater<R> retrieve(C updaterContent);
+  ResourceUpdater<R> retrieve(C updaterContent);
 }

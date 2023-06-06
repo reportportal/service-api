@@ -23,39 +23,42 @@ import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import java.util.Collections;
+import java.util.Map;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.Map;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class LaunchPatternAnalysisRunner implements ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
+public class LaunchPatternAnalysisRunner implements
+    ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
 
-	private final GetLaunchHandler getLaunchHandler;
-	private final PatternAnalyzer patternAnalyzer;
+  private final GetLaunchHandler getLaunchHandler;
+  private final PatternAnalyzer patternAnalyzer;
 
-	@Autowired
-	public LaunchPatternAnalysisRunner(GetLaunchHandler getLaunchHandler, PatternAnalyzer patternAnalyzer) {
-		this.getLaunchHandler = getLaunchHandler;
-		this.patternAnalyzer = patternAnalyzer;
-	}
+  @Autowired
+  public LaunchPatternAnalysisRunner(GetLaunchHandler getLaunchHandler,
+      PatternAnalyzer patternAnalyzer) {
+    this.getLaunchHandler = getLaunchHandler;
+    this.patternAnalyzer = patternAnalyzer;
+  }
 
-	@Override
-	@Transactional
-	public void handle(LaunchFinishedEvent launchFinishedEvent, Map<String, String> projectConfig) {
+  @Override
+  @Transactional
+  public void handle(LaunchFinishedEvent launchFinishedEvent, Map<String, String> projectConfig) {
 
-		boolean isPatternAnalysisEnabled = BooleanUtils.toBoolean(projectConfig.get(ProjectAttributeEnum.AUTO_PATTERN_ANALYZER_ENABLED.getAttribute()));
+    boolean isPatternAnalysisEnabled = BooleanUtils.toBoolean(
+        projectConfig.get(ProjectAttributeEnum.AUTO_PATTERN_ANALYZER_ENABLED.getAttribute()));
 
-		if (isPatternAnalysisEnabled) {
-			final Launch launch = getLaunchHandler.get(launchFinishedEvent.getId());
-			patternAnalyzer.analyzeTestItems(launch, Collections.singleton(AnalyzeItemsMode.TO_INVESTIGATE));
-		}
-	}
+    if (isPatternAnalysisEnabled) {
+      final Launch launch = getLaunchHandler.get(launchFinishedEvent.getId());
+      patternAnalyzer.analyzeTestItems(launch,
+          Collections.singleton(AnalyzeItemsMode.TO_INVESTIGATE));
+    }
+  }
 
 }

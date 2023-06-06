@@ -16,22 +16,21 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
-import com.epam.ta.reportportal.core.plugin.PluginBox;
-import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.google.common.collect.Maps;
-import org.apache.commons.collections4.MapUtils;
-import org.jasypt.util.text.BasicTextEncryptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.integration.util.property.SauceLabsProperties.ACCESS_TOKEN;
 import static com.epam.ta.reportportal.core.integration.util.property.SauceLabsProperties.USERNAME;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+
+import com.epam.ta.reportportal.core.plugin.PluginBox;
+import com.epam.ta.reportportal.dao.IntegrationRepository;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.google.common.collect.Maps;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.commons.collections4.MapUtils;
+import org.jasypt.util.text.BasicTextEncryptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -39,46 +38,54 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 @Service
 public class SauceLabsIntegrationService extends BasicIntegrationServiceImpl {
 
-	private final BasicTextEncryptor encryptor;
+  private final BasicTextEncryptor encryptor;
 
-	@Autowired
-	public SauceLabsIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox, BasicTextEncryptor encryptor) {
-		super(integrationRepository, pluginBox);
-		this.encryptor = encryptor;
-	}
+  @Autowired
+  public SauceLabsIntegrationService(IntegrationRepository integrationRepository,
+      PluginBox pluginBox, BasicTextEncryptor encryptor) {
+    super(integrationRepository, pluginBox);
+    this.encryptor = encryptor;
+  }
 
-	@Override
-	public Map<String, Object> retrieveCreateParams(String integrationType, Map<String, Object> integrationParams) {
-		expect(integrationParams, MapUtils::isNotEmpty).verify(BAD_REQUEST_ERROR, "No integration params provided");
+  @Override
+  public Map<String, Object> retrieveCreateParams(String integrationType,
+      Map<String, Object> integrationParams) {
+    expect(integrationParams, MapUtils::isNotEmpty).verify(BAD_REQUEST_ERROR,
+        "No integration params provided");
 
-		final String encryptedToken = encryptor.encrypt(ACCESS_TOKEN.getParameter(integrationParams)
-				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Access token value is not specified")));
-		final String username = USERNAME.getParameter(integrationParams)
-				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Username value is not specified"));
+    final String encryptedToken = encryptor.encrypt(ACCESS_TOKEN.getParameter(integrationParams)
+        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+            "Access token value is not specified")));
+    final String username = USERNAME.getParameter(integrationParams)
+        .orElseThrow(
+            () -> new ReportPortalException(BAD_REQUEST_ERROR, "Username value is not specified"));
 
-		HashMap<String, Object> result = Maps.newHashMapWithExpectedSize(integrationParams.size());
-		result.put(ACCESS_TOKEN.getName(), encryptedToken);
-		result.put(USERNAME.getName(), username);
+    HashMap<String, Object> result = Maps.newHashMapWithExpectedSize(integrationParams.size());
+    result.put(ACCESS_TOKEN.getName(), encryptedToken);
+    result.put(USERNAME.getName(), username);
 
-		integrationParams.entrySet()
-				.stream()
-				.filter(it -> !it.getKey().equals(ACCESS_TOKEN.getName()) && !it.getKey().equals(USERNAME.getName()))
-				.forEach(it -> result.put(it.getKey(), it.getValue()));
+    integrationParams.entrySet()
+        .stream()
+        .filter(it -> !it.getKey().equals(ACCESS_TOKEN.getName()) && !it.getKey()
+            .equals(USERNAME.getName()))
+        .forEach(it -> result.put(it.getKey(), it.getValue()));
 
-		return result;
-	}
+    return result;
+  }
 
-	@Override
-	public Map<String, Object> retrieveUpdatedParams(String integrationType, Map<String, Object> integrationParams) {
-		HashMap<String, Object> result = Maps.newHashMapWithExpectedSize(integrationParams.size());
-		ACCESS_TOKEN.getParameter(integrationParams)
-				.ifPresent(token -> result.put(ACCESS_TOKEN.getName(), encryptor.encrypt(token)));
-		USERNAME.getParameter(integrationParams)
-				.ifPresent(username -> result.put(USERNAME.getName(), username));
-		integrationParams.entrySet()
-				.stream()
-				.filter(it -> !it.getKey().equals(ACCESS_TOKEN.getName()) && !it.getKey().equals(USERNAME.getName()))
-				.forEach(it -> result.put(it.getKey(), it.getValue()));
-		return result;
-	}
+  @Override
+  public Map<String, Object> retrieveUpdatedParams(String integrationType,
+      Map<String, Object> integrationParams) {
+    HashMap<String, Object> result = Maps.newHashMapWithExpectedSize(integrationParams.size());
+    ACCESS_TOKEN.getParameter(integrationParams)
+        .ifPresent(token -> result.put(ACCESS_TOKEN.getName(), encryptor.encrypt(token)));
+    USERNAME.getParameter(integrationParams)
+        .ifPresent(username -> result.put(USERNAME.getName(), username));
+    integrationParams.entrySet()
+        .stream()
+        .filter(it -> !it.getKey().equals(ACCESS_TOKEN.getName()) && !it.getKey()
+            .equals(USERNAME.getName()))
+        .forEach(it -> result.put(it.getKey(), it.getValue()));
+    return result;
+  }
 }

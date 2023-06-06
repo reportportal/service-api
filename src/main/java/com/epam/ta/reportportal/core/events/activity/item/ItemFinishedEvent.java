@@ -23,28 +23,28 @@ import com.epam.ta.reportportal.core.events.ProjectIdAwareEvent;
  */
 public class ItemFinishedEvent implements ProjectIdAwareEvent {
 
-	private final Long itemId;
+  private final Long itemId;
 
-	private final Long launchId;
+  private final Long launchId;
 
-	private final Long projectId;
+  private final Long projectId;
 
-	public ItemFinishedEvent(Long itemId, Long launchId, Long projectId) {
-		this.itemId = itemId;
-		this.launchId = launchId;
-		this.projectId = projectId;
-	}
+  public ItemFinishedEvent(Long itemId, Long launchId, Long projectId) {
+    this.itemId = itemId;
+    this.launchId = launchId;
+    this.projectId = projectId;
+  }
 
-	public Long getItemId() {
-		return itemId;
-	}
+  public Long getItemId() {
+    return itemId;
+  }
 
-	public Long getLaunchId() {
-		return launchId;
-	}
+  public Long getLaunchId() {
+    return launchId;
+  }
 
-	@Override
-	public Long getProjectId() {
-		return projectId;
-	}
+  @Override
+  public Long getProjectId() {
+    return projectId;
+  }
 }

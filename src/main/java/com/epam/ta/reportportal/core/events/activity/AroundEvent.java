@@ -22,21 +22,21 @@ import com.google.common.base.Preconditions;
  */
 public class AroundEvent<T> extends BeforeEvent<T> {
 
-	private T after;
+  private T after;
 
-	public AroundEvent() {
-	}
+  public AroundEvent() {
+  }
 
-	public AroundEvent(Long userId, String userLogin, T before, T after) {
-		super(userId, userLogin, before);
-		this.after = Preconditions.checkNotNull(after);
-	}
+  public AroundEvent(Long userId, String userLogin, T before, T after) {
+    super(userId, userLogin, before);
+    this.after = Preconditions.checkNotNull(after);
+  }
 
-	public T getAfter() {
-		return after;
-	}
+  public T getAfter() {
+    return after;
+  }
 
-	public void setAfter(T after) {
-		this.after = after;
-	}
+  public void setAfter(T after) {
+    this.after = after;
+  }
 }

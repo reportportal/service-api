@@ -24,15 +24,15 @@ package com.epam.ta.reportportal.exception;
 // TODO add binding to this exception
 public class DataStorageException extends ReportPortalException {
 
-	private static final long serialVersionUID = -6822780391660931103L;
+  private static final long serialVersionUID = -6822780391660931103L;
 
-	public DataStorageException(String message) {
-		super(message);
+  public DataStorageException(String message) {
+    super(message);
 
-	}
+  }
 
-	public DataStorageException(String message, Throwable e) {
-		super(message, e);
-	}
+  public DataStorageException(String message, Throwable e) {
+    super(message, e);
+  }
 
 }

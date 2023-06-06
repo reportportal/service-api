@@ -23,54 +23,56 @@ import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.Map;
+import java.util.Set;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class DelegatingClusterDataProviderHandler implements DataProviderHandler {
 
-	public static final String CLUSTER_ID_PARAM = "clusterId";
+  public static final String CLUSTER_ID_PARAM = "clusterId";
 
-	private final Integer maxPageSize;
-	private final DataProviderHandler delegate;
+  private final Integer maxPageSize;
+  private final DataProviderHandler delegate;
 
-	public DelegatingClusterDataProviderHandler(Integer maxPageSize, DataProviderHandler dataProviderHandler) {
-		this.maxPageSize = maxPageSize;
-		this.delegate = dataProviderHandler;
-	}
+  public DelegatingClusterDataProviderHandler(Integer maxPageSize,
+      DataProviderHandler dataProviderHandler) {
+    this.maxPageSize = maxPageSize;
+    this.delegate = dataProviderHandler;
+  }
 
-	@Override
-	public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, Map<String, String> params) {
-		validateClusterCondition(filter);
-		validatePageSize(pageable);
-		return delegate.getTestItems(filter, pageable, projectDetails, user, params);
-	}
+  @Override
+  public Page<TestItem> getTestItems(Queryable filter, Pageable pageable,
+      ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, Map<String, String> params) {
+    validateClusterCondition(filter);
+    validatePageSize(pageable);
+    return delegate.getTestItems(filter, pageable, projectDetails, user, params);
+  }
 
-	@Override
-	public Set<Statistics> accumulateStatistics(Queryable filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			Map<String, String> params) {
-		validateClusterCondition(filter);
-		return delegate.accumulateStatistics(filter, projectDetails, user, params);
-	}
+  @Override
+  public Set<Statistics> accumulateStatistics(Queryable filter,
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      Map<String, String> params) {
+    validateClusterCondition(filter);
+    return delegate.accumulateStatistics(filter, projectDetails, user, params);
+  }
 
-	private void validateClusterCondition(Queryable filter) {
-		final boolean hasClusterIdCondition = filter.getFilterConditions()
-				.stream()
-				.flatMap(c -> c.getAllConditions().stream())
-				.anyMatch(c -> c.getSearchCriteria().contains(CLUSTER_ID_PARAM));
-		BusinessRule.expect(hasClusterIdCondition, BooleanUtils::isTrue)
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Cluster id condition not provided");
-	}
+  private void validateClusterCondition(Queryable filter) {
+    final boolean hasClusterIdCondition = filter.getFilterConditions()
+        .stream()
+        .flatMap(c -> c.getAllConditions().stream())
+        .anyMatch(c -> c.getSearchCriteria().contains(CLUSTER_ID_PARAM));
+    BusinessRule.expect(hasClusterIdCondition, BooleanUtils::isTrue)
+        .verify(ErrorType.BAD_REQUEST_ERROR, "Cluster id condition not provided");
+  }
 
-	private void validatePageSize(Pageable pageable) {
-		BusinessRule.expect(pageable.getPageSize(), pageSize -> pageSize <= maxPageSize)
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Max page size: " + maxPageSize);
-	}
+  private void validatePageSize(Pageable pageable) {
+    BusinessRule.expect(pageable.getPageSize(), pageSize -> pageSize <= maxPageSize)
+        .verify(ErrorType.BAD_REQUEST_ERROR, "Max page size: " + maxPageSize);
+  }
 }

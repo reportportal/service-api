@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.launch.cluster.pipeline.data;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
@@ -24,48 +26,46 @@ import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfi
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-
 import java.util.Optional;
 import java.util.function.Predicate;
-
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class AnalyzerClusterDataProvider implements ClusterDataProvider {
 
-	private final AnalyzerServiceClient analyzerServiceClient;
+  private final AnalyzerServiceClient analyzerServiceClient;
 
-	public AnalyzerClusterDataProvider(AnalyzerServiceClient analyzerServiceClient) {
-		this.analyzerServiceClient = analyzerServiceClient;
-	}
+  public AnalyzerClusterDataProvider(AnalyzerServiceClient analyzerServiceClient) {
+    this.analyzerServiceClient = analyzerServiceClient;
+  }
 
-	protected abstract Optional<IndexLaunch> prepareIndexLaunch(GenerateClustersConfig config);
+  protected abstract Optional<IndexLaunch> prepareIndexLaunch(GenerateClustersConfig config);
 
-	@Override
-	public Optional<ClusterData> provide(GenerateClustersConfig config) {
-		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				"There are no analyzer services are deployed."
-		);
-		return getGenerateRq(config).map(analyzerServiceClient::generateClusters);
-	}
+  @Override
+  public Optional<ClusterData> provide(GenerateClustersConfig config) {
+    expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(
+        ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+        "There are no analyzer services are deployed."
+    );
+    return getGenerateRq(config).map(analyzerServiceClient::generateClusters);
+  }
 
-	private Optional<GenerateClustersRq> getGenerateRq(GenerateClustersConfig config) {
-		return prepareIndexLaunch(config).map(indexLaunch -> {
-			final GenerateClustersRq generateClustersRq = new GenerateClustersRq();
-			generateClustersRq.setLaunch(indexLaunch);
-			generateClustersRq.setCleanNumbers(config.isCleanNumbers());
-			generateClustersRq.setForUpdate(config.isForUpdate());
+  private Optional<GenerateClustersRq> getGenerateRq(GenerateClustersConfig config) {
+    return prepareIndexLaunch(config).map(indexLaunch -> {
+      final GenerateClustersRq generateClustersRq = new GenerateClustersRq();
+      generateClustersRq.setLaunch(indexLaunch);
+      generateClustersRq.setCleanNumbers(config.isCleanNumbers());
+      generateClustersRq.setForUpdate(config.isForUpdate());
 
-			final ClusterEntityContext entityContext = config.getEntityContext();
-			generateClustersRq.setProject(entityContext.getProjectId());
+      final ClusterEntityContext entityContext = config.getEntityContext();
+      generateClustersRq.setProject(entityContext.getProjectId());
 
-			final AnalyzerConfig analyzerConfig = config.getAnalyzerConfig();
-			generateClustersRq.setNumberOfLogLines(analyzerConfig.getNumberOfLogLines());
+      final AnalyzerConfig analyzerConfig = config.getAnalyzerConfig();
+      generateClustersRq.setNumberOfLogLines(analyzerConfig.getNumberOfLogLines());
 
-			return generateClustersRq;
-		});
-	}
+      return generateClustersRq;
+    });
+  }
 
 }

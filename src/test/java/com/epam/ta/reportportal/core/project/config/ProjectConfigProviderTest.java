@@ -16,50 +16,49 @@
 
 package com.epam.ta.reportportal.core.project.config;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
-import org.junit.jupiter.api.Test;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class ProjectConfigProviderTest {
 
-	private final GetProjectHandler getProjectHandler = mock(GetProjectHandler.class);
-	private final ProjectConfigProvider provider = new ProjectConfigProvider(getProjectHandler);
+  private final GetProjectHandler getProjectHandler = mock(GetProjectHandler.class);
+  private final ProjectConfigProvider provider = new ProjectConfigProvider(getProjectHandler);
 
-	@Test
-	void shouldReturnConfig() {
+  @Test
+  void shouldReturnConfig() {
 
-		final long projectId = 1L;
-		final Project project = new Project();
-		project.setId(projectId);
-		final Set<ProjectAttribute> projectAttributes = LongStream.range(1, 10).mapToObj(it -> {
-			final Attribute attribute = new Attribute(it, String.valueOf(it));
-			return new ProjectAttribute(attribute, "Value " + it, project);
-		}).collect(Collectors.toSet());
-		project.setProjectAttributes(projectAttributes);
+    final long projectId = 1L;
+    final Project project = new Project();
+    project.setId(projectId);
+    final Set<ProjectAttribute> projectAttributes = LongStream.range(1, 10).mapToObj(it -> {
+      final Attribute attribute = new Attribute(it, String.valueOf(it));
+      return new ProjectAttribute(attribute, "Value " + it, project);
+    }).collect(Collectors.toSet());
+    project.setProjectAttributes(projectAttributes);
 
-		when(getProjectHandler.get(projectId)).thenReturn(project);
+    when(getProjectHandler.get(projectId)).thenReturn(project);
 
-		final Map<String, String> attributesMapping = provider.provide(projectId);
+    final Map<String, String> attributesMapping = provider.provide(projectId);
 
-		assertEquals(projectAttributes.size(), attributesMapping.size());
-		projectAttributes.forEach(a -> {
-			final String value = attributesMapping.get(a.getAttribute().getName());
-			assertEquals(a.getValue(), value);
-		});
-	}
+    assertEquals(projectAttributes.size(), attributesMapping.size());
+    projectAttributes.forEach(a -> {
+      final String value = attributesMapping.get(a.getAttribute().getName());
+      assertEquals(a.getValue(), value);
+    });
+  }
 
 }

@@ -25,26 +25,26 @@ package com.epam.ta.reportportal.ws.converter.builders;
 @Deprecated
 public abstract class Builder<T> {
 
-	private T object;
+  private T object;
 
-	public Builder() {
-		object = initObject();
-	}
+  public Builder() {
+    object = initObject();
+  }
 
-	/**
-	 * Builds object
-	 *
-	 * @return Built object
-	 */
-	public T build() {
-		T toReturn = object;
-		object = initObject();
-		return toReturn;
-	}
+  /**
+   * Builds object
+   *
+   * @return Built object
+   */
+  public T build() {
+    T toReturn = object;
+    object = initObject();
+    return toReturn;
+  }
 
-	protected abstract T initObject();
+  protected abstract T initObject();
 
-	protected T getObject() {
-		return object;
-	}
+  protected T getObject() {
+    return object;
+  }
 }

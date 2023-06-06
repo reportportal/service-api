@@ -28,16 +28,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProjectClusterRemover implements ContentRemover<Project> {
 
-	private final ClusterRepository clusterRepository;
+  private final ClusterRepository clusterRepository;
 
-	@Autowired
-	public ProjectClusterRemover(ClusterRepository clusterRepository) {
-		this.clusterRepository = clusterRepository;
-	}
+  @Autowired
+  public ProjectClusterRemover(ClusterRepository clusterRepository) {
+    this.clusterRepository = clusterRepository;
+  }
 
-	@Override
-	public void remove(Project project) {
-		clusterRepository.deleteClusterTestItemsByProjectId(project.getId());
-		clusterRepository.deleteAllByProjectId(project.getId());
-	}
+  @Override
+  public void remove(Project project) {
+    clusterRepository.deleteClusterTestItemsByProjectId(project.getId());
+    clusterRepository.deleteAllByProjectId(project.getId());
+  }
 }

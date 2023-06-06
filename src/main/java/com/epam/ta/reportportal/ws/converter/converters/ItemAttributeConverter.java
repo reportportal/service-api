@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
-
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -30,7 +29,7 @@ import java.util.function.Function;
  */
 public class ItemAttributeConverter {
 
-	public static final int MAX_ATTRIBUTE_LENGTH = 512;
+  public static final int MAX_ATTRIBUTE_LENGTH = 512;
 
 	private ItemAttributeConverter() {
 		//static only
@@ -40,7 +39,7 @@ public class ItemAttributeConverter {
 		ItemAttribute itemAttribute = new ItemAttribute();
 
 		String key = it.getKey();
-		if (key != null && key.length() > MAX_ATTRIBUTE_LENGTH){
+    if (key != null && key.length() > MAX_ATTRIBUTE_LENGTH){
 			key = key.substring(0, MAX_ATTRIBUTE_LENGTH);
 		}
 		String value = it.getValue();
@@ -58,15 +57,17 @@ public class ItemAttributeConverter {
 		return itemAttribute;
 	};
 
-	public static final BiFunction<ItemAttributesRQ, Launch, ItemAttribute> TO_LAUNCH_ATTRIBUTE = (model, launch) -> {
-		ItemAttribute itemAttribute = new ItemAttribute(model.getKey(), model.getValue(), model.isSystem());
-		itemAttribute.setLaunch(launch);
-		return itemAttribute;
-	};
+  public static final BiFunction<ItemAttributesRQ, Launch, ItemAttribute> TO_LAUNCH_ATTRIBUTE = (model, launch) -> {
+    ItemAttribute itemAttribute = new ItemAttribute(model.getKey(), model.getValue(),
+        model.isSystem());
+    itemAttribute.setLaunch(launch);
+    return itemAttribute;
+  };
 
-	public static final BiFunction<ItemAttributesRQ, TestItem, ItemAttribute> TO_TEST_ITEM_ATTRIBUTE = (model, item) -> {
-		ItemAttribute itemAttribute = new ItemAttribute(model.getKey(), model.getValue(), model.isSystem());
-		itemAttribute.setTestItem(item);
-		return itemAttribute;
-	};
+  public static final BiFunction<ItemAttributesRQ, TestItem, ItemAttribute> TO_TEST_ITEM_ATTRIBUTE = (model, item) -> {
+    ItemAttribute itemAttribute = new ItemAttribute(model.getKey(), model.getValue(),
+        model.isSystem());
+    itemAttribute.setTestItem(item);
+    return itemAttribute;
+  };
 }

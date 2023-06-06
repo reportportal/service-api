@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.analyzer.pattern.selector;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
-
 import java.util.Collection;
 import java.util.List;
 
@@ -28,13 +27,13 @@ import java.util.List;
  */
 public interface PatternAnalysisSelector {
 
-	/**
-	 * Select {@link TestItem#getItemId()} with logs matched by pattern value
-	 *
-	 * @param launchId {@link Launch#getId()}
-	 * @param itemIds  {@link Collection} with {@link TestItem#getItemId()}
-	 * @param pattern  {@link PatternTemplate#getValue()}
-	 * @return {@link List} of {@link TestItem#getItemId()}
-	 */
-	List<Long> selectItemsByPattern(Long launchId, Collection<Long> itemIds, String pattern);
+  /**
+   * Select {@link TestItem#getItemId()} with logs matched by pattern value
+   *
+   * @param launchId {@link Launch#getId()}
+   * @param itemIds  {@link Collection} with {@link TestItem#getItemId()}
+   * @param pattern  {@link PatternTemplate#getValue()}
+   * @return {@link List} of {@link TestItem#getItemId()}
+   */
+  List<Long> selectItemsByPattern(Long launchId, Collection<Long> itemIds, String pattern);
 }

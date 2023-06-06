@@ -21,12 +21,15 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.Maps;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 /**
  * Check whether user assigned to project
@@ -65,8 +68,7 @@ class AssignedToProjectPermission implements Permission {
     final String resolvedProjectName = String.valueOf(targetDomainObject);
     final Optional<ReportPortalUser.ProjectDetails> projectDetails = projectExtractor.findProjectDetails(
         rpUser, resolvedProjectName);
-    projectDetails.ifPresent(
-        details -> fillProjectDetails(rpUser, resolvedProjectName, details));
+    projectDetails.ifPresent(details -> fillProjectDetails(rpUser, resolvedProjectName, details));
     return projectDetails.isPresent();
   }
 
@@ -76,5 +78,12 @@ class AssignedToProjectPermission implements Permission {
         1);
     projectDetailsMapping.put(resolvedProjectName, projectDetails);
     rpUser.setProjectDetails(projectDetailsMapping);
+  }
+
+  private boolean hasProjectAuthority(Collection<? extends GrantedAuthority> authorityList,
+      String project) {
+    return authorityList.stream()
+        .filter(a -> a instanceof ProjectAuthority)
+        .anyMatch(pa -> ((ProjectAuthority) pa).getProject().equals(project));
   }
 }

@@ -16,38 +16,37 @@
 
 package com.epam.ta.reportportal.util;
 
-import org.junit.jupiter.api.Test;
-
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+
 class ReportingQueueServiceTest {
 
-	private ReportingQueueService reportingQueueService = new ReportingQueueService();
+  private ReportingQueueService reportingQueueService = new ReportingQueueService();
 
-	@Test
-	void getKeyFromUuid() {
-		String uuid = UUID.randomUUID().toString();
-		int queueAmount = 5;
-		reportingQueueService.setQueueAmount(queueAmount);
-		String reportingQueueKey = reportingQueueService.getReportingQueueKey(uuid);
-		System.out.println(reportingQueueKey);
-		assertNotNull(reportingQueueKey);
-		int integerKey = Integer.parseInt(reportingQueueKey);
-		assertTrue(integerKey <= queueAmount);
-	}
+  @Test
+  void getKeyFromUuid() {
+    String uuid = UUID.randomUUID().toString();
+    int queueAmount = 5;
+    reportingQueueService.setQueueAmount(queueAmount);
+    String reportingQueueKey = reportingQueueService.getReportingQueueKey(uuid);
+    System.out.println(reportingQueueKey);
+    assertNotNull(reportingQueueKey);
+    int integerKey = Integer.parseInt(reportingQueueKey);
+    assertTrue(integerKey <= queueAmount);
+  }
 
-	@Test
-	void getKeyFromCustomString() {
-		String customUuid = "cutom-uuid-kek";
-		int queueAmount = 5;
-		reportingQueueService.setQueueAmount(queueAmount);
-		String reportingQueueKey = reportingQueueService.getReportingQueueKey(customUuid);
-		System.out.println(reportingQueueKey);
-		assertNotNull(reportingQueueKey);
-		int integerKey = Integer.parseInt(reportingQueueKey);
-		assertTrue(integerKey <= queueAmount);
-	}
+  @Test
+  void getKeyFromCustomString() {
+    String customUuid = "cutom-uuid-kek";
+    int queueAmount = 5;
+    reportingQueueService.setQueueAmount(queueAmount);
+    String reportingQueueKey = reportingQueueService.getReportingQueueKey(customUuid);
+    System.out.println(reportingQueueKey);
+    assertNotNull(reportingQueueKey);
+    int integerKey = Integer.parseInt(reportingQueueKey);
+    assertTrue(integerKey <= queueAmount);
+  }
 }

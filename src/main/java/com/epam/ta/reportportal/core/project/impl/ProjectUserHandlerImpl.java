@@ -14,18 +14,18 @@ public class ProjectUserHandlerImpl implements ProjectUserHandler {
 
 	private final ProjectUserRepository projectUserRepository;
 
-	@Autowired
-	public ProjectUserHandlerImpl(ProjectUserRepository projectUserRepository) {
+  @Autowired
+  public ProjectUserHandlerImpl(ProjectUserRepository projectUserRepository) {
 		this.projectUserRepository = projectUserRepository;
 	}
 
-	@Override
-	public ProjectUser assign(User user, Project project, ProjectRole projectRole) {
-		final ProjectUser projectUser = new ProjectUser().withProjectRole(projectRole)
-				.withUser(user)
-				.withProject(project);
-		projectUserRepository.save(projectUser);
+  @Override
+  public ProjectUser assign(User user, Project project, ProjectRole projectRole) {
+    final ProjectUser projectUser = new ProjectUser().withProjectRole(projectRole)
+        .withUser(user)
+        .withProject(project);
+    projectUserRepository.save(projectUser);
 
-		return projectUser;
+    return projectUser;
 	}
 }

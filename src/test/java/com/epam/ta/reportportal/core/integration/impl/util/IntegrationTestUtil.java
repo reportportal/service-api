@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.google.common.collect.Maps;
-
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
@@ -33,95 +32,96 @@ import java.util.Optional;
  */
 public final class IntegrationTestUtil {
 
-	private IntegrationTestUtil() {
+  private IntegrationTestUtil() {
 
-		//static only
-	}
+    //static only
+  }
 
-	public static Integration getGlobalEmailIntegration(long emailIntegrationId) {
+  public static Integration getGlobalEmailIntegration(long emailIntegrationId) {
 
-		Integration integration = new Integration();
+    Integration integration = new Integration();
 
-		integration.setCreator("superadmin");
-		integration.setCreationDate(LocalDateTime.now());
-		integration.setType(getEmailIntegrationType());
-		integration.setParams(new IntegrationParams(getParams()));
-		integration.setId(emailIntegrationId);
+    integration.setCreator("superadmin");
+    integration.setCreationDate(LocalDateTime.now());
+    integration.setType(getEmailIntegrationType());
+    integration.setParams(new IntegrationParams(getParams()));
+    integration.setId(emailIntegrationId);
 
-		return integration;
-	}
+    return integration;
+  }
 
-	public static Integration getProjectEmailIntegration(long emailIntegrationId, long projectId) {
+  public static Integration getProjectEmailIntegration(long emailIntegrationId, long projectId) {
 
-		Integration integration = getGlobalEmailIntegration(emailIntegrationId);
+    Integration integration = getGlobalEmailIntegration(emailIntegrationId);
 
-		integration.setProject(getProjectWithId(projectId).get());
+    integration.setProject(getProjectWithId(projectId).get());
 
-		return integration;
-	}
+    return integration;
+  }
 
-	public static Integration getGlobalJiraIntegration(long id, Map<String, Object> params) {
+  public static Integration getGlobalJiraIntegration(long id, Map<String, Object> params) {
 
-		Integration integration = new Integration();
+    Integration integration = new Integration();
 
-		integration.setCreator("superadmin");
-		integration.setCreationDate(LocalDateTime.now());
-		integration.setType(getJiraIntegrationType());
-		integration.setParams(new IntegrationParams(params));
-		integration.setId(id);
+    integration.setCreator("superadmin");
+    integration.setCreationDate(LocalDateTime.now());
+    integration.setType(getJiraIntegrationType());
+    integration.setParams(new IntegrationParams(params));
+    integration.setId(id);
 
-		return integration;
-	}
+    return integration;
+  }
 
-	public static Integration getProjectJiraIntegration(long id, Map<String, Object> params, long projectId) {
+  public static Integration getProjectJiraIntegration(long id, Map<String, Object> params,
+      long projectId) {
 
-		Integration integration = getGlobalJiraIntegration(id, params);
+    Integration integration = getGlobalJiraIntegration(id, params);
 
-		integration.setProject(getProjectWithId(projectId).get());
+    integration.setProject(getProjectWithId(projectId).get());
 
-		return integration;
-	}
+    return integration;
+  }
 
-	public static Map<String, Object> getParams() {
+  public static Map<String, Object> getParams() {
 
-		Map<String, Object> map = Maps.newHashMap();
-		map.put("first", "first");
-		map.put("second", "second");
-		return map;
-	}
+    Map<String, Object> map = Maps.newHashMap();
+    map.put("first", "first");
+    map.put("second", "second");
+    return map;
+  }
 
-	public static Optional<Project> getProjectWithId(long projectId) {
-		Project project = new Project();
+  public static Optional<Project> getProjectWithId(long projectId) {
+    Project project = new Project();
 
-		project.setId(projectId);
+    project.setId(projectId);
 
-		return Optional.of(project);
-	}
+    return Optional.of(project);
+  }
 
-	public static IntegrationType getJiraIntegrationType() {
+  public static IntegrationType getJiraIntegrationType() {
 
-		IntegrationType integrationType = new IntegrationType();
+    IntegrationType integrationType = new IntegrationType();
 
-		integrationType.setName("jira");
-		integrationType.setCreationDate(LocalDateTime.now());
-		integrationType.setId(1L);
-		integrationType.setIntegrationGroup(IntegrationGroupEnum.BTS);
-		IntegrationTypeDetails details = new IntegrationTypeDetails();
-		details.setDetails(Maps.newHashMap());
-		integrationType.setDetails(details);
+    integrationType.setName("jira");
+    integrationType.setCreationDate(LocalDateTime.now());
+    integrationType.setId(1L);
+    integrationType.setIntegrationGroup(IntegrationGroupEnum.BTS);
+    IntegrationTypeDetails details = new IntegrationTypeDetails();
+    details.setDetails(Maps.newHashMap());
+    integrationType.setDetails(details);
 
-		return integrationType;
-	}
+    return integrationType;
+  }
 
-	public static IntegrationType getEmailIntegrationType() {
+  public static IntegrationType getEmailIntegrationType() {
 
-		IntegrationType integrationType = new IntegrationType();
+    IntegrationType integrationType = new IntegrationType();
 
-		integrationType.setName("EMAIL");
-		integrationType.setCreationDate(LocalDateTime.now());
-		integrationType.setId(1L);
-		integrationType.setIntegrationGroup(IntegrationGroupEnum.NOTIFICATION);
+    integrationType.setName("EMAIL");
+    integrationType.setCreationDate(LocalDateTime.now());
+    integrationType.setId(1L);
+    integrationType.setIntegrationGroup(IntegrationGroupEnum.NOTIFICATION);
 
-		return integrationType;
-	}
+    return integrationType;
+  }
 }

@@ -18,13 +18,12 @@ package com.epam.ta.reportportal.ws.rabbit;
 
 import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import java.util.Optional;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 /**
  * @author Andrei Varabyeu
@@ -33,15 +32,15 @@ import java.util.Optional;
 @Transactional
 public class ActivityConsumer {
 
-	private final ActivityRepository activityRepository;
+  private final ActivityRepository activityRepository;
 
-	@Autowired
-	public ActivityConsumer(ActivityRepository activityRepository) {
-		this.activityRepository = activityRepository;
-	}
+  @Autowired
+  public ActivityConsumer(ActivityRepository activityRepository) {
+    this.activityRepository = activityRepository;
+  }
 
-	@RabbitListener(queues = "#{ @activityQueue.name }", containerFactory = "rabbitListenerContainerFactory")
-	public void onEvent(@Payload Activity rq) {
-		Optional.ofNullable(rq).ifPresent(activityRepository::save);
-	}
+  @RabbitListener(queues = "#{ @activityQueue.name }", containerFactory = "rabbitListenerContainerFactory")
+  public void onEvent(@Payload Activity rq) {
+    Optional.ofNullable(rq).ifPresent(activityRepository::save);
+  }
 }

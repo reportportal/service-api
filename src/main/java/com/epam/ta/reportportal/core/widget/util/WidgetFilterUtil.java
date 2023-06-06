@@ -16,40 +16,44 @@
 
 package com.epam.ta.reportportal.core.widget.util;
 
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.Lists;
-import org.springframework.data.domain.Sort;
-
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Function;
-
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
+import org.springframework.data.domain.Sort;
 
 /**
  * @author Pavel Bortnik
  */
 public class WidgetFilterUtil {
 
-	private WidgetFilterUtil() {
-		//static only
-	}
+  private WidgetFilterUtil() {
+    //static only
+  }
 
-	public static final Function<Set<Filter>, Filter> GROUP_FILTERS = filters -> {
-		Filter filter = ofNullable(filters).map(Collection::stream)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Filters set should not be empty"))
-				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "No filters for widget were found"));
-		filter.withConditions(filters.stream().map(Filter::getFilterConditions).flatMap(Collection::stream).collect(toList()));
+  public static final Function<Set<Filter>, Filter> GROUP_FILTERS = filters -> {
+    Filter filter = ofNullable(filters).map(Collection::stream)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            "Filters set should not be empty"))
+        .findFirst()
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            "No filters for widget were found"));
+    filter.withConditions(
+        filters.stream().map(Filter::getFilterConditions).flatMap(Collection::stream)
+            .collect(toList()));
 
-		return filter;
-	};
+    return filter;
+  };
 
-	public static final Function<Collection<Sort>, Sort> GROUP_SORTS = sorts -> Sort.by(ofNullable(sorts).map(s -> s.stream()
-			.flatMap(sortStream -> Lists.newArrayList(sortStream.iterator()).stream())
-			.collect(toList())).orElseGet(Lists::newArrayList));
+  public static final Function<Collection<Sort>, Sort> GROUP_SORTS = sorts -> Sort.by(
+      ofNullable(sorts).map(s -> s.stream()
+          .flatMap(sortStream -> Lists.newArrayList(sortStream.iterator()).stream())
+          .collect(toList())).orElseGet(Lists::newArrayList));
 
 }

@@ -31,20 +31,23 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class SaucelabsSecretMigrationService extends AbstractSecretMigrationService {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(SaucelabsSecretMigrationService.class);
-	private static final String SAUCELABS_INTEGRATION_TYPE_NAME = "saucelabs";
+  private static final Logger LOGGER = LoggerFactory.getLogger(
+      SaucelabsSecretMigrationService.class);
+  private static final String SAUCELABS_INTEGRATION_TYPE_NAME = "saucelabs";
 
-	@Autowired
-	public SaucelabsSecretMigrationService(IntegrationRepository integrationRepository, BasicTextEncryptor encryptor) {
-		super(integrationRepository, encryptor);
-	}
+  @Autowired
+  public SaucelabsSecretMigrationService(IntegrationRepository integrationRepository,
+      BasicTextEncryptor encryptor) {
+    super(integrationRepository, encryptor);
+  }
 
-	@Transactional
-	public void migrate() {
-		LOGGER.debug("Migration of saucelabs secrets has been started");
-		integrationRepository.findAllByTypeIn(SAUCELABS_INTEGRATION_TYPE_NAME)
-				.forEach(it -> extractParams(it).flatMap(SauceLabsProperties.ACCESS_TOKEN::getParameter)
-						.ifPresent(key -> SauceLabsProperties.ACCESS_TOKEN.setParameter(it.getParams(), encryptor.encrypt(key))));
-		LOGGER.debug("Migration of saucelabs secrets has been finished");
-	}
+  @Transactional
+  public void migrate() {
+    LOGGER.debug("Migration of saucelabs secrets has been started");
+    integrationRepository.findAllByTypeIn(SAUCELABS_INTEGRATION_TYPE_NAME)
+        .forEach(it -> extractParams(it).flatMap(SauceLabsProperties.ACCESS_TOKEN::getParameter)
+            .ifPresent(key -> SauceLabsProperties.ACCESS_TOKEN.setParameter(it.getParams(),
+                encryptor.encrypt(key))));
+    LOGGER.debug("Migration of saucelabs secrets has been finished");
+  }
 }

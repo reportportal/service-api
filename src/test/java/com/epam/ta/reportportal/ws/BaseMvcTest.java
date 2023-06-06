@@ -20,7 +20,10 @@ import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.TestConfig;
 import com.epam.ta.reportportal.auth.OAuthHelper;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
+import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.util.BinaryDataResponseWriter;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import org.flywaydb.test.FlywayTestExecutionListener;
@@ -48,44 +51,57 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 @ActiveProfiles("unittest")
 @ContextConfiguration(classes = TestConfig.class)
-@TestExecutionListeners(listeners = { FlywayTestExecutionListener.class }, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
+@TestExecutionListeners(listeners = {
+    FlywayTestExecutionListener.class}, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
 @Transactional
 public abstract class BaseMvcTest {
 
-	protected static final String DEFAULT_PROJECT_BASE_URL = "/v1/default_personal";
-	protected static final String SUPERADMIN_PROJECT_BASE_URL = "/v1/superadmin_personal";
+  protected static final String DEFAULT_PROJECT_BASE_URL = "/v1/default_personal";
+  protected static final String SUPERADMIN_PROJECT_BASE_URL = "/v1/superadmin_personal";
 
-	@Autowired
-	protected OAuthHelper oAuthHelper;
+  @Autowired
+  protected OAuthHelper oAuthHelper;
 
-	@Autowired
-	protected MockMvc mockMvc;
+  @Autowired
+  protected MockMvc mockMvc;
 
-	@MockBean
-	protected MessageBus messageBus;
+  @MockBean
+  protected MessageBus messageBus;
 
-	@MockBean
-	protected MailServiceFactory mailServiceFactory;
+  @MockBean
+  protected MailServiceFactory mailServiceFactory;
 
-	@MockBean
-	protected Pf4jPluginBox pluginBox;
+  @MockBean
+  protected Pf4jPluginBox pluginBox;
 
-	@Mock
-	protected BtsExtension extension;
+  @MockBean(name = "pluginFilesProvider")
+  protected PluginFilesProvider pluginFilesProvider;
 
-	@Mock
-	protected EmailService emailService;
+  @MockBean(name = "pluginPublicFilesProvider")
+  protected PluginFilesProvider pluginPublicFilesProvider;
 
-	@FlywayTest
-	@BeforeAll
-	public static void before() {
-	}
+  @MockBean
+  protected BinaryDataResponseWriter binaryDataResponseWriter;
 
-	protected RequestPostProcessor token(String tokenValue) {
-		return mockRequest -> {
-			mockRequest.addHeader("Authorization", "Bearer " + tokenValue);
-			return mockRequest;
-		};
-	}
+  @MockBean
+  protected ExecuteIntegrationHandler executeIntegrationHandler;
+
+  @Mock
+  protected BtsExtension extension;
+
+  @Mock
+  protected EmailService emailService;
+
+  @FlywayTest
+  @BeforeAll
+  public static void before() {
+  }
+
+  protected RequestPostProcessor token(String tokenValue) {
+    return mockRequest -> {
+      mockRequest.addHeader("Authorization", "Bearer " + tokenValue);
+      return mockRequest;
+    };
+  }
 
 }

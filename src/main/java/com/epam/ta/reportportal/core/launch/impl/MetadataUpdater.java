@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-
 import java.util.Collection;
 
 /**
@@ -25,13 +24,13 @@ import java.util.Collection;
  */
 public class MetadataUpdater implements ResourceUpdater<LaunchResource> {
 
-	@Override
-	public void update(LaunchResource resource) {
+  @Override
+  public void update(LaunchResource resource) {
 
-	}
+  }
 
-	@Override
-	public void update(Collection<LaunchResource> resources) {
+  @Override
+  public void update(Collection<LaunchResource> resources) {
 
-	}
+  }
 }

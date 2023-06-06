@@ -16,59 +16,58 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
+
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
 import com.epam.ta.reportportal.ws.model.activity.IssueTypeActivityResource;
-import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
-
-import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 class DefectTypeEventsTest {
 
-	private static Activity getExpectedActivity(ActivityAction action, String name) {
-		Activity activity = new Activity();
-		activity.setAction(action.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.DEFECT_TYPE.getValue());
-		activity.setUserId(1L);
-		activity.setUsername("user");
-		activity.setProjectId(3L);
-		activity.setObjectId(2L);
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails(name));
-		return activity;
-	}
+  private static Activity getExpectedActivity(ActivityAction action, String name) {
+    Activity activity = new Activity();
+    activity.setAction(action.getValue());
+    activity.setActivityEntityType(Activity.ActivityEntityType.DEFECT_TYPE.getValue());
+    activity.setUserId(1L);
+    activity.setUsername("user");
+    activity.setProjectId(3L);
+    activity.setObjectId(2L);
+    activity.setCreatedAt(LocalDateTime.now());
+    activity.setDetails(new ActivityDetails(name));
+    return activity;
+  }
 
-	@Test
-	void created() {
-		final Activity actual = new DefectTypeCreatedEvent(getIssueType(), 1L, "user", 3L).toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.CREATE_DEFECT, "test long name");
-		checkActivity(expected, actual);
-	}
+  @Test
+  void created() {
+    final Activity actual = new DefectTypeCreatedEvent(getIssueType(), 1L, "user", 3L).toActivity();
+    final Activity expected = getExpectedActivity(ActivityAction.CREATE_DEFECT, "test long name");
+    checkActivity(expected, actual);
+  }
 
-	@Test
-	void deleted() {
-		final Activity actual = new DefectTypeDeletedEvent(getIssueType(), 1L, "user", 3L).toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.DELETE_DEFECT, "test long name");
-		checkActivity(expected, actual);
-	}
+  @Test
+  void deleted() {
+    final Activity actual = new DefectTypeDeletedEvent(getIssueType(), 1L, "user", 3L).toActivity();
+    final Activity expected = getExpectedActivity(ActivityAction.DELETE_DEFECT, "test long name");
+    checkActivity(expected, actual);
+  }
 
-	private static IssueTypeActivityResource getIssueType() {
-		IssueTypeActivityResource issueType = new IssueTypeActivityResource();
-		issueType.setId(2L);
-		issueType.setLongName("test long name");
-		return issueType;
-	}
+  private static IssueTypeActivityResource getIssueType() {
+    IssueTypeActivityResource issueType = new IssueTypeActivityResource();
+    issueType.setId(2L);
+    issueType.setLongName("test long name");
+    return issueType;
+  }
 
-	@Test
-	void updated() {
-		final Activity actual = new DefectTypeUpdatedEvent(getIssueType(), 1L, "user", 3L).toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_DEFECT, "test long name");
-		checkActivity(expected, actual);
-	}
+  @Test
+  void updated() {
+    final Activity actual = new DefectTypeUpdatedEvent(getIssueType(), 1L, "user", 3L).toActivity();
+    final Activity expected = getExpectedActivity(ActivityAction.UPDATE_DEFECT, "test long name");
+    checkActivity(expected, actual);
+  }
 }

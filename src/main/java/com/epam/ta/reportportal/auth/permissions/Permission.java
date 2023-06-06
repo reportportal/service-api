@@ -21,20 +21,20 @@ import org.springframework.security.core.Authentication;
 /**
  * Report Portal Permission representation<br>
  * <b>BE AWARE</b> that each permissions should be marked with
- * {@link com.epam.ta.reportportal.auth.permissions.LookupPermission} annotation
- * to be assigned to some permission name. Without this permission will be
- * ignored by {@link org.springframework.security.access.PermissionEvaluator}
+ * {@link com.epam.ta.reportportal.auth.permissions.LookupPermission} annotation to be assigned to
+ * some permission name. Without this permission will be ignored by
+ * {@link org.springframework.security.access.PermissionEvaluator}
  *
  * @author Andrei Varabyeu
  */
 public interface Permission {
 
-	/**
-	 * Is action allowed for user with {@link Authentication} for target object
-	 *
-	 * @param authentication
-	 * @param targetDomainObject
-	 * @return
-	 */
-	boolean isAllowed(Authentication authentication, Object targetDomainObject);
+  /**
+   * Is action allowed for user with {@link Authentication} for target object
+   *
+   * @param authentication
+   * @param targetDomainObject
+   * @return
+   */
+  boolean isAllowed(Authentication authentication, Object targetDomainObject);
 }

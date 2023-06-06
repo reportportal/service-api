@@ -24,13 +24,13 @@ import java.util.stream.Collectors;
  */
 public class PipelineConstructor<T> {
 
-	private final List<PipelinePartProvider<T>> providers;
+  private final List<PipelinePartProvider<T>> providers;
 
-	public PipelineConstructor(List<PipelinePartProvider<T>> providers) {
-		this.providers = providers;
-	}
+  public PipelineConstructor(List<PipelinePartProvider<T>> providers) {
+    this.providers = providers;
+  }
 
-	public List<PipelinePart> construct(T source) {
-		return providers.stream().map(p -> p.provide(source)).collect(Collectors.toList());
-	}
+  public List<PipelinePart> construct(T source) {
+    return providers.stream().map(p -> p.provide(source)).collect(Collectors.toList());
+  }
 }

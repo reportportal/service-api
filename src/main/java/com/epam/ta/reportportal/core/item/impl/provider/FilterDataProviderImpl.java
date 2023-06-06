@@ -51,62 +51,70 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
 @Component
 public class FilterDataProviderImpl implements DataProviderHandler {
 
-	private static final String FILTER_ID_PARAM = "filterId";
+  private static final String FILTER_ID_PARAM = "filterId";
 
-	@Autowired
-	private UserFilterRepository filterRepository;
+  @Autowired
+  private UserFilterRepository filterRepository;
 
-	@Autowired
-	private TestItemRepository testItemRepository;
+  @Autowired
+  private TestItemRepository testItemRepository;
 
-	@Override
-	public Set<Statistics> accumulateStatistics(Queryable filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			Map<String, String> params) {
-		validateProjectRole(projectDetails, user);
-		Optional.ofNullable(params.get(FILTER_ID_PARAM))
-				.map(ControllerUtils::safeParseLong)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-						"Filter id must be provided for filter based items provider"
-				));
-		return testItemRepository.accumulateStatisticsByFilter(filter);
-	}
+  @Override
+  public Set<Statistics> accumulateStatistics(Queryable filter,
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      Map<String, String> params) {
+    validateProjectRole(projectDetails, user);
+    Optional.ofNullable(params.get(FILTER_ID_PARAM))
+        .map(ControllerUtils::safeParseLong)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            "Filter id must be provided for filter based items provider"
+        ));
+    return testItemRepository.accumulateStatisticsByFilter(filter);
+  }
 
-	@Override
-	public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, Map<String, String> params) {
-		validateProjectRole(projectDetails, user);
+  @Override
+  public Page<TestItem> getTestItems(Queryable filter, Pageable pageable,
+      ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, Map<String, String> params) {
+    validateProjectRole(projectDetails, user);
 
-		Long launchFilterId = Optional.ofNullable(params.get(FILTER_ID_PARAM))
-				.map(ControllerUtils::safeParseLong)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-						"Filter id must be provided for filter based items provider"
-				));
+    Long launchFilterId = Optional.ofNullable(params.get(FILTER_ID_PARAM))
+        .map(ControllerUtils::safeParseLong)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            "Filter id must be provided for filter based items provider"
+        ));
 
-		Integer launchesLimit = Optional.ofNullable(params.get(LAUNCHES_LIMIT_REQUEST_PARAM))
-				.map(ControllerUtils::safeParseInt)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-						"Launches limit must be provided for filter based items provider"
-				));
+    Integer launchesLimit = Optional.ofNullable(params.get(LAUNCHES_LIMIT_REQUEST_PARAM))
+        .map(ControllerUtils::safeParseInt)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            "Launches limit must be provided for filter based items provider"
+        ));
 
-		Boolean isLatest = Optional.ofNullable(params.get(IS_LATEST_LAUNCHES_REQUEST_PARAM)).map(Boolean::parseBoolean).orElse(false);
+    Boolean isLatest = Optional.ofNullable(params.get(IS_LATEST_LAUNCHES_REQUEST_PARAM))
+        .map(Boolean::parseBoolean).orElse(false);
 
-		UserFilter userFilter = filterRepository.findByIdAndProjectId(launchFilterId, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
-						launchFilterId,
-						projectDetails.getProjectName()
-				));
+    UserFilter userFilter = filterRepository.findByIdAndProjectId(launchFilterId,
+            projectDetails.getProjectId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
+            launchFilterId,
+            projectDetails.getProjectName()
+        ));
 
-		Pair<Queryable, Pageable> queryablePair = DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(projectDetails,
-				userFilter,
-				launchesLimit
-		);
+    Pair<Queryable, Pageable> queryablePair = DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(
+        projectDetails,
+        userFilter,
+        launchesLimit
+    );
 
-		return testItemRepository.findByFilter(isLatest, queryablePair.getKey(), filter, queryablePair.getValue(), pageable);
-	}
+    return testItemRepository.findByFilter(isLatest, queryablePair.getKey(), filter,
+        queryablePair.getValue(), pageable);
+  }
 
-	protected void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(projectDetails.getProjectRole() == OPERATOR, Predicate.isEqual(false)).verify(ACCESS_DENIED);
-		}
-	}
+  protected void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user) {
+    if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+      expect(projectDetails.getProjectRole() == OPERATOR, Predicate.isEqual(false)).verify(
+          ACCESS_DENIED);
+    }
+  }
 }

@@ -20,11 +20,10 @@ import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerServiceAsync;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -32,21 +31,23 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class AnalyzerServiceAsyncImpl implements AnalyzerServiceAsync {
 
-	private final AnalyzerService analyzerService;
+  private final AnalyzerService analyzerService;
 
-	@Autowired
-	public AnalyzerServiceAsyncImpl(AnalyzerService analyzerService) {
-		this.analyzerService = analyzerService;
-	}
+  @Autowired
+  public AnalyzerServiceAsyncImpl(AnalyzerService analyzerService) {
+    this.analyzerService = analyzerService;
+  }
 
-	@Override
-	public CompletableFuture<Void> analyze(Launch launch, List<Long> itemIds, AnalyzerConfig analyzerConfig) {
-		return CompletableFuture.runAsync(() -> analyzerService.runAnalyzers(launch, itemIds, analyzerConfig));
-	}
+  @Override
+  public CompletableFuture<Void> analyze(Launch launch, List<Long> itemIds,
+      AnalyzerConfig analyzerConfig) {
+    return CompletableFuture.runAsync(
+        () -> analyzerService.runAnalyzers(launch, itemIds, analyzerConfig));
+  }
 
-	@Override
-	public boolean hasAnalyzers() {
-		return analyzerService.hasAnalyzers();
-	}
+  @Override
+  public boolean hasAnalyzers() {
+    return analyzerService.hasAnalyzers();
+  }
 
 }

@@ -26,11 +26,10 @@ import com.epam.ta.reportportal.dao.ClusterRepository;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.pipeline.PipelineConstructor;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -38,44 +37,46 @@ import java.util.List;
 @Configuration
 public class GenerateClusterPipelineConfig {
 
-	private final CreateClusterHandler createClusterHandler;
+  private final CreateClusterHandler createClusterHandler;
 
-	private final ClusterDataProviderResolver clusterDataProviderResolver;
+  private final ClusterDataProviderResolver clusterDataProviderResolver;
 
-	private final ClusterRepository clusterRepository;
-	private final LogRepository logRepository;
-	private final ItemAttributeRepository itemAttributeRepository;
+  private final ClusterRepository clusterRepository;
+  private final LogRepository logRepository;
+  private final ItemAttributeRepository itemAttributeRepository;
 
-	@Autowired
-	public GenerateClusterPipelineConfig(CreateClusterHandler createClusterHandler, ClusterDataProviderResolver clusterDataProviderResolver,
-			ClusterRepository clusterRepository, LogRepository logRepository, ItemAttributeRepository itemAttributeRepository) {
-		this.createClusterHandler = createClusterHandler;
-		this.clusterDataProviderResolver = clusterDataProviderResolver;
-		this.clusterRepository = clusterRepository;
-		this.logRepository = logRepository;
-		this.itemAttributeRepository = itemAttributeRepository;
-	}
+  @Autowired
+  public GenerateClusterPipelineConfig(CreateClusterHandler createClusterHandler,
+      ClusterDataProviderResolver clusterDataProviderResolver,
+      ClusterRepository clusterRepository, LogRepository logRepository,
+      ItemAttributeRepository itemAttributeRepository) {
+    this.createClusterHandler = createClusterHandler;
+    this.clusterDataProviderResolver = clusterDataProviderResolver;
+    this.clusterRepository = clusterRepository;
+    this.logRepository = logRepository;
+    this.itemAttributeRepository = itemAttributeRepository;
+  }
 
-	@Bean
-	public PipelineConstructor<GenerateClustersConfig> generateClustersPipelineConstructor() {
-		return new PipelineConstructor<>(List.of(deleteClustersPartProvider(),
-				saveClusterDataPartProvider(),
-				saveLastRunAttributePartProvider()
-		));
-	}
+  @Bean
+  public PipelineConstructor<GenerateClustersConfig> generateClustersPipelineConstructor() {
+    return new PipelineConstructor<>(List.of(deleteClustersPartProvider(),
+        saveClusterDataPartProvider(),
+        saveLastRunAttributePartProvider()
+    ));
+  }
 
-	@Bean
-	public DeleteClustersPartProvider deleteClustersPartProvider() {
-		return new DeleteClustersPartProvider(clusterRepository, logRepository);
-	}
+  @Bean
+  public DeleteClustersPartProvider deleteClustersPartProvider() {
+    return new DeleteClustersPartProvider(clusterRepository, logRepository);
+  }
 
-	@Bean
-	public SaveClusterDataPartProvider saveClusterDataPartProvider() {
-		return new SaveClusterDataPartProvider(clusterDataProviderResolver, createClusterHandler);
-	}
+  @Bean
+  public SaveClusterDataPartProvider saveClusterDataPartProvider() {
+    return new SaveClusterDataPartProvider(clusterDataProviderResolver, createClusterHandler);
+  }
 
-	@Bean
-	public SaveLastRunAttributePartProvider saveLastRunAttributePartProvider() {
-		return new SaveLastRunAttributePartProvider(itemAttributeRepository);
-	}
+  @Bean
+  public SaveLastRunAttributePartProvider saveLastRunAttributePartProvider() {
+    return new SaveLastRunAttributePartProvider(itemAttributeRepository);
+  }
 }

@@ -16,7 +16,11 @@
 
 package com.epam.ta.reportportal.ws.handler.impl;
 
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.dao.FilterableRepository;
+import com.epam.ta.reportportal.dao.IntegrationRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
@@ -25,10 +29,9 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.handler.QueryHandler;
 import com.epam.ta.reportportal.ws.rabbit.QueryRQ;
 import com.google.common.collect.ImmutableMap;
-import org.springframework.stereotype.Service;
-
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Yauheni_Martynau
@@ -36,34 +39,35 @@ import java.util.Optional;
 @Service
 public class QueryHandlerImpl implements QueryHandler {
 
-	private final ProjectRepository projectRepository;
-	private final IntegrationRepository integrationRepository;
-	private final TestItemRepository testItemRepository;
-	private final LogRepository logRepository;
+  private final ProjectRepository projectRepository;
+  private final IntegrationRepository integrationRepository;
+  private final TestItemRepository testItemRepository;
+  private final LogRepository logRepository;
 
-	private Map<String, FilterableRepository> repositories;
+  private Map<String, FilterableRepository> repositories;
 
-	public QueryHandlerImpl(ProjectRepository projectRepository, IntegrationRepository integrationRepository,
-			TestItemRepository testItemRepository, LogRepository logRepository) {
+  public QueryHandlerImpl(ProjectRepository projectRepository,
+      IntegrationRepository integrationRepository,
+      TestItemRepository testItemRepository, LogRepository logRepository) {
 
-		this.projectRepository = projectRepository;
-		this.integrationRepository = integrationRepository;
-		this.testItemRepository = testItemRepository;
-		this.logRepository = logRepository;
+    this.projectRepository = projectRepository;
+    this.integrationRepository = integrationRepository;
+    this.testItemRepository = testItemRepository;
+    this.logRepository = logRepository;
 
-		repositories = ImmutableMap.<String, FilterableRepository>builder()
-				.put(Project.class.getSimpleName(), projectRepository)
-				.put(Integration.class.getSimpleName(), integrationRepository)
-				.put(TestItem.class.getSimpleName(), testItemRepository)
-				.put(Log.class.getSimpleName(), logRepository)
-				.build();
-	}
+    repositories = ImmutableMap.<String, FilterableRepository>builder()
+        .put(Project.class.getSimpleName(), projectRepository)
+        .put(Integration.class.getSimpleName(), integrationRepository)
+        .put(TestItem.class.getSimpleName(), testItemRepository)
+        .put(Log.class.getSimpleName(), logRepository)
+        .build();
+  }
 
-	@Override
-	public Object find(QueryRQ queryRQ) {
+  @Override
+  public Object find(QueryRQ queryRQ) {
 
-		return Optional.ofNullable(repositories.get(queryRQ.getEntity()))
-				.map(repository -> repository.findByFilter(queryRQ.getFilter()))
-				.orElseThrow(() -> new ReportPortalException("Repository not found"));
-	}
+    return Optional.ofNullable(repositories.get(queryRQ.getEntity()))
+        .map(repository -> repository.findByFilter(queryRQ.getFilter()))
+        .orElseThrow(() -> new ReportPortalException("Repository not found"));
+  }
 }

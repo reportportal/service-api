@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.hierarchy;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-
 import java.util.Date;
 
 /**
@@ -26,14 +25,14 @@ import java.util.Date;
  */
 public interface FinishHierarchyHandler<T> {
 
-	/**
-	 * @param parentEntity   Parent entity which descendants should be finished
-	 * @param status         {@link StatusEnum} that should be assigned to descendants
-	 * @param endDate        {@link java.time.LocalDateTime} finish date for descendants
-	 * @param user           {@link ReportPortalUser}
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @return finished descendants count
-	 */
-	int finishDescendants(T parentEntity, StatusEnum status, Date endDate, ReportPortalUser user,
-			ReportPortalUser.ProjectDetails projectDetails);
+  /**
+   * @param parentEntity   Parent entity which descendants should be finished
+   * @param status         {@link StatusEnum} that should be assigned to descendants
+   * @param endDate        {@link java.time.LocalDateTime} finish date for descendants
+   * @param user           {@link ReportPortalUser}
+   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @return finished descendants count
+   */
+  int finishDescendants(T parentEntity, StatusEnum status, Date endDate, ReportPortalUser user,
+      ReportPortalUser.ProjectDetails projectDetails);
 }

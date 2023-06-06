@@ -12,22 +12,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class ComponentHealthCheckPostProcessor implements WidgetPostProcessor {
 
-	private final WidgetValidator componentHealthCheckValidator;
+  private final WidgetValidator componentHealthCheckValidator;
 
-	@Autowired
-	public ComponentHealthCheckPostProcessor(WidgetValidator componentHealthCheckValidator) {
-		this.componentHealthCheckValidator = componentHealthCheckValidator;
-	}
+  @Autowired
+  public ComponentHealthCheckPostProcessor(WidgetValidator componentHealthCheckValidator) {
+    this.componentHealthCheckValidator = componentHealthCheckValidator;
+  }
 
-	@Override
-	public boolean supports(Widget widget) {
-		return WidgetType.COMPONENT_HEALTH_CHECK.getType().equalsIgnoreCase(widget.getWidgetType());
-	}
+  @Override
+  public boolean supports(Widget widget) {
+    return WidgetType.COMPONENT_HEALTH_CHECK.getType().equalsIgnoreCase(widget.getWidgetType());
+  }
 
-	@Override
-	public void postProcess(Widget widget) {
-		if (supports(widget)) {
-			componentHealthCheckValidator.validate(widget);
-		}
-	}
+  @Override
+  public void postProcess(Widget widget) {
+    if (supports(widget)) {
+      componentHealthCheckValidator.validate(widget);
+    }
+  }
 }

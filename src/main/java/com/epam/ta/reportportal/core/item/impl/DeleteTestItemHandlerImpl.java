@@ -16,10 +16,25 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_IS_NOT_FINISHED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_IS_NOT_FINISHED;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
+import com.epam.reportportal.events.ElementsDeletedEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.ElementsCounterService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -35,23 +50,19 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Sets;
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 
 /**
  * Default implementation of {@link DeleteTestItemHandler}
@@ -62,139 +73,180 @@ import static java.util.stream.Collectors.toSet;
 @Service
 public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
-	private final TestItemRepository testItemRepository;
+  private final TestItemRepository testItemRepository;
 
-	private final ContentRemover<Long> itemContentRemover;
+  private final ContentRemover<Long> itemContentRemover;
 
-	private final LogIndexer logIndexer;
+  private final LogIndexer logIndexer;
 
-	private final LaunchRepository launchRepository;
+  private final LaunchRepository launchRepository;
 
-	private final AttachmentRepository attachmentRepository;
+  private final AttachmentRepository attachmentRepository;
 
-	@Autowired
-	public DeleteTestItemHandlerImpl(TestItemRepository testItemRepository, ContentRemover<Long> itemContentRemover, LogIndexer logIndexer, LaunchRepository launchRepository,
-			AttachmentRepository attachmentRepository) {
-		this.testItemRepository = testItemRepository;
-		this.itemContentRemover = itemContentRemover;
-		this.logIndexer = logIndexer;
-		this.launchRepository = launchRepository;
-		this.attachmentRepository = attachmentRepository;
-	}
+  private final ApplicationEventPublisher eventPublisher;
 
-	@Override
-	public OperationCompletionRS deleteTestItem(Long itemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		TestItem item = testItemRepository.findById(itemId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
-		Launch launch = launchRepository.findById(item.getLaunchId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, item.getLaunchId()));
+  private final ElementsCounterService elementsCounterService;
 
-		validate(item, launch, user, projectDetails);
-		Optional<Long> parentId = ofNullable(item.getParentId());
+  private final LogService logService;
 
-		Set<Long> itemsForRemove = Sets.newHashSet(testItemRepository.selectAllDescendantsIds(item.getPath()));
-		itemsForRemove.forEach(itemContentRemover::remove);
+  @Autowired
+  public DeleteTestItemHandlerImpl(TestItemRepository testItemRepository,
+      ContentRemover<Long> itemContentRemover, LogIndexer logIndexer,
+      LaunchRepository launchRepository, AttachmentRepository attachmentRepository,
+      ApplicationEventPublisher eventPublisher,
+      ElementsCounterService elementsCounterService, LogService logService) {
+    this.testItemRepository = testItemRepository;
+    this.itemContentRemover = itemContentRemover;
+    this.logIndexer = logIndexer;
+    this.launchRepository = launchRepository;
+    this.attachmentRepository = attachmentRepository;
+    this.eventPublisher = eventPublisher;
+    this.elementsCounterService = elementsCounterService;
+    this.logService = logService;
+  }
 
-		itemContentRemover.remove(item.getItemId());
-		testItemRepository.deleteById(item.getItemId());
+  @Override
+  public OperationCompletionRS deleteTestItem(Long itemId,
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+    TestItem item = testItemRepository.findById(itemId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
+    Launch launch = launchRepository.findById(item.getLaunchId())
+        .orElseThrow(
+            () -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, item.getLaunchId()));
 
-		launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
-		parentId.flatMap(testItemRepository::findById)
-				.ifPresent(p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
+    validate(item, launch, user, projectDetails);
+    Optional<Long> parentId = ofNullable(item.getParentId());
 
-		logIndexer.indexItemsRemoveAsync(projectDetails.getProjectId(), itemsForRemove);
-		attachmentRepository.moveForDeletionByItems(itemsForRemove);
+    Set<Long> itemsForRemove = Sets.newHashSet(
+        testItemRepository.selectAllDescendantsIds(item.getPath()));
+    itemsForRemove.forEach(itemContentRemover::remove);
 
-		return COMPOSE_DELETE_RESPONSE.apply(item.getItemId());
-	}
+    eventPublisher.publishEvent(new ElementsDeletedEvent(item,
+        projectDetails.getProjectId(),
+        elementsCounterService.countNumberOfItemElements(item)
+    ));
+    logService.deleteLogMessageByTestItemSet(projectDetails.getProjectId(), itemsForRemove);
+    itemContentRemover.remove(item.getItemId());
+    testItemRepository.deleteById(item.getItemId());
 
-	@Override
-	public List<OperationCompletionRS> deleteTestItems(Collection<Long> ids, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
-		List<TestItem> items = testItemRepository.findAllById(ids);
+    launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
+    parentId.flatMap(testItemRepository::findById)
+        .ifPresent(
+            p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
 
-		List<Launch> launches = launchRepository.findAllById(items.stream()
-				.map(TestItem::getLaunchId)
-				.filter(Objects::nonNull)
-				.collect(Collectors.toSet()));
-		Map<Long, List<TestItem>> launchItemMap = items.stream().collect(Collectors.groupingBy(TestItem::getLaunchId));
-		launches.forEach(launch -> launchItemMap.get(launch.getId()).forEach(item -> validate(item, launch, user, projectDetails)));
+    logIndexer.indexItemsRemoveAsync(projectDetails.getProjectId(), itemsForRemove);
+    attachmentRepository.moveForDeletionByItems(itemsForRemove);
 
-		Map<Long, PathName> descendantsMapping = testItemRepository.selectPathNames(items);
+    return COMPOSE_DELETE_RESPONSE.apply(item.getItemId());
+  }
 
-		Set<Long> idsToDelete = Sets.newHashSet(descendantsMapping.keySet());
+  @Override
+  public List<OperationCompletionRS> deleteTestItems(Collection<Long> ids,
+      ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user) {
+    List<TestItem> items = testItemRepository.findAllById(ids);
 
-		descendantsMapping.forEach((key, value) -> value.getItemPaths().forEach(ip -> {
-			if (idsToDelete.contains(ip.getId())) {
-				idsToDelete.remove(key);
-			}
-		}));
+    List<Launch> launches = launchRepository.findAllById(items.stream()
+        .map(TestItem::getLaunchId)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet()));
+    Map<Long, List<TestItem>> launchItemMap = items.stream()
+        .collect(Collectors.groupingBy(TestItem::getLaunchId));
+    launches.forEach(launch -> launchItemMap.get(launch.getId())
+        .forEach(item -> validate(item, launch, user, projectDetails)));
 
-		List<TestItem> parentsToUpdate = testItemRepository.findAllById(items.stream()
-				.filter(it -> idsToDelete.contains(it.getItemId()))
-				.map(TestItem::getParentId)
-				.filter(Objects::nonNull)
-				.collect(toList()));
+    Map<Long, PathName> descendantsMapping = testItemRepository.selectPathNames(items);
 
-		Set<Long> removedItems = testItemRepository.findAllById(idsToDelete)
-				.stream()
-				.map(TestItem::getPath)
-				.collect(toList())
-				.stream()
-				.flatMap(path -> testItemRepository.selectAllDescendantsIds(path).stream())
-				.collect(toSet());
+    Set<Long> idsToDelete = Sets.newHashSet(descendantsMapping.keySet());
 
-		idsToDelete.forEach(itemContentRemover::remove);
-		testItemRepository.deleteAllByItemIdIn(idsToDelete);
+    descendantsMapping.forEach((key, value) -> value.getItemPaths().forEach(ip -> {
+      if (idsToDelete.contains(ip.getId())) {
+        idsToDelete.remove(key);
+      }
+    }));
 
-		launches.forEach(it -> it.setHasRetries(launchRepository.hasRetries(it.getId())));
+    List<TestItem> parentsToUpdate = testItemRepository.findAllById(items.stream()
+        .filter(it -> idsToDelete.contains(it.getItemId()))
+        .map(TestItem::getParentId)
+        .filter(Objects::nonNull)
+        .collect(toList()));
 
-		parentsToUpdate.forEach(it -> it.setHasChildren(testItemRepository.hasChildren(it.getItemId(), it.getPath())));
+    Set<Long> removedItems = testItemRepository.findAllById(idsToDelete)
+        .stream()
+        .map(TestItem::getPath)
+        .collect(toList())
+        .stream()
+        .flatMap(path -> testItemRepository.selectAllDescendantsIds(path).stream())
+        .collect(toSet());
 
-		if (CollectionUtils.isNotEmpty(removedItems)) {
-			logIndexer.indexItemsRemoveAsync(projectDetails.getProjectId(), removedItems);
-			attachmentRepository.moveForDeletionByItems(removedItems);
-		}
+    idsToDelete.forEach(itemContentRemover::remove);
+    eventPublisher.publishEvent(new ElementsDeletedEvent(
+        items,
+        projectDetails.getProjectId(),
+        elementsCounterService.countNumberOfItemElements(items)
+    ));
+    logService.deleteLogMessageByTestItemSet(projectDetails.getProjectId(), removedItems);
+    testItemRepository.deleteAllByItemIdIn(idsToDelete);
 
-		return idsToDelete.stream().map(COMPOSE_DELETE_RESPONSE).collect(toList());
-	}
+    launches.forEach(it -> it.setHasRetries(launchRepository.hasRetries(it.getId())));
 
-	private static final Function<Long, OperationCompletionRS> COMPOSE_DELETE_RESPONSE = it -> {
-		String message = formattedSupplier("Test Item with ID = '{}' has been successfully deleted.", it).get();
-		return new OperationCompletionRS(message);
-	};
+    parentsToUpdate.forEach(
+        it -> it.setHasChildren(testItemRepository.hasChildren(it.getItemId(), it.getPath())));
 
-	/**
-	 * Validate {@link ReportPortalUser} credentials, {@link TestItemResults#getStatus()},
-	 * {@link Launch#getStatus()} and {@link Launch} affiliation to the {@link com.epam.ta.reportportal.entity.project.Project}
-	 *
-	 * @param testItem       {@link TestItem}
-	 * @param user           {@link ReportPortalUser}
-	 * @param projectDetails {@link ReportPortalUser.ProjectDetails}
-	 */
-	private void validate(TestItem testItem, Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
-		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-					formattedSupplier("Deleting testItem '{}' is not under specified project '{}'",
-							testItem.getItemId(),
-							projectDetails.getProjectId()
-					)
-			);
-			if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
-				expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED, "You are not a launch owner.");
-			}
-		}
-		expect(testItem.getRetryOf(), Objects::isNull).verify(ErrorType.RETRIES_HANDLER_ERROR,
-				Suppliers.formattedSupplier("Unable to delete test item ['{}'] because it is a retry", testItem.getItemId()).get()
-		);
-		expect(testItem.getItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
-				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId())
-		);
-		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
-				formattedSupplier("Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
-						testItem.getItemId(),
-						launch.getId()
-				)
-		);
-	}
+    if (CollectionUtils.isNotEmpty(removedItems)) {
+      logIndexer.indexItemsRemoveAsync(projectDetails.getProjectId(), removedItems);
+      attachmentRepository.moveForDeletionByItems(removedItems);
+    }
+
+    return idsToDelete.stream().map(COMPOSE_DELETE_RESPONSE).collect(toList());
+  }
+
+  private static final Function<Long, OperationCompletionRS> COMPOSE_DELETE_RESPONSE = it -> {
+    String message = formattedSupplier("Test Item with ID = '{}' has been successfully deleted.",
+        it).get();
+    return new OperationCompletionRS(message);
+  };
+
+  /**
+   * Validate {@link ReportPortalUser} credentials, {@link TestItemResults#getStatus()},
+   * {@link Launch#getStatus()} and {@link Launch} affiliation to the
+   * {@link com.epam.ta.reportportal.entity.project.Project}
+   *
+   * @param testItem       {@link TestItem}
+   * @param user           {@link ReportPortalUser}
+   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   */
+  private void validate(TestItem testItem, Launch launch, ReportPortalUser user,
+      ReportPortalUser.ProjectDetails projectDetails) {
+    if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+      expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
+          FORBIDDEN_OPERATION,
+          formattedSupplier("Deleting testItem '{}' is not under specified project '{}'",
+              testItem.getItemId(),
+              projectDetails.getProjectId()
+          )
+      );
+      if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
+        expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED,
+            "You are not a launch owner.");
+      }
+    }
+    expect(testItem.getRetryOf(), Objects::isNull).verify(ErrorType.RETRIES_HANDLER_ERROR,
+        Suppliers.formattedSupplier("Unable to delete test item ['{}'] because it is a retry",
+            testItem.getItemId()).get()
+    );
+    expect(testItem.getItemResults().getStatus(),
+        not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
+        formattedSupplier("Unable to delete test item ['{}'] in progress state",
+            testItem.getItemId())
+    );
+    expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(
+        LAUNCH_IS_NOT_FINISHED,
+        formattedSupplier(
+            "Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
+            testItem.getItemId(),
+            launch.getId()
+        )
+    );
+  }
 }

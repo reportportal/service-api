@@ -15,9 +15,8 @@
  */
 package com.epam.ta.reportportal.auth.permissions;
 
-import org.springframework.security.core.GrantedAuthority;
-
 import java.util.Objects;
+import org.springframework.security.core.GrantedAuthority;
 
 /**
  * Project authority
@@ -26,41 +25,41 @@ import java.util.Objects;
  */
 public class ProjectAuthority implements GrantedAuthority {
 
-	private final String project;
-	private final String projectRole;
+  private final String project;
+  private final String projectRole;
 
-	public ProjectAuthority(String project, String projectRole) {
-		this.project = project;
-		this.projectRole = projectRole;
-	}
+  public ProjectAuthority(String project, String projectRole) {
+    this.project = project;
+    this.projectRole = projectRole;
+  }
 
-	public String getProject() {
-		return project;
-	}
+  public String getProject() {
+    return project;
+  }
 
-	public String getProjectRole() {
-		return projectRole;
-	}
+  public String getProjectRole() {
+    return projectRole;
+  }
 
-	@Override
-	public String getAuthority() {
-		return "PROJECT_" + project + "_" + projectRole;
-	}
+  @Override
+  public String getAuthority() {
+    return "PROJECT_" + project + "_" + projectRole;
+  }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		ProjectAuthority that = (ProjectAuthority) o;
-		return Objects.equals(project, that.project) && Objects.equals(projectRole, that.projectRole);
-	}
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ProjectAuthority that = (ProjectAuthority) o;
+    return Objects.equals(project, that.project) && Objects.equals(projectRole, that.projectRole);
+  }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(project, projectRole);
-	}
+  @Override
+  public int hashCode() {
+    return Objects.hash(project, projectRole);
+  }
 }

@@ -18,25 +18,24 @@ package com.epam.ta.reportportal.core.events.listener;
 
 import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
 import com.epam.ta.reportportal.core.events.subscriber.EventSubscriber;
+import java.util.List;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.event.TransactionalEventListener;
-
-import java.util.List;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class TestItemFinishedEventListener {
 
-	private final List<EventSubscriber<ItemFinishedEvent>> subscribers;
+  private final List<EventSubscriber<ItemFinishedEvent>> subscribers;
 
-	public TestItemFinishedEventListener(List<EventSubscriber<ItemFinishedEvent>> subscribers) {
-		this.subscribers = subscribers;
-	}
+  public TestItemFinishedEventListener(List<EventSubscriber<ItemFinishedEvent>> subscribers) {
+    this.subscribers = subscribers;
+  }
 
-	@Async(value = "eventListenerExecutor")
-	@TransactionalEventListener
-	public void onApplicationEvent(ItemFinishedEvent event) {
-		subscribers.forEach(s -> s.handleEvent(event));
-	}
+  @Async(value = "eventListenerExecutor")
+  @TransactionalEventListener
+  public void onApplicationEvent(ItemFinishedEvent event) {
+    subscribers.forEach(s -> s.handleEvent(event));
+  }
 }

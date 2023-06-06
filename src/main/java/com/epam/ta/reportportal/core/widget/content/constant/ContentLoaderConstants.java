@@ -21,26 +21,26 @@ package com.epam.ta.reportportal.core.widget.content.constant;
  */
 public final class ContentLoaderConstants {
 
-	public static final String CONTENT_FIELDS_DELIMITER = ",";
+  public static final String CONTENT_FIELDS_DELIMITER = ",";
 
-	public static final String RESULT = "result";
-	public static final String LATEST_OPTION = "latest";
-	public static final String LATEST_LAUNCH = "latestLaunch";
-	public static final String LAUNCH_NAME_FIELD = "launchNameFilter";
-	public static final String USER = "user";
-	public static final String ACTION_TYPE = "actionType";
-	public static final String ATTRIBUTES = "attributes";
-	public static final String ATTRIBUTE_KEY = "attributeKey";
-	public static final String PATTERN_TEMPLATE_NAME = "patternTemplateName";
-	public static final String ITEM_TYPE = "type";
-	public static final String INCLUDE_METHODS = "includeMethods";
-	public static final String FLAKY = "flaky";
-	public static final String CUSTOM_COLUMNS = "customColumns";
-	public static final String TIMELINE = "timeline";
-	public static final String ATTRIBUTE_KEYS = "attributeKeys";
-	public static final String MIN_PASSING_RATE = "minPassingRate";
+  public static final String RESULT = "result";
+  public static final String LATEST_OPTION = "latest";
+  public static final String LATEST_LAUNCH = "latestLaunch";
+  public static final String LAUNCH_NAME_FIELD = "launchNameFilter";
+  public static final String USER = "user";
+  public static final String ACTION_TYPE = "actionType";
+  public static final String ATTRIBUTES = "attributes";
+  public static final String ATTRIBUTE_KEY = "attributeKey";
+  public static final String PATTERN_TEMPLATE_NAME = "patternTemplateName";
+  public static final String ITEM_TYPE = "type";
+  public static final String INCLUDE_METHODS = "includeMethods";
+  public static final String FLAKY = "flaky";
+  public static final String CUSTOM_COLUMNS = "customColumns";
+  public static final String TIMELINE = "timeline";
+  public static final String ATTRIBUTE_KEYS = "attributeKeys";
+  public static final String MIN_PASSING_RATE = "minPassingRate";
 
-	private ContentLoaderConstants() {
-		//static only
-	}
+  private ContentLoaderConstants() {
+    //static only
+  }
 }

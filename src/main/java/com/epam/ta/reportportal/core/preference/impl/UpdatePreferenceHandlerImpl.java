@@ -38,36 +38,39 @@ import org.springframework.stereotype.Service;
 @Service
 public class UpdatePreferenceHandlerImpl implements UpdatePreferenceHandler {
 
-	private final UserPreferenceRepository userPreferenceRepository;
-	private final UserFilterRepository userFilterRepository;
+  private final UserPreferenceRepository userPreferenceRepository;
+  private final UserFilterRepository userFilterRepository;
 
 	@Autowired
 	public UpdatePreferenceHandlerImpl(UserPreferenceRepository userPreferenceRepository, UserFilterRepository userFilterRepository) {
-		this.userPreferenceRepository = userPreferenceRepository;
-		this.userFilterRepository = userFilterRepository;
-	}
+    this.userPreferenceRepository = userPreferenceRepository;
+    this.userFilterRepository = userFilterRepository;
+  }
 
-	@Override
-	public OperationCompletionRS addPreference(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long filterId) {
+  @Override
+  public OperationCompletionRS addPreference(ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, Long filterId) {
 
-		if (userPreferenceRepository.findByProjectIdAndUserIdAndFilterId(projectDetails.getProjectId(), user.getUserId(), filterId)
-				.isPresent()) {
-			throw new ReportPortalException(ErrorType.RESOURCE_ALREADY_EXISTS, "User Preference");
-		}
+    if (userPreferenceRepository.findByProjectIdAndUserIdAndFilterId(projectDetails.getProjectId(),
+            user.getUserId(), filterId)
+        .isPresent()) {
+      throw new ReportPortalException(ErrorType.RESOURCE_ALREADY_EXISTS, "User Preference");
+    }
 
-		UserFilter filter = userFilterRepository.findByIdAndProjectId(filterId, projectDetails.getProjectId())
+    UserFilter filter = userFilterRepository.findByIdAndProjectId(filterId, projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
 						filterId,
 						projectDetails.getProjectName()
 				));
 
-		UserPreference userPreference = new UserPreferenceBuilder().withUser(user.getUserId())
-				.withProject(projectDetails.getProjectId())
-				.withFilter(filter)
-				.get();
-		userPreferenceRepository.save(userPreference);
-		return new OperationCompletionRS("Filter with id = " + filterId + " successfully added to launches tab.");
-	}
+    UserPreference userPreference = new UserPreferenceBuilder().withUser(user.getUserId())
+        .withProject(projectDetails.getProjectId())
+        .withFilter(filter)
+        .get();
+    userPreferenceRepository.save(userPreference);
+    return new OperationCompletionRS(
+        "Filter with id = " + filterId + " successfully added to launches tab.");
+  }
 
 	@Override
 	public OperationCompletionRS removePreference(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long filterId) {

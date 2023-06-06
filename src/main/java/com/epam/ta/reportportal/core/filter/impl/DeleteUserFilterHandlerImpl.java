@@ -37,18 +37,19 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.USER_FILTER_NOT_FOUND;
 @Service
 public class DeleteUserFilterHandlerImpl implements DeleteUserFilterHandler {
 
-	private final UserFilterRepository userFilterRepository;
-	private final MessageBus messageBus;
+  private final UserFilterRepository userFilterRepository;
+  private final MessageBus messageBus;
 
 	@Autowired
 	public DeleteUserFilterHandlerImpl(UserFilterRepository userFilterRepository, MessageBus messageBus) {
-		this.userFilterRepository = userFilterRepository;
-		this.messageBus = messageBus;
+    this.userFilterRepository = userFilterRepository;
+    this.messageBus = messageBus;
 	}
 
-	@Override
-	public OperationCompletionRS deleteFilter(Long id, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		UserFilter userFilter = userFilterRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
+  @Override
+  public OperationCompletionRS deleteFilter(Long id, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user) {
+    UserFilter userFilter = userFilterRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
 						id,
 						projectDetails.getProjectName()
@@ -59,7 +60,9 @@ public class DeleteUserFilterHandlerImpl implements DeleteUserFilterHandler {
 				user.getUserId()
 		);
 		userFilterRepository.delete(userFilter);
-		messageBus.publishActivity(new FilterDeletedEvent(TO_ACTIVITY_RESOURCE.apply(userFilter), user.getUserId(), user.getUsername()));
-		return new OperationCompletionRS("User filter with ID = '" + id + "' successfully deleted.");
-	}
+    messageBus.publishActivity(
+        new FilterDeletedEvent(TO_ACTIVITY_RESOURCE.apply(userFilter), user.getUserId(),
+            user.getUsername()));
+    return new OperationCompletionRS("User filter with ID = '" + id + "' successfully deleted.");
+  }
 }

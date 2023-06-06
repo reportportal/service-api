@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.preference.UserPreference;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.User;
-
 import java.util.function.Supplier;
 
 /**
@@ -28,33 +27,33 @@ import java.util.function.Supplier;
  */
 public class UserPreferenceBuilder implements Supplier<UserPreference> {
 
-	private UserPreference userPreference;
+  private UserPreference userPreference;
 
-	public UserPreferenceBuilder() {
-		userPreference = new UserPreference();
-	}
+  public UserPreferenceBuilder() {
+    userPreference = new UserPreference();
+  }
 
-	public UserPreferenceBuilder withProject(Long id) {
-		Project project = new Project();
-		project.setId(id);
-		userPreference.setProject(project);
-		return this;
-	}
+  public UserPreferenceBuilder withProject(Long id) {
+    Project project = new Project();
+    project.setId(id);
+    userPreference.setProject(project);
+    return this;
+  }
 
-	public UserPreferenceBuilder withUser(Long id) {
-		User user = new User();
-		user.setId(id);
-		userPreference.setUser(user);
-		return this;
-	}
+  public UserPreferenceBuilder withUser(Long id) {
+    User user = new User();
+    user.setId(id);
+    userPreference.setUser(user);
+    return this;
+  }
 
-	public UserPreferenceBuilder withFilter(UserFilter filter) {
-		userPreference.setFilter(filter);
-		return this;
-	}
+  public UserPreferenceBuilder withFilter(UserFilter filter) {
+    userPreference.setFilter(filter);
+    return this;
+  }
 
-	@Override
-	public UserPreference get() {
-		return userPreference;
-	}
+  @Override
+  public UserPreference get() {
+    return userPreference;
+  }
 }

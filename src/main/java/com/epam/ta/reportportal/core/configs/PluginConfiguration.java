@@ -16,105 +16,134 @@
 
 package com.epam.ta.reportportal.core.configs;
 
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
+import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.plugin.Pf4jPluginManager;
 import com.epam.ta.reportportal.plugin.ReportPortalExtensionFactory;
-import org.pf4j.*;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.Set;
+import javax.activation.FileTypeMap;
+import org.pf4j.DefaultExtensionFinder;
+import org.pf4j.DefaultPluginManager;
+import org.pf4j.ExtensionFactory;
+import org.pf4j.ExtensionFinder;
+import org.pf4j.LegacyExtensionFinder;
+import org.pf4j.ManifestPluginDescriptorFinder;
+import org.pf4j.PluginDescriptorFinder;
+import org.pf4j.PluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.Set;
-
-import static java.util.Optional.ofNullable;
+import org.springframework.mail.javamail.ConfigurableMimeFileTypeMap;
 
 @Configuration
 public class PluginConfiguration {
 
-	@Autowired
-	private AutowireCapableBeanFactory context;
+  @Autowired
+  private AutowireCapableBeanFactory context;
 
-	@Autowired
-	private PluginLoader pluginLoader;
+  @Autowired
+  private PluginLoader pluginLoader;
 
-	@Autowired
-	private IntegrationTypeRepository integrationTypeRepository;
+  @Autowired
+  private IntegrationTypeRepository integrationTypeRepository;
 
-	@Autowired
-	private ApplicationEventPublisher applicationEventPublisher;
+  @Autowired
+  private ApplicationEventPublisher applicationEventPublisher;
 
-	@Value("${rp.plugins.path}")
-	private String pluginsPath;
+  @Value("${rp.plugins.path}")
+  private String pluginsPath;
 
-	@Value("${rp.plugins.temp.path}")
-	private String pluginsTempPath;
+  @Value("${rp.plugins.temp.path}")
+  private String pluginsTempPath;
 
-	@Value("${rp.plugins.resources.path}")
-	private String pluginsResourcesPath;
+  @Value("${rp.plugins.resources.path}")
+  private String pluginsResourcesPath;
 
-	@Bean
-	public Pf4jPluginBox pf4jPluginBox() throws IOException {
-		Pf4jPluginManager pluginManager = new Pf4jPluginManager(pluginsPath,
-				pluginsTempPath,
-				pluginsResourcesPath,
-				pluginLoader,
-				integrationTypeRepository,
-				pluginManager(),
-				context,
-				applicationEventPublisher
-		);
-		pluginManager.startUp();
-		return pluginManager;
-	}
+  @Value("${rp.plugins.resources.public}")
+  private String publicFolderQualifier;
 
-	@Bean
-	public PluginManager pluginManager() {
+  @Bean
+  public Pf4jPluginBox pf4jPluginBox() throws IOException {
+    Pf4jPluginManager pluginManager = new Pf4jPluginManager(pluginsPath,
+        pluginsTempPath,
+        pluginsResourcesPath,
+        pluginLoader,
+        integrationTypeRepository,
+        pluginManager(),
+        context,
+        applicationEventPublisher
+    );
+    pluginManager.startUp();
+    return pluginManager;
+  }
 
-		return new DefaultPluginManager(Paths.get(pluginsPath)) {
-			@Override
-			protected PluginDescriptorFinder createPluginDescriptorFinder() {
-				return pluginDescriptorFinder();
-			}
+  @Bean
+  public PluginManager pluginManager() {
 
-			@Override
-			protected ExtensionFactory createExtensionFactory() {
-				return new ReportPortalExtensionFactory(pluginsResourcesPath, this, context);
-			}
+    return new DefaultPluginManager(Paths.get(pluginsPath)) {
+      @Override
+      protected PluginDescriptorFinder createPluginDescriptorFinder() {
+        return pluginDescriptorFinder();
+      }
 
-			@Override
-			protected ExtensionFinder createExtensionFinder() {
-				RpExtensionFinder extensionFinder = new RpExtensionFinder(this);
-				addPluginStateListener(extensionFinder);
-				return extensionFinder;
-			}
+      @Override
+      protected ExtensionFactory createExtensionFactory() {
+        return new ReportPortalExtensionFactory(pluginsResourcesPath, this, context);
+      }
 
-			class RpExtensionFinder extends DefaultExtensionFinder {
+      @Override
+      protected ExtensionFinder createExtensionFinder() {
+        RpExtensionFinder extensionFinder = new RpExtensionFinder(this);
+        addPluginStateListener(extensionFinder);
+        return extensionFinder;
+      }
 
-				private RpExtensionFinder(PluginManager pluginManager) {
-					super(pluginManager);
-					finders.clear();
-					finders.add(new LegacyExtensionFinder(pluginManager) {
-						@Override
-						public Set<String> findClassNames(String pluginId) {
-							return ofNullable(super.findClassNames(pluginId)).orElseGet(Collections::emptySet);
-						}
-					});
-				}
-			}
-		};
-	}
+      class RpExtensionFinder extends DefaultExtensionFinder {
 
-	@Bean
-	public PluginDescriptorFinder pluginDescriptorFinder() {
-		return new ManifestPluginDescriptorFinder();
-	}
+        private RpExtensionFinder(PluginManager pluginManager) {
+          super(pluginManager);
+          finders.clear();
+          finders.add(new LegacyExtensionFinder(pluginManager) {
+            @Override
+            public Set<String> findClassNames(String pluginId) {
+              return ofNullable(super.findClassNames(pluginId)).orElseGet(Collections::emptySet);
+            }
+          });
+        }
+      }
+    };
+  }
+
+  @Bean
+  public PluginDescriptorFinder pluginDescriptorFinder() {
+    return new ManifestPluginDescriptorFinder();
+  }
+
+  @Bean
+  public FileTypeMap fileTypeMap() {
+    return new ConfigurableMimeFileTypeMap();
+  }
+
+  @Bean
+  public PluginFilesProvider pluginPublicFilesProvider() {
+    return new PluginFilesProvider(pluginsResourcesPath, publicFolderQualifier, fileTypeMap(),
+        integrationTypeRepository);
+  }
+
+  @Bean
+  public PluginFilesProvider pluginFilesProvider() {
+    return new PluginFilesProvider(pluginsResourcesPath, "", fileTypeMap(),
+        integrationTypeRepository);
+  }
 
 }

@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.analyzer.pattern.selector.condition;
 
 import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
-
 import java.util.Optional;
 import java.util.Set;
 
@@ -28,5 +27,5 @@ import java.util.Set;
 //TODO should be updated according to the nested steps' logs retrieving logic
 public interface PatternConditionProvider {
 
-	Optional<ConvertibleCondition> provideCondition(Set<AnalyzeItemsMode> analyzeItemsModes);
+  Optional<ConvertibleCondition> provideCondition(Set<AnalyzeItemsMode> analyzeItemsModes);
 }

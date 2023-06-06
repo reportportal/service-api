@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.cluster.CreateClustersRQ;
-
 import java.util.List;
 
 /**
@@ -35,42 +34,47 @@ import java.util.List;
  */
 public interface UpdateLaunchHandler {
 
-	/**
-	 * Update specified by id launch.
-	 *
-	 * @param launchId       ID of Launch object
-	 * @param projectDetails Project Details
-	 * @param user           Recipient user
-	 * @param rq             Request Data
-	 * @return OperationCompletionRS - Response Data
-	 */
-	OperationCompletionRS updateLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			UpdateLaunchRQ rq);
+  /**
+   * Update specified by id launch.
+   *
+   * @param launchId       ID of Launch object
+   * @param projectDetails Project Details
+   * @param user           Recipient user
+   * @param rq             Request Data
+   * @return OperationCompletionRS - Response Data
+   */
+  OperationCompletionRS updateLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user,
+      UpdateLaunchRQ rq);
 
-	/**
-	 * Start launch analyzer on demand
-	 *
-	 * @param projectDetails  Project Details
-	 * @param analyzeLaunchRQ Launch analyze rq
-	 * @param user            User started analysis
-	 * @return OperationCompletionRS - Response Data
-	 */
-	OperationCompletionRS startLaunchAnalyzer(AnalyzeLaunchRQ analyzeLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+  /**
+   * Start launch analyzer on demand
+   *
+   * @param projectDetails  Project Details
+   * @param analyzeLaunchRQ Launch analyze rq
+   * @param user            User started analysis
+   * @return OperationCompletionRS - Response Data
+   */
+  OperationCompletionRS startLaunchAnalyzer(AnalyzeLaunchRQ analyzeLaunchRQ,
+      ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user);
 
-	OperationCompletionRS createClusters(CreateClustersRQ createClustersRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+  OperationCompletionRS createClusters(CreateClustersRQ createClustersRQ,
+      ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user);
 
-	/**
-	 * Bulk launch update.
-	 *
-	 * @param rq             Bulk request
-	 * @param projectDetails Project Details
-	 * @param user           User
-	 * @return OperationCompletionRS
-	 */
-	List<OperationCompletionRS> updateLaunch(BulkRQ<Long, UpdateLaunchRQ> rq, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+  /**
+   * Bulk launch update.
+   *
+   * @param rq             Bulk request
+   * @param projectDetails Project Details
+   * @param user           User
+   * @return OperationCompletionRS
+   */
+  List<OperationCompletionRS> updateLaunch(BulkRQ<Long, UpdateLaunchRQ> rq,
+      ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user);
 
-	OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq, ReportPortalUser.ProjectDetails projectDetails);
+  OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq,
+      ReportPortalUser.ProjectDetails projectDetails);
 }

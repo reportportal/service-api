@@ -23,13 +23,13 @@ import java.util.Map;
  */
 public class SearchCollectorFactory {
 
-	private Map<SearchLogsMode, SearchLaunchesCollector> mapping;
+  private Map<SearchLogsMode, SearchLaunchesCollector> mapping;
 
-	public SearchCollectorFactory(Map<SearchLogsMode, SearchLaunchesCollector> mapping) {
-		this.mapping = mapping;
-	}
+  public SearchCollectorFactory(Map<SearchLogsMode, SearchLaunchesCollector> mapping) {
+    this.mapping = mapping;
+  }
 
-	public SearchLaunchesCollector getCollector(SearchLogsMode mode) {
-		return mapping.get(mode);
-	}
+  public SearchLaunchesCollector getCollector(SearchLogsMode mode) {
+    return mapping.get(mode);
+  }
 }

@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.ws.converter.resource.handler.attribute.resolve
 
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ItemAttributeType;
-
 import java.util.Optional;
 
 /**
@@ -26,6 +25,6 @@ import java.util.Optional;
  */
 public interface ItemAttributeTypeResolver {
 
-	Optional<ItemAttributeType> resolve(ItemAttribute attribute);
+  Optional<ItemAttributeType> resolve(ItemAttribute attribute);
 
 }

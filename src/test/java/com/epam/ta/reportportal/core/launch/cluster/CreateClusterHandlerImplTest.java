@@ -16,23 +16,28 @@
 
 package com.epam.ta.reportportal.core.launch.cluster;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.anySet;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterInfoRs;
 import com.epam.ta.reportportal.dao.ClusterRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.entity.cluster.Cluster;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -40,92 +45,95 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class CreateClusterHandlerImplTest {
 
-	@Mock
-	private ClusterRepository clusterRepository;
+  @Mock
+  private ClusterRepository clusterRepository;
 
-	@Mock
-	private LogRepository logRepository;
+  @Mock
+  private LogRepository logRepository;
 
-	@InjectMocks
-	private CreateClusterHandlerImpl createClusterHandler;
+  @InjectMocks
+  private CreateClusterHandlerImpl createClusterHandler;
 
-	@Test
-	void updateCluster() {
+  @Test
+  void updateCluster() {
 
-		final ClusterData clusterData = new ClusterData();
-		clusterData.setProject(1L);
-		clusterData.setLaunchId(1L);
+    final ClusterData clusterData = new ClusterData();
+    clusterData.setProject(1L);
+    clusterData.setLaunchId(1L);
 
-		final ClusterInfoRs first = new ClusterInfoRs();
-		first.setClusterId(1L);
-		first.setClusterMessage("first");
-		first.setLogIds(Set.of(1L, 2L));
-		first.setItemIds(Set.of(1L, 2L));
+    final ClusterInfoRs first = new ClusterInfoRs();
+    first.setClusterId(1L);
+    first.setClusterMessage("first");
+    first.setLogIds(Set.of(1L, 2L));
+    first.setItemIds(Set.of(1L, 2L));
 
-		final ClusterInfoRs second = new ClusterInfoRs();
-		second.setClusterId(2L);
-		second.setClusterMessage("second");
-		second.setLogIds(Set.of(3L, 4L));
-		second.setItemIds(Set.of(3L, 4L));
+    final ClusterInfoRs second = new ClusterInfoRs();
+    second.setClusterId(2L);
+    second.setClusterMessage("second");
+    second.setLogIds(Set.of(3L, 4L));
+    second.setItemIds(Set.of(3L, 4L));
 
-		clusterData.setClusters(List.of(first, second));
+    clusterData.setClusters(List.of(first, second));
 
-		final Cluster firstCluster = new Cluster();
-		firstCluster.setIndexId(1L);
-		final Cluster secondCluster = new Cluster();
-		secondCluster.setIndexId(2L);
-		when(clusterRepository.findByIndexIdAndLaunchId(1L, clusterData.getLaunchId())).thenReturn(Optional.of(firstCluster));
-		when(clusterRepository.findByIndexIdAndLaunchId(2L, clusterData.getLaunchId())).thenReturn(Optional.of(secondCluster));
+    final Cluster firstCluster = new Cluster();
+    firstCluster.setIndexId(1L);
+    final Cluster secondCluster = new Cluster();
+    secondCluster.setIndexId(2L);
+    when(clusterRepository.findByIndexIdAndLaunchId(1L, clusterData.getLaunchId())).thenReturn(
+        Optional.of(firstCluster));
+    when(clusterRepository.findByIndexIdAndLaunchId(2L, clusterData.getLaunchId())).thenReturn(
+        Optional.of(secondCluster));
 
-		doAnswer(invocation -> {
-			Object[] args = invocation.getArguments();
-			Cluster cluster = ((Cluster) args[0]);
-			cluster.setId(cluster.getIndexId());
-			return cluster;
-		}).when(clusterRepository).save(any(Cluster.class));
+    doAnswer(invocation -> {
+      Object[] args = invocation.getArguments();
+      Cluster cluster = ((Cluster) args[0]);
+      cluster.setId(cluster.getIndexId());
+      return cluster;
+    }).when(clusterRepository).save(any(Cluster.class));
 
-		createClusterHandler.create(clusterData);
+    createClusterHandler.create(clusterData);
 
-		verify(clusterRepository, times(2)).save(any(Cluster.class));
-		verify(clusterRepository, times(2)).saveClusterTestItems(any(Cluster.class), anySet());
-		verify(logRepository, times(2)).updateClusterIdByIdIn(any(Long.class), anySet());
-	}
+    verify(clusterRepository, times(2)).save(any(Cluster.class));
+    verify(clusterRepository, times(2)).saveClusterTestItems(any(Cluster.class), anySet());
+    verify(logRepository, times(2)).updateClusterIdByIdIn(any(Long.class), anySet());
+  }
 
-	@Test
-	void saveCluster() {
+  @Test
+  void saveCluster() {
 
-		final ClusterData clusterData = new ClusterData();
-		clusterData.setProject(1L);
-		clusterData.setLaunchId(1L);
+    final ClusterData clusterData = new ClusterData();
+    clusterData.setProject(1L);
+    clusterData.setLaunchId(1L);
 
-		final ClusterInfoRs first = new ClusterInfoRs();
-		first.setClusterId(1L);
-		first.setClusterMessage("first");
-		first.setLogIds(Set.of(1L, 2L));
-		first.setItemIds(Set.of(1L, 2L));
+    final ClusterInfoRs first = new ClusterInfoRs();
+    first.setClusterId(1L);
+    first.setClusterMessage("first");
+    first.setLogIds(Set.of(1L, 2L));
+    first.setItemIds(Set.of(1L, 2L));
 
-		final ClusterInfoRs second = new ClusterInfoRs();
-		second.setClusterId(2L);
-		second.setClusterMessage("second");
-		second.setLogIds(Set.of(3L, 4L));
-		second.setItemIds(Set.of(3L, 4L));
+    final ClusterInfoRs second = new ClusterInfoRs();
+    second.setClusterId(2L);
+    second.setClusterMessage("second");
+    second.setLogIds(Set.of(3L, 4L));
+    second.setItemIds(Set.of(3L, 4L));
 
-		clusterData.setClusters(List.of(first, second));
+    clusterData.setClusters(List.of(first, second));
 
-		when(clusterRepository.findByIndexIdAndLaunchId(anyLong(), eq(clusterData.getLaunchId()))).thenReturn(Optional.empty());
+    when(clusterRepository.findByIndexIdAndLaunchId(anyLong(),
+        eq(clusterData.getLaunchId()))).thenReturn(Optional.empty());
 
-		doAnswer(invocation -> {
-			Object[] args = invocation.getArguments();
-			Cluster cluster = ((Cluster) args[0]);
-			cluster.setId(cluster.getIndexId());
-			return cluster;
-		}).when(clusterRepository).save(any(Cluster.class));
+    doAnswer(invocation -> {
+      Object[] args = invocation.getArguments();
+      Cluster cluster = ((Cluster) args[0]);
+      cluster.setId(cluster.getIndexId());
+      return cluster;
+    }).when(clusterRepository).save(any(Cluster.class));
 
-		createClusterHandler.create(clusterData);
+    createClusterHandler.create(clusterData);
 
-		verify(clusterRepository, times(2)).save(any(Cluster.class));
-		verify(clusterRepository, times(2)).saveClusterTestItems(any(Cluster.class), anySet());
-		verify(logRepository, times(2)).updateClusterIdByIdIn(any(Long.class), anySet());
-	}
+    verify(clusterRepository, times(2)).save(any(Cluster.class));
+    verify(clusterRepository, times(2)).saveClusterTestItems(any(Cluster.class), anySet());
+    verify(logRepository, times(2)).updateClusterIdByIdIn(any(Long.class), anySet());
+  }
 
 }

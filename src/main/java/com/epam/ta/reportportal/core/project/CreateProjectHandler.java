@@ -29,14 +29,14 @@ import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
  */
 public interface CreateProjectHandler {
 
-	/**
-	 * Create new project
-	 *
-	 * @param createProjectRQ Request Data
-	 * @param user            ReportPortal User
-	 * @return Response data
-	 */
-	EntryCreatedRS createProject(CreateProjectRQ createProjectRQ, ReportPortalUser user);
+  /**
+   * Create new project
+   *
+   * @param createProjectRQ Request Data
+   * @param user            ReportPortal User
+   * @return Response data
+   */
+  EntryCreatedRS createProject(CreateProjectRQ createProjectRQ, ReportPortalUser user);
 
-	Project createPersonal(User user);
+  Project createPersonal(User user);
 }

@@ -28,11 +28,11 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface HttpLogging {
 
-	boolean logHeaders() default true;
+  boolean logHeaders() default true;
 
-	boolean logRequestBody() default true;
+  boolean logRequestBody() default true;
 
-	boolean logResponseBody() default true;
+  boolean logResponseBody() default true;
 
-	boolean logExecutionTime() default true;
+  boolean logExecutionTime() default true;
 }

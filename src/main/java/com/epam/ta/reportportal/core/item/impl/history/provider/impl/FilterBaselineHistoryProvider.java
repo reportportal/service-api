@@ -37,27 +37,30 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /**
- * Required for retrieving {@link TestItemHistory} content using `Launch` {@link com.epam.ta.reportportal.commons.querygen.Filter}
- * as baseline for {@link TestItemHistory} selection.
+ * Required for retrieving {@link TestItemHistory} content using `Launch`
+ * {@link com.epam.ta.reportportal.commons.querygen.Filter} as baseline for {@link TestItemHistory}
+ * selection.
  *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
 public class FilterBaselineHistoryProvider implements HistoryProvider {
 
-	private final LaunchRepository launchRepository;
-	private final LaunchAccessValidator launchAccessValidator;
-	private final TestItemRepository testItemRepository;
-	private final UserFilterRepository filterRepository;
+  private final LaunchRepository launchRepository;
+  private final LaunchAccessValidator launchAccessValidator;
+  private final TestItemRepository testItemRepository;
+  private final UserFilterRepository filterRepository;
 
-	@Autowired
-	public FilterBaselineHistoryProvider(LaunchRepository launchRepository, LaunchAccessValidator launchAccessValidator,
-			TestItemRepository testItemRepository, UserFilterRepository filterRepository) {
-		this.launchRepository = launchRepository;
-		this.launchAccessValidator = launchAccessValidator;
-		this.testItemRepository = testItemRepository;
-		this.filterRepository = filterRepository;
-	}
+  @Autowired
+  public FilterBaselineHistoryProvider(LaunchRepository launchRepository,
+      LaunchAccessValidator launchAccessValidator,
+      TestItemRepository testItemRepository,
+      UserFilterRepository filterRepository) {
+    this.launchRepository = launchRepository;
+    this.launchAccessValidator = launchAccessValidator;
+    this.testItemRepository = testItemRepository;
+    this.filterRepository = filterRepository;
+  }
 
 	@Override
 	public Page<TestItemHistory> provide(Queryable filter, Pageable pageable, HistoryRequestParams historyRequestParams,
@@ -72,50 +75,53 @@ public class FilterBaselineHistoryProvider implements HistoryProvider {
 
 			Pair<Queryable, Pageable> launchQueryablePair = DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(projectDetails,
 					userFilter,
-					filterParams.getLaunchesLimit()
-			);
+          filterParams.getLaunchesLimit()
+      );
 
-			return getItemsWithLaunchesFiltering(launchQueryablePair,
-					Pair.of(filter, pageable),
-					projectDetails,
-					user,
-					filterParams,
-					historyRequestParams,
-					usingHash
-			);
+      return getItemsWithLaunchesFiltering(launchQueryablePair,
+          Pair.of(filter, pageable),
+          projectDetails,
+          user,
+          filterParams,
+          historyRequestParams,
+          usingHash
+      );
 
-		}).orElseGet(() -> Page.empty(pageable));
-	}
+    }).orElseGet(() -> Page.empty(pageable));
+  }
 
-	private Page<TestItemHistory> getItemsWithLaunchesFiltering(Pair<Queryable, Pageable> launchQueryablePair,
-			Pair<Queryable, Pageable> testItemQueryablePair, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			HistoryRequestParams.FilterParams filterParams, HistoryRequestParams historyRequestParams, boolean usingHash) {
-		return historyRequestParams.getHistoryType()
-				.filter(HistoryRequestParams.HistoryTypeEnum.LINE::equals)
-				.map(type -> historyRequestParams.getLaunchId().map(launchId -> {
-					Launch launch = launchRepository.findById(launchId)
-							.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-					launchAccessValidator.validate(launch.getId(), projectDetails, user);
+  private Page<TestItemHistory> getItemsWithLaunchesFiltering(
+      Pair<Queryable, Pageable> launchQueryablePair,
+      Pair<Queryable, Pageable> testItemQueryablePair,
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      HistoryRequestParams.FilterParams filterParams, HistoryRequestParams historyRequestParams,
+      boolean usingHash) {
+    return historyRequestParams.getHistoryType()
+        .filter(HistoryRequestParams.HistoryTypeEnum.LINE::equals)
+        .map(type -> historyRequestParams.getLaunchId().map(launchId -> {
+          Launch launch = launchRepository.findById(launchId)
+              .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+          launchAccessValidator.validate(launch.getId(), projectDetails, user);
 
-					return testItemRepository.loadItemsHistoryPage(filterParams.isLatest(),
-							launchQueryablePair.getLeft(),
-							testItemQueryablePair.getLeft(),
-							launchQueryablePair.getRight(),
-							testItemQueryablePair.getRight(),
-							projectDetails.getProjectId(),
-							launch.getName(),
-							historyRequestParams.getHistoryDepth(),
-							usingHash
-					);
-				}).orElseGet(() -> Page.empty(testItemQueryablePair.getRight())))
-				.orElseGet(() -> testItemRepository.loadItemsHistoryPage(filterParams.isLatest(),
-						launchQueryablePair.getLeft(),
-						testItemQueryablePair.getLeft(),
-						launchQueryablePair.getRight(),
-						testItemQueryablePair.getRight(),
-						projectDetails.getProjectId(),
-						historyRequestParams.getHistoryDepth(),
-						usingHash
-				));
-	}
+          return testItemRepository.loadItemsHistoryPage(filterParams.isLatest(),
+              launchQueryablePair.getLeft(),
+              testItemQueryablePair.getLeft(),
+              launchQueryablePair.getRight(),
+              testItemQueryablePair.getRight(),
+              projectDetails.getProjectId(),
+              launch.getName(),
+              historyRequestParams.getHistoryDepth(),
+              usingHash
+          );
+        }).orElseGet(() -> Page.empty(testItemQueryablePair.getRight())))
+        .orElseGet(() -> testItemRepository.loadItemsHistoryPage(filterParams.isLatest(),
+            launchQueryablePair.getLeft(),
+            testItemQueryablePair.getLeft(),
+            launchQueryablePair.getRight(),
+            testItemQueryablePair.getRight(),
+            projectDetails.getProjectId(),
+            historyRequestParams.getHistoryDepth(),
+            usingHash
+        ));
+  }
 }

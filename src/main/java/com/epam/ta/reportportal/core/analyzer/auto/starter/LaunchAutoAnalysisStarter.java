@@ -23,6 +23,6 @@ import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConf
  */
 public interface LaunchAutoAnalysisStarter {
 
-	void start(StartLaunchAutoAnalysisConfig config);
+  void start(StartLaunchAutoAnalysisConfig config);
 
 }

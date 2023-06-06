@@ -45,7 +45,8 @@ import org.springframework.stereotype.Component;
 public class IntegrationSecretsMigrationHandler {
 
   private static final Logger LOGGER =
-      LoggerFactory.getLogger(IntegrationSecretsMigrationHandler.class);
+      LoggerFactory.getLogger(
+      IntegrationSecretsMigrationHandler.class);
 
   private static final String SECRETS_PATH = "integration-secrets";
   @Value("${rp.integration.salt.path:keystore}")

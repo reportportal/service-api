@@ -1,31 +1,31 @@
 p {
-    font-family: arial, helvetica, sans-serif;
+  font-family: arial, helvetica, sans-serif;
 }
 
 h2 {
-    font-size: 20pt;
-    color: red;
-    background: white;
+  font-size: 20pt;
+  color: red;
+  background: white;
 }
 
 .note {
-    color: red;
-    background-color: yellow;
-    font-weight: bold;
+  color: red;
+  background-color: yellow;
+  font-weight: bold;
 }
 
 p#paragraph1 {
-    padding-left: 10px;
+  padding-left: 10px;
 }
 
 a:hover {
-    text-decoration: none;
+  text-decoration: none;
 }
 
 #news p {
-    color: blue;
+  color: blue;
 }
 
 [type="button"] {
-    background-color: green;
+  background-color: green;
 }

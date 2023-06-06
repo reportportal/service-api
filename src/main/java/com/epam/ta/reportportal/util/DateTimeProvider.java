@@ -16,9 +16,8 @@
 
 package com.epam.ta.reportportal.util;
 
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
+import org.springframework.stereotype.Component;
 
 /**
  * Class to ease writing/testing of date-based logic.
@@ -28,7 +27,7 @@ import java.time.LocalDateTime;
 @Component
 public class DateTimeProvider {
 
-	public LocalDateTime localDateTimeNow() {
-		return LocalDateTime.now();
-	}
+  public LocalDateTime localDateTimeNow() {
+    return LocalDateTime.now();
+  }
 }

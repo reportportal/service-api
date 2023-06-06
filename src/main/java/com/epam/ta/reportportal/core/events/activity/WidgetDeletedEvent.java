@@ -16,36 +16,37 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.WIDGET;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_WIDGET;
+
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
 
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.WIDGET;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_WIDGET;
-
 /**
  * @author pavel_bortnik
  */
-public class WidgetDeletedEvent extends BeforeEvent<WidgetActivityResource> implements ActivityEvent {
+public class WidgetDeletedEvent extends BeforeEvent<WidgetActivityResource> implements
+    ActivityEvent {
 
-	public WidgetDeletedEvent() {
-	}
+  public WidgetDeletedEvent() {
+  }
 
-	public WidgetDeletedEvent(WidgetActivityResource before, Long userId, String userLogin) {
-		super(userId, userLogin, before);
-	}
+  public WidgetDeletedEvent(WidgetActivityResource before, Long userId, String userLogin) {
+    super(userId, userLogin, before);
+  }
 
-	@Override
-	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(DELETE_WIDGET)
-				.addActivityEntityType(WIDGET)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(getBefore().getId())
-				.addObjectName(getBefore().getName())
-				.addProjectId(getBefore().getProjectId())
-				.get();
-	}
+  @Override
+  public Activity toActivity() {
+    return new ActivityBuilder().addCreatedNow()
+        .addAction(DELETE_WIDGET)
+        .addActivityEntityType(WIDGET)
+        .addUserId(getUserId())
+        .addUserName(getUserLogin())
+        .addObjectId(getBefore().getId())
+        .addObjectName(getBefore().getName())
+        .addProjectId(getBefore().getProjectId())
+        .get();
+  }
 }

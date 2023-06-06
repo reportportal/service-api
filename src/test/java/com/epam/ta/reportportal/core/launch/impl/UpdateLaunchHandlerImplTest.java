@@ -16,6 +16,18 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
+import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
@@ -35,6 +47,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.cluster.CreateClustersRQ;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -42,120 +55,124 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Map;
-
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
-import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @ExtendWith(MockitoExtension.class)
 class UpdateLaunchHandlerImplTest {
 
-	@Mock
-	private LaunchAccessValidator launchAccessValidator;
+  @Mock
+  private LaunchAccessValidator launchAccessValidator;
 
-	@Mock
-	private LaunchRepository launchRepository;
+  @Mock
+  private LaunchRepository launchRepository;
 
-	@Mock
-	private GetProjectHandler getProjectHandler;
+  @Mock
+  private GetProjectHandler getProjectHandler;
 
-	@Mock
-	private GetLaunchHandler getLaunchHandler;
+  @Mock
+  private GetLaunchHandler getLaunchHandler;
 
-	@Mock
-	private TestItemRepository testItemRepository;
+  @Mock
+  private TestItemRepository testItemRepository;
 
-	@Mock
-	private UniqueErrorAnalysisStarter starter;
+  @Mock
+  private UniqueErrorAnalysisStarter starter;
 
-	@InjectMocks
-	private UpdateLaunchHandlerImpl handler;
+  @InjectMocks
+  private UpdateLaunchHandlerImpl handler;
 
-	@Test
-	void updateNotOwnLaunch() {
-		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
-		rpUser.setUserId(2L);
-		when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(new Project());
-		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.updateLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser, new UpdateLaunchRQ())
-		);
-		assertEquals("You do not have enough permissions.", exception.getMessage());
-	}
+  @Test
+  void updateNotOwnLaunch() {
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+    rpUser.setUserId(2L);
+    when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(
+        new Project());
+    when(launchRepository.findById(1L)).thenReturn(
+        getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.updateLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser,
+            new UpdateLaunchRQ())
+    );
+    assertEquals("You do not have enough permissions.", exception.getMessage());
+  }
 
-	@Test
-	void updateDebugLaunchByCustomer() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
+  @Test
+  void updateDebugLaunchByCustomer() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
 
-		when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(new Project());
-		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
-		final UpdateLaunchRQ updateLaunchRQ = new UpdateLaunchRQ();
-		updateLaunchRQ.setMode(Mode.DEBUG);
+    when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(
+        new Project());
+    when(launchRepository.findById(1L)).thenReturn(
+        getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
+    final UpdateLaunchRQ updateLaunchRQ = new UpdateLaunchRQ();
+    updateLaunchRQ.setMode(Mode.DEBUG);
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.updateLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser, updateLaunchRQ)
-		);
-		assertEquals("You do not have enough permissions.", exception.getMessage());
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.updateLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser,
+            updateLaunchRQ)
+    );
+    assertEquals("You do not have enough permissions.", exception.getMessage());
+  }
 
-	@Test
-	void createClustersLaunchInProgress() {
+  @Test
+  void createClustersLaunchInProgress() {
 
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
 
-		when(getLaunchHandler.get(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT).get());
-		final CreateClustersRQ createClustersRQ = new CreateClustersRQ();
-		createClustersRQ.setLaunchId(1L);
-		createClustersRQ.setRemoveNumbers(false);
+    when(getLaunchHandler.get(1L)).thenReturn(
+        getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT).get());
+    final CreateClustersRQ createClustersRQ = new CreateClustersRQ();
+    createClustersRQ.setLaunchId(1L);
+    createClustersRQ.setRemoveNumbers(false);
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.createClusters(createClustersRQ, extractProjectDetails(rpUser, "test_project"), rpUser)
-		);
-		assertEquals("Incorrect Request. Cannot analyze launch in progress.", exception.getMessage());
-		verify(launchAccessValidator, times(1)).validate(any(Launch.class), any(ReportPortalUser.ProjectDetails.class), eq(rpUser));
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.createClusters(createClustersRQ,
+            extractProjectDetails(rpUser, "test_project"), rpUser)
+    );
+    assertEquals("Incorrect Request. Cannot analyze launch in progress.", exception.getMessage());
+    verify(launchAccessValidator, times(1)).validate(any(Launch.class),
+        any(ReportPortalUser.ProjectDetails.class), eq(rpUser));
+  }
 
-	@Test
-	void createClusters() {
+  @Test
+  void createClusters() {
 
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
 
-		final Project project = new Project();
-		project.setId(1L);
+    final Project project = new Project();
+    project.setId(1L);
 
-		final Launch launch = getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT).get();
-		when(getLaunchHandler.get(1L)).thenReturn(launch);
-		when(getProjectHandler.get(launch.getProjectId())).thenReturn(project);
+    final Launch launch = getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT).get();
+    when(getLaunchHandler.get(1L)).thenReturn(launch);
+    when(getProjectHandler.get(launch.getProjectId())).thenReturn(project);
 
-		final CreateClustersRQ createClustersRQ = new CreateClustersRQ();
-		createClustersRQ.setLaunchId(1L);
-		final boolean defaultRemoveNumbers = Boolean.parseBoolean(ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getDefaultValue());
-		createClustersRQ.setRemoveNumbers(!defaultRemoveNumbers);
+    final CreateClustersRQ createClustersRQ = new CreateClustersRQ();
+    createClustersRQ.setLaunchId(1L);
+    final boolean defaultRemoveNumbers = Boolean.parseBoolean(
+        ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getDefaultValue());
+    createClustersRQ.setRemoveNumbers(!defaultRemoveNumbers);
 
-		handler.createClusters(createClustersRQ, extractProjectDetails(rpUser, "test_project"), rpUser);
+    handler.createClusters(createClustersRQ, extractProjectDetails(rpUser, "test_project"), rpUser);
 
-		verify(launchAccessValidator, times(1)).validate(any(Launch.class), any(ReportPortalUser.ProjectDetails.class), eq(rpUser));
+    verify(launchAccessValidator, times(1)).validate(any(Launch.class),
+        any(ReportPortalUser.ProjectDetails.class), eq(rpUser));
 
-		final ArgumentCaptor<ClusterEntityContext> contextCaptor = ArgumentCaptor.forClass(ClusterEntityContext.class);
-		final ArgumentCaptor<Map<String, String>> mapCaptor = ArgumentCaptor.forClass(Map.class);
-		verify(starter, times(1)).start(contextCaptor.capture(), mapCaptor.capture());
+    final ArgumentCaptor<ClusterEntityContext> contextCaptor = ArgumentCaptor.forClass(
+        ClusterEntityContext.class);
+    final ArgumentCaptor<Map<String, String>> mapCaptor = ArgumentCaptor.forClass(Map.class);
+    verify(starter, times(1)).start(contextCaptor.capture(), mapCaptor.capture());
 
-		final ClusterEntityContext entityContext = contextCaptor.getValue();
+    final ClusterEntityContext entityContext = contextCaptor.getValue();
 
-		assertEquals(1L, entityContext.getProjectId().longValue());
-		assertEquals(1L, entityContext.getLaunchId().longValue());
+    assertEquals(1L, entityContext.getProjectId().longValue());
+    assertEquals(1L, entityContext.getLaunchId().longValue());
 
-		final Map<String, String> providedConfig = mapCaptor.getValue();
+    final Map<String, String> providedConfig = mapCaptor.getValue();
 
-		final boolean providedRemoveNumbers = Boolean.parseBoolean(providedConfig.get(ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getAttribute()));
-		assertNotEquals(providedRemoveNumbers, defaultRemoveNumbers);
-		assertEquals(createClustersRQ.isRemoveNumbers(), providedRemoveNumbers);
-	}
+    final boolean providedRemoveNumbers = Boolean.parseBoolean(providedConfig.get(
+        ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getAttribute()));
+    assertNotEquals(providedRemoveNumbers, defaultRemoveNumbers);
+    assertEquals(createClustersRQ.isRemoveNumbers(), providedRemoveNumbers);
+  }
 }

@@ -16,12 +16,24 @@
 
 package com.epam.ta.reportportal.core.integration.migration;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.ws.converter.builders.IntegrationBuilder;
 import com.google.common.collect.Maps;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -30,71 +42,65 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @ExtendWith(MockitoExtension.class)
 class JiraEmailSecretMigrationServiceTest {
 
-	@Mock
-	private IntegrationRepository integrationRepository;
+  @Mock
+  private IntegrationRepository integrationRepository;
 
-	@Mock
-	private BasicTextEncryptor encryptor;
+  @Mock
+  private BasicTextEncryptor encryptor;
 
-	@InjectMocks
-	private JiraEmailSecretMigrationService migrationService;
+  @InjectMocks
+  private JiraEmailSecretMigrationService migrationService;
 
-	private static BasicTextEncryptor staticSaltEncryptor;
+  private static BasicTextEncryptor staticSaltEncryptor;
 
-	@BeforeAll
-	static void beforeAll() {
-		staticSaltEncryptor = new BasicTextEncryptor();
-		staticSaltEncryptor.setPassword("reportportal");
-	}
+  @BeforeAll
+  static void beforeAll() {
+    staticSaltEncryptor = new BasicTextEncryptor();
+    staticSaltEncryptor.setPassword("reportportal");
+  }
 
-	@Test
-	void emptyIntegrationListTest() {
-		when(integrationRepository.findAllByTypeIn("jira", "email")).thenReturn(Collections.emptyList());
-		migrationService.migrate();
-		verify(encryptor, never()).encrypt(anyString());
-	}
+  @Test
+  void emptyIntegrationListTest() {
+    when(integrationRepository.findAllByTypeIn("jira", "email")).thenReturn(
+        Collections.emptyList());
+    migrationService.migrate();
+    verify(encryptor, never()).encrypt(anyString());
+  }
 
-	@Test
-	void integrationWithoutPasswordParameterTest() {
-		Integration integration = testIntegration(BtsProperties.URL, "url");
-		when(integrationRepository.findAllByTypeIn("jira", "email")).thenReturn(List.of(integration));
-		migrationService.migrate();
-		verify(encryptor, never()).encrypt(anyString());
-		assertTrue(BtsProperties.PASSWORD.getParam(integration.getParams().getParams()).isEmpty());
-	}
+  @Test
+  void integrationWithoutPasswordParameterTest() {
+    Integration integration = testIntegration(BtsProperties.URL, "url");
+    when(integrationRepository.findAllByTypeIn("jira", "email")).thenReturn(List.of(integration));
+    migrationService.migrate();
+    verify(encryptor, never()).encrypt(anyString());
+    assertTrue(BtsProperties.PASSWORD.getParam(integration.getParams().getParams()).isEmpty());
+  }
 
-	@Test
-	void passwordShouldBeEncrypted() {
-		String unencrypted = "unencrypted";
-		String encrypted = "new-encrypted-pass";
-		Integration integration = testIntegration(BtsProperties.PASSWORD, staticSaltEncryptor.encrypt(unencrypted));
-		when(integrationRepository.findAllByTypeIn("jira", "email")).thenReturn(List.of(integration));
-		when(encryptor.encrypt(unencrypted)).thenReturn(encrypted);
-		migrationService.migrate();
-		verify(encryptor, times(1)).encrypt(unencrypted);
-		Optional<String> parameterOptional = BtsProperties.PASSWORD.getParam(integration.getParams().getParams());
-		assertTrue(parameterOptional.isPresent());
-		assertEquals(encrypted, parameterOptional.get());
-	}
+  @Test
+  void passwordShouldBeEncrypted() {
+    String unencrypted = "unencrypted";
+    String encrypted = "new-encrypted-pass";
+    Integration integration = testIntegration(BtsProperties.PASSWORD,
+        staticSaltEncryptor.encrypt(unencrypted));
+    when(integrationRepository.findAllByTypeIn("jira", "email")).thenReturn(List.of(integration));
+    when(encryptor.encrypt(unencrypted)).thenReturn(encrypted);
+    migrationService.migrate();
+    verify(encryptor, times(1)).encrypt(unencrypted);
+    Optional<String> parameterOptional = BtsProperties.PASSWORD.getParam(
+        integration.getParams().getParams());
+    assertTrue(parameterOptional.isPresent());
+    assertEquals(encrypted, parameterOptional.get());
+  }
 
-	private Integration testIntegration(BtsProperties property, String value) {
-		final HashMap<String, Object> params = Maps.newHashMap();
-		params.put(property.getName(), value);
-		return new IntegrationBuilder().withParams(new IntegrationParams(params)).get();
-	}
+  private Integration testIntegration(BtsProperties property, String value) {
+    final HashMap<String, Object> params = Maps.newHashMap();
+    params.put(property.getName(), value);
+    return new IntegrationBuilder().withParams(new IntegrationParams(params)).get();
+  }
 }

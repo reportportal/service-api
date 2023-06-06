@@ -16,21 +16,20 @@
 
 package com.epam.ta.reportportal.core.widget.content.updater.validator;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
+
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
-
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -48,7 +47,7 @@ public class FlakyCasesTableContentValidator implements WidgetValidatorStrategy 
     /**
      * Mapping should not be empty
      *
-     * @param filterSortMapping Map of ${@link Filter} for query building as key and ${@link Sort} as value for each filter
+     * @param filterSortMapping Map of ${@link Filter} for query building as key and ${@link Sort} as* value for each filter
      */
     private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
         BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))

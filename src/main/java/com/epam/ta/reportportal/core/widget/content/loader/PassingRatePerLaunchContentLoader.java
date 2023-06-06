@@ -16,6 +16,13 @@
 
 package com.epam.ta.reportportal.core.widget.content.loader;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
+import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonMap;
+
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -26,20 +33,12 @@ import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.PassingRateStatisticsResult;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
-import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.singletonMap;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -47,30 +46,33 @@ import static java.util.Collections.singletonMap;
 @Service
 public class PassingRatePerLaunchContentLoader implements LoadContentStrategy {
 
-	@Autowired
-	private LaunchRepository launchRepository;
+  @Autowired
+  private LaunchRepository launchRepository;
 
-	@Autowired
-	private WidgetContentRepository widgetContentRepository;
+  @Autowired
+  private WidgetContentRepository widgetContentRepository;
 
-	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			int limit) {
+  @Override
+  public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping,
+      WidgetOptions widgetOptions,
+      int limit) {
 
-		String launchName = WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions);
-		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
+    String launchName = WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions);
+    Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 
-		return launchRepository.findLatestByFilter(filter.withCondition(new FilterCondition(Condition.EQUALS,
-				false,
-				launchName,
-				CRITERIA_NAME
-		))).map(this::loadContent).orElseGet(Collections::emptyMap);
+    return launchRepository.findLatestByFilter(
+        filter.withCondition(new FilterCondition(Condition.EQUALS,
+            false,
+            launchName,
+            CRITERIA_NAME
+        ))).map(this::loadContent).orElseGet(Collections::emptyMap);
 
-	}
+  }
 
-	private Map<String, ?> loadContent(Launch launch) {
-		PassingRateStatisticsResult result = widgetContentRepository.passingRatePerLaunchStatistics(launch.getId());
-		return result.getTotal() != 0 ? singletonMap(RESULT, result) : emptyMap();
-	}
+  private Map<String, ?> loadContent(Launch launch) {
+    PassingRateStatisticsResult result = widgetContentRepository.passingRatePerLaunchStatistics(
+        launch.getId());
+    return result.getTotal() != 0 ? singletonMap(RESULT, result) : emptyMap();
+  }
 
 }

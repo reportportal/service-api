@@ -35,60 +35,60 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 class DashboardConverterTest {
 
-	@Test
-	void toResourceNullTest() {
-		assertThrows(NullPointerException.class, () -> DashboardConverter.TO_RESOURCE.apply(null));
-	}
+  @Test
+  void toResourceNullTest() {
+    assertThrows(NullPointerException.class, () -> DashboardConverter.TO_RESOURCE.apply(null));
+  }
 
-	@Test
-	void toActivityResourceNullTest() {
-		assertThrows(NullPointerException.class, () -> DashboardConverter.TO_ACTIVITY_RESOURCE.apply(null));
-	}
+  @Test
+  void toActivityResourceNullTest() {
+    assertThrows(NullPointerException.class, () -> DashboardConverter.TO_ACTIVITY_RESOURCE.apply(null));
+  }
 
-	@Test
-	void toActivityResource() {
-		final Dashboard dashboard = getDashboard();
-		final DashboardActivityResource activityResource = DashboardConverter.TO_ACTIVITY_RESOURCE.apply(dashboard);
+  @Test
+  void toActivityResource() {
+    final Dashboard dashboard = getDashboard();
+    final DashboardActivityResource activityResource = DashboardConverter.TO_ACTIVITY_RESOURCE.apply(dashboard);
 
-		assertEquals(activityResource.getId(), dashboard.getId());
-		assertEquals(activityResource.getName(), dashboard.getName());
-		assertEquals(activityResource.getDescription(), dashboard.getDescription());
-		assertEquals(activityResource.getProjectId(), dashboard.getProject().getId());
-	}
+    assertEquals(activityResource.getId(), dashboard.getId());
+    assertEquals(activityResource.getName(), dashboard.getName());
+    assertEquals(activityResource.getDescription(), dashboard.getDescription());
+    assertEquals(activityResource.getProjectId(), dashboard.getProject().getId());
+  }
 
-	@Test
-	void toResource() {
-		final Dashboard dashboard = getDashboard();
-		final DashboardResource resource = DashboardConverter.TO_RESOURCE.apply(dashboard);
+  @Test
+  void toResource() {
+    final Dashboard dashboard = getDashboard();
+    final DashboardResource resource = DashboardConverter.TO_RESOURCE.apply(dashboard);
 
-		assertEquals(resource.getDashboardId(), dashboard.getId());
-		assertEquals(resource.getName(), dashboard.getName());
-		assertEquals(resource.getDescription(), dashboard.getDescription());
-		assertEquals(resource.getOwner(), dashboard.getOwner());
-		assertEquals(resource.getWidgets().size(), dashboard.getDashboardWidgets().size());
-	}
+    assertEquals(resource.getDashboardId(), dashboard.getId());
+    assertEquals(resource.getName(), dashboard.getName());
+    assertEquals(resource.getDescription(), dashboard.getDescription());
+    assertEquals(resource.getOwner(), dashboard.getOwner());
+    assertEquals(resource.getWidgets().size(), dashboard.getDashboardWidgets().size());
+  }
 
-	private static Dashboard getDashboard() {
-		Dashboard dashboard = new Dashboard();
-		dashboard.setId(1L);
-		dashboard.setName("name");
-		dashboard.setDescription("description");
-		dashboard.setCreationDate(LocalDateTime.now());
-		dashboard.setOwner("owner");
-		final Project project = new Project();
-		project.setId(2L);
-		dashboard.setProject(project);
-		final DashboardWidget dashboardWidget = new DashboardWidget();
-		dashboardWidget.setId(new DashboardWidgetId(1L, 3L));
-		dashboardWidget.setPositionY(2);
-		dashboardWidget.setPositionX(3);
-		dashboardWidget.setWidth(5);
-		dashboardWidget.setHeight(6);
-		dashboardWidget.setWidgetName("widgetName");
-		dashboardWidget.setDashboard(dashboard);
-		final Widget widget = new Widget();
-		dashboardWidget.setWidget(widget);
-		dashboard.addWidget(dashboardWidget);
-		return dashboard;
-	}
+  private static Dashboard getDashboard() {
+    Dashboard dashboard = new Dashboard();
+    dashboard.setId(1L);
+    dashboard.setName("name");
+    dashboard.setDescription("description");
+    dashboard.setCreationDate(LocalDateTime.now());
+    dashboard.setOwner("owner");
+    final Project project = new Project();
+    project.setId(2L);
+    dashboard.setProject(project);
+    final DashboardWidget dashboardWidget = new DashboardWidget();
+    dashboardWidget.setId(new DashboardWidgetId(1L, 3L));
+    dashboardWidget.setPositionY(2);
+    dashboardWidget.setPositionX(3);
+    dashboardWidget.setWidth(5);
+    dashboardWidget.setHeight(6);
+    dashboardWidget.setWidgetName("widgetName");
+    dashboardWidget.setDashboard(dashboard);
+    final Widget widget = new Widget();
+    dashboardWidget.setWidget(widget);
+    dashboard.addWidget(dashboardWidget);
+    return dashboard;
+  }
 }

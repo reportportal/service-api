@@ -16,6 +16,10 @@
 
 package com.epam.ta.reportportal.core.widget.impl;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
+import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -38,18 +42,15 @@ import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
-import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
 
 /**
  * @author Pavel Bortnik
@@ -57,32 +58,33 @@ import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.T
 @Service
 public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 
-	private final WidgetRepository widgetRepository;
+  private final WidgetRepository widgetRepository;
 	private final UserFilterRepository filterRepository;
 	private final MessageBus messageBus;
 	private final ObjectMapper objectMapper;
-	private final WidgetValidator widgetContentFieldsValidator;
+  private final WidgetValidator widgetContentFieldsValidator;
 
-	@Autowired
-	public UpdateWidgetHandlerImpl(WidgetRepository widgetRepository, UserFilterRepository filterRepository, MessageBus messageBus,
+  @Autowired
+  public UpdateWidgetHandlerImpl(WidgetRepository widgetRepository, UserFilterRepository filterRepository, MessageBus messageBus,
 			ObjectMapper objectMapper, WidgetValidator widgetContentFieldsValidator) {
 		this.widgetRepository = widgetRepository;
 		this.filterRepository = filterRepository;
 		this.messageBus = messageBus;
 		this.objectMapper = objectMapper;
-		this.widgetContentFieldsValidator = widgetContentFieldsValidator;
-	}
+    this.widgetContentFieldsValidator = widgetContentFieldsValidator;
+  }
 
-	@Override
-	public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
-		Widget widget = widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
+  @Override
+  public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ,
+      ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user) {
+    Widget widget = widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
 						widgetId,
 						projectDetails.getProjectName()
 				));
 
-		widgetContentFieldsValidator.validate(widget);
+    widgetContentFieldsValidator.validate(widget);
 
 		if (!widget.getName().equals(updateRQ.getName())) {
 			BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(updateRQ.getName(),
@@ -92,44 +94,48 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 					.verify(ErrorType.RESOURCE_ALREADY_EXISTS, updateRQ.getName());
 		}
 
-		WidgetActivityResource before = TO_ACTIVITY_RESOURCE.apply(widget);
+    WidgetActivityResource before = TO_ACTIVITY_RESOURCE.apply(widget);
 
-		List<UserFilter> userFilter = getUserFilters(updateRQ.getFilterIds(), projectDetails.getProjectId());
-		String widgetOptionsBefore = parseWidgetOptions(widget);
+    List<UserFilter> userFilter = getUserFilters(updateRQ.getFilterIds(),
+        projectDetails.getProjectId());
+    String widgetOptionsBefore = parseWidgetOptions(widget);
 
-		widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilter).get();
+    widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilter).get();
 		widgetRepository.save(widget);
 
-		messageBus.publishActivity(new WidgetUpdatedEvent(before,
-				TO_ACTIVITY_RESOURCE.apply(widget),
-				widgetOptionsBefore,
-				parseWidgetOptions(widget),
-				user.getUserId(),
-				user.getUsername()
-		));
-		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
-	}
+    messageBus.publishActivity(new WidgetUpdatedEvent(before,
+        TO_ACTIVITY_RESOURCE.apply(widget),
+        widgetOptionsBefore,
+        parseWidgetOptions(widget),
+        user.getUserId(),
+        user.getUsername()
+    ));
+    return new OperationCompletionRS(
+        "Widget with ID = '" + widget.getId() + "' successfully updated.");
+  }
 
-	private List<UserFilter> getUserFilters(List<Long> filterIds, Long projectId) {
-		if (CollectionUtils.isNotEmpty(filterIds)) {
-			Filter defaultFilter = new Filter(UserFilter.class,
-					Condition.IN,
-					false,
-					filterIds.stream().map(String::valueOf).collect(Collectors.joining(",")),
-					CRITERIA_ID
-			);
-			return filterRepository.findByFilter(ProjectFilter.of(defaultFilter, projectId), Pageable.unpaged()).getContent();
-		}
-		return Collections.emptyList();
-	}
+  private List<UserFilter> getUserFilters(List<Long> filterIds, Long projectId) {
+    if (CollectionUtils.isNotEmpty(filterIds)) {
+      Filter defaultFilter = new Filter(UserFilter.class,
+          Condition.IN,
+          false,
+          filterIds.stream().map(String::valueOf).collect(Collectors.joining(",")),
+          CRITERIA_ID
+      );
+      return filterRepository.findByFilter(ProjectFilter.of(defaultFilter, projectId),
+          Pageable.unpaged()).getContent();
+    }
+    return Collections.emptyList();
+  }
 
-	private String parseWidgetOptions(Widget widget) {
-		try {
-			return objectMapper.writeValueAsString(widget.getWidgetOptions());
-		} catch (JsonProcessingException e) {
-			throw new ReportPortalException(ErrorType.INCORRECT_REQUEST,
-					Suppliers.formattedSupplier("Error during parsing new widget options of widget with id = ", widget.getId())
-			);
-		}
-	}
+  private String parseWidgetOptions(Widget widget) {
+    try {
+      return objectMapper.writeValueAsString(widget.getWidgetOptions());
+    } catch (JsonProcessingException e) {
+      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+          Suppliers.formattedSupplier(
+              "Error during parsing new widget options of widget with id = ", widget.getId())
+      );
+    }
+  }
 }

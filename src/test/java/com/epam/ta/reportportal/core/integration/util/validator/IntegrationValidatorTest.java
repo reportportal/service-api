@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.core.integration.util.validator;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
@@ -24,68 +27,67 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 class IntegrationValidatorTest {
 
-	@Test
-	void validateNonGlobalIntegration() {
-		Integration integration = new Integration();
-		integration.setId(1L);
-		integration.setProject(new Project());
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> IntegrationValidator.validateProjectLevelIntegrationConstraints(new Project(), integration)
-		);
-		assertEquals("Impossible interact with integration. Integration with ID = '1' is not global.", exception.getMessage());
-	}
+  @Test
+  void validateNonGlobalIntegration() {
+    Integration integration = new Integration();
+    integration.setId(1L);
+    integration.setProject(new Project());
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> IntegrationValidator.validateProjectLevelIntegrationConstraints(new Project(),
+            integration)
+    );
+    assertEquals("Impossible interact with integration. Integration with ID = '1' is not global.",
+        exception.getMessage());
+  }
 
-	@Test
-	void validateIntegrationGroups() {
-		Integration integration = new Integration();
-		integration.setId(1L);
-		IntegrationType type = new IntegrationType();
-		type.setName("jira");
-		type.setIntegrationGroup(IntegrationGroupEnum.BTS);
-		integration.setType(type);
+  @Test
+  void validateIntegrationGroups() {
+    Integration integration = new Integration();
+    integration.setId(1L);
+    IntegrationType type = new IntegrationType();
+    type.setName("jira");
+    type.setIntegrationGroup(IntegrationGroupEnum.BTS);
+    integration.setType(type);
 
-		Project project = new Project();
-		Integration projectIntegration = new Integration();
-		IntegrationType projectIntegrationType = new IntegrationType();
-		projectIntegrationType.setName("jira");
-		projectIntegrationType.setIntegrationGroup(IntegrationGroupEnum.BTS);
-		projectIntegration.setType(projectIntegrationType);
-		project.setIntegrations(Sets.newHashSet(projectIntegration));
+    Project project = new Project();
+    Integration projectIntegration = new Integration();
+    IntegrationType projectIntegrationType = new IntegrationType();
+    projectIntegrationType.setName("jira");
+    projectIntegrationType.setIntegrationGroup(IntegrationGroupEnum.BTS);
+    projectIntegration.setType(projectIntegrationType);
+    project.setIntegrations(Sets.newHashSet(projectIntegration));
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> IntegrationValidator.validateProjectLevelIntegrationConstraints(project, integration)
-		);
-		assertEquals(
-				"Impossible interact with integration. Global integration with ID = '1' has been found, but you cannot use it, because you have project-level integration(s) of that type",
-				exception.getMessage()
-		);
-	}
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> IntegrationValidator.validateProjectLevelIntegrationConstraints(project, integration)
+    );
+    assertEquals(
+        "Impossible interact with integration. Global integration with ID = '1' has been found, but you cannot use it, because you have project-level integration(s) of that type",
+        exception.getMessage()
+    );
+  }
 
-	@Test
-	void successfullyValidate() {
-		Integration integration = new Integration();
-		integration.setId(1L);
-		IntegrationType type = new IntegrationType();
-		type.setName("rally");
-		type.setIntegrationGroup(IntegrationGroupEnum.BTS);
-		integration.setType(type);
+  @Test
+  void successfullyValidate() {
+    Integration integration = new Integration();
+    integration.setId(1L);
+    IntegrationType type = new IntegrationType();
+    type.setName("rally");
+    type.setIntegrationGroup(IntegrationGroupEnum.BTS);
+    integration.setType(type);
 
-		Project project = new Project();
-		Integration projectIntegration = new Integration();
-		IntegrationType projectIntegrationType = new IntegrationType();
-		projectIntegrationType.setName("jira");
-		projectIntegrationType.setIntegrationGroup(IntegrationGroupEnum.BTS);
-		projectIntegration.setType(projectIntegrationType);
-		project.setIntegrations(Sets.newHashSet(projectIntegration));
+    Project project = new Project();
+    Integration projectIntegration = new Integration();
+    IntegrationType projectIntegrationType = new IntegrationType();
+    projectIntegrationType.setName("jira");
+    projectIntegrationType.setIntegrationGroup(IntegrationGroupEnum.BTS);
+    projectIntegration.setType(projectIntegrationType);
+    project.setIntegrations(Sets.newHashSet(projectIntegration));
 
-		IntegrationValidator.validateProjectLevelIntegrationConstraints(project, integration);
-	}
+    IntegrationValidator.validateProjectLevelIntegrationConstraints(project, integration);
+  }
 }

@@ -16,16 +16,15 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze;
 
+import static java.util.stream.Collectors.toList;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -33,19 +32,20 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class ToInvestigateCollector implements AnalyzeItemsCollector {
 
-	private TestItemRepository testItemRepository;
+  private TestItemRepository testItemRepository;
 
-	@Autowired
-	public ToInvestigateCollector(TestItemRepository testItemRepository) {
-		this.testItemRepository = testItemRepository;
-	}
+  @Autowired
+  public ToInvestigateCollector(TestItemRepository testItemRepository) {
+    this.testItemRepository = testItemRepository;
+  }
 
-	@Override
-	public List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user) {
-		return testItemRepository.findAllInIssueGroupByLaunch(launchId, TestItemIssueGroup.TO_INVESTIGATE)
-				.stream()
-				.filter(it -> !it.getItemResults().getIssue().getIgnoreAnalyzer())
-				.map(TestItem::getItemId)
-				.collect(toList());
-	}
+  @Override
+  public List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user) {
+    return testItemRepository.findAllInIssueGroupByLaunch(launchId,
+            TestItemIssueGroup.TO_INVESTIGATE)
+        .stream()
+        .filter(it -> !it.getItemResults().getIssue().getIgnoreAnalyzer())
+        .map(TestItem::getItemId)
+        .collect(toList());
+  }
 }

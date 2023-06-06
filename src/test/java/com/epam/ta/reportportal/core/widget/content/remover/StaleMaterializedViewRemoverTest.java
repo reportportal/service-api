@@ -16,6 +16,11 @@
 
 package com.epam.ta.reportportal.core.widget.content.remover;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.core.widget.content.materialized.generator.MaterializedViewNameGenerator;
 import com.epam.ta.reportportal.dao.StaleMaterializedViewRepository;
 import com.epam.ta.reportportal.entity.materialized.StaleMaterializedView;
@@ -24,35 +29,37 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import static org.mockito.Mockito.*;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class StaleMaterializedViewRemoverTest {
 
-	private final MaterializedViewNameGenerator nameGenerator = mock(MaterializedViewNameGenerator.class);
-	private final StaleMaterializedViewRepository staleMaterializedViewRepository = mock(StaleMaterializedViewRepository.class);
-	private final StaleMaterializedViewRemover staleMaterializedViewRemover = new StaleMaterializedViewRemover(nameGenerator,
-			staleMaterializedViewRepository
-	);
+  private final MaterializedViewNameGenerator nameGenerator = mock(
+      MaterializedViewNameGenerator.class);
+  private final StaleMaterializedViewRepository staleMaterializedViewRepository = mock(
+      StaleMaterializedViewRepository.class);
+  private final StaleMaterializedViewRemover staleMaterializedViewRemover = new StaleMaterializedViewRemover(
+      nameGenerator,
+      staleMaterializedViewRepository
+  );
 
-	@Test
-	void shouldSaveStaleView() {
-		final Widget widget = new Widget();
+  @Test
+  void shouldSaveStaleView() {
+    final Widget widget = new Widget();
 
-		final String viewName = "widget_1_1";
-		when(nameGenerator.generate(widget)).thenReturn(viewName);
+    final String viewName = "widget_1_1";
+    when(nameGenerator.generate(widget)).thenReturn(viewName);
 
-		staleMaterializedViewRemover.removeContent(widget);
+    staleMaterializedViewRemover.removeContent(widget);
 
-		final ArgumentCaptor<StaleMaterializedView> viewArgumentCaptor = ArgumentCaptor.forClass(StaleMaterializedView.class);
-		verify(staleMaterializedViewRepository, times(1)).insert(viewArgumentCaptor.capture());
+    final ArgumentCaptor<StaleMaterializedView> viewArgumentCaptor = ArgumentCaptor.forClass(
+        StaleMaterializedView.class);
+    verify(staleMaterializedViewRepository, times(1)).insert(viewArgumentCaptor.capture());
 
-		final StaleMaterializedView view = viewArgumentCaptor.getValue();
+    final StaleMaterializedView view = viewArgumentCaptor.getValue();
 
-		Assertions.assertEquals(viewName, view.getName());
-		Assertions.assertNotNull(view.getCreationDate());
-	}
+    Assertions.assertEquals(viewName, view.getName());
+    Assertions.assertNotNull(view.getCreationDate());
+  }
 
 }

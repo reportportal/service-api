@@ -22,62 +22,62 @@ import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 /**
- * Wraps {@link HandlerMethodReturnValueHandler}. Checks if {@link ResponseView}
- * annotation present, and if yes wraps bean to be serialized with view mapped
- * to it on controller's level class
+ * Wraps {@link HandlerMethodReturnValueHandler}. Checks if {@link ResponseView} annotation present,
+ * and if yes wraps bean to be serialized with view mapped to it on controller's level class
  *
  * @author Andrei Varabyeu
  */
 class JacksonViewReturnValueHandler implements HandlerMethodReturnValueHandler {
 
-	private final HandlerMethodReturnValueHandler delegate;
+  private final HandlerMethodReturnValueHandler delegate;
 
-	public JacksonViewReturnValueHandler(HandlerMethodReturnValueHandler delegate) {
-		this.delegate = delegate;
-	}
+  public JacksonViewReturnValueHandler(HandlerMethodReturnValueHandler delegate) {
+    this.delegate = delegate;
+  }
 
-	@Override
-	public boolean supportsReturnType(MethodParameter returnType) {
-		return delegate.supportsReturnType(returnType);
-	}
+  @Override
+  public boolean supportsReturnType(MethodParameter returnType) {
+    return delegate.supportsReturnType(returnType);
+  }
 
-	@Override
-	public void handleReturnValue(Object returnValue, MethodParameter returnType, ModelAndViewContainer mavContainer,
-			NativeWebRequest webRequest) throws Exception {
+  @Override
+  public void handleReturnValue(Object returnValue, MethodParameter returnType,
+      ModelAndViewContainer mavContainer,
+      NativeWebRequest webRequest) throws Exception {
 
-		/*
-		 * Wraps bean to be serialized if there is some view assigned to it on
-		 * controller level
-		 */
-		Class<?> viewClass = getDeclaredViewClass(returnType);
-		if (viewClass != null) {
-			returnValue = wrapResult(returnValue, viewClass);
-		}
+    /*
+     * Wraps bean to be serialized if there is some view assigned to it on
+     * controller level
+     */
+    Class<?> viewClass = getDeclaredViewClass(returnType);
+    if (viewClass != null) {
+      returnValue = wrapResult(returnValue, viewClass);
+    }
 
-		delegate.handleReturnValue(returnValue, returnType, mavContainer, webRequest);
+    delegate.handleReturnValue(returnValue, returnType, mavContainer, webRequest);
 
-	}
+  }
 
-	/**
-	 * Returns assigned view or null
-	 *
-	 * @param returnType
-	 * @return
-	 */
-	private Class<?> getDeclaredViewClass(MethodParameter returnType) {
-		ResponseView annotation = returnType.getMethodAnnotation(ResponseView.class);
-		if (annotation != null) {
-			return annotation.value();
-		} else {
-			return null;
-		}
-	}
+  /**
+   * Returns assigned view or null
+   *
+   * @param returnType
+   * @return
+   */
+  private Class<?> getDeclaredViewClass(MethodParameter returnType) {
+    ResponseView annotation = returnType.getMethodAnnotation(ResponseView.class);
+    if (annotation != null) {
+      return annotation.value();
+    } else {
+      return null;
+    }
+  }
 
-	/**
-	 * Wraps bean and view into one object
-	 */
-	private Object wrapResult(Object result, Class<?> viewClass) {
-		return new JacksonViewAware(result, viewClass);
-	}
+  /**
+   * Wraps bean and view into one object
+   */
+  private Object wrapResult(Object result, Class<?> viewClass) {
+    return new JacksonViewAware(result, viewClass);
+  }
 
 }

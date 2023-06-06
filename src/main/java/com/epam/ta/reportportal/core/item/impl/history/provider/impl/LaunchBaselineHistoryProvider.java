@@ -32,48 +32,51 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /**
- * Required for retrieving {@link TestItemHistory} content using {@link Launch#getId()} as baseline for {@link TestItemHistory} selection.
+ * Required for retrieving {@link TestItemHistory} content using {@link Launch#getId()} as baseline
+ * for {@link TestItemHistory} selection.
  *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
 public class LaunchBaselineHistoryProvider implements HistoryProvider {
 
-	private final LaunchRepository launchRepository;
-	private final LaunchAccessValidator launchAccessValidator;
-	private final TestItemRepository testItemRepository;
+  private final LaunchRepository launchRepository;
+  private final LaunchAccessValidator launchAccessValidator;
+  private final TestItemRepository testItemRepository;
 
-	public LaunchBaselineHistoryProvider(LaunchRepository launchRepository, LaunchAccessValidator launchAccessValidator,
-			TestItemRepository testItemRepository) {
-		this.launchRepository = launchRepository;
-		this.launchAccessValidator = launchAccessValidator;
-		this.testItemRepository = testItemRepository;
-	}
+  public LaunchBaselineHistoryProvider(LaunchRepository launchRepository,
+      LaunchAccessValidator launchAccessValidator,
+      TestItemRepository testItemRepository) {
+    this.launchRepository = launchRepository;
+    this.launchAccessValidator = launchAccessValidator;
+    this.testItemRepository = testItemRepository;
+  }
 
-	@Override
-	public Page<TestItemHistory> provide(Queryable filter, Pageable pageable, HistoryRequestParams historyRequestParams,
-			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean usingHash) {
-		return historyRequestParams.getLaunchId().map(launchId -> {
-			Launch launch = launchRepository.findById(launchId)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-			launchAccessValidator.validate(launch.getId(), projectDetails, user);
+  @Override
+  public Page<TestItemHistory> provide(Queryable filter, Pageable pageable,
+      HistoryRequestParams historyRequestParams,
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean usingHash) {
+    return historyRequestParams.getLaunchId().map(launchId -> {
+      Launch launch = launchRepository.findById(launchId)
+          .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+      launchAccessValidator.validate(launch.getId(), projectDetails, user);
 
-			return historyRequestParams.getHistoryType()
-					.filter(HistoryRequestParams.HistoryTypeEnum.LINE::equals)
-					.map(type -> testItemRepository.loadItemsHistoryPage(filter,
-							pageable,
-							projectDetails.getProjectId(),
-							launch.getName(),
-							historyRequestParams.getHistoryDepth(),
-							usingHash
-					))
-					.orElseGet(() -> testItemRepository.loadItemsHistoryPage(filter,
-							pageable,
-							projectDetails.getProjectId(),
-							historyRequestParams.getHistoryDepth(),
-							usingHash
-					));
-		}).orElseGet(() -> Page.empty(pageable));
-	}
+      return historyRequestParams.getHistoryType()
+          .filter(HistoryRequestParams.HistoryTypeEnum.LINE::equals)
+          .map(type -> testItemRepository.loadItemsHistoryPage(filter,
+              pageable,
+              projectDetails.getProjectId(),
+              launch.getName(),
+              historyRequestParams.getHistoryDepth(),
+              usingHash
+          ))
+          .orElseGet(() -> testItemRepository.loadItemsHistoryPage(filter,
+              pageable,
+              projectDetails.getProjectId(),
+              historyRequestParams.getHistoryDepth(),
+              usingHash
+          ));
+    }).orElseGet(() -> Page.empty(pageable));
+  }
 
 }

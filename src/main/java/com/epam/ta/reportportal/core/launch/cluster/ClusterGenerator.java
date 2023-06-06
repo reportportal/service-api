@@ -23,6 +23,6 @@ import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfi
  */
 public interface ClusterGenerator {
 
-	void generate(GenerateClustersConfig config);
+  void generate(GenerateClustersConfig config);
 
 }

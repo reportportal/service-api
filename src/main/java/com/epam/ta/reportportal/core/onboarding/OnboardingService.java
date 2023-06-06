@@ -22,32 +22,34 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Antonov Maksim
  */
 @Service
 public class OnboardingService {
-    private final OnboardingRepository onboardingRepository;
-    private final ObjectMapper objectMapper;
 
-    public OnboardingService(OnboardingRepository onboardingRepository, ObjectMapper objectMapper) {
-        this.onboardingRepository = onboardingRepository;
-        this.objectMapper = objectMapper;
-    }
+  private final OnboardingRepository onboardingRepository;
+  private final ObjectMapper objectMapper;
 
-    public Object getOnboardingDataForPageIfAvailable(String page) {
-        Onboarding onboarding = onboardingRepository.findAvailableOnboardingByPage(page);
-        // possibly use another parsing flow for some onboarding page, for now only text to list of questions
-        try {
-            return (onboarding != null) ? objectMapper.readValue(onboarding.getData(),
-                    new TypeReference<List<Map<String, String>>>() {}) : null;
-        } catch (JsonProcessingException e) {
-            throw new ReportPortalException(ErrorType.UNCLASSIFIED_ERROR, "Unable to parse onboarding data: " + e.getMessage());
-        }
+  public OnboardingService(OnboardingRepository onboardingRepository, ObjectMapper objectMapper) {
+    this.onboardingRepository = onboardingRepository;
+    this.objectMapper = objectMapper;
+  }
+
+  public Object getOnboardingDataForPageIfAvailable(String page) {
+    Onboarding onboarding = onboardingRepository.findAvailableOnboardingByPage(page);
+    // possibly use another parsing flow for some onboarding page, for now only text to list of questions
+    try {
+      return (onboarding != null) ? objectMapper.readValue(onboarding.getData(),
+          new TypeReference<List<Map<String, String>>>() {
+          }) : null;
+    } catch (JsonProcessingException e) {
+      throw new ReportPortalException(ErrorType.UNCLASSIFIED_ERROR,
+          "Unable to parse onboarding data: " + e.getMessage());
     }
+  }
 }

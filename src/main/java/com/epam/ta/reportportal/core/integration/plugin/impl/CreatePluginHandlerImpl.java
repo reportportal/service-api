@@ -23,13 +23,12 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.io.IOException;
+import java.io.InputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -37,28 +36,29 @@ import java.io.InputStream;
 @Service
 public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
-	private final Pf4jPluginBox pluginBox;
+  private final Pf4jPluginBox pluginBox;
 
-	@Autowired
-	public CreatePluginHandlerImpl(Pf4jPluginBox pluginBox) {
-		this.pluginBox = pluginBox;
-	}
+  @Autowired
+  public CreatePluginHandlerImpl(Pf4jPluginBox pluginBox) {
+    this.pluginBox = pluginBox;
+  }
 
-	@Override
-	public EntryCreatedRS uploadPlugin(MultipartFile pluginFile) {
+  @Override
+  public EntryCreatedRS uploadPlugin(MultipartFile pluginFile) {
 
-		String newPluginFileName = pluginFile.getOriginalFilename();
+    String newPluginFileName = pluginFile.getOriginalFilename();
 
-		BusinessRule.expect(newPluginFileName, StringUtils::isNotBlank)
-				.verify(ErrorType.BAD_REQUEST_ERROR, "File name should be not empty.");
+    BusinessRule.expect(newPluginFileName, StringUtils::isNotBlank)
+        .verify(ErrorType.BAD_REQUEST_ERROR, "File name should be not empty.");
 
-		try (InputStream inputStream = pluginFile.getInputStream()) {
-			IntegrationType integrationType = pluginBox.uploadPlugin(newPluginFileName, inputStream);
-			return new EntryCreatedRS(integrationType.getId());
-		} catch (IOException e) {
-			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, "Error during file stream retrieving");
-		}
+    try (InputStream inputStream = pluginFile.getInputStream()) {
+      IntegrationType integrationType = pluginBox.uploadPlugin(newPluginFileName, inputStream);
+      return new EntryCreatedRS(integrationType.getId());
+    } catch (IOException e) {
+      throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+          "Error during file stream retrieving");
+    }
 
-	}
+  }
 
 }

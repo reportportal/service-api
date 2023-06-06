@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
+
+import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -45,8 +48,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-
-import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
 
 /**
  * @author Pavel Bortnik
@@ -105,7 +106,8 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
   @Override
   public OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq,
       ReportPortalUser user) {
-    final Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
+    final Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId,
+        projectDetails.getProjectId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
             dashboardId,
             projectDetails.getProjectName()
@@ -175,17 +177,21 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
         .stream()
         .filter(dashboardWidget -> widget.getId().equals(dashboardWidget.getId().getWidgetId()))
         .findFirst()
-        .orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_DASHBOARD, widgetId, dashboardId));
+        .orElseThrow(
+            () -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_DASHBOARD, widgetId,
+                dashboardId));
 
     dashboardWidgetRepository.delete(toRemove);
 
     return new OperationCompletionRS(
-        "Widget with ID = '" + widget.getId() + "' was successfully removed from the dashboard with ID = '" + dashboard.getId()
+        "Widget with ID = '" + widget.getId()
+            + "' was successfully removed from the dashboard with ID = '" + dashboard.getId()
             + "'");
   }
 
   private boolean shouldDelete(Widget widget) {
-    return dashboardWidgetRepository.countAllByWidgetId(widget.getId()) <= DELETE_WIDGET_COUNT_THRESHOLD;
+    return dashboardWidgetRepository.countAllByWidgetId(widget.getId())
+        <= DELETE_WIDGET_COUNT_THRESHOLD;
   }
 
   /**

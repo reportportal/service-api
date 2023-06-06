@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
-
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -28,27 +27,27 @@ import java.util.stream.Collectors;
  */
 public final class DashboardConverter {
 
-	private DashboardConverter() {
-		//static only
-	}
+  private DashboardConverter() {
+    //static only
+  }
 
-	public static final Function<Dashboard, DashboardResource> TO_RESOURCE = dashboard -> {
+  public static final Function<Dashboard, DashboardResource> TO_RESOURCE = dashboard -> {
 		DashboardResource resource = new DashboardResource();
 		resource.setDashboardId(dashboard.getId());
 		resource.setName(dashboard.getName());
 		resource.setDescription(dashboard.getDescription());
 		resource.setWidgets(dashboard.getDashboardWidgets().stream().map(WidgetConverter.TO_OBJECT_MODEL).collect(Collectors.toList()));
 		resource.setOwner(dashboard.getOwner());
-		return resource;
-	};
+    return resource;
+  };
 
-	public static final Function<Dashboard, DashboardActivityResource> TO_ACTIVITY_RESOURCE = dashboard -> {
-		DashboardActivityResource resource = new DashboardActivityResource();
-		resource.setId(dashboard.getId());
-		resource.setName(dashboard.getName());
-		resource.setProjectId(dashboard.getProject().getId());
-		resource.setDescription(dashboard.getDescription());
-		return resource;
+  public static final Function<Dashboard, DashboardActivityResource> TO_ACTIVITY_RESOURCE = dashboard -> {
+    DashboardActivityResource resource = new DashboardActivityResource();
+    resource.setId(dashboard.getId());
+    resource.setName(dashboard.getName());
+    resource.setProjectId(dashboard.getProject().getId());
+    resource.setDescription(dashboard.getDescription());
+    return resource;
 	};
 
 }

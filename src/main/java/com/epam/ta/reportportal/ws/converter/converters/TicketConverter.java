@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.base.Preconditions;
-
 import java.util.function.Function;
 
 /**
@@ -27,18 +26,18 @@ import java.util.function.Function;
  */
 public final class TicketConverter {
 
-	private TicketConverter() {
-		//static only
-	}
+  private TicketConverter() {
+    //static only
+  }
 
-	public static final Function<Issue.ExternalSystemIssue, Ticket> TO_TICKET = issue -> {
-		Preconditions.checkNotNull(issue);
-		Ticket ticket = new Ticket();
-		ticket.setBtsUrl(issue.getBtsUrl());
-		ticket.setBtsProject(issue.getBtsProject());
-		ticket.setTicketId(issue.getTicketId());
-		ticket.setUrl(issue.getUrl());
-		ticket.setPluginName(issue.getPluginName());
-		return ticket;
-	};
+  public static final Function<Issue.ExternalSystemIssue, Ticket> TO_TICKET = issue -> {
+    Preconditions.checkNotNull(issue);
+    Ticket ticket = new Ticket();
+    ticket.setBtsUrl(issue.getBtsUrl());
+    ticket.setBtsProject(issue.getBtsProject());
+    ticket.setTicketId(issue.getTicketId());
+    ticket.setUrl(issue.getUrl());
+    ticket.setPluginName(issue.getPluginName());
+    return ticket;
+  };
 }

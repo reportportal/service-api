@@ -5,6 +5,6 @@ import com.epam.ta.reportportal.demodata.model.Suite;
 
 public interface SuiteGenerator {
 
-	void generateSuites(Suite suite, RootMetaData rootMetaData);
+  void generateSuites(Suite suite, RootMetaData rootMetaData);
 
 }

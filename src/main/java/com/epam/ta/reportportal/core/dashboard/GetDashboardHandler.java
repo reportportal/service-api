@@ -28,23 +28,22 @@ import org.springframework.data.domain.Pageable;
  */
 public interface GetDashboardHandler {
 
-	/**
-	 * Get dashboard resource by provided id
-	 *
-	 * @param id             Provided id
-	 * @param projectDetails Project detail
-	 * @return {@link DashboardResource}
-	 */
-	DashboardResource getDashboard(Long id, ReportPortalUser.ProjectDetails projectDetails);
+  /**
+   * Get dashboard resource by provided id
+   *
+   * @param id             Provided id
+   * @param projectDetails Project detail
+   * @return {@link DashboardResource}
+   */
+  DashboardResource getDashboard(Long id, ReportPortalUser.ProjectDetails projectDetails);
 
-	/**
-	 * Get permitted projects for concrete user for concrete project
+  /**
+   * Get permitted projects for concrete user for concrete project
 	 *
 	 * @param projectDetails Project details
-	 * @param user           User
-	 * @return Page of permitted dashboard resources
-	 */
-	Iterable<DashboardResource> getDashboards(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+   * @param user           User
+   * @return Page of permitted dashboard resources
+   */
+  Iterable<DashboardResource> getDashboards(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
 			ReportPortalUser user);
-
 }

@@ -20,27 +20,25 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class NotNestedStepValidatorTest {
 
-	private final NotNestedStepValidator validator = new NotNestedStepValidator();
+  private final NotNestedStepValidator validator = new NotNestedStepValidator();
 
-	@Test
-	void shouldReturnTrueWhenHasStats() {
-		final TestItem testItem = new TestItem();
-		testItem.setHasStats(true);
-		Assertions.assertTrue(validator.validate(testItem));
-	}
+  @Test
+  void shouldReturnTrueWhenHasStats() {
+    final TestItem testItem = new TestItem();
+    testItem.setHasStats(true);
+    Assertions.assertTrue(validator.validate(testItem));
+  }
 
-	@Test
-	void shouldReturnFalseWhenNotHasStats() {
-		final TestItem testItem = new TestItem();
-		testItem.setHasStats(false);
-		Assertions.assertFalse(validator.validate(testItem));
-	}
+  @Test
+  void shouldReturnFalseWhenNotHasStats() {
+    final TestItem testItem = new TestItem();
+    testItem.setHasStats(false);
+    Assertions.assertFalse(validator.validate(testItem));
+  }
 
 }

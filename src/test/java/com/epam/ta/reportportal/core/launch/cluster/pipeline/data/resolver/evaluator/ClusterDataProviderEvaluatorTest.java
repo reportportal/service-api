@@ -16,42 +16,45 @@
 
 package com.epam.ta.reportportal.core.launch.cluster.pipeline.data.resolver.evaluator;
 
-import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
-import com.epam.ta.reportportal.core.launch.cluster.pipeline.data.ClusterDataProvider;
-import org.junit.jupiter.api.Test;
-
-import java.util.function.Predicate;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
+import com.epam.ta.reportportal.core.launch.cluster.pipeline.data.ClusterDataProvider;
+import java.util.function.Predicate;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class ClusterDataProviderEvaluatorTest {
 
-	private final Predicate<GenerateClustersConfig> predicate = (Predicate<GenerateClustersConfig>) mock(Predicate.class);
-	private final ClusterDataProvider clusterDataProvider = mock(ClusterDataProvider.class);
+  private final Predicate<GenerateClustersConfig> predicate = (Predicate<GenerateClustersConfig>) mock(
+      Predicate.class);
+  private final ClusterDataProvider clusterDataProvider = mock(ClusterDataProvider.class);
 
-	private final ClusterDataProviderEvaluator evaluator = new ClusterDataProviderEvaluator(predicate, clusterDataProvider);
+  private final ClusterDataProviderEvaluator evaluator = new ClusterDataProviderEvaluator(predicate,
+      clusterDataProvider);
 
-	@Test
-	void shouldReturnTrueWhenPredicateIsTrue() {
-		when(predicate.test(any(GenerateClustersConfig.class))).thenReturn(true);
-		assertTrue(evaluator.supports(new GenerateClustersConfig()));
-	}
+  @Test
+  void shouldReturnTrueWhenPredicateIsTrue() {
+    when(predicate.test(any(GenerateClustersConfig.class))).thenReturn(true);
+    assertTrue(evaluator.supports(new GenerateClustersConfig()));
+  }
 
-	@Test
-	void shouldReturnFalseWhenPredicateIsFalse() {
-		when(predicate.test(any(GenerateClustersConfig.class))).thenReturn(false);
-		assertFalse(evaluator.supports(new GenerateClustersConfig()));
-	}
+  @Test
+  void shouldReturnFalseWhenPredicateIsFalse() {
+    when(predicate.test(any(GenerateClustersConfig.class))).thenReturn(false);
+    assertFalse(evaluator.supports(new GenerateClustersConfig()));
+  }
 
-	@Test
-	void providerShouldBeEqual() {
-		assertEquals(clusterDataProvider, evaluator.getProvider());
-	}
+  @Test
+  void providerShouldBeEqual() {
+    assertEquals(clusterDataProvider, evaluator.getProvider());
+  }
 
 }

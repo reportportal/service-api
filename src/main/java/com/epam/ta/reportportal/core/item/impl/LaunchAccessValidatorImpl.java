@@ -16,21 +16,22 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import org.springframework.stereotype.Service;
-
 import java.util.function.Predicate;
-
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -38,32 +39,38 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Service
 public class LaunchAccessValidatorImpl implements LaunchAccessValidator {
 
-	private final LaunchRepository launchRepository;
+  private final LaunchRepository launchRepository;
 
-	public LaunchAccessValidatorImpl(LaunchRepository launchRepository) {
-		this.launchRepository = launchRepository;
-	}
+  public LaunchAccessValidatorImpl(LaunchRepository launchRepository) {
+    this.launchRepository = launchRepository;
+  }
 
-	@Override
-	//TODO separate project validation from launch state validation (mode)
-	public void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-					formattedSupplier("Specified launch with id '{}' not referenced to specified project with id '{}'",
-							launch.getId(),
-							projectDetails.getProjectId()
-					)
-			);
-			expect(projectDetails.getProjectRole() == OPERATOR && launch.getMode() == LaunchModeEnum.DEBUG,
-					Predicate.isEqual(false)
-			).verify(ACCESS_DENIED);
-		}
-	}
+  @Override
+  //TODO separate project validation from launch state validation (mode)
+  public void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user) {
+    if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+      expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
+          FORBIDDEN_OPERATION,
+          formattedSupplier(
+              "Specified launch with id '{}' not referenced to specified project with id '{}'",
+              launch.getId(),
+              projectDetails.getProjectId()
+          )
+      );
+      expect(
+          projectDetails.getProjectRole() == OPERATOR && launch.getMode() == LaunchModeEnum.DEBUG,
+          Predicate.isEqual(false)
+      ).verify(ACCESS_DENIED);
+    }
+  }
 
-	@Override
-	public void validate(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
-		validate(launch, projectDetails, user);
-	}
+  @Override
+  public void validate(Long launchId, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user) {
+    Launch launch = launchRepository.findById(launchId)
+        .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+    validate(launch, projectDetails, user);
+  }
 
 }

@@ -9,9 +9,9 @@ import com.epam.ta.reportportal.entity.widget.Widget;
  */
 public interface WidgetUpdater {
 
-	/**
-	 * @param widget {@link Widget} to update
-	 */
-	void update(Widget widget);
+  /**
+   * @param widget {@link Widget} to update
+   */
+  void update(Widget widget);
 
 }

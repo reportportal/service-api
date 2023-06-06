@@ -33,12 +33,11 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Delete user handler
@@ -50,50 +49,48 @@ import java.util.Objects;
 @Transactional
 public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
-	private final UserBinaryDataService dataStore;
+  private final UserRepository userRepository;
 
-	private final UserRepository userRepository;
+  private final DeleteProjectHandler deleteProjectHandler;
 
-	private final DeleteProjectHandler deleteProjectHandler;
+  private final ContentRemover<User> userContentRemover;
 
-	private final ContentRemover<User> userContentRemover;
+  private final ProjectRecipientHandler projectRecipientHandler;
 
-	private final ProjectRecipientHandler projectRecipientHandler;
-
-	private final ProjectRepository projectRepository;
+  private final ProjectRepository projectRepository;
 
 	@Autowired
 	public DeleteUserHandlerImpl(UserRepository userRepository, DeleteProjectHandler deleteProjectHandler,
-			ContentRemover<User> userContentRemover, UserBinaryDataService dataStore,
-			ProjectRecipientHandler projectRecipientHandler, ProjectRepository projectRepository) {
+			ContentRemover<User> userContentRemover, ProjectRecipientHandler projectRecipientHandler,
+			ProjectRepository projectRepository) {
 		this.userRepository = userRepository;
 		this.deleteProjectHandler = deleteProjectHandler;
-		this.dataStore = dataStore;
 		this.userContentRemover = userContentRemover;
 		this.projectRecipientHandler = projectRecipientHandler;
 		this.projectRepository = projectRepository;
 	}
 
-	@Override
-	public OperationCompletionRS deleteUser(Long userId, ReportPortalUser loggedInUser) {
-		User user = userRepository.findById(userId).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
-		BusinessRule.expect(Objects.equals(userId, loggedInUser.getUserId()), Predicates.equalTo(false))
-				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
+  @Override
+  public OperationCompletionRS deleteUser(Long userId, ReportPortalUser loggedInUser) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
+    BusinessRule.expect(Objects.equals(userId, loggedInUser.getUserId()), Predicates.equalTo(false))
+        .verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
 
-		userContentRemover.remove(user);
+    userContentRemover.remove(user);
 
-		List<Project> userProjects = projectRepository.findAllByUserLogin(user.getLogin());
-		userProjects.forEach(project -> {
-			if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(), user.getLogin())) {
-				deleteProjectHandler.deleteProject(project.getId());
-			} else {
-				projectRecipientHandler.handle(Lists.newArrayList(user), project);
+    List<Project> userProjects = projectRepository.findAllByUserLogin(user.getLogin());
+    userProjects.forEach(project -> {
+      if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(),
+          user.getLogin())) {
+        deleteProjectHandler.deleteProject(project.getId());
+      } else {
+        projectRecipientHandler.handle(Lists.newArrayList(user), project);
 			}
 		});
 
-		dataStore.deleteUserPhoto(user);
-		userRepository.delete(user);
-		return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
-	}
+    userRepository.delete(user);
+    return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
+  }
 
 }

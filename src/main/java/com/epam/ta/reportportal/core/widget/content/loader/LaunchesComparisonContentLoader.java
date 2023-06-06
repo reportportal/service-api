@@ -16,19 +16,6 @@
 
 package com.epam.ta.reportportal.core.widget.content.loader;
 
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.dao.WidgetContentRepository;
-import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_START_TIME;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_NUMBER;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
@@ -36,30 +23,45 @@ import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_F
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.dao.WidgetContentRepository;
+import com.epam.ta.reportportal.entity.widget.WidgetOptions;
+import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
 /**
  * @author Pavel Bortnik
  */
 @Service
 public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 
-	@Autowired
-	private WidgetContentRepository widgetContentRepository;
+  @Autowired
+  private WidgetContentRepository widgetContentRepository;
 
-	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			int limit) {
+  @Override
+  public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping,
+      WidgetOptions widgetOptions,
+      int limit) {
 
-		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
-		Sort sort = Sort.by(Sort.Order.desc(CRITERIA_START_TIME), Sort.Order.desc(CRITERIA_LAUNCH_NUMBER));
+    Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
+    Sort sort = Sort.by(Sort.Order.desc(CRITERIA_START_TIME),
+        Sort.Order.desc(CRITERIA_LAUNCH_NUMBER));
 
-		List<ChartStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter, contentFields, sort, limit);
+    List<ChartStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(
+        filter, contentFields, sort, limit);
 
-		if (result.isEmpty()) {
-			return emptyMap();
-		} else {
-			Collections.reverse(result);
-			return singletonMap(RESULT, result);
-		}
-	}
+    if (result.isEmpty()) {
+      return emptyMap();
+    } else {
+      Collections.reverse(result);
+      return singletonMap(RESULT, result);
+    }
+  }
 
 }

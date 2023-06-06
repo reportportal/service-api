@@ -21,5 +21,5 @@ package com.epam.ta.reportportal.pipeline;
  */
 public interface PipelinePartProvider<T> {
 
-	PipelinePart provide(T source);
+  PipelinePart provide(T source);
 }

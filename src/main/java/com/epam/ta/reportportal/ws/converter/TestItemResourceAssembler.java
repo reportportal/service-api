@@ -16,15 +16,14 @@
 
 package com.epam.ta.reportportal.ws.converter;
 
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
-import org.springframework.stereotype.Component;
-
 import javax.annotation.Nullable;
-
-import static java.util.Optional.ofNullable;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Pavel Bortnik
@@ -32,14 +31,15 @@ import static java.util.Optional.ofNullable;
 @Component
 public class TestItemResourceAssembler extends PagedResourcesAssembler<TestItem, TestItemResource> {
 
-	@Override
-	public TestItemResource toResource(TestItem entity) {
-		return TestItemConverter.TO_RESOURCE.apply(entity);
-	}
+  @Override
+  public TestItemResource toResource(TestItem entity) {
+    return TestItemConverter.TO_RESOURCE.apply(entity);
+  }
 
-	public TestItemResource toResource(TestItem entity, @Nullable PathName pathName) {
-		TestItemResource resource = TestItemConverter.TO_RESOURCE.apply(entity);
-		ofNullable(pathName).ifPresent(pn -> resource.setPathNames(TestItemConverter.PATH_NAME_TO_RESOURCE.apply(pn)));
-		return resource;
-	}
+  public TestItemResource toResource(TestItem entity, @Nullable PathName pathName) {
+    TestItemResource resource = TestItemConverter.TO_RESOURCE.apply(entity);
+    ofNullable(pathName).ifPresent(
+        pn -> resource.setPathNames(TestItemConverter.PATH_NAME_TO_RESOURCE.apply(pn)));
+    return resource;
+  }
 }

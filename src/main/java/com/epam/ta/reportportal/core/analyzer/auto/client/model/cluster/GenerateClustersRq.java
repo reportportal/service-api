@@ -23,55 +23,55 @@ import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
  */
 public class GenerateClustersRq {
 
-	private IndexLaunch launch;
+  private IndexLaunch launch;
 
-	private Long project;
+  private Long project;
 
-	private int numberOfLogLines;
+  private int numberOfLogLines;
 
-	private boolean forUpdate;
-	private boolean cleanNumbers;
+  private boolean forUpdate;
+  private boolean cleanNumbers;
 
-	public GenerateClustersRq() {
-	}
+  public GenerateClustersRq() {
+  }
 
-	public IndexLaunch getLaunch() {
-		return launch;
-	}
+  public IndexLaunch getLaunch() {
+    return launch;
+  }
 
-	public void setLaunch(IndexLaunch launch) {
-		this.launch = launch;
-	}
+  public void setLaunch(IndexLaunch launch) {
+    this.launch = launch;
+  }
 
-	public Long getProject() {
-		return project;
-	}
+  public Long getProject() {
+    return project;
+  }
 
-	public void setProject(Long project) {
-		this.project = project;
-	}
+  public void setProject(Long project) {
+    this.project = project;
+  }
 
-	public int getNumberOfLogLines() {
-		return numberOfLogLines;
-	}
+  public int getNumberOfLogLines() {
+    return numberOfLogLines;
+  }
 
-	public void setNumberOfLogLines(int numberOfLogLines) {
-		this.numberOfLogLines = numberOfLogLines;
-	}
+  public void setNumberOfLogLines(int numberOfLogLines) {
+    this.numberOfLogLines = numberOfLogLines;
+  }
 
-	public boolean isForUpdate() {
-		return forUpdate;
-	}
+  public boolean isForUpdate() {
+    return forUpdate;
+  }
 
-	public void setForUpdate(boolean forUpdate) {
-		this.forUpdate = forUpdate;
-	}
+  public void setForUpdate(boolean forUpdate) {
+    this.forUpdate = forUpdate;
+  }
 
-	public boolean isCleanNumbers() {
-		return cleanNumbers;
-	}
+  public boolean isCleanNumbers() {
+    return cleanNumbers;
+  }
 
-	public void setCleanNumbers(boolean cleanNumbers) {
-		this.cleanNumbers = cleanNumbers;
-	}
+  public void setCleanNumbers(boolean cleanNumbers) {
+    this.cleanNumbers = cleanNumbers;
+  }
 }

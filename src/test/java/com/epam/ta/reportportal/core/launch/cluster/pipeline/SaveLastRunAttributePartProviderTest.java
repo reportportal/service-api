@@ -16,60 +16,71 @@
 
 package com.epam.ta.reportportal.core.launch.cluster.pipeline;
 
-import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
-import com.epam.ta.reportportal.dao.ItemAttributeRepository;
-import com.epam.ta.reportportal.entity.ItemAttribute;
-import com.epam.ta.reportportal.pipeline.PipelinePart;
-import org.junit.jupiter.api.Test;
-
-import java.util.Optional;
-
 import static com.epam.ta.reportportal.core.launch.cluster.pipeline.SaveLastRunAttributePartProvider.RP_CLUSTER_LAST_RUN_KEY;
 import static com.epam.ta.reportportal.core.launch.cluster.utils.ConfigProvider.getConfig;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
+import com.epam.ta.reportportal.dao.ItemAttributeRepository;
+import com.epam.ta.reportportal.pipeline.PipelinePart;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class SaveLastRunAttributePartProviderTest {
 
-	private final ItemAttributeRepository itemAttributeRepository = mock(ItemAttributeRepository.class);
+  private final ItemAttributeRepository itemAttributeRepository = mock(
+      ItemAttributeRepository.class);
 
-	private final SaveLastRunAttributePartProvider provider = new SaveLastRunAttributePartProvider(itemAttributeRepository);
+  private final SaveLastRunAttributePartProvider provider = new SaveLastRunAttributePartProvider(
+      itemAttributeRepository);
 
-	@Test
-	void shouldSaveWhenNotExists() {
-		final GenerateClustersConfig config = getConfig(false);
-		when(itemAttributeRepository.findByLaunchIdAndKeyAndSystem(config.getEntityContext().getLaunchId(),
-				RP_CLUSTER_LAST_RUN_KEY,
-				true
-		)).thenReturn(Optional.empty());
+  @Test
+  void shouldDeletePreviousAndSaveNew() {
+    final GenerateClustersConfig config = getConfig(false);
 
-		final PipelinePart pipelinePart = provider.provide(config);
+    final PipelinePart pipelinePart = provider.provide(config);
 
-		pipelinePart.handle();
+    pipelinePart.handle();
 
-		verify(itemAttributeRepository, times(1)).saveByLaunchId(eq(config.getEntityContext().getLaunchId()),
-				eq(RP_CLUSTER_LAST_RUN_KEY),
-				anyString(),
-				eq(true)
-		);
-	}
+    verify(itemAttributeRepository, times(1)).deleteAllByLaunchIdAndKeyAndSystem(
+        eq(config.getEntityContext().getLaunchId()),
+        eq(RP_CLUSTER_LAST_RUN_KEY),
+        eq(true)
+    );
 
-	@Test
-	void shouldUpdateWhenExists() {
-		final GenerateClustersConfig config = getConfig(false);
-		final ItemAttribute itemAttribute = new ItemAttribute();
-		when(itemAttributeRepository.findByLaunchIdAndKeyAndSystem(config.getEntityContext().getLaunchId(),
-				RP_CLUSTER_LAST_RUN_KEY,
-				true
-		)).thenReturn(Optional.of(itemAttribute));
+    verify(itemAttributeRepository, times(1)).saveByLaunchId(
+        eq(config.getEntityContext().getLaunchId()),
+        eq(RP_CLUSTER_LAST_RUN_KEY),
+        anyString(),
+        eq(true)
+    );
+  }
 
-		final PipelinePart pipelinePart = provider.provide(config);
+  @Test
+  void shouldNotSaveLastRunWhenForUpdate() {
+    final GenerateClustersConfig config = getConfig(true);
 
-		pipelinePart.handle();
+    final PipelinePart pipelinePart = provider.provide(config);
 
-		verify(itemAttributeRepository, times(1)).save(itemAttribute);
-	}
+    pipelinePart.handle();
+
+    verify(itemAttributeRepository, times(0)).deleteAllByLaunchIdAndKeyAndSystem(
+        eq(config.getEntityContext().getLaunchId()),
+        eq(RP_CLUSTER_LAST_RUN_KEY),
+        eq(true)
+    );
+    verify(itemAttributeRepository, times(0)).saveByLaunchId(
+        eq(config.getEntityContext().getLaunchId()),
+        eq(RP_CLUSTER_LAST_RUN_KEY),
+        anyString(),
+        eq(true)
+    );
+  }
 
 }

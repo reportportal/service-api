@@ -19,10 +19,9 @@ package com.epam.ta.reportportal.demodata.service;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.demodata.model.DemoDataRq;
 import com.epam.ta.reportportal.demodata.model.DemoDataRs;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 /**
  * @author Ihar Kahadouski
@@ -30,23 +29,26 @@ import java.util.List;
 @Service
 public class DemoDataService {
 
-	private final DemoDashboardsService demoDashboardsService;
-	private final DemoDataFacade demoDataFacade;
+  private final DemoDashboardsService demoDashboardsService;
+  private final DemoDataFacade demoDataFacade;
 
-	@Autowired
-	public DemoDataService(DemoDashboardsService demoDashboardsService, DemoDataFacade demoDataFacade) {
-		this.demoDashboardsService = demoDashboardsService;
-		this.demoDataFacade = demoDataFacade;
-	}
+  @Autowired
+  public DemoDataService(DemoDashboardsService demoDashboardsService,
+      DemoDataFacade demoDataFacade) {
+    this.demoDashboardsService = demoDashboardsService;
+    this.demoDataFacade = demoDataFacade;
+  }
 
-	public DemoDataRs generate(DemoDataRq demoDataRq, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		DemoDataRs demoDataRs = new DemoDataRs();
-		final List<Long> launchIds = demoDataFacade.generateDemoLaunches(user, projectDetails);
-		demoDataRs.setLaunchIds(launchIds);
-		if (demoDataRq.isCreateDashboard()) {
-			demoDashboardsService.generate(user, projectDetails.getProjectId()).ifPresent(it -> demoDataRs.setDashboardId(it.getId()));
-		}
+  public DemoDataRs generate(DemoDataRq demoDataRq, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user) {
+    DemoDataRs demoDataRs = new DemoDataRs();
+    final List<Long> launchIds = demoDataFacade.generateDemoLaunches(user, projectDetails);
+    demoDataRs.setLaunchIds(launchIds);
+    if (demoDataRq.isCreateDashboard()) {
+      demoDashboardsService.generate(user, projectDetails.getProjectId())
+          .ifPresent(it -> demoDataRs.setDashboardId(it.getId()));
+    }
 
-		return demoDataRs;
-	}
+    return demoDataRs;
+  }
 }

@@ -25,11 +25,9 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
-import com.epam.ta.reportportal.entity.enums.FeatureFlag;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
-import com.epam.ta.reportportal.util.FeatureFlagHandler;
 import com.epam.ta.reportportal.ws.converter.builders.IntegrationTypeBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import java.io.File;
@@ -51,38 +49,29 @@ import org.pf4j.PluginDescriptorFinder;
 import org.pf4j.PluginException;
 import org.pf4j.PluginWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * Service responsible for plugin load.
- *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
 public class PluginLoaderImpl implements PluginLoader {
 
-  private static final String PLUGINS_ROOT_PATH = "plugins";
+  private final String pluginsRootPath;
+
   private final DataStore dataStore;
   private final IntegrationTypeRepository integrationTypeRepository;
   private final PluginDescriptorFinder pluginDescriptorFinder;
 
-  private final FeatureFlagHandler featureFlagHandler;
-
-  /**
-   * Creates instance of {@link PluginLoader}.
-   *
-   * @param dataStore                 {@link DataStore}
-   * @param integrationTypeRepository {@link IntegrationTypeRepository}
-   * @param pluginDescriptorFinder    {@link PluginDescriptorFinder}
-   * @param featureFlagHandler        {@link FeatureFlagHandler}
-   */
   @Autowired
-  public PluginLoaderImpl(DataStore dataStore, IntegrationTypeRepository integrationTypeRepository,
-      PluginDescriptorFinder pluginDescriptorFinder, FeatureFlagHandler featureFlagHandler) {
+  public PluginLoaderImpl(@Value("${rp.plugins.path}") String pluginsRootPath, DataStore dataStore,
+      IntegrationTypeRepository integrationTypeRepository,
+      PluginDescriptorFinder pluginDescriptorFinder) {
+    this.pluginsRootPath = pluginsRootPath;
     this.dataStore = dataStore;
     this.integrationTypeRepository = integrationTypeRepository;
     this.pluginDescriptorFinder = pluginDescriptorFinder;
-    this.featureFlagHandler = featureFlagHandler;
   }
 
   @Override
@@ -96,17 +85,18 @@ public class PluginLoaderImpl implements PluginLoader {
   public IntegrationTypeDetails resolvePluginDetails(PluginInfo pluginInfo) {
 
     integrationTypeRepository.findByName(pluginInfo.getId())
-        .flatMap(it -> ofNullable(it.getDetails())).flatMap(
-            typeDetails -> IntegrationTypeProperties.VERSION.getValue(typeDetails.getDetails())
-                .map(String::valueOf)).ifPresent(
-                    version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(
-                pluginInfo.getVersion()))
-                .verify(
-                    ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
-                        "Plugin with ID = '{}' of the same VERSION = '{}' "
-                            + "has already been uploaded.", pluginInfo.getId(),
-                        pluginInfo.getVersion()
-                    )));
+        .flatMap(it -> ofNullable(it.getDetails()))
+        .flatMap(typeDetails -> IntegrationTypeProperties.VERSION.getValue(typeDetails.getDetails())
+            .map(String::valueOf))
+        .ifPresent(version -> BusinessRule.expect(version,
+                v -> !v.equalsIgnoreCase(pluginInfo.getVersion()))
+            .verify(ErrorType.PLUGIN_UPLOAD_ERROR,
+                Suppliers.formattedSupplier(
+                    "Plugin with ID = '{}' of the same VERSION = '{}' has already been uploaded.",
+                    pluginInfo.getId(),
+                    pluginInfo.getVersion()
+                )
+            ));
 
     IntegrationTypeDetails pluginDetails = IntegrationTypeBuilder.createIntegrationTypeDetails();
     IntegrationTypeProperties.VERSION.setValue(pluginDetails, pluginInfo.getVersion());
@@ -115,18 +105,17 @@ public class PluginLoaderImpl implements PluginLoader {
 
   @Override
   public boolean validatePluginExtensionClasses(PluginWrapper plugin) {
-    return plugin.getPluginManager().getExtensionClasses(plugin.getPluginId()).stream()
-        .map(ExtensionPoint::findByExtension).anyMatch(Optional::isPresent);
+    return plugin.getPluginManager()
+        .getExtensionClasses(plugin.getPluginId())
+        .stream()
+        .map(ExtensionPoint::findByExtension)
+        .anyMatch(Optional::isPresent);
   }
 
   @Override
   public String saveToDataStore(String fileName, InputStream fileStream)
       throws ReportPortalException {
-    if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
-      return dataStore.save(Paths.get(PLUGINS_ROOT_PATH, fileName).toString(), fileStream);
-    } else {
-      return dataStore.save(fileName, fileStream);
-    }
+    return dataStore.save(fileName, fileStream);
   }
 
   @Override

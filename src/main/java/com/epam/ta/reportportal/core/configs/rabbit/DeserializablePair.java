@@ -17,32 +17,34 @@
 package com.epam.ta.reportportal.core.configs.rabbit;
 
 /**
- * Jackson's crazy to deserialize class w/o default constructor
- * To avoid mixins, we will create our own pair container
+ * Jackson's crazy to deserialize class w/o default constructor To avoid mixins, we will create our
+ * own pair container
  *
  * @author Konstantin Antipin
  */
 public class DeserializablePair<L, R> {
-	private L left;
 
-	private R right;
+  private L left;
 
-	public DeserializablePair() {}
+  private R right;
 
-	private DeserializablePair(L left, R right) {
-		this.left = left;
-		this.right = right;
-	}
+  public DeserializablePair() {
+  }
 
-	public L getLeft() {
-		return left;
-	}
+  private DeserializablePair(L left, R right) {
+    this.left = left;
+    this.right = right;
+  }
 
-	public R getRight() {
-		return right;
-	}
+  public L getLeft() {
+    return left;
+  }
 
-	public static <L, R> DeserializablePair<L, R> of(L left, R right) {
-		return new DeserializablePair(left, right);
-	}
+  public R getRight() {
+    return right;
+  }
+
+  public static <L, R> DeserializablePair<L, R> of(L left, R right) {
+    return new DeserializablePair(left, right);
+  }
 }

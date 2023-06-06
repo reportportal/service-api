@@ -31,28 +31,30 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class DataProviderConfig {
 
-	private final GetLaunchHandler getLaunchHandler;
+  private final GetLaunchHandler getLaunchHandler;
 
-	private final LaunchPreparerService launchPreparerService;
-	private final AnalyzerServiceClient analyzerServiceClient;
+  private final LaunchPreparerService launchPreparerService;
+  private final AnalyzerServiceClient analyzerServiceClient;
 
-	private final TestItemRepository testItemRepository;
+  private final TestItemRepository testItemRepository;
 
-	public DataProviderConfig(GetLaunchHandler getLaunchHandler, LaunchPreparerService launchPreparerService,
-			AnalyzerServiceClient analyzerServiceClient, TestItemRepository testItemRepository) {
-		this.getLaunchHandler = getLaunchHandler;
-		this.launchPreparerService = launchPreparerService;
-		this.analyzerServiceClient = analyzerServiceClient;
-		this.testItemRepository = testItemRepository;
-	}
+  public DataProviderConfig(GetLaunchHandler getLaunchHandler,
+      LaunchPreparerService launchPreparerService,
+      AnalyzerServiceClient analyzerServiceClient, TestItemRepository testItemRepository) {
+    this.getLaunchHandler = getLaunchHandler;
+    this.launchPreparerService = launchPreparerService;
+    this.analyzerServiceClient = analyzerServiceClient;
+    this.testItemRepository = testItemRepository;
+  }
 
-	@Bean
-	public AnalyzerLaunchClusterDataProvider analyzerLaunchClusterDataProvider() {
-		return new AnalyzerLaunchClusterDataProvider(analyzerServiceClient, launchPreparerService);
-	}
+  @Bean
+  public AnalyzerLaunchClusterDataProvider analyzerLaunchClusterDataProvider() {
+    return new AnalyzerLaunchClusterDataProvider(analyzerServiceClient, launchPreparerService);
+  }
 
-	@Bean
-	public AnalyzerItemClusterDataProvider analyzerItemClusterDataProvider() {
-		return new AnalyzerItemClusterDataProvider(analyzerServiceClient, getLaunchHandler, testItemRepository, launchPreparerService);
-	}
+  @Bean
+  public AnalyzerItemClusterDataProvider analyzerItemClusterDataProvider() {
+    return new AnalyzerItemClusterDataProvider(analyzerServiceClient, getLaunchHandler,
+        testItemRepository, launchPreparerService);
+  }
 }

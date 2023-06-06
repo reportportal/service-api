@@ -20,13 +20,16 @@ import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.item.TestItemIndexRunner;
 import com.epam.ta.reportportal.core.events.handler.item.TestItemUniqueErrorAnalysisRunner;
-import com.epam.ta.reportportal.core.events.handler.launch.*;
+import com.epam.ta.reportportal.core.events.handler.launch.LaunchAnalysisFinishEventPublisher;
+import com.epam.ta.reportportal.core.events.handler.launch.LaunchAutoAnalysisRunner;
+import com.epam.ta.reportportal.core.events.handler.launch.LaunchNotificationRunner;
+import com.epam.ta.reportportal.core.events.handler.launch.LaunchPatternAnalysisRunner;
+import com.epam.ta.reportportal.core.events.handler.launch.LaunchUniqueErrorAnalysisRunner;
 import com.epam.ta.reportportal.core.events.subscriber.impl.delegate.ProjectConfigDelegatingSubscriber;
 import com.epam.ta.reportportal.core.project.config.ProjectConfigProvider;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -34,28 +37,30 @@ import java.util.List;
 @Configuration
 public class EventSubscriberConfig {
 
-	@Bean
-	public ProjectConfigDelegatingSubscriber<LaunchFinishedEvent> launchFinishedDelegatingSubscriber(
-			ProjectConfigProvider projectConfigProvider, LaunchAutoAnalysisRunner autoAnalysisEventHandler,
-			LaunchUniqueErrorAnalysisRunner uniqueErrorAnalysisEventHandler,
-			LaunchAnalysisFinishEventPublisher launchAnalysisFinishEventPublisher, LaunchPatternAnalysisRunner patternAnalysisEventHandler,
-			LaunchNotificationRunner notificationEventHandler) {
-		return new ProjectConfigDelegatingSubscriber<>(projectConfigProvider,
-				List.of(autoAnalysisEventHandler,
-						uniqueErrorAnalysisEventHandler,
-						launchAnalysisFinishEventPublisher,
-						patternAnalysisEventHandler,
-						notificationEventHandler
-				)
-		);
-	}
+  @Bean
+  public ProjectConfigDelegatingSubscriber<LaunchFinishedEvent> launchFinishedDelegatingSubscriber(
+      ProjectConfigProvider projectConfigProvider,
+      LaunchAutoAnalysisRunner autoAnalysisEventHandler,
+      LaunchUniqueErrorAnalysisRunner uniqueErrorAnalysisEventHandler,
+      LaunchAnalysisFinishEventPublisher launchAnalysisFinishEventPublisher,
+      LaunchPatternAnalysisRunner patternAnalysisEventHandler,
+      LaunchNotificationRunner notificationEventHandler) {
+    return new ProjectConfigDelegatingSubscriber<>(projectConfigProvider,
+        List.of(autoAnalysisEventHandler,
+            uniqueErrorAnalysisEventHandler,
+            launchAnalysisFinishEventPublisher,
+            patternAnalysisEventHandler,
+            notificationEventHandler
+        )
+    );
+  }
 
-	@Bean
-	public ProjectConfigDelegatingSubscriber<ItemFinishedEvent> itemFinishedDelegatingSubscriber(
-			ProjectConfigProvider projectConfigProvider, TestItemIndexRunner testItemIndexRunner,
-			TestItemUniqueErrorAnalysisRunner testItemUniqueErrorAnalysisRunner) {
-		return new ProjectConfigDelegatingSubscriber<>(projectConfigProvider,
-				List.of(testItemIndexRunner, testItemUniqueErrorAnalysisRunner)
-		);
-	}
+  @Bean
+  public ProjectConfigDelegatingSubscriber<ItemFinishedEvent> itemFinishedDelegatingSubscriber(
+      ProjectConfigProvider projectConfigProvider, TestItemIndexRunner testItemIndexRunner,
+      TestItemUniqueErrorAnalysisRunner testItemUniqueErrorAnalysisRunner) {
+    return new ProjectConfigDelegatingSubscriber<>(projectConfigProvider,
+        List.of(testItemIndexRunner, testItemUniqueErrorAnalysisRunner)
+    );
+  }
 }

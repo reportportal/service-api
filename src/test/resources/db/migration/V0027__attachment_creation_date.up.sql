@@ -1,1 +1,2 @@
-ALTER TABLE attachment ADD COLUMN creation_date TIMESTAMP;
+ALTER TABLE attachment
+    ADD COLUMN creation_date TIMESTAMP;

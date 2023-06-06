@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface RabbitMessageLogging {
 
-	boolean logHeaders() default true;
+  boolean logHeaders() default true;
 
-	boolean logBody() default true;
+  boolean logBody() default true;
 }

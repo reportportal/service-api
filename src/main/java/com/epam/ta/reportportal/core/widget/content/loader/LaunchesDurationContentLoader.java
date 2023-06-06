@@ -16,19 +16,6 @@
 
 package com.epam.ta.reportportal.core.widget.content.loader;
 
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
-import com.epam.ta.reportportal.dao.WidgetContentRepository;
-import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.ta.reportportal.entity.widget.content.LaunchesDurationContent;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
-
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LATEST_OPTION;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
@@ -36,28 +23,42 @@ import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_S
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
+import com.epam.ta.reportportal.dao.WidgetContentRepository;
+import com.epam.ta.reportportal.entity.widget.WidgetOptions;
+import com.epam.ta.reportportal.entity.widget.content.LaunchesDurationContent;
+import java.util.List;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
 /**
  * @author Pavel Bortnik
  */
 @Service
 public class LaunchesDurationContentLoader implements LoadContentStrategy {
 
-	@Autowired
-	private WidgetContentRepository widgetContentRepository;
+  @Autowired
+  private WidgetContentRepository widgetContentRepository;
 
-	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			int limit) {
+  @Override
+  public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping,
+      WidgetOptions widgetOptions,
+      int limit) {
 
-		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
+    Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 
-		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
+    Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		boolean latestMode = WidgetOptionUtil.getBooleanByKey(LATEST_OPTION, widgetOptions);
+    boolean latestMode = WidgetOptionUtil.getBooleanByKey(LATEST_OPTION, widgetOptions);
 
-		List<LaunchesDurationContent> result = widgetContentRepository.launchesDurationStatistics(filter, sort, latestMode, limit);
+    List<LaunchesDurationContent> result = widgetContentRepository.launchesDurationStatistics(
+        filter, sort, latestMode, limit);
 
-		return result.isEmpty() ? emptyMap() : singletonMap(RESULT, result);
-	}
+    return result.isEmpty() ? emptyMap() : singletonMap(RESULT, result);
+  }
 
 }

@@ -28,15 +28,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class LaunchFinishedMessagePublisher implements EventSubscriber<LaunchFinishedEvent> {
 
-	private final MessageBus messageBus;
+  private final MessageBus messageBus;
 
-	@Autowired
-	public LaunchFinishedMessagePublisher(MessageBus messageBus) {
-		this.messageBus = messageBus;
-	}
+  @Autowired
+  public LaunchFinishedMessagePublisher(MessageBus messageBus) {
+    this.messageBus = messageBus;
+  }
 
-	@Override
-	public void handleEvent(LaunchFinishedEvent event) {
-		messageBus.publishActivity(event);
-	}
+  @Override
+  public void handleEvent(LaunchFinishedEvent event) {
+    messageBus.publishActivity(event);
+  }
 }

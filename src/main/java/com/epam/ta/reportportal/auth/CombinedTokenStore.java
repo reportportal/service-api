@@ -20,11 +20,11 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.ApiKeyRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.user.ApiKey;
-import com.epam.ta.reportportal.entity.user.User;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
@@ -56,6 +57,9 @@ public class CombinedTokenStore extends JwtTokenStore {
   private UserRepository userRepository;
 
   @Autowired
+  private UserDetailsService userDetailsService;
+
+  @Autowired
   public CombinedTokenStore(JwtAccessTokenConverter jwtTokenEnhancer) {
     super(jwtTokenEnhancer);
   }
@@ -77,7 +81,10 @@ public class CombinedTokenStore extends JwtTokenStore {
       String hashedKey = DatatypeConverter.printHexBinary(DigestUtils.sha3_256(tokenId));
       ApiKey apiKey = apiKeyRepository.findByHash(hashedKey);
       if (apiKey != null) {
-        return getAuthentication(userRepository.getById(apiKey.getUserId()));
+        Optional<String> login = userRepository.findLoginById(apiKey.getUserId());
+        if (login.isPresent()) {
+          return getAuthentication((ReportPortalUser) userDetailsService.loadUserByUsername(login.get()));
+        }
       }
       return null;
     }
@@ -98,13 +105,13 @@ public class CombinedTokenStore extends JwtTokenStore {
     }
   }
 
-  private OAuth2Authentication getAuthentication(User user) {
+  private OAuth2Authentication getAuthentication(ReportPortalUser user) {
     HashMap<String, String> requestParameters = new HashMap<>();
-    requestParameters.put("username", user.getLogin());
+    requestParameters.put("username", user.getUsername());
     requestParameters.put("client_id", ReportPortalClient.api.name());
 
     Set<GrantedAuthority> authorities = new HashSet<>();
-    authorities.add(new SimpleGrantedAuthority(user.getRole().getAuthority()));
+    authorities.add(new SimpleGrantedAuthority(user.getUserRole().getAuthority()));
 
     Set<String> scopes = Collections.singleton(ReportPortalClient.api.name());
 
@@ -113,10 +120,8 @@ public class CombinedTokenStore extends JwtTokenStore {
         authorities, true, scopes, Collections.emptySet(), null,
         Collections.emptySet(), null);
 
-    ReportPortalUser reportPortalUser = ReportPortalUser.userBuilder().fromUser(user);
-
     UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-        reportPortalUser, null, authorities);
+        user, null, authorities);
 
     OAuth2Authentication authenticationRequest = new OAuth2Authentication(
         authorizationRequest, authenticationToken);

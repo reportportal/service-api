@@ -36,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.enums.LogicalOperator;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
@@ -551,6 +552,7 @@ class ProjectControllerTest extends BaseMvcTest {
     senderCaseDTO.setRecipients(Collections.singletonList("default"));
     senderCaseDTO.setLaunchNames(Collections.singletonList("test launch"));
     senderCaseDTO.setEnabled(true);
+    senderCaseDTO.setAttributesOperator(LogicalOperator.AND.getOperator());
     ItemAttributeResource launchAttribute = new ItemAttributeResource();
     launchAttribute.setKey("key");
     launchAttribute.setValue("val");

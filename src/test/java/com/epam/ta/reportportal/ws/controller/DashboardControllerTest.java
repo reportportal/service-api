@@ -110,13 +110,6 @@ class DashboardControllerTest extends BaseMvcTest {
   }
 
   @Test
-  void getSharedDashboardsNamesPositive() throws Exception {
-    mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/dashboard/shared").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
-  }
-
-  @Test
   void removeWidget() throws Exception {
     mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/dashboard/18/10").with(
             token(oAuthHelper.getDefaultToken())))

@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.project.validator.notification.ProjectNotificationValidator;
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
+import com.epam.ta.reportportal.entity.enums.LogicalOperator;
 import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
@@ -138,6 +139,7 @@ class CreateProjectNotificationHandlerImplTest {
     SenderCase dupeCreateNotificationRQ = mock(SenderCase.class);
     when(dupeCreateNotificationRQ.getSendCase()).thenReturn(SendCase.ALWAYS);
     when(dupeCreateNotificationRQ.getRuleName()).thenReturn("Rule2");
+    when(dupeCreateNotificationRQ.getAttributesOperator()).thenReturn(LogicalOperator.AND);
     when(dupeCreateNotificationRQ.getRecipients()).thenReturn(Collections.singleton("OWNER"));
     when(dupeCreateNotificationRQ.getLaunchNames()).thenReturn(
         Collections.singleton("test launch"));

@@ -59,7 +59,11 @@ project.ext {
             (migrationsUrl + '/migrations/60_sender_case_operator.up.sql')             : 'V060__sender_case_operator.sql',
             (migrationsUrl + '/migrations/61_remove_acl.up.sql')                       : 'V061__remove_acl.sql',
             (migrationsUrl + '/migrations/62_remove_dashboard_cascade_drop.up.sql')    : 'V062__remove_dashboard_cascade_drop.sql',
+            (migrationsUrl + '/migrations/65_launch_attribute_rules_length.up.sql')    : 'V065__launch_attribute_rules_length.sql',
             (migrationsUrl + '/migrations/67_api_keys.up.sql')                         : 'V067__api_keys.sql',
+            (migrationsUrl + '/migrations/68_sender_case_rule_name.up.sql')            : 'V068__sender_case_rule_name.sql',
+            (migrationsUrl + '/migrations/71_user_bid_extension.up.sql')               : 'V071__user_bid_extension.up.sql',
+            (migrationsUrl + '/migrations/72_organization_tables.up.sql')              : 'V072__organization_tables.up.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

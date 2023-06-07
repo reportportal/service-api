@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
+import com.epam.ta.reportportal.entity.enums.LogicalOperator;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import java.util.List;
@@ -53,6 +54,8 @@ class GetProjectNotificationsHandlerImplTest {
     when(senderCase2.getId()).thenReturn(DEFAULT_SENDER_CASE_2_ID);
     when(senderCase2.getRuleName()).thenReturn(DEFAULT_SENDER_CASE_2_RULE_NAME);
     when(senderCase2.getSendCase()).thenReturn(ALWAYS);
+    when(senderCase1.getAttributesOperator()).thenReturn(LogicalOperator.AND);
+    when(senderCase2.getAttributesOperator()).thenReturn(LogicalOperator.AND);
 
     when(senderCaseRepository.findAllByProjectId(DEFAULT_PROJECT_ID)).thenReturn(
         List.of(senderCase1, senderCase2));

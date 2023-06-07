@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.project.validator.notification.ProjectNotificationValidator;
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
+import com.epam.ta.reportportal.entity.enums.LogicalOperator;
 import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
@@ -165,6 +166,7 @@ class UpdateProjectNotificationHandlerImplTest {
     when(modelForUpdate.getId()).thenReturn(1L);
     when(modelForUpdate.getSendCase()).thenReturn(SendCase.ALWAYS);
     when(modelForUpdate.getRuleName()).thenReturn("Rule2");
+    when(modelForUpdate.getAttributesOperator()).thenReturn(LogicalOperator.AND);
     when(modelForUpdate.getRecipients()).thenReturn(Collections.singleton("OWNER"));
     when(modelForUpdate.getLaunchNames()).thenReturn(Collections.singleton("test launch1"));
     when(modelForUpdate.isEnabled()).thenReturn(true);
@@ -174,6 +176,7 @@ class UpdateProjectNotificationHandlerImplTest {
     when(dupeUpdateNotification.getId()).thenReturn(2L);
     when(dupeUpdateNotification.getSendCase()).thenReturn(SendCase.ALWAYS);
     when(dupeUpdateNotification.getRuleName()).thenReturn("Rule3");
+    when(dupeUpdateNotification.getAttributesOperator()).thenReturn(LogicalOperator.AND);
     when(dupeUpdateNotification.getRecipients()).thenReturn(Collections.singleton("OWNER"));
     when(dupeUpdateNotification.getLaunchNames()).thenReturn(Collections.singleton("test launch"));
     when(dupeUpdateNotification.isEnabled()).thenReturn(true);

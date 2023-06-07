@@ -7,13 +7,14 @@ rp:
     rootDir: ${java.io.tmpdir}${file.separator}reportportal${file.separator}plugins
   datasource:
     maximumPoolSize: 5
-  binarystore:
-    type: filesystem
-    minio:
-      endpoint: http://localhost:9000
-      accessKey:
-      secretKey:
-    path: ${java.io.tmpdir}${file.separator}reportportal${file.separator}datastore
+
+datastore:
+  type: filesystem
+  endpoint: http://localhost:9000
+  accessKey:
+  secretKey:
+  path: ${java.io.tmpdir}${file.separator}reportportal${file.separator}datastore
+
 logging:
   level:
     org.hibernate.SQL: debug

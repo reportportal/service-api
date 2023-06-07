@@ -51,10 +51,10 @@ services:
       - minio
     environment:
       - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp
-      - RP_BINARYSTORE_TYPE=minio
-      - RP_BINARYSTORE_MINIO_ENDPOINT=http://minio:9000
-      - RP_BINARYSTORE_MINIO_ACCESSKEY=minio
-      - RP_BINARYSTORE_MINIO_SECRETKEY=minio123
+      - DATASTORE_TYPE=minio
+      - DATASTORE_ENDPOINT=http://minio:9000
+      - DATASTORE_ACCESSKEY=minio
+      - DATASTORE_SECRETKEY=minio123
     restart: always
     ports:
       - "8585:8585"

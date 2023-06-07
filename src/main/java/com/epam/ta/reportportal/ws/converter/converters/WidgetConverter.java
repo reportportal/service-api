@@ -45,11 +45,9 @@ public class WidgetConverter {
     objectModel.setWidgetPosition(
         new Position(dashboardWidget.getPositionX(), dashboardWidget.getPositionY()));
     objectModel.setWidgetSize(new Size(dashboardWidget.getWidth(), dashboardWidget.getHeight()));
-    objectModel.setShare(dashboardWidget.isShare());
-    ofNullable(dashboardWidget.getWidget().getWidgetOptions()).ifPresent(
-        wo -> objectModel.setWidgetOptions(wo.getOptions()));
-    return objectModel;
-  };
+    ofNullable(dashboardWidget.getWidget().getWidgetOptions()).ifPresent(wo -> objectModel.setWidgetOptions(wo.getOptions()));
+		return objectModel;
+	};
 
   public static final Function<Widget, WidgetResource> TO_WIDGET_RESOURCE = widget -> {
     WidgetResource widgetResource = new WidgetResource();
@@ -57,33 +55,28 @@ public class WidgetConverter {
     widgetResource.setName(widget.getName());
     widgetResource.setWidgetType(widget.getWidgetType());
     widgetResource.setDescription(widget.getDescription());
-    widgetResource.setShare(widget.isShared());
     widgetResource.setOwner(widget.getOwner());
-    ofNullable(widget.getFilters()).ifPresent(
-        filter -> widgetResource.setAppliedFilters(UserFilterConverter.FILTER_SET_TO_FILTER_RESOURCE
-            .apply(filter)));
-    ContentParameters contentParameters = new ContentParameters();
-    contentParameters.setItemsCount(widget.getItemsCount());
-    ofNullable(widget.getWidgetOptions()).ifPresent(
-        wo -> contentParameters.setWidgetOptions(wo.getOptions()));
-    contentParameters.setContentFields(Lists.newArrayList(widget.getContentFields()));
-    widgetResource.setContentParameters(contentParameters);
-    return widgetResource;
-  };
+		ofNullable(widget.getFilters()).ifPresent(filter -> widgetResource.setAppliedFilters(UserFilterConverter.FILTER_SET_TO_FILTER_RESOURCE
+				.apply(filter)));
+		ContentParameters contentParameters = new ContentParameters();
+		contentParameters.setItemsCount(widget.getItemsCount());
+		ofNullable(widget.getWidgetOptions()).ifPresent(wo -> contentParameters.setWidgetOptions(wo.getOptions()));
+		contentParameters.setContentFields(Lists.newArrayList(widget.getContentFields()));
+		widgetResource.setContentParameters(contentParameters);
+		return widgetResource;
+	};
 
   public static final Function<Widget, WidgetActivityResource> TO_ACTIVITY_RESOURCE = widget -> {
     WidgetActivityResource resource = new WidgetActivityResource();
     resource.setId(widget.getId());
     resource.setProjectId(widget.getProject().getId());
     resource.setName(widget.getName());
-    resource.setShared(widget.isShared());
     resource.setDescription(widget.getDescription());
-    resource.setItemsCount(widget.getItemsCount());
-    resource.setContentFields(Sets.newHashSet(widget.getContentFields()));
-    ofNullable(widget.getWidgetOptions()).ifPresent(
-        wo -> resource.setWidgetOptions(wo.getOptions()));
-    return resource;
-  };
+		resource.setItemsCount(widget.getItemsCount());
+		resource.setContentFields(Sets.newHashSet(widget.getContentFields()));
+		ofNullable(widget.getWidgetOptions()).ifPresent(wo -> resource.setWidgetOptions(wo.getOptions()));
+		return resource;
+	};
 
   /**
    * Creates many-to-many object representation of dashboards and widgets
@@ -110,10 +103,9 @@ public class WidgetConverter {
     dashboardWidget.setWidth(model.getWidgetSize().getWidth());
     dashboardWidget.setHeight(model.getWidgetSize().getHeight());
     dashboardWidget.setDashboard(dashboard);
-    dashboardWidget.setShare(widget.isShared());
     dashboardWidget.setWidget(widget);
-    dashboardWidget.setCreatedOn(isCreatedOn);
-    dashboardWidget.setWidgetOwner(widget.getOwner());
+		dashboardWidget.setCreatedOn(isCreatedOn);
+		dashboardWidget.setWidgetOwner(widget.getOwner());
 
     return dashboardWidget;
   }

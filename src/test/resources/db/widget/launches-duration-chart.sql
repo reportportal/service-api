@@ -11,11 +11,11 @@ values (2, 'uuid2', 1, 1, 'test launch', 'desc', now() - interval '11 minute', n
         'DEFAULT', 'FAILED', false);
 
 -- Filters and widgets
-INSERT INTO public.shareable_entity (id, shared, owner, project_id)
-VALUES (1, false, 'superadmin', 1),
-       (2, false, 'superadmin', 1),
-       (3, false, 'superadmin', 1),
-       (4, false, 'superadmin', 1);
+INSERT INTO public.owned_entity (id, owner, project_id)
+VALUES (1, 'superadmin', 1),
+       (2, 'superadmin', 1),
+       (3, 'superadmin', 1),
+       (4, 'superadmin', 1);
 
 INSERT INTO public.filter (id, name, target, description)
 VALUES (1, 'Admin Filter', 'Launch', null),

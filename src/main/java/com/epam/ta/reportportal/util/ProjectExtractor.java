@@ -56,6 +56,10 @@ public class ProjectExtractor {
   public ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user,
       String projectName) {
     final String normalizedProjectName = normalizeId(projectName);
+
+    if (user.getUserRole().equals(ADMINISTRATOR)) {
+      return extractProjectDetailsAdmin(user, projectName);
+    }
     return user.getProjectDetails()
         .computeIfAbsent(normalizedProjectName,
             k -> findProjectDetails(user,
@@ -65,6 +69,7 @@ public class ProjectExtractor {
             ))
         );
   }
+
 
   /**
    * Find project details for specified user by specified project name
@@ -76,7 +81,6 @@ public class ProjectExtractor {
   public Optional<ReportPortalUser.ProjectDetails> findProjectDetails(ReportPortalUser user,
       String projectName) {
     return projectUserRepository.findDetailsByUserIdAndProjectName(user.getUserId(), projectName);
-
   }
 
   /**

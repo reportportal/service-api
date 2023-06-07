@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.epam.ta.reportportal.entity.enums.LogicalOperator;
 import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
@@ -91,10 +92,11 @@ class NotificationConfigConverterTest {
         Sets.newHashSet("launch1", "launch5", "launch10"),
         Sets.newHashSet(launchAttributeRule),
         SendCase.ALWAYS,
-        true
-    ));
-    return senderCases;
-  }
+        true,
+				LogicalOperator.AND
+		));
+		return senderCases;
+	}
 
   private static SenderCase getCase() {
     final LaunchAttributeRule launchAttributeRule = new LaunchAttributeRule();
@@ -106,9 +108,10 @@ class NotificationConfigConverterTest {
         Sets.newHashSet("launch1", "launch2", "launch3"),
         Sets.newHashSet(launchAttributeRule),
         SendCase.MORE_10,
-        true
-    );
-  }
+        true,
+				LogicalOperator.AND
+		);
+	}
 
   private static SenderCaseDTO getCaseDTO() {
     SenderCaseDTO senderCaseDTO = new SenderCaseDTO();
@@ -120,7 +123,8 @@ class NotificationConfigConverterTest {
     senderCaseDTO.setAttributes(Sets.newHashSet(launchAttribute));
     senderCaseDTO.setSendCase("always");
     senderCaseDTO.setEnabled(true);
-    return senderCaseDTO;
-  }
+    senderCaseDTO.setAttributesOperator(LogicalOperator.AND.getOperator());
+		return senderCaseDTO;
+	}
 
 }

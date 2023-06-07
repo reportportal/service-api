@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
+import com.epam.ta.reportportal.entity.enums.LogicalOperator;
 import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
@@ -231,6 +232,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
     senderCaseDTO.setEnabled(true);
     senderCaseDTO.setRuleName("rule #5");
     senderCaseDTO.setRecipients(List.of("test1@email.com", "test2@email.com"));
+    senderCaseDTO.setAttributesOperator(LogicalOperator.AND.getOperator());
 
     mockMvc.perform(
             post(DEFAULT_PROJECT_BASE_URL + NOTIFICATION_URL).with(token(oAuthHelper.getDefaultToken()))
@@ -248,6 +250,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
     senderCaseDTO.setEnabled(true);
     senderCaseDTO.setRuleName("rule #2");
     senderCaseDTO.setRecipients(List.of("test1@email.com", "test2@email.com"));
+    senderCaseDTO.setAttributesOperator(LogicalOperator.AND.getOperator());
 
     mockMvc.perform(
             post(DEFAULT_PROJECT_BASE_URL + NOTIFICATION_URL).with(token(oAuthHelper.getDefaultToken()))
@@ -265,6 +268,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
     updateRq.setSendCase(SendCase.ALWAYS.getCaseString());
     updateRq.setRecipients(List.of("test1@email.com", "test2@email.com"));
     updateRq.setLaunchNames(List.of("launch"));
+    updateRq.setAttributesOperator(LogicalOperator.AND.getOperator());
 
     mockMvc.perform(
         put(DEFAULT_PROJECT_BASE_URL + NOTIFICATION_URL).with(token(oAuthHelper.getDefaultToken()))

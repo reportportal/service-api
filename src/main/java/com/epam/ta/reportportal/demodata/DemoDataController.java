@@ -50,12 +50,11 @@ class DemoDataController {
     this.projectExtractor = projectExtractor;
   }
 
-  @PostMapping
+  @PostMapping("/generate")
   @ApiOperation(value = "generate")
   public DemoDataRs generate(@PathVariable String projectName,
       @Validated @RequestBody DemoDataRq demoDataRq,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return demoDataService.generate(demoDataRq,
-        projectExtractor.extractProjectDetailsAdmin(user, projectName), user);
+		return demoDataService.generate(demoDataRq, projectExtractor.extractProjectDetailsAdmin(user, projectName), user);
   }
 }

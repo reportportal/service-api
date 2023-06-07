@@ -40,7 +40,6 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import com.epam.reportportal.extension.event.ProjectEvent;
-import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
@@ -135,8 +134,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
   private final LogIndexer logIndexer;
 
-  private final ShareableObjectsHandler aclHandler;
-
   private final ProjectConverter projectConverter;
 
   @Autowired
@@ -149,7 +146,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
       MailServiceFactory mailServiceFactory, AnalyzerStatusCache analyzerStatusCache,
       IndexerStatusCache indexerStatusCache,
       AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer,
-      ShareableObjectsHandler aclHandler,
       ProjectConverter projectConverter) {
     this.projectExtractor = projectExtractor;
     this.projectAttributeValidator = projectAttributeValidator;
@@ -164,7 +160,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     this.indexerStatusCache = indexerStatusCache;
     this.analyzerServiceClient = analyzerServiceClient;
     this.logIndexer = logIndexer;
-    this.aclHandler = aclHandler;
     this.projectConverter = projectConverter;
   }
 
@@ -381,7 +376,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
         .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
     project.getUsers().remove(projectUser);
     userForUnassign.getProjects().remove(projectUser);
-    aclHandler.preventSharedObjects(project.getId(), username);
     return projectUser;
   }
 
@@ -402,12 +396,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     projectUser.setUser(modifyingUser);
     projectUser.setProject(project);
     project.getUsers().add(projectUser);
-
-    if (projectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
-      aclHandler.permitSharedObjects(project.getId(), name, BasePermission.ADMINISTRATION);
-    } else {
-      aclHandler.permitSharedObjects(project.getId(), name, BasePermission.READ);
-    }
   }
 
   private void validateUnassigningUser(User modifier, User userForUnassign, Long projectId,
@@ -464,12 +452,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
           }
         }
         updatingProjectUser.setProjectRole(newProjectRole);
-        if (newProjectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
-          aclHandler.updateSharedObjectsPermission(project.getId(), username,
-              BasePermission.ADMINISTRATION);
-        } else {
-          aclHandler.updateSharedObjectsPermission(project.getId(), username, BasePermission.READ);
-        }
       });
     }
   }

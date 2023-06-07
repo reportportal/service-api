@@ -16,15 +16,10 @@
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
-import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
-import static java.util.stream.Collectors.toSet;
-
-import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.DeleteDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardDeletedEvent;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.core.widget.content.remover.WidgetContentRemover;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.dao.DashboardWidgetRepository;
@@ -32,40 +27,39 @@ import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
 public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
-
-  private final GetShareableEntityHandler<Dashboard> getShareableEntityHandler;
-  private final DashboardRepository dashboardRepository;
-  private final DashboardWidgetRepository dashboardWidgetRepository;
-  private final WidgetRepository widgetRepository;
-  private final ShareableObjectsHandler aclHandler;
+	private final DashboardRepository dashboardRepository;
+	private final DashboardWidgetRepository dashboardWidgetRepository;
+	private final WidgetRepository widgetRepository;
   private final WidgetContentRemover widgetContentRemover;
   private final MessageBus messageBus;
 
   @Autowired
-  public DeleteDashboardHandlerImpl(GetShareableEntityHandler<Dashboard> getShareableEntityHandler,
-      DashboardRepository dashboardRepository, DashboardWidgetRepository dashboardWidgetRepository,
-      WidgetRepository widgetRepository,
-      ShareableObjectsHandler aclHandler,
+  public DeleteDashboardHandlerImpl(DashboardRepository dashboardRepository, DashboardWidgetRepository dashboardWidgetRepository,
+			WidgetRepository widgetRepository,
       @Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover,
       MessageBus messageBus) {
-    this.getShareableEntityHandler = getShareableEntityHandler;
     this.dashboardRepository = dashboardRepository;
-    this.dashboardWidgetRepository = dashboardWidgetRepository;
-    this.widgetRepository = widgetRepository;
-    this.aclHandler = aclHandler;
+		this.dashboardWidgetRepository = dashboardWidgetRepository;
+		this.widgetRepository = widgetRepository;
     this.widgetContentRemover = widgetContentRemover;
     this.messageBus = messageBus;
   }
@@ -73,22 +67,24 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
   @Override
   public OperationCompletionRS deleteDashboard(Long dashboardId,
       ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-    Dashboard dashboard = getShareableEntityHandler.getAdministrated(dashboardId, projectDetails);
+    Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
+						dashboardId,
+						projectDetails.getProjectName()
+				));
 
     Set<DashboardWidget> dashboardWidgets = dashboard.getDashboardWidgets();
     List<Widget> widgets = dashboardWidgets.stream()
         .filter(DashboardWidget::isCreatedOn)
         .map(DashboardWidget::getWidget)
-        .peek(aclHandler::deleteAclForObject)
         .peek(widgetContentRemover::removeContent)
         .collect(Collectors.toList());
     dashboardWidgets.addAll(
         widgets.stream().flatMap(w -> w.getDashboardWidgets().stream()).collect(toSet()));
 
-    aclHandler.deleteAclForObject(dashboard);
     dashboardWidgetRepository.deleteAll(dashboardWidgets);
-    dashboardRepository.delete(dashboard);
-    widgetRepository.deleteAll(widgets);
+		dashboardRepository.delete(dashboard);
+		widgetRepository.deleteAll(widgets);
 
     messageBus.publishActivity(
         new DashboardDeletedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(),

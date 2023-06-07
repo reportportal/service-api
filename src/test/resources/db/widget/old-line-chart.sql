@@ -60,14 +60,14 @@ insert into issue(issue_id, issue_type, issue_description, auto_analyzed, ignore
 values (5, 1, 'to investigate', false, true);
 
 -- Filter and widget
-INSERT INTO public.shareable_entity (id, shared, owner, project_id)
-VALUES (1, false, 'superadmin', 1),
-       (2, false, 'superadmin', 1),
-       (3, false, 'superadmin', 1),
-       (4, false, 'superadmin', 1),
-       (5, false, 'superadmin', 1),
-       (6, false, 'superadmin', 1),
-       (7, false, 'superadmin', 1);
+INSERT INTO public.owned_entity (id, owner, project_id)
+VALUES (1, 'superadmin', 1),
+       (2, 'superadmin', 1),
+       (3, 'superadmin', 1),
+       (4, 'superadmin', 1),
+       (5, 'superadmin', 1),
+       (6, 'superadmin', 1),
+       (7, 'superadmin', 1);
 
 INSERT INTO public.filter (id, name, target, description)
 VALUES (1, 'Admin Filter', 'Launch', null),

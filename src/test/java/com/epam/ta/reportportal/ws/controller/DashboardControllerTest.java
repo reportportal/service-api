@@ -92,7 +92,6 @@ class DashboardControllerTest extends BaseMvcTest {
     final UpdateDashboardRQ rq = new UpdateDashboardRQ();
     rq.setName("updated");
     rq.setDescription("updated");
-    rq.setShare(false);
     mockMvc.perform(
         put(DEFAULT_PROJECT_BASE_URL + "/dashboard/17").with(token(oAuthHelper.getDefaultToken()))
             .content(objectMapper.writeValueAsBytes(rq))
@@ -101,19 +100,11 @@ class DashboardControllerTest extends BaseMvcTest {
     assertTrue(optionalDashboard.isPresent());
     assertEquals("updated", optionalDashboard.get().getName());
     assertEquals("updated", optionalDashboard.get().getDescription());
-    assertFalse(optionalDashboard.get().isShared());
   }
 
   @Test
   void deleteDashboardPositive() throws Exception {
     mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/dashboard/17").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  void getSharedDashboardsNamesPositive() throws Exception {
-    mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/dashboard/shared").with(
             token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk());
   }

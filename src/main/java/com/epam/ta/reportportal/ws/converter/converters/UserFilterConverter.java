@@ -23,7 +23,7 @@ import static java.util.stream.Collectors.toSet;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.entity.filter.FilterSort;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
-import com.epam.ta.reportportal.ws.model.SharedEntity;
+import com.epam.ta.reportportal.ws.model.OwnedEntityResource;
 import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
 import com.epam.ta.reportportal.ws.model.filter.Order;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
@@ -42,11 +42,11 @@ public final class UserFilterConverter {
     //static only
   }
 
-  public static final Function<UserFilter, SharedEntity> TO_SHARED_ENTITY = filter -> {
-    SharedEntity sharedEntity = SharedEntityConverter.TO_SHARED_ENTITY.apply(filter);
-    sharedEntity.setName(filter.getName());
-    sharedEntity.setDescription(filter.getDescription());
-    return sharedEntity;
+  public static final Function<UserFilter, OwnedEntityResource> TO_OWNED_ENTITY_RESOURCE = filter -> {
+    OwnedEntityResource ownedEntity = BaseEntityConverter.TO_OWNED_ENTITY.apply(filter);
+    ownedEntity.setName(filter.getName());
+    ownedEntity.setDescription(filter.getDescription());
+    return ownedEntity;
   };
 
   public static final Function<Set<UserFilter>, List<UserFilterResource>> FILTER_SET_TO_FILTER_RESOURCE = filters -> filters.stream()
@@ -61,9 +61,8 @@ public final class UserFilterConverter {
     resource.setName(filter.getName());
     resource.setDescription(filter.getDescription());
     resource.setProjectId(filter.getProject().getId());
-    resource.setShared(filter.isShared());
     return resource;
-  };
+	};
 
   private static final Function<FilterCondition, UserFilterCondition> TO_FILTER_CONDITION = filterCondition -> {
     UserFilterCondition condition = new UserFilterCondition();
@@ -92,17 +91,14 @@ public final class UserFilterConverter {
     userFilterResource.setFilterId(filter.getId());
     userFilterResource.setName(filter.getName());
     userFilterResource.setDescription(filter.getDescription());
-    userFilterResource.setShare(filter.isShared());
     userFilterResource.setOwner(filter.getOwner());
-    ofNullable(filter.getTargetClass()).ifPresent(
-        tc -> userFilterResource.setObjectType(tc.getClassObject().getSimpleName()));
-    ofNullable(filter.getFilterCondition()).ifPresent(
-        fcs -> userFilterResource.setConditions(fcs.stream()
-            .map(UserFilterConverter.TO_FILTER_CONDITION)
-            .collect(toSet())));
-    ofNullable(filter.getFilterSorts()).ifPresent(fs -> userFilterResource.setOrders(fs.stream()
-        .map(UserFilterConverter.TO_FILTER_ORDER)
-        .collect(toList())));
+		ofNullable(filter.getTargetClass()).ifPresent(tc -> userFilterResource.setObjectType(tc.getClassObject().getSimpleName()));
+		ofNullable(filter.getFilterCondition()).ifPresent(fcs -> userFilterResource.setConditions(fcs.stream()
+				.map(UserFilterConverter.TO_FILTER_CONDITION)
+				.collect(toSet())));
+		ofNullable(filter.getFilterSorts()).ifPresent(fs -> userFilterResource.setOrders(fs.stream()
+				.map(UserFilterConverter.TO_FILTER_ORDER)
+				.collect(toList())));
 
     return userFilterResource;
   }

@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.preference.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.preference.UpdatePreferenceHandler;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
+import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.preference.UserPreference;
@@ -39,13 +39,12 @@ import org.springframework.stereotype.Service;
 public class UpdatePreferenceHandlerImpl implements UpdatePreferenceHandler {
 
   private final UserPreferenceRepository userPreferenceRepository;
-  private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
+  private final UserFilterRepository userFilterRepository;
 
-  @Autowired
-  public UpdatePreferenceHandlerImpl(UserPreferenceRepository userPreferenceRepository,
-      GetShareableEntityHandler<UserFilter> getShareableEntityHandler) {
+	@Autowired
+	public UpdatePreferenceHandlerImpl(UserPreferenceRepository userPreferenceRepository, UserFilterRepository userFilterRepository) {
     this.userPreferenceRepository = userPreferenceRepository;
-    this.getShareableEntityHandler = getShareableEntityHandler;
+    this.userFilterRepository = userFilterRepository;
   }
 
   @Override
@@ -58,7 +57,12 @@ public class UpdatePreferenceHandlerImpl implements UpdatePreferenceHandler {
       throw new ReportPortalException(ErrorType.RESOURCE_ALREADY_EXISTS, "User Preference");
     }
 
-    UserFilter filter = getShareableEntityHandler.getPermitted(filterId, projectDetails);
+    UserFilter filter = userFilterRepository.findByIdAndProjectId(filterId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
+						filterId,
+						projectDetails.getProjectName()
+				));
+
     UserPreference userPreference = new UserPreferenceBuilder().withUser(user.getUserId())
         .withProject(projectDetails.getProjectId())
         .withFilter(filter)
@@ -68,17 +72,14 @@ public class UpdatePreferenceHandlerImpl implements UpdatePreferenceHandler {
         "Filter with id = " + filterId + " successfully added to launches tab.");
   }
 
-  @Override
-  public OperationCompletionRS removePreference(ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user, Long filterId) {
-    UserPreference userPreference = userPreferenceRepository.findByProjectIdAndUserIdAndFilterId(
-            projectDetails.getProjectId(),
-            user.getUserId(),
-            filterId
-        )
-        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, filterId));
-    userPreferenceRepository.delete(userPreference);
-    return new OperationCompletionRS(
-        "Filter with id = " + filterId + " successfully removed from launches tab.");
-  }
+	@Override
+	public OperationCompletionRS removePreference(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long filterId) {
+		UserPreference userPreference = userPreferenceRepository.findByProjectIdAndUserIdAndFilterId(projectDetails.getProjectId(),
+						user.getUserId(),
+						filterId
+				)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, filterId));
+		userPreferenceRepository.delete(userPreference);
+		return new OperationCompletionRS("Filter with id = " + filterId + " successfully removed from launches tab.");
+	}
 }

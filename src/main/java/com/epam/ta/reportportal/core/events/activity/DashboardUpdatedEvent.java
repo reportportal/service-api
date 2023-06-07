@@ -15,8 +15,6 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.SHARE;
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processBoolean;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processDescription;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.DASHBOARD;
@@ -51,7 +49,6 @@ public class DashboardUpdatedEvent extends AroundEvent<DashboardActivityResource
         .addObjectId(getAfter().getId())
         .addObjectName(getAfter().getName())
         .addProjectId(getAfter().getProjectId())
-        .addHistoryField(processBoolean(SHARE, getBefore().isShared(), getAfter().isShared()))
         .addHistoryField(processName(getBefore().getName(), getAfter().getName()))
         .addHistoryField(
             processDescription(getBefore().getDescription(), getAfter().getDescription()))

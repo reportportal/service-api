@@ -16,12 +16,6 @@
 
 package com.epam.ta.reportportal.core.widget.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
-import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
-import static java.util.Optional.ofNullable;
-
-import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -41,14 +35,18 @@ import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
+import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
 
 /**
  * @author Pavel Bortnik
@@ -62,8 +60,6 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 
   private final MessageBus messageBus;
 
-  private final ShareableObjectsHandler aclHandler;
-
   private final UpdateUserFilterHandler updateUserFilterHandler;
 
   private final List<WidgetPostProcessor> widgetPostProcessors;
@@ -71,30 +67,20 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
   private final WidgetValidator widgetContentFieldsValidator;
 
   @Autowired
-  public CreateWidgetHandlerImpl(WidgetRepository widgetRepository,
-      UserFilterRepository filterRepository, MessageBus messageBus,
-      ShareableObjectsHandler aclHandler, UpdateUserFilterHandler updateUserFilterHandler,
-      List<WidgetPostProcessor> widgetPostProcessors,
-      WidgetValidator widgetContentFieldsValidator) {
+  public CreateWidgetHandlerImpl(WidgetRepository widgetRepository, UserFilterRepository filterRepository, MessageBus messageBus,
+      UpdateUserFilterHandler updateUserFilterHandler,
+      List<WidgetPostProcessor> widgetPostProcessors, WidgetValidator widgetContentFieldsValidator) {
     this.widgetRepository = widgetRepository;
     this.filterRepository = filterRepository;
     this.messageBus = messageBus;
-    this.aclHandler = aclHandler;
     this.updateUserFilterHandler = updateUserFilterHandler;
     this.widgetPostProcessors = widgetPostProcessors;
     this.widgetContentFieldsValidator = widgetContentFieldsValidator;
   }
 
   @Override
-  public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-    List<UserFilter> userFilter = getUserFilters(createWidgetRQ.getFilterIds(),
-        projectDetails.getProjectId(), user.getUsername());
-
-    BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(createWidgetRQ.getName(),
-        user.getUsername(),
-        projectDetails.getProjectId()
-    ), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, createWidgetRQ.getName());
+  public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+    List<UserFilter> userFilter = getUserFilters(createWidgetRQ.getFilterIds(), projectDetails.getProjectId(), user.getUsername());
 
     Widget widget = new WidgetBuilder().addWidgetRq(createWidgetRQ)
         .addProject(projectDetails.getProjectId())
@@ -109,18 +95,8 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
         .forEach(widgetPostProcessor -> widgetPostProcessor.postProcess(widget));
 
     widgetRepository.save(widget);
-    aclHandler.initAcl(widget, user.getUsername(), projectDetails.getProjectId(),
-        BooleanUtils.isTrue(createWidgetRQ.getShare()));
-    if (widget.isShared()) {
-      ofNullable(widget.getFilters()).ifPresent(
-          filters -> updateUserFilterHandler.updateSharing(filters,
-              projectDetails.getProjectId(),
-              widget.isShared()
-          ));
-    }
-    messageBus.publishActivity(
-        new WidgetCreatedEvent(TO_ACTIVITY_RESOURCE.apply(widget), user.getUserId(),
-            user.getUsername()));
+
+    messageBus.publishActivity(new WidgetCreatedEvent(TO_ACTIVITY_RESOURCE.apply(widget), user.getUserId(), user.getUsername()));
     return new EntryCreatedRS(widget.getId());
   }
 
@@ -128,13 +104,9 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
     if (CollectionUtils.isNotEmpty(filterIds)) {
       String ids = filterIds.stream().map(String::valueOf).collect(Collectors.joining(","));
       Filter defaultFilter = new Filter(UserFilter.class, Condition.IN, false, ids, CRITERIA_ID);
-      List<UserFilter> userFilters = filterRepository.getPermitted(
-          ProjectFilter.of(defaultFilter, projectId),
-          Pageable.unpaged(),
-          username
-      ).getContent();
-      BusinessRule.expect(userFilters, not(List::isEmpty))
-          .verify(ErrorType.USER_FILTER_NOT_FOUND, filterIds, projectId, username);
+      List<UserFilter> userFilters = filterRepository.findByFilter(ProjectFilter.of(defaultFilter, projectId), Pageable.unpaged())
+          .getContent();
+      BusinessRule.expect(userFilters, not(List::isEmpty)).verify(ErrorType.USER_FILTER_NOT_FOUND, filterIds, projectId, username);
       return userFilters;
     }
     return Collections.emptyList();

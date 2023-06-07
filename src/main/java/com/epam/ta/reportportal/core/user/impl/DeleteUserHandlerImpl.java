@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
+import com.epam.ta.reportportal.binary.UserBinaryDataService;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -58,17 +59,16 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
   private final ProjectRepository projectRepository;
 
-  @Autowired
-  public DeleteUserHandlerImpl(UserRepository userRepository,
-      DeleteProjectHandler deleteProjectHandler,
-      ContentRemover<User> userContentRemover, ProjectRecipientHandler projectRecipientHandler,
-      ProjectRepository projectRepository) {
-    this.userRepository = userRepository;
-    this.deleteProjectHandler = deleteProjectHandler;
-    this.userContentRemover = userContentRemover;
-    this.projectRecipientHandler = projectRecipientHandler;
-    this.projectRepository = projectRepository;
-  }
+	@Autowired
+	public DeleteUserHandlerImpl(UserRepository userRepository, DeleteProjectHandler deleteProjectHandler,
+			ContentRemover<User> userContentRemover, ProjectRecipientHandler projectRecipientHandler,
+			ProjectRepository projectRepository) {
+		this.userRepository = userRepository;
+		this.deleteProjectHandler = deleteProjectHandler;
+		this.userContentRemover = userContentRemover;
+		this.projectRecipientHandler = projectRecipientHandler;
+		this.projectRepository = projectRepository;
+	}
 
   @Override
   public OperationCompletionRS deleteUser(Long userId, ReportPortalUser loggedInUser) {
@@ -86,8 +86,8 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
         deleteProjectHandler.deleteProject(project.getId());
       } else {
         projectRecipientHandler.handle(Lists.newArrayList(user), project);
-      }
-    });
+			}
+		});
 
     userRepository.delete(user);
     return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");

@@ -22,9 +22,10 @@ import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.DashboardConverter;
-import com.epam.ta.reportportal.ws.model.SharedEntity;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -45,26 +46,23 @@ public class GetDashboardHandlerImpl implements GetDashboardHandler {
   }
 
   @Override
-  public Iterable<DashboardResource> getPermitted(ReportPortalUser.ProjectDetails projectDetails,
+  public Iterable<DashboardResource> getDashboards(ReportPortalUser.ProjectDetails projectDetails,
       Pageable pageable, Filter filter,
       ReportPortalUser user) {
-    Page<Dashboard> permitted = dashboardRepository.getPermitted(
+    final Page<Dashboard> dashboards = dashboardRepository.findByFilter(
         ProjectFilter.of(filter, projectDetails.getProjectId()),
-        pageable,
-        user.getUsername()
+        pageable
     );
-    return PagedResourcesAssembler.pageConverter(DashboardConverter.TO_RESOURCE).apply(permitted);
+    return PagedResourcesAssembler.pageConverter(DashboardConverter.TO_RESOURCE).apply(dashboards);
   }
 
   @Override
-  public Iterable<SharedEntity> getSharedDashboardsNames(
-      ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
-      ReportPortalUser user) {
-    Page<Dashboard> shared = dashboardRepository.getShared(
-        ProjectFilter.of(filter, projectDetails.getProjectId()),
-        pageable,
-        user.getUsername()
-    );
-    return PagedResourcesAssembler.pageConverter(DashboardConverter.TO_SHARED_ENTITY).apply(shared);
+  public DashboardResource getDashboard(Long id, ReportPortalUser.ProjectDetails projectDetails) {
+    final Dashboard dashboard = dashboardRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
+						id,
+						projectDetails.getProjectName()
+				));
+    return DashboardConverter.TO_RESOURCE.apply(dashboard);
   }
 }

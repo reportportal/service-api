@@ -20,9 +20,9 @@ def setupJob(branch = 'develop', pollScm = "H/10 * * * *") {
 def String readSecretsDirectory(String dirName) {
     echo "Reading directory ${dirName}"
     String fileNames = sh(script: "ls -1 $dirName", returnStdout: true)
-    String[] fileList = fileNames.split('\\n')
+    String [] fileList = fileNames.split('\\n')
     return fileList.collect {
-        it + '=' + sh(script: "cat $dirName/$it", returnStdout: true).trim()
+        it + '='+ sh(script: "cat $dirName/$it", returnStdout: true).trim()
     }
 }
 
@@ -101,7 +101,7 @@ podTemplate(
                 }
             }
         }, 'Download Sealights': {
-            stage('Download Sealights') {
+            stage('Download Sealights'){
                 dir(sealightsDir) {
                     sh "wget ${sealightsAgentUrl}"
                     unzip sealightsAgentArchive
@@ -122,8 +122,8 @@ podTemplate(
 
         def sealightsToken = util.execStdout("cat $sealightsTokenPath")
         def sealightsSession = "";
-        stage('Init Sealights') {
-            if (enableSealights) {
+        stage ('Init Sealights') {
+            if(enableSealights) {
                 dir(sealightsDir) {
                     container('jre') {
                         echo "Generating Sealights build session ID"
@@ -146,17 +146,16 @@ podTemplate(
         }
 
         def jvmArgs = params.get('JVM_ARGS')
-        if (jvmArgs == null || jvmArgs.trim().isEmpty()) {
+        if(jvmArgs == null || jvmArgs.trim().isEmpty()){
             jvmArgs = '-Xms2G -Xmx3g -DLOG_FILE=app.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
         }
 
-        if (enableSealights) {
+        if(enableSealights){
             jvmArgs = jvmArgs + ' -javaagent:./plugins/sl-test-listener.jar -Dsl.tokenFile=sealights-token.txt -Dsl.buildSessionIdFile=sealights-session.txt -Dsl.filesStorage=/tmp'
         }
 
         stage('Deploy to Dev Environment') {
-            helm.deploy("$k8sDir/reportportal/v5", ["serviceapi.repository": srvRepo, "serviceapi.tag": srvVersion, "serviceapi.jvmArgs": "\"$jvmArgs\""], false)
-            // without wait
+            helm.deploy("$k8sDir/reportportal/v5", ["serviceapi.repository": srvRepo, "serviceapi.tag": srvVersion, "serviceapi.jvmArgs" : "\"$jvmArgs\""], false) // without wait
         }
 
         stage('Execute DVT Tests') {

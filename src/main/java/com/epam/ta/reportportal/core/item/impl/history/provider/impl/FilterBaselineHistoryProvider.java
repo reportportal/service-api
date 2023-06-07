@@ -22,9 +22,9 @@ import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.ta.reportportal.core.item.impl.history.provider.HistoryProvider;
 import com.epam.ta.reportportal.core.item.utils.DefaultLaunchFilterProvider;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -49,27 +49,32 @@ public class FilterBaselineHistoryProvider implements HistoryProvider {
   private final LaunchRepository launchRepository;
   private final LaunchAccessValidator launchAccessValidator;
   private final TestItemRepository testItemRepository;
-  private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
+  private final UserFilterRepository filterRepository;
 
   @Autowired
   public FilterBaselineHistoryProvider(LaunchRepository launchRepository,
       LaunchAccessValidator launchAccessValidator,
       TestItemRepository testItemRepository,
-      GetShareableEntityHandler<UserFilter> getShareableEntityHandler) {
+      UserFilterRepository filterRepository) {
     this.launchRepository = launchRepository;
     this.launchAccessValidator = launchAccessValidator;
     this.testItemRepository = testItemRepository;
-    this.getShareableEntityHandler = getShareableEntityHandler;
+    this.filterRepository = filterRepository;
   }
 
-  @Override
-  public Page<TestItemHistory> provide(Queryable filter, Pageable pageable,
-      HistoryRequestParams historyRequestParams,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean usingHash) {
-    return historyRequestParams.getFilterParams().map(filterParams -> {
-      Pair<Queryable, Pageable> launchQueryablePair = DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(
-          projectDetails,
-          getShareableEntityHandler.getPermitted(filterParams.getFilterId(), projectDetails),
+	@Override
+	public Page<TestItemHistory> provide(Queryable filter, Pageable pageable, HistoryRequestParams historyRequestParams,
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean usingHash) {
+		return historyRequestParams.getFilterParams().map(filterParams -> {
+
+			UserFilter userFilter = filterRepository.findByIdAndProjectId(filterParams.getFilterId(), projectDetails.getProjectId())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
+							filterParams.getFilterId(),
+							projectDetails.getProjectName()
+					));
+
+			Pair<Queryable, Pageable> launchQueryablePair = DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(projectDetails,
+					userFilter,
           filterParams.getLaunchesLimit()
       );
 

@@ -42,20 +42,18 @@ class DashboardBuilderTest {
     final String owner = "owner";
     final Long projectId = 1L;
 
-    CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
-    createDashboardRQ.setName(name);
-    createDashboardRQ.setDescription(description);
-    createDashboardRQ.setShare(share);
+		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
+		createDashboardRQ.setName(name);
+		createDashboardRQ.setDescription(description);
 
     final Dashboard dashboard = new DashboardBuilder().addDashboardRq(createDashboardRQ)
         .addOwner(owner).addProject(projectId).get();
 
     assertEquals(name, dashboard.getName());
     assertEquals(description, dashboard.getDescription());
-    assertEquals(share, dashboard.isShared());
     assertEquals(owner, dashboard.getOwner());
-    assertEquals(projectId, dashboard.getProject().getId());
-  }
+		assertEquals(projectId, dashboard.getProject().getId());
+	}
 
   @Test
   void updateDashboard() {
@@ -66,12 +64,10 @@ class DashboardBuilderTest {
     UpdateDashboardRQ updateDashboardRQ = new UpdateDashboardRQ();
     updateDashboardRQ.setName(name);
     updateDashboardRQ.setDescription(description);
-    updateDashboardRQ.setShare(share);
-    updateDashboardRQ.setWidgets(
-        Collections.singletonList(new DashboardResource.WidgetObjectModel("kek", 1L,
-            new Size(10, 20),
-            new Position(30, 40)
-        )));
+    updateDashboardRQ.setWidgets(Collections.singletonList(new DashboardResource.WidgetObjectModel("kek", 1L,
+				new Size(10, 20),
+				new Position(30, 40)
+		)));
 
     DashboardWidget dashboardWidget = new DashboardWidget();
     dashboardWidget.setHeight(5);
@@ -86,8 +82,7 @@ class DashboardBuilderTest {
     final Dashboard dashboard = new DashboardBuilder(existDashboard).addUpdateRq(updateDashboardRQ)
         .get();
 
-    assertEquals(name, dashboard.getName());
-    assertEquals(description, dashboard.getDescription());
-    assertEquals(share, dashboard.isShared());
-  }
+		assertEquals(name, dashboard.getName());
+		assertEquals(description, dashboard.getDescription());
+	}
 }

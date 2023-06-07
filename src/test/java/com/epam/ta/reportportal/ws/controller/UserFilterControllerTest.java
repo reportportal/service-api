@@ -108,20 +108,6 @@ class UserFilterControllerTest extends BaseMvcTest {
   }
 
   @Test
-  void getOwnFiltersPositive() throws Exception {
-    mockMvc.perform(
-            get(DEFAULT_PROJECT_BASE_URL + "/filter/own").with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  void getSharedFiltersPositive() throws Exception {
-    mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/filter/shared").with(
-            token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
-  }
-
-  @Test
   void getPermittedFilters() throws Exception {
     mockMvc.perform(
             get(SUPERADMIN_PROJECT_BASE_URL + "/filter").with(token(oAuthHelper.getSuperadminToken())))
@@ -155,7 +141,6 @@ class UserFilterControllerTest extends BaseMvcTest {
     updateUserFilterRQ.setName("new name");
     updateUserFilterRQ.setObjectType("Launch");
     updateUserFilterRQ.setDescription("new description");
-    updateUserFilterRQ.setShare(true);
     Order order = new Order();
     order.setIsAsc(true);
     order.setSortingColumnName("name");

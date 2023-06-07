@@ -272,7 +272,6 @@ class WidgetControllerValidationTest extends BaseMvcTest {
         Arrays.asList("number", "name", "user", "statistics$defects$automation_bug$AB002"));
     contentParameters.setItemsCount(50);
     widgetRQ.setContentParameters(contentParameters);
-    widgetRQ.setShare(true);
     return widgetRQ;
   }
 }

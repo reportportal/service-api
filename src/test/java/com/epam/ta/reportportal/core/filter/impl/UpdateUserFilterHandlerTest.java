@@ -16,23 +16,11 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
-import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
@@ -50,6 +38,16 @@ import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
+
+import java.util.Optional;
+
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
+import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -73,16 +71,11 @@ class UpdateUserFilterHandlerTest {
 
   private WidgetRepository widgetRepository = mock(WidgetRepository.class);
 
-  private ShareableObjectsHandler aclHandler = mock(ShareableObjectsHandler.class);
-
   private MessageBus messageBus = mock(MessageBus.class);
 
-  private GetShareableEntityHandler<UserFilter> getShareableEntityHandler = mock(
-      GetShareableEntityHandler.class);
-
   private UpdateUserFilterHandler updateUserFilterHandler = new UpdateUserFilterHandlerImpl(
-      projectExtractor, getShareableEntityHandler,
-      userFilterRepository, widgetRepository, aclHandler,
+      projectExtractor,
+      userFilterRepository,
       messageBus
   );
 
@@ -95,14 +88,14 @@ class UpdateUserFilterHandlerTest {
     UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(SAME_NAME);
 
     ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, "test_project");
-    when(getShareableEntityHandler.getAdministrated(1L, projectDetails)).thenReturn(userFilter);
+    when(userFilterRepository.findByIdAndProjectId(1L, projectDetails.getProjectId())).thenReturn(
+        Optional.of(userFilter));
 
     when(userFilter.getId()).thenReturn(1L);
     when(userFilter.getName()).thenReturn(SAME_NAME);
     when(userFilter.getProject()).thenReturn(project);
     when(project.getId()).thenReturn(1L);
 
-    doNothing().when(aclHandler).initAcl(userFilter, "user", 1L, updateUserFilterRQ.getShare());
     doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
 
     OperationCompletionRS operationCompletionRS = updateUserFilterHandler.updateUserFilter(1L,
@@ -124,7 +117,8 @@ class UpdateUserFilterHandlerTest {
     UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(ANOTHER_NAME);
 
     ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, "test_project");
-    when(getShareableEntityHandler.getAdministrated(1L, projectDetails)).thenReturn(userFilter);
+    when(userFilterRepository.findByIdAndProjectId(1L, projectDetails.getProjectId())).thenReturn(
+        Optional.of(userFilter));
 
     when(userFilter.getId()).thenReturn(1L);
     when(userFilter.getName()).thenReturn(SAME_NAME);
@@ -134,7 +128,6 @@ class UpdateUserFilterHandlerTest {
     when(userFilterRepository.existsByNameAndOwnerAndProjectId(updateUserFilterRQ.getName(), "user",
         1L)).thenReturn(Boolean.FALSE);
 
-    doNothing().when(aclHandler).initAcl(userFilter, "user", 1L, updateUserFilterRQ.getShare());
     doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
 
     OperationCompletionRS operationCompletionRS = updateUserFilterHandler.updateUserFilter(1L,
@@ -156,7 +149,8 @@ class UpdateUserFilterHandlerTest {
     UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(ANOTHER_NAME);
 
     ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, "test_project");
-    when(getShareableEntityHandler.getAdministrated(1L, projectDetails)).thenReturn(userFilter);
+    when(userFilterRepository.findByIdAndProjectId(1L, projectDetails.getProjectId())).thenReturn(
+        Optional.of(userFilter));
 
     when(userFilter.getId()).thenReturn(1L);
     when(userFilter.getName()).thenReturn(SAME_NAME);
@@ -169,7 +163,6 @@ class UpdateUserFilterHandlerTest {
         projectDetails.getProjectId()
     )).thenReturn(Boolean.TRUE);
 
-    doNothing().when(aclHandler).initAcl(userFilter, "user", 1L, updateUserFilterRQ.getShare());
     doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -190,7 +183,6 @@ class UpdateUserFilterHandlerTest {
 
     updateUserFilterRQ.setName(name);
     updateUserFilterRQ.setObjectType("Launch");
-    updateUserFilterRQ.setShare(false);
 
     Order order = new Order();
     order.setIsAsc(true);

@@ -20,11 +20,14 @@ import com.epam.ta.reportportal.core.integration.migration.JiraEmailSecretMigrat
 import com.epam.ta.reportportal.core.integration.migration.LdapSecretMigrationService;
 import com.epam.ta.reportportal.core.integration.migration.RallySecretMigrationService;
 import com.epam.ta.reportportal.core.integration.migration.SaucelabsSecretMigrationService;
+import com.epam.ta.reportportal.entity.enums.FeatureFlag;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
+import com.epam.ta.reportportal.util.FeatureFlagHandler;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,9 +44,11 @@ import org.springframework.stereotype.Component;
 @Profile("!unittest")
 public class IntegrationSecretsMigrationHandler {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(
       IntegrationSecretsMigrationHandler.class);
 
+  private static final String SECRETS_PATH = "integration-secrets";
   @Value("${rp.integration.salt.path:keystore}")
   private String integrationSaltPath;
 
@@ -60,22 +65,46 @@ public class IntegrationSecretsMigrationHandler {
 
   private final LdapSecretMigrationService ldapSecretMigrationService;
 
+  private final FeatureFlagHandler featureFlagHandler;
+
+  /**
+   * Creates instance of IntegrationSecretsMigrationHandler.
+   *
+   * @param dataStore                       {@link DataStore}
+   * @param jiraEmailSecretMigrationService {@link JiraEmailSecretMigrationService}
+   * @param rallySecretMigrationService     {@link RallySecretMigrationService}
+   * @param saucelabsSecretMigrationService {@link SaucelabsSecretMigrationService}
+   * @param ldapSecretMigrationService      {@link LdapSecretMigrationService}
+   * @param featureFlagHandler              {@link FeatureFlagHandler}
+   */
   @Autowired
   public IntegrationSecretsMigrationHandler(DataStore dataStore,
       JiraEmailSecretMigrationService jiraEmailSecretMigrationService,
       RallySecretMigrationService rallySecretMigrationService,
       SaucelabsSecretMigrationService saucelabsSecretMigrationService,
-      LdapSecretMigrationService ldapSecretMigrationService) {
+      LdapSecretMigrationService ldapSecretMigrationService,
+      FeatureFlagHandler featureFlagHandler) {
     this.dataStore = dataStore;
     this.jiraEmailSecretMigrationService = jiraEmailSecretMigrationService;
     this.rallySecretMigrationService = rallySecretMigrationService;
     this.saucelabsSecretMigrationService = saucelabsSecretMigrationService;
     this.ldapSecretMigrationService = ldapSecretMigrationService;
+    this.featureFlagHandler = featureFlagHandler;
   }
 
+  /**
+   * Migration of user info from Auth Provider.
+   *
+   * @param event {@link ApplicationReadyEvent}
+   */
   @EventListener
   public void migrate(ApplicationReadyEvent event) throws IOException {
-    final String migrationFilePath = integrationSaltPath + File.separator + migrationFile;
+    String migrationFilePath;
+    if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
+      migrationFilePath = Paths.get(SECRETS_PATH, migrationFile).toString();
+    } else {
+      migrationFilePath = integrationSaltPath + File.separator + migrationFile;
+    }
     try (InputStream load = dataStore.load(migrationFilePath)) {
       jiraEmailSecretMigrationService.migrate();
       rallySecretMigrationService.migrate();

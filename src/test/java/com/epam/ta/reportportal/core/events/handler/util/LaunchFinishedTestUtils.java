@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.events.handler.util;
 
 import com.epam.ta.reportportal.entity.attribute.Attribute;
+import com.epam.ta.reportportal.entity.enums.LogicalOperator;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
@@ -55,7 +56,7 @@ public class LaunchFinishedTestUtils {
   public static Set<SenderCase> getSenderCases() {
     return Arrays.stream(SendCase.values())
         .map(sc -> new SenderCase(recipientsSupplier.get(), launchNamesSupplier.get(),
-            Collections.emptySet(), sc, true))
+            Collections.emptySet(), sc, true, LogicalOperator.AND))
         .collect(Collectors.toSet());
   }
 

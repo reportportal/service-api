@@ -76,31 +76,4 @@ public interface GetWidgetHandler {
    */
   Iterable<Object> getOwnNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable,
       Filter filter, ReportPortalUser user);
-
-  /**
-   * Get shared widgets for user
-   *
-   * @param projectDetails Project details
-   * @param pageable       Paging
-   * @param filter         Filter
-   * @param user           User
-   * @return Page of shared widget resources
-   */
-  Iterable<WidgetResource> getShared(ReportPortalUser.ProjectDetails projectDetails,
-      Pageable pageable, Filter filter,
-      ReportPortalUser user);
-
-  /**
-   * Get shared widgets for user that contains a provided term in name, description or owner
-   *
-   * @param projectDetails Project details
-   * @param pageable       Paging
-   * @param filter         Filter
-   * @param user           User
-   * @param term           Search term
-   * @return Page of shared widget resources
-   */
-  Iterable<WidgetResource> searchShared(ReportPortalUser.ProjectDetails projectDetails,
-      Pageable pageable, Filter filter,
-      ReportPortalUser user, String term);
 }

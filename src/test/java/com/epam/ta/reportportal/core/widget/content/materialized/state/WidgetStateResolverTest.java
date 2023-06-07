@@ -43,7 +43,7 @@ class WidgetStateResolverTest {
         () -> widgetStateResolver.resolve(getWidgetOptions("key", "value"))
     );
     Assertions.assertEquals(
-        "Unable to load widget content. Widget proprties contains errors: Widget state not provided",
+        "Unable to load widget content. Widget properties contain errors: Widget state not provided",
         reportPortalException.getMessage());
   }
 
@@ -54,7 +54,7 @@ class WidgetStateResolverTest {
         () -> widgetStateResolver.resolve(getWidgetOptions(STATE, "wrong"))
     );
     Assertions.assertEquals(
-        "Unable to load widget content. Widget proprties contains errors: Widget state not provided",
+        "Unable to load widget content. Widget properties contain errors: Widget state not provided",
         reportPortalException.getMessage());
   }
 

@@ -89,7 +89,6 @@ class WidgetConverterTest {
     assertEquals(widgetObjectModel.getWidgetPosition().getY(), dashboardWidget.getPositionY());
     assertEquals(widgetObjectModel.getWidgetSize().getHeight(), dashboardWidget.getHeight());
     assertEquals(widgetObjectModel.getWidgetSize().getWidth(), dashboardWidget.getWidth());
-    assertEquals(dashboardWidget.isShare(), widgetObjectModel.isShare());
     assertEquals(dashboardWidget.getWidget().getWidgetOptions().getOptions(),
         widgetObjectModel.getWidgetOptions());
   }
@@ -102,7 +101,6 @@ class WidgetConverterTest {
     dashboard.setName("name");
     final Widget widget = new Widget();
     widget.setName("name");
-    widget.setShared(true);
     widget.setOwner("default");
 
     final DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(widgetObjectModel,
@@ -115,7 +113,6 @@ class WidgetConverterTest {
     assertEquals(dashboardWidget.getPositionX(), widgetObjectModel.getWidgetPosition().getX());
     assertEquals(dashboardWidget.getPositionY(), widgetObjectModel.getWidgetPosition().getY());
     assertEquals(dashboardWidget.getWidgetName(), widget.getName());
-    assertEquals(dashboardWidget.isShare(), widget.isShared());
     assertEquals("default", dashboardWidget.getWidgetOwner());
     assertTrue(dashboardWidget.isCreatedOn());
   }
@@ -126,7 +123,6 @@ class WidgetConverterTest {
     widget.setItemsCount(10);
     widget.setWidgetType("widgetType");
     widget.setName("name");
-    widget.setShared(true);
     final Project project = new Project();
     project.setId(3L);
     widget.setProject(project);

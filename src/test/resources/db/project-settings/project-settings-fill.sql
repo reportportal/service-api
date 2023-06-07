@@ -8,10 +8,10 @@ VALUES (2, 6),
        (2, 7),
        (2, 8);
 
-INSERT INTO public.shareable_entity (id, shared, owner, project_id)
-VALUES (1, FALSE, 'default', 2),
-       (2, FALSE, 'default', 2),
-       (3, FALSE, 'default', 2);
+INSERT INTO public.owned_entity (id, owner, project_id)
+VALUES (1, 'default', 2),
+       (2, 'default', 2),
+       (3, 'default', 2);
 
 
 INSERT INTO public.filter (id, name, target, description)
@@ -52,23 +52,17 @@ VALUES (2, 'statistics$executions$total'),
        (3, 'statistics$defects$to_investigate$custom_ti');
 
 
-INSERT INTO widget_filter(widget_id, filter_id)
-VALUES (2, 1),
+insert into widget_filter(widget_id, filter_id)
+values (2, 1),
        (3, 1);
 
-ALTER SEQUENCE issue_type_id_seq RESTART WITH 9;
+alter sequence issue_type_id_seq restart with 9;
 
-INSERT INTO pattern_template(id, name, value, type, enabled, project_id)
-VALUES (1, 'some_name', 'value', 'STRING', TRUE, 2),
-       (2, 'simple_name', 'value', 'STRING', TRUE, 2),
-       (3, 'another_name', 'value', 'STRING', TRUE, 1);
-ALTER SEQUENCE pattern_template_id_seq RESTART WITH 4;
-
-INSERT INTO launch(id, uuid, project_id, user_id, name, description, start_time, end_time,
-                   last_modified, mode, status, has_retries,
-                   rerun, approximate_duration)
-VALUES (1, 'uuid', 2, 1, 'launch', 'launch', now(), now(), now(), 'DEFAULT', 'FAILED', FALSE, FALSE,
-        0);
+insert into pattern_template(id, name, "value", type, enabled, project_id)
+values (1, 'some_name', 'value', 'STRING', true, 2),
+       (2, 'simple_name', 'value', 'STRING', true, 2),
+       (3, 'another_name', 'value', 'STRING', true, 1);
+alter sequence pattern_template_id_seq restart with 4;
 
 INSERT INTO public.sender_case (id, send_case, project_id, enabled, rule_name)
 VALUES (1, 'ALWAYS', 2, TRUE, 'rule #1'),

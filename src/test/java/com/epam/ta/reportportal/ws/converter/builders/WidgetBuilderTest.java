@@ -42,33 +42,30 @@ class WidgetBuilderTest {
     final String description = "description";
     widgetRQ.setDescription(description);
     final boolean share = true;
-    widgetRQ.setShare(share);
     final String widgetType = "oldLineChart";
-    widgetRQ.setWidgetType(widgetType);
-    final ContentParameters contentParameters = new ContentParameters();
-    contentParameters.setContentFields(Collections.singletonList("contentField"));
-    contentParameters.setItemsCount(10);
-    final HashMap<String, Object> widgetOptions = new HashMap<>();
-    widgetOptions.put("param", "val");
-    contentParameters.setWidgetOptions(widgetOptions);
-    widgetRQ.setContentParameters(contentParameters);
-    final String owner = "owner";
-    final UserFilter userFilter = new UserFilter();
-    userFilter.setId(1L);
+		widgetRQ.setWidgetType(widgetType);
+		final ContentParameters contentParameters = new ContentParameters();
+		contentParameters.setContentFields(Collections.singletonList("contentField"));
+		contentParameters.setItemsCount(10);
+		final HashMap<String, Object> widgetOptions = new HashMap<>();
+		widgetOptions.put("param", "val");
+		contentParameters.setWidgetOptions(widgetOptions);
+		widgetRQ.setContentParameters(contentParameters);
+		final String owner = "owner";
+		final UserFilter userFilter = new UserFilter();
+		userFilter.setId(1L);
 
     final Widget widget = new WidgetBuilder().addWidgetRq(widgetRQ)
         .addFilters(Collections.singletonList(userFilter)).addOwner(owner).get();
 
     assertEquals(name, widget.getName());
     assertEquals(description, widget.getDescription());
-    assertEquals(share, widget.isShared());
     assertEquals(owner, widget.getOwner());
-    assertEquals(widgetType, widget.getWidgetType());
-    assertThat(widget.getFilters()).containsExactly(userFilter);
-    assertThat(widget.getContentFields()).containsExactly("contentField");
-    assertThat(widget.getWidgetOptions().getOptions()).containsExactly(
-        new AbstractMap.SimpleEntry<>("param", "val"));
-  }
+		assertEquals(widgetType, widget.getWidgetType());
+		assertThat(widget.getFilters()).containsExactly(userFilter);
+		assertThat(widget.getContentFields()).containsExactly("contentField");
+		assertThat(widget.getWidgetOptions().getOptions()).containsExactly(new AbstractMap.SimpleEntry<>("param", "val"));
+	}
 
   @Test
   void addWidgetPreviewRqTest() {

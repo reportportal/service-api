@@ -29,21 +29,33 @@ import java.util.function.Function;
  */
 public class ItemAttributeConverter {
 
-  private ItemAttributeConverter() {
-    //static only
-  }
+  public static final int MAX_ATTRIBUTE_LENGTH = 512;
 
-  public static final Function<ItemAttributeResource, ItemAttribute> FROM_RESOURCE = it -> {
-    ItemAttribute itemAttribute = new ItemAttribute();
-    itemAttribute.setKey(it.getKey());
-    itemAttribute.setValue(it.getValue());
-    if (it instanceof ItemAttributesRQ) {
-      itemAttribute.setSystem(((ItemAttributesRQ) it).isSystem());
-    } else {
-      itemAttribute.setSystem(false);
-    }
-    return itemAttribute;
-  };
+	private ItemAttributeConverter() {
+		//static only
+	}
+
+	public static final Function<ItemAttributeResource, ItemAttribute> FROM_RESOURCE = it -> {
+		ItemAttribute itemAttribute = new ItemAttribute();
+
+		String key = it.getKey();
+    if (key != null && key.length() > MAX_ATTRIBUTE_LENGTH){
+			key = key.substring(0, MAX_ATTRIBUTE_LENGTH);
+		}
+		String value = it.getValue();
+		if (value != null && value.length() > MAX_ATTRIBUTE_LENGTH){
+			value = value.substring(0, MAX_ATTRIBUTE_LENGTH);
+		}
+		itemAttribute.setKey(key);
+		itemAttribute.setValue(value);
+
+		if (it instanceof ItemAttributesRQ) {
+			itemAttribute.setSystem(((ItemAttributesRQ) it).isSystem());
+		} else {
+			itemAttribute.setSystem(false);
+		}
+		return itemAttribute;
+	};
 
   public static final BiFunction<ItemAttributesRQ, Launch, ItemAttribute> TO_LAUNCH_ATTRIBUTE = (model, launch) -> {
     ItemAttribute itemAttribute = new ItemAttribute(model.getKey(), model.getValue(),

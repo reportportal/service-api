@@ -37,11 +37,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class TopTestCasesContentValidator implements WidgetValidatorStrategy {
 
-  @Override
-  public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping,
-      WidgetOptions widgetOptions, int limit) {
-    validateContentFields(contentFields);
-  }
+	@Override
+	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions, int limit) {
+		validateContentFields(contentFields);
+        validateWidgetLimit(limit);
+	}
 
   /**
    * Validate provided content fields. For current widget it should be only one field specified in
@@ -56,4 +56,14 @@ public class TopTestCasesContentValidator implements WidgetValidatorStrategy {
     BusinessRule.expect(contentFields.size(), Predicate.isEqual(1))
         .verify(ErrorType.BAD_REQUEST_ERROR, "Only one content field could be specified.");
   }
+
+    /**
+     * Validate provided widget launches count. For current widget launches count should in the range from 2 to 100.
+     *
+     * @param limit launches count.
+     */
+    private void validateWidgetLimit(int limit) {
+        BusinessRule.expect(limit > 100 || limit < 2 , equalTo(false))
+                .verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,  "Items count should have value from 2 to 100.");
+    }
 }

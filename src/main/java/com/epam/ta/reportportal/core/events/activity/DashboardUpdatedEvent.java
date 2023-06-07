@@ -15,8 +15,6 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.SHARE;
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processBoolean;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processDescription;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.DASHBOARD;

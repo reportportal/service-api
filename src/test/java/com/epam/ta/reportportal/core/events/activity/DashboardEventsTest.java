@@ -109,7 +109,6 @@ class DashboardEventsTest {
       Pair<Boolean, Boolean> shared,
       Pair<String, String> description) {
     return Lists.newArrayList(HistoryField.of(NAME, name.getLeft(), name.getRight()),
-        HistoryField.of(SHARE, shared.getLeft().toString(), shared.getRight().toString()),
         HistoryField.of(DESCRIPTION, description.getLeft(), description.getRight())
     );
   }

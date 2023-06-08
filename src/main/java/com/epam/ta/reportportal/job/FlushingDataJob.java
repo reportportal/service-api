@@ -116,7 +116,7 @@ public class FlushingDataJob implements Job {
 				+ "AND pid <> PG_BACKEND_PID()\n"
 				+ "AND state IN ('idle', 'idle in transaction', 'idle in transaction (aborted)', 'disabled'); "
 				+ "TRUNCATE TABLE launch RESTART IDENTITY CASCADE;" + "TRUNCATE TABLE activity RESTART IDENTITY CASCADE;"
-				+ "TRUNCATE TABLE shareable_entity RESTART IDENTITY CASCADE;" + "TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;"
+				+ "TRUNCATE TABLE owned_entity RESTART IDENTITY CASCADE;" + "TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;"
 				+ "TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE;" + "COMMIT;");
 	}
 

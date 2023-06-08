@@ -32,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
@@ -57,9 +56,6 @@ public class CombinedTokenStore extends JwtTokenStore {
   private UserRepository userRepository;
 
   @Autowired
-  private UserDetailsService userDetailsService;
-
-  @Autowired
   public CombinedTokenStore(JwtAccessTokenConverter jwtTokenEnhancer) {
     super(jwtTokenEnhancer);
   }
@@ -81,9 +77,9 @@ public class CombinedTokenStore extends JwtTokenStore {
       String hashedKey = DatatypeConverter.printHexBinary(DigestUtils.sha3_256(tokenId));
       ApiKey apiKey = apiKeyRepository.findByHash(hashedKey);
       if (apiKey != null) {
-        Optional<String> login = userRepository.findLoginById(apiKey.getUserId());
-        if (login.isPresent()) {
-          return getAuthentication((ReportPortalUser) userDetailsService.loadUserByUsername(login.get()));
+        Optional<ReportPortalUser> user = userRepository.findReportPortalUser(apiKey.getUserId());
+        if (user.isPresent()) {
+          return getAuthentication(user.get());
         }
       }
       return null;

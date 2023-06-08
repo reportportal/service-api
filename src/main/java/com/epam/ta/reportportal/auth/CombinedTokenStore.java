@@ -16,10 +16,12 @@
 
 package com.epam.ta.reportportal.auth;
 
+import com.epam.ta.reportportal.auth.util.AuthUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.ApiKeyRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.user.ApiKey;
+import com.google.common.collect.Maps;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -79,7 +81,7 @@ public class CombinedTokenStore extends JwtTokenStore {
       if (apiKey != null) {
         Optional<ReportPortalUser> user = userRepository.findReportPortalUser(apiKey.getUserId());
         if (user.isPresent()) {
-          return getAuthentication(user.get());
+          return getAuthentication(getUserWithAuthorities(user.get()));
         }
       }
       return null;
@@ -124,5 +126,17 @@ public class CombinedTokenStore extends JwtTokenStore {
     authenticationRequest.setAuthenticated(true);
 
     return authenticationRequest;
+  }
+
+  private ReportPortalUser getUserWithAuthorities(ReportPortalUser user) {
+    return ReportPortalUser.userBuilder()
+        .withUserName(user.getUsername())
+        .withPassword(user.getPassword())
+        .withAuthorities(AuthUtils.AS_AUTHORITIES.apply(user.getUserRole()))
+        .withUserId(user.getUserId())
+        .withUserRole(user.getUserRole())
+        .withProjectDetails(Maps.newHashMapWithExpectedSize(1))
+        .withEmail(user.getEmail())
+        .build();
   }
 }

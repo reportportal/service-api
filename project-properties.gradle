@@ -9,7 +9,7 @@ project.ext {
     dependencyRepos = ["commons-dao", "commons-rules", "commons-model", "commons", "commons-fonts", "plugin-api", "commons-bom"]
     limits = [
             'instruction': 70,
-            'branch'     : 53,
+            'branch'     : 51,
             'line'       : 74,
             'complexity' : 60,
             'method'     : 65,
@@ -18,7 +18,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
     scriptsUrl = commonScriptsUrl + (releaseMode ? getProperty('scripts.version') : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? getProperty('migrations.version') : 'hotfix/next')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? getProperty('migrations.version') : 'develop')
     //TODO refactor with archive download
     testScriptsSrc = [
             (migrationsUrl + '/migrations/0_extensions.up.sql')                        : 'V001__extensions.sql',

@@ -60,16 +60,13 @@ public class ProjectExtractor {
     if (user.getUserRole().equals(ADMINISTRATOR)) {
       return extractProjectDetailsAdmin(user, projectName);
     }
-    return user.getProjectDetails()
-        .computeIfAbsent(normalizedProjectName,
-            k -> findProjectDetails(user,
-                normalizedProjectName
-            ).orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
+    return user.getProjectDetails().computeIfAbsent(normalizedProjectName,
+        k -> findProjectDetails(user, normalizedProjectName).orElseThrow(
+            () -> new ReportPortalException(ErrorType.ACCESS_DENIED,
                 "Please check the list of your available projects."
             ))
-        );
+    );
   }
-
 
   /**
    * Find project details for specified user by specified project name
@@ -98,14 +95,18 @@ public class ProjectExtractor {
     if (user.getUserRole().getAuthority().equals(ADMINISTRATOR.getAuthority())) {
       Project project = projectRepository.findByName(normalizeId(projectName))
           .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
-      user.getProjectDetails()
-          .put(projectName, new ReportPortalUser.ProjectDetails(project.getId(), project.getName(),
-              ProjectRole.PROJECT_MANAGER));
+      user.getProjectDetails().put(
+          normalizeId(projectName),
+          new ReportPortalUser.ProjectDetails(project.getId(), project.getName(),
+              ProjectRole.PROJECT_MANAGER
+          )
+      );
     }
 
-    return Optional.ofNullable(user.getProjectDetails().get(normalizeId(projectName)))
-        .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
-            "Please check the list of your available projects."));
+    return Optional.ofNullable(user.getProjectDetails().get(normalizeId(projectName))).orElseThrow(
+        () -> new ReportPortalException(ErrorType.ACCESS_DENIED,
+            "Please check the list of your available projects."
+        ));
   }
 
 }

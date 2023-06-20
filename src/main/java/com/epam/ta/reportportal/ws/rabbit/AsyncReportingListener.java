@@ -214,8 +214,7 @@ public class AsyncReportingListener implements MessageListener {
 	}
 
 	private ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user, String projectName) {
-		return projectExtractor.findProjectDetails(user, projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED, "Please check the list of your available projects."));
+		return projectExtractor.extractProjectDetails(user, projectName);
 	}
 
 	public void onLogCreate(DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload, Long projectId) {

@@ -85,7 +85,7 @@ public class CombinedTokenStore extends JwtTokenStore {
         if (user.isPresent()) {
           LocalDate today = LocalDate.now();
           if (apiKey.getLastUsedAt() == null || !apiKey.getLastUsedAt().equals(today)) {
-            apiKeyRepository.updateLastUsedAt(apiKey.getId(), today);
+            apiKeyRepository.updateLastUsedAt(apiKey.getId(), hashedKey, today);
           }
           return getAuthentication(getUserWithAuthorities(user.get()));
         }
@@ -109,7 +109,7 @@ public class CombinedTokenStore extends JwtTokenStore {
         if (apiKey != null) {
           LocalDate today = LocalDate.now();
           if (apiKey.getLastUsedAt() == null || !apiKey.getLastUsedAt().equals(today)) {
-            apiKeyRepository.updateLastUsedAt(apiKey.getId(), today);
+            apiKeyRepository.updateLastUsedAt(apiKey.getId(), hashedKey, today);
           }
         }
         return defaultOAuth2AccessToken;

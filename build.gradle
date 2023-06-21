@@ -83,9 +83,9 @@ dependencies {
         compile 'com.epam.reportportal:plugin-api'
     } else {
         compile 'com.github.reportportal:commons-events:f130879'
-        compile 'com.github.reportportal:commons-dao:5c3b94f33b'
+        compile 'com.github.reportportal:commons-dao:9555a7a1c8'
         compile 'com.github.reportportal:commons-rules:5.3.0'
-        compile 'com.github.reportportal:commons-model:e9363c2fc7'
+        compile 'com.github.reportportal:commons-model:f5ffdc2'
         compile 'com.github.reportportal:commons:7480d61'
         compile 'com.github.reportportal:commons-fonts:10d1054'
         compile 'com.github.reportportal:plugin-api:2b30a961'
@@ -161,6 +161,13 @@ processResources {
     filesMatching('application.properties') {
         expand(project.properties)
     }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+    options.compilerArgs << "-parameters"
+    options.debug = true
+    options.debugOptions.debugLevel = "source,lines,vars"
 }
 
 dependencyCheck {

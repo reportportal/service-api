@@ -19,6 +19,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.imprt.impl.junit.XunitParseJob;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,9 +41,11 @@ public class XmlImportStrategy extends AbstractImportStrategy {
 	private Provider<XunitParseJob> xmlParseJobProvider;
 
 	@Override
-	public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file, String baseUrl) {
+	public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			File file, String baseUrl, Map<String, String> params) {
+		validateOverrideParameters(params);
 		try {
-			return processXmlFile(file, projectDetails, user, baseUrl);
+			return processXmlFile(file, projectDetails, user, baseUrl, params);
 		} finally {
 			try {
 				ofNullable(file).ifPresent(File::delete);
@@ -52,13 +55,17 @@ public class XmlImportStrategy extends AbstractImportStrategy {
 		}
 	}
 
-	private String processXmlFile(File xml, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
+	private String processXmlFile(File xml, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user, String baseUrl, Map<String, String> params) {
 		//copy of the launch's id to use it in catch block if something goes wrong
 		String savedLaunchId = null;
 		try (InputStream xmlStream = new FileInputStream(xml)) {
-			String launchId = startLaunch(projectDetails, user, xml.getName().substring(0, xml.getName().indexOf("." + XML_EXTENSION)));
+			String launchId = startLaunch(projectDetails, user,
+					xml.getName().substring(0, xml.getName().indexOf("." + XML_EXTENSION)), params);
 			savedLaunchId = launchId;
-			XunitParseJob job = xmlParseJobProvider.get().withParameters(projectDetails, launchId, user, xmlStream);
+			XunitParseJob job = xmlParseJobProvider.get()
+					.withParameters(projectDetails, launchId, user, xmlStream,
+							params.get(NOT_ISSUE) != null && Boolean.parseBoolean(params.get(NOT_ISSUE)));
 			ParseResults parseResults = job.call();
 			finishLaunch(launchId, projectDetails, user, parseResults, baseUrl);
 			return launchId;

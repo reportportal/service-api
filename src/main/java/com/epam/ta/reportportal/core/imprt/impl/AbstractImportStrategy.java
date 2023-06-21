@@ -15,6 +15,8 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
@@ -24,8 +26,13 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,9 +50,25 @@ import java.util.concurrent.Executors;
  */
 @Component
 public abstract class AbstractImportStrategy implements ImportStrategy {
+
+	public static final String LAUNCH_NAME = "launchName";
+	public static final String LAUNCH_DESCRIPTION = "description";
+	public static final String ATTRIBUTE_KEY = "attributeKey";
+	public static final String ATTRIBUTE_VALUE = "attributeValue";
+	public static final String NOT_ISSUE = "notIssue";
+	public static final String SKIPPED_ISSUE = "skippedIssue";
 	protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractImportStrategy.class);
 	private static final Date initialStartTime = new Date(0);
 	protected static final ExecutorService service = Executors.newFixedThreadPool(5);
+	public static final String LAUNCH_NAME_RESTRICTION_MSG = "User can't import launch with the invalid number of symbols for Name.";
+	public static final String LAUNCH_DESCRIPTION_RESTRICTION_MSG = "User can't import launch with the invalid number of symbols for Description.";
+	public static final String ATTRIBUTE_KEY_RESTRICTION_MSG = "User can't import launch with the invalid number of symbols for Attribute Key.";
+	public static final String ATTRIBUTE_KEY_WITHOUT_VALUE_MSG = "User can't import launch with only Attribute Value without Attribute Key.";
+	public static final String ATTRIBUTE_VALUE_RESTRICTION_MSG = "User can't import launch with the invalid number of symbols for Attribute Value.";
+	public static final String INCORRECT_SKIPPED_PARAMETER_MSG = "User can't import launch with invalid value for parameter for skipped.";
+	public static final int MAX_ATTRIBUTE_LENGTH = 512;
+	public static final int MAX_DESCRIPTION_LENGTH = 2048;
+	public static final int MAX_NAME_LENGTH = 256;
 
 	private StartLaunchHandler startLaunchHandler;
 
@@ -77,12 +100,28 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
 		return results;
 	}
 
-	protected String startLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String launchName) {
+	protected String startLaunch(ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user, String launchName, Map<String, String> params) {
 		StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
 		startLaunchRQ.setStartTime(initialStartTime);
-		startLaunchRQ.setName(launchName);
+		startLaunchRQ.setName(params.get(LAUNCH_NAME) != null ? params.get(LAUNCH_NAME) : launchName);
+		startLaunchRQ.setDescription(params.get(LAUNCH_DESCRIPTION));
 		startLaunchRQ.setMode(Mode.DEFAULT);
+		Set<ItemAttributesRQ> itemAttributes = getItemAttributes(params);
+		startLaunchRQ.setAttributes(itemAttributes);
 		return startLaunchHandler.startLaunch(user, projectDetails, startLaunchRQ).getId();
+	}
+
+	private Set<ItemAttributesRQ> getItemAttributes(Map<String, String> params) {
+		Set<ItemAttributesRQ> itemAttributes = new HashSet<>();
+		if (params.get(ATTRIBUTE_VALUE) != null) {
+			itemAttributes.add(
+					new ItemAttributesRQ(params.get(ATTRIBUTE_KEY), params.get(ATTRIBUTE_VALUE)));
+		}
+		if (params.get(NOT_ISSUE) != null && Boolean.parseBoolean(params.get(NOT_ISSUE))) {
+			itemAttributes.add(new ItemAttributesRQ(SKIPPED_ISSUE, "true", true));
+		}
+		return itemAttributes;
 	}
 
 	protected void finishLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
@@ -122,5 +161,29 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
 			launch.setStatus(StatusEnum.INTERRUPTED);
 			launchRepository.save(launch);
 		}
+	}
+
+	protected void validateOverrideParameters(Map<String, String> params) {
+		expect(params.get(LAUNCH_NAME) == null || (1 < params.get(LAUNCH_NAME).length()
+				&& params.get(LAUNCH_NAME).length() <= MAX_NAME_LENGTH), Predicate.isEqual(true)).verify(
+				ErrorType.BAD_REQUEST_ERROR,
+				LAUNCH_NAME_RESTRICTION_MSG);
+		expect(
+				params.get(LAUNCH_DESCRIPTION) == null || (params.get(LAUNCH_DESCRIPTION).length() <= MAX_DESCRIPTION_LENGTH),
+				Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR,
+				LAUNCH_DESCRIPTION_RESTRICTION_MSG);
+		expect(params.get(ATTRIBUTE_KEY) == null || (params.get(LAUNCH_DESCRIPTION).length() <= MAX_ATTRIBUTE_LENGTH),
+				Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR,
+				ATTRIBUTE_KEY_RESTRICTION_MSG);
+		expect(params.get(ATTRIBUTE_KEY) == null || (params.get(ATTRIBUTE_KEY) != null
+				&& params.get(ATTRIBUTE_VALUE) != null), Predicate.isEqual(true)).verify(
+				ErrorType.BAD_REQUEST_ERROR,
+				ATTRIBUTE_KEY_WITHOUT_VALUE_MSG);
+		expect(params.get(ATTRIBUTE_VALUE) == null || (params.get(ATTRIBUTE_VALUE).length() <= MAX_ATTRIBUTE_LENGTH),
+				Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR,
+				ATTRIBUTE_VALUE_RESTRICTION_MSG);
+		expect(params.get(NOT_ISSUE) == null || Boolean.parseBoolean(params.get(NOT_ISSUE)),
+				Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR,
+				INCORRECT_SKIPPED_PARAMETER_MSG);
 	}
 }

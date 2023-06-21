@@ -19,6 +19,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.imprt.impl.junit.XunitParseJob;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,9 +48,11 @@ public class ZipImportStrategy extends AbstractImportStrategy {
 	private Provider<XunitParseJob> xmlParseJobProvider;
 
 	@Override
-	public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file, String baseUrl) {
+	public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			File file, String baseUrl, Map<String, String> params) {
+		validateOverrideParameters(params);
 		try {
-			return processZipFile(file, projectDetails, user, baseUrl);
+			return processZipFile(file, projectDetails, user, baseUrl, params);
 		} finally {
 			try {
 				ofNullable(file).ifPresent(File::delete);
@@ -59,15 +62,18 @@ public class ZipImportStrategy extends AbstractImportStrategy {
 		}
 	}
 
-	private String processZipFile(File zip, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
+	private String processZipFile(File zip, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user, String baseUrl, Map<String, String> params) {
 		//copy of the launch's id to use it in catch block if something goes wrong
 		String savedLaunchId = null;
 		try (ZipFile zipFile = new ZipFile(zip)) {
-			String launchId = startLaunch(projectDetails, user, zip.getName().substring(0, zip.getName().indexOf("." + ZIP_EXTENSION)));
+			String launchId = startLaunch(projectDetails, user,
+					zip.getName().substring(0, zip.getName().indexOf("." + ZIP_EXTENSION)), params);
 			savedLaunchId = launchId;
 			CompletableFuture[] futures = zipFile.stream().filter(isFile.and(isXml)).map(zipEntry -> {
 				XunitParseJob job = xmlParseJobProvider.get()
-						.withParameters(projectDetails, launchId, user, getEntryStream(zipFile, zipEntry));
+						.withParameters(projectDetails, launchId, user, getEntryStream(zipFile, zipEntry),
+								params.get(NOT_ISSUE) != null && Boolean.parseBoolean(params.get(NOT_ISSUE)));
 				return CompletableFuture.supplyAsync(job::call, service);
 			}).toArray(CompletableFuture[]::new);
 			ParseResults parseResults = processResults(futures);

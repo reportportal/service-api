@@ -171,29 +171,48 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
   }
 
   protected void validateOverrideParameters(Map<String, String> params) {
-    expect(params.get(LAUNCH_NAME) == null || (1 < params.get(LAUNCH_NAME).length()
-        && params.get(LAUNCH_NAME).length() <= MAX_NAME_LENGTH), Predicate.isEqual(true)).verify(
-        ErrorType.BAD_REQUEST_ERROR,
-        LAUNCH_NAME_RESTRICTION_MSG);
-    expect(
-        params.get(LAUNCH_DESCRIPTION) == null || (params.get(LAUNCH_DESCRIPTION).length()
-            <= MAX_DESCRIPTION_LENGTH),
-        Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR,
-        LAUNCH_DESCRIPTION_RESTRICTION_MSG);
-    expect(params.get(ATTRIBUTE_KEY) == null || (params.get(LAUNCH_DESCRIPTION).length()
-            <= MAX_ATTRIBUTE_LENGTH),
-        Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR,
-        ATTRIBUTE_KEY_RESTRICTION_MSG);
-    expect(params.get(ATTRIBUTE_KEY) == null || (params.get(ATTRIBUTE_KEY) != null
-        && params.get(ATTRIBUTE_VALUE) != null), Predicate.isEqual(true)).verify(
-        ErrorType.BAD_REQUEST_ERROR,
-        ATTRIBUTE_KEY_WITHOUT_VALUE_MSG);
-    expect(params.get(ATTRIBUTE_VALUE) == null || (params.get(ATTRIBUTE_VALUE).length()
-            <= MAX_ATTRIBUTE_LENGTH),
-        Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR,
-        ATTRIBUTE_VALUE_RESTRICTION_MSG);
-    expect(params.get(NOT_ISSUE) == null || Boolean.parseBoolean(params.get(NOT_ISSUE)),
-        Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR,
-        INCORRECT_SKIPPED_PARAMETER_MSG);
+    validateLaunchName(params);
+    validateLaunchDescription(params);
+    validateAttributeKey(params);
+    validateAttributeKeyWithValue(params);
+    validateAttributeValue(params);
+    validateSkippedParameter(params);
+  }
+
+  private void validateLaunchName(Map<String, String> params) {
+    String launchName = params.get(LAUNCH_NAME);
+    boolean isValid = launchName == null || (1 < launchName.length() && launchName.length() <= MAX_NAME_LENGTH);
+    expect(isValid, Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR, LAUNCH_NAME_RESTRICTION_MSG);
+  }
+
+  private void validateLaunchDescription(Map<String, String> params) {
+    String launchDescription = params.get(LAUNCH_DESCRIPTION);
+    boolean isValid = launchDescription == null || (launchDescription.length() <= MAX_DESCRIPTION_LENGTH);
+    expect(isValid, Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR, LAUNCH_DESCRIPTION_RESTRICTION_MSG);
+  }
+
+  private void validateAttributeKey(Map<String, String> params) {
+    String attributeKey = params.get(ATTRIBUTE_KEY);
+    boolean isValid = attributeKey == null || (attributeKey.length() <= MAX_ATTRIBUTE_LENGTH);
+    expect(isValid, Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR, ATTRIBUTE_KEY_RESTRICTION_MSG);
+  }
+
+  private void validateAttributeKeyWithValue(Map<String, String> params) {
+    String attributeKey = params.get(ATTRIBUTE_KEY);
+    String attributeValue = params.get(ATTRIBUTE_VALUE);
+    boolean isValid = attributeKey == null || attributeValue != null;
+    expect(isValid, Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR, ATTRIBUTE_KEY_WITHOUT_VALUE_MSG);
+  }
+
+  private void validateAttributeValue(Map<String, String> params) {
+    String attributeValue = params.get(ATTRIBUTE_VALUE);
+    boolean isValid = attributeValue == null || (attributeValue.length() <= MAX_ATTRIBUTE_LENGTH);
+    expect(isValid, Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR, ATTRIBUTE_VALUE_RESTRICTION_MSG);
+  }
+
+  private void validateSkippedParameter(Map<String, String> params) {
+    String notIssue = params.get(NOT_ISSUE);
+    boolean isValid = notIssue == null || Boolean.parseBoolean(notIssue);
+    expect(isValid, Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR, INCORRECT_SKIPPED_PARAMETER_MSG);
   }
 }

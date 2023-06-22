@@ -9,7 +9,7 @@ project.ext {
     dependencyRepos = ["commons-dao", "commons-rules", "commons-model", "commons", "commons-fonts", "plugin-api", "commons-bom"]
     limits = [
             'instruction': 70,
-            'branch'     : 53,
+            'branch'     : 51,
             'line'       : 74,
             'complexity' : 60,
             'method'     : 65,

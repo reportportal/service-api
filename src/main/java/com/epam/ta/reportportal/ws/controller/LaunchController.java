@@ -371,50 +371,50 @@ public class LaunchController {
 		return deleteLaunchMessageHandler.deleteLaunches(deleteBulkRQ, projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user);
 	}
 
-	@ApiImplicitParams({
-			@ApiImplicitParam(
-					name = "launchName",
-					dataType = "string",
-					paramType = "query",
-					value = "Override Launch Name"
-			),
-			@ApiImplicitParam(
-					name = "description",
-					dataType = "string",
-					paramType = "query",
-					value = "Override Launch Description"
-			),
-			@ApiImplicitParam(
-					name = "AttributeKey",
-					dataType = "string",
-					paramType = "query",
-					value = "Add Launch attribute key"
-			),
-			@ApiImplicitParam(
-					name = "AttributeValue",
-					dataType = "string",
-					paramType = "query",
-					value = "Add Launch attribute value"
-			),
-			@ApiImplicitParam(
-					name = "notIssue",
-					dataType = "boolean",
-					paramType = "query",
-					value = "true: no defect type is applied to skipped issue"
-			)
-	})
-	@PostMapping(value = "/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-	@ResponseStatus(OK)
-	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip and xml.")
-	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file,
-			@AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request,
-			@ApiParam(required = false) @RequestParam Map<String, String> params) {
-		return importLaunchHandler.importLaunch(projectExtractor.extractProjectDetails(user, normalizeId(projectName)),
-				user,
-				"XUNIT",
-				file,
-				composeBaseUrl(request),
-				params
-		);
-	}
+  @ApiImplicitParams({
+      @ApiImplicitParam(
+          name = "launchName",
+          dataType = "string",
+          paramType = "query",
+          value = "Override Launch Name"
+      ),
+      @ApiImplicitParam(
+          name = "description",
+          dataType = "string",
+          paramType = "query",
+          value = "Override Launch Description"
+      ),
+      @ApiImplicitParam(
+          name = "AttributeKey",
+          dataType = "string",
+          paramType = "query",
+          value = "Add Launch attribute key"
+      ),
+      @ApiImplicitParam(
+          name = "AttributeValue",
+          dataType = "string",
+          paramType = "query",
+          value = "Add Launch attribute value"
+      ),
+      @ApiImplicitParam(
+          name = "notIssue",
+          dataType = "boolean",
+          paramType = "query",
+          value = "true: no defect type is applied to skipped issue"
+      )
+  })
+  @PostMapping(value = "/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+  @ResponseStatus(OK)
+  @ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip and xml.")
+  public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file,
+      @AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request,
+      @ApiParam(required = false) @RequestParam Map<String, String> params) {
+    return importLaunchHandler.importLaunch(projectExtractor.extractProjectDetails(user, normalizeId(projectName)),
+        user,
+        "XUNIT",
+        file,
+        composeBaseUrl(request),
+        params
+    );
+  }
 }

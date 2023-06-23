@@ -70,8 +70,8 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
       "User can't import launch with only Attribute Value without Attribute Key.";
   public static final String ATTRIBUTE_VALUE_RESTRICTION_MSG =
       "User can't import launch with the invalid number of symbols for Attribute Value.";
-  public static final String INCORRECT_SKIPPED_PARAMETER_MSG =
-      "User can't import launch with invalid value for parameter for skipped.";
+  public static final String INCORRECT_NOT_ISSUE_PARAMETER_MSG =
+      "User can't import launch with invalid value for parameter for NotIssue.";
   public static final int MAX_ATTRIBUTE_LENGTH = 512;
   public static final int MAX_DESCRIPTION_LENGTH = 2048;
   public static final int MAX_NAME_LENGTH = 256;
@@ -212,7 +212,9 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
 
   private void validateSkippedParameter(Map<String, String> params) {
     String notIssue = params.get(NOT_ISSUE);
-    boolean isValid = notIssue == null || Boolean.parseBoolean(notIssue);
-    expect(isValid, Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR, INCORRECT_SKIPPED_PARAMETER_MSG);
+    boolean isValid =
+        notIssue == null || "true".equalsIgnoreCase(notIssue) || "false".equalsIgnoreCase(notIssue);
+    expect(isValid, Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR,
+        INCORRECT_NOT_ISSUE_PARAMETER_MSG);
   }
 }

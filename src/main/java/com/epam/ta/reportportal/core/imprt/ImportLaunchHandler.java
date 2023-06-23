@@ -17,6 +17,7 @@ package com.epam.ta.reportportal.core.imprt;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import java.util.Map;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -24,14 +25,16 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public interface ImportLaunchHandler {
 
-	/**
-	 * Import launch from file with specified format.
-	 *
-	 * @param projectDetails Project Details
-	 * @param user  user
-	 * @param format    report format
-	 * @param file      file with report
-	 * @return OperationCompletionRS
-	 */
-	OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String format, MultipartFile file, String baseUrl);
+  /**
+   * Import launch from file with specified format.
+   *
+   * @param projectDetails Project Details
+   * @param user           user
+   * @param format         report format
+   * @param file           file with report
+   * @return OperationCompletionRS
+   */
+  OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, String format, MultipartFile file, String baseUrl,
+      Map<String, String> params);
 }

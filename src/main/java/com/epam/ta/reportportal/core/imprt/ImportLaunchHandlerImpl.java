@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.core.imprt.impl.ImportType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import java.util.Map;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -53,8 +54,9 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 	}
 
 	@Override
-	public OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String format,
-			MultipartFile file, String baseUrl) {
+  public OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, String format,
+      MultipartFile file, String baseUrl, Map<String, String> params) {
 
 		validate(file);
 
@@ -68,7 +70,7 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 				file.getOriginalFilename()
 		));
 		ImportStrategy strategy = importStrategyFactory.getImportStrategy(type, file.getOriginalFilename());
-		String launchId = strategy.importLaunch(projectDetails, user, tempFile, baseUrl);
+    String launchId = strategy.importLaunch(projectDetails, user, tempFile, baseUrl, params);
 		messageBus.publishActivity(new ImportFinishedEvent(user.getUserId(),
 				user.getUsername(),
 				projectDetails.getProjectId(),

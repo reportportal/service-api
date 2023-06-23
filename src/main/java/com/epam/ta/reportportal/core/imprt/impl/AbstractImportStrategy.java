@@ -55,7 +55,7 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
   public static final String LAUNCH_DESCRIPTION = "description";
   public static final String ATTRIBUTE_KEY = "attributeKey";
   public static final String ATTRIBUTE_VALUE = "attributeValue";
-  public static final String NOT_ISSUE = "notIssue";
+  public static final String SKIPPED_IS_NOT_ISSUE = "skippedIsNotIssue";
   public static final String SKIPPED_ISSUE = "skippedIssue";
   protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractImportStrategy.class);
   private static final Date initialStartTime = new Date(0);
@@ -67,11 +67,11 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
   public static final String ATTRIBUTE_KEY_RESTRICTION_MSG =
       "User can't import launch with the invalid number of symbols for Attribute Key.";
   public static final String ATTRIBUTE_KEY_WITHOUT_VALUE_MSG =
-      "User can't import launch with only Attribute Value without Attribute Key.";
+      "User can't import launch with only Attribute Key without Attribute Value.";
   public static final String ATTRIBUTE_VALUE_RESTRICTION_MSG =
       "User can't import launch with the invalid number of symbols for Attribute Value.";
-  public static final String INCORRECT_SKIPPED_PARAMETER_MSG =
-      "User can't import launch with invalid value for parameter for skipped.";
+  public static final String INCORRECT_NOT_ISSUE_PARAMETER_MSG =
+      "User can't import launch with invalid value for parameter for NotIssue.";
   public static final int MAX_ATTRIBUTE_LENGTH = 512;
   public static final int MAX_DESCRIPTION_LENGTH = 2048;
   public static final int MAX_NAME_LENGTH = 256;
@@ -124,7 +124,8 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
       itemAttributes.add(
           new ItemAttributesRQ(params.get(ATTRIBUTE_KEY), params.get(ATTRIBUTE_VALUE)));
     }
-    if (params.get(NOT_ISSUE) != null && Boolean.parseBoolean(params.get(NOT_ISSUE))) {
+    if (params.get(SKIPPED_IS_NOT_ISSUE) != null && Boolean.parseBoolean(params.get(
+        SKIPPED_IS_NOT_ISSUE))) {
       itemAttributes.add(new ItemAttributesRQ(SKIPPED_ISSUE, "true", true));
     }
     return itemAttributes;
@@ -211,8 +212,10 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
   }
 
   private void validateSkippedParameter(Map<String, String> params) {
-    String notIssue = params.get(NOT_ISSUE);
-    boolean isValid = notIssue == null || Boolean.parseBoolean(notIssue);
-    expect(isValid, Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR, INCORRECT_SKIPPED_PARAMETER_MSG);
+    String notIssue = params.get(SKIPPED_IS_NOT_ISSUE);
+    boolean isValid =
+        notIssue == null || "true".equalsIgnoreCase(notIssue) || "false".equalsIgnoreCase(notIssue);
+    expect(isValid, Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR,
+        INCORRECT_NOT_ISSUE_PARAMETER_MSG);
   }
 }

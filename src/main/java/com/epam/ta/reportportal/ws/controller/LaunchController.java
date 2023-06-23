@@ -385,19 +385,19 @@ public class LaunchController {
           value = "Override Launch Description"
       ),
       @ApiImplicitParam(
-          name = "AttributeKey",
+          name = "attributeKey",
           dataType = "string",
           paramType = "query",
           value = "Add Launch attribute key"
       ),
       @ApiImplicitParam(
-          name = "AttributeValue",
+          name = "attributeValue",
           dataType = "string",
           paramType = "query",
           value = "Add Launch attribute value"
       ),
       @ApiImplicitParam(
-          name = "notIssue",
+          name = "skippedIsNotIssue",
           dataType = "boolean",
           paramType = "query",
           value = "true: no defect type is applied to skipped issue"

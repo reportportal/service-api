@@ -15,8 +15,24 @@
  */
 package com.epam.ta.reportportal.core.activity.impl;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ACTION;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_CREATED_AT;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_TYPE;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.ACTIVITY_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_NOT_FOUND;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.*;
+import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
+import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.commons.querygen.FilterTarget;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.activity.ActivityHandler;
@@ -25,7 +41,8 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -33,6 +50,9 @@ import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ActivityConverter;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,16 +61,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.*;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.*;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * @author Ihar Kahadouski
@@ -111,55 +121,68 @@ public class ActivityHandlerImpl implements ActivityHandler {
 		expect(projectDetails.getProjectId(), Predicate.isEqual(launch.getProjectId())).verify(ACCESS_DENIED,
 				Suppliers.formattedSupplier("Test item with id '{}' is not under project with id '{}'",
 						itemId,
-						projectDetails.getProjectId()
-				)
-		);
+            projectDetails.getProjectId()
+        )
+    );
 
-		Sort sortByCreationDateDesc = Sort.by(Sort.Direction.DESC, CRITERIA_CREATION_DATE);
+    Sort sortByCreationDateDesc = Sort.by(Sort.Direction.DESC, CRITERIA_CREATED_AT);
 
-		Filter patternActivityFilter = buildPatternMatchedActivityFilter(filter.getTarget(),
-				itemId
-		).withConditions(filter.getFilterConditions());
+    Filter patternActivityFilter = buildPatternMatchedActivityFilter(filter.getTarget(),
+        itemId
+    ).withConditions(filter.getFilterConditions());
 
-		filter.withCondition(FilterCondition.builder().eq(CRITERIA_OBJECT_ID, String.valueOf(itemId)).build())
-				.withCondition(FilterCondition.builder()
-						.withSearchCriteria(CRITERIA_ENTITY)
-						.withCondition(Condition.IN)
-						.withValue(Stream.of(ITEM, ITEM_ISSUE, TICKET)
-								.map(Activity.ActivityEntityType::getValue)
-								.collect(Collectors.joining(",")))
-						.build());
+    filter.withCondition(
+            FilterCondition.builder().eq(CRITERIA_OBJECT_ID, String.valueOf(itemId)).build())
+        .withCondition(FilterCondition.builder()
+            .withSearchCriteria(CRITERIA_OBJECT_TYPE)
+            .withCondition(Condition.IN)
+            .withValue(Stream.of(EventObject.ITEM, EventObject.ITEM_ISSUE, EventObject.TICKET)
+                .map(EventObject::toString)
+                .collect(Collectors.joining(",")))
+            .build());
 
-		Page<Activity> page = activityRepository.findByFilter(new CompositeFilter(Operator.OR, filter, patternActivityFilter),
-				PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreationDateDesc)
-		);
-		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page);
-	}
+    Page<Activity> page = activityRepository.findByFilter(
+        new CompositeFilter(Operator.OR, filter, patternActivityFilter),
+        PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreationDateDesc)
+    );
+    return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page);
+  }
 
-	@Override
-	public Iterable<ActivityResource> getItemActivities(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
-		BusinessRule.expect(projectRepository.existsById(projectDetails.getProjectId()), BooleanUtils::isTrue)
-				.verify(PROJECT_NOT_FOUND, projectDetails.getProjectId());
-		filter.withCondition(FilterCondition.builder().eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build());
-		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE)
-				.apply(activityRepository.findByFilter(filter, pageable));
-	}
+  @Override
+  public Iterable<ActivityResource> getItemActivities(
+      ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
+    BusinessRule.expect(projectRepository.existsById(projectDetails.getProjectId()),
+            BooleanUtils::isTrue)
+        .verify(PROJECT_NOT_FOUND, projectDetails.getProjectId());
+    filter.withCondition(FilterCondition.builder()
+        .eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build());
+    return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE)
+        .apply(activityRepository.findByFilter(filter, pageable));
+  }
 
-	/**
-	 * Build {@link Filter} to search for {@link Activity} with {@link Activity.ActivityEntityType#PATTERN} entity
-	 * and {@link ActivityAction#PATTERN_MATCHED} action conditions of the {@link TestItem} with provided 'itemId'
-	 *
-	 * @param filterTarget {@link FilterTarget}
-	 * @param itemId       {@link Activity#objectId}
-	 * @return {@link Filter} with {@link Activity.ActivityEntityType#PATTERN}, {@link ActivityAction#PATTERN_MATCHED} search conditions
-	 */
-	private Filter buildPatternMatchedActivityFilter(FilterTarget filterTarget, Long itemId) {
-		return Filter.builder()
-				.withTarget(filterTarget.getClazz())
-				.withCondition(FilterCondition.builder().eq(CRITERIA_OBJECT_ID, String.valueOf(itemId)).build())
-				.withCondition(FilterCondition.builder().eq(CRITERIA_ENTITY, Activity.ActivityEntityType.PATTERN.getValue()).build())
-				.withCondition(FilterCondition.builder().eq(CRITERIA_ACTION, ActivityAction.PATTERN_MATCHED.getValue()).build())
-				.build();
-	}
+  /**
+   * Build {@link Filter} to search for {@link Activity} with {@link EventObject#PATTERN} entity and
+   * {@link EventAction#MATCH}, {@link EventObject#PATTERN}  action conditions of the
+   * {@link TestItem} with provided 'itemId'
+   *
+   * @param filterTarget {@link FilterTarget}
+   * @param itemId       {@link Activity#objectId}
+   * @return {@link Filter} with {@link EventAction#MATCH}, {@link EventObject#PATTERN} search
+   * conditions
+   */
+  private Filter buildPatternMatchedActivityFilter(FilterTarget filterTarget, Long itemId) {
+    return Filter.builder()
+        .withTarget(filterTarget.getClazz())
+        .withCondition(FilterCondition.builder()
+            .eq(CRITERIA_OBJECT_ID, String.valueOf(itemId))
+            .build())
+        .withCondition(FilterCondition.builder()
+            .eq(CRITERIA_OBJECT_TYPE, EventObject.PATTERN.toString())
+            .build())
+        .withCondition(FilterCondition.builder()
+            .eq(CRITERIA_ACTION, EventAction.MATCH.toString())
+            .build())
+        .build();
+  }
 }
 

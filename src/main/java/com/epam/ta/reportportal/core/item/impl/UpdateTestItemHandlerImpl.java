@@ -16,6 +16,24 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttribute;
+import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttributeResource;
+import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
+import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
+import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_NOT_FOUND;
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
+import static java.util.stream.Collectors.toList;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
@@ -32,7 +50,6 @@ import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
-import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
@@ -60,29 +77,19 @@ import com.epam.ta.reportportal.ws.model.item.ExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.epam.ta.reportportal.commons.Predicates.*;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttribute;
-import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttributeResource;
-import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
-import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
-import static java.util.stream.Collectors.toList;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * Default implementation of {@link UpdateTestItemHandler}
@@ -255,24 +262,25 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 					testItems.stream().map(it -> it.getItemResults().getIssue()).collect(Collectors.toList()),
 					linkRequest.getIssues()
 			);
-		}
+    }
 
-		if (UnlinkExternalIssueRQ.class.equals(request.getClass())) {
-			externalTicketHandler.unlinkExternalTickets(testItems, (UnlinkExternalIssueRQ) request);
-		}
-		testItemRepository.saveAll(testItems);
-		List<TestItemActivityResource> after = testItems.stream()
-				.map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
-				.collect(Collectors.toList());
+    if (UnlinkExternalIssueRQ.class.equals(request.getClass())) {
+      externalTicketHandler.unlinkExternalTickets(testItems, (UnlinkExternalIssueRQ) request);
+    }
+    testItemRepository.saveAll(testItems);
+    List<TestItemActivityResource> after = testItems.stream()
+        .map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
+        .collect(Collectors.toList());
 
-		before.forEach(it -> messageBus.publishActivity(new LinkTicketEvent(it,
-				after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
-				user.getUserId(),
-				user.getUsername(),
-				ActivityAction.LINK_ISSUE
-		)));
-		return testItems.stream().map(TestItem::getItemId).map(COMPOSE_UPDATE_RESPONSE).collect(toList());
-	}
+    before.forEach(it -> messageBus.publishActivity(new LinkTicketEvent(it,
+        after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
+        user.getUserId(),
+        user.getUsername(),
+        false
+    )));
+    return testItems.stream().map(TestItem::getItemId).map(COMPOSE_UPDATE_RESPONSE)
+        .collect(toList());
+  }
 
 	private static final Function<Long, OperationCompletionRS> COMPOSE_UPDATE_RESPONSE = it -> {
 		String message = formattedSupplier("TestItem with ID = '{}' successfully updated.", it).get();

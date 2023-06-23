@@ -17,11 +17,13 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
-
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.DASHBOARD;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_DASHBOARD;
 
 /**
  * @author pavel_bortnik
@@ -48,14 +50,18 @@ public class DashboardCreatedEvent extends AbstractEvent implements ActivityEven
 
 	@Override
 	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(CREATE_DASHBOARD)
-				.addActivityEntityType(DASHBOARD)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addProjectId(dashboardActivityResource.getProjectId())
+		return new ActivityBuilder()
+				.addCreatedNow()
+				.addAction(EventAction.CREATE)
+				.addEventName(ActivityAction.CREATE_DASHBOARD.getValue())
+				.addPriority(EventPriority.LOW)
 				.addObjectId(dashboardActivityResource.getId())
 				.addObjectName(dashboardActivityResource.getName())
+				.addObjectType(EventObject.DASHBOARD)
+				.addProjectId(dashboardActivityResource.getProjectId())
+				.addSubjectId(getUserId())
+				.addSubjectName(getUserLogin())
+				.addSubjectType(EventSubject.USER)
 				.get();
 	}
 }

@@ -237,11 +237,7 @@ public class XunitImportHandler extends DefaultHandler {
 
 	private void finishRootItem() {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
-		if (StatusEnum.SKIPPED.equals(status) && notIssue) {
-			Issue issue = new Issue();
-			issue.setIssueType(NOT_ISSUE_FLAG.getValue());
-			rq.setIssue(issue);
-		}
+		markAsNotIssue(rq);
 		rq.setEndTime(EntityUtils.TO_DATE.apply(startItemTime));
 		finishTestItemHandler.finishTestItem(user, projectDetails, itemUuids.poll(), rq);
 		status = null;
@@ -249,11 +245,7 @@ public class XunitImportHandler extends DefaultHandler {
 
 	private void finishTestItem() {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
-		if (StatusEnum.SKIPPED.equals(status) && notIssue) {
-			Issue issue = new Issue();
-			issue.setIssueType(NOT_ISSUE_FLAG.getValue());
-			rq.setIssue(issue);
-		}
+		markAsNotIssue(rq);
 		startItemTime = startItemTime.plus(currentDuration, ChronoUnit.MILLIS);
 		commonDuration += currentDuration;
 		rq.setEndTime(EntityUtils.TO_DATE.apply(startItemTime));
@@ -261,6 +253,14 @@ public class XunitImportHandler extends DefaultHandler {
 		currentItemUuid = itemUuids.poll();
 		finishTestItemHandler.finishTestItem(user, projectDetails, currentItemUuid, rq);
 		status = null;
+	}
+
+	private void markAsNotIssue(FinishTestItemRQ rq) {
+		if (StatusEnum.SKIPPED.equals(status) && notIssue) {
+			Issue issue = new Issue();
+			issue.setIssueType(NOT_ISSUE_FLAG.getValue());
+			rq.setIssue(issue);
+		}
 	}
 
 	private void attachLog(LogLevel logLevel) {

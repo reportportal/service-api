@@ -237,7 +237,7 @@ public class XunitImportHandler extends DefaultHandler {
 
 	private void finishRootItem() {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
-		if (notIssue) {
+		if (StatusEnum.SKIPPED.equals(status) && notIssue) {
 			Issue issue = new Issue();
 			issue.setIssueType(NOT_ISSUE_FLAG.getValue());
 			rq.setIssue(issue);
@@ -249,7 +249,7 @@ public class XunitImportHandler extends DefaultHandler {
 
 	private void finishTestItem() {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
-		if (notIssue) {
+		if (StatusEnum.SKIPPED.equals(status) && notIssue) {
 			Issue issue = new Issue();
 			issue.setIssueType(NOT_ISSUE_FLAG.getValue());
 			rq.setIssue(issue);

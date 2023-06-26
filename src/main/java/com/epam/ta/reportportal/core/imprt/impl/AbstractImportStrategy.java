@@ -67,7 +67,7 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
   public static final String ATTRIBUTE_KEY_RESTRICTION_MSG =
       "User can't import launch with the invalid number of symbols for Attribute Key.";
   public static final String ATTRIBUTE_KEY_WITHOUT_VALUE_MSG =
-      "User can't import launch with only Attribute Value without Attribute Key.";
+      "User can't import launch with only Attribute Key without Attribute Value.";
   public static final String ATTRIBUTE_VALUE_RESTRICTION_MSG =
       "User can't import launch with the invalid number of symbols for Attribute Value.";
   public static final String INCORRECT_NOT_ISSUE_PARAMETER_MSG =

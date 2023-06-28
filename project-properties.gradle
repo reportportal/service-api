@@ -62,6 +62,7 @@ project.ext {
             (migrationsUrl + '/migrations/65_launch_attribute_rules_length.up.sql')    : 'V065__launch_attribute_rules_length.sql',
             (migrationsUrl + '/migrations/67_api_keys.up.sql')                         : 'V067__api_keys.sql',
             (migrationsUrl + '/migrations/68_api_key_last_used_at.up.sql')             : 'V068__api_key_last_used_at.sql',
+            (migrationsUrl + '/migrations/69_replace_activity_table.up.sql')           : 'V069__replace_activity_table.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

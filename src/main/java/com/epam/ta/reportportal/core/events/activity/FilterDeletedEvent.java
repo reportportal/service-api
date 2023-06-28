@@ -18,34 +18,41 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
-
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.FILTER;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_FILTER;
 
 /**
  * @author pavel_bortnik
  */
-public class FilterDeletedEvent extends BeforeEvent<UserFilterActivityResource> implements ActivityEvent {
+public class FilterDeletedEvent extends BeforeEvent<UserFilterActivityResource> implements
+    ActivityEvent {
 
-	public FilterDeletedEvent() {
-	}
+  public FilterDeletedEvent() {
+  }
 
-	public FilterDeletedEvent(UserFilterActivityResource before, Long userId, String userLogin) {
-		super(userId, userLogin, before);
-	}
+  public FilterDeletedEvent(UserFilterActivityResource before, Long userId, String userLogin) {
+    super(userId, userLogin, before);
+  }
 
-	@Override
-	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(DELETE_FILTER)
-				.addActivityEntityType(FILTER)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(getBefore().getId())
-				.addObjectName(getBefore().getName())
-				.addProjectId(getBefore().getProjectId())
-				.get();
-	}
+  @Override
+  public Activity toActivity() {
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.DELETE)
+        .addEventName(ActivityAction.DELETE_FILTER.getValue())
+        .addPriority(EventPriority.LOW)
+        .addObjectId(getBefore().getId())
+        .addObjectName(getBefore().getName())
+        .addObjectType(EventObject.FILTER)
+        .addProjectId(getBefore().getProjectId())
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
+        .get();
+  }
 }

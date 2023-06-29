@@ -17,45 +17,52 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
-
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.LAUNCH;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.FINISH_LAUNCH;
 
 /**
  * @author Andrei Varabyeu
  */
 public class LaunchFinishForcedEvent extends AbstractEvent implements ActivityEvent {
 
-	private LaunchActivityResource launchActivityResource;
+  private LaunchActivityResource launchActivityResource;
 
-	public LaunchFinishForcedEvent() {
-	}
+  public LaunchFinishForcedEvent() {
+  }
 
-	public LaunchFinishForcedEvent(LaunchActivityResource launchActivityResource, Long userId, String userLogin) {
-		super(userId, userLogin);
-		this.launchActivityResource = launchActivityResource;
-	}
+  public LaunchFinishForcedEvent(LaunchActivityResource launchActivityResource, Long userId,
+      String userLogin) {
+    super(userId, userLogin);
+    this.launchActivityResource = launchActivityResource;
+  }
 
-	public LaunchActivityResource getLaunchActivityResource() {
-		return launchActivityResource;
-	}
+  public LaunchActivityResource getLaunchActivityResource() {
+    return launchActivityResource;
+  }
 
-	public void setLaunchActivityResource(LaunchActivityResource launchActivityResource) {
-		this.launchActivityResource = launchActivityResource;
-	}
+  public void setLaunchActivityResource(LaunchActivityResource launchActivityResource) {
+    this.launchActivityResource = launchActivityResource;
+  }
 
-	@Override
-	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(FINISH_LAUNCH)
-				.addActivityEntityType(LAUNCH)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(launchActivityResource.getId())
-				.addObjectName(launchActivityResource.getName())
-				.addProjectId(launchActivityResource.getProjectId())
-				.get();
-	}
+  @Override
+  public Activity toActivity() {
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.FINISH)
+        .addEventName(ActivityAction.FINISH_LAUNCH.getValue())
+        .addPriority(EventPriority.LOW)
+        .addObjectId(launchActivityResource.getId())
+        .addObjectName(launchActivityResource.getName())
+        .addObjectType(EventObject.LAUNCH)
+        .addProjectId(launchActivityResource.getProjectId())
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
+        .get();
+  }
 }

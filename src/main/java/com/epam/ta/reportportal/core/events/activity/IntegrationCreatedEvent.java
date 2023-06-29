@@ -15,53 +15,62 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
+
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
-
 import java.util.Optional;
-
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.INTEGRATION;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_INTEGRATION;
 
 /**
  * @author Andrei Varabyeu
  */
 public class IntegrationCreatedEvent extends AbstractEvent implements ActivityEvent {
 
-	private IntegrationActivityResource integrationActivityResource;
+  private IntegrationActivityResource integrationActivityResource;
 
-	public IntegrationCreatedEvent() {
-	}
+  public IntegrationCreatedEvent() {
+  }
 
-	public IntegrationCreatedEvent(IntegrationActivityResource integrationActivityResource, Long userId, String userLogin) {
-		super(userId, userLogin);
-		this.integrationActivityResource = integrationActivityResource;
-	}
+  public IntegrationCreatedEvent(IntegrationActivityResource integrationActivityResource,
+      Long userId, String userLogin) {
+    super(userId, userLogin);
+    this.integrationActivityResource = integrationActivityResource;
+  }
 
-	public IntegrationActivityResource getIntegrationActivityResource() {
-		return integrationActivityResource;
-	}
+  public IntegrationActivityResource getIntegrationActivityResource() {
+    return integrationActivityResource;
+  }
 
-	public void setIntegrationActivityResource(IntegrationActivityResource integrationActivityResource) {
-		this.integrationActivityResource = integrationActivityResource;
-	}
+  public void setIntegrationActivityResource(
+      IntegrationActivityResource integrationActivityResource) {
+    this.integrationActivityResource = integrationActivityResource;
+  }
 
-	@Override
-	public Activity toActivity() {
+  @Override
+  public Activity toActivity() {
 
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(CREATE_INTEGRATION)
-				.addActivityEntityType(INTEGRATION)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(integrationActivityResource.getId())
-				.addObjectName(integrationActivityResource.getTypeName())
-				.addProjectId(integrationActivityResource.getProjectId())
-				.addHistoryField(Optional.of(HistoryField.of(NAME, null, integrationActivityResource.getName())))
-				.get();
-	}
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.CREATE)
+        .addEventName(ActivityAction.CREATE_INTEGRATION.getValue())
+        .addPriority(EventPriority.MEDIUM)
+        .addObjectId(integrationActivityResource.getId())
+        .addObjectName(integrationActivityResource.getTypeName())
+        .addObjectType(EventObject.INTEGRATION)
+        .addProjectId(integrationActivityResource.getProjectId())
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
+        .addHistoryField(
+            Optional.of(HistoryField.of(NAME, null, integrationActivityResource.getName())))
+        .get();
+  }
 }

@@ -69,6 +69,7 @@ ext['spring-boot.version'] = '2.5.12'
 dependencyManagement {
     imports {
         mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + getProperty('bom.version') : 'com.github.reportportal:commons-bom:c34166e')
+        mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:12.9.0')
     }
 }
 
@@ -82,9 +83,9 @@ dependencies {
         compile 'com.epam.reportportal:plugin-api'
     } else {
         compile 'com.github.reportportal:commons-events:f130879'
-        compile 'com.github.reportportal:commons-dao:0fa2fc1'
+        compile 'com.github.reportportal:commons-dao:78f9d66'
         compile 'com.github.reportportal:commons-rules:5.3.0'
-        compile 'com.github.reportportal:commons-model:592a120'
+        compile 'com.github.reportportal:commons-model:f9a04f1'
         compile 'com.github.reportportal:commons:7480d61'
         compile 'com.github.reportportal:commons-fonts:10d1054'
         compile 'com.github.reportportal:plugin-api:2b30a961'
@@ -160,6 +161,13 @@ processResources {
     filesMatching('application.properties') {
         expand(project.properties)
     }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+    options.compilerArgs << "-parameters"
+    options.debug = true
+    options.debugOptions.debugLevel = "source,lines,vars"
 }
 
 dependencyCheck {

@@ -73,9 +73,9 @@ public class XunitParseJob implements Callable<ParseResults> {
 	}
 
 	public XunitParseJob withParameters(ReportPortalUser.ProjectDetails projectDetails, String launchId, ReportPortalUser user,
-			InputStream xmlInputStream) {
+			InputStream xmlInputStream, boolean skipped) {
 		this.xmlInputStream = xmlInputStream;
-		this.handler = handler.withParameters(projectDetails, launchId, user);
+		this.handler = handler.withParameters(projectDetails, launchId, user, skipped);
 		return this;
 	}
 

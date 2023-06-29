@@ -17,45 +17,53 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.IssueTypeActivityResource;
-
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.DEFECT_TYPE;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_DEFECT;
 
 /**
  * @author Andrei Varabyeu
  */
-public class DefectTypeDeletedEvent extends BeforeEvent<IssueTypeActivityResource> implements ActivityEvent {
+public class DefectTypeDeletedEvent extends BeforeEvent<IssueTypeActivityResource> implements
+    ActivityEvent {
 
-	private Long projectId;
+  private Long projectId;
 
-	public DefectTypeDeletedEvent() {
-	}
+  public DefectTypeDeletedEvent() {
+  }
 
-	public DefectTypeDeletedEvent(IssueTypeActivityResource before, Long userId, String userLogin, Long projectId) {
-		super(userId, userLogin, before);
-		this.projectId = projectId;
-	}
+  public DefectTypeDeletedEvent(IssueTypeActivityResource before, Long userId, String userLogin,
+      Long projectId) {
+    super(userId, userLogin, before);
+    this.projectId = projectId;
+  }
 
-	public Long getProjectId() {
-		return projectId;
-	}
+  public Long getProjectId() {
+    return projectId;
+  }
 
-	public void setProjectId(Long projectId) {
-		this.projectId = projectId;
-	}
+  public void setProjectId(Long projectId) {
+    this.projectId = projectId;
+  }
 
-	@Override
-	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(DELETE_DEFECT)
-				.addActivityEntityType(DEFECT_TYPE)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(getBefore().getId())
-				.addObjectName(getBefore().getLongName())
-				.addProjectId(projectId)
-				.get();
-	}
+  @Override
+  public Activity toActivity() {
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.DELETE)
+        .addEventName(ActivityAction.DELETE_DEFECT.getValue())
+        .addPriority(EventPriority.MEDIUM)
+        .addObjectId(getBefore().getId())
+        .addObjectName(getBefore().getLongName())
+        .addObjectType(EventObject.DEFECT_TYPE)
+        .addProjectId(projectId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
+        .get();
+  }
 }

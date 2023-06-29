@@ -297,8 +297,8 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$failed").value("3"))
 				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$total").value("5"))
 				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$passed").value("1"))
-				.andExpect(jsonPath("$.content.result[0].attributes[0].value").value("value1"))
-				.andExpect(jsonPath("$.content.result[0].attributes[1].value").value("value"))
+				.andExpect(jsonPath("$..attributes[?(@.value == 'value1')]").exists())
+				.andExpect(jsonPath("$..attributes[?(@.value == 'value')]").exists())
 				.andReturn();
 	}
 

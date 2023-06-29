@@ -16,39 +16,50 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processDescription;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
+
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
-
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.*;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.FILTER;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_FILTER;
 
 /**
  * @author Pavel Bortnik
  */
-public class FilterUpdatedEvent extends AroundEvent<UserFilterActivityResource> implements ActivityEvent {
+public class FilterUpdatedEvent extends AroundEvent<UserFilterActivityResource> implements
+    ActivityEvent {
 
-	public FilterUpdatedEvent() {
-	}
+  public FilterUpdatedEvent() {
+  }
 
-	public FilterUpdatedEvent(UserFilterActivityResource before, UserFilterActivityResource after, Long userId, String userLogin) {
-		super(userId, userLogin, before, after);
-	}
+  public FilterUpdatedEvent(UserFilterActivityResource before, UserFilterActivityResource after,
+      Long userId, String userLogin) {
+    super(userId, userLogin, before, after);
+  }
 
-	@Override
-	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(UPDATE_FILTER)
-				.addActivityEntityType(FILTER)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(getAfter().getId())
-				.addObjectName(getAfter().getName())
-				.addProjectId(getAfter().getProjectId())
-				.addHistoryField(processName(getBefore().getName(), getAfter().getName()))
-				.addHistoryField(processDescription(getBefore().getDescription(), getAfter().getDescription()))
-				.get();
-	}
+  @Override
+  public Activity toActivity() {
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_FILTER.getValue())
+        .addPriority(EventPriority.LOW)
+        .addObjectId(getAfter().getId())
+        .addObjectName(getAfter().getName())
+        .addObjectType(EventObject.FILTER)
+        .addProjectId(getAfter().getProjectId())
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
+        .addHistoryField(processName(getBefore().getName(), getAfter().getName()))
+        .addHistoryField(
+            processDescription(getBefore().getDescription(), getAfter().getDescription()))
+        .get();
+  }
 }

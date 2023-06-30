@@ -23,9 +23,14 @@ import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration
 
 import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
 
 public class MessageBusImpl implements MessageBus {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MessageBusImpl.class);
 
   private final AmqpTemplate amqpTemplate;
 
@@ -57,12 +62,22 @@ public class MessageBusImpl implements MessageBus {
   @Override
   public void publishActivity(ActivityEvent event) {
     final Activity activity = event.toActivity();
-    if (activity != null) {
-      String key =
-          "activity." + activity.getProjectId() + "." + activity.getObjectType() + "."
-              + activity.getEventName();
-      this.amqpTemplate.convertAndSend(EXCHANGE_ACTIVITY, key, activity);
+    if (Objects.nonNull(activity)) {
+      String key = generateKey(activity);
+
+      LOGGER.info("[audit] - {}", activity);
+
+      if (event.isSavedEvent()) {
+        this.amqpTemplate.convertAndSend(EXCHANGE_ACTIVITY, key, activity);
+      }
     }
+  }
+
+  private String generateKey(Activity activity) {
+    return String.format("activity.%d.%s.%s",
+        activity.getProjectId(),
+        activity.getObjectType(),
+        activity.getEventName());
   }
 
   @Override

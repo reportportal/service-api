@@ -48,6 +48,11 @@ class ActivityConsumerTest {
     public Activity toActivity() {
       return null;
     }
+
+    @Override
+    public boolean isSavedEvent() {
+      return false;
+    }
   }
 
   @Test
@@ -78,6 +83,11 @@ class ActivityConsumerTest {
       activity.setSubjectName(username);
       activity.setObjectId(objectId);
       return activity;
+    }
+
+    @Override
+    public boolean isSavedEvent() {
+      return true;
     }
   }
 

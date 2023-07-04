@@ -69,7 +69,7 @@ class DeleteUserHandlerImplTest {
 		when(projectRepository.findAllByUserLogin(user.getLogin())).thenReturn(Lists.newArrayList());
 		doNothing().when(dataStore).deleteUserPhoto(any());
 
-		handler.deleteUser(2L, getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L));
+		handler.deleteUser(2L, getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L));
 
 		verify(repository, times(1)).findById(2L);
 		verify(dataStore, times(1)).deleteUserPhoto(any());
@@ -96,7 +96,7 @@ class DeleteUserHandlerImplTest {
 
 		final ReportPortalException exception = assertThrows(
 				ReportPortalException.class,
-				() -> handler.deleteUser(1L, getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L))
+				() -> handler.deleteUser(1L, getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L))
 		);
 		assertEquals("Incorrect Request. You cannot delete own account", exception.getMessage());
 

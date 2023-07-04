@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static com.epam.ta.reportportal.ws.converter.converters.ExceptionConverter.TO_ERROR_RS;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -159,7 +160,6 @@ public class UserController {
   }
 
   @DeleteMapping(value = "/{id}")
-  @PreAuthorize(ALLOWED_TO_EDIT_USER)
   @ApiOperation(value = "Delete specified user", notes = "Allowable only for users with administrator role")
   public OperationCompletionRS deleteUser(@PathVariable(value = "id") Long userId,
       @AuthenticationPrincipal ReportPortalUser currentUser) {

@@ -159,7 +159,7 @@ public class UserController {
   }
 
   @DeleteMapping(value = "/{id}")
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ALLOWED_TO_EDIT_USER)
   @ApiOperation(value = "Delete specified user", notes = "Allowable only for users with administrator role")
   public OperationCompletionRS deleteUser(@PathVariable(value = "id") Long userId,
       @AuthenticationPrincipal ReportPortalUser currentUser) {

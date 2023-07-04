@@ -29,11 +29,13 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,6 +64,9 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 	private final ProjectRepository projectRepository;
 
+	@Value("${rp.environment.variable.allow-delete-account:false}")
+	private boolean isAllowToDeleteAccount;
+
 	@Autowired
 	public DeleteUserHandlerImpl(UserRepository userRepository, DeleteProjectHandler deleteProjectHandler,
 			ContentRemover<User> userContentRemover, UserBinaryDataService dataStore,
@@ -77,8 +82,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 	@Override
 	public OperationCompletionRS deleteUser(Long userId, ReportPortalUser loggedInUser) {
 		User user = userRepository.findById(userId).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
-		BusinessRule.expect(Objects.equals(userId, loggedInUser.getUserId()), Predicates.equalTo(false))
-				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
+		validateUserDeletion(userId, loggedInUser);
 
 		userContentRemover.remove(user);
 
@@ -96,4 +100,15 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
 	}
 
+	private void validateUserDeletion(Long userId, ReportPortalUser loggedInUser) {
+		BusinessRule.expect(
+						UserRole.ADMINISTRATOR.equals(loggedInUser.getUserRole()) && Objects.equals(userId,
+								loggedInUser.getUserId()), Predicates.equalTo(false))
+				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
+
+		BusinessRule.expect(
+						UserRole.ADMINISTRATOR.equals(loggedInUser.getUserRole()) || (isAllowToDeleteAccount
+								&& loggedInUser.getUserId().equals(userId)), Predicates.equalTo(true))
+				.verify(ErrorType.INCORRECT_REQUEST, "You not allowed to delete account");
+	}
 }

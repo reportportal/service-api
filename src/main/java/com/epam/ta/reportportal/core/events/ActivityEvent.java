@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.events;
 
 import com.epam.ta.reportportal.entity.activity.Activity;
-
 import java.io.Serializable;
 
 /**
@@ -25,10 +24,17 @@ import java.io.Serializable;
  */
 public interface ActivityEvent extends Event, Serializable {
 
-	/**
-	 * Converts Object to Activity to be persisted in DB
-	 *
-	 * @return Persistable representation of event
-	 */
-	Activity toActivity();
+  /**
+   * Converts Object to Activity to be persisted in DB
+   *
+   * @return Persistable representation of event
+   */
+  Activity toActivity();
+
+  /**
+   * A boolean to decide whether to save the event
+   *
+   * @return boolean
+   */
+  boolean isSavedEvent();
 }

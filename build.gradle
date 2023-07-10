@@ -81,12 +81,13 @@ dependencies {
         compile 'com.epam.reportportal:commons-fonts'
         compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-dao:43d03cd'
+        compile 'com.github.reportportal:commons-events:f130879'
+        compile 'com.github.reportportal:commons-dao:81abcf01'
         compile 'com.github.reportportal:commons-rules:5.3.0'
-        compile 'com.github.reportportal:commons-model:a046458'
+        compile 'com.github.reportportal:commons-model:292c8af2'
         compile 'com.github.reportportal:commons:7480d61'
         compile 'com.github.reportportal:commons-fonts:10d1054'
-        compile 'com.github.reportportal:plugin-api:886ac55'
+        compile 'com.github.reportportal:plugin-api:2b30a961'
     }
 
     compile 'org.springframework.boot:spring-boot-starter-aop'

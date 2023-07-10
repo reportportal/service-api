@@ -128,6 +128,9 @@ rp:
     #TODO currently we wait for log clusterization finish that may last for ~20 mins
     reply-timeout: 1200000 #milliseconds
 
+  feature:
+    flags:
+
   requestLogging: true
 
   jwt:
@@ -162,15 +165,6 @@ rp:
     temp:
       path: ${rp.plugins.rootDir}/temp
   binarystore:
-    path: /data/storage
-    minio:
-      endpoint: http://play.min.io
-      accessKey:
-      secretKey:
-      bucketPrefix: prj-
-      defaultBucketName: rp-bucket
-    # could be one of [filesystem, minio, s3]
-    type: filesystem
     thumbnail:
       attachment:
         width: 100
@@ -178,3 +172,13 @@ rp:
       avatar:
         width: 40
         height: 50
+
+datastore:
+  path: /data/storage
+  type: minio
+  endpoint: http://play.min.io
+  accessKey:
+  secretKey:
+  bucketPrefix: prj-
+  defaultBucketName: rp-bucket
+  region: us-west-1

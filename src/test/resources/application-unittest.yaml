@@ -1,7 +1,7 @@
+datastore:
+  type: filesystem
+  path: ${java.io.tmpdir}/reportportal/datastore
 rp:
-  binarystore:
-    type: filesystem
-    path: ${java.io.tmpdir}/reportportal/datastore
   plugins:
     rooDir: ${java.io.tmpdir}/reportportal/plugins
 logging:

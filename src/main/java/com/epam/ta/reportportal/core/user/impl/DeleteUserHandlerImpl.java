@@ -109,6 +109,6 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		BusinessRule.expect(
 						UserRole.ADMINISTRATOR.equals(loggedInUser.getUserRole()) || (isAllowToDeleteAccount
 								&& loggedInUser.getUserId().equals(userId)), Predicates.equalTo(true))
-				.verify(ErrorType.INCORRECT_REQUEST, "You not allowed to delete account");
+				.verify(ErrorType.INCORRECT_REQUEST, "You are not allowed to delete account");
 	}
 }

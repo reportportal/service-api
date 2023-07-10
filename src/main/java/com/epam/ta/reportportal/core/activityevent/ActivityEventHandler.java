@@ -21,8 +21,21 @@ import com.epam.ta.reportportal.ws.model.ActivityEventResource;
 import com.epam.ta.reportportal.ws.model.PagedResponse;
 import org.springframework.data.domain.Pageable;
 
+
+/**
+ * Activity Event Handler.
+ *
+ * @author Ryhor_Kukharenka
+ */
 public interface ActivityEventHandler {
 
+  /**
+   * Get ActivityEvent page representation.
+   *
+   * @param filter   Filter
+   * @param pageable Page Details
+   * @return Find activity events in page view
+   */
   PagedResponse<ActivityEventResource> getActivityEventsHistory(Queryable filter,
       Pageable pageable);
 

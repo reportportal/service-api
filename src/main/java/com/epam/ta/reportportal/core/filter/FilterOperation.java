@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * List operations for SearchCriteria
+ * List operations for SearchCriteria.
  *
  * @author Ryhor_Kukharenka
  */
@@ -42,6 +42,12 @@ public enum FilterOperation {
     this.conditionBuilder = conditionBuilder;
   }
 
+  /**
+   * Find FilterOperation by string value.
+   *
+   * @param string String value
+   * @return FilterOperation
+   */
   public static Optional<FilterOperation> fromString(String string) {
     return Optional.ofNullable(string)
         .flatMap(str -> Arrays.stream(values())

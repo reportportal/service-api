@@ -35,6 +35,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Operator;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service implementation for converting SearchCriteria to Filter.
+ *
+ * @author Ryhor_Kukharenka
+ */
 @Service
 public class SearchCriteriaServiceImpl implements SearchCriteriaService {
 

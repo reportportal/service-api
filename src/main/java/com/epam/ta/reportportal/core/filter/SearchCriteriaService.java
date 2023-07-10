@@ -21,7 +21,7 @@ import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType;
 import com.epam.ta.reportportal.ws.model.SearchCriteriaRQ;
 
 /**
- * Service for converting SearchCriteria to Filter
+ * Service for converting SearchCriteria to Filter.
  *
  * @author Ryhor_Kukharenka
  */

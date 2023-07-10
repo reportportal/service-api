@@ -43,6 +43,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Activity Event Controller.
+ *
+ * @author Ryhor_Kukharenka
+ */
 @Validated
 @RestController
 @RequestMapping("/v1/activities")
@@ -57,6 +62,17 @@ public class ActivityEventController {
     this.searchCriteriaService = searchCriteriaService;
   }
 
+  /**
+   * Get activities by search criteria.
+   *
+   * @param limit          Limit
+   * @param offset         Offset
+   * @param order          Order by
+   * @param sort           Sort by
+   * @param searchCriteria Search criteria
+   * @param user           Authorized user
+   * @return Event Activity Page
+   */
   @PreAuthorize(ADMIN_ONLY)
   @PostMapping("/searches")
   @ApiOperation("Get activities by search criteria")

@@ -32,6 +32,7 @@ apply from: "$scriptsUrl/signing.gradle"
 apply from: "$scriptsUrl/copy-database-scripts.gradle"
 //apply from: "$scriptsUrl/build-quality.gradle"
 apply from: "$scriptsUrl/jacoco.gradle"
+apply plugin: 'jacoco'
 project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
 
 repositories {
@@ -191,6 +192,19 @@ test {
     }
     reports {
         junitXml.enabled = true
+    }
+}
+
+jacocoTestReport {
+    doFirst {
+        classDirectories.setFrom(
+                classDirectories.files.collect {
+                    fileTree(dir: it, exclude: [
+                            'com/epam/ta/reportportal/core/events/AnalysisEvent.class',
+                            'com/epam/ta/reportportal/auth/acl/ReportPortalAclAuthorizationStrategyImpl.class'
+                    ])
+                }
+        )
     }
 }
 

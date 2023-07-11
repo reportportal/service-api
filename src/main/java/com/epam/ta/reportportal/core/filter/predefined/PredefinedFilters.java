@@ -15,9 +15,11 @@
  */
 package com.epam.ta.reportportal.core.filter.predefined;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ACTION;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_EVENT_NAME;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_TYPE;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_SUBJECT_NAME;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_SUBJECT_TYPE;
 import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ORGANIZATION;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_ISSUE_TYPE;
@@ -118,11 +120,15 @@ public final class PredefinedFilters {
         public Queryable build(String[] params) {
           return Filter.builder().withTarget(Activity.class)
               .withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0],
-                  CRITERIA_ACTION))
+                  CRITERIA_EVENT_NAME))
+              .withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0],
+                  CRITERIA_SUBJECT_TYPE))
               .withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0],
                   CRITERIA_SUBJECT_NAME))
               .withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0],
                   CRITERIA_OBJECT_TYPE))
+              .withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0],
+                  CRITERIA_OBJECT_NAME))
               .build();
 
         }

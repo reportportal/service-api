@@ -11,7 +11,7 @@ RUN if [ ${RELEASE_MODE} = true ]; then \
         -Pmigrations.version=${MIGRATION_VERSION} \
         -Pbom.version=${BOM_VERSION} \
         -Dorg.gradle.project.version=${APP_VERSION}; \
-    else gradle build --exclude-task test; fi
+    else gradle build --exclude-task test -Dorg.gradle.project.version=${APP_VERSION}; fi
 
 # For ARM build use flag: `--platform linux/arm64`
 FROM --platform=$BUILDPLATFORM amazoncorretto:11.0.19

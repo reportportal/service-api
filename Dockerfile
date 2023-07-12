@@ -1,5 +1,5 @@
 FROM gradle:6.8.3-jdk11 AS build
-ARG BOM_VERSION MIGRATION_VERSION GITHUB_USER GITHUB_TOKEN RELEASE_MODE APP_VERSION SCRIPTS_VERSION
+ARG BOM_VERSION MIGRATION_VERSION GITHUB_USER GITHUB_TOKEN RELEASE_MODE SCRIPTS_VERSION APP_VERSION
 WORKDIR /usr/app
 COPY . /usr/app
 RUN if [ ${RELEASE_MODE} = true ]; then \
@@ -19,7 +19,7 @@ LABEL version=${APP_VERSION} description="EPAM Report portal. Main API Service" 
 ARG APP_VERSION=${APP_VERSION}
 ENV APP_DIR=/usr/app JAVA_OPTS="-Xmx1g -XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=70 -Djava.security.egd=file:/dev/./urandom"
 WORKDIR $APP_DIR
-COPY --from=build $APP_DIR/build/libs/*-exec.jar .
+COPY --from=build $APP_DIR/build/libs/service-api-*exec.jar .
 VOLUME ["/tmp"]
 EXPOSE 8080
-ENTRYPOINT exec java ${JAVA_OPTS} -jar ${APP_DIR}/*-exec.jar
+ENTRYPOINT exec java ${JAVA_OPTS} -jar ${APP_DIR}/service-api-*exec.jar

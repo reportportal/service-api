@@ -16,11 +16,10 @@ RUN if [ ${RELEASE_MODE} = true ]; then \
 # For ARM build use flag: `--platform linux/arm64`
 FROM --platform=$BUILDPLATFORM amazoncorretto:11.0.19
 LABEL version=${APP_VERSION} description="EPAM Report portal. Main API Service" maintainer="Andrei Varabyeu <andrei_varabyeu@epam.com>, Hleb Kanonik <hleb_kanonik@epam.com>"
-# develop is default version from gradle.properties
-ARG APP_VERSION=develop
-ENV APP_DIR=/usr/app APP_VERSION=${APP_VERSION} JAVA_OPTS="-Xmx1g -XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=70 -Djava.security.egd=file:/dev/./urandom"
+ARG APP_VERSION=${APP_VERSION}
+ENV APP_DIR=/usr/app JAVA_OPTS="-Xmx1g -XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=70 -Djava.security.egd=file:/dev/./urandom"
 WORKDIR $APP_DIR
-COPY --from=build $APP_DIR/build/libs/*exec.jar .
+COPY --from=build $APP_DIR/build/libs/*-exec.jar .
 VOLUME ["/tmp"]
 EXPOSE 8080
-ENTRYPOINT exec java ${JAVA_OPTS} -jar ${APP_DIR}/service-api-${APP_VERSION}-exec.jar
+ENTRYPOINT exec java ${JAVA_OPTS} -jar ${APP_DIR}/*-exec.jar

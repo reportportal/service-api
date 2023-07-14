@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
+import static com.epam.ta.reportportal.ws.converter.converters.ExceptionConverter.TO_ERROR_RS;
+
 import com.epam.ta.reportportal.binary.UserBinaryDataService;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -31,16 +33,22 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.email.EmailService;
+import com.epam.ta.reportportal.util.email.MailServiceFactory;
+import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Delete user handler
@@ -52,63 +60,107 @@ import java.util.Objects;
 @Transactional
 public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
-	private final UserBinaryDataService dataStore;
+  private static final Logger LOGGER = LoggerFactory.getLogger(DeleteUserHandlerImpl.class);
 
-	private final UserRepository userRepository;
+  private final UserBinaryDataService dataStore;
 
-	private final DeleteProjectHandler deleteProjectHandler;
+  private final UserRepository userRepository;
 
-	private final ContentRemover<User> userContentRemover;
+  private final DeleteProjectHandler deleteProjectHandler;
 
-	private final ProjectRecipientHandler projectRecipientHandler;
+  private final ContentRemover<User> userContentRemover;
 
-	private final ProjectRepository projectRepository;
+  private final ProjectRecipientHandler projectRecipientHandler;
 
-	@Value("${rp.environment.variable.allow-delete-account:false}")
-	private boolean isAllowToDeleteAccount;
+  private final ProjectRepository projectRepository;
 
-	@Autowired
-	public DeleteUserHandlerImpl(UserRepository userRepository, DeleteProjectHandler deleteProjectHandler,
-			ContentRemover<User> userContentRemover, UserBinaryDataService dataStore,
-			ProjectRecipientHandler projectRecipientHandler, ProjectRepository projectRepository) {
-		this.userRepository = userRepository;
-		this.deleteProjectHandler = deleteProjectHandler;
-		this.dataStore = dataStore;
-		this.userContentRemover = userContentRemover;
-		this.projectRecipientHandler = projectRecipientHandler;
-		this.projectRepository = projectRepository;
-	}
+  private final MailServiceFactory emailServiceFactory;
 
-	@Override
-	public OperationCompletionRS deleteUser(Long userId, ReportPortalUser loggedInUser) {
-		User user = userRepository.findById(userId).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
-		validateUserDeletion(userId, loggedInUser);
+  @Value("${rp.environment.variable.allow-delete-account:false}")
+  private boolean isAllowToDeleteAccount;
 
-		userContentRemover.remove(user);
+  @Autowired
+  public DeleteUserHandlerImpl(UserRepository userRepository,
+      DeleteProjectHandler deleteProjectHandler,
+      ContentRemover<User> userContentRemover, UserBinaryDataService dataStore,
+      ProjectRecipientHandler projectRecipientHandler, ProjectRepository projectRepository,
+      MailServiceFactory emailServiceFactory) {
+    this.userRepository = userRepository;
+    this.deleteProjectHandler = deleteProjectHandler;
+    this.dataStore = dataStore;
+    this.userContentRemover = userContentRemover;
+    this.projectRecipientHandler = projectRecipientHandler;
+    this.projectRepository = projectRepository;
+    this.emailServiceFactory = emailServiceFactory;
+  }
 
-		List<Project> userProjects = projectRepository.findAllByUserLogin(user.getLogin());
-		userProjects.forEach(project -> {
-			if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(), user.getLogin())) {
-				deleteProjectHandler.deleteProject(project.getId());
-			} else {
-				projectRecipientHandler.handle(Lists.newArrayList(user), project);
-			}
-		});
+  @Override
+  @Transactional
+  public OperationCompletionRS deleteUser(Long userId, ReportPortalUser loggedInUser) {
+    deleteUserWithAssociatedData(userId, loggedInUser);
 
-		dataStore.deleteUserPhoto(user);
-		userRepository.delete(user);
-		return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
-	}
+    sendEmailAboutDeletion(loggedInUser);
 
-	private void validateUserDeletion(Long userId, ReportPortalUser loggedInUser) {
-		BusinessRule.expect(
-						UserRole.ADMINISTRATOR.equals(loggedInUser.getUserRole()) && Objects.equals(userId,
-								loggedInUser.getUserId()), Predicates.equalTo(false))
-				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
+    return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
+  }
 
-		BusinessRule.expect(
-						UserRole.ADMINISTRATOR.equals(loggedInUser.getUserRole()) || (isAllowToDeleteAccount
-								&& loggedInUser.getUserId().equals(userId)), Predicates.equalTo(true))
-				.verify(ErrorType.INCORRECT_REQUEST, "You are not allowed to delete account");
-	}
+  private void deleteUserWithAssociatedData(Long userId, ReportPortalUser loggedInUser) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
+    validateUserDeletion(userId, loggedInUser);
+
+    userContentRemover.remove(user);
+
+    List<Project> userProjects = projectRepository.findAllByUserLogin(user.getLogin());
+    userProjects.forEach(project -> {
+      if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(),
+          user.getLogin())) {
+        deleteProjectHandler.deleteProject(project.getId());
+      } else {
+        projectRecipientHandler.handle(Lists.newArrayList(user), project);
+      }
+    });
+
+    dataStore.deleteUserPhoto(user);
+    userRepository.delete(user);
+  }
+
+  private void sendEmailAboutDeletion(ReportPortalUser loggedInUser) {
+    try {
+      EmailService defaultEmailService = emailServiceFactory.getDefaultEmailService(true);
+      defaultEmailService.sendDeletionNotification(loggedInUser.getEmail());
+    } catch (Exception e) {
+      LOGGER.warn("Unable to send email.", e);
+    }
+  }
+
+  @Override
+  @Transactional
+  public DeleteBulkRS deleteUsers(List<Long> ids, ReportPortalUser currentUser) {
+    List<ReportPortalException> exceptions = Lists.newArrayList();
+    List<Long> deleted = Lists.newArrayList();
+    ids.forEach(userId -> {
+      try {
+        deleteUserWithAssociatedData(userId, currentUser);
+        deleted.add(userId);
+      } catch (ReportPortalException rp) {
+        exceptions.add(rp);
+      }
+    });
+    return new DeleteBulkRS(deleted, Collections.emptyList(),
+        exceptions.stream().map(TO_ERROR_RS).collect(Collectors.toList())
+    );
+  }
+
+  private void validateUserDeletion(Long userId, ReportPortalUser loggedInUser) {
+    BusinessRule.expect(
+            UserRole.ADMINISTRATOR.equals(loggedInUser.getUserRole()) && Objects.equals(userId,
+                loggedInUser.getUserId()), Predicates.equalTo(false))
+        .verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
+
+    BusinessRule.expect(
+            UserRole.ADMINISTRATOR.equals(loggedInUser.getUserRole()) || (isAllowToDeleteAccount
+                && loggedInUser.getUserId().equals(userId)), Predicates.equalTo(true))
+        .verify(ErrorType.INCORRECT_REQUEST, "You are not allowed to delete account");
+  }
 }

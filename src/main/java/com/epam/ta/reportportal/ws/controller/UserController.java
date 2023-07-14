@@ -18,9 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
-import static com.epam.ta.reportportal.ws.converter.converters.ExceptionConverter.TO_ERROR_RS;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -63,15 +61,11 @@ import com.epam.ta.reportportal.ws.resolver.ActiveRole;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.ResponseView;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
-import com.google.common.collect.Lists;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -160,7 +154,7 @@ public class UserController {
   }
 
   @DeleteMapping(value = "/{id}")
-  @ApiOperation(value = "Delete specified user", notes = "Allowable only for users with administrator role")
+  @ApiOperation(value = "Delete specified user", notes = "allowable only for users with administrator role")
   public OperationCompletionRS deleteUser(@PathVariable(value = "id") Long userId,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
     return deleteUserHandler.deleteUser(userId, currentUser);
@@ -172,19 +166,7 @@ public class UserController {
   @ApiOperation("Delete specified users by ids")
   public DeleteBulkRS deleteUsers(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
-    List<ReportPortalException> exceptions = Lists.newArrayList();
-    List<Long> deleted = Lists.newArrayList();
-    deleteBulkRQ.getIds().forEach(userId -> {
-      try {
-        deleteUserHandler.deleteUser(userId, user);
-        deleted.add(userId);
-      } catch (ReportPortalException rp) {
-        exceptions.add(rp);
-      }
-    });
-    return new DeleteBulkRS(deleted, Collections.emptyList(),
-        exceptions.stream().map(TO_ERROR_RS).collect(Collectors.toList())
-    );
+    return deleteUserHandler.deleteUsers(deleteBulkRQ.getIds(), user);
   }
 
   @Transactional
@@ -208,7 +190,7 @@ public class UserController {
   }
 
   @Transactional(readOnly = true)
-  @GetMapping(value = { "", "/" })
+  @GetMapping(value = {"", "/"})
   @ApiOperation("Return information about current logged-in user")
   public UserResource getMyself(@AuthenticationPrincipal ReportPortalUser currentUser) {
     return getUserHandler.getUser(currentUser);

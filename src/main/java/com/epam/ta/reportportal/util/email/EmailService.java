@@ -404,7 +404,7 @@ public class EmailService extends JavaMailSenderImpl {
       setFrom(message);
 
       Map<String, Object> data = Collections.emptyMap();
-      String text = templateEngine.merge("delete-user-template.ftl", data);
+      String text = templateEngine.merge("delete-account-template.ftl", data);
       message.setText(text, true);
 
       message.addInline("logo.png", emailTemplateResource("logo.png"));

@@ -154,7 +154,7 @@ public class UserController {
   }
 
   @DeleteMapping(value = "/{id}")
-  @ApiOperation(value = "Delete specified user", notes = "allowable only for users with administrator role")
+  @ApiOperation(value = "Delete specified user")
   public OperationCompletionRS deleteUser(@PathVariable(value = "id") Long userId,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
     return deleteUserHandler.deleteUser(userId, currentUser);

@@ -81,6 +81,7 @@
         cellspacing="0"
         cellpadding="0"
         align="center"
+        style="border-collapse: collapse"
       >
         <tbody>
           <tr>
@@ -91,6 +92,7 @@
                 cellspacing="0"
                 cellpadding="0"
                 bgcolor="#f4fbfb"
+                style="border-collapse: collapse"
               >
                 <tbody>
                   <tr>
@@ -106,7 +108,14 @@
                   <tr>
                     <td
                       align="center"
-                      style="padding-top: 37px; padding-bottom: 38px"
+                      style="
+                        padding-top: 37px;
+                        padding-bottom: 38px;
+                        border-top-width: 0;
+                        border-bottom-width: 0;
+                        border-right-width: 0;
+                        border-left-width: 0;
+                      "
                     >
                       <img
                         src="cid:deleted-account.png"
@@ -131,7 +140,9 @@
             >
               <table width="100%" border="0" cellspacing="0" cellpadding="0">
                 <thead>
-                  <h1 class="heading">Your account has been deleted</h1>
+                  <th>
+                    <h1 class="heading">Your account has been deleted</h1>
+                  </th>
                 </thead>
                 <tbody>
                   <tr>

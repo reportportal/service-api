@@ -33,7 +33,6 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -47,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,6 +75,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
   private final ProjectRepository projectRepository;
 
   private final MailServiceFactory emailServiceFactory;
+  private final ThreadPoolTaskExecutor emailExecutorService;
 
   @Value("${rp.environment.variable.allow-delete-account:false}")
   private boolean isAllowToDeleteAccount;
@@ -84,7 +85,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
       DeleteProjectHandler deleteProjectHandler,
       ContentRemover<User> userContentRemover, UserBinaryDataService dataStore,
       ProjectRecipientHandler projectRecipientHandler, ProjectRepository projectRepository,
-      MailServiceFactory emailServiceFactory) {
+      MailServiceFactory emailServiceFactory, ThreadPoolTaskExecutor emailExecutorService) {
     this.userRepository = userRepository;
     this.deleteProjectHandler = deleteProjectHandler;
     this.dataStore = dataStore;
@@ -92,6 +93,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
     this.projectRecipientHandler = projectRecipientHandler;
     this.projectRepository = projectRepository;
     this.emailServiceFactory = emailServiceFactory;
+    this.emailExecutorService = emailExecutorService;
   }
 
   @Override
@@ -127,8 +129,8 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
   private void sendEmailAboutDeletion(ReportPortalUser loggedInUser) {
     try {
-      EmailService defaultEmailService = emailServiceFactory.getDefaultEmailService(true);
-      defaultEmailService.sendDeletionNotification(loggedInUser.getEmail());
+      emailExecutorService.execute(() -> emailServiceFactory.getDefaultEmailService(true)
+          .sendDeletionNotification(loggedInUser.getEmail()));
     } catch (Exception e) {
       LOGGER.warn("Unable to send email.", e);
     }

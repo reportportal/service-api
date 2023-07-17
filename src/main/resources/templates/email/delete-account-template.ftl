@@ -106,7 +106,12 @@
                   <tr>
                     <td
                       align="center"
-                      style="padding-top: 37px; padding-bottom: 38px"
+                      style="
+                        padding-top: 37px;
+                        padding-bottom: 38px;
+                        background-color: rgb(244, 251, 251);
+                        border-spacing: 0;
+                      "
                     >
                       <img
                         src="cid:deleted-account.png"
@@ -131,7 +136,9 @@
             >
               <table width="100%" border="0" cellspacing="0" cellpadding="0">
                 <thead>
-                  <h1 class="heading">Your account has been deleted</h1>
+                  <th>
+                    <h1 class="heading">Your account has been deleted</h1>
+                  </th>
                 </thead>
                 <tbody>
                   <tr>

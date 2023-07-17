@@ -81,7 +81,6 @@
         cellspacing="0"
         cellpadding="0"
         align="center"
-        style="border-collapse: collapse"
       >
         <tbody>
           <tr>
@@ -92,7 +91,6 @@
                 cellspacing="0"
                 cellpadding="0"
                 bgcolor="#f4fbfb"
-                style="border-collapse: collapse"
               >
                 <tbody>
                   <tr>
@@ -111,10 +109,8 @@
                       style="
                         padding-top: 37px;
                         padding-bottom: 38px;
-                        border-top-width: 0;
-                        border-bottom-width: 0;
-                        border-right-width: 0;
-                        border-left-width: 0;
+                        background-color: rgb(244, 251, 251);
+                        border-spacing: 0;
                       "
                     >
                       <img

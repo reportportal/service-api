@@ -96,6 +96,9 @@ public class FlushingDataJob implements Job {
   @Value("${datastore.bucketPrefix}")
   private String bucketPrefix;
 
+  @Value("${datastore.bucketPostfix}")
+  private String bucketPostfix;
+
   @Value("${datastore.defaultBucketName")
   private String defaultBucketName;
 
@@ -183,7 +186,7 @@ public class FlushingDataJob implements Job {
     issueTypeRepository.deleteAll(issueTypesToRemove);
     if (!featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
       try {
-        blobStore.deleteContainer(bucketPrefix + project.getId());
+        blobStore.deleteContainer(bucketPrefix + project.getId() + bucketPostfix);
       } catch (Exception e) {
         LOGGER.warn("Cannot delete attachments bucket " + bucketPrefix + project.getId());
       }

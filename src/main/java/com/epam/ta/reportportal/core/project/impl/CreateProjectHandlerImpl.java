@@ -48,8 +48,6 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Pavel Bortnik
@@ -135,7 +133,6 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public Project createPersonal(User user) {
 		//TODO refactor personal project generation to not add user inside method (cannot be done now, because DAO dependency may affect other services)
 		final Project personalProject = personalProjectService.generatePersonalProject(user);

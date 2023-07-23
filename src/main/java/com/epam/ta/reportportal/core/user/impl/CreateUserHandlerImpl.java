@@ -38,7 +38,6 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.USER_NOT_FOUND;
 import com.epam.ta.reportportal.auth.authenticator.UserAuthenticator;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.project.CreateProjectHandler;
@@ -83,6 +82,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -106,8 +106,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
   private final RestorePasswordBidRepository restorePasswordBidRepository;
 
-  private final MessageBus messageBus;
-
   private final CreateProjectHandler createProjectHandler;
   private final GetProjectHandler getProjectHandler;
 
@@ -118,16 +116,17 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   private final ThreadPoolTaskExecutor emailExecutorService;
 
   private final PasswordEncoder passwordEncoder;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Autowired
   public CreateUserHandlerImpl(PasswordEncoder passwordEncoder, UserRepository userRepository,
       UserAuthenticator userAuthenticator,
       MailServiceFactory emailServiceFactory, UserCreationBidRepository userCreationBidRepository,
-      RestorePasswordBidRepository restorePasswordBidRepository, MessageBus messageBus,
+      RestorePasswordBidRepository restorePasswordBidRepository,
       CreateProjectHandler createProjectHandler,
       GetProjectHandler getProjectHandler, ProjectUserHandler projectUserHandler,
       GetIntegrationHandler getIntegrationHandler,
-      ThreadPoolTaskExecutor emailExecutorService) {
+      ThreadPoolTaskExecutor emailExecutorService, ApplicationEventPublisher eventPublisher) {
     this.passwordEncoder = passwordEncoder;
     this.userRepository = userRepository;
     this.createProjectHandler = createProjectHandler;
@@ -136,10 +135,10 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     this.emailServiceFactory = emailServiceFactory;
     this.userCreationBidRepository = userCreationBidRepository;
     this.restorePasswordBidRepository = restorePasswordBidRepository;
-    this.messageBus = messageBus;
     this.getProjectHandler = getProjectHandler;
     this.getIntegrationHandler = getIntegrationHandler;
     this.emailExecutorService = emailExecutorService;
+    this.eventPublisher = eventPublisher;
   }
 
   @Override
@@ -222,7 +221,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
       UserActivityResource userActivityResource = getUserActivityResource(user);
       UserCreatedEvent userCreatedEvent = new UserCreatedEvent(userActivityResource,
           creator.getId(), creator.getLogin());
-      messageBus.publishActivity(userCreatedEvent);
+      eventPublisher.publishEvent(userCreatedEvent);
     } catch (PersistenceException pe) {
       if (pe.getCause() instanceof ConstraintViolationException) {
         fail().withError(RESOURCE_ALREADY_EXISTS,

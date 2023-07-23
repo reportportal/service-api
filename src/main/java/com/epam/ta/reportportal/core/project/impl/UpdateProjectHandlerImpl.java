@@ -388,7 +388,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
         convertUserToResource(userForUnassign, projectUser),
         authorizedUser.getUserId(),
         authorizedUser.getUsername());
-    messageBus.publishActivity(unassignUserEvent);
+    applicationEventPublisher.publishEvent(unassignUserEvent);
 
     return projectUser;
   }
@@ -420,7 +420,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
         convertUserToResource(modifyingUser, projectUser),
         authorizedUser.getUserId(),
         authorizedUser.getUsername());
-    messageBus.publishActivity(assignUserEvent);
+    applicationEventPublisher.publishEvent(assignUserEvent);
   }
 
   private void validateUnassigningUser(User modifier, User userForUnassign, Long projectId,

@@ -50,6 +50,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.indexer.IndexerStatusCache;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.AssignUserEvent;
+import com.epam.ta.reportportal.core.events.activity.ChangeRoleEvent;
 import com.epam.ta.reportportal.core.events.activity.NotificationsConfigUpdatedEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectAnalyzerConfigEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
@@ -476,9 +477,23 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
                 ErrorType.ACCESS_DENIED);
           }
         }
+        String oldRole = updatingProjectUser.get().getProjectRole().getRoleName();
         updatingProjectUser.get().setProjectRole(newProjectRole.get());
+        String newRole = updatingProjectUser.get().getProjectRole().getRoleName();
+
+        ChangeRoleEvent changeRoleEvent = getChangeRoleEvent(updatingProjectUser.get().getUser(),
+            project, user, oldRole, newRole);
+        applicationEventPublisher.publishEvent(changeRoleEvent);
       });
     }
+  }
+
+  private ChangeRoleEvent getChangeRoleEvent(User updatingUser, Project project,
+      ReportPortalUser loggedUser, String oldRole, String newRole) {
+    UserActivityResource userActivityResource = new UserActivityResource(updatingUser.getId(),
+        project.getId(), updatingUser.getLogin());
+    return new ChangeRoleEvent(userActivityResource, oldRole, newRole, loggedUser.getUserId(),
+        loggedUser.getUsername());
   }
 
   private void updateProjectConfiguration(ProjectConfigurationUpdate configuration,

@@ -180,5 +180,6 @@ datastore:
   accessKey:
   secretKey:
   bucketPrefix: prj-
+  bucketPostfix:
   defaultBucketName: rp-bucket
   region: us-west-1

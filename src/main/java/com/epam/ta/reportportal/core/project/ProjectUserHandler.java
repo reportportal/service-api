@@ -7,5 +7,5 @@ import com.epam.ta.reportportal.entity.user.User;
 
 public interface ProjectUserHandler {
 
-	ProjectUser assign(User user, Project project, ProjectRole projectRole);
+  ProjectUser assign(User user, Project project, ProjectRole projectRole, User creator);
 }

@@ -88,8 +88,11 @@ public class FlushingDataJob implements Job {
   @Autowired
   private PasswordEncoder passwordEncoder;
 
-  @Value("${datastore.minio.bucketPrefix}")
+  @Value("${datastore.bucketPrefix}")
   private String bucketPrefix;
+
+  @Value("${datastore.bucketPostfix}")
+  private String bucketPostfix;
 
   @Override
   @Transactional(isolation = Isolation.READ_UNCOMMITTED)
@@ -166,10 +169,11 @@ public class FlushingDataJob implements Job {
     projectRepository.delete(project);
     analyzerServiceClient.removeSuggest(project.getId());
     issueTypeRepository.deleteAll(issueTypesToRemove);
+    String bucketName = bucketPrefix + project.getId() + bucketPostfix;
     try {
-      blobStore.deleteContainer(bucketPrefix + project.getId());
+      blobStore.deleteContainer(bucketName);
     } catch (Exception e) {
-      LOGGER.warn("Cannot delete attachments bucket " + bucketPrefix + project.getId());
+      LOGGER.warn("Cannot delete attachments bucket " + bucketName);
     }
     logIndexer.deleteIndex(project.getId());
     projectRepository.flush();

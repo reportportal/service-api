@@ -99,7 +99,6 @@ public class MessageBusImplTest {
   public void whenPublishActivity_andActivityIsNotNull_andSavedEvent_thenCallConvertAndSend() {
     ActivityEvent activityEvent = mock(ActivityEvent.class);
     when(activityEvent.toActivity()).thenReturn(activity);
-    when(activityEvent.isSavedEvent()).thenReturn(true);
     messageBus.publishActivity(activityEvent);
 
     verify(amqpTemplate).convertAndSend(EXCHANGE_ACTIVITY, activityKey, activity);

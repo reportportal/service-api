@@ -31,10 +31,4 @@ public interface ActivityEvent extends Event, Serializable {
    */
   Activity toActivity();
 
-  /**
-   * A boolean to decide whether to save the event
-   *
-   * @return boolean
-   */
-  boolean isSavedEvent();
 }

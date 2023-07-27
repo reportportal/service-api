@@ -84,7 +84,7 @@ dependencies {
         compile 'com.epam.reportportal:plugin-api'
     } else {
         compile 'com.github.reportportal:commons-events:f130879'
-        compile 'com.github.reportportal:commons-dao:5c8efca'
+        compile 'com.github.reportportal:commons-dao:156c247'
         compile 'com.github.reportportal:commons-rules:5.3.0'
         compile 'com.github.reportportal:commons-model:8d35b8a'
         compile 'com.github.reportportal:commons:7480d61'

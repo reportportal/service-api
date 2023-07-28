@@ -2,17 +2,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <!-- [if mso ]>
+    <xml
+      ><o:OfficeDocumentSettings
+        ><o:PixelsPerInch>96</o:PixelsPerInch
+        ><o:AllowSVG /></o:OfficeDocumentSettings
+    ></xml>
+    <![endif] -->
     <link
       href="http://fonts.googleapis.com/css?family=Roboto:wght@100;400;500;&display=swap"
       rel="stylesheet"
       type="text/css"
     />
-    <!--[if mso
-      ]><xml
-        ><o:OfficeDocumentSettings
-          ><o:PixelsPerInch>96</o:PixelsPerInch
-          ><o:AllowSVG /></o:OfficeDocumentSettings></xml
-    ><![endif]-->
     <style>
       .heading {
         font-family: Arial, Helvetica, sans-serif;
@@ -23,6 +24,7 @@
         font-style: normal;
         font-weight: 700;
         line-height: 48px;
+        text-align: left;
       }
 
       .main-content {
@@ -120,8 +122,8 @@
                       "
                     >
                       <img
-                        src="cid:deleted-account.svg"
-                        alt="Deleted account img"
+                        src="cid:delete-accaunt-notification.svg"
+                        alt="Calendar"
                       />
                     </td>
                   </tr>
@@ -136,49 +138,51 @@
                 padding-left: 50px;
                 padding-right: 50px;
                 padding-bottom: 40px;
-                padding-top: 38px;
+                padding-top: 32px;
                 background-color: #ffffff;
               "
             >
               <table width="100%" border="0" cellspacing="0" cellpadding="0">
                 <thead>
                   <th>
-                    <h1 class="heading">Your account has been deleted</h1>
+                    <h1 class="heading">
+                      Your account will be <br />
+                      deleted soon
+                    </h1>
                   </th>
                 </thead>
                 <tbody>
                   <tr>
                     <td style="padding-bottom: 12px; padding-top: 24px">
                       <p class="main-content">
-                        This email is to confirm that your account and personal
-                        data have been successfully deleted from ReportPortal
-                        database. We're sorry to see you go, and we hope you had
-                        a positive experience using our app.
+                        We are writing to inform you that according to our data
+                        retention procedure your account and all your personal
+                        data (your account name, email and photo) will be
+                        deleted from ReportPortal database in
+                        <b>${remainingTime}</b>. As it has already been inactive
+                        for the past <b>${inactivityPeriod}</b>.
                       </p>
                     </td>
                   </tr>
                   <tr>
                     <td style="padding-bottom: 12px">
                       <p class="main-content">
-                        Please note that any data that you have reported to
-                        ReportPortal or created there will remain in the app.
+                        If you would like to keep your account, please log in to
+                        our platform before <b>${deadlineDate}</b> and your
+                        account will not be deleted. If you do not log in before
+                        this date, your account and all associated data will be
+                        erased from our platform, while all the previously
+                        reported and created in ReportPortal data (launches,
+                        filters, widgets, dashboards, etc) will remain in the
+                        app.
                       </p>
                     </td>
                   </tr>
                   <tr>
                     <td style="padding-bottom: 12px">
                       <p class="main-content">
-                        If you haven't deleted your account or if you have any
-                        questions or concerns, please contact our support team
-                        for assistance.
-                      </p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding-bottom: 12px">
-                      <p class="main-content">
-                        Thank you for your time and we wish you all the best in
-                        your future testing endeavors.
+                        If you have any questions or concerns about this
+                        process, please contact our support team for assistance.
                       </p>
                     </td>
                   </tr>
@@ -187,6 +191,52 @@
                       <p class="main-content">
                         Best regards,<br />ReportPortal team
                       </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding-top: 24px">
+                      <div align="left">
+                        <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${href}" style="height:40px;width:140px;v-text-anchor:middle;" arcsize="7%" stroke="false" fillcolor="#1fb2c6"><w:anchorlock/><v:textbox inset="0px,1px,0px,0px"><center style="color:#ffffff; font-family:Arial, sans-serif; font-size:16px"><!
+                        [endif]--><a
+                          href="${href}"
+                          target="_blank"
+                          style="
+                            text-decoration: none;
+                            display: block;
+                            color: #ffffff;
+                            background-color: #1fb2c6;
+                            border-radius: 3px;
+                            width: 140px;
+                            border-top: 0px solid transparent;
+                            font-weight: 700;
+                            border-right: 0px solid transparent;
+                            border-bottom: 0px solid transparent;
+                            border-left: 0px solid transparent;
+                            padding-top: 4px;
+                            padding-bottom: 4px;
+                            font-family: Arial, 'Helvetica Neue', Helvetica,
+                              sans-serif;
+                            font-size: 16px;
+                            text-align: center;
+                            mso-border-alt: none;
+                            word-break: keep-all;
+                          "
+                          ><span
+                            style="
+                              padding-left: 30px;
+                              padding-right: 30px;
+                              font-size: 16px;
+                              display: inline-block;
+                              letter-spacing: normal;
+                            "
+                            ><span
+                              style="word-break: break-word; line-height: 32px"
+                              >Log In</span
+                            ></span
+                          ></a
+                        >
+                        <!--[if mso]></center></v:textbox></v:roundrect><![endif]-->
+                      </div>
                     </td>
                   </tr>
                 </tbody>

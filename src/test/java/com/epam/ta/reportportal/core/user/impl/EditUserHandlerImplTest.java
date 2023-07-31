@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
+import com.epam.ta.reportportal.core.events.activity.ChangeUserTypeEvent;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -30,6 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -38,6 +40,11 @@ import java.util.Optional;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -54,6 +61,9 @@ class EditUserHandlerImplTest {
 
 	@Mock
 	private PasswordEncoder passwordEncoder;
+
+	@Mock
+	private ApplicationEventPublisher eventPublisher;
 
 	@InjectMocks
 	private EditUserHandlerImpl handler;
@@ -161,6 +171,23 @@ class EditUserHandlerImplTest {
 		assertEquals("Error in handled Request. Please, check specified parameters: 'Incorrect specified Account Role parameter.'",
 				exception.getMessage()
 		);
+	}
+
+	@Test
+	void verifyChangeTypePublishOnEdit() {
+		//given
+		User user = new User();
+		user.setLogin("test");
+		when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
+		doNothing().when(eventPublisher).publishEvent(isA(ChangeUserTypeEvent.class));
+		final EditUserRQ editUserRQ = new EditUserRQ();
+		editUserRQ.setRole(UserRole.ADMINISTRATOR.name());
+
+		//when
+		handler.editUser("test", editUserRQ, getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.MEMBER, 1L));
+
+		//then
+		verify(eventPublisher, times(1)).publishEvent(isA(ChangeUserTypeEvent.class));
 	}
 
 	@Test

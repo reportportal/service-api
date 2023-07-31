@@ -110,12 +110,12 @@ public class EditUserHandlerImpl implements EditUserHandler {
   }
 
   @Override
-  public OperationCompletionRS editUser(String username, EditUserRQ editUserRQ,
+  public OperationCompletionRS editUser(String username, EditUserRQ editUserRq,
       ReportPortalUser editor) {
     User user = userRepository.findByLogin(username)
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
 
-    if (null != editUserRQ.getRole()) {
+    if (null != editUserRq.getRole()) {
 
       BusinessRule.expect(editor.getUserRole(), equalTo(UserRole.ADMINISTRATOR))
           .verify(ACCESS_DENIED, "Current Account Role can't update roles.");
@@ -123,7 +123,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
       BusinessRule.expect(user, u -> !u.getLogin().equalsIgnoreCase(editor.getUsername()))
           .verify(ErrorType.ACCESS_DENIED, "You cannot update your role.");
 
-      UserRole newRole = UserRole.findByName(editUserRQ.getRole())
+      UserRole newRole = UserRole.findByName(editUserRq.getRole())
           .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
               "Incorrect specified Account Role parameter."));
 
@@ -131,8 +131,8 @@ public class EditUserHandlerImpl implements EditUserHandler {
       publishChangeUserTypeEvent(user, editor, newRole);
     }
 
-    if (null != editUserRQ.getEmail() && !editUserRQ.getEmail().equals(user.getEmail())) {
-      String updEmail = editUserRQ.getEmail().toLowerCase().trim();
+    if (null != editUserRq.getEmail() && !editUserRq.getEmail().equals(user.getEmail())) {
+      String updEmail = editUserRq.getEmail().toLowerCase().trim();
       expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED,
           "Unable to change email for external user");
       expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR,
@@ -152,10 +152,10 @@ public class EditUserHandlerImpl implements EditUserHandler {
       }
     }
 
-    if (null != editUserRQ.getFullName()) {
+    if (null != editUserRq.getFullName()) {
       expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED,
           "Unable to change full name for external user");
-      user.setFullName(editUserRQ.getFullName());
+      user.setFullName(editUserRq.getFullName());
     }
 
     try {

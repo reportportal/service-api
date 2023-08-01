@@ -127,8 +127,8 @@ public class EditUserHandlerImpl implements EditUserHandler {
           .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
               "Incorrect specified Account Role parameter."));
 
-      user.setRole(newRole);
       publishChangeUserTypeEvent(user, editor, newRole);
+      user.setRole(newRole);
     }
 
     if (null != editUserRq.getEmail() && !editUserRq.getEmail().equals(user.getEmail())) {

@@ -173,7 +173,7 @@
                         this date, your account and all associated data will be
                         erased from our platform, while all the previously
                         reported and created in ReportPortal data (launches,
-                        filters, widgets, dashboards, etc) will remain in the
+                        filters, widgets, dashboards, etc.) will remain in the
                         app.
                       </p>
                     </td>

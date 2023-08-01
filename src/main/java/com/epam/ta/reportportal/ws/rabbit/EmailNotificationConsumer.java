@@ -16,8 +16,10 @@
 
 package com.epam.ta.reportportal.ws.rabbit;
 
-import com.epam.ta.reportportal.util.email.MailServiceFactory;
+import com.epam.ta.reportportal.util.email.strategy.EmailNotificationStrategy;
+import com.epam.ta.reportportal.util.email.strategy.EmailTemplate;
 import com.epam.ta.reportportal.ws.model.notification.EmailNotificationRQ;
+import java.util.Map;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -33,16 +35,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class EmailNotificationConsumer {
 
-  private final MailServiceFactory mailServiceFactory;
+  private final Map<EmailTemplate, EmailNotificationStrategy> emailNotificationStrategyMapping;
 
   @Autowired
-  public EmailNotificationConsumer(MailServiceFactory mailServiceFactory) {
-    this.mailServiceFactory = mailServiceFactory;
+  public EmailNotificationConsumer(
+      Map<EmailTemplate, EmailNotificationStrategy> emailNotificationStrategyMapping) {
+    this.emailNotificationStrategyMapping = emailNotificationStrategyMapping;
   }
 
   @RabbitListener(queues = "notification.email", containerFactory = "rabbitListenerContainerFactory")
   public void onEvent(@Payload EmailNotificationRQ rq) {
-    mailServiceFactory.getDefaultEmailService(true)
-        .sendUserExpirationNotification(rq.getRecipient(), rq.getParams());
+    EmailTemplate emailTemplate = EmailTemplate.fromString(rq.getTemplate());
+    emailNotificationStrategyMapping.get(emailTemplate)
+        .sendEmail(rq.getRecipient(), rq.getParams());
   }
 }

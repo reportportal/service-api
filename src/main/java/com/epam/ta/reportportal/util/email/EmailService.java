@@ -415,10 +415,29 @@ public class EmailService extends JavaMailSenderImpl {
     this.send(preparator);
   }
 
+  public void sendAccountDeletionByRetentionNotification(String recipient) {
+    MimeMessagePreparator preparator = mimeMessage -> {
+      MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+      message.setSubject("Account Deletion Notification");
+      message.setTo(recipient);
+
+      setFrom(message);
+
+      Map<String, Object> data = Collections.emptyMap();
+      String text = templateEngine.merge("delete-account-by-retention-template.ftl", data);
+      message.setText(text, true);
+
+      message.addInline("logo.svg", emailTemplateResource("logo.svg"));
+      message.addInline("deleted-account.svg", emailTemplateResource("deleted-account.svg"));
+      attachNewSocialImages(message);
+    };
+    this.send(preparator);
+  }
+
   public void sendUserExpirationNotification(String recipient, Map<String, Object> params) {
     MimeMessagePreparator preparator = mimeMessage -> {
       MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
-      message.setSubject("Account Expiration Notification");
+      message.setSubject("Account Deletion Notification");
       message.setTo(recipient);
 
       setFrom(message);

@@ -18,6 +18,15 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.reportportal.commons.template.TemplateEngineProvider;
+import com.epam.ta.reportportal.core.analyzer.strategy.LaunchAnalysisStrategy;
+import com.epam.ta.reportportal.util.email.strategy.EmailNotificationStrategy;
+import com.epam.ta.reportportal.util.email.strategy.EmailTemplate;
+import com.epam.ta.reportportal.util.email.strategy.UserDeletionNotificationStrategy;
+import com.epam.ta.reportportal.util.email.strategy.UserExpirationNotificationStrategy;
+import com.google.common.collect.ImmutableMap;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -31,6 +40,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  */
 @Configuration
 public class EmailConfiguration {
+
+	@Autowired
+	private ApplicationContext applicationContext;
 
 	@Bean
 	public ThreadPoolTaskExecutor emailExecutorService() {
@@ -48,6 +60,14 @@ public class EmailConfiguration {
 	@Primary
 	public TemplateEngine getTemplateEngine() {
 		return new TemplateEngineProvider("/templates/email").get();
+	}
+
+	@Bean
+	public Map<EmailTemplate, EmailNotificationStrategy> emailNotificationStrategyMapping() {
+		return ImmutableMap.<EmailTemplate, EmailNotificationStrategy>builder().put(EmailTemplate.USER_EXPIRATION_NOTIFICATION,
+				applicationContext.getBean(UserExpirationNotificationStrategy.class)
+		).put(EmailTemplate.USER_DELETION_NOTIFICATION, applicationContext.getBean(
+				UserDeletionNotificationStrategy.class)).build();
 	}
 
 }

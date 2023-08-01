@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.integration.plugin;
 
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 /**
@@ -27,7 +28,8 @@ public interface DeletePluginHandler {
 	 * Delete plugin representation from the database and from the {@link com.epam.ta.reportportal.core.plugin.Pf4jPluginBox} instance
 	 *
 	 * @param id {@link com.epam.ta.reportportal.entity.integration.IntegrationType#id}
+	 * @param reportPortalUser {@link ReportPortalUser} that deleted plugin
 	 * @return {@link OperationCompletionRS} with result message
 	 */
-	OperationCompletionRS deleteById(Long id);
+	OperationCompletionRS deleteById(Long id, ReportPortalUser reportPortalUser);
 }

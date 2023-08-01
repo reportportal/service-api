@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.integration.plugin;
 
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,7 +29,8 @@ public interface CreatePluginHandler {
 	 * Upload and start up the plugin
 	 *
 	 * @param pluginFile Plugin file
+	 * @param user User that uploaded plugin
 	 * @return {@link EntryCreatedRS} with the newly created {@link com.epam.ta.reportportal.entity.integration.IntegrationType#id}
 	 */
-	EntryCreatedRS uploadPlugin(MultipartFile pluginFile);
+	EntryCreatedRS uploadPlugin(MultipartFile pluginFile, ReportPortalUser user);
 }

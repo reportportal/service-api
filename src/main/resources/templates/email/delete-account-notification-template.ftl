@@ -193,52 +193,6 @@
                       </p>
                     </td>
                   </tr>
-                  <tr>
-                    <td style="padding-top: 24px">
-                      <div align="left">
-                        <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${href}" style="height:40px;width:140px;v-text-anchor:middle;" arcsize="7%" stroke="false" fillcolor="#1fb2c6"><w:anchorlock/><v:textbox inset="0px,1px,0px,0px"><center style="color:#ffffff; font-family:Arial, sans-serif; font-size:16px"><!
-                        [endif]--><a
-                          href="${href}"
-                          target="_blank"
-                          style="
-                            text-decoration: none;
-                            display: block;
-                            color: #ffffff;
-                            background-color: #1fb2c6;
-                            border-radius: 3px;
-                            width: 140px;
-                            border-top: 0px solid transparent;
-                            font-weight: 700;
-                            border-right: 0px solid transparent;
-                            border-bottom: 0px solid transparent;
-                            border-left: 0px solid transparent;
-                            padding-top: 4px;
-                            padding-bottom: 4px;
-                            font-family: Arial, 'Helvetica Neue', Helvetica,
-                              sans-serif;
-                            font-size: 16px;
-                            text-align: center;
-                            mso-border-alt: none;
-                            word-break: keep-all;
-                          "
-                          ><span
-                            style="
-                              padding-left: 30px;
-                              padding-right: 30px;
-                              font-size: 16px;
-                              display: inline-block;
-                              letter-spacing: normal;
-                            "
-                            ><span
-                              style="word-break: break-word; line-height: 32px"
-                              >Log In</span
-                            ></span
-                          ></a
-                        >
-                        <!--[if mso]></center></v:textbox></v:roundrect><![endif]-->
-                      </div>
-                    </td>
-                  </tr>
                 </tbody>
               </table>
             </td>

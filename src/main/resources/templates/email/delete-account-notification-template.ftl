@@ -122,7 +122,7 @@
                       "
                     >
                       <img
-                        src="cid:delete-accaunt-notification.svg"
+                        src="cid:delete-account-notification.svg"
                         alt="Calendar"
                       />
                     </td>

@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.mail.MessagingException;
@@ -409,6 +410,28 @@ public class EmailService extends JavaMailSenderImpl {
 
       message.addInline("logo.svg", emailTemplateResource("logo.svg"));
       message.addInline("deleted-account.svg", emailTemplateResource("deleted-account.svg"));
+      attachNewSocialImages(message);
+    };
+    this.send(preparator);
+  }
+
+  public void sendUserExpirationNotification(String recipient, Map<String, Object> params) {
+    MimeMessagePreparator preparator = mimeMessage -> {
+      MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+      message.setSubject("Account Expiration Notification");
+      message.setTo(recipient);
+
+      setFrom(message);
+
+      Map<String, Object> data = new HashMap<>();
+      data.put("remainingTime", params.get("remainingTime"));
+      data.put("inactivityPeriod", params.get("inactivityPeriod"));
+      data.put("deadlineDate", params.get("deadlineDate"));
+      String text = templateEngine.merge("delete-account-notification-template.ftl", data);
+      message.setText(text, true);
+
+      message.addInline("logo.svg", emailTemplateResource("logo.svg"));
+      message.addInline("delete-account-notification.svg", emailTemplateResource("delete-account-notification.svg"));
       attachNewSocialImages(message);
     };
     this.send(preparator);

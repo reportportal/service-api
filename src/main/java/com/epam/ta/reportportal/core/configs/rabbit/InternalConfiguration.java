@@ -39,6 +39,7 @@ public class InternalConfiguration {
 	public static final String EXCHANGE_EVENTS = "broadcast.events";
 	public static final String EXCHANGE_ACTIVITY = "activity";
 	public static final String EXCHANGE_ATTACHMENT = "attachment";
+	public static final String EXCHANGE_NOTIFICATION = "notification";
 
 	/**
 	 * Queues
@@ -47,6 +48,7 @@ public class InternalConfiguration {
 	public static final String QUEUE_ACTIVITY = "activity";
 	public static final String QUEUE_ACTIVITY_KEY = "activity.#";
 	public static final String QUEUE_ATTACHMENT_DELETE = "attachment.delete";
+	public static final String QUEUE_EMAIL = "notification.email";
 
 	public static final String QUEUE_QUERY_RQ = "query-rq";
 
@@ -74,6 +76,11 @@ public class InternalConfiguration {
 		return new DirectExchange(EXCHANGE_ATTACHMENT, true, false);
 	}
 
+	@Bean
+	public DirectExchange notificationExchange() {
+		return new DirectExchange(EXCHANGE_NOTIFICATION, true, false);
+	}
+
 	/**
 	 * Queues definition
 	 */
@@ -98,6 +105,11 @@ public class InternalConfiguration {
 		return new Queue(QUEUE_QUERY_RQ);
 	}
 
+	@Bean
+	public Queue emailNotificationQueue() {
+		return new Queue(QUEUE_EMAIL);
+	}
+
 	/**
 	 * Bindings
 	 */
@@ -117,4 +129,8 @@ public class InternalConfiguration {
 		return BindingBuilder.bind(deleteAttachmentQueue()).to(attachmentExchange()).with(QUEUE_ATTACHMENT_DELETE);
 	}
 
+	@Bean
+	public Binding emailNotificationBinding() {
+		return BindingBuilder.bind(emailNotificationQueue()).to(notificationExchange()).with(QUEUE_EMAIL);
+	}
 }

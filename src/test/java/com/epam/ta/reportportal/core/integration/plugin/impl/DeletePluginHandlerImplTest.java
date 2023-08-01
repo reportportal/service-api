@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.ReservedIntegrationTypeEnum;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
@@ -31,6 +32,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -47,10 +49,12 @@ class DeletePluginHandlerImplTest {
 
 	@Test
 	void deleteReservedIntegrationTypesTest() {
+		ReportPortalUser user = mock(ReportPortalUser.class);
+
 		Arrays.stream(ReservedIntegrationTypeEnum.values()).map(ReservedIntegrationTypeEnum::getName).forEach(it -> {
 			when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(testIntegrationType(it)));
 
-			ReportPortalException exception = assertThrows(ReportPortalException.class, () -> deletePluginHandler.deleteById(1L));
+			ReportPortalException exception = assertThrows(ReportPortalException.class, () -> deletePluginHandler.deleteById(1L, user));
 			assertEquals(String.format("Error during plugin removing: 'Unable to remove reserved plugin - '%s''", it),
 					exception.getMessage()
 			);

@@ -51,7 +51,7 @@ public class AssignUserEvent extends AbstractEvent implements ActivityEvent {
   public Activity toActivity() {
     return new ActivityBuilder()
         .addCreatedNow()
-        .addAction(EventAction.ASSIGN_PROJECT)
+        .addAction(EventAction.ASSIGN)
         .addEventName(ASSIGN_USER.getValue())
         .addPriority(EventPriority.HIGH)
         .addObjectId(userActivityResource.getId())

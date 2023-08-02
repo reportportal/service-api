@@ -20,9 +20,11 @@ import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
+ * Realisation Strategy pattern for chosen right email template.
+ *
  * @author Andrei Piankouski
  */
-public abstract class AbstractEmailNotificationStrategy implements EmailNotificationStrategy{
+public abstract class AbstractEmailNotificationStrategy implements EmailNotificationStrategy {
 
   protected final MailServiceFactory mailServiceFactory;
 

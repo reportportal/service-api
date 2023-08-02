@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 /**
+ * Enum of email templates.
+ *
  * @author Andrei Piankouski
  */
 public enum EmailTemplate {

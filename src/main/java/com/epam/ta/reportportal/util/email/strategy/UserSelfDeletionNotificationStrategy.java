@@ -23,7 +23,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * @author Andrei Piankouski
  */
-public class UserSelfDeletionNotificationStrategy extends AbstractEmailNotificationStrategy{
+public class UserSelfDeletionNotificationStrategy extends AbstractEmailNotificationStrategy {
 
   public UserSelfDeletionNotificationStrategy(MailServiceFactory mailServiceFactory,
       ThreadPoolTaskExecutor emailExecutorService) {

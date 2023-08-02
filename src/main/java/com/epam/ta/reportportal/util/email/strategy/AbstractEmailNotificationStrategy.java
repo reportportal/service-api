@@ -29,7 +29,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  */
 public abstract class AbstractEmailNotificationStrategy implements EmailNotificationStrategy {
 
-  protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractEmailNotificationStrategy.class);
+  protected static final Logger LOGGER =
+      LoggerFactory.getLogger(AbstractEmailNotificationStrategy.class);
 
   protected final MailServiceFactory mailServiceFactory;
   protected final ThreadPoolTaskExecutor emailExecutorService;

@@ -52,7 +52,7 @@ public class UnassignUserEvent extends AbstractEvent implements ActivityEvent {
   public Activity toActivity() {
     return new ActivityBuilder()
         .addCreatedNow()
-        .addAction(EventAction.UNASSIGN_PROJECT)
+        .addAction(EventAction.UNASSIGN)
         .addEventName(UNASSIGN_USER.getValue())
         .addPriority(EventPriority.MEDIUM)
         .addObjectId(userActivityResource.getId())

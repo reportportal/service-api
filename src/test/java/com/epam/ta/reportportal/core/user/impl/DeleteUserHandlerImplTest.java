@@ -24,7 +24,10 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.email.strategy.EmailNotificationStrategy;
+import com.epam.ta.reportportal.util.email.strategy.EmailTemplate;
 import com.google.common.collect.Lists;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -56,6 +59,12 @@ class DeleteUserHandlerImplTest {
 	@Mock
 	private ProjectRepository projectRepository;
 
+	@Mock
+	private Map<EmailTemplate, EmailNotificationStrategy> emailNotificationStrategyMapping;
+
+	@Mock
+	private EmailNotificationStrategy emailNotificationStrategy;
+
 	@InjectMocks
 	private DeleteUserHandlerImpl handler;
 
@@ -68,6 +77,8 @@ class DeleteUserHandlerImplTest {
 		doReturn(Optional.of(user)).when(repository).findById(2L);
 		when(projectRepository.findAllByUserLogin(user.getLogin())).thenReturn(Lists.newArrayList());
 		doNothing().when(dataStore).deleteUserPhoto(any());
+		when(emailNotificationStrategyMapping.get(any())).thenReturn(emailNotificationStrategy);
+		doNothing().when(emailNotificationStrategy).sendEmail(any(), anyMap());
 
 		handler.deleteUser(2L, getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L));
 

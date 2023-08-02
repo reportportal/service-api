@@ -33,20 +33,19 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.email.MailServiceFactory;
+import com.epam.ta.reportportal.util.email.strategy.EmailNotificationStrategy;
+import com.epam.ta.reportportal.util.email.strategy.EmailTemplate;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,8 +59,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DeleteUserHandlerImpl.class);
-
   private final UserBinaryDataService dataStore;
 
   private final UserRepository userRepository;
@@ -74,8 +71,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
   private final ProjectRepository projectRepository;
 
-  private final MailServiceFactory emailServiceFactory;
-  private final ThreadPoolTaskExecutor emailExecutorService;
+  private final Map<EmailTemplate, EmailNotificationStrategy> emailNotificationStrategyMapping;
 
   @Value("${rp.environment.variable.allow-delete-account:false}")
   private boolean isAllowToDeleteAccount;
@@ -85,23 +81,20 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
       DeleteProjectHandler deleteProjectHandler,
       ContentRemover<User> userContentRemover, UserBinaryDataService dataStore,
       ProjectRecipientHandler projectRecipientHandler, ProjectRepository projectRepository,
-      MailServiceFactory emailServiceFactory, ThreadPoolTaskExecutor emailExecutorService) {
+      Map<EmailTemplate, EmailNotificationStrategy> emailNotificationStrategyMapping) {
     this.userRepository = userRepository;
     this.deleteProjectHandler = deleteProjectHandler;
     this.dataStore = dataStore;
     this.userContentRemover = userContentRemover;
     this.projectRecipientHandler = projectRecipientHandler;
     this.projectRepository = projectRepository;
-    this.emailServiceFactory = emailServiceFactory;
-    this.emailExecutorService = emailExecutorService;
+    this.emailNotificationStrategyMapping = emailNotificationStrategyMapping;
   }
 
   @Override
   @Transactional
   public OperationCompletionRS deleteUser(Long userId, ReportPortalUser loggedInUser) {
     deleteUserWithAssociatedData(userId, loggedInUser);
-
-    sendEmailAboutDeletion(loggedInUser);
 
     return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
   }
@@ -125,15 +118,14 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
     dataStore.deleteUserPhoto(user);
     userRepository.delete(user);
+    sendEmailAboutDeletion(user, loggedInUser);
   }
 
-  private void sendEmailAboutDeletion(ReportPortalUser loggedInUser) {
-    try {
-      emailExecutorService.execute(() -> emailServiceFactory.getDefaultEmailService(true)
-          .sendDeletionNotification(loggedInUser.getEmail()));
-    } catch (Exception e) {
-      LOGGER.warn("Unable to send email.", e);
-    }
+  private void sendEmailAboutDeletion(User user, ReportPortalUser loggedInUser) {
+    EmailTemplate template =
+        user.getId().equals(loggedInUser.getUserId()) ? EmailTemplate.USER_SELF_DELETION_NOTIFICATION
+            : EmailTemplate.USER_DELETION_NOTIFICATION;
+    emailNotificationStrategyMapping.get(template).sendEmail(user.getEmail(), Collections.emptyMap());
   }
 
   @Override

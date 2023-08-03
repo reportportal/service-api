@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.google.common.net.HttpHeaders;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,6 +130,11 @@ public class FileStorageController {
 		if (binaryData.getInputStream() != null) {
 			try {
 				response.setContentType(binaryData.getContentType());
+				if (binaryData.getFileName() != null) {
+					response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+							String.format("attachment; filename=%s", binaryData.getFileName())
+					);
+				}
 				IOUtils.copy(binaryData.getInputStream(), response.getOutputStream());
 			} catch (IOException e) {
 				throw new ReportPortalException("Unable to retrieve binary data from data storage", e);

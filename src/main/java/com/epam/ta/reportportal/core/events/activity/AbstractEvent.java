@@ -23,22 +23,13 @@ public abstract class AbstractEvent {
 
   private Long userId;
   private String userLogin;
-  private final boolean isSavedEvent;
 
   protected AbstractEvent() {
-    this.isSavedEvent = true;
   }
 
   protected AbstractEvent(Long userId, String userLogin) {
     this.userId = userId;
     this.userLogin = userLogin;
-    this.isSavedEvent = true;
-  }
-
-  protected AbstractEvent(Long userId, String userLogin, boolean isSavedEvent) {
-    this.userId = userId;
-    this.userLogin = userLogin;
-    this.isSavedEvent = isSavedEvent;
   }
 
   public Long getUserId() {
@@ -55,10 +46,6 @@ public abstract class AbstractEvent {
 
   public void setUserLogin(String userLogin) {
     this.userLogin = userLogin;
-  }
-
-  public boolean isSavedEvent() {
-    return isSavedEvent;
   }
 
 }

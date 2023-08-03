@@ -17,7 +17,9 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
 
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.util.IntegrationActivityPriorityResolver;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.EventAction;
@@ -25,7 +27,6 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
 import java.util.Optional;
 
@@ -61,7 +62,8 @@ public class IntegrationCreatedEvent extends AbstractEvent implements ActivityEv
         .addCreatedNow()
         .addAction(EventAction.CREATE)
         .addEventName(ActivityAction.CREATE_INTEGRATION.getValue())
-        .addPriority(EventPriority.MEDIUM)
+        .addPriority(
+            IntegrationActivityPriorityResolver.resolvePriority(integrationActivityResource))
         .addObjectId(integrationActivityResource.getId())
         .addObjectName(integrationActivityResource.getTypeName())
         .addObjectType(EventObject.INTEGRATION)

@@ -86,7 +86,7 @@ dependencies {
         compile 'com.github.reportportal:commons-events:f130879'
         compile 'com.github.reportportal:commons-dao:58ad7e2'
         compile 'com.github.reportportal:commons-rules:5.3.0'
-        compile 'com.github.reportportal:commons-model:d540b5bee9'
+        compile 'com.github.reportportal:commons-model:945415b'
         compile 'com.github.reportportal:commons:7480d61'
         compile 'com.github.reportportal:commons-fonts:10d1054'
         compile 'com.github.reportportal:plugin-api:2b30a961'

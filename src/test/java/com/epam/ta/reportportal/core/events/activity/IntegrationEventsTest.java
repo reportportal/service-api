@@ -51,7 +51,15 @@ class IntegrationEventsTest {
     ActivityDetails expected = new ActivityDetails();
     HistoryField historyField = new HistoryField();
     historyField.setField(NAME);
-    historyField.setNewValue("name");
+    switch (action) {
+      case CREATE:
+      case UPDATE:
+        historyField.setNewValue("name");
+        break;
+      case DELETE:
+        historyField.setOldValue("name");
+        break;
+    }
     expected.addHistoryField(historyField);
     activity.setDetails(expected);
     return activity;

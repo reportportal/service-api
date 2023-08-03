@@ -3,6 +3,7 @@ package com.epam.ta.reportportal.core.events.activity;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processBoolean;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
 
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil;
 import com.epam.ta.reportportal.entity.activity.Activity;
@@ -11,7 +12,6 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.PluginActivityResource;
 
 public class PluginUpdatedEvent extends AroundEvent<PluginActivityResource>

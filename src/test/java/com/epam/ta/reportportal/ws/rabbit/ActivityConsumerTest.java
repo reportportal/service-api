@@ -49,10 +49,6 @@ class ActivityConsumerTest {
       return null;
     }
 
-    @Override
-    public boolean isSavedEvent() {
-      return false;
-    }
   }
 
   @Test
@@ -85,10 +81,6 @@ class ActivityConsumerTest {
       return activity;
     }
 
-    @Override
-    public boolean isSavedEvent() {
-      return true;
-    }
   }
 
   @Test

@@ -29,7 +29,8 @@ import java.util.stream.Collectors;
 public enum EmailTemplate {
 
   USER_EXPIRATION_NOTIFICATION("userExpirationNotification"),
-  USER_DELETION_NOTIFICATION("userDeletionNotification");
+  USER_DELETION_NOTIFICATION("userDeletionNotification"),
+  USER_SELF_DELETION_NOTIFICATION("userSelfDeletionNotification");
 
   private final String name;
 

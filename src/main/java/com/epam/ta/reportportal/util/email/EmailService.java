@@ -48,7 +48,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.mail.MessagingException;
@@ -396,7 +395,7 @@ public class EmailService extends JavaMailSenderImpl {
     return new ClassPathResource(EMAIL_TEMPLATE_PREFIX + resource);
   }
 
-  public void sendDeletionNotification(String recipient) {
+  public void sendAccountSelfDeletionNotification(String recipient) {
     MimeMessagePreparator preparator = mimeMessage -> {
       MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
       message.setSubject("Account Deletion Notification");
@@ -405,7 +404,7 @@ public class EmailService extends JavaMailSenderImpl {
       setFrom(message);
 
       Map<String, Object> data = Collections.emptyMap();
-      String text = templateEngine.merge("delete-account-template.ftl", data);
+      String text = templateEngine.merge("self-delete-account-template.ftl", data);
       message.setText(text, true);
 
       message.addInline("logo.svg", emailTemplateResource("logo.svg"));
@@ -424,7 +423,7 @@ public class EmailService extends JavaMailSenderImpl {
       setFrom(message);
 
       Map<String, Object> data = Collections.emptyMap();
-      String text = templateEngine.merge("delete-account-by-retention-template.ftl", data);
+      String text = templateEngine.merge("delete-account-template.ftl", data);
       message.setText(text, true);
 
       message.addInline("logo.svg", emailTemplateResource("logo.svg"));

@@ -17,7 +17,10 @@
 package com.epam.ta.reportportal.util.email.strategy;
 
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * Realisation Strategy pattern for chosen right email template.
@@ -26,10 +29,16 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public abstract class AbstractEmailNotificationStrategy implements EmailNotificationStrategy {
 
+  protected static final Logger LOGGER =
+      LoggerFactory.getLogger(AbstractEmailNotificationStrategy.class);
+
   protected final MailServiceFactory mailServiceFactory;
+  protected final ThreadPoolTaskExecutor emailExecutorService;
 
   @Autowired
-  public AbstractEmailNotificationStrategy(MailServiceFactory mailServiceFactory) {
+  public AbstractEmailNotificationStrategy(MailServiceFactory mailServiceFactory,
+      ThreadPoolTaskExecutor emailExecutorService) {
     this.mailServiceFactory = mailServiceFactory;
+    this.emailExecutorService = emailExecutorService;
   }
 }

@@ -150,42 +150,35 @@
                   <tr>
                     <td style="padding-bottom: 12px; padding-top: 24px">
                       <p class="main-content">
-                        This email is to confirm that your account and personal
-                        data have been successfully deleted from ReportPortal
-                        database. We're sorry to see you go, and we hope you had
-                        a positive experience using our app.
+                        We regret to inform you that your account has been deleted.
                       </p>
                     </td>
                   </tr>
                   <tr>
                     <td style="padding-bottom: 12px">
                       <p class="main-content">
-                        Please note that any data that you have reported to
-                        ReportPortal or created there will remain in the app.
+                        Please note that all the associated personal data has been deleted from our database in a safe and secure manner.
                       </p>
                     </td>
                   </tr>
                   <tr>
                     <td style="padding-bottom: 12px">
                       <p class="main-content">
-                        If you haven't deleted your account or if you have any
-                        questions or concerns, please contact our support team
-                        for assistance.
+                        If you have any questions or concerns about this process, please contact our support team for assistance.
                       </p>
                     </td>
                   </tr>
                   <tr>
                     <td style="padding-bottom: 12px">
                       <p class="main-content">
-                        Thank you for your time and we wish you all the best in
-                        your future testing endeavors.
+                        Thank you for using ReportPortal.
                       </p>
                     </td>
                   </tr>
                   <tr>
                     <td>
                       <p class="main-content">
-                        Best regards,<br />ReportPortal team
+                        Kind regards,<br />ReportPortal team
                       </p>
                     </td>
                   </tr>

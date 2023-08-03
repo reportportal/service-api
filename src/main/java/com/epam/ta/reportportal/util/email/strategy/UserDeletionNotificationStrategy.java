@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.util.email.strategy;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -28,14 +29,18 @@ import org.springframework.stereotype.Service;
 public class UserDeletionNotificationStrategy extends AbstractEmailNotificationStrategy {
 
   @Autowired
-  public UserDeletionNotificationStrategy(
-      MailServiceFactory mailServiceFactory) {
-    super(mailServiceFactory);
+  public UserDeletionNotificationStrategy(MailServiceFactory mailServiceFactory,
+      ThreadPoolTaskExecutor emailExecutorService) {
+    super(mailServiceFactory, emailExecutorService);
   }
 
   @Override
   public void sendEmail(String recipient, Map<String, Object> params) {
-    mailServiceFactory.getDefaultEmailService(true)
-        .sendAccountDeletionByRetentionNotification(recipient);
+    try {
+      emailExecutorService.execute(() -> mailServiceFactory.getDefaultEmailService(true)
+          .sendAccountDeletionByRetentionNotification(recipient));
+    } catch (Exception e) {
+      LOGGER.warn("Unable to send email.", e);
+    }
   }
 }

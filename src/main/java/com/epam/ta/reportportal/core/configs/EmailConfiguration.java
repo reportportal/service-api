@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.util.email.strategy.EmailNotificationStrategy;
 import com.epam.ta.reportportal.util.email.strategy.EmailTemplate;
 import com.epam.ta.reportportal.util.email.strategy.UserDeletionNotificationStrategy;
 import com.epam.ta.reportportal.util.email.strategy.UserExpirationNotificationStrategy;
+import com.epam.ta.reportportal.util.email.strategy.UserSelfDeletionNotificationStrategy;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,9 +66,11 @@ public class EmailConfiguration {
   public Map<EmailTemplate, EmailNotificationStrategy> emailNotificationStrategyMapping() {
     return ImmutableMap.<EmailTemplate, EmailNotificationStrategy>builder()
         .put(EmailTemplate.USER_EXPIRATION_NOTIFICATION,
-            applicationContext.getBean(UserExpirationNotificationStrategy.class)
-        ).put(EmailTemplate.USER_DELETION_NOTIFICATION, applicationContext.getBean(
-            UserDeletionNotificationStrategy.class)).build();
+            applicationContext.getBean(UserExpirationNotificationStrategy.class))
+        .put(EmailTemplate.USER_DELETION_NOTIFICATION, applicationContext.getBean(
+            UserDeletionNotificationStrategy.class))
+        .put(EmailTemplate.USER_SELF_DELETION_NOTIFICATION, applicationContext.getBean(
+            UserSelfDeletionNotificationStrategy.class)).build();
   }
 
 }

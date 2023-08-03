@@ -19,10 +19,12 @@ package com.epam.ta.reportportal.util.email.strategy;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import java.util.Map;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Andrei Piankouski
  */
+@Service
 public class UserSelfDeletionNotificationStrategy extends AbstractEmailNotificationStrategy {
 
   public UserSelfDeletionNotificationStrategy(MailServiceFactory mailServiceFactory,

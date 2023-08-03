@@ -11,7 +11,7 @@
       ]><xml
         ><o:OfficeDocumentSettings
           ><o:PixelsPerInch>96</o:PixelsPerInch
-          ><o:AllowSVG /></o:OfficeDocumentSettings></xml
+          ><o:AllowPNG /></o:OfficeDocumentSettings></xml
     ><![endif]-->
     <style>
       .heading {
@@ -105,7 +105,7 @@
                         href="http://reportportal.io"
                         target="_blank"
                         rel="noopener noreferrer"
-                        ><img src="cid:logo.svg" alt="Report Portal logo"
+                        ><img src="cid:new-logo.png" alt="Report Portal logo"
                       /></a>
                     </td>
                   </tr>
@@ -120,7 +120,7 @@
                       "
                     >
                       <img
-                        src="cid:deleted-account.svg"
+                        src="cid:deleted-account.png"
                         alt="Deleted account img"
                       />
                     </td>
@@ -221,7 +221,7 @@
                               target="_blank"
                               rel="noopener noreferrer"
                               ><img
-                                src="cid:new-ic-twitter.svg"
+                                src="cid:new-ic-twitter.png"
                                 alt="Twitter icon"
                             /></a>
                           </td>
@@ -230,7 +230,7 @@
                               href="https://slack.epmrpp.reportportal.io/"
                               target="_blank"
                               rel="noopener noreferrer"
-                              ><img src="cid:new-ic-slack.svg" alt="Slack icon"
+                              ><img src="cid:new-ic-slack.png" alt="Slack icon"
                             /></a>
                           </td>
                           <td style="padding-right: 22px">
@@ -239,7 +239,7 @@
                               target="_blank"
                               rel="noopener noreferrer"
                               ><img
-                                src="cid:new-ic-youtube.svg"
+                                src="cid:new-ic-youtube.png"
                                 alt="YouTube icon"
                             /></a>
                           </td>
@@ -249,7 +249,7 @@
                               target="_blank"
                               rel="noopener noreferrer"
                               ><img
-                                src="cid:new-ic-linkedin.svg"
+                                src="cid:new-ic-linkedin.png"
                                 alt="Linkedin icon"
                             /></a>
                           </td>
@@ -259,7 +259,7 @@
                               target="_blank"
                               rel="noopener noreferrer"
                               ><img
-                                src="cid:new-ic-github.svg"
+                                src="cid:new-ic-github.png"
                                 alt="Github icon"
                             /></a>
                           </td>

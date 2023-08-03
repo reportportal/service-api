@@ -407,8 +407,8 @@ public class EmailService extends JavaMailSenderImpl {
       String text = templateEngine.merge("self-delete-account-template.ftl", data);
       message.setText(text, true);
 
-      message.addInline("logo.svg", emailTemplateResource("logo.svg"));
-      message.addInline("deleted-account.svg", emailTemplateResource("deleted-account.svg"));
+      message.addInline("new-logo.png", emailTemplateResource("new-logo.png"));
+      message.addInline("deleted-account.png", emailTemplateResource("deleted-account.png"));
       attachNewSocialImages(message);
     };
     this.send(preparator);
@@ -426,8 +426,8 @@ public class EmailService extends JavaMailSenderImpl {
       String text = templateEngine.merge("delete-account-template.ftl", data);
       message.setText(text, true);
 
-      message.addInline("logo.svg", emailTemplateResource("logo.svg"));
-      message.addInline("deleted-account.svg", emailTemplateResource("deleted-account.svg"));
+      message.addInline("new-logo.png", emailTemplateResource("new-logo.png"));
+      message.addInline("deleted-account.png", emailTemplateResource("deleted-account.png"));
       attachNewSocialImages(message);
     };
     this.send(preparator);
@@ -448,19 +448,19 @@ public class EmailService extends JavaMailSenderImpl {
       String text = templateEngine.merge("delete-account-notification-template.ftl", data);
       message.setText(text, true);
 
-      message.addInline("logo.svg", emailTemplateResource("logo.svg"));
-      message.addInline("delete-account-notification.svg", emailTemplateResource("delete-account-notification.svg"));
+      message.addInline("new-logo.png", emailTemplateResource("new-logo.png"));
+      message.addInline("delete-account-notification.png", emailTemplateResource("delete-account-notification.png"));
       attachNewSocialImages(message);
     };
     this.send(preparator);
   }
 
   private void attachNewSocialImages(MimeMessageHelper message) throws MessagingException {
-    message.addInline("new-ic-twitter.svg", emailTemplateResource("new-ic-twitter.svg"));
-    message.addInline("new-ic-slack.svg", emailTemplateResource("new-ic-slack.svg"));
-    message.addInline("new-ic-youtube.svg", emailTemplateResource("new-ic-youtube.svg"));
-    message.addInline("new-ic-linkedin.svg", emailTemplateResource("new-ic-linkedin.svg"));
-    message.addInline("new-ic-github.svg", emailTemplateResource("new-ic-github.svg"));
+    message.addInline("new-ic-twitter.png", emailTemplateResource("new-ic-twitter.png"));
+    message.addInline("new-ic-slack.png", emailTemplateResource("new-ic-slack.png"));
+    message.addInline("new-ic-youtube.png", emailTemplateResource("new-ic-youtube.png"));
+    message.addInline("new-ic-linkedin.png", emailTemplateResource("new-ic-linkedin.png"));
+    message.addInline("new-ic-github.png", emailTemplateResource("new-ic-github.png"));
   }
 
 }

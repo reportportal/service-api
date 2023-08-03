@@ -27,43 +27,50 @@ import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
  */
 public interface CreateIntegrationHandler {
 
-	/**
-	 * Create {@link Integration} with {@link Integration#project == NULL}
-	 *
-	 * @param pluginName    Plugin name
-	 * @param createRequest {@link IntegrationRQ}
-	 * @return {@link EntryCreatedRS}
-	 */
-	EntryCreatedRS createGlobalIntegration(IntegrationRQ createRequest, String pluginName, ReportPortalUser user);
+  /**
+   * Create {@link Integration} with {@link Integration#project == NULL}
+   *
+   * @param pluginName    Plugin name
+   * @param createRequest {@link IntegrationRQ}
+   * @return {@link EntryCreatedRS}
+   */
+  EntryCreatedRS createGlobalIntegration(IntegrationRQ createRequest, String pluginName,
+      ReportPortalUser user);
 
-	/**
-	 * Create {@link Integration} for {@link com.epam.ta.reportportal.entity.project.Project} with provided ID
-	 *
-	 * @param projectName   Project name
-	 * @param createRequest {@link IntegrationRQ}
-	 * @param pluginName    Plugin name
-	 * @param user          {@link ReportPortalUser}
-	 * @return {@link EntryCreatedRS}
-	 */
-	EntryCreatedRS createProjectIntegration(String projectName, IntegrationRQ createRequest, String pluginName, ReportPortalUser user);
+  /**
+   * Create {@link Integration} for {@link com.epam.ta.reportportal.entity.project.Project} with
+   * provided ID
+   *
+   * @param projectName   Project name
+   * @param createRequest {@link IntegrationRQ}
+   * @param pluginName    Plugin name
+   * @param user          {@link ReportPortalUser}
+   * @return {@link EntryCreatedRS}
+   */
+  EntryCreatedRS createProjectIntegration(String projectName, IntegrationRQ createRequest,
+      String pluginName, ReportPortalUser user);
 
-	/**
-	 * Update {@link Integration} with {@link Integration#project == NULL}
-	 *
-	 * @param id            {@link Integration#id}
-	 * @param updateRequest {@link IntegrationRQ}
-	 * @return updated {@link Integration}
-	 */
-	OperationCompletionRS updateGlobalIntegration(Long id, IntegrationRQ updateRequest);
+  /**
+   * Update {@link Integration} with {@link Integration#project == NULL}
+   *
+   * @param id            {@link Integration#id}
+   * @param updateRequest {@link IntegrationRQ}
+   * @param user          {@link ReportPortalUser}
+   * @return updated {@link Integration}
+   */
+  OperationCompletionRS updateGlobalIntegration(Long id, IntegrationRQ updateRequest,
+      ReportPortalUser user);
 
-	/**
-	 * Updated {@link Integration} for {@link com.epam.ta.reportportal.entity.project.Project} with provided ID
-	 *
-	 * @param id            {@link Integration#id}
-	 * @param projectName   Project name
-	 * @param updateRequest {@link IntegrationRQ}
-	 * @param user          {@link ReportPortalUser}
-	 * @return updated {@link Integration}
-	 */
-	OperationCompletionRS updateProjectIntegration(Long id, String projectName, IntegrationRQ updateRequest, ReportPortalUser user);
+  /**
+   * Updated {@link Integration} for {@link com.epam.ta.reportportal.entity.project.Project} with
+   * provided ID
+   *
+   * @param id            {@link Integration#id}
+   * @param projectName   Project name
+   * @param updateRequest {@link IntegrationRQ}
+   * @param user          {@link ReportPortalUser}
+   * @return updated {@link Integration}
+   */
+  OperationCompletionRS updateProjectIntegration(Long id, String projectName,
+      IntegrationRQ updateRequest, ReportPortalUser user);
 }

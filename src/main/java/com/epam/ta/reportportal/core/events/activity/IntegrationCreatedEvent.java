@@ -19,6 +19,7 @@ import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetails
 
 import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.util.IntegrationActivityPriorityResolver;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.EventAction;
@@ -61,7 +62,8 @@ public class IntegrationCreatedEvent extends AbstractEvent implements ActivityEv
         .addCreatedNow()
         .addAction(EventAction.CREATE)
         .addEventName(ActivityAction.CREATE_INTEGRATION.getValue())
-        .addPriority(EventPriority.MEDIUM)
+        .addPriority(
+            IntegrationActivityPriorityResolver.resolvePriority(integrationActivityResource))
         .addObjectId(integrationActivityResource.getId())
         .addObjectName(integrationActivityResource.getTypeName())
         .addObjectType(EventObject.INTEGRATION)

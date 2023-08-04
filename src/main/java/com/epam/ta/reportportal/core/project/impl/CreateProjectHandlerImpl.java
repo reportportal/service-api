@@ -24,6 +24,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.events.activity.ProjectCreatedEvent;
 import com.epam.ta.reportportal.core.project.CreateProjectHandler;
 import com.epam.ta.reportportal.dao.AttributeRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
@@ -55,89 +56,106 @@ import org.springframework.stereotype.Service;
 @Service
 public class CreateProjectHandlerImpl implements CreateProjectHandler {
 
-	private static final String CREATE_KEY = "create";
-	private static final String RESERVED_PROJECT_NAME = "project";
+  private static final String CREATE_KEY = "create";
+  private static final String RESERVED_PROJECT_NAME = "project";
 
-	private final PersonalProjectService personalProjectService;
+  private final PersonalProjectService personalProjectService;
 
-	private final ProjectRepository projectRepository;
+  private final ProjectRepository projectRepository;
 
-	private final UserRepository userRepository;
+  private final UserRepository userRepository;
 
-	private final AttributeRepository attributeRepository;
+  private final AttributeRepository attributeRepository;
 
-	private final IssueTypeRepository issueTypeRepository;
+  private final IssueTypeRepository issueTypeRepository;
 
-	private final ApplicationEventPublisher applicationEventPublisher;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
-	private final ProjectUserRepository projectUserRepository;
+  private final ProjectUserRepository projectUserRepository;
 
-	@Autowired
-	public CreateProjectHandlerImpl(PersonalProjectService personalProjectService, ProjectRepository projectRepository, UserRepository userRepository,
-			AttributeRepository attributeRepository, IssueTypeRepository issueTypeRepository, ApplicationEventPublisher applicationEventPublisher,
-			ProjectUserRepository projectUserRepository) {
-		this.personalProjectService = personalProjectService;
-		this.projectRepository = projectRepository;
-		this.userRepository = userRepository;
-		this.attributeRepository = attributeRepository;
-		this.issueTypeRepository = issueTypeRepository;
-		this.applicationEventPublisher = applicationEventPublisher;
-		this.projectUserRepository = projectUserRepository;
-	}
+  @Autowired
+  public CreateProjectHandlerImpl(PersonalProjectService personalProjectService,
+      ProjectRepository projectRepository, UserRepository userRepository,
+      AttributeRepository attributeRepository, IssueTypeRepository issueTypeRepository,
+      ApplicationEventPublisher applicationEventPublisher,
+      ProjectUserRepository projectUserRepository) {
+    this.personalProjectService = personalProjectService;
+    this.projectRepository = projectRepository;
+    this.userRepository = userRepository;
+    this.attributeRepository = attributeRepository;
+    this.issueTypeRepository = issueTypeRepository;
+    this.applicationEventPublisher = applicationEventPublisher;
+    this.projectUserRepository = projectUserRepository;
+  }
 
-	@Override
-	public EntryCreatedRS createProject(CreateProjectRQ createProjectRQ, ReportPortalUser user) {
-		String projectName = createProjectRQ.getProjectName().toLowerCase().trim();
+  @Override
+  public EntryCreatedRS createProject(CreateProjectRQ createProjectRQ, ReportPortalUser user) {
+    String projectName = createProjectRQ.getProjectName().toLowerCase().trim();
 
-		expect(projectName, not(equalTo(RESERVED_PROJECT_NAME))).verify(ErrorType.INCORRECT_REQUEST,
-				Suppliers.formattedSupplier("Project with name '{}' is reserved by system", projectName)
-		);
+    expect(projectName, not(equalTo(RESERVED_PROJECT_NAME))).verify(ErrorType.INCORRECT_REQUEST,
+        Suppliers.formattedSupplier("Project with name '{}' is reserved by system", projectName)
+    );
 
-		expect(projectName, com.epam.ta.reportportal.util.Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
-				Suppliers.formattedSupplier("Project name '{}' consists only of special characters", projectName)
-		);
+    expect(projectName,
+        com.epam.ta.reportportal.util.Predicates.SPECIAL_CHARS_ONLY.negate()).verify(
+        ErrorType.INCORRECT_REQUEST,
+        Suppliers.formattedSupplier("Project name '{}' consists only of special characters",
+            projectName)
+    );
 
-		Optional<Project> existProject = projectRepository.findByName(projectName);
-		expect(existProject, not(isPresent())).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectName);
+    Optional<Project> existProject = projectRepository.findByName(projectName);
+    expect(existProject, not(isPresent())).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectName);
 
-		ProjectType projectType = ProjectType.findByName(createProjectRQ.getEntryType())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, createProjectRQ.getEntryType()));
-		expect(projectType, equalTo(ProjectType.INTERNAL)).verify(ErrorType.BAD_REQUEST_ERROR,
-				"Only internal projects can be created via API"
-		);
+    ProjectType projectType = ProjectType.findByName(createProjectRQ.getEntryType())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            createProjectRQ.getEntryType()));
+    expect(projectType, equalTo(ProjectType.INTERNAL)).verify(ErrorType.BAD_REQUEST_ERROR,
+        "Only internal projects can be created via API"
+    );
 
-		User dbUser = userRepository.findRawById(user.getUserId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUsername()));
+    User dbUser = userRepository.findRawById(user.getUserId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUsername()));
 
-		Project project = new Project();
-		project.setName(projectName);
-		project.setCreationDate(new Date());
+    Project project = new Project();
+    project.setName(projectName);
+    project.setCreationDate(new Date());
 
-		project.setProjectIssueTypes(ProjectUtils.defaultIssueTypes(project, issueTypeRepository.getDefaultIssueTypes()));
-		Set<ProjectAttribute> projectAttributes = ProjectUtils.defaultProjectAttributes(project,
-				attributeRepository.getDefaultProjectAttributes()
-		);
+    project.setProjectIssueTypes(
+        ProjectUtils.defaultIssueTypes(project, issueTypeRepository.getDefaultIssueTypes()));
+    Set<ProjectAttribute> projectAttributes = ProjectUtils.defaultProjectAttributes(project,
+        attributeRepository.getDefaultProjectAttributes()
+    );
 
-		project.setProjectType(projectType);
+    project.setProjectType(projectType);
 
-		project.setProjectAttributes(projectAttributes);
+    project.setProjectAttributes(projectAttributes);
 
-		ProjectUser projectUser = new ProjectUser().withProject(project).withUser(dbUser).withProjectRole(ProjectRole.PROJECT_MANAGER);
+    ProjectUser projectUser = new ProjectUser().withProject(project).withUser(dbUser)
+        .withProjectRole(ProjectRole.PROJECT_MANAGER);
 
-		projectRepository.save(project);
-		projectUserRepository.save(projectUser);
+    projectRepository.save(project);
+    projectUserRepository.save(projectUser);
 
-		applicationEventPublisher.publishEvent(new ProjectEvent(project.getId(), CREATE_KEY));
+    applicationEventPublisher.publishEvent(new ProjectEvent(project.getId(), CREATE_KEY));
+    publishProjectCreatedEvent(user.getUserId(), user.getUsername(), project);
 
-		return new EntryCreatedRS(project.getId());
-	}
+    return new EntryCreatedRS(project.getId());
+  }
 
-	@Override
-	public Project createPersonal(User user) {
-		//TODO refactor personal project generation to not add user inside method (cannot be done now, because DAO dependency may affect other services)
-		final Project personalProject = personalProjectService.generatePersonalProject(user);
-		personalProject.getUsers().clear();
-		projectRepository.save(personalProject);
-		return personalProject;
-	}
+  private void publishProjectCreatedEvent(Long userId, String userLogin, Project project) {
+    Long projectId = project.getId();
+    String projectName = project.getName();
+    ProjectCreatedEvent event = new ProjectCreatedEvent(userId, userLogin, projectId, projectName);
+    applicationEventPublisher.publishEvent(event);
+  }
+
+  @Override
+  public Project createPersonal(User user) {
+    //TODO refactor personal project generation to not add user inside method (cannot be done now, because DAO dependency may affect other services)
+    final Project personalProject = personalProjectService.generatePersonalProject(user);
+    personalProject.getUsers().clear();
+    projectRepository.save(personalProject);
+    publishProjectCreatedEvent(null, "ReportPortal", personalProject);
+    return personalProject;
+  }
 }

@@ -168,7 +168,7 @@
                     <td style="padding-bottom: 12px">
                       <p class="main-content">
                         If you would like to keep your account, please log in to
-                        our platform before <b>${deadlineDate}</b> and your
+                        our platform ${deadlineDate} and your
                         account will not be deleted. If you do not log in before
                         this date, your account and all associated data will be
                         erased from our platform, while all the previously

@@ -51,8 +51,6 @@ import com.epam.ta.reportportal.ws.converter.converters.ActivityConverter;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -136,9 +134,7 @@ public class ActivityHandlerImpl implements ActivityHandler {
         .withCondition(FilterCondition.builder()
             .withSearchCriteria(CRITERIA_OBJECT_TYPE)
             .withCondition(Condition.IN)
-            .withValue(Stream.of(EventObject.ITEM, EventObject.ITEM_ISSUE, EventObject.TICKET)
-                .map(EventObject::toString)
-                .collect(Collectors.joining(",")))
+						.withValue(EventObject.ITEM_ISSUE.toString())
             .build());
 
     Page<Activity> page = activityRepository.findByFilter(

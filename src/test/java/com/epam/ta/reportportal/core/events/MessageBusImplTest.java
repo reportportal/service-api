@@ -39,7 +39,7 @@ public class MessageBusImplTest {
 
   private static final Long PROJECT_ID = 1L;
 
-  private static final EventObject EVENT_OBJECT = EventObject.ITEM;
+  private static final EventObject EVENT_OBJECT = EventObject.ITEM_ISSUE;
 
   private static final String EVENT_NAME = "event";
 

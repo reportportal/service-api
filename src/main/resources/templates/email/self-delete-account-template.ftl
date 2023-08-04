@@ -185,7 +185,7 @@
                   <tr>
                     <td>
                       <p class="main-content">
-                        Best regards,<br />ReportPortal team
+                        <br>Kind regards,<br>ReportPortal team
                       </p>
                     </td>
                   </tr>

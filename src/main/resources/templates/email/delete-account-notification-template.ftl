@@ -158,9 +158,9 @@
                         We are writing to inform you that according to our data
                         retention procedure your account and all your personal
                         data (your account name, email and photo) will be
-                        deleted from ReportPortal database in
+                        deleted from ReportPortal database
                         <b>${remainingTime}</b>. As it has already been inactive
-                        for the past <b>${inactivityPeriod}</b>.
+                        for the <b>${inactivityPeriod}</b>.
                       </p>
                     </td>
                   </tr>
@@ -189,7 +189,7 @@
                   <tr>
                     <td>
                       <p class="main-content">
-                        Best regards,<br />ReportPortal team
+                        <br>Kind regards,<br>ReportPortal team
                       </p>
                     </td>
                   </tr>

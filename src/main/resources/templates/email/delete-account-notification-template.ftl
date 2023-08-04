@@ -160,7 +160,7 @@
                         data (your account name, email and photo) will be
                         deleted from ReportPortal database
                         <b>${remainingTime}</b>. As it has already been inactive
-                        for the <b>${inactivityPeriod}</b>.
+                        for ${inactivityPeriod}.
                       </p>
                     </td>
                   </tr>

@@ -155,10 +155,12 @@ public class DemoLogsService {
 		});
 	}
 
-	private void createAttachment(Long projectId, Long testItemId, Long launchId, Log it, String launchUuid) {
+	private void createAttachment(Long projectId, Long testItemId, Long launchId, Log it,
+			String launchUuid) {
 		Attachment attachment = Attachment.values()[random.nextInt(Attachment.values().length)];
 		try {
-			attachmentBinaryDataService.saveFileAndAttachToLog(getMultipartFile(attachment.getResource().getPath()),
+			attachmentBinaryDataService.saveFileAndAttachToLog(
+					getMultipartFile(attachment.getResource().getPath()),
 					AttachmentMetaInfo.builder()
 							.withProjectId(projectId)
 							.withLaunchId(launchId)
@@ -166,11 +168,13 @@ public class DemoLogsService {
 							.withLogId(it.getId())
 							.withLaunchUuid(launchUuid)
 							.withLogUuid(it.getUuid())
+							.withFileName(attachment.getName())
 							.withCreationDate(LocalDateTime.now(ZoneOffset.UTC))
 							.build()
 			);
 		} catch (IOException e) {
-			throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, "Error generating demo data.");
+			throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
+					"Error generating demo data.");
 		}
 	}
 

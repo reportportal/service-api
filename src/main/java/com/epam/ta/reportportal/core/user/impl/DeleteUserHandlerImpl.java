@@ -123,7 +123,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
       if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(),
           user.getLogin()
       )) {
-        deleteProjectHandler.deleteProject(project.getId());
+        deleteProjectHandler.deleteProject(project.getId(), null);
       } else {
         projectRecipientHandler.handle(Lists.newArrayList(user), project);
       }
@@ -137,8 +137,9 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
   }
 
   private void sendEmailAboutDeletion(User user, ReportPortalUser loggedInUser) {
-    EmailTemplate template = user.getId().equals(loggedInUser.getUserId()) ?
-        EmailTemplate.USER_SELF_DELETION_NOTIFICATION : EmailTemplate.USER_DELETION_NOTIFICATION;
+    EmailTemplate template = user.getId().equals(loggedInUser.getUserId())
+        ? EmailTemplate.USER_SELF_DELETION_NOTIFICATION
+        : EmailTemplate.USER_DELETION_NOTIFICATION;
     emailNotificationStrategyMapping.get(template)
         .sendEmail(user.getEmail(), Collections.emptyMap());
   }

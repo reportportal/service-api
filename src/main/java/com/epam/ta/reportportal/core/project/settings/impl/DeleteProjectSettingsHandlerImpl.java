@@ -136,7 +136,7 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 				user.getUsername(),
 				project.getId()
 		);
-		messageBus.publishActivity(defectTypeDeletedEvent);
+
 		eventPublisher.publishEvent(defectTypeDeletedEvent);
 		return new OperationCompletionRS("Issue sub-type delete operation completed successfully.");
 	}

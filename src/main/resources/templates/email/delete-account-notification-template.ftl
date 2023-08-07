@@ -158,9 +158,9 @@
                         We are writing to inform you that according to our data
                         retention procedure your account and all your personal
                         data (your account name, email and photo) will be
-                        deleted from ReportPortal database in
+                        deleted from ReportPortal database
                         <b>${remainingTime}</b>. As it has already been inactive
-                        for the past <b>${inactivityPeriod}</b>.
+                        for ${inactivityPeriod}.
                       </p>
                     </td>
                   </tr>
@@ -168,7 +168,7 @@
                     <td style="padding-bottom: 12px">
                       <p class="main-content">
                         If you would like to keep your account, please log in to
-                        our platform before <b>${deadlineDate}</b> and your
+                        our platform ${deadlineDate} and your
                         account will not be deleted. If you do not log in before
                         this date, your account and all associated data will be
                         erased from our platform, while all the previously
@@ -189,7 +189,7 @@
                   <tr>
                     <td>
                       <p class="main-content">
-                        Best regards,<br />ReportPortal team
+                        <br>Kind regards,<br>ReportPortal team
                       </p>
                     </td>
                   </tr>

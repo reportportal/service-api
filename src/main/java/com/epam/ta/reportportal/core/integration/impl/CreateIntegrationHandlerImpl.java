@@ -156,8 +156,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
     ofNullable(updateRequest.getName()).map(String::toLowerCase).ifPresent(name -> {
       if (!name.equals(integration.getName())) {
         validateGlobalIntegrationName(name, integration.getType());
-        updateRequest.setName(name);
       }
+      updateRequest.setName(name);
     });
 
     IntegrationService integrationService = integrationServiceMapping.getOrDefault(
@@ -191,8 +191,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
     ofNullable(updateRequest.getName()).map(String::toLowerCase).ifPresent(name -> {
       if (!name.equals(integration.getName())) {
         validateProjectIntegrationName(name, integration.getType(), project);
-        updateRequest.setName(name);
       }
+      updateRequest.setName(name);
     });
 
     IntegrationService integrationService = integrationServiceMapping.getOrDefault(

@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import com.epam.ta.reportportal.ws.model.log.SaveLogRQ.File;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -216,6 +217,9 @@ class AsyncReportingListenerTest {
 
     SaveLogRQ saveLogRQ = mock(SaveLogRQ.class);
     when(saveLogRQ.getLaunchUuid()).thenReturn(LAUNCH_ID);
+    File mockFile = new File();
+    mockFile.setName("name");
+    when(saveLogRQ.getFile()).thenReturn(mockFile);
     BinaryDataMetaInfo binaryDataMetaInfo = mock(BinaryDataMetaInfo.class);
     DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> deserializablePair =
         DeserializablePair.of(saveLogRQ, binaryDataMetaInfo);
@@ -252,6 +256,9 @@ class AsyncReportingListenerTest {
 
     SaveLogRQ saveLogRQ = mock(SaveLogRQ.class);
     when(saveLogRQ.getItemUuid()).thenReturn(ITEM_ID);
+    File mockFile = new File();
+    mockFile.setName("name");
+    when(saveLogRQ.getFile()).thenReturn(mockFile);
     BinaryDataMetaInfo binaryDataMetaInfo = mock(BinaryDataMetaInfo.class);
     DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> deserializablePair =
         DeserializablePair.of(saveLogRQ, binaryDataMetaInfo);

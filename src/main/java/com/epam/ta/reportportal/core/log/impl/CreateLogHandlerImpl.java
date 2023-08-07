@@ -119,6 +119,7 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 				.withLaunchId(launch.getId())
 				.withLaunchUuid(launch.getUuid())
 				.withLogId(log.getId())
+				.withFileName(file.getOriginalFilename())
 				.withLogUuid(log.getUuid())
 				.withCreationDate(LocalDateTime.now(ZoneOffset.UTC));
 		ofNullable(log.getTestItem()).map(TestItem::getItemId).ifPresent(metaInfoBuilder::withItemId);

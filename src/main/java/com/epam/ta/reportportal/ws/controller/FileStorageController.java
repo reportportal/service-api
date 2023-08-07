@@ -126,16 +126,14 @@ public class FileStorageController {
 	 * @param binaryData Stored data
 	 */
 	private void toResponse(HttpServletResponse response, BinaryData binaryData) {
-		//TODO investigate stream closing requirement
 		if (binaryData.getInputStream() != null) {
-			try {
-				response.setContentType(binaryData.getContentType());
-				if (binaryData.getFileName() != null) {
-					response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-							String.format("attachment; filename=%s", binaryData.getFileName())
-					);
-				}
-				IOUtils.copy(binaryData.getInputStream(), response.getOutputStream());
+			response.setContentType(binaryData.getContentType());
+			if (binaryData.getFileName() != null) {
+				response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+						"attachment; filename=\"" + binaryData.getFileName() + "\"");
+			}
+			try (InputStream inputStream = binaryData.getInputStream()) {
+				IOUtils.copy(inputStream, response.getOutputStream());
 			} catch (IOException e) {
 				throw new ReportPortalException("Unable to retrieve binary data from data storage", e);
 			}

@@ -385,13 +385,13 @@ public class LaunchController {
           value = "Override Launch Description"
       ),
       @ApiImplicitParam(
-          name = "AttributeKey",
+          name = "attributeKey",
           dataType = "string",
           paramType = "query",
           value = "Add Launch attribute key"
       ),
       @ApiImplicitParam(
-          name = "AttributeValue",
+          name = "attributeValue",
           dataType = "string",
           paramType = "query",
           value = "Add Launch attribute value"

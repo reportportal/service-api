@@ -132,8 +132,7 @@ public class FileStorageController {
 				response.setContentType(binaryData.getContentType());
 				if (binaryData.getFileName() != null) {
 					response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-							String.format("attachment; filename=%s", binaryData.getFileName())
-					);
+							"attachment; filename=\"" + binaryData.getFileName() + "\"");
 				}
 				IOUtils.copy(binaryData.getInputStream(), response.getOutputStream());
 			} catch (IOException e) {

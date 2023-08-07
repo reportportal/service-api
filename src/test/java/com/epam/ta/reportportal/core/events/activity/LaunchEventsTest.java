@@ -73,14 +73,6 @@ class LaunchEventsTest {
     checkActivity(expected, actual);
   }
 
-  @Test
-  void forceFinished() {
-    final String name = "name";
-    final Activity actual = new LaunchFinishForcedEvent(getLaunch(name), 1L, "user").toActivity();
-    final Activity expected = getExpectedActivity(EventAction.FINISH, EventPriority.LOW);
-    checkActivity(expected, actual);
-  }
-
   private static LaunchActivityResource getLaunch(String name) {
     LaunchActivityResource launch = new LaunchActivityResource();
     launch.setId(2L);

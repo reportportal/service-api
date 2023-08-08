@@ -65,7 +65,8 @@ public class XmlImportStrategy extends AbstractImportStrategy {
       savedLaunchId = launchId;
       XunitParseJob job = xmlParseJobProvider.get()
           .withParameters(projectDetails, launchId, user, xmlStream,
-              params.get(NOT_ISSUE) != null && Boolean.parseBoolean(params.get(NOT_ISSUE)));
+              params.get(SKIPPED_IS_NOT_ISSUE) != null && Boolean.parseBoolean(params.get(
+                  SKIPPED_IS_NOT_ISSUE)));
       ParseResults parseResults = job.call();
       finishLaunch(launchId, projectDetails, user, parseResults, baseUrl);
       return launchId;

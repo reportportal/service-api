@@ -73,7 +73,8 @@ public class ZipImportStrategy extends AbstractImportStrategy {
       CompletableFuture[] futures = zipFile.stream().filter(isFile.and(isXml)).map(zipEntry -> {
         XunitParseJob job = xmlParseJobProvider.get()
             .withParameters(projectDetails, launchId, user, getEntryStream(zipFile, zipEntry),
-                params.get(NOT_ISSUE) != null && Boolean.parseBoolean(params.get(NOT_ISSUE)));
+                params.get(SKIPPED_IS_NOT_ISSUE) != null && Boolean.parseBoolean(params.get(
+                    SKIPPED_IS_NOT_ISSUE)));
         return CompletableFuture.supplyAsync(job::call, service);
       }).toArray(CompletableFuture[]::new);
       ParseResults parseResults = processResults(futures);

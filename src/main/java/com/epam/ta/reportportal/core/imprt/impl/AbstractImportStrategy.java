@@ -55,7 +55,7 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
   public static final String LAUNCH_DESCRIPTION = "description";
   public static final String ATTRIBUTE_KEY = "attributeKey";
   public static final String ATTRIBUTE_VALUE = "attributeValue";
-  public static final String NOT_ISSUE = "notIssue";
+  public static final String SKIPPED_IS_NOT_ISSUE = "skippedIsNotIssue";
   public static final String SKIPPED_ISSUE = "skippedIssue";
   protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractImportStrategy.class);
   private static final Date initialStartTime = new Date(0);
@@ -124,7 +124,8 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
       itemAttributes.add(
           new ItemAttributesRQ(params.get(ATTRIBUTE_KEY), params.get(ATTRIBUTE_VALUE)));
     }
-    if (params.get(NOT_ISSUE) != null && Boolean.parseBoolean(params.get(NOT_ISSUE))) {
+    if (params.get(SKIPPED_IS_NOT_ISSUE) != null && Boolean.parseBoolean(params.get(
+        SKIPPED_IS_NOT_ISSUE))) {
       itemAttributes.add(new ItemAttributesRQ(SKIPPED_ISSUE, "true", true));
     }
     return itemAttributes;
@@ -211,7 +212,7 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
   }
 
   private void validateSkippedParameter(Map<String, String> params) {
-    String notIssue = params.get(NOT_ISSUE);
+    String notIssue = params.get(SKIPPED_IS_NOT_ISSUE);
     boolean isValid =
         notIssue == null || "true".equalsIgnoreCase(notIssue) || "false".equalsIgnoreCase(notIssue);
     expect(isValid, Predicate.isEqual(true)).verify(ErrorType.BAD_REQUEST_ERROR,

@@ -58,293 +58,322 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Sql("/db/user/user-fill.sql")
 class UserControllerTest extends BaseMvcTest {
 
-	@Autowired
-	private ObjectMapper objectMapper;
+  @Autowired
+  private ObjectMapper objectMapper;
 
-	@Autowired
-	private ProjectRepository projectRepository;
+  @Autowired
+  private ProjectRepository projectRepository;
 
-	@Autowired
-	private UserRepository userRepository;
+  @Autowired
+  private UserRepository userRepository;
 
-	@Autowired
-	private IssueTypeRepository issueTypeRepository;
+  @Autowired
+  private IssueTypeRepository issueTypeRepository;
 
-	@Test
-	void createUserByAdminPositive() throws Exception {
-		CreateUserRQFull rq = new CreateUserRQFull();
-		rq.setLogin("testLogin");
-		rq.setPassword("testPassword");
-		rq.setFullName("Test User");
-		rq.setEmail("test@test.com");
-		rq.setAccountRole("USER");
-		rq.setProjectRole("MEMBER");
-		rq.setDefaultProject("default_personal");
+  @Test
+  void createUserByAdminPositive() throws Exception {
+    CreateUserRQFull rq = new CreateUserRQFull();
+    rq.setLogin("testLogin");
+    rq.setPassword("testPassword");
+    rq.setFullName("Test User");
+    rq.setEmail("test@test.com");
+    rq.setAccountRole("USER");
+    rq.setProjectRole("MEMBER");
+    rq.setDefaultProject("default_personal");
 
-		MvcResult mvcResult = mockMvc.perform(post("/v1/user").with(token(oAuthHelper.getSuperadminToken()))
-				.contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated()).andReturn();
+    MvcResult mvcResult = mockMvc.perform(
+            post("/v1/user").with(token(oAuthHelper.getSuperadminToken()))
+                .contentType(APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated())
+        .andReturn();
 
-		CreateUserRS createUserRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), CreateUserRS.class);
+    CreateUserRS createUserRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
+        CreateUserRS.class);
 
-		assertNotNull(createUserRS.getId());
-		assertEquals(normalizeId(rq.getLogin()), createUserRS.getLogin());
-		assertTrue(userRepository.findById(createUserRS.getId()).isPresent());
+    assertNotNull(createUserRS.getId());
+    assertEquals(normalizeId(rq.getLogin()), createUserRS.getLogin());
+    assertTrue(userRepository.findById(createUserRS.getId()).isPresent());
 
-		final Optional<Project> projectOptional = projectRepository.findByName("default_personal");
-		assertTrue(projectOptional.isPresent());
-		assertTrue(projectOptional.get().getUsers().stream().anyMatch(config -> config.getUser().getLogin().equals("testlogin")));
+    final Optional<Project> projectOptional = projectRepository.findByName("default_personal");
+    assertTrue(projectOptional.isPresent());
+    assertTrue(projectOptional.get().getUsers().stream()
+        .anyMatch(config -> config.getUser().getLogin().equals("testlogin")));
 
-		Optional<Project> personalProject = projectRepository.findByName("testlogin_personal");
-		assertTrue(personalProject.isPresent(), "Personal project isn't created");
-		Project project = personalProject.get();
+    Optional<Project> personalProject = projectRepository.findByName("testlogin_personal");
+    assertTrue(personalProject.isPresent(), "Personal project isn't created");
+    Project project = personalProject.get();
 
-		List<IssueType> defaultIssueTypes = issueTypeRepository.getDefaultIssueTypes();
+    List<IssueType> defaultIssueTypes = issueTypeRepository.getDefaultIssueTypes();
 
-		project.getProjectAttributes()
-				.forEach(projectAttribute -> assertTrue(projectAttribute.getValue()
-						.equalsIgnoreCase(ProjectAttributeEnum.findByAttributeName(projectAttribute.getAttribute().getName())
-								.get()
-								.getDefaultValue())));
+    project.getProjectAttributes()
+        .forEach(projectAttribute -> assertTrue(projectAttribute.getValue()
+            .equalsIgnoreCase(
+                ProjectAttributeEnum.findByAttributeName(projectAttribute.getAttribute().getName())
+                    .get()
+                    .getDefaultValue())));
 
-		assertTrue(defaultIssueTypes.containsAll(project.getProjectIssueTypes()
-				.stream()
-				.map(ProjectIssueType::getIssueType)
-				.collect(Collectors.toList())));
-	}
+    assertTrue(defaultIssueTypes.containsAll(project.getProjectIssueTypes()
+        .stream()
+        .map(ProjectIssueType::getIssueType)
+        .collect(Collectors.toList())));
+  }
 
-	@Test
-	void createUserBidPositive() throws Exception {
-		CreateUserRQ rq = new CreateUserRQ();
-		rq.setDefaultProject("default_personal");
-		rq.setEmail("test@domain.com");
-		rq.setRole("PROJECT_MANAGER");
+  @Test
+  void createUserBidPositive() throws Exception {
+    CreateUserRQ rq = new CreateUserRQ();
+    rq.setDefaultProject("default_personal");
+    rq.setEmail("test@domain.com");
+    rq.setRole("PROJECT_MANAGER");
 
-		when(mailServiceFactory.getEmailService(any(Integration.class), any(Boolean.class))).thenReturn(emailService);
-		doNothing().when(emailService).sendCreateUserConfirmationEmail(any(), any(), any());
+    when(mailServiceFactory.getEmailService(any(Integration.class), any(Boolean.class))).thenReturn(
+        emailService);
+    doNothing().when(emailService).sendCreateUserConfirmationEmail(any(), any(), any());
 
-		MvcResult mvcResult = mockMvc.perform(post("/v1/user/bid").with(token(oAuthHelper.getDefaultToken()))
-				.contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated()).andReturn();
+    MvcResult mvcResult = mockMvc.perform(
+            post("/v1/user/bid").with(token(oAuthHelper.getDefaultToken()))
+                .contentType(APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated())
+        .andReturn();
 
-		CreateUserBidRS createUserBidRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), CreateUserBidRS.class);
-		assertNotNull(createUserBidRS.getBackLink());
-		assertNotNull(createUserBidRS.getBid());
-		assertTrue(createUserBidRS.getBackLink().contains("/ui/#registration?uuid=" + createUserBidRS.getBid()));
-	}
+    CreateUserBidRS createUserBidRS = objectMapper.readValue(
+        mvcResult.getResponse().getContentAsString(), CreateUserBidRS.class);
+    assertNotNull(createUserBidRS.getBackLink());
+    assertNotNull(createUserBidRS.getBid());
+    assertTrue(createUserBidRS.getBackLink()
+        .contains("/ui/#registration?uuid=" + createUserBidRS.getBid()));
+  }
 
-	@Test
-	void createUserPositive() throws Exception {
-		CreateUserRQConfirm rq = new CreateUserRQConfirm();
-		rq.setLogin("testLogin");
-		rq.setPassword("testPassword");
-		rq.setFullName("Test User");
-		rq.setEmail("test@domain.com");
-		MvcResult mvcResult = mockMvc.perform(post("/v1/user/registration?uuid=e5f98deb-8966-4b2d-ba2f-35bc69d30c06").contentType(
-				APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated()).andReturn();
+  @Test
+  void createUserPositive() throws Exception {
+    CreateUserRQConfirm rq = new CreateUserRQConfirm();
+    rq.setLogin("testLogin");
+    rq.setPassword("testPassword");
+    rq.setFullName("Test User");
+    rq.setEmail("test@domain.com");
+    MvcResult mvcResult = mockMvc.perform(
+            post("/v1/user/registration?uuid=e5f98deb-8966-4b2d-ba2f-35bc69d30c06").contentType(
+                APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
+        .andExpect(status().isCreated()).andReturn();
 
-		CreateUserRS createUserRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), CreateUserRS.class);
+    CreateUserRS createUserRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
+        CreateUserRS.class);
 
-		assertNotNull(createUserRS.getId());
-		assertEquals(normalizeId(rq.getLogin()), createUserRS.getLogin());
-		assertTrue(userRepository.findById(createUserRS.getId()).isPresent());
-	}
+    assertNotNull(createUserRS.getId());
+    assertEquals(normalizeId(rq.getLogin()), createUserRS.getLogin());
+    assertTrue(userRepository.findById(createUserRS.getId()).isPresent());
+  }
 
-	@Test
-	void getUserBidInfoPositive() throws Exception {
-		mockMvc.perform(get("/v1/user/registration?uuid=e5f98deb-8966-4b2d-ba2f-35bc69d30c06")).andExpect(status().isOk());
-	}
+  @Test
+  void getUserBidInfoPositive() throws Exception {
+    mockMvc.perform(get("/v1/user/registration?uuid=e5f98deb-8966-4b2d-ba2f-35bc69d30c06"))
+        .andExpect(status().isOk());
+  }
 
-	@Test
-	void deleteUserNegative() throws Exception {
-		/* Administrator cannot remove him/her-self */
-		mockMvc.perform(delete("/v1/user/1").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isForbidden());
-	}
+  @Test
+  void deleteUserNegative() throws Exception {
+    /* Administrator cannot remove him/her-self */
+    mockMvc.perform(delete("/v1/user/1").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isForbidden());
+  }
 
-	@Test
-	void deleteUserPositive() throws Exception {
-		mockMvc.perform(delete("/v1/user/2").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
-	}
+  @Test
+  void deleteUserPositive() throws Exception {
+    mockMvc.perform(delete("/v1/user/2").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
 
-	@Test
-	void deleteUsers() throws Exception {
+  @Test
+  void deleteUsers() throws Exception {
 
-		DeleteBulkRQ deleteBulkRQ = new DeleteBulkRQ();
-		deleteBulkRQ.setIds(Lists.newArrayList(2L));
+    DeleteBulkRQ deleteBulkRQ = new DeleteBulkRQ();
+    deleteBulkRQ.setIds(Lists.newArrayList(2L));
 
-		mockMvc.perform(delete("/v1/user").with(token(oAuthHelper.getSuperadminToken()))
-				.contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(deleteBulkRQ))).andExpect(status().isOk());
-	}
+    mockMvc.perform(delete("/v1/user").with(token(oAuthHelper.getSuperadminToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(deleteBulkRQ))).andExpect(status().isOk());
+  }
 
-	@Test
-	void editUserPositive() throws Exception {
-		EditUserRQ rq = new EditUserRQ();
-		rq.setFullName("Vasya Pupkin");
-		rq.setEmail("defaultemail@domain.com");
-		rq.setRole("USER");
-		mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
-				.contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
-	}
+  @Test
+  void editUserPositive() throws Exception {
+    EditUserRQ rq = new EditUserRQ();
+    rq.setFullName("Vasya Pupkin");
+    rq.setEmail("defaultemail@domain.com");
+    rq.setRole("USER");
+    mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
+  }
 
-	@Test
-	void editUserShortName() throws Exception {
-		EditUserRQ editUserRQ = new EditUserRQ();
-		editUserRQ.setEmail("defaltemail@domain.com");
-		editUserRQ.setFullName("1");
-		mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
-				.contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isBadRequest());
-	}
+  @Test
+  void editUserShortName() throws Exception {
+    EditUserRQ editUserRQ = new EditUserRQ();
+    editUserRQ.setEmail("defaltemail@domain.com");
+    editUserRQ.setFullName("1");
+    mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isBadRequest());
+  }
 
-	@Test
-	void editUserLongName() throws Exception {
-		EditUserRQ editUserRQ = new EditUserRQ();
-		editUserRQ.setEmail("defaltemail@domain.com");
-		editUserRQ.setFullName(RandomStringUtils.randomAlphabetic(257));
-		mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
-				.contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isBadRequest());
-	}
+  @Test
+  void editUserLongName() throws Exception {
+    EditUserRQ editUserRQ = new EditUserRQ();
+    editUserRQ.setEmail("defaltemail@domain.com");
+    editUserRQ.setFullName(RandomStringUtils.randomAlphabetic(257));
+    mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isBadRequest());
+  }
 
-	@Test
-	void editUserNotUniqueEmail() throws Exception {
-		EditUserRQ editUserRQ = new EditUserRQ();
-		editUserRQ.setFullName("Vasya Pupkin");
-		editUserRQ.setEmail("superadminemail@domain.com");
-		mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
-				.contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().is(409));
-	}
+  @Test
+  void editUserNotUniqueEmail() throws Exception {
+    EditUserRQ editUserRQ = new EditUserRQ();
+    editUserRQ.setFullName("Vasya Pupkin");
+    editUserRQ.setEmail("superadminemail@domain.com");
+    mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().is(409));
+  }
 
-	@Test
-	void editUserUniqueEmail() throws Exception {
-		EditUserRQ editUserRQ = new EditUserRQ();
-		editUserRQ.setFullName("Vasya Pupkin");
-		editUserRQ.setEmail("user1uniquemail@epam.com");
-		mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
-				.contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isOk());
-	}
+  @Test
+  void editUserUniqueEmail() throws Exception {
+    EditUserRQ editUserRQ = new EditUserRQ();
+    editUserRQ.setFullName("Vasya Pupkin");
+    editUserRQ.setEmail("user1uniquemail@epam.com");
+    mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isOk());
+  }
 
-	@Test
-	void getUserPositive() throws Exception {
-		mockMvc.perform(get("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
-	}
+  @Test
+  void getUserPositive() throws Exception {
+    mockMvc.perform(get("/v1/user/default").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
 
-	@Test
-	void getUserPositiveUsingApiToken() throws Exception {
-		mockMvc.perform(get("/v1/user/default").with(token("test__ET4Byc1QUqO8VV8kiCGSP3O4SERb5MJWIowQQ3SiEqHO6hjicoPw-vm1tnrQI5V"))).andExpect(status().isOk());
-	}
+  @Test
+  void getUserPositiveUsingApiToken() throws Exception {
+    mockMvc.perform(get("/v1/user/default").with(
+            token("test__ET4Byc1QUqO8VV8kiCGSP3O4SERb5MJWIowQQ3SiEqHO6hjicoPw-vm1tnrQI5V")))
+        .andExpect(status().isOk());
+  }
 
-	@Test
-	void getUsersPositive() throws Exception {
-		mockMvc.perform(get("/v1/user/all").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
-	}
+  @Test
+  void getUsersPositive() throws Exception {
+    mockMvc.perform(get("/v1/user/all").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
 
-	@Test
-	void validateUserInfoUsernamePositive() throws Exception {
-		mockMvc.perform(get("/v1/user/registration/info?username=default").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isOk());
-	}
+  @Test
+  void validateUserInfoUsernamePositive() throws Exception {
+    mockMvc.perform(get("/v1/user/registration/info?username=default").with(
+            token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
 
-	@Test
-	void changePasswordWrongOldPassword() throws Exception {
-		ChangePasswordRQ rq = new ChangePasswordRQ();
-		rq.setOldPassword("password");
-		rq.setNewPassword("12345");
-		mockMvc.perform(post("/v1/user/password/change").with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(rq))
-				.contentType(APPLICATION_JSON)).andExpect(status().isBadRequest());
-	}
+  @Test
+  void changePasswordWrongOldPassword() throws Exception {
+    ChangePasswordRQ rq = new ChangePasswordRQ();
+    rq.setOldPassword("password");
+    rq.setNewPassword("12345");
+    mockMvc.perform(post("/v1/user/password/change").with(token(oAuthHelper.getDefaultToken()))
+        .content(objectMapper.writeValueAsBytes(rq))
+        .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest());
+  }
 
-	@Test
-	void changePasswordPositive() throws Exception {
-		ChangePasswordRQ rq = new ChangePasswordRQ();
-		rq.setOldPassword("1q2w3e");
-		rq.setNewPassword("12345");
+  @Test
+  void changePasswordPositive() throws Exception {
+    ChangePasswordRQ rq = new ChangePasswordRQ();
+    rq.setOldPassword("1q2w3e");
+    rq.setNewPassword("12345");
 
-		when(mailServiceFactory.getDefaultEmailService(true)).thenReturn(emailService);
-		doNothing().when(emailService).sendChangePasswordConfirmation(any(), any(), any());
+    when(mailServiceFactory.getDefaultEmailService(true)).thenReturn(emailService);
+    doNothing().when(emailService).sendChangePasswordConfirmation(any(), any(), any());
 
-		mockMvc.perform(post("/v1/user/password/change").with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(rq))
-				.contentType(APPLICATION_JSON)).andExpect(status().isOk());
-	}
+    mockMvc.perform(post("/v1/user/password/change").with(token(oAuthHelper.getDefaultToken()))
+        .content(objectMapper.writeValueAsBytes(rq))
+        .contentType(APPLICATION_JSON)).andExpect(status().isOk());
+  }
 
-	@Test
-	void changePasswordLongNewPassword() throws Exception {
-		ChangePasswordRQ rq = new ChangePasswordRQ();
-		rq.setOldPassword("1q2w3e");
-		rq.setNewPassword(RandomStringUtils.randomAlphabetic(ValidationConstraints.MAX_PASSWORD_LENGTH + 1));
-		mockMvc.perform(post("/v1/user/password/change").with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(rq))
-				.contentType(APPLICATION_JSON)).andExpect(status().isBadRequest());
-	}
+  @Test
+  void changePasswordLongNewPassword() throws Exception {
+    ChangePasswordRQ rq = new ChangePasswordRQ();
+    rq.setOldPassword("1q2w3e");
+    rq.setNewPassword(
+        RandomStringUtils.randomAlphabetic(ValidationConstraints.MAX_PASSWORD_LENGTH + 1));
+    mockMvc.perform(post("/v1/user/password/change").with(token(oAuthHelper.getDefaultToken()))
+        .content(objectMapper.writeValueAsBytes(rq))
+        .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest());
+  }
 
-	@Test
-	void changePasswordShortNewPassword() throws Exception {
-		ChangePasswordRQ rq = new ChangePasswordRQ();
-		rq.setOldPassword("1q2w3e");
-		rq.setNewPassword(RandomStringUtils.randomAlphabetic(ValidationConstraints.MIN_PASSWORD_LENGTH - 1));
-		mockMvc.perform(post("/v1/user/password/change").with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(rq))
-				.contentType(APPLICATION_JSON)).andExpect(status().isBadRequest());
-	}
+  @Test
+  void changePasswordShortNewPassword() throws Exception {
+    ChangePasswordRQ rq = new ChangePasswordRQ();
+    rq.setOldPassword("1q2w3e");
+    rq.setNewPassword(
+        RandomStringUtils.randomAlphabetic(ValidationConstraints.MIN_PASSWORD_LENGTH - 1));
+    mockMvc.perform(post("/v1/user/password/change").with(token(oAuthHelper.getDefaultToken()))
+        .content(objectMapper.writeValueAsBytes(rq))
+        .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest());
+  }
 
-	@Test
-	void restorePassword() throws Exception {
-		final RestorePasswordRQ restorePasswordRQ = new RestorePasswordRQ();
-		restorePasswordRQ.setEmail("defaultemail@domain.com");
+  @Test
+  void restorePassword() throws Exception {
+    final RestorePasswordRQ restorePasswordRQ = new RestorePasswordRQ();
+    restorePasswordRQ.setEmail("defaultemail@domain.com");
 
-		when(mailServiceFactory.getDefaultEmailService(true)).thenReturn(emailService);
-		doNothing().when(emailService).sendRestorePasswordEmail(any(), any(), any(), any());
+    when(mailServiceFactory.getDefaultEmailService(true)).thenReturn(emailService);
+    doNothing().when(emailService).sendRestorePasswordEmail(any(), any(), any(), any());
 
-		mockMvc.perform(post("/v1/user/password/restore").with(token(oAuthHelper.getDefaultToken()))
-				.contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(restorePasswordRQ))).andExpect(status().isOk());
-	}
+    mockMvc.perform(post("/v1/user/password/restore").with(token(oAuthHelper.getDefaultToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(restorePasswordRQ))).andExpect(status().isOk());
+  }
 
-	@Test
-	void resetPassword() throws Exception {
-		final ResetPasswordRQ resetPasswordRQ = new ResetPasswordRQ();
-		resetPasswordRQ.setPassword("password");
-		resetPasswordRQ.setUuid("e5f98deb-8966-4b2d-ba2f-35bc69d30c06");
-		mockMvc.perform(post("/v1/user/password/reset").with(token(oAuthHelper.getDefaultToken()))
-				.contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(resetPasswordRQ))).andExpect(status().isOk());
-	}
+  @Test
+  void resetPassword() throws Exception {
+    final ResetPasswordRQ resetPasswordRQ = new ResetPasswordRQ();
+    resetPasswordRQ.setPassword("password");
+    resetPasswordRQ.setUuid("e5f98deb-8966-4b2d-ba2f-35bc69d30c06");
+    mockMvc.perform(post("/v1/user/password/reset").with(token(oAuthHelper.getDefaultToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(resetPasswordRQ))).andExpect(status().isOk());
+  }
 
-	@Test
-	void isRestorePasswordBidExist() throws Exception {
-		mockMvc.perform(get("/v1/user/password/reset/e5f98deb-8966-4b2d-ba2f-35bc69d30c06").with(token(oAuthHelper.getDefaultToken()))
-				.contentType(APPLICATION_JSON)).andExpect(status().isOk());
-	}
+  @Test
+  void isRestorePasswordBidExist() throws Exception {
+    mockMvc.perform(get("/v1/user/password/reset/e5f98deb-8966-4b2d-ba2f-35bc69d30c06").with(
+            token(oAuthHelper.getDefaultToken()))
+        .contentType(APPLICATION_JSON)).andExpect(status().isOk());
+  }
 
-	@Test
-	void getUserProjects() throws Exception {
-		mockMvc.perform(get("/v1/user/default/projects").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
-	}
+  @Test
+  void getUserProjects() throws Exception {
+    mockMvc.perform(get("/v1/user/default/projects").with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk());
+  }
 
-	@Test
-	void getMyself() throws Exception {
-		mockMvc.perform(get("/v1/user").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
-	}
+  @Test
+  void getMyself() throws Exception {
+    mockMvc.perform(get("/v1/user").with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk());
+  }
 
-	@Test
-	void findUsers() throws Exception {
-		MvcResult mvcResult = mockMvc.perform(get("/v1/user/search?term=e").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isOk())
-				.andReturn();
-		Page userResources = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Page.class);
+  @Test
+  void findUsers() throws Exception {
+    MvcResult mvcResult = mockMvc.perform(
+            get("/v1/user/search?term=e").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn();
+    Page userResources = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
+        Page.class);
 
-		Assertions.assertNotNull(userResources);
-		Assertions.assertEquals(2, userResources.getContent().size());
-	}
+    Assertions.assertNotNull(userResources);
+    Assertions.assertEquals(2, userResources.getContent().size());
+  }
 
-	@Test
-	void exportUsers() throws Exception {
-		mockMvc.perform(get("/v1/user/export").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
-	}
+  @Test
+  void exportUsers() throws Exception {
+    mockMvc.perform(get("/v1/user/export").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
 }

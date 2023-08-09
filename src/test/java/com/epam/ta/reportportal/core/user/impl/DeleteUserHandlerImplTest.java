@@ -122,7 +122,7 @@ class DeleteUserHandlerImplTest {
         assertThrows(ReportPortalException.class, () -> handler.deleteUser(1L,
             getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L)
         ));
-    assertEquals("Incorrect Request. You cannot delete own account", exception.getMessage());
+    assertEquals("You do not have enough permissions. You cannot delete own account", exception.getMessage());
 
     verify(repository, times(1)).findById(1L);
     verify(repository, times(0)).delete(any(User.class));

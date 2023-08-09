@@ -168,12 +168,12 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
             UserRole.ADMINISTRATOR.equals(loggedInUser.getUserRole()) && Objects.equals(userId,
                 loggedInUser.getUserId()
             ), Predicates.equalTo(false))
-        .verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
+        .verify(ErrorType.ACCESS_DENIED, "You cannot delete own account");
 
     BusinessRule.expect(
             UserRole.ADMINISTRATOR.equals(loggedInUser.getUserRole()) || (isAllowToDeleteAccount
                 && loggedInUser.getUserId().equals(userId)), Predicates.equalTo(true))
-        .verify(ErrorType.INCORRECT_REQUEST, "You are not allowed to delete account");
+        .verify(ErrorType.ACCESS_DENIED, "You are not allowed to delete account");
   }
 
   private void publishUserDeletedEvent(User deletedUser, ReportPortalUser loggedInUser) {

@@ -71,7 +71,7 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
   public static final String ATTRIBUTE_VALUE_RESTRICTION_MSG =
       "User can't import launch with the invalid number of symbols for Attribute Value.";
   public static final String INCORRECT_NOT_ISSUE_PARAMETER_MSG =
-      "User can't import launch with invalid value for parameter for NotIssue.";
+      "User can't import launch with invalid value for parameter skippedIsNotIssue.";
   public static final int MAX_ATTRIBUTE_LENGTH = 512;
   public static final int MAX_DESCRIPTION_LENGTH = 2048;
   public static final int MAX_NAME_LENGTH = 256;

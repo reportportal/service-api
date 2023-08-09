@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.ws.model.SearchCriteriaRQ;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Operator;
@@ -62,6 +63,11 @@ public class SearchCriteriaServiceImpl implements SearchCriteriaService {
     return predefinedFilter.isPresent()
         ? createCompositeFilter(predefinedFilterType, filter, predefinedFilter.get())
         : filter;
+  }
+
+  @Override
+  public void normalizeValueSpaces(Set<SearchCriteria> criteriaSet) {
+    criteriaSet.forEach(criteria -> criteria.setValue(criteria.getValue().replaceAll("\\s", "")));
   }
 
   private List<ConvertibleCondition> collectConditions(SearchCriteriaRQ searchCriteriaRQ) {

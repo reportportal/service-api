@@ -186,8 +186,6 @@ test {
     }
 }
 
-addDockerfileToGit.dependsOn createDockerfile
-beforeReleaseBuild.dependsOn addDockerfileToGit
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts

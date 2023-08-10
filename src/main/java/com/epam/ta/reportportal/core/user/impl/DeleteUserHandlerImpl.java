@@ -195,9 +195,9 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
   private void publishUsersDeletedEvent(int deletedCount, ReportPortalUser loggedInUser) {
     UserActivityResource userActivityResource = new UserActivityResource();
     if (deletedCount == 1) {
-      userActivityResource.setFullName(deletedCount + "deleted user");
+      userActivityResource.setFullName(deletedCount + " deleted user");
     } else {
-      userActivityResource.setFullName(deletedCount + "deleted users");
+      userActivityResource.setFullName(deletedCount + " deleted users");
     }
 
     applicationEventPublisher.publishEvent(

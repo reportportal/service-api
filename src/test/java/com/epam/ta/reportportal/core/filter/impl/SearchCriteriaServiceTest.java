@@ -100,4 +100,13 @@ class SearchCriteriaServiceTest {
 
   }
 
+  @Test
+  void testNormalizeValueSpaces() {
+    Set<SearchCriteria> criteriaList = Set.of(
+        new SearchCriteria("predefinedFilter", "CNT", "sample Value1")
+    );
+    searchCriteriaService.normalizeValueSpaces(criteriaList);
+    Assertions.assertEquals("sampleValue1", criteriaList.iterator().next().getValue());
+  }
+
 }

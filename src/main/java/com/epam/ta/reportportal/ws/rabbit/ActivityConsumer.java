@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.ws.rabbit;
 
 import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityDetails;
+import java.util.Objects;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +54,9 @@ public class ActivityConsumer {
   private void processActivity(Activity activity) {
     LOGGER.info("[audit] - {}", activity);
     if (activity.isSavedEvent()) {
+      if (Objects.isNull(activity.getDetails())) {
+        activity.setDetails(new ActivityDetails());
+      }
       activityRepository.save(activity);
     }
   }

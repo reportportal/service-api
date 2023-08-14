@@ -84,7 +84,6 @@ public class ActivityEventController {
       @RequestBody SearchCriteriaRQ searchCriteria,
       @AuthenticationPrincipal ReportPortalUser user) {
 
-    searchCriteriaService.normalizeValueSpaces(searchCriteria.getCriteriaList());
     Queryable filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteria,
         Activity.class,
         PredefinedFilterType.ACTIVITIES);

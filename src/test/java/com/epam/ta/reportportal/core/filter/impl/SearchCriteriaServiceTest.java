@@ -16,11 +16,14 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_EVENT_NAME;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.FilterTarget;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType;
@@ -28,6 +31,7 @@ import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.SearchCriteria;
 import com.epam.ta.reportportal.ws.model.SearchCriteriaRQ;
+import java.util.List;
 import java.util.Set;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.jupiter.api.Assertions;
@@ -105,8 +109,21 @@ class SearchCriteriaServiceTest {
     Set<SearchCriteria> criteriaList = Set.of(
         new SearchCriteria("predefinedFilter", "CNT", "sample Value1")
     );
-    searchCriteriaService.normalizeValueSpaces(criteriaList);
-    Assertions.assertEquals("sampleValue1", criteriaList.iterator().next().getValue());
-  }
+    searchCriteriaRQ.setCriteriaList(criteriaList);
+    Queryable filter = searchCriteriaService.createFilterBySearchCriteria(
+        searchCriteriaRQ, target,
+        PredefinedFilterType.ACTIVITIES);
 
+    filter.getFilterConditions().forEach(cnd -> {
+      FilterCondition condition = (FilterCondition) cnd;
+      switch (condition.getSearchCriteria()) {
+        case CRITERIA_EVENT_NAME:
+        case CRITERIA_OBJECT_TYPE:
+          Assertions.assertEquals("sampleValue1", condition.getValue());
+          break;
+        default:
+          Assertions.assertEquals("sample Value1", condition.getValue());
+      }
+    });
+  }
 }

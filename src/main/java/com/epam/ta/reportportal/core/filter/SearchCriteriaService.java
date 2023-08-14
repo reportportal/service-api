@@ -32,11 +32,4 @@ public interface SearchCriteriaService {
   Queryable createFilterBySearchCriteria(SearchCriteriaRQ searchCriteriaRQ,
       Class<?> target, PredefinedFilterType predefinedFilterType);
 
-  /**
-   * Remove spaces in values to map value from rq vs value from bd
-   *
-   * @param criteriaSet Criteria set
-   */
-  void normalizeValueSpaces(Set<SearchCriteria> criteriaSet);
-
 }

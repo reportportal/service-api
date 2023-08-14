@@ -65,11 +65,6 @@ public class SearchCriteriaServiceImpl implements SearchCriteriaService {
         : filter;
   }
 
-  @Override
-  public void normalizeValueSpaces(Set<SearchCriteria> criteriaSet) {
-    criteriaSet.forEach(criteria -> criteria.setValue(criteria.getValue().replaceAll("\\s", "")));
-  }
-
   private List<ConvertibleCondition> collectConditions(SearchCriteriaRQ searchCriteriaRQ) {
     return searchCriteriaRQ.getCriteriaList().stream()
         .filter(criteria -> !PREDEFINED_FILTER.equalsIgnoreCase(criteria.getFilterKey()))

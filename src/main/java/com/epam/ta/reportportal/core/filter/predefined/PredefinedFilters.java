@@ -119,13 +119,13 @@ public final class PredefinedFilters {
         @Override
         public Queryable build(String[] params) {
           return Filter.builder().withTarget(Activity.class)
-              .withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0],
+              .withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, normalizeSpaceSensitiveValue(params[0]),
                   CRITERIA_EVENT_NAME))
               .withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0],
                   CRITERIA_SUBJECT_TYPE))
               .withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0],
                   CRITERIA_SUBJECT_NAME))
-              .withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0],
+              .withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, normalizeSpaceSensitiveValue(params[0]),
                   CRITERIA_OBJECT_TYPE))
               .withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0],
                   CRITERIA_OBJECT_NAME))
@@ -143,6 +143,16 @@ public final class PredefinedFilters {
   public static Queryable buildFilter(PredefinedFilterType type, String[] params) {
     final PredefinedFilterBuilder builder = FILTERS.get(type);
     return builder.buildFilter(params);
+  }
+
+  /**
+   * Removes spaces to avoid inconsistency between UI and DB value representation
+   * @param value Value
+   * @return Value without spaces
+   */
+  private static String normalizeSpaceSensitiveValue(String value) {
+    final String SPACES = "\\s";
+    return value.replaceAll(SPACES, "");
   }
 
 }

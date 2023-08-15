@@ -188,7 +188,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     ProjectAttributesActivityResource after = TO_ACTIVITY_RESOURCE.apply(project);
 
     applicationEventPublisher.publishEvent(new ProjectEvent(project.getId(), UPDATE_EVENT));
-    publishUpdatedAttributesActivities(before, after, user);
+    publishUpdatedAttributesActivities(before, after, user, updateProjectRQ.getConfiguration());
 
     return new OperationCompletionRS(
         "Project with name = '" + project.getName() + "' is successfully updated.");
@@ -576,18 +576,23 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
   /**
    * Resolves and publishes activities according to changed attributes
-   * @param before Object before update
-   * @param after Object after update
-   * @param user User
+   *
+   * @param before        Object before update
+   * @param after         Object after update
+   * @param user          User
+   * @param updateConfiguration Configuration fields that has been updated
    */
   private void publishUpdatedAttributesActivities(ProjectAttributesActivityResource before,
-      ProjectAttributesActivityResource after, ReportPortalUser user) {
+      ProjectAttributesActivityResource after, ReportPortalUser user,
+      ProjectConfigurationUpdate updateConfiguration) {
+
     if (ActivityDetailsUtil.configChanged(before.getConfig(), after.getConfig(), Prefix.JOB)) {
       applicationEventPublisher.publishEvent(
           new ProjectUpdatedEvent(before, after, user.getUserId(), user.getUsername()));
     }
+
     if (ActivityDetailsUtil.configChanged(before.getConfig(), after.getConfig(), Prefix.ANALYZER)) {
-      if (ActivityDetailsUtil.extractConfigByPrefix(before.getConfig(),
+      if (ActivityDetailsUtil.extractConfigByPrefix(updateConfiguration.getProjectAttributes(),
           AUTO_PATTERN_ANALYZER_ENABLED.getAttribute()).isEmpty()) {
         applicationEventPublisher.publishEvent(
             new ProjectAnalyzerConfigEvent(before, after, user.getUserId(), user.getUsername()));

@@ -28,6 +28,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
+import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_PATTERN_ANALYZER_ENABLED;
 import static com.epam.ta.reportportal.entity.enums.SendCase.findByName;
 import static com.epam.ta.reportportal.ws.converter.converters.ProjectActivityConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
@@ -54,8 +55,10 @@ import com.epam.ta.reportportal.core.events.activity.ChangeRoleEvent;
 import com.epam.ta.reportportal.core.events.activity.NotificationsConfigUpdatedEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectAnalyzerConfigEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
+import com.epam.ta.reportportal.core.events.activity.ProjectPatternAnalyzerUpdateEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.core.events.activity.UnassignUserEvent;
+import com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
 import com.epam.ta.reportportal.core.project.validator.attribute.ProjectAttributeValidator;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -63,6 +66,7 @@ import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.Prefix;
 import com.epam.ta.reportportal.entity.enums.ProjectType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -184,10 +188,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     ProjectAttributesActivityResource after = TO_ACTIVITY_RESOURCE.apply(project);
 
     applicationEventPublisher.publishEvent(new ProjectEvent(project.getId(), UPDATE_EVENT));
-    messageBus.publishActivity(
-        new ProjectUpdatedEvent(before, after, user.getUserId(), user.getUsername()));
-    messageBus.publishActivity(
-        new ProjectAnalyzerConfigEvent(before, after, user.getUserId(), user.getUsername()));
+    publishUpdatedAttributesActivities(before, after, user);
 
     return new OperationCompletionRS(
         "Project with name = '" + project.getName() + "' is successfully updated.");
@@ -570,6 +571,31 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     }
     if (value != null && value.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {
       entity.setValue(value.substring(0, ValidationConstraints.MAX_ATTRIBUTE_LENGTH));
+    }
+  }
+
+  /**
+   * Resolves and publishes activities according to changed attributes
+   * @param before Object before update
+   * @param after Object after update
+   * @param user User
+   */
+  private void publishUpdatedAttributesActivities(ProjectAttributesActivityResource before,
+      ProjectAttributesActivityResource after, ReportPortalUser user) {
+    if (ActivityDetailsUtil.configChanged(before.getConfig(), after.getConfig(), Prefix.JOB)) {
+      applicationEventPublisher.publishEvent(
+          new ProjectUpdatedEvent(before, after, user.getUserId(), user.getUsername()));
+    }
+    if (ActivityDetailsUtil.configChanged(before.getConfig(), after.getConfig(), Prefix.ANALYZER)) {
+      if (ActivityDetailsUtil.extractConfigByPrefix(before.getConfig(),
+          AUTO_PATTERN_ANALYZER_ENABLED.getAttribute()).isEmpty()) {
+        applicationEventPublisher.publishEvent(
+            new ProjectAnalyzerConfigEvent(before, after, user.getUserId(), user.getUsername()));
+      } else {
+        applicationEventPublisher.publishEvent(
+            new ProjectPatternAnalyzerUpdateEvent(before, after, user.getUserId(),
+                user.getUsername()));
+      }
     }
   }
 

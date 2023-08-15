@@ -15,13 +15,11 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.configEquals;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processParameter;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.INTERRUPT_JOB_TIME;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.KEEP_LAUNCHES;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.KEEP_LOGS;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.KEEP_SCREENSHOTS;
-import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.Prefix;
 
 import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
@@ -52,9 +50,7 @@ public class ProjectUpdatedEvent extends AroundEvent<ProjectAttributesActivityRe
 
   @Override
   public Activity toActivity() {
-    return configEquals(getBefore().getConfig(), getAfter().getConfig(), Prefix.JOB) ?
-        null :
-        new ActivityBuilder().addCreatedNow()
+    return new ActivityBuilder().addCreatedNow()
             .addAction(EventAction.UPDATE)
             .addEventName(ActivityAction.UPDATE_PROJECT.getValue())
             .addPriority(EventPriority.HIGH)

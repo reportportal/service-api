@@ -92,7 +92,11 @@ public class ActivityDetailsUtil {
 		return beforeJobConfig.equals(afterJobConfig);
 	}
 
-	private static Map<String, String> extractConfigByPrefix(Map<String, String> config, String prefix) {
+	public static boolean configChanged(Map<String, String> before, Map<String, String> after, String prefix) {
+		return !configEquals(before, after, prefix);
+	}
+
+	public static Map<String, String> extractConfigByPrefix(Map<String, String> config, String prefix) {
 		return config.entrySet()
 				.stream()
 				.filter(entry -> entry.getKey().startsWith(prefix))

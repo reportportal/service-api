@@ -56,19 +56,6 @@
 		 this.projectExtractor = projectExtractor;
 	 }
 
-	 @RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
-	 @ResponseStatus(OK)
-	 @ApiOperation("Get activities for project")
-	 public Iterable<ActivityResource> getActivities(@PathVariable String projectName, @FilterFor(Activity.class) Filter filter,
-			 @FilterFor(Activity.class) Queryable predefinedFilter, @SortFor(Activity.class) Pageable pageable,
-			 @AuthenticationPrincipal ReportPortalUser user) {
-		 ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetailsAdmin(
-				 user,
-				 EntityUtils.normalizeId(projectName)
-		 );
-		 return activityHandler.getActivitiesHistory(projectDetails, filter, predefinedFilter, pageable);
-	 }
-
 	 @RequestMapping(value = "/{activityId}", method = RequestMethod.GET)
 	 @ResponseStatus(OK)
 	 public ActivityResource getActivity(@PathVariable String projectName, @PathVariable Long activityId,

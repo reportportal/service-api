@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
@@ -48,6 +49,7 @@ import java.util.Deque;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toMillis;
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -75,6 +77,7 @@ public class XunitImportHandler extends DefaultHandler {
 	private ReportPortalUser.ProjectDetails projectDetails;
 	private ReportPortalUser user;
 	private String launchUuid;
+	private boolean skippedIsNotIssue = false;
 
 	//need to know item's id to attach System.out/System.err logs
 	private String currentItemUuid;
@@ -234,6 +237,7 @@ public class XunitImportHandler extends DefaultHandler {
 
 	private void finishRootItem() {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
+		markAsNotIssue(rq);
 		rq.setEndTime(EntityUtils.TO_DATE.apply(startItemTime));
 		finishTestItemHandler.finishTestItem(user, projectDetails, itemUuids.poll(), rq);
 		status = null;
@@ -241,6 +245,7 @@ public class XunitImportHandler extends DefaultHandler {
 
 	private void finishTestItem() {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
+		markAsNotIssue(rq);
 		startItemTime = startItemTime.plus(currentDuration, ChronoUnit.MILLIS);
 		commonDuration += currentDuration;
 		rq.setEndTime(EntityUtils.TO_DATE.apply(startItemTime));
@@ -248,6 +253,14 @@ public class XunitImportHandler extends DefaultHandler {
 		currentItemUuid = itemUuids.poll();
 		finishTestItemHandler.finishTestItem(user, projectDetails, currentItemUuid, rq);
 		status = null;
+	}
+
+	private void markAsNotIssue(FinishTestItemRQ rq) {
+		if (StatusEnum.SKIPPED.equals(status) && skippedIsNotIssue) {
+			Issue issue = new Issue();
+			issue.setIssueType(NOT_ISSUE_FLAG.getValue());
+			rq.setIssue(issue);
+		}
 	}
 
 	private void attachLog(LogLevel logLevel) {
@@ -261,10 +274,12 @@ public class XunitImportHandler extends DefaultHandler {
 		}
 	}
 
-	XunitImportHandler withParameters(ReportPortalUser.ProjectDetails projectDetails, String launchId, ReportPortalUser user) {
+	XunitImportHandler withParameters(ReportPortalUser.ProjectDetails projectDetails, String launchId,
+			ReportPortalUser user, boolean skipped) {
 		this.projectDetails = projectDetails;
 		this.launchUuid = launchId;
 		this.user = user;
+		this.skippedIsNotIssue = skipped;
 		return this;
 	}
 

@@ -19,6 +19,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.imprt.impl.junit.XunitParseJob;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,35 +37,42 @@ import static java.util.Optional.ofNullable;
 @Service
 public class XmlImportStrategy extends AbstractImportStrategy {
 
-	@Autowired
-	private Provider<XunitParseJob> xmlParseJobProvider;
+  @Autowired
+  private Provider<XunitParseJob> xmlParseJobProvider;
 
-	@Override
-	public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file, String baseUrl) {
-		try {
-			return processXmlFile(file, projectDetails, user, baseUrl);
-		} finally {
-			try {
-				ofNullable(file).ifPresent(File::delete);
-			} catch (Exception e) {
-				LOGGER.error("File '{}' was not successfully deleted.", file.getName(), e);
-			}
-		}
-	}
+  @Override
+  public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      File file, String baseUrl, Map<String, String> params) {
+    validateOverrideParameters(params);
+    try {
+      return processXmlFile(file, projectDetails, user, baseUrl, params);
+    } finally {
+      try {
+        ofNullable(file).ifPresent(File::delete);
+      } catch (Exception e) {
+        LOGGER.error("File '{}' was not successfully deleted.", file.getName(), e);
+      }
+    }
+  }
 
-	private String processXmlFile(File xml, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
-		//copy of the launch's id to use it in catch block if something goes wrong
-		String savedLaunchId = null;
-		try (InputStream xmlStream = new FileInputStream(xml)) {
-			String launchId = startLaunch(projectDetails, user, xml.getName().substring(0, xml.getName().indexOf("." + XML_EXTENSION)));
-			savedLaunchId = launchId;
-			XunitParseJob job = xmlParseJobProvider.get().withParameters(projectDetails, launchId, user, xmlStream);
-			ParseResults parseResults = job.call();
-			finishLaunch(launchId, projectDetails, user, parseResults, baseUrl);
-			return launchId;
-		} catch (Exception e) {
-			updateBrokenLaunch(savedLaunchId);
-			throw new ReportPortalException(ErrorType.IMPORT_FILE_ERROR, cleanMessage(e));
-		}
-	}
+  private String processXmlFile(File xml, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, String baseUrl, Map<String, String> params) {
+    //copy of the launch's id to use it in catch block if something goes wrong
+    String savedLaunchId = null;
+    try (InputStream xmlStream = new FileInputStream(xml)) {
+      String launchId = startLaunch(projectDetails, user,
+          xml.getName().substring(0, xml.getName().indexOf("." + XML_EXTENSION)), params);
+      savedLaunchId = launchId;
+      XunitParseJob job = xmlParseJobProvider.get()
+          .withParameters(projectDetails, launchId, user, xmlStream,
+              params.get(SKIPPED_IS_NOT_ISSUE) != null && Boolean.parseBoolean(params.get(
+                  SKIPPED_IS_NOT_ISSUE)));
+      ParseResults parseResults = job.call();
+      finishLaunch(launchId, projectDetails, user, parseResults, baseUrl);
+      return launchId;
+    } catch (Exception e) {
+      updateBrokenLaunch(savedLaunchId);
+      throw new ReportPortalException(ErrorType.IMPORT_FILE_ERROR, cleanMessage(e));
+    }
+  }
 }

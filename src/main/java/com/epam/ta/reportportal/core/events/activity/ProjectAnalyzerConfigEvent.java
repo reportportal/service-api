@@ -57,10 +57,6 @@ public class ProjectAnalyzerConfigEvent extends
 
   @Override
   public Activity toActivity() {
-    return convert();
-  }
-
-  private Activity convert() {
     final ProjectAttributesActivityResource before = getBefore();
     final ProjectAttributesActivityResource after = getAfter();
 
@@ -93,5 +89,4 @@ public class ProjectAnalyzerConfigEvent extends
 
     return activityBuilder.get();
   }
-
 }

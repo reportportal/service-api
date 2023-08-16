@@ -47,10 +47,6 @@ public class ProjectPatternAnalyzerUpdateEvent extends
 
   @Override
   public Activity toActivity() {
-    return convert();
-  }
-
-  private Activity convert() {
     final ProjectAttributesActivityResource before = getBefore();
     final ProjectAttributesActivityResource after = getAfter();
     final Map<String, String> oldConfig = before.getConfig();
@@ -72,5 +68,4 @@ public class ProjectPatternAnalyzerUpdateEvent extends
             processParameter(oldConfig, newConfig, AUTO_PATTERN_ANALYZER_ENABLED.getAttribute()));
     return activityBuilder.get();
   }
-
 }

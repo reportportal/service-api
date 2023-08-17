@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.binary.UserBinaryDataService;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.core.events.activity.UnassignUserEvent;
 import com.epam.ta.reportportal.core.events.activity.UserDeletedEvent;
 import com.epam.ta.reportportal.core.events.activity.UsersDeletedEvent;
 import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
@@ -126,6 +127,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
         deleteProjectHandler.deleteProject(project.getId(), null);
       } else {
         projectRecipientHandler.handle(Lists.newArrayList(user), project);
+        publishUserUnassignEvent(user, loggedInUser, project.getId());
       }
     });
 
@@ -204,5 +206,18 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
         new UsersDeletedEvent(userActivityResource, loggedInUser.getUserId(),
             loggedInUser.getUsername()
         ));
+  }
+
+  private void publishUserUnassignEvent(User deletedUser, ReportPortalUser authorizedUser,
+      Long projectId) {
+    UserActivityResource userActivityResource = new UserActivityResource();
+    userActivityResource.setId(deletedUser.getId());
+    userActivityResource.setFullName(DELETED_USER);
+    userActivityResource.setDefaultProjectId(projectId);
+
+    applicationEventPublisher.publishEvent(
+        new UnassignUserEvent(userActivityResource, authorizedUser.getUserId(),
+            authorizedUser.getUsername())
+    );
   }
 }

@@ -30,14 +30,25 @@ import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 public class UnassignUserEvent extends AbstractEvent implements ActivityEvent {
 
   private UserActivityResource userActivityResource;
+  private boolean isSystemEvent;
 
   public UnassignUserEvent() {
   }
 
   public UnassignUserEvent(UserActivityResource userActivityResource, Long userId,
       String userLogin) {
+    this(userActivityResource, userId, userLogin, false);
+  }
+
+  public UnassignUserEvent(UserActivityResource userActivityResource) {
+    this(userActivityResource, null, null, true);
+  }
+
+  public UnassignUserEvent(UserActivityResource userActivityResource, Long userId, String userLogin,
+      boolean isSystemEvent) {
     super(userId, userLogin);
     this.userActivityResource = userActivityResource;
+    this.isSystemEvent = isSystemEvent;
   }
 
   public UserActivityResource getUserActivityResource() {
@@ -46,6 +57,14 @@ public class UnassignUserEvent extends AbstractEvent implements ActivityEvent {
 
   public void setUserActivityResource(UserActivityResource userActivityResource) {
     this.userActivityResource = userActivityResource;
+  }
+
+  public boolean isSystemEvent() {
+    return isSystemEvent;
+  }
+
+  public void setSystemEvent(boolean systemEvent) {
+    isSystemEvent = systemEvent;
   }
 
   @Override
@@ -59,9 +78,9 @@ public class UnassignUserEvent extends AbstractEvent implements ActivityEvent {
         .addObjectName(userActivityResource.getFullName())
         .addObjectType(EventObject.USER)
         .addProjectId(userActivityResource.getDefaultProjectId())
-        .addSubjectId(getUserId())
-        .addSubjectName(getUserLogin())
-        .addSubjectType(EventSubject.USER)
+        .addSubjectId(isSystemEvent ? null : getUserId())
+        .addSubjectName(isSystemEvent ? "ReportPortal" : getUserLogin())
+        .addSubjectType(isSystemEvent ? EventSubject.APPLICATION : EventSubject.USER)
         .get();
   }
 

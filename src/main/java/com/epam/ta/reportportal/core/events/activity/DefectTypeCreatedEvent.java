@@ -15,57 +15,64 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.model.activity.IssueTypeActivityResource;
-
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.DEFECT_TYPE;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_DEFECT;
 
 /**
  * @author Andrei Varabyeu
  */
 public class DefectTypeCreatedEvent extends AbstractEvent implements ActivityEvent {
 
-	private IssueTypeActivityResource issueTypeActivityResource;
-	private Long projectId;
+  private IssueTypeActivityResource issueTypeActivityResource;
+  private Long projectId;
 
-	public DefectTypeCreatedEvent() {
-	}
+  public DefectTypeCreatedEvent() {
+  }
 
-	public DefectTypeCreatedEvent(IssueTypeActivityResource issueTypeActivityResource, Long userId, String userLogin, Long projectId) {
-		super(userId, userLogin);
-		this.issueTypeActivityResource = issueTypeActivityResource;
-		this.projectId = projectId;
-	}
+  public DefectTypeCreatedEvent(IssueTypeActivityResource issueTypeActivityResource, Long userId,
+      String userLogin, Long projectId) {
+    super(userId, userLogin);
+    this.issueTypeActivityResource = issueTypeActivityResource;
+    this.projectId = projectId;
+  }
 
-	public IssueTypeActivityResource getIssueTypeActivityResource() {
-		return issueTypeActivityResource;
-	}
+  public IssueTypeActivityResource getIssueTypeActivityResource() {
+    return issueTypeActivityResource;
+  }
 
-	public void setIssueTypeActivityResource(IssueTypeActivityResource issueTypeActivityResource) {
-		this.issueTypeActivityResource = issueTypeActivityResource;
-	}
+  public void setIssueTypeActivityResource(IssueTypeActivityResource issueTypeActivityResource) {
+    this.issueTypeActivityResource = issueTypeActivityResource;
+  }
 
-	public Long getProjectId() {
-		return projectId;
-	}
+  public Long getProjectId() {
+    return projectId;
+  }
 
-	public void setProjectId(Long projectId) {
-		this.projectId = projectId;
-	}
+  public void setProjectId(Long projectId) {
+    this.projectId = projectId;
+  }
 
-	@Override
-	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(CREATE_DEFECT)
-				.addActivityEntityType(DEFECT_TYPE)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(issueTypeActivityResource.getId())
-				.addObjectName(issueTypeActivityResource.getLongName())
-				.addProjectId(projectId)
-				.get();
-	}
+  @Override
+  public Activity toActivity() {
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.CREATE)
+        .addEventName(ActivityAction.CREATE_DEFECT.getValue())
+        .addPriority(EventPriority.LOW)
+        .addObjectId(issueTypeActivityResource.getId())
+        .addObjectName(issueTypeActivityResource.getLongName())
+        .addObjectType(EventObject.DEFECT_TYPE)
+        .addProjectId(projectId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
+        .get();
+  }
 }

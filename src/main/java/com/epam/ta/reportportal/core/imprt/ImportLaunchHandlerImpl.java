@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.imprt;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ImportFinishedEvent;
-import com.epam.ta.reportportal.core.events.activity.ImportStartedEvent;
 import com.epam.ta.reportportal.core.imprt.impl.ImportStrategy;
 import com.epam.ta.reportportal.core.imprt.impl.ImportStrategyFactory;
 import com.epam.ta.reportportal.core.imprt.impl.ImportType;
@@ -64,11 +63,6 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unknown import type - " + format));
 
 		File tempFile = transferToTempFile(file);
-		messageBus.publishActivity(new ImportStartedEvent(user.getUserId(),
-				user.getUsername(),
-				projectDetails.getProjectId(),
-				file.getOriginalFilename()
-		));
 		ImportStrategy strategy = importStrategyFactory.getImportStrategy(type, file.getOriginalFilename());
     String launchId = strategy.importLaunch(projectDetails, user, tempFile, baseUrl, params);
 		messageBus.publishActivity(new ImportFinishedEvent(user.getUserId(),

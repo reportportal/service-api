@@ -24,7 +24,6 @@ import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.ws.model.user.SearchUserResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.google.common.collect.Lists;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -83,7 +82,7 @@ public final class UserConverter {
 		UserActivityResource resource = new UserActivityResource();
 		resource.setId(user.getId());
 		resource.setDefaultProjectId(projectId);
-		resource.setFullName(user.getFullName());
+		resource.setFullName(user.getLogin());
 		return resource;
 	};
 

@@ -13,9 +13,23 @@
         <appender-ref ref="CONSOLE"/>
     </appender>
 
+    <appender name="FILE_AUDIT" class="ch.qos.logback.core.FileAppender">
+        <file>/var/log/reportportal/audit.log</file>
+        <encoder>
+            <pattern>
+                ${FILE_LOG_PATTERN}
+            </pattern>
+        </encoder>
+    </appender>
+
     <root level="INFO">
         <appender-ref ref="ASYNC_CONSOLE"/>
     </root>
+
+    <logger name="com.epam.ta.reportportal.ws.rabbit.ActivityConsumer" level="${AUDIT_LOGGER:-OFF}"
+      additivity="false">
+        <appender-ref ref="FILE_AUDIT"/>
+    </logger>
 
     <springProfile name="file-logging">
         <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">

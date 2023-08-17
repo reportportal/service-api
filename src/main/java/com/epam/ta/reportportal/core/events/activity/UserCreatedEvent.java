@@ -15,47 +15,53 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
-
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.USER;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_USER;
 
 /**
  * @author Andrei Varabyeu
  */
 public class UserCreatedEvent extends AbstractEvent implements ActivityEvent {
 
-	private UserActivityResource userActivityResource;
+  private UserActivityResource userActivityResource;
 
-	public UserCreatedEvent() {
-	}
+  public UserCreatedEvent() {
+  }
 
-	public UserCreatedEvent(UserActivityResource userActivityResource, Long userId, String userLogin) {
-		super(userId, userLogin);
-		this.userActivityResource = userActivityResource;
-	}
+  public UserCreatedEvent(UserActivityResource userActivityResource, Long userId,
+      String userLogin) {
+    super(userId, userLogin);
+    this.userActivityResource = userActivityResource;
+  }
 
-	public UserActivityResource getUserActivityResource() {
-		return userActivityResource;
-	}
+  public UserActivityResource getUserActivityResource() {
+    return userActivityResource;
+  }
 
-	public void setUserActivityResource(UserActivityResource userActivityResource) {
-		this.userActivityResource = userActivityResource;
-	}
+  public void setUserActivityResource(UserActivityResource userActivityResource) {
+    this.userActivityResource = userActivityResource;
+  }
 
-	@Override
-	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(CREATE_USER)
-				.addActivityEntityType(USER)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(userActivityResource.getId())
-				.addObjectName(userActivityResource.getFullName())
-				.addProjectId(userActivityResource.getDefaultProjectId())
-				.get();
-	}
+  @Override
+  public Activity toActivity() {
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.CREATE)
+        .addEventName(ActivityAction.CREATE_USER.getValue())
+        .addPriority(EventPriority.HIGH)
+        .addObjectId(userActivityResource.getId())
+        .addObjectName(userActivityResource.getFullName())
+        .addObjectType(EventObject.USER)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
+        .get();
+  }
 }

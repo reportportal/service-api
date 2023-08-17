@@ -79,7 +79,7 @@ public class PluginController {
 	@PreAuthorize(ADMIN_ONLY)
 	public EntryCreatedRS uploadPlugin(@NotNull @RequestParam("file") MultipartFile pluginFile,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return createPluginHandler.uploadPlugin(pluginFile);
+		return createPluginHandler.uploadPlugin(pluginFile, user);
 	}
 
 	@Transactional
@@ -89,7 +89,7 @@ public class PluginController {
 	@PreAuthorize(ADMIN_ONLY)
 	public OperationCompletionRS updatePluginState(@PathVariable(value = "pluginId") Long id,
 			@RequestBody @Valid UpdatePluginStateRQ updatePluginStateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updatePluginHandler.updatePluginState(id, updatePluginStateRQ);
+		return updatePluginHandler.updatePluginState(id, updatePluginStateRQ, user);
 	}
 
 	@Transactional(readOnly = true)
@@ -106,7 +106,7 @@ public class PluginController {
 	@ApiOperation("Delete plugin by id")
 	@PreAuthorize(ADMIN_ONLY)
 	public OperationCompletionRS deletePlugin(@PathVariable(value = "pluginId") Long id, @AuthenticationPrincipal ReportPortalUser user) {
-		return deletePluginHandler.deleteById(id);
+		return deletePluginHandler.deleteById(id, user);
 	}
 
 	@Transactional

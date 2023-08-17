@@ -16,6 +16,11 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
+import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
+import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
@@ -24,7 +29,6 @@ import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
@@ -38,6 +42,9 @@ import com.epam.ta.reportportal.ws.model.analyzer.RelevantItemInfo;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.commons.collections.MapUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,15 +52,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
-import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Default implementation of {@link AnalyzerService}.
@@ -139,28 +137,32 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 	 * @return List of updated items
 	 */
 	private List<TestItem> updateTestItems(String analyzerInstance, List<AnalyzedItemRs> rs, List<TestItem> testItems, Long projectId) {
-		return rs.stream().map(analyzed -> {
-			Optional<TestItem> toUpdate = testItems.stream().filter(item -> item.getItemId().equals(analyzed.getItemId())).findAny();
-			toUpdate.ifPresent(testItem -> {
-				LOGGER.debug("Analysis has found a match: {}", analyzed);
+    return rs.stream().map(analyzed -> {
+      Optional<TestItem> toUpdate = testItems.stream()
+          .filter(item -> item.getItemId().equals(analyzed.getItemId())).findAny();
+      toUpdate.ifPresent(testItem -> {
+        LOGGER.debug("Analysis has found a match: {}", analyzed);
 
-				if (!testItem.getItemResults().getIssue().getIssueType().getLocator().equals(analyzed.getLocator())) {
-					TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
-					RelevantItemInfo relevantItemInfo = updateTestItemIssue(projectId, analyzed, testItem);
-					TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
+        if (!testItem.getItemResults().getIssue().getIssueType().getLocator()
+            .equals(analyzed.getLocator())) {
+          TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
+          RelevantItemInfo relevantItemInfo = updateTestItemIssue(projectId, analyzed, testItem);
+          TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
 
-					testItemRepository.save(testItem);
-					messageBus.publishActivity(new ItemIssueTypeDefinedEvent(before, after, analyzerInstance, relevantItemInfo));
-					ofNullable(after.getTickets()).ifPresent(it -> messageBus.publishActivity(new LinkTicketEvent(before,
-							after,
-							analyzerInstance,
-							ActivityAction.LINK_ISSUE_AA
-					)));
-				}
-			});
-			return toUpdate;
-		}).filter(Optional::isPresent).map(Optional::get).collect(toList());
-	}
+          testItemRepository.save(testItem);
+          messageBus.publishActivity(
+              new ItemIssueTypeDefinedEvent(before, after, analyzerInstance, relevantItemInfo));
+          ofNullable(after.getTickets()).ifPresent(
+              it -> messageBus.publishActivity(new LinkTicketEvent(before,
+                  after,
+                  analyzerInstance,
+                  true
+              )));
+        }
+      });
+      return toUpdate;
+    }).filter(Optional::isPresent).map(Optional::get).collect(toList());
+  }
 
 	/**
 	 * Updates issue for a specified test item

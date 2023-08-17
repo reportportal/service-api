@@ -120,6 +120,7 @@ class FileStorageControllerTest extends BaseMvcTest {
 				.withLogId(1L)
 				.withLogUuid("uuid")
 				.withLaunchUuid("uuid")
+				.withFileName("name")
 				.build();
 		Optional<BinaryDataMetaInfo> binaryDataMetaInfo = attachmentBinaryDataService.saveAttachment(metaInfo,
 				getMultipartFile("image/large_image.png")

@@ -16,39 +16,48 @@
 
 package com.epam.ta.reportportal.core.events.activity.item;
 
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.STATUS;
+
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.activity.AroundEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
-
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.STATUS;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.ITEM;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ITEM;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class TestItemStatusChangedEvent extends AroundEvent<TestItemActivityResource> implements ActivityEvent {
+public class TestItemStatusChangedEvent extends AroundEvent<TestItemActivityResource> implements
+    ActivityEvent {
 
-	public TestItemStatusChangedEvent() {
-	}
+  public TestItemStatusChangedEvent() {
+  }
 
-	public TestItemStatusChangedEvent(TestItemActivityResource before, TestItemActivityResource after, Long userId, String userLogin) {
-		super(userId, userLogin, before, after);
-	}
+  public TestItemStatusChangedEvent(TestItemActivityResource before, TestItemActivityResource after,
+      Long userId, String userLogin) {
+    super(userId, userLogin, before, after);
+  }
 
-	@Override
-	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addActivityEntityType(ITEM)
-				.addAction(UPDATE_ITEM)
-				.addObjectId(getAfter().getId())
-				.addProjectId(getAfter().getProjectId())
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectName(getAfter().getName())
-				.addHistoryField(STATUS, getBefore().getStatus(), getAfter().getStatus())
-				.get();
-	}
+  @Override
+  public Activity toActivity() {
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_ITEM.getValue())
+        .addPriority(EventPriority.LOW)
+        .addObjectId(getAfter().getId())
+        .addObjectName(getAfter().getName())
+        .addObjectType(EventObject.ITEM_ISSUE)
+        .addProjectId(getAfter().getProjectId())
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
+        .addHistoryField(STATUS, getBefore().getStatus(), getAfter().getStatus())
+        .get();
+  }
 }

@@ -16,78 +16,76 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
+
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
-import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
-
-import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 class LaunchEventsTest {
 
-	private static Activity getExpectedActivity(ActivityAction action, String name) {
-		Activity activity = new Activity();
-		activity.setAction(action.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH.getValue());
-		activity.setUserId(1L);
-		activity.setUsername("user");
-		activity.setProjectId(3L);
-		activity.setObjectId(2L);
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails(name));
-		return activity;
-	}
+  private static Activity getExpectedActivity(EventAction action, EventPriority priority) {
+    Activity activity = new Activity();
+    activity.setAction(action);
+    activity.setEventName(action.getValue().concat("Launch"));
+    activity.setPriority(priority);
+    activity.setObjectType(EventObject.LAUNCH);
+    activity.setSubjectId(1L);
+    activity.setSubjectName("user");
+    activity.setSubjectType(EventSubject.USER);
+    activity.setProjectId(3L);
+    activity.setObjectId(2L);
+    activity.setCreatedAt(LocalDateTime.now());
+    activity.setObjectName("name");
+    activity.setDetails(new ActivityDetails());
+    return activity;
+  }
 
-	@Test
-	void started() {
-		final String name = "name";
-		final Activity actual = new LaunchStartedEvent(getLaunch(name), 1L, "user").toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.START_LAUNCH, name);
-		checkActivity(expected, actual);
-	}
+  @Test
+  void started() {
+    final String name = "name";
+    final Activity actual = new LaunchStartedEvent(getLaunch(name), 1L, "user").toActivity();
+    final Activity expected = getExpectedActivity(EventAction.START, EventPriority.LOW);
+    checkActivity(expected, actual);
+  }
 
-	@Test
-	void finished() {
-		final String name = "name";
-		Launch launch = new Launch();
-		launch.setId(2L);
-		launch.setName(name);
-		launch.setProjectId(3L);
-		launch.setMode(LaunchModeEnum.DEFAULT);
-		final Activity actual = new LaunchFinishedEvent(launch, 1L, "user").toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.FINISH_LAUNCH, name);
-		checkActivity(expected, actual);
-	}
+  @Test
+  void finished() {
+    final String name = "name";
+    Launch launch = new Launch();
+    launch.setId(2L);
+    launch.setName(name);
+    launch.setProjectId(3L);
+    launch.setMode(LaunchModeEnum.DEFAULT);
+    final Activity actual = new LaunchFinishedEvent(launch, 1L, "user").toActivity();
+    final Activity expected = getExpectedActivity(EventAction.FINISH, EventPriority.LOW);
+    checkActivity(expected, actual);
+  }
 
-	@Test
-	void forceFinished() {
-		final String name = "name";
-		final Activity actual = new LaunchFinishForcedEvent(getLaunch(name), 1L, "user").toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.FINISH_LAUNCH, name);
-		checkActivity(expected, actual);
-	}
+  private static LaunchActivityResource getLaunch(String name) {
+    LaunchActivityResource launch = new LaunchActivityResource();
+    launch.setId(2L);
+    launch.setName(name);
+    launch.setProjectId(3L);
+    return launch;
+  }
 
-	private static LaunchActivityResource getLaunch(String name) {
-		LaunchActivityResource launch = new LaunchActivityResource();
-		launch.setId(2L);
-		launch.setName(name);
-		launch.setProjectId(3L);
-		return launch;
-	}
-
-	@Test
-	void deleted() {
-		final String name = "name";
-		final Activity actual = new LaunchDeletedEvent(getLaunch(name), 1L, "user").toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.DELETE_LAUNCH, name);
-		checkActivity(expected, actual);
-	}
+  @Test
+  void deleted() {
+    final String name = "name";
+    final Activity actual = new LaunchDeletedEvent(getLaunch(name), 1L, "user").toActivity();
+    final Activity expected = getExpectedActivity(EventAction.DELETE, EventPriority.MEDIUM);
+    checkActivity(expected, actual);
+  }
 }

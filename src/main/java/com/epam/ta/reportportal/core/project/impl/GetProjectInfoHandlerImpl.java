@@ -16,13 +16,44 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.querygen.Condition.EQUALS;
+import static com.epam.ta.reportportal.commons.querygen.Condition.GREATER_THAN_OR_EQUALS;
+import static com.epam.ta.reportportal.commons.querygen.Condition.IN;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_CREATED_AT;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_EVENT_NAME;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_CREATION_DATE;
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_NAME;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_DEFECT;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.LINK_ISSUE;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.LINK_ISSUE_AA;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.UNLINK_ISSUE;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_DEFECT;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ITEM;
+import static com.epam.ta.reportportal.ws.converter.converters.ActivityConverter.TO_RESOURCE;
+import static com.epam.ta.reportportal.ws.converter.converters.ActivityConverter.TO_RESOURCE_WITH_USER;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.project.GetProjectInfoHandler;
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.dao.ActivityRepository;
+import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.TicketRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.enums.InfoInterval;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -39,39 +70,25 @@ import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.project.LaunchesPerUser;
 import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
 import com.google.common.collect.Lists;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.querygen.Condition.*;
-import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ACTION;
-import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_CREATION_DATE;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_NAME;
-import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_CREATION_DATE;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.*;
-import static com.epam.ta.reportportal.ws.converter.converters.ActivityConverter.TO_RESOURCE;
-import static com.epam.ta.reportportal.ws.converter.converters.ActivityConverter.TO_RESOURCE_WITH_USER;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Pavel Bortnik
@@ -97,7 +114,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 
 	private final TicketRepository ticketRepository;
 
-	private DecimalFormat formatter = new DecimalFormat("###.##");
+	private final DecimalFormat formatter = new DecimalFormat("###.##");
 
 	@Autowired
 	public GetProjectInfoHandlerImpl(ProjectRepository projectRepository, LaunchRepository launchRepository,
@@ -242,31 +259,35 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				Collections.emptyMap();
 	}
 
-	private Map<String, List<ActivityResource>> getActivities(Project project, InfoInterval infoInterval) {
+	private Map<String, List<ActivityResource>> getActivities(Project project,
+			InfoInterval infoInterval) {
 		String value = Arrays.stream(ActivityAction.values())
 				.filter(not(ACTIVITIES_PROJECT_FILTER))
 				.map(ActivityAction::getValue)
 				.collect(joining(","));
-		Filter filter = new Filter(Activity.class, Lists.newArrayList(new FilterCondition(IN, false, value, CRITERIA_ACTION),
-				new FilterCondition(EQUALS, false, String.valueOf(project.getId()), CRITERIA_PROJECT_ID),
-				new FilterCondition(GREATER_THAN_OR_EQUALS,
-						false,
-						String.valueOf(Timestamp.valueOf(getStartIntervalDate(infoInterval)).getTime()),
-						CRITERIA_CREATION_DATE
-				)
-		));
+		Filter filter = new Filter(Activity.class,
+				Lists.newArrayList(new FilterCondition(IN, false, value, CRITERIA_EVENT_NAME),
+						new FilterCondition(EQUALS, false, String.valueOf(project.getId()),
+								CRITERIA_PROJECT_ID),
+						new FilterCondition(GREATER_THAN_OR_EQUALS,
+								false,
+								String.valueOf(Timestamp.valueOf(getStartIntervalDate(infoInterval)).getTime()),
+								CRITERIA_CREATED_AT
+						)
+				));
 		List<Activity> activities = activityRepository.findByFilter(filter,
-				PageRequest.of(0, LIMIT, Sort.by(Sort.Direction.DESC, CRITERIA_CREATION_DATE))
+				PageRequest.of(0, LIMIT, Sort.by(Sort.Direction.DESC, CRITERIA_CREATED_AT))
 		).getContent();
 
 		Map<Long, String> userIdLoginMapping = userRepository.findAllById(activities.stream()
-				.filter(a -> a.getUserId() != null)
-				.map(Activity::getUserId)
+				.filter(a -> a.getSubjectId() != null && a.getSubjectType() == EventSubject.USER)
+				.map(Activity::getSubjectId)
 				.collect(Collectors.toSet())).stream().collect(toMap(User::getId, User::getLogin));
 
 		return Collections.singletonMap(RESULT,
 				activities.stream()
-						.map(a -> ofNullable(a.getUserId()).map(userId -> TO_RESOURCE_WITH_USER.apply(a, userIdLoginMapping.get(userId)))
+						.map(a -> ofNullable(a.getSubjectId()).map(
+										userId -> TO_RESOURCE_WITH_USER.apply(a, userIdLoginMapping.get(userId)))
 								.orElseGet(() -> TO_RESOURCE.apply(a)))
 						.peek(resource -> resource.setProjectName(project.getName()))
 						.collect(toList())

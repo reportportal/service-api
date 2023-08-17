@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.epam.ta.reportportal.entity.Metadata;
 import com.epam.ta.reportportal.entity.enums.ProjectType;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -27,12 +30,8 @@ import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.google.common.collect.Sets;
-import org.junit.jupiter.api.Test;
-
 import java.util.HashMap;
-
-import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -61,7 +60,7 @@ class UserConverterTest {
 		final UserActivityResource resource = UserConverter.TO_ACTIVITY_RESOURCE.apply(user, projectId);
 
 		assertEquals(resource.getId(), user.getId());
-		assertEquals(resource.getFullName(), user.getFullName());
+		assertEquals(resource.getFullName(), user.getLogin());
 		assertEquals(resource.getDefaultProjectId(), projectId);
 	}
 

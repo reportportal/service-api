@@ -16,8 +16,21 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
+import static java.util.Optional.ofNullable;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.events.activity.PluginUpdatedEvent;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
@@ -27,170 +40,183 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.UpdatePluginStateRQ;
-import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.pf4j.PluginWrapper;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import static java.util.Optional.ofNullable;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.pf4j.PluginWrapper;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class UpdatePluginHandlerTest {
 
-	private static final String FILE_NAME = "file-name";
-	private final Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
-	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
-	private final DataStore dataStore = mock(DataStore.class);
+  private static final String FILE_NAME = "file-name";
+  private final Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
+  private final IntegrationTypeRepository integrationTypeRepository =
+      mock(IntegrationTypeRepository.class);
+  private final DataStore dataStore = mock(DataStore.class);
 
-	private PluginWrapper pluginWrapper = mock(PluginWrapper.class);
+  private final ReportPortalUser user = mock(ReportPortalUser.class);
 
-	private final UpdatePluginHandler updatePluginHandler = new UpdatePluginHandlerImpl(pluginBox, integrationTypeRepository);
+  private final ApplicationEventPublisher applicationEventPublisher =
+      mock(ApplicationEventPublisher.class);
 
-	@AfterAll
-	static void clearPluginDirectory() throws IOException {
-		FileUtils.deleteDirectory(new File(System.getProperty("user.dir") + "/plugins"));
-	}
+  private PluginWrapper pluginWrapper = mock(PluginWrapper.class);
 
-	@Test
-	void shouldNotUpdatePluginIntegrationWhenNotExistsById() {
+  private final UpdatePluginHandler updatePluginHandler =
+      new UpdatePluginHandlerImpl(pluginBox, integrationTypeRepository, applicationEventPublisher);
 
-		UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
-		updatePluginStateRQ.setEnabled(true);
+  @AfterAll
+  static void clearPluginDirectory() throws IOException {
+    FileUtils.deleteDirectory(new File(System.getProperty("user.dir") + "/plugins"));
+  }
 
-		when(integrationTypeRepository.findById(1L)).thenReturn(Optional.empty());
+  @Test
+  void shouldNotUpdatePluginIntegrationWhenNotExistsById() {
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ)
-		);
+    UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
+    updatePluginStateRQ.setEnabled(true);
 
-		assertEquals(Suppliers.formattedSupplier("Impossible interact with integration. Integration type with id - '{}' not found.", 1L)
-				.get(), exception.getMessage());
+    when(integrationTypeRepository.findById(1L)).thenReturn(Optional.empty());
 
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user)
+    );
 
-	@Test
-	void shouldUpdateNotPluginIntegrationWhenExists() {
+    assertEquals(Suppliers.formattedSupplier(
+            "Impossible interact with integration. Integration type with id - '{}' not found.", 1L)
+        .get(), exception.getMessage());
 
-		UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
-		updatePluginStateRQ.setEnabled(true);
+  }
 
-		IntegrationType emailIntegrationType = IntegrationTestUtil.getEmailIntegrationType();
-		when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(emailIntegrationType));
+  @Test
+  void shouldUpdateNotPluginIntegrationWhenExists() {
 
-		OperationCompletionRS operationCompletionRS = updatePluginHandler.updatePluginState(1L, updatePluginStateRQ);
+    UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
+    updatePluginStateRQ.setEnabled(true);
 
-		Assertions.assertEquals(Suppliers.formattedSupplier("Enabled state of the plugin with id = '{}' has been switched to - '{}'",
-				emailIntegrationType.getName(),
-				updatePluginStateRQ.getEnabled()
-		).get(), operationCompletionRS.getResultMessage());
-	}
+    IntegrationType emailIntegrationType = IntegrationTestUtil.getEmailIntegrationType();
+    when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(emailIntegrationType));
 
-	@Test
-	void shouldUnloadPluginWhenDisabledAndIsPresent() {
-		UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
-		updatePluginStateRQ.setEnabled(false);
+    OperationCompletionRS operationCompletionRS =
+        updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user);
 
-		IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
-		when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(jiraIntegrationType));
+    Assertions.assertEquals(Suppliers.formattedSupplier(
+        "Enabled state of the plugin with id = '{}' has been switched to - '{}'",
+        emailIntegrationType.getName(), updatePluginStateRQ.getEnabled()
+    ).get(), operationCompletionRS.getResultMessage());
+  }
 
-		when(pluginBox.getPluginById(jiraIntegrationType.getName())).thenReturn(Optional.ofNullable(pluginWrapper));
-		when(pluginWrapper.getPluginId()).thenReturn(jiraIntegrationType.getName());
-		when(pluginBox.unloadPlugin(jiraIntegrationType)).thenReturn(true);
-		OperationCompletionRS operationCompletionRS = updatePluginHandler.updatePluginState(1L, updatePluginStateRQ);
+  @Test
+  void shouldUnloadPluginWhenDisabledAndIsPresent() {
+    UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
+    updatePluginStateRQ.setEnabled(false);
 
-		Assertions.assertEquals(Suppliers.formattedSupplier("Enabled state of the plugin with id = '{}' has been switched to - '{}'",
-				jiraIntegrationType.getName(),
-				updatePluginStateRQ.getEnabled()
-		).get(), operationCompletionRS.getResultMessage());
-	}
+    IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
+    when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(jiraIntegrationType));
 
-	@Test
-	void shouldThrowWhenNotUnloaded() {
-		UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
-		updatePluginStateRQ.setEnabled(false);
+    when(pluginBox.getPluginById(jiraIntegrationType.getName())).thenReturn(
+        Optional.ofNullable(pluginWrapper));
+    when(pluginWrapper.getPluginId()).thenReturn(jiraIntegrationType.getName());
+    when(pluginBox.unloadPlugin(jiraIntegrationType)).thenReturn(true);
+    OperationCompletionRS operationCompletionRS =
+        updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user);
 
-		IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
-		when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(jiraIntegrationType));
+    Assertions.assertEquals(Suppliers.formattedSupplier(
+        "Enabled state of the plugin with id = '{}' has been switched to - '{}'",
+        jiraIntegrationType.getName(), updatePluginStateRQ.getEnabled()
+    ).get(), operationCompletionRS.getResultMessage());
+  }
 
-		when(pluginBox.getPluginById(jiraIntegrationType.getName())).thenReturn(Optional.ofNullable(pluginWrapper));
-		when(pluginWrapper.getPluginId()).thenReturn(jiraIntegrationType.getName());
-		when(pluginBox.unloadPlugin(jiraIntegrationType)).thenReturn(false);
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ)
-		);
+  @Test
+  void shouldThrowWhenNotUnloaded() {
+    UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
+    updatePluginStateRQ.setEnabled(false);
 
-		assertEquals(Suppliers.formattedSupplier("Impossible interact with integration. Error during unloading the plugin with id = '{}'",
-				jiraIntegrationType.getName()
-		).get(), exception.getMessage());
-	}
+    IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
+    when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(jiraIntegrationType));
 
-	@Test
-	void shouldNotUpdatePluginIntegrationWhenReportPortalIntegrationNotExists() {
+    when(pluginBox.getPluginById(jiraIntegrationType.getName())).thenReturn(
+        Optional.ofNullable(pluginWrapper));
+    when(pluginWrapper.getPluginId()).thenReturn(jiraIntegrationType.getName());
+    when(pluginBox.unloadPlugin(jiraIntegrationType)).thenReturn(false);
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user)
+    );
 
-		UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
-		updatePluginStateRQ.setEnabled(true);
+    assertEquals(Suppliers.formattedSupplier(
+        "Impossible interact with integration. Error during unloading the plugin with id = '{}'",
+        jiraIntegrationType.getName()
+    ).get(), exception.getMessage());
+  }
 
-		IntegrationType emailIntegrationType = IntegrationTestUtil.getEmailIntegrationType();
-		final String wrongIntegrationTypeName = "QWEQWE";
-		emailIntegrationType.setName(wrongIntegrationTypeName);
-		when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(emailIntegrationType));
+  @Test
+  void shouldNotUpdatePluginIntegrationWhenReportPortalIntegrationNotExists() {
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ)
-		);
+    UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
+    updatePluginStateRQ.setEnabled(true);
 
-		assertEquals(Suppliers.formattedSupplier("Impossible interact with integration. Error during loading the plugin with id = 'QWEQWE'",
-				wrongIntegrationTypeName
-		).get(), exception.getMessage());
+    IntegrationType emailIntegrationType = IntegrationTestUtil.getEmailIntegrationType();
+    final String wrongIntegrationTypeName = "QWEQWE";
+    emailIntegrationType.setName(wrongIntegrationTypeName);
+    when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(emailIntegrationType));
 
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user)
+    );
 
-	@Test
-	void shouldLoadPluginWhenEnabledAndIsNotPresent() throws IOException {
-		UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
-		updatePluginStateRQ.setEnabled(true);
+    assertEquals(Suppliers.formattedSupplier(
+        "Impossible interact with integration. Error during loading the plugin with id = 'QWEQWE'",
+        wrongIntegrationTypeName
+    ).get(), exception.getMessage());
 
-		IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
-		jiraIntegrationType.getDetails().setDetails(getCorrectJiraIntegrationDetailsParams());
+  }
 
-		when(integrationTypeRepository.findById(1L)).thenReturn(ofNullable(jiraIntegrationType));
-		when(pluginBox.getPluginById(jiraIntegrationType.getName())).thenReturn(Optional.empty());
+  @Test
+  void shouldLoadPluginWhenEnabledAndIsNotPresent() throws IOException {
+    UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
+    updatePluginStateRQ.setEnabled(true);
 
-		File tempFile = File.createTempFile("qwe", "txt");
-		tempFile.deleteOnExit();
+    IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
+    jiraIntegrationType.getDetails().setDetails(getCorrectJiraIntegrationDetailsParams());
 
-		when(dataStore.load(any(String.class))).thenReturn(new FileInputStream(tempFile));
-		when(pluginBox.loadPlugin(jiraIntegrationType.getName(), jiraIntegrationType.getDetails())).thenReturn(true);
-		OperationCompletionRS operationCompletionRS = updatePluginHandler.updatePluginState(1L, updatePluginStateRQ);
+    when(integrationTypeRepository.findById(1L)).thenReturn(ofNullable(jiraIntegrationType));
+    when(pluginBox.getPluginById(jiraIntegrationType.getName())).thenReturn(Optional.empty());
+    doNothing().when(applicationEventPublisher).publishEvent(any());
 
-		Assertions.assertEquals(Suppliers.formattedSupplier("Enabled state of the plugin with id = '{}' has been switched to - '{}'",
-				jiraIntegrationType.getName(),
-				updatePluginStateRQ.getEnabled()
-		).get(), operationCompletionRS.getResultMessage());
-	}
+    File tempFile = File.createTempFile("qwe", "txt");
+    tempFile.deleteOnExit();
 
-	private Map<String, Object> getCorrectJiraIntegrationDetailsParams() {
+    when(dataStore.load(any(String.class))).thenReturn(new FileInputStream(tempFile));
+    when(pluginBox.loadPlugin(jiraIntegrationType.getName(),
+        jiraIntegrationType.getDetails()
+    )).thenReturn(true);
+    OperationCompletionRS operationCompletionRS =
+        updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user);
 
-		Map<String, Object> params = new HashMap<>();
-		params.put(IntegrationTypeProperties.FILE_ID.getAttribute(), "file-id");
-		params.put(IntegrationTypeProperties.FILE_NAME.getAttribute(), FILE_NAME);
-		params.put(IntegrationTypeProperties.VERSION.getAttribute(), "1.0.0");
-		return params;
-	}
+    Assertions.assertEquals(Suppliers.formattedSupplier(
+        "Enabled state of the plugin with id = '{}' has been switched to - '{}'",
+        jiraIntegrationType.getName(), updatePluginStateRQ.getEnabled()
+    ).get(), operationCompletionRS.getResultMessage());
+
+    verify(applicationEventPublisher, times(1)).publishEvent(isA(PluginUpdatedEvent.class));
+  }
+
+  private Map<String, Object> getCorrectJiraIntegrationDetailsParams() {
+
+    Map<String, Object> params = new HashMap<>();
+    params.put(IntegrationTypeProperties.FILE_ID.getAttribute(), "file-id");
+    params.put(IntegrationTypeProperties.FILE_NAME.getAttribute(), FILE_NAME);
+    params.put(IntegrationTypeProperties.VERSION.getAttribute(), "1.0.0");
+    return params;
+  }
 
 }

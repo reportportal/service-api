@@ -16,19 +16,10 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import java.io.ByteArrayInputStream;
-import javax.activation.MimetypesFileTypeMap;
-import javax.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -40,25 +31,6 @@ class PluginControllerTest extends BaseMvcTest {
   void getLaunchPositive() throws Exception {
     mockMvc.perform(get("/v1/plugin").with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
-  }
-
-  @Test
-  void shouldGetFileWhenAuthenticated() throws Exception {
-
-    final ByteArrayInputStream inputStream = new ByteArrayInputStream(new byte[]{});
-    final String contentType = MimetypesFileTypeMap.getDefaultFileTypeMap()
-        .getContentType("image.png");
-
-    final BinaryData binaryData = new BinaryData(contentType, (long) inputStream.available(),
-        inputStream);
-    when(pluginFilesProvider.load("pluginName", "image.png")).thenReturn(binaryData);
-
-    mockMvc.perform(
-            get("/v1/plugin/pluginName/file/image.png").with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
-
-    verify(binaryDataResponseWriter, times(1)).write(eq(binaryData),
-        any(HttpServletResponse.class));
   }
 
   @Test

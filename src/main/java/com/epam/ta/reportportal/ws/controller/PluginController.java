@@ -26,9 +26,6 @@ import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.DeletePluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.GetPluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
-import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
-import com.epam.ta.reportportal.entity.attachment.BinaryData;
-import com.epam.ta.reportportal.util.BinaryDataResponseWriter;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -37,7 +34,6 @@ import com.epam.ta.reportportal.ws.model.integration.UpdatePluginStateRQ;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,24 +67,19 @@ public class PluginController {
   private final DeletePluginHandler deletePluginHandler;
   private final ExecuteIntegrationHandler executeIntegrationHandler;
   private final ProjectExtractor projectExtractor;
-  private final PluginFilesProvider pluginFilesProvider;
-  private final BinaryDataResponseWriter binaryDataResponseWriter;
 
   @Autowired
   public PluginController(CreatePluginHandler createPluginHandler,
       UpdatePluginHandler updatePluginHandler,
       GetPluginHandler getPluginHandler, DeletePluginHandler deletePluginHandler,
       ExecuteIntegrationHandler executeIntegrationHandler,
-      ProjectExtractor projectExtractor, PluginFilesProvider pluginFilesProvider,
-      BinaryDataResponseWriter binaryDataResponseWriter) {
+      ProjectExtractor projectExtractor) {
     this.createPluginHandler = createPluginHandler;
     this.updatePluginHandler = updatePluginHandler;
     this.getPluginHandler = getPluginHandler;
     this.deletePluginHandler = deletePluginHandler;
     this.executeIntegrationHandler = executeIntegrationHandler;
     this.projectExtractor = projectExtractor;
-    this.pluginFilesProvider = pluginFilesProvider;
-    this.binaryDataResponseWriter = binaryDataResponseWriter;
   }
 
   @Transactional
@@ -118,16 +109,6 @@ public class PluginController {
   @ApiOperation("Get all available plugins")
   public List<IntegrationTypeResource> getPlugins(@AuthenticationPrincipal ReportPortalUser user) {
     return getPluginHandler.getPlugins();
-  }
-
-  @GetMapping(value = "/{pluginName}/file/{name}")
-  @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Get plugin file by authorized user")
-  public void getFile(@PathVariable(value = "pluginName") String pluginName,
-      @PathVariable(value = "name") String fileName,
-      HttpServletResponse response) {
-    final BinaryData binaryData = pluginFilesProvider.load(pluginName, fileName);
-    binaryDataResponseWriter.write(binaryData, response);
   }
 
   @Transactional

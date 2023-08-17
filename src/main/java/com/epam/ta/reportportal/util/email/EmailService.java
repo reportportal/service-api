@@ -390,10 +390,8 @@ public class EmailService extends JavaMailSenderImpl {
 
   private void attachSocialImages(MimeMessageHelper message) throws MessagingException {
     message.addInline("ic-github.png", emailTemplateResource("ic-github.png"));
-    message.addInline("ic-fb.png", emailTemplateResource("ic-fb.png"));
     message.addInline("ic-twitter.png", emailTemplateResource("ic-twitter.png"));
     message.addInline("ic-youtube.png", emailTemplateResource("ic-youtube.png"));
-    message.addInline("ic-vk.png", emailTemplateResource("ic-vk.png"));
     message.addInline("ic-slack.png", emailTemplateResource("ic-slack.png"));
   }
 

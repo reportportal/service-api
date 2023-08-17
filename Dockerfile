@@ -2,7 +2,7 @@ FROM gradle:6.8.3-jdk11 AS build
 ARG BOM_VERSION MIGRATION_VERSION GITHUB_USER GITHUB_TOKEN RELEASE_MODE SCRIPTS_VERSION APP_VERSION
 WORKDIR /usr/app
 COPY . /usr/app
-RUN if [ ${RELEASE_MODE} = true ]; then \
+RUN if [ "${RELEASE_MODE}" = true ]; then \
     gradle build --exclude-task test \
         -PreleaseMode=true \
         -PgithubUserName=${GITHUB_USER} \

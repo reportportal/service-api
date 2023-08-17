@@ -215,9 +215,6 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
     userActivityResource.setFullName(DELETED_USER);
     userActivityResource.setDefaultProjectId(projectId);
 
-    applicationEventPublisher.publishEvent(
-        new UnassignUserEvent(userActivityResource, authorizedUser.getUserId(),
-            authorizedUser.getUsername())
-    );
+    applicationEventPublisher.publishEvent(new UnassignUserEvent(userActivityResource));
   }
 }

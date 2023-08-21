@@ -204,6 +204,8 @@ class MailServiceFactoryTest {
         IntegrationGroupEnum.NOTIFICATION)).thenReturn(Lists.newArrayList(
         integrationType));
     when(integration.isEnabled()).thenReturn(true);
+    when(integration.getType()).thenReturn(integrationType);
+    when(integration.getType().isEnabled()).thenReturn(true);
     when(integrationRepository.findAllGlobalInIntegrationTypeIds(any())).thenReturn(
         Lists.newArrayList(integration));
 

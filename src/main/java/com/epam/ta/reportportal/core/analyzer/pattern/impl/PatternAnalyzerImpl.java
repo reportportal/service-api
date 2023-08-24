@@ -16,6 +16,10 @@
 
 package com.epam.ta.reportportal.core.analyzer.pattern.impl;
 
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PATTERN_TEMPLATE_NAME;
+import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.PATTERN_ANALYZER_KEY;
+
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -39,7 +43,13 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,15 +57,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PATTERN_TEMPLATE_NAME;
-import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.PATTERN_ANALYZER_KEY;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -168,12 +169,15 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 		final PatternTemplateActivityResource patternTemplateActivityResource = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(
 				patternTemplate);
 		patternTemplateTestItems.forEach(patternItem -> {
-			PatternMatchedEvent patternMatchedEvent = new PatternMatchedEvent(patternItem.getPatternTemplateId(),
-					patternItem.getTestItemId(),
-					patternTemplateActivityResource
-			);
-			messageBus.publishActivity(patternMatchedEvent);
-		});
+      Long testItemId = patternItem.getTestItemId();
+      Optional<String> itemNameByItemId = testItemRepository.findItemNameByItemId(testItemId);
+      PatternMatchedEvent patternMatchedEvent = new PatternMatchedEvent(
+          itemNameByItemId.orElse(StringUtils.EMPTY),
+          testItemId,
+          patternTemplateActivityResource
+      );
+      messageBus.publishActivity(patternMatchedEvent);
+    });
 	}
 
 }

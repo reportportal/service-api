@@ -15,36 +15,43 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
-
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.LAUNCH;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_LAUNCH;
 
 /**
  * @author Andrei Varabyeu
  */
-public class LaunchDeletedEvent extends BeforeEvent<LaunchActivityResource> implements ActivityEvent {
+public class LaunchDeletedEvent extends BeforeEvent<LaunchActivityResource> implements
+    ActivityEvent {
 
-	public LaunchDeletedEvent() {
-	}
+  public LaunchDeletedEvent() {
+  }
 
-	public LaunchDeletedEvent(LaunchActivityResource before, Long userId, String userLogin) {
-		super(userId, userLogin, before);
-	}
+  public LaunchDeletedEvent(LaunchActivityResource before, Long userId, String userLogin) {
+    super(userId, userLogin, before);
+  }
 
-	@Override
-	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(DELETE_LAUNCH)
-				.addActivityEntityType(LAUNCH)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(getBefore().getId())
-				.addObjectName(getBefore().getName())
-				.addProjectId(getBefore().getProjectId())
-				.get();
-	}
+  @Override
+  public Activity toActivity() {
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.DELETE)
+        .addEventName(ActivityAction.DELETE_LAUNCH.getValue())
+        .addPriority(EventPriority.MEDIUM)
+        .addObjectId(getBefore().getId())
+        .addObjectName(getBefore().getName())
+        .addObjectType(EventObject.LAUNCH)
+        .addProjectId(getBefore().getProjectId())
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
+        .get();
+  }
 }

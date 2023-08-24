@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
 import com.epam.ta.reportportal.core.events.listener.LaunchFinishedEventListener;
 import com.epam.ta.reportportal.core.events.listener.TestItemFinishedEventListener;
-import com.epam.ta.reportportal.core.events.subscriber.impl.launch.finish.LaunchFinishedMessagePublisher;
 import com.epam.ta.reportportal.core.events.subscriber.impl.delegate.ProjectConfigDelegatingSubscriber;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,9 +33,9 @@ import java.util.List;
 public class EventListenerConfig {
 
 	@Bean
-	public LaunchFinishedEventListener launchFinishedEventListener(LaunchFinishedMessagePublisher finishedMessagePublisher,
+	public LaunchFinishedEventListener launchFinishedEventListener(
 			ProjectConfigDelegatingSubscriber<LaunchFinishedEvent> launchFinishedDelegatingSubscriber) {
-		return new LaunchFinishedEventListener(List.of(finishedMessagePublisher, launchFinishedDelegatingSubscriber));
+		return new LaunchFinishedEventListener(List.of(launchFinishedDelegatingSubscriber));
 	}
 
 	@Bean

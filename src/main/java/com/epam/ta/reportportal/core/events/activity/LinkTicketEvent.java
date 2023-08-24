@@ -15,82 +15,88 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.TICKET_ID;
+
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.google.common.base.Strings;
-
-import java.util.Arrays;
-
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.TICKET_ID;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.TICKET;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.*;
 
 /**
  * @author Andrei Varabyeu
  */
-public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> implements ActivityEvent {
+public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> implements
+    ActivityEvent {
 
-	private ActivityAction activityAction;
+  private boolean isLinkedByAnalyzer;
 
-	public LinkTicketEvent() {
-	}
+  public LinkTicketEvent() {
+  }
 
-	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, Long userId, String userLogin,
-			ActivityAction activityAction) {
-		super(userId, userLogin, before, after);
-		if (!Arrays.asList(LINK_ISSUE_AA, LINK_ISSUE).contains(activityAction)) {
-			throw new IllegalArgumentException("Activity action '" + activityAction + "' is not supported");
-		}
-		this.activityAction = activityAction;
-	}
+  public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after,
+      Long userId, String userLogin,
+      boolean isLinkedByAnalyzer) {
+    super(userId, userLogin, before, after);
+    this.isLinkedByAnalyzer = isLinkedByAnalyzer;
+  }
 
-	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, String userLogin,
-			ActivityAction activityAction) {
-		super(null, userLogin, before, after);
-		if (!Arrays.asList(LINK_ISSUE_AA, LINK_ISSUE).contains(activityAction)) {
-			throw new IllegalArgumentException("Activity action '" + activityAction + "' is not supported");
-		}
-		this.activityAction = activityAction;
-	}
+  public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after,
+      String userLogin,
+      boolean isLinkedByAnalyzer) {
+    super(null, userLogin, before, after);
+    this.isLinkedByAnalyzer = isLinkedByAnalyzer;
+  }
 
-	public ActivityAction getActivityAction() {
-		return activityAction;
-	}
+  public boolean isLinkedByAnalyzer() {
+    return isLinkedByAnalyzer;
+  }
 
-	public void setActivityAction(ActivityAction activityAction) {
-		this.activityAction = activityAction;
-	}
+  public void setLinkedByAnalyzer(boolean linkedByAnalyzer) {
+    isLinkedByAnalyzer = linkedByAnalyzer;
+  }
 
-	@Override
-	public Activity toActivity() {
-		ActivityBuilder builder = new ActivityBuilder().addCreatedNow()
-				.addAction(activityAction)
-				.addActivityEntityType(TICKET)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(getAfter().getId())
-				.addObjectName(getAfter().getName())
-				.addProjectId(getAfter().getProjectId());
+  @Override
+  public Activity toActivity() {
+    ActivityBuilder builder = new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.LINK)
+        .addEventName(isLinkedByAnalyzer
+            ? ActivityAction.LINK_ISSUE_AA.getValue()
+            : ActivityAction.LINK_ISSUE.getValue())
+        .addPriority(EventPriority.LOW)
+        .addObjectId(getAfter().getId())
+        .addObjectName(getAfter().getName())
+        .addObjectType(EventObject.ITEM_ISSUE)
+        .addProjectId(getAfter().getProjectId())
+        .addSubjectId(isLinkedByAnalyzer ? null : getUserId())
+        .addSubjectName(isLinkedByAnalyzer ? "analyzer" : getUserLogin())
+        .addSubjectType(isLinkedByAnalyzer ? EventSubject.APPLICATION : EventSubject.USER);
 
-		if (getAfter() != null) {
-			String oldValue = getBefore().getTickets();
-			String newValue = getAfter().getTickets();
-			//no changes with tickets
-			if (Strings.isNullOrEmpty(oldValue) && newValue.isEmpty() || oldValue.equalsIgnoreCase(newValue)) {
-				return null;
-			}
-			if (!oldValue.isEmpty() && !newValue.isEmpty() || !oldValue.equalsIgnoreCase(newValue)) {
-				if (oldValue.length() > newValue.length()) {
-					builder.addAction(UNLINK_ISSUE);
-				}
-				builder.addHistoryField(TICKET_ID, oldValue, newValue);
-			}
-		}
+    if (getAfter() != null) {
+      String oldValue = getBefore().getTickets();
+      String newValue = getAfter().getTickets();
+      //no changes with tickets
+      if (Strings.isNullOrEmpty(oldValue) && newValue.isEmpty() || oldValue.equalsIgnoreCase(
+          newValue)) {
+        return null;
+      }
+      if (!oldValue.isEmpty() && !newValue.isEmpty() || !oldValue.equalsIgnoreCase(newValue)) {
+        if (oldValue.length() > newValue.length()) {
+          builder.addAction(EventAction.UNLINK);
+          builder.addEventName(ActivityAction.UNLINK_ISSUE.getValue());
+        }
+        builder.addHistoryField(TICKET_ID, oldValue, newValue);
+      }
+    }
 
-		return builder.get();
+    return builder.get();
 
-	}
+  }
+
 }

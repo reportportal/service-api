@@ -57,9 +57,4 @@ class ActivityControllerTest extends BaseMvcTest {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/activity/1").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().is(200));
 	}
-
-	@Test
-	void getActivitiesForProject() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/activity").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
-	}
 }

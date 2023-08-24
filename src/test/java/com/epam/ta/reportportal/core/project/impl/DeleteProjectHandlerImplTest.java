@@ -16,34 +16,44 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
+import com.epam.ta.reportportal.dao.IssueTypeRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.ArrayList;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -87,9 +97,13 @@ class DeleteProjectHandlerImplTest {
 	@Test
 	void deleteNotExistProject() {
 		Long projectId = 1L;
+    ReportPortalUser user =
+        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+
 		when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProject(projectId));
+    ReportPortalException exception =
+        assertThrows(ReportPortalException.class, () -> handler.deleteProject(projectId, user));
 
 		assertEquals("Project '1' not found. Did you use correct project name?", exception.getMessage());
 	}
@@ -187,11 +201,14 @@ class DeleteProjectHandlerImplTest {
 		Long projectId = 1L;
 		Project project = getProjectWithAnalyzerAttributes(projectId, false);
 		project.setName(projectName);
+    ReportPortalUser user =
+        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+
 		when(issueTypeRepository.getDefaultIssueTypes()).thenReturn(new ArrayList<>());
 		when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
 		when(logRepository.deleteByProjectId(1L)).thenReturn(10);
 
-		OperationCompletionRS response = handler.deleteProject(1L);
+    OperationCompletionRS response = handler.deleteProject(1L, user);
 
 		verify(projectContentRemover, times(1)).remove(project);
 		verify(logIndexer, times(1)).deleteIndex(projectId);

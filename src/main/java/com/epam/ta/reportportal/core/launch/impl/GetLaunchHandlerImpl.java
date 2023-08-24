@@ -275,9 +275,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   public List<String> getLaunchNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
     expect(value.length() <= MAX_LAUNCH_NAME_LENGTH, equalTo(true)).verify(
         INCORRECT_FILTER_PARAMETERS,
-        formattedSupplier("Length of the launch name string more than {} symbols",
+        formattedSupplier("Length of the launch name string '{}' more than {} symbols",
             value,
-            MIN_LAUNCH_NAME_LENGTH,
             MAX_LAUNCH_NAME_LENGTH
         )
     );

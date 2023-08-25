@@ -18,9 +18,7 @@ package com.epam.ta.reportportal.core.filter;
 
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType;
-import com.epam.ta.reportportal.ws.model.SearchCriteria;
 import com.epam.ta.reportportal.ws.model.SearchCriteriaRQ;
-import java.util.Set;
 
 /**
  * Service for converting SearchCriteria to Filter.

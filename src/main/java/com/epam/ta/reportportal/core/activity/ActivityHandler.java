@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.activity;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.ws.model.ActivityEventResource;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import org.springframework.data.domain.Pageable;
 
@@ -50,7 +51,7 @@ public interface ActivityHandler {
 	ActivityResource getActivity(ReportPortalUser.ProjectDetails projectDetails, Long activityId);
 
 	/**
-	 * Load list of {@link com.epam.ta.reportportal.ws.model.ActivityResource}
+	 * Load list of {@link com.epam.ta.reportportal.ws.model.ActivityEventResource}
 	 * for specified
 	 * {@link com.epam.ta.reportportal.entity.item.TestItem}
 	 *
@@ -60,7 +61,8 @@ public interface ActivityHandler {
 	 * @param pageable       Page Details
 	 * @return Found activities
 	 */
-	Iterable<ActivityResource> getItemActivities(ReportPortalUser.ProjectDetails projectDetails, Long itemId, Filter filter,
+	Iterable<ActivityEventResource> getItemActivities(ReportPortalUser.ProjectDetails projectDetails,
+			Long itemId, Filter filter,
 			Pageable pageable);
 
 	/**

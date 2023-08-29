@@ -48,6 +48,8 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ActivityConverter;
+import com.epam.ta.reportportal.ws.converter.converters.ActivityEventConverter;
+import com.epam.ta.reportportal.ws.model.ActivityEventResource;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import java.util.function.Predicate;
@@ -111,7 +113,8 @@ public class ActivityHandlerImpl implements ActivityHandler {
 	}
 
 	@Override
-	public Iterable<ActivityResource> getItemActivities(ReportPortalUser.ProjectDetails projectDetails, Long itemId, Filter filter,
+	public Iterable<ActivityEventResource> getItemActivities(
+			ReportPortalUser.ProjectDetails projectDetails, Long itemId, Filter filter,
 			Pageable pageable) {
 		TestItem testItem = testItemRepository.findById(itemId).orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, itemId));
 		Launch launch = launchRepository.findById(testItem.getLaunchId())
@@ -141,7 +144,7 @@ public class ActivityHandlerImpl implements ActivityHandler {
         new CompositeFilter(Operator.OR, filter, patternActivityFilter),
         PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreationDateDesc)
     );
-    return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page);
+		return PagedResourcesAssembler.pageConverter(ActivityEventConverter.TO_RESOURCE).apply(page);
   }
 
   @Override

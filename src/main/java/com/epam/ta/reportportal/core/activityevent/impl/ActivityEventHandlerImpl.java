@@ -16,20 +16,14 @@
 
 package com.epam.ta.reportportal.core.activityevent.impl;
 
-import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.activityevent.ActivityEventHandler;
 import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ActivityEventConverter;
 import com.epam.ta.reportportal.ws.model.ActivityEventResource;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.PagedResponse;
-import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -41,9 +35,6 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class ActivityEventHandlerImpl implements ActivityEventHandler {
-
-  private static final String LENGTH_LESS_THAN_1_SYMBOL_MSG = "Length of the filtering string "
-      + "'{}' is less than 1 symbol";
 
   private final ActivityRepository activityRepository;
 
@@ -60,16 +51,4 @@ public class ActivityEventHandlerImpl implements ActivityEventHandler {
         .apply(activityPage);
   }
 
-  @Override
-  public List<String> getSubjectNames(ProjectDetails projectDetails, String value) {
-    checkBusinessRuleLessThan1Symbol(value);
-    return activityRepository.findSubjectNameByProjectIdAndSubjectName(
-        projectDetails.getProjectId(), value.toLowerCase());
-  }
-
-  private void checkBusinessRuleLessThan1Symbol(String value) {
-    BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true))
-        .verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-            Suppliers.formattedSupplier(LENGTH_LESS_THAN_1_SYMBOL_MSG, value));
-  }
 }

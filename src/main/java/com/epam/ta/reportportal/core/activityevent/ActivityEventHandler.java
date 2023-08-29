@@ -16,11 +16,9 @@
 
 package com.epam.ta.reportportal.core.activityevent;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.ws.model.ActivityEventResource;
 import com.epam.ta.reportportal.ws.model.PagedResponse;
-import java.util.List;
 import org.springframework.data.domain.Pageable;
 
 
@@ -40,14 +38,5 @@ public interface ActivityEventHandler {
    */
   PagedResponse<ActivityEventResource> getActivityEventsHistory(Queryable filter,
       Pageable pageable);
-
-  /**
-   * Get list of specified subjectName in project activities.
-   *
-   * @param projectDetails Project name
-   * @param value          Filter value
-   * @return List of found user logins
-   */
-  List<String> getSubjectNames(ReportPortalUser.ProjectDetails projectDetails, String value);
 
 }

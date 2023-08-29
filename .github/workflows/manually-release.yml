@@ -6,21 +6,9 @@ on:
       version:
         description: 'Release version'
         required: true
-      scripts_version:
-        description: 'Gradle scripts version'
-        required: true
-      bom_version:
-        description: 'Commons bom version'
-        required: true
-      migrations_version:
-        description: 'Db migrations version'
-        required: true
 
 env:
   GH_USER_NAME: github.actor
-  SCRIPTS_VERSION: ${{ github.event.inputs.scripts_version }}
-  BOM_VERSION: ${{ github.event.inputs.bom_version }}
-  MIGRATIONS_VERSION: ${{ github.event.inputs.migrations_version }}
   RELEASE_VERSION: ${{ github.event.inputs.version }}
   REPOSITORY_URL: 'https://maven.pkg.github.com/'
 
@@ -50,8 +38,7 @@ jobs:
       - name: Release with Gradle
         id: release
         run: |
-          ./gradlew release -PreleaseMode -Pscripts.version=${{env.SCRIPTS_VERSION}} \
-          -Pbom.version=${{env.BOM_VERSION}} -Pmigrations.version=${{env.MIGRATIONS_VERSION}} \
+          ./gradlew release -PreleaseMode \
           -PgithubUserName=${{env.GH_USER_NAME}} -PgithubToken=${{secrets.GITHUB_TOKEN}} \
           -PpublishRepo=${{ env.REPOSITORY_URL }}${{ github.repository }} \
           -PgpgPassphrase=${{secrets.GPG_PASSPHRASE}} -PgpgPrivateKey="${{secrets.GPG_PRIVATE_KEY}}" \

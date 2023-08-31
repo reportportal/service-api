@@ -69,7 +69,7 @@ ext['spring-boot.version'] = '2.5.12'
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + getProperty('bom.version') : 'com.github.reportportal:commons-bom:c34166e')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.10.0' : 'com.github.reportportal:commons-bom:6aa55fc0')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:12.9.0')
     }
 }
@@ -83,13 +83,13 @@ dependencies {
         compile 'com.epam.reportportal:commons-fonts'
         compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-events:f130879'
+        compile 'com.github.reportportal:commons-events:e337f8b7be'
         compile 'com.github.reportportal:commons-dao:b2db29b'
-        compile 'com.github.reportportal:commons-rules:5.3.0'
-        compile 'com.github.reportportal:commons-model:945415b'
-        compile 'com.github.reportportal:commons:7480d61'
-        compile 'com.github.reportportal:commons-fonts:10d1054'
-        compile 'com.github.reportportal:plugin-api:2b30a961'
+        compile 'com.github.reportportal:commons-rules:5.10.0'
+        compile 'com.github.reportportal:commons-model:e0a12669'
+        compile 'com.github.reportportal:commons:ce2166b'
+        compile 'com.github.reportportal:commons-fonts:d6e62dd'
+        compile 'com.github.reportportal:plugin-api:fb8845f'
     }
 
     compile 'org.springframework.boot:spring-boot-starter-aop'

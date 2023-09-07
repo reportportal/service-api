@@ -85,7 +85,7 @@ dependencies {
     } else {
         compile 'com.github.reportportal:commons-events:e337f8b7be'
         compile 'com.github.reportportal:commons-dao:b2db29b'
-        compile 'com.github.reportportal:commons-rules:5.10.0'
+        compile 'com.github.reportportal:commons-rules:12ce5d4'
         compile 'com.github.reportportal:commons-model:c94a391'
         compile 'com.github.reportportal:commons:ce2166b'
         compile 'com.github.reportportal:commons-fonts:d6e62dd'

@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
@@ -342,6 +343,7 @@ public class LaunchController {
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/{launchId}/report")
 	@ResponseStatus(OK)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation(value = "Export specified launch", notes = "Only following formats are supported: pdf (by default), xls, html.")
 	public void getLaunchReport(@PathVariable String projectName, @PathVariable Long launchId,
 			@ApiParam(allowableValues = "pdf, xls, html") @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,

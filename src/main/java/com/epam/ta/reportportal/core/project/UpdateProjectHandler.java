@@ -44,17 +44,6 @@ public interface UpdateProjectHandler {
       ReportPortalUser user);
 
   /**
-   * Update specified project email configuration
-   *
-   * @param projectName                       Project Name
-   * @param updateProjectNotificationConfigRQ Request Data
-   * @param user                              User performing that update
-   * @return Operation Result
-   */
-  OperationCompletionRS updateProjectNotificationConfig(String projectName, ReportPortalUser user,
-      ProjectNotificationConfigDTO updateProjectNotificationConfigRQ);
-
-  /**
    * Un-assign specified user from project
    *
    * @param projectName     {@link com.epam.ta.reportportal.entity.project.Project#name}

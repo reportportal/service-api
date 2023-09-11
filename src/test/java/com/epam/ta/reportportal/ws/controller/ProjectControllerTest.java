@@ -543,30 +543,6 @@ class ProjectControllerTest extends BaseMvcTest {
   }
 
   @Test
-  void updateProjectNotificationConfig() throws Exception {
-    ProjectNotificationConfigDTO request = new ProjectNotificationConfigDTO();
-
-    SenderCaseDTO senderCaseDTO = new SenderCaseDTO();
-    senderCaseDTO.setSendCase("always");
-    senderCaseDTO.setRuleName("Rule1");
-    senderCaseDTO.setRecipients(Collections.singletonList("default"));
-    senderCaseDTO.setLaunchNames(Collections.singletonList("test launch"));
-    senderCaseDTO.setEnabled(true);
-    senderCaseDTO.setAttributesOperator(LogicalOperator.AND.getOperator());
-    ItemAttributeResource launchAttribute = new ItemAttributeResource();
-    launchAttribute.setKey("key");
-    launchAttribute.setValue("val");
-    senderCaseDTO.setAttributes(Sets.newHashSet(launchAttribute));
-
-    request.setSenderCases(singletonList(senderCaseDTO));
-
-    mockMvc.perform(
-        put("/v1/project/default_personal/notification").with(token(oAuthHelper.getDefaultToken()))
-            .contentType(APPLICATION_JSON)
-            .content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
-  }
-
-  @Test
   void indexProjectData() throws Exception {
     ExchangeInfo exchangeInfo = new ExchangeInfo();
     exchangeInfo.setName("analyzer");

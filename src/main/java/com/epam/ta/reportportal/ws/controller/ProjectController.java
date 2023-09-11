@@ -157,18 +157,6 @@ public class ProjectController {
     return updateProjectHandler.updateProject(normalizeId(projectName), updateProjectRQ, user);
   }
 
-  @Transactional
-  @PutMapping("/{projectName}/notification")
-  @ResponseStatus(OK)
-  @PreAuthorize(PROJECT_MANAGER)
-  @ApiOperation("Update project notifications configuration")
-  public OperationCompletionRS updateProjectNotificationConfig(@PathVariable String projectName,
-      @RequestBody @Validated ProjectNotificationConfigDTO updateProjectNotificationConfigRQ,
-      @AuthenticationPrincipal ReportPortalUser user) {
-    return updateProjectHandler.updateProjectNotificationConfig(normalizeId(projectName), user,
-        updateProjectNotificationConfigRQ);
-  }
-
   @DeleteMapping
   @ResponseStatus(OK)
   @PreAuthorize(ADMIN_ONLY)

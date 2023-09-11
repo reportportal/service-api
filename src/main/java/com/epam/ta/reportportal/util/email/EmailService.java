@@ -73,9 +73,7 @@ public class EmailService extends JavaMailSenderImpl {
   private static final String FINISH_LAUNCH_EMAIL_SUBJECT =
       " ReportPortal Notification: [%s] launch '%s' #%s finished";
   private static final String URL_FORMAT = "%s/launches/all";
-  private static final String FULL_ATTRIBUTE_FILTER_FORMAT =
-      "%s?filter.has.key=%s&filter.has.value=%s";
-  private static final String VALUE_ATTRIBUTE_FILTER_FORMAT = "%s?filter.has.value=%s";
+  private static final String COMPOSITE_ATTRIBUTE_FILTER_FORMAT = "%s?launchesParams=filter.has.compositeAttribute=%s";
   private static final String EMAIL_TEMPLATE_PREFIX = "templates/email/";
   private TemplateEngine templateEngine;
   /* Default value for FROM project notifications field */
@@ -218,13 +216,13 @@ public class EmailService extends JavaMailSenderImpl {
 
   private String buildAttributesLink(String basicUrl, ItemAttribute attribute) {
     if (null != attribute.getKey()) {
-      return format(FULL_ATTRIBUTE_FILTER_FORMAT,
+      return format(COMPOSITE_ATTRIBUTE_FILTER_FORMAT,
           basicUrl,
-          urlPathSegmentEscaper().escape(attribute.getKey()),
+          urlPathSegmentEscaper().escape(attribute.getKey()) + ":" +
           urlPathSegmentEscaper().escape(attribute.getValue())
       );
     } else {
-      return format(VALUE_ATTRIBUTE_FILTER_FORMAT, basicUrl,
+      return format(COMPOSITE_ATTRIBUTE_FILTER_FORMAT, basicUrl,
           urlPathSegmentEscaper().escape(attribute.getValue()));
     }
   }

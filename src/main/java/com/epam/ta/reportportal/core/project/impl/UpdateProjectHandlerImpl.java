@@ -22,12 +22,10 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.in;
 import static com.epam.ta.reportportal.commons.Predicates.isNull;
 import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
-import static com.epam.ta.reportportal.entity.enums.SendCase.findByName;
 import static com.epam.ta.reportportal.ws.converter.converters.ProjectActivityConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
@@ -37,7 +35,6 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_ASSIGN_UNASSIGN
 import static com.epam.ta.reportportal.ws.model.ErrorType.USER_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.ta.reportportal.commons.Preconditions;
@@ -48,7 +45,6 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.indexer.IndexerStatusCache;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.events.activity.NotificationsConfigUpdatedEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectAnalyzerConfigEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectUpdatedEvent;
@@ -58,46 +54,36 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.ProjectType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.util.email.EmailRulesValidator;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
 import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
-import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpdate;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
-import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.google.common.cache.Cache;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.stereotype.Service;
 
 /**
@@ -183,33 +169,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
     return new OperationCompletionRS(
         "Project with name = '" + project.getName() + "' is successfully updated.");
-  }
-
-  @Override
-  public OperationCompletionRS updateProjectNotificationConfig(String projectName,
-      ReportPortalUser user,
-      ProjectNotificationConfigDTO updateProjectNotificationConfigRQ) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
-    ProjectResource before = projectConverter.TO_PROJECT_RESOURCE.apply(project);
-
-    updateSenderCases(project, updateProjectNotificationConfigRQ.getSenderCases());
-
-    project.getProjectAttributes()
-        .stream()
-        .filter(it -> it.getAttribute().getName()
-            .equalsIgnoreCase(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()))
-        .findAny()
-        .ifPresent(
-            pa -> pa.setValue(String.valueOf(updateProjectNotificationConfigRQ.isEnabled())));
-
-    messageBus.publishActivity(new NotificationsConfigUpdatedEvent(before,
-        updateProjectNotificationConfigRQ,
-        user.getUserId(),
-        user.getUsername()
-    ));
-    return new OperationCompletionRS(
-        "Notification configuration of project - '" + projectName + "' is successfully updated.");
   }
 
   @Override
@@ -469,51 +428,4 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
               .ifPresent(attr -> attr.setValue(value)));
         });
   }
-
-  private void updateSenderCases(Project project, List<SenderCaseDTO> cases) {
-
-    project.getSenderCases().clear();
-    if (CollectionUtils.isNotEmpty(cases)) {
-      cases.forEach(sendCase -> {
-        expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(
-            BAD_REQUEST_ERROR, sendCase.getSendCase());
-        expect(sendCase.getRecipients(), notNull()).verify(BAD_REQUEST_ERROR,
-            "Recipients list should not be null");
-        expect(sendCase.getRecipients().isEmpty(), equalTo(false)).verify(BAD_REQUEST_ERROR,
-            formattedSupplier("Empty recipients list for email case '{}' ", sendCase)
-        );
-        sendCase.setRecipients(sendCase.getRecipients().stream().map(it -> {
-          EmailRulesValidator.validateRecipient(project, it);
-          return it.trim();
-        }).distinct().collect(toList()));
-
-        ofNullable(sendCase.getLaunchNames()).ifPresent(
-            launchNames -> sendCase.setLaunchNames(launchNames.stream().map(name -> {
-              EmailRulesValidator.validateLaunchName(name);
-              return name.trim();
-            }).distinct().collect(toList())));
-
-        ofNullable(sendCase.getAttributes()).ifPresent(
-            attributes -> sendCase.setAttributes(attributes.stream().peek(attribute -> {
-              EmailRulesValidator.validateLaunchAttribute(attribute);
-              attribute.setValue(attribute.getValue().trim());
-            }).collect(Collectors.toSet())));
-
-      });
-
-      /* If project email settings */
-      Set<SenderCase> withoutDuplicateCases = cases.stream()
-          .distinct()
-          .map(NotificationConfigConverter.TO_CASE_MODEL)
-          .peek(sc -> sc.setProject(project))
-          .collect(toSet());
-      if (cases.size() != withoutDuplicateCases.size()) {
-        fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
-      }
-
-      project.getSenderCases().addAll(withoutDuplicateCases);
-    }
-
-  }
-
 }

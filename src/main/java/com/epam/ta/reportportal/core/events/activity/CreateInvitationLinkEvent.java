@@ -47,7 +47,6 @@ public class CreateInvitationLinkEvent extends AbstractEvent implements Activity
         .addAction(EventAction.CREATE)
         .addEventName(EVENT_NAME)
         .addPriority(EventPriority.HIGH)
-        .addObjectId(userId)
         .addObjectName(EventObject.INVITATION_LINK.getValue())
         .addObjectType(EventObject.INVITATION_LINK)
         .addSubjectId(getUserId())

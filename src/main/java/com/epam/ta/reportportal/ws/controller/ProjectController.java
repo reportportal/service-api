@@ -343,7 +343,7 @@ public class ProjectController {
     response.setContentType(format.getContentType());
 
     response.setHeader(CONTENT_DISPOSITION,
-        String.format("attachment; filename=RP_PROJECTS_%s_Report.%s", format.name(),
+        String.format("attachment; filename=\"RP_PROJECTS_%s_Report.%s\"", format.name(),
             format.getValue())
     );
 

@@ -351,7 +351,7 @@ public class LaunchController {
 		response.setContentType(format.getContentType());
 
 		response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-				String.format("attachment; filename=RP_LAUNCH_%s_Report.%s", format.name(), format.getValue())
+				String.format("attachment; filename=\"RP_LAUNCH_%s_Report.%s\"", format.name(), format.getValue())
 		);
 
 		try (OutputStream outputStream = response.getOutputStream()) {

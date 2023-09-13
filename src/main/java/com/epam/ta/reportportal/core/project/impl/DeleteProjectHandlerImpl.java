@@ -20,6 +20,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
 import static com.epam.ta.reportportal.ws.converter.converters.ExceptionConverter.TO_ERROR_RS;
 
+import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
@@ -36,11 +37,13 @@ import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.enums.FeatureFlag;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.FeatureFlagHandler;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -78,31 +81,34 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
   private final MessageBus messageBus;
 
-  private final AttachmentRepository attachmentRepository;
-
   private final IssueTypeRepository issueTypeRepository;
 
   private final ContentRemover<Project> projectContentRemover;
 
   private final LogRepository logRepository;
 
+  private final AttachmentBinaryDataService attachmentBinaryDataService;
+
+  private final FeatureFlagHandler featureFlagHandler;
+
   @Autowired
   public DeleteProjectHandlerImpl(ProjectRepository projectRepository,
       UserRepository userRepository, LogIndexer logIndexer,
       AnalyzerServiceClient analyzerServiceClient, AnalyzerStatusCache analyzerStatusCache,
-      MessageBus messageBus,
-      AttachmentRepository attachmentRepository, IssueTypeRepository issueTypeRepository,
-      ContentRemover<Project> projectContentRemover, LogRepository logRepository) {
+      MessageBus messageBus, AttachmentBinaryDataService attachmentBinaryDataService,
+      IssueTypeRepository issueTypeRepository, ContentRemover<Project> projectContentRemover,
+      LogRepository logRepository, FeatureFlagHandler featureFlagHandler) {
     this.projectRepository = projectRepository;
     this.userRepository = userRepository;
     this.logIndexer = logIndexer;
     this.analyzerServiceClient = analyzerServiceClient;
     this.analyzerStatusCache = analyzerStatusCache;
     this.messageBus = messageBus;
-    this.attachmentRepository = attachmentRepository;
     this.issueTypeRepository = issueTypeRepository;
     this.projectContentRemover = projectContentRemover;
     this.logRepository = logRepository;
+    this.featureFlagHandler = featureFlagHandler;
+    this.attachmentBinaryDataService = attachmentBinaryDataService;
   }
 
   @Override
@@ -151,21 +157,20 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
     publishProjectBulkDeletedEvent(user, deletedProjectsMap.values());
 
     return new DeleteBulkRS(List.copyOf(deletedProjectsMap.keySet()), Collections.emptyList(),
-        exceptions.stream().map(TO_ERROR_RS).collect(Collectors.toList()));
+        exceptions.stream().map(TO_ERROR_RS).collect(Collectors.toList())
+    );
   }
 
   private void publishProjectBulkDeletedEvent(ReportPortalUser user, Collection<String> names) {
-    ProjectBulkDeletedEvent bulkDeletedEvent = new ProjectBulkDeletedEvent(user.getUserId(),
-        user.getUsername(), names);
+    ProjectBulkDeletedEvent bulkDeletedEvent =
+        new ProjectBulkDeletedEvent(user.getUserId(), user.getUsername(), names);
     messageBus.publishActivity(bulkDeletedEvent);
   }
 
   @Override
   public OperationCompletionRS deleteProjectIndex(String projectName, String username) {
     expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(
-        ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-        "There are no analyzer deployed."
-    );
+        ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "There are no analyzer deployed.");
 
     Project project = projectRepository.findByName(projectName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
@@ -174,7 +179,8 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
 
     expect(AnalyzerUtils.getAnalyzerConfig(project).isIndexingRunning(),
-        Predicate.isEqual(false)).verify(ErrorType.FORBIDDEN_OPERATION,
+        Predicate.isEqual(false)
+    ).verify(ErrorType.FORBIDDEN_OPERATION,
         "Index can not be removed until index generation proceeds."
     );
 
@@ -182,35 +188,33 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.ANALYZER_NOT_FOUND, AUTO_ANALYZER_KEY));
     expect(analyzeStatus.asMap().containsValue(project.getId()), Predicate.isEqual(false)).verify(
-        ErrorType.FORBIDDEN_OPERATION,
-        "Index can not be removed until index generation proceeds."
-    );
+        ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
 
     logIndexer.deleteIndex(project.getId());
     messageBus.publishActivity(
         new ProjectIndexEvent(user.getId(), user.getLogin(), project.getId(), project.getName(),
-            false));
+            false
+        ));
     return new OperationCompletionRS(
         "Project index with name = '" + projectName + "' is successfully deleted.");
   }
 
   private OperationCompletionRS deleteProject(Project project) {
-    Set<Long> defaultIssueTypeIds = issueTypeRepository.getDefaultIssueTypes()
-        .stream()
-        .map(IssueType::getId)
-        .collect(Collectors.toSet());
-    Set<IssueType> issueTypesToRemove = project.getProjectIssueTypes()
-        .stream()
-        .map(ProjectIssueType::getIssueType)
-        .filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
-        .collect(Collectors.toSet());
+    Set<Long> defaultIssueTypeIds =
+        issueTypeRepository.getDefaultIssueTypes().stream().map(IssueType::getId)
+            .collect(Collectors.toSet());
+    Set<IssueType> issueTypesToRemove =
+        project.getProjectIssueTypes().stream().map(ProjectIssueType::getIssueType)
+            .filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
+            .collect(Collectors.toSet());
     projectContentRemover.remove(project);
     projectRepository.delete(project);
     issueTypeRepository.deleteAll(issueTypesToRemove);
     logIndexer.deleteIndex(project.getId());
     analyzerServiceClient.removeSuggest(project.getId());
     logRepository.deleteByProjectId(project.getId());
-    attachmentRepository.moveForDeletionByProjectId(project.getId());
+    attachmentBinaryDataService.deleteAllByProjectId(project.getId());
+
     return new OperationCompletionRS(
         "Project with id = '" + project.getId() + "' has been successfully deleted.");
   }

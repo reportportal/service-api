@@ -441,10 +441,9 @@ public class LaunchController {
     ReportFormat format = getJasperHandler.getReportFormat(view);
     response.setContentType(format.getContentType());
 
-    response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-        String.format("attachment; filename=RP_LAUNCH_%s_Report.%s", format.name(),
-            format.getValue())
-    );
+		response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+				String.format("attachment; filename=\"RP_LAUNCH_%s_Report.%s\"", format.name(), format.getValue())
+		);
 
     try (OutputStream outputStream = response.getOutputStream()) {
       getLaunchMessageHandler.exportLaunch(launchId, format, outputStream, user);

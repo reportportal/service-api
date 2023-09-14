@@ -62,8 +62,8 @@ import org.springframework.transaction.annotation.Transactional;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class LaunchNotificationRunner implements
-    ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
+public class LaunchNotificationRunner
+    implements ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(LaunchNotificationRunner.class);
 
@@ -75,9 +75,8 @@ public class LaunchNotificationRunner implements
 
   @Autowired
   public LaunchNotificationRunner(GetProjectHandler getProjectHandler,
-      GetLaunchHandler getLaunchHandler,
-      GetIntegrationHandler getIntegrationHandler, MailServiceFactory mailServiceFactory,
-      UserRepository userRepository) {
+      GetLaunchHandler getLaunchHandler, GetIntegrationHandler getIntegrationHandler,
+      MailServiceFactory mailServiceFactory, UserRepository userRepository) {
     this.getProjectHandler = getProjectHandler;
     this.getLaunchHandler = getLaunchHandler;
     this.getIntegrationHandler = getIntegrationHandler;
@@ -94,14 +93,11 @@ public class LaunchNotificationRunner implements
 
     if (isNotificationsEnabled) {
       getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(
-              launchFinishedEvent.getProjectId(),
-              IntegrationGroupEnum.NOTIFICATION
-          )
+              launchFinishedEvent.getProjectId(), IntegrationGroupEnum.NOTIFICATION)
           .flatMap(mailServiceFactory::getDefaultEmailService)
           .ifPresentOrElse(emailService -> sendEmail(launchFinishedEvent, emailService),
               () -> LOGGER.warn("Unable to find {} integration for project {}",
-                  IntegrationGroupEnum.NOTIFICATION,
-                  launchFinishedEvent.getProjectId()
+                  IntegrationGroupEnum.NOTIFICATION, launchFinishedEvent.getProjectId()
               )
           );
 
@@ -129,16 +125,21 @@ public class LaunchNotificationRunner implements
 
       Set<String> recipients = ec.getRecipients();
       if (successRate && matchedNames && matchedTags) {
-        String[] recipientsArray = findRecipients(userRepository.findLoginById(launch.getUserId())
-                .orElseThrow(
-                    () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, launch.getUserId())),
-            recipients);
+        String[] recipientsArray = findRecipients(
+            userRepository.findLoginById(launch.getUserId()).orElseThrow(
+                () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, launch.getUserId())),
+            recipients
+        );
         try {
-          emailService.sendLaunchFinishNotification(recipientsArray,
-              String.format("%s/ui/#%s", launchFinishedEvent.getBaseUrl(), project.getName()),
-              project,
-              launch
-          );
+          if (launchFinishedEvent.getBaseUrl() != null) {
+            emailService.sendLaunchFinishNotification(recipientsArray,
+                String.format("%s/ui/#%s", launchFinishedEvent.getBaseUrl(), project.getName()),
+                project, launch
+            );
+          } else {
+            emailService.sendLaunchFinishNotification(
+                recipientsArray, String.format("/ui#%s", project.getName()), project, launch);
+          }
         } catch (Exception e) {
           LOGGER.error("Unable to send email.", e);
         }
@@ -164,14 +165,14 @@ public class LaunchNotificationRunner implements
    * @return success rate of provided launch in %
    */
   private static double getSuccessRate(Launch launch) {
-    double ti = extractStatisticsCount(DEFECTS_TO_INVESTIGATE_TOTAL,
-        launch.getStatistics()).doubleValue();
-    double pb = extractStatisticsCount(DEFECTS_PRODUCT_BUG_TOTAL,
-        launch.getStatistics()).doubleValue();
-    double si = extractStatisticsCount(DEFECTS_SYSTEM_ISSUE_TOTAL,
-        launch.getStatistics()).doubleValue();
-    double ab = extractStatisticsCount(DEFECTS_AUTOMATION_BUG_TOTAL,
-        launch.getStatistics()).doubleValue();
+    double ti =
+        extractStatisticsCount(DEFECTS_TO_INVESTIGATE_TOTAL, launch.getStatistics()).doubleValue();
+    double pb =
+        extractStatisticsCount(DEFECTS_PRODUCT_BUG_TOTAL, launch.getStatistics()).doubleValue();
+    double si =
+        extractStatisticsCount(DEFECTS_SYSTEM_ISSUE_TOTAL, launch.getStatistics()).doubleValue();
+    double ab =
+        extractStatisticsCount(DEFECTS_AUTOMATION_BUG_TOTAL, launch.getStatistics()).doubleValue();
     double total = extractStatisticsCount(EXECUTIONS_TOTAL, launch.getStatistics()).doubleValue();
     return total == 0 ? total : (ti + pb + si + ab) / total;
   }
@@ -227,17 +228,13 @@ public class LaunchNotificationRunner implements
       return true;
     }
 
-    return launch.getAttributes()
-        .stream()
-        .filter(attribute -> !attribute.isSystem())
+    return launch.getAttributes().stream().filter(attribute -> !attribute.isSystem())
         .map(attribute -> {
           ItemAttributeResource attributeResource = new ItemAttributeResource();
           attributeResource.setKey(attribute.getKey());
           attributeResource.setValue(attribute.getValue());
           return attributeResource;
-        })
-        .collect(Collectors.toSet())
-        .containsAll(launchAttributeRules.stream()
+        }).collect(Collectors.toSet()).containsAll(launchAttributeRules.stream()
             .map(NotificationConfigConverter.TO_ATTRIBUTE_RULE_RESOURCE)
             .collect(Collectors.toSet()));
   }

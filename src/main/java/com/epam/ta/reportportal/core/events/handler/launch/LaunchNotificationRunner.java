@@ -138,7 +138,7 @@ public class LaunchNotificationRunner
             );
           } else {
             emailService.sendLaunchFinishNotification(
-                recipientsArray, String.format("/ui#%s", project.getName()), project, launch);
+                recipientsArray, String.format("/ui/#%s", project.getName()), project, launch);
           }
         } catch (Exception e) {
           LOGGER.error("Unable to send email.", e);

@@ -16,8 +16,11 @@
 
 package com.epam.ta.reportportal.core.project;
 
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import java.util.List;
 
 /**
  * Delete {@link com.epam.ta.reportportal.entity.project.Project} request handler
@@ -27,16 +30,25 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 public interface DeleteProjectHandler {
 
   /**
-   * Delete specified project
+   * Delete specified project.
    *
    * @param projectId Project id
    * @return Result of operation
-   * @throws ReportPortalException
+   * @throws ReportPortalException if project not found
    */
-  OperationCompletionRS deleteProject(Long projectId);
+  OperationCompletionRS deleteProject(Long projectId, ReportPortalUser user);
 
   /**
-   * Delete project index
+   * Delete specified project.
+   *
+   * @param ids projects ids
+   * @return Bulk result of operation
+   * @throws ReportPortalException if project not found
+   */
+  DeleteBulkRS bulkDeleteProjects(List<Long> ids, ReportPortalUser user);
+
+  /**
+   * Delete project index.
    *
    * @param projectName Project name
    * @param username    User name

@@ -18,7 +18,11 @@ package com.epam.ta.reportportal.ws.rabbit;
 
 import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityDetails;
+import java.util.Objects;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -32,6 +36,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ActivityConsumer {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(ActivityConsumer.class);
+
   private final ActivityRepository activityRepository;
 
   @Autowired
@@ -39,8 +45,20 @@ public class ActivityConsumer {
     this.activityRepository = activityRepository;
   }
 
-  @RabbitListener(queues = "#{ @activityQueue.name }", containerFactory = "rabbitListenerContainerFactory")
+  @RabbitListener(queues = "#{ @activityQueue.name }",
+      containerFactory = "rabbitListenerContainerFactory")
   public void onEvent(@Payload Activity rq) {
-    Optional.ofNullable(rq).ifPresent(activityRepository::save);
+    Optional.ofNullable(rq).ifPresent(this::processActivity);
   }
+
+  private void processActivity(Activity activity) {
+    LOGGER.info("[audit] - {}", activity);
+    if (activity.isSavedEvent()) {
+      if (Objects.isNull(activity.getDetails())) {
+        activity.setDetails(new ActivityDetails());
+      }
+      activityRepository.save(activity);
+    }
+  }
+
 }

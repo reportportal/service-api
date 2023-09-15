@@ -48,6 +48,7 @@ class ActivityConsumerTest {
     public Activity toActivity() {
       return null;
     }
+
   }
 
   @Test
@@ -58,10 +59,10 @@ class ActivityConsumerTest {
 
   private static class NotEmptyActivity implements ActivityEvent {
 
-    private Long userId;
-    private Long projectId;
-    private String username;
-    private Long objectId;
+    private final Long userId;
+    private final Long projectId;
+    private final String username;
+    private final Long objectId;
 
     NotEmptyActivity(Long userId, Long projectId, String username, Long objectId) {
       this.userId = userId;
@@ -73,12 +74,13 @@ class ActivityConsumerTest {
     @Override
     public Activity toActivity() {
       Activity activity = new Activity();
-      activity.setUserId(userId);
+      activity.setSubjectId(userId);
       activity.setProjectId(projectId);
-      activity.setUsername(username);
+      activity.setSubjectName(username);
       activity.setObjectId(objectId);
       return activity;
     }
+
   }
 
   @Test

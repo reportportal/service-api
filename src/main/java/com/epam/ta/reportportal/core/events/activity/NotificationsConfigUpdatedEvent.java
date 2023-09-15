@@ -18,21 +18,25 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.EMAIL_CASES;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.EMPTY_FIELD;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.EMAIL_CONFIG;
 import static java.util.Optional.ofNullable;
 
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Andrei Varabyeu
@@ -63,17 +67,22 @@ public class NotificationsConfigUpdatedEvent extends BeforeEvent<ProjectResource
 
   @Override
   public Activity toActivity() {
-    ActivityDetails details = new ActivityDetails(getBefore().getProjectName());
+    ActivityDetails details = new ActivityDetails();
     processEmailConfiguration(details, getBefore(), updateProjectNotificationConfigRQ);
 
-    return new ActivityBuilder().addCreatedNow()
-        .addAction(ActivityAction.UPDATE_PROJECT)
-        .addActivityEntityType(EMAIL_CONFIG)
-        .addProjectId(getBefore().getProjectId())
-        .addUserId(getUserId())
-        .addUserName(getUserLogin())
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_PROJECT.getValue())
+        .addPriority(EventPriority.MEDIUM)
         .addObjectId(getBefore().getProjectId())
+        .addObjectName(StringUtils.EMPTY)
+        .addObjectType(EventObject.EMAIL_CONFIG)
+        .addProjectId(getBefore().getProjectId())
         .addDetails(details)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
         .get();
   }
 

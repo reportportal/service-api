@@ -20,8 +20,11 @@ import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.c
 
 import com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
@@ -42,14 +45,18 @@ class TicketPostedEventTest {
 
   private static Activity getExpectedActivity() {
     Activity activity = new Activity();
-    activity.setAction(ActivityAction.POST_ISSUE.getValue());
-    activity.setActivityEntityType(Activity.ActivityEntityType.TICKET.getValue());
-    activity.setUserId(1L);
-    activity.setUsername("user");
+    activity.setAction(EventAction.POST);
+    activity.setEventName("postIssue");
+    activity.setPriority(EventPriority.LOW);
+    activity.setObjectType(EventObject.ITEM_ISSUE);
+    activity.setSubjectId(1L);
+    activity.setSubjectName("user");
+    activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
     activity.setObjectId(2L);
     activity.setCreatedAt(LocalDateTime.now());
-    activity.setDetails(new ActivityDetails("name"));
+    activity.setObjectName("name");
+    activity.setDetails(new ActivityDetails());
     activity.getDetails()
         .setHistory(getExpectedHistory(Pair.of(EXISTED_TICKETS,
             EXISTED_TICKETS + "," + NEW_TICKET_ID + ":" + NEW_TICKET_URL)));

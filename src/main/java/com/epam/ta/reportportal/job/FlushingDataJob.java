@@ -23,11 +23,13 @@ import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.enums.FeatureFlag;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.util.FeatureFlagHandler;
 import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
@@ -44,6 +46,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -87,8 +90,17 @@ public class FlushingDataJob implements Job {
   @Autowired
   private PasswordEncoder passwordEncoder;
 
-  @Value("${datastore.minio.bucketPrefix}")
+  @Autowired
+  private FeatureFlagHandler featureFlagHandler;
+
+  @Value("${datastore.bucketPrefix}")
   private String bucketPrefix;
+
+  @Value("${datastore.bucketPostfix}")
+  private String bucketPostfix;
+
+  @Value("${datastore.defaultBucketName")
+  private String defaultBucketName;
 
   @Override
   @Transactional(isolation = Isolation.READ_UNCOMMITTED)
@@ -100,6 +112,13 @@ public class FlushingDataJob implements Job {
         .filter(it -> !it.equalsIgnoreCase(SUPERADMIN_PERSONAL))
         .collect(Collectors.toList())
         .forEach(name -> projectRepository.findByName(name).ifPresent(this::deleteProject));
+    if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)){
+      try {
+        blobStore.deleteContainer(defaultBucketName);
+      } catch (Exception e) {
+        LOGGER.warn("Cannot delete bucket {}", defaultBucketName);
+      }
+    }
     userRepository.findAll().stream().filter(it -> !it.getLogin().equalsIgnoreCase(SUPERADMIN))
         .forEach(this::deleteUser);
     restartSequences();
@@ -114,10 +133,11 @@ public class FlushingDataJob implements Job {
     jdbcTemplate.execute("BEGIN; " + "SELECT PG_ADVISORY_XACT_LOCK(1);"
         + "SELECT PG_TERMINATE_BACKEND(pid) FROM pg_stat_activity WHERE datname = 'reportportal'\n"
         + "AND pid <> PG_BACKEND_PID()\n"
-        + "AND state IN ('idle', 'idle in transaction', 'idle in transaction (aborted)', 'disabled'); "
+        + "AND state IN "
+        + "('idle', 'idle in transaction', 'idle in transaction (aborted)', 'disabled'); "
         + "TRUNCATE TABLE launch RESTART IDENTITY CASCADE;"
         + "TRUNCATE TABLE activity RESTART IDENTITY CASCADE;"
-        + "TRUNCATE TABLE shareable_entity RESTART IDENTITY CASCADE;"
+        + "TRUNCATE TABLE owned_entity RESTART IDENTITY CASCADE;"
         + "TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;"
         + "TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE;" + "COMMIT;");
   }
@@ -164,10 +184,12 @@ public class FlushingDataJob implements Job {
     projectRepository.delete(project);
     analyzerServiceClient.removeSuggest(project.getId());
     issueTypeRepository.deleteAll(issueTypesToRemove);
-    try {
-      blobStore.deleteContainer(bucketPrefix + project.getId());
-    } catch (Exception e) {
-      LOGGER.warn("Cannot delete attachments bucket " + bucketPrefix + project.getId());
+    if (!featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
+      try {
+        blobStore.deleteContainer(bucketPrefix + project.getId() + bucketPostfix);
+      } catch (Exception e) {
+        LOGGER.warn("Cannot delete attachments bucket " + bucketPrefix + project.getId());
+      }
     }
     logIndexer.deleteIndex(project.getId());
     projectRepository.flush();

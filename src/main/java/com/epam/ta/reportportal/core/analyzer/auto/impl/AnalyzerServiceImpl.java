@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
@@ -165,7 +164,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
               it -> messageBus.publishActivity(new LinkTicketEvent(before,
                   after,
                   analyzerInstance,
-                  ActivityAction.LINK_ISSUE_AA
+                  true
               )));
         }
       });

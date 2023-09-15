@@ -16,16 +16,17 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.SHARE;
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processBoolean;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processDescription;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.FILTER;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_FILTER;
 
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
 
 /**
@@ -44,16 +45,19 @@ public class FilterUpdatedEvent extends AroundEvent<UserFilterActivityResource> 
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow()
-        .addAction(UPDATE_FILTER)
-        .addActivityEntityType(FILTER)
-        .addUserId(getUserId())
-        .addUserName(getUserLogin())
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_FILTER.getValue())
+        .addPriority(EventPriority.LOW)
         .addObjectId(getAfter().getId())
         .addObjectName(getAfter().getName())
+        .addObjectType(EventObject.FILTER)
         .addProjectId(getAfter().getProjectId())
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
         .addHistoryField(processName(getBefore().getName(), getAfter().getName()))
-        .addHistoryField(processBoolean(SHARE, getBefore().isShared(), getAfter().isShared()))
         .addHistoryField(
             processDescription(getBefore().getDescription(), getAfter().getDescription()))
         .get();

@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -33,39 +34,37 @@ import java.util.List;
  */
 public interface UpdateUserFilterHandler {
 
-  /**
-   * Creates new filter
-   *
-   * @param createFilterRQ
-   * @param projectName
-   * @param user
-   * @return EntryCreatedRS
-   */
-  EntryCreatedRS createFilter(UpdateUserFilterRQ createFilterRQ, String projectName,
-      ReportPortalUser user);
+	/**
+	 * Creates new filter
+	 *
+	 * @param createFilterRQ
+	 * @param projectName
+	 * @param user
+	 * @return EntryCreatedRS
+	 */
+	EntryCreatedRS createFilter(UpdateUserFilterRQ createFilterRQ, String projectName, ReportPortalUser user);
 
-  /**
-   * Update user filter with specified id
-   *
-   * @param userFilterId   User filter id
-   * @param updateRQ       Update filter details
-   * @param projectDetails Project details
-   * @param user           User
-   * @return {@link OperationCompletionRS}
-   */
-  OperationCompletionRS updateUserFilter(Long userFilterId, UpdateUserFilterRQ updateRQ,
-      ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user);
+	/**
+	 * Update user filter with specified id
+	 *
+	 * @param userFilterId   User filter id
+	 * @param updateRQ       Update filter details
+	 * @param projectDetails Project details
+	 * @param user           User
+	 * @return {@link OperationCompletionRS}
+	 */
+	OperationCompletionRS updateUserFilter(Long userFilterId, UpdateUserFilterRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user);
 
-  /**
-   * Update user filter
-   *
-   * @param updateRQ
-   * @param projectDetails
-   * @param user
-   * @return List of {@link OperationCompletionRS}
-   */
-  List<OperationCompletionRS> updateUserFilter(CollectionsRQ<BulkUpdateFilterRQ> updateRQ,
-      ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user);
+	/**
+	 * Update user filter
+	 *
+	 * @param updateRQ
+	 * @param projectDetails
+	 * @param user
+	 * @return List of {@link OperationCompletionRS}
+	 */
+	List<OperationCompletionRS> updateUserFilter(CollectionsRQ<BulkUpdateFilterRQ> updateRQ, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user);
+
 }

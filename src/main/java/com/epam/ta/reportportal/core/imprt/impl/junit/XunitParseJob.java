@@ -19,12 +19,6 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.imprt.impl.ParseResults;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.concurrent.Callable;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -32,51 +26,57 @@ import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.concurrent.Callable;
+
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class XunitParseJob implements Callable<ParseResults> {
 
-  @Autowired
-  private XunitImportHandler handler;
+	@Autowired
+	private XunitImportHandler handler;
 
-  private InputStream xmlInputStream;
+	private InputStream xmlInputStream;
 
-  @Override
-  public ParseResults call() {
-    try {
-      SAXParserFactory spf = SAXParserFactory.newInstance();
-      SAXParser saxParser = spf.newSAXParser();
-      XMLReader reader = saxParser.getXMLReader();
+	@Override
+	public ParseResults call() {
+		try {
+			SAXParserFactory spf = SAXParserFactory.newInstance();
+			SAXParser saxParser = spf.newSAXParser();
+			XMLReader reader = saxParser.getXMLReader();
 
-      // Xerces 1 - http://xerces.apache.org/xerces-j/features.html#external-general-entities
-      // Xerces 2 - http://xerces.apache.org/xerces2-j/features.html#external-general-entities
+			// Xerces 1 - http://xerces.apache.org/xerces-j/features.html#external-general-entities
+			// Xerces 2 - http://xerces.apache.org/xerces2-j/features.html#external-general-entities
 
-      // Xerces 2 only - http://xerces.apache.org/xerces-j/features.html#external-general-entities
-      spf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-      // Using the SAXParserFactory's setFeature
-      spf.setFeature("http://xml.org/sax/features/external-general-entities", false);
-      spf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-      spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-      spf.setXIncludeAware(false);
-      // Using the XMLReader's setFeature
-      reader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-      reader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-      reader.setFeature("http://xml.org/sax/features/external-general-entities", false);
-      reader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+			// Xerces 2 only - http://xerces.apache.org/xerces-j/features.html#external-general-entities
+			spf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+			// Using the SAXParserFactory's setFeature
+			spf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+			spf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+			spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+			spf.setXIncludeAware(false);
+			// Using the XMLReader's setFeature
+			reader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+			reader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+			reader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+			reader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
 
-      saxParser.parse(xmlInputStream, handler);
-    } catch (SAXException | IOException | ParserConfigurationException e) {
-      throw new ReportPortalException(ErrorType.PARSING_XML_ERROR, e.getMessage());
-    }
-    return new ParseResults(handler.getStartSuiteTime(), handler.getCommonDuration());
-  }
+			saxParser.parse(xmlInputStream, handler);
+		} catch (SAXException | IOException | ParserConfigurationException e) {
+			throw new ReportPortalException(ErrorType.PARSING_XML_ERROR, e.getMessage());
+		}
+		return new ParseResults(handler.getStartSuiteTime(), handler.getCommonDuration());
+	}
 
-  public XunitParseJob withParameters(ReportPortalUser.ProjectDetails projectDetails,
-      String launchId, ReportPortalUser user,
-      InputStream xmlInputStream) {
-    this.xmlInputStream = xmlInputStream;
-    this.handler = handler.withParameters(projectDetails, launchId, user);
-    return this;
-  }
+	public XunitParseJob withParameters(ReportPortalUser.ProjectDetails projectDetails, String launchId, ReportPortalUser user,
+			InputStream xmlInputStream, boolean skipped) {
+		this.xmlInputStream = xmlInputStream;
+		this.handler = handler.withParameters(projectDetails, launchId, user, skipped);
+		return this;
+	}
 
 }

@@ -20,14 +20,16 @@ import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetails
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.IGNORE_ANALYZER;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.ISSUE_TYPE;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.RELEVANT_ITEM;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.ITEM_ISSUE;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.ANALYZE_ITEM;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ITEM;
 
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.analyzer.RelevantItemInfo;
 import java.util.Optional;
@@ -68,16 +70,26 @@ public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResou
     this.relevantItemInfo = relevantItemInfo;
   }
 
+  public boolean isAutoAnalyzed() {
+    return getAfter().isAutoAnalyzed();
+  }
+
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow()
-        .addAction(getAfter().isAutoAnalyzed() ? ANALYZE_ITEM : UPDATE_ITEM)
-        .addActivityEntityType(ITEM_ISSUE)
-        .addUserId(getUserId())
-        .addUserName(getUserLogin())
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.ANALYZE)
+        .addEventName(getAfter().isAutoAnalyzed()
+            ? ActivityAction.ANALYZE_ITEM.getValue()
+            : ActivityAction.UPDATE_ITEM.getValue())
+        .addPriority(EventPriority.LOW)
         .addObjectId(getAfter().getId())
         .addObjectName(getAfter().getName())
+        .addObjectType(EventObject.ITEM_ISSUE)
         .addProjectId(getAfter().getProjectId())
+        .addSubjectId(isAutoAnalyzed() ? null : getUserId())
+        .addSubjectName(isAutoAnalyzed() ? "analyzer" : getUserLogin())
+        .addSubjectType(isAutoAnalyzed() ? EventSubject.APPLICATION : EventSubject.USER)
         .addHistoryField(processIssueDescription(getBefore().getIssueDescription(),
             getAfter().getIssueDescription()))
         .addHistoryField(processIssueTypes(getBefore().getIssueTypeLongName(),

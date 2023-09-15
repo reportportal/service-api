@@ -124,8 +124,7 @@ public class MailServiceFactory {
               p -> NumberUtils.toInt(String.valueOf(p), 25))
           .orElse(25));
       EmailSettingsEnum.PROTOCOL.getAttribute(config).ifPresent(service::setProtocol);
-      EmailSettingsEnum.USERNAME.getAttribute(config).ifPresent(service::setFrom);
-      EmailSettingsEnum.FROM.getAttribute(config).ifPresent(service::setFromAlias);
+      EmailSettingsEnum.FROM.getAttribute(config).ifPresent(service::setFrom);
       if (authRequired) {
         EmailSettingsEnum.USERNAME.getAttribute(config).ifPresent(service::setUsername);
         EmailSettingsEnum.PASSWORD.getAttribute(config)

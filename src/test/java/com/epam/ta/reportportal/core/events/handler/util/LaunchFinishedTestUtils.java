@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Sets;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
@@ -36,35 +37,31 @@ import java.util.stream.Collectors;
  */
 public class LaunchFinishedTestUtils {
 
-  private static Supplier<Set<String>> recipientsSupplier = Suppliers.memoize(
-      LaunchFinishedTestUtils::getRecipients);
-  private static Supplier<Set<String>> launchNamesSupplier = Suppliers.memoize(
-      LaunchFinishedTestUtils::getLaunchNames);
+	private static Supplier<Set<String>> recipientsSupplier = Suppliers.memoize(LaunchFinishedTestUtils::getRecipients);
+	private static Supplier<Set<String>> launchNamesSupplier = Suppliers.memoize(LaunchFinishedTestUtils::getLaunchNames);
 
-  public static Set<ProjectAttribute> getProjectAttributes(
-      Map<ProjectAttributeEnum, String> mapping) {
-    return mapping.entrySet().stream().map(entry -> {
-      Attribute attribute = new Attribute();
-      attribute.setName(entry.getKey().getAttribute());
-      ProjectAttribute projectAttribute = new ProjectAttribute();
-      projectAttribute.setAttribute(attribute);
-      projectAttribute.setValue(entry.getValue());
-      return projectAttribute;
-    }).collect(Collectors.toSet());
-  }
+	public static Set<ProjectAttribute> getProjectAttributes(Map<ProjectAttributeEnum, String> mapping) {
+		return mapping.entrySet().stream().map(entry -> {
+			Attribute attribute = new Attribute();
+			attribute.setName(entry.getKey().getAttribute());
+			ProjectAttribute projectAttribute = new ProjectAttribute();
+			projectAttribute.setAttribute(attribute);
+			projectAttribute.setValue(entry.getValue());
+			return projectAttribute;
+		}).collect(Collectors.toSet());
+	}
 
-  public static Set<SenderCase> getSenderCases() {
-    return Arrays.stream(SendCase.values())
-        .map(sc -> new SenderCase(recipientsSupplier.get(), launchNamesSupplier.get(),
-            Collections.emptySet(), sc, true, LogicalOperator.AND))
-        .collect(Collectors.toSet());
-  }
+	public static Set<SenderCase> getSenderCases() {
+		return Arrays.stream(SendCase.values())
+				.map(sc -> new SenderCase(recipientsSupplier.get(), launchNamesSupplier.get(), Collections.emptySet(), sc, true, LogicalOperator.AND))
+				.collect(Collectors.toSet());
+	}
 
-  private static Set<String> getRecipients() {
-    return Sets.newHashSet("first@mail.com", "second@mail.com");
-  }
+	private static Set<String> getRecipients() {
+		return Sets.newHashSet("first@mail.com", "second@mail.com");
+	}
 
-  private static Set<String> getLaunchNames() {
-    return Sets.newHashSet("name1", "name2");
-  }
+	private static Set<String> getLaunchNames() {
+		return Sets.newHashSet("name1", "name2");
+	}
 }

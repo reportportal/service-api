@@ -55,9 +55,11 @@ public interface CreateIntegrationHandler {
    *
    * @param id            {@link Integration#id}
    * @param updateRequest {@link IntegrationRQ}
+   * @param user          {@link ReportPortalUser}
    * @return updated {@link Integration}
    */
-  OperationCompletionRS updateGlobalIntegration(Long id, IntegrationRQ updateRequest);
+  OperationCompletionRS updateGlobalIntegration(Long id, IntegrationRQ updateRequest,
+      ReportPortalUser user);
 
   /**
    * Updated {@link Integration} for {@link com.epam.ta.reportportal.entity.project.Project} with

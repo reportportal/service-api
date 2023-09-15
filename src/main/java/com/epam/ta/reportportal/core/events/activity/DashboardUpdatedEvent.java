@@ -17,12 +17,15 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processDescription;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.DASHBOARD;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_DASHBOARD;
 
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 
 /**
@@ -41,14 +44,18 @@ public class DashboardUpdatedEvent extends AroundEvent<DashboardActivityResource
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow()
-        .addAction(UPDATE_DASHBOARD)
-        .addActivityEntityType(DASHBOARD)
-        .addUserId(getUserId())
-        .addUserName(getUserLogin())
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_DASHBOARD.getValue())
+        .addPriority(EventPriority.LOW)
         .addObjectId(getAfter().getId())
         .addObjectName(getAfter().getName())
+        .addObjectType(EventObject.DASHBOARD)
         .addProjectId(getAfter().getProjectId())
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
         .addHistoryField(processName(getBefore().getName(), getAfter().getName()))
         .addHistoryField(
             processDescription(getBefore().getDescription(), getAfter().getDescription()))

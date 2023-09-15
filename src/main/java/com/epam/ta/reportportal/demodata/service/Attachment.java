@@ -30,31 +30,38 @@ import org.springframework.core.io.ClassPathResource;
  */
 public enum Attachment {
 
-  CMD("demo/attachments/Test.cmd", TEXT_PLAIN_VALUE),
-  CSS("demo/attachments/css.css", "text/css"),
-  CSV("demo/attachments/Test.csv", "text/csv"),
-  HTML("demo/attachments/html.html", TEXT_HTML_VALUE),
-  JS("demo/attachments/javascript.js", "application/javascript"),
-  PDF("demo/attachments/test.pdf", APPLICATION_PDF_VALUE),
-  PHP("demo/attachments/php.php", "text/x-php"),
-  TXT("demo/attachments/plain.txt", TEXT_PLAIN_VALUE),
-  ZIP("demo/attachments/demo.zip", "application/zip"),
-  JSON("demo/demo_widgets.json", APPLICATION_JSON_VALUE),
-  PNG("demo/attachments/img.png", IMAGE_PNG_VALUE),
-  XML("demo/attachments/xml.xml", APPLICATION_XML_VALUE),
-  HAR("demo/attachments/har.har", "application/har+json"),
-  GZ("demo/attachments/gz.gz", "application/gzip"),
-  RAR("demo/attachments/rar.rar", "application/x-rar-compressed"),
-  TAR("demo/attachments/tar.tar", "application/tar");
+  CMD("Test.cmd", "demo/attachments/Test.cmd", TEXT_PLAIN_VALUE),
+  CSS("css.css", "demo/attachments/css.css", "text/css"),
+  CSV("Test.csv", "demo/attachments/Test.csv", "text/csv"),
+  HTML("html.html", "demo/attachments/html.html", TEXT_HTML_VALUE),
+  JS("javascript.js", "demo/attachments/javascript.js", "application/javascript"),
+  PDF("test.pdf", "demo/attachments/test.pdf", APPLICATION_PDF_VALUE),
+  PHP("php.php", "demo/attachments/php.php", "text/x-php"),
+  TXT("plain.txt", "demo/attachments/plain.txt", TEXT_PLAIN_VALUE),
+  ZIP("demo.zip", "demo/attachments/demo.zip", "application/zip"),
+  JSON("demo_widgets.json", "demo/demo_widgets.json", APPLICATION_JSON_VALUE),
+  PNG("img.png", "demo/attachments/img.png", IMAGE_PNG_VALUE),
+  XML("xml.xml", "demo/attachments/xml.xml", APPLICATION_XML_VALUE),
+  HAR("har.har", "demo/attachments/har.har", "application/har+json"),
+  GZ("gz.gz", "demo/attachments/gz.gz", "application/gzip"),
+  RAR("rar.rar", "demo/attachments/rar.rar", "application/x-rar-compressed"),
+  TAR("tar.tar", "demo/attachments/tar.tar", "application/tar");
 
-  Attachment(String resource, String contentType) {
+  Attachment(String name, String resource, String contentType) {
+    this.name = name;
     this.resource = resource;
     this.contentType = contentType;
   }
 
-  private String resource;
+  private final String name;
 
-  private String contentType;
+  private final String resource;
+
+  private final String contentType;
+
+  public String getName() {
+    return name;
+  }
 
   public ClassPathResource getResource() {
     return new ClassPathResource(resource);

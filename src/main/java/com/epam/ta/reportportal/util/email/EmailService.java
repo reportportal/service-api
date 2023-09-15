@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.util.email;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -69,15 +70,14 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 public class EmailService extends JavaMailSenderImpl {
 
-  private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " Report Portal Notification: [%s] launch '%s' #%s finished";
+  private static final String FINISH_LAUNCH_EMAIL_SUBJECT =
+      " ReportPortal Notification: [%s] launch '%s' #%s finished";
   private static final String URL_FORMAT = "%s/launches/all";
-  private static final String FULL_ATTRIBUTE_FILTER_FORMAT = "%s?filter.has.key=%s&filter.has.value=%s";
-  private static final String VALUE_ATTRIBUTE_FILTER_FORMAT = "%s?filter.has.value=%s";
+  private static final String COMPOSITE_ATTRIBUTE_FILTER_FORMAT = "%s?launchesParams=filter.has.compositeAttribute=%s";
   private static final String EMAIL_TEMPLATE_PREFIX = "templates/email/";
   private TemplateEngine templateEngine;
   /* Default value for FROM project notifications field */
   private String from;
-  private String fromAlias;
   private String rpHost;
 
   public EmailService(Properties javaMailProperties) {
@@ -120,8 +120,9 @@ public class EmailService extends JavaMailSenderImpl {
    */
   public void sendLaunchFinishNotification(final String[] recipients, final String url,
       final Project project, final Launch launch) {
-    String subject = format(FINISH_LAUNCH_EMAIL_SUBJECT, project.getName().toUpperCase(),
-        launch.getName(), launch.getNumber());
+    String subject =
+        format(FINISH_LAUNCH_EMAIL_SUBJECT, project.getName().toUpperCase(), launch.getName(),
+            launch.getNumber());
     MimeMessagePreparator preparator = mimeMessage -> {
       MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
       message.setSubject(subject);
@@ -215,13 +216,13 @@ public class EmailService extends JavaMailSenderImpl {
 
   private String buildAttributesLink(String basicUrl, ItemAttribute attribute) {
     if (null != attribute.getKey()) {
-      return format(FULL_ATTRIBUTE_FILTER_FORMAT,
+      return format(COMPOSITE_ATTRIBUTE_FILTER_FORMAT,
           basicUrl,
-          urlPathSegmentEscaper().escape(attribute.getKey()),
+          urlPathSegmentEscaper().escape(attribute.getKey()) + ":" +
           urlPathSegmentEscaper().escape(attribute.getValue())
       );
     } else {
-      return format(VALUE_ATTRIBUTE_FILTER_FORMAT, basicUrl,
+      return format(COMPOSITE_ATTRIBUTE_FILTER_FORMAT, basicUrl,
           urlPathSegmentEscaper().escape(attribute.getValue()));
     }
   }
@@ -316,10 +317,6 @@ public class EmailService extends JavaMailSenderImpl {
     this.from = from;
   }
 
-  public void setFromAlias(String fromAlias) {
-    this.fromAlias = fromAlias;
-  }
-
   public void setRpHost(String rpHost) {
     this.rpHost = rpHost;
   }
@@ -327,7 +324,7 @@ public class EmailService extends JavaMailSenderImpl {
   public void sendCreateUserConfirmationEmail(CreateUserRQFull req, String basicUrl) {
     MimeMessagePreparator preparator = mimeMessage -> {
       MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
-      message.setSubject("Welcome to Report Portal");
+      message.setSubject("Welcome to ReportPortal");
       message.setTo(req.getEmail());
       setFrom(message);
 
@@ -364,19 +361,16 @@ public class EmailService extends JavaMailSenderImpl {
    */
   private void setFrom(MimeMessageHelper message)
       throws MessagingException, UnsupportedEncodingException {
-    if (isFromValid()) {
-      if (StringUtils.isNotBlank(fromAlias)) {
-        message.setFrom(new InternetAddress(from, fromAlias));
-      } else {
-        message.setFrom(from);
+    if (StringUtils.isNotBlank(this.from)) {
+      if (UserUtils.isEmailValid(this.from) && isAddressValid(this.from)) {
+        message.setFrom(this.from);
+      } else if (UserUtils.isEmailValid(getUsername())) {
+        message.setFrom(getUsername(), this.from);
       }
+    } else if (UserUtils.isEmailValid(getUsername())) {
+      message.setFrom(getUsername());
     }
     //otherwise generate automatically
-  }
-
-  private boolean isFromValid() {
-    return StringUtils.isNotBlank(this.from) && UserUtils.isEmailValid(this.from) && isAddressValid(
-        this.from);
   }
 
   private boolean isAddressValid(String from) {
@@ -398,4 +392,73 @@ public class EmailService extends JavaMailSenderImpl {
   private ClassPathResource emailTemplateResource(String resource) {
     return new ClassPathResource(EMAIL_TEMPLATE_PREFIX + resource);
   }
+
+  public void sendAccountSelfDeletionNotification(String recipient) {
+    MimeMessagePreparator preparator = mimeMessage -> {
+      MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+      message.setSubject("Account Deletion Notification");
+      message.setTo(recipient);
+
+      setFrom(message);
+
+      Map<String, Object> data = Collections.emptyMap();
+      String text = templateEngine.merge("self-delete-account-template.ftl", data);
+      message.setText(text, true);
+
+      message.addInline("new-logo.png", emailTemplateResource("new-logo.png"));
+      message.addInline("deleted-account.png", emailTemplateResource("deleted-account.png"));
+      attachNewSocialImages(message);
+    };
+    this.send(preparator);
+  }
+
+  public void sendAccountDeletionByRetentionNotification(String recipient) {
+    MimeMessagePreparator preparator = mimeMessage -> {
+      MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+      message.setSubject("Account Deletion Notification");
+      message.setTo(recipient);
+
+      setFrom(message);
+
+      Map<String, Object> data = Collections.emptyMap();
+      String text = templateEngine.merge("delete-account-template.ftl", data);
+      message.setText(text, true);
+
+      message.addInline("new-logo.png", emailTemplateResource("new-logo.png"));
+      message.addInline("deleted-account.png", emailTemplateResource("deleted-account.png"));
+      attachNewSocialImages(message);
+    };
+    this.send(preparator);
+  }
+
+  public void sendUserExpirationNotification(String recipient, Map<String, Object> params) {
+    MimeMessagePreparator preparator = mimeMessage -> {
+      MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+      message.setSubject("Account Deletion Notification");
+      message.setTo(recipient);
+
+      setFrom(message);
+
+      Map<String, Object> data = new HashMap<>();
+      data.put("remainingTime", params.get("remainingTime"));
+      data.put("inactivityPeriod", params.get("inactivityPeriod"));
+      data.put("deadlineDate", params.get("deadlineDate"));
+      String text = templateEngine.merge("delete-account-notification-template.ftl", data);
+      message.setText(text, true);
+
+      message.addInline("new-logo.png", emailTemplateResource("new-logo.png"));
+      message.addInline("delete-account-notification.png", emailTemplateResource("delete-account-notification.png"));
+      attachNewSocialImages(message);
+    };
+    this.send(preparator);
+  }
+
+  private void attachNewSocialImages(MimeMessageHelper message) throws MessagingException {
+    message.addInline("new-ic-twitter.png", emailTemplateResource("new-ic-twitter.png"));
+    message.addInline("new-ic-slack.png", emailTemplateResource("new-ic-slack.png"));
+    message.addInline("new-ic-youtube.png", emailTemplateResource("new-ic-youtube.png"));
+    message.addInline("new-ic-linkedin.png", emailTemplateResource("new-ic-linkedin.png"));
+    message.addInline("new-ic-github.png", emailTemplateResource("new-ic-github.png"));
+  }
+
 }

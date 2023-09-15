@@ -45,6 +45,10 @@ import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
 import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
+import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -55,22 +59,21 @@ import org.springframework.stereotype.Service;
 @Service
 public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
-  private final static String KEY_AND_VALUE_DELIMITER = ":";
+	private final static String KEY_AND_VALUE_DELIMITER = ":";
 
-  private final static String ATTRIBUTES_DELIMITER = ",";
-  private final ProjectExtractor projectExtractor;
-  private final UserFilterRepository userFilterRepository;
-  private final MessageBus messageBus;
+	private final static String ATTRIBUTES_DELIMITER = ",";
+	private final ProjectExtractor projectExtractor;
+	private final UserFilterRepository userFilterRepository;
+	private final MessageBus messageBus;
 
-  @Autowired
-  public UpdateUserFilterHandlerImpl(ProjectExtractor projectExtractor,
-      UserFilterRepository userFilterRepository,
+	@Autowired
+	public UpdateUserFilterHandlerImpl(ProjectExtractor projectExtractor, UserFilterRepository userFilterRepository,
 
 			MessageBus messageBus) {
 		this.projectExtractor = projectExtractor;
 		this.userFilterRepository = userFilterRepository;
-    this.messageBus = messageBus;
-  }
+		this.messageBus = messageBus;
+	}
 
   @Override
   public EntryCreatedRS createFilter(UpdateUserFilterRQ createFilterRQ, String projectName,
@@ -91,26 +94,25 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
         .addOwner(user.getUsername())
         .get();
 
-    userFilterRepository.save(filter);
-    messageBus.publishActivity(new FilterCreatedEvent(TO_ACTIVITY_RESOURCE.apply(filter), user.getUserId(), user.getUsername()));
+		userFilterRepository.save(filter);
+		messageBus.publishActivity(new FilterCreatedEvent(TO_ACTIVITY_RESOURCE.apply(filter), user.getUserId(), user.getUsername()));
 		return new EntryCreatedRS(filter.getId());
 	}
 
-  @Override
-  public OperationCompletionRS updateUserFilter(Long userFilterId, UpdateUserFilterRQ updateRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-    validateFilterRq(updateRQ);
-    UserFilter userFilter = userFilterRepository.findByIdAndProjectId(userFilterId, projectDetails.getProjectId())
+	@Override
+	public OperationCompletionRS updateUserFilter(Long userFilterId, UpdateUserFilterRQ updateRQ,
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		validateFilterRq(updateRQ);
+		UserFilter userFilter = userFilterRepository.findByIdAndProjectId(userFilterId, projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
 						userFilterId,
 						projectDetails.getProjectName()
 				));
-    expect(userFilter.getProject().getId(),
-        Predicate.isEqual(projectDetails.getProjectId())).verify(USER_FILTER_NOT_FOUND,
-        userFilterId,
-        projectDetails.getProjectId(),
-        user.getUserId()
-    );
+		expect(userFilter.getProject().getId(), Predicate.isEqual(projectDetails.getProjectId())).verify(USER_FILTER_NOT_FOUND,
+				userFilterId,
+				projectDetails.getProjectId(),
+				user.getUserId()
+		);
 
     if (!userFilter.getName().equals(updateRQ.getName())) {
 
@@ -128,7 +130,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
     UserFilterActivityResource before = TO_ACTIVITY_RESOURCE.apply(userFilter);
     UserFilter updated = new UserFilterBuilder(userFilter).addFilterRq(updateRQ).get();
 
-    messageBus.publishActivity(new FilterUpdatedEvent(before,
+		messageBus.publishActivity(new FilterUpdatedEvent(before,
 				TO_ACTIVITY_RESOURCE.apply(updated),
 				user.getUserId(),
 				user.getUsername()
@@ -167,15 +169,13 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
                   it.getFilteringField()).get()
           ));
 
-      Condition condition = Condition.findByMarker(it.getCondition())
-          .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS,
-              it.getCondition()));
-      boolean isNegative = Condition.isNegative(it.getCondition());
-      String value = cutAttributesToMaxLength(it.getValue());
+			Condition condition = Condition.findByMarker(it.getCondition())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS, it.getCondition()));
+			boolean isNegative = Condition.isNegative(it.getCondition());
+			String value = cutAttributesToMaxLength(it.getValue());
 
-			condition.validate(criteriaHolder, value, isNegative,
-          ErrorType.INCORRECT_FILTER_PARAMETERS);
-      condition.castValue(criteriaHolder, value, ErrorType.INCORRECT_FILTER_PARAMETERS);
+			condition.validate(criteriaHolder, value, isNegative, ErrorType.INCORRECT_FILTER_PARAMETERS);
+			condition.castValue(criteriaHolder, value, ErrorType.INCORRECT_FILTER_PARAMETERS);
 			it.setValue(value);
 		});
 
@@ -187,6 +187,53 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
                 "Unable to find sort parameter '" + order.getSortingColumnName() + "'"
             ));
   }
+
+	private String cutAttributesToMaxLength(String keyAndValue) {
+		if (keyAndValue == null || keyAndValue.isEmpty()) {
+			return keyAndValue;
+		}
+		String[] attributeArray = keyAndValue.split(ATTRIBUTES_DELIMITER);
+		if (attributeArray.length == 0) {
+			return cutAttributeToLength(keyAndValue, ValidationConstraints.MAX_ATTRIBUTE_LENGTH);
+		}
+		StringBuilder result = new StringBuilder();
+		for (int i = 0; i < attributeArray.length; i++) {
+			String attribute = attributeArray[i];
+			attribute = cutAttributeToLength(attribute, ValidationConstraints.MAX_ATTRIBUTE_LENGTH);
+			result.append(attribute);
+			if (i != attributeArray.length - 1){
+				result.append(ATTRIBUTES_DELIMITER);
+			}
+		}
+		return result.toString();
+	}
+
+	private String cutAttributeToLength(String attribute, int length){
+		String[] keyAndValueArray = attribute.split(KEY_AND_VALUE_DELIMITER);
+		if (keyAndValueArray.length == 0) {
+			attribute = cutStringToLength(attribute, length);
+		} else {
+			if (keyAndValueArray.length == 1) {
+				if (attribute.contains(KEY_AND_VALUE_DELIMITER)) {
+					attribute = cutStringToLength(keyAndValueArray[0], length) + KEY_AND_VALUE_DELIMITER;
+				} else {
+					attribute = cutStringToLength(attribute, length);
+				}
+			} else {
+				String key = cutStringToLength(keyAndValueArray[0], length);
+				String value = cutStringToLength(keyAndValueArray[1], length);
+				attribute = key + KEY_AND_VALUE_DELIMITER + value;
+			}
+		}
+		return attribute;
+	}
+	private String cutStringToLength(String string, int length) {
+		if (string.length() > length) {
+			string = string.substring(0, length);
+		}
+
+		return string;
+	}
 
 	private String cutAttributesToMaxLength(String keyAndValue) {
 		if (keyAndValue == null || keyAndValue.isEmpty()) {

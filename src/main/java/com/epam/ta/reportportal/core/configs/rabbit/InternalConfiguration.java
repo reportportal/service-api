@@ -41,20 +41,22 @@ import org.springframework.context.annotation.Configuration;
 @Conditional(Conditions.NotTestCondition.class)
 public class InternalConfiguration {
 
-  /**
-   * Exchanges
-   */
-  public static final String EXCHANGE_EVENTS = "broadcast.events";
-  public static final String EXCHANGE_ACTIVITY = "activity";
-  public static final String EXCHANGE_ATTACHMENT = "attachment";
+	/**
+	 * Exchanges
+	 */
+	public static final String EXCHANGE_EVENTS = "broadcast.events";
+	public static final String EXCHANGE_ACTIVITY = "activity";
+	public static final String EXCHANGE_ATTACHMENT = "attachment";
+	public static final String EXCHANGE_NOTIFICATION = "notification";
 
-  /**
-   * Queues
-   */
-  public static final String KEY_EVENTS = "broadcast.events";
-  public static final String QUEUE_ACTIVITY = "activity";
-  public static final String QUEUE_ACTIVITY_KEY = "activity.#";
-  public static final String QUEUE_ATTACHMENT_DELETE = "attachment.delete";
+	/**
+	 * Queues
+	 */
+	public static final String KEY_EVENTS = "broadcast.events";
+	public static final String QUEUE_ACTIVITY = "activity";
+	public static final String QUEUE_ACTIVITY_KEY = "activity.#";
+	public static final String QUEUE_ATTACHMENT_DELETE = "attachment.delete";
+	public static final String QUEUE_EMAIL = "notification.email";
 
   public static final String QUEUE_QUERY_RQ = "query-rq";
 
@@ -83,9 +85,14 @@ public class InternalConfiguration {
     return new DirectExchange(EXCHANGE_ATTACHMENT, true, false);
   }
 
-  /**
-   * Queues definition
-   */
+	@Bean
+	public DirectExchange notificationExchange() {
+		return new DirectExchange(EXCHANGE_NOTIFICATION, true, false);
+	}
+
+	/**
+	 * Queues definition
+	 */
 
   @Bean
   public Queue eventsQueue() {
@@ -107,9 +114,14 @@ public class InternalConfiguration {
     return new Queue(QUEUE_QUERY_RQ);
   }
 
-  /**
-   * Bindings
-   */
+	@Bean
+	public Queue emailNotificationQueue() {
+		return new Queue(QUEUE_EMAIL);
+	}
+
+	/**
+	 * Bindings
+	 */
 
   @Bean
   public Binding eventsQueueBinding() {
@@ -127,4 +139,8 @@ public class InternalConfiguration {
         .with(QUEUE_ATTACHMENT_DELETE);
   }
 
+	@Bean
+	public Binding emailNotificationBinding() {
+		return BindingBuilder.bind(emailNotificationQueue()).to(notificationExchange()).with(QUEUE_EMAIL);
+	}
 }

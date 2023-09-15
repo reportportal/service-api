@@ -21,8 +21,11 @@ import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetails
 
 import com.epam.ta.reportportal.core.events.activity.item.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.google.common.collect.Lists;
@@ -38,14 +41,18 @@ class TestItemStatusChangedEventTest {
 
   private static Activity getExpectedActivity() {
     Activity activity = new Activity();
-    activity.setAction(ActivityAction.UPDATE_ITEM.getValue());
-    activity.setActivityEntityType(Activity.ActivityEntityType.ITEM.getValue());
-    activity.setUserId(1L);
-    activity.setUsername("user");
+    activity.setAction(EventAction.UPDATE);
+    activity.setEventName("updateItem");
+    activity.setPriority(EventPriority.LOW);
+    activity.setObjectType(EventObject.ITEM_ISSUE);
+    activity.setSubjectId(1L);
+    activity.setSubjectName("user");
+    activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
     activity.setObjectId(2L);
     activity.setCreatedAt(LocalDateTime.now());
-    activity.setDetails(new ActivityDetails("name"));
+    activity.setObjectName("name");
+    activity.setDetails(new ActivityDetails());
     return activity;
   }
 

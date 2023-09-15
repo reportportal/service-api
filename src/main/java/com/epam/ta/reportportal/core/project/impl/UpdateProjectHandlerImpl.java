@@ -21,11 +21,15 @@ import static com.epam.ta.reportportal.commons.Preconditions.contains;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.in;
 import static com.epam.ta.reportportal.commons.Predicates.isNull;
+import static com.epam.ta.reportportal.commons.Predicates.isPresent;
 import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
+import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_PATTERN_ANALYZER_ENABLED;
+import static com.epam.ta.reportportal.entity.enums.SendCase.findByName;
 import static com.epam.ta.reportportal.ws.converter.converters.ProjectActivityConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
@@ -35,6 +39,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_ASSIGN_UNASSIGN
 import static com.epam.ta.reportportal.ws.model.ErrorType.USER_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.ta.reportportal.commons.Preconditions;
@@ -45,41 +50,62 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.indexer.IndexerStatusCache;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.AssignUserEvent;
+import com.epam.ta.reportportal.core.events.activity.ChangeRoleEvent;
+import com.epam.ta.reportportal.core.events.activity.NotificationsConfigUpdatedEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectAnalyzerConfigEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
+import com.epam.ta.reportportal.core.events.activity.ProjectPatternAnalyzerUpdateEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectUpdatedEvent;
+import com.epam.ta.reportportal.core.events.activity.UnassignUserEvent;
+import com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
 import com.epam.ta.reportportal.core.project.validator.attribute.ProjectAttributeValidator;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.Prefix;
 import com.epam.ta.reportportal.entity.enums.ProjectType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import com.epam.ta.reportportal.util.email.EmailRulesValidator;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
+import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
+import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
+import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
+import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpdate;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
+import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.google.common.cache.Cache;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -162,13 +188,37 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     ProjectAttributesActivityResource after = TO_ACTIVITY_RESOURCE.apply(project);
 
     applicationEventPublisher.publishEvent(new ProjectEvent(project.getId(), UPDATE_EVENT));
-    messageBus.publishActivity(
-        new ProjectUpdatedEvent(before, after, user.getUserId(), user.getUsername()));
-    messageBus.publishActivity(
-        new ProjectAnalyzerConfigEvent(before, after, user.getUserId(), user.getUsername()));
+    publishUpdatedAttributesActivities(before, after, user, updateProjectRQ.getConfiguration());
 
     return new OperationCompletionRS(
         "Project with name = '" + project.getName() + "' is successfully updated.");
+  }
+
+  @Override
+  public OperationCompletionRS updateProjectNotificationConfig(String projectName,
+      ReportPortalUser user,
+      ProjectNotificationConfigDTO updateProjectNotificationConfigRQ) {
+    Project project = projectRepository.findByName(projectName)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+    ProjectResource before = projectConverter.TO_PROJECT_RESOURCE.apply(project);
+
+    updateSenderCases(project, updateProjectNotificationConfigRQ.getSenderCases());
+
+    project.getProjectAttributes()
+        .stream()
+        .filter(it -> it.getAttribute().getName()
+            .equalsIgnoreCase(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()))
+        .findAny()
+        .ifPresent(
+            pa -> pa.setValue(String.valueOf(updateProjectNotificationConfigRQ.isEnabled())));
+
+    messageBus.publishActivity(new NotificationsConfigUpdatedEvent(before,
+        updateProjectNotificationConfigRQ,
+        user.getUserId(),
+        user.getUsername()
+    ));
+    return new OperationCompletionRS(
+        "Notification configuration of project - '" + projectName + "' is successfully updated.");
   }
 
   @Override
@@ -188,8 +238,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
       );
     }
 
-    List<ProjectUser> unassignedUsers = unassignUsers(unassignUsersRQ.getUsernames(), modifier,
-        project, user);
+    List<ProjectUser> unassignedUsers =
+        unassignUsers(unassignUsersRQ.getUsernames(), modifier, project, user);
     projectUserRepository.deleteAll(unassignedUsers);
     ProjectUtils.excludeProjectRecipients(
         unassignedUsers.stream().map(ProjectUser::getUser).collect(Collectors.toSet()), project);
@@ -205,18 +255,17 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
   @Override
   public OperationCompletionRS assignUsers(String projectName, AssignUsersRQ assignUsersRQ,
       ReportPortalUser user) {
-
     if (UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
       Project project = projectRepository.findByName(normalizeId(projectName))
           .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
               normalizeId(projectName)));
 
-      List<String> assignedUsernames = project.getUsers().stream().map(u -> u.getUser().getLogin())
-          .collect(toList());
+      List<String> assignedUsernames =
+          project.getUsers().stream().map(u -> u.getUser().getLogin()).collect(toList());
       assignUsersRQ.getUserNames().forEach((name, role) -> {
         ProjectRole projectRole = ProjectRole.forName(role)
             .orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, role));
-        assignUser(name, projectRole, assignedUsernames, project);
+        assignUser(name, projectRole, assignedUsernames, project, user);
       });
     } else {
       expect(assignUsersRQ.getUserNames().keySet(),
@@ -225,14 +274,14 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
           "User should not assign himself to project."
       );
 
-      ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user,
-          projectName);
+      ReportPortalUser.ProjectDetails projectDetails =
+          projectExtractor.extractProjectDetails(user, projectName);
       Project project = projectRepository.findById(projectDetails.getProjectId())
           .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
               normalizeId(projectName)));
 
-      List<String> assignedUsernames = project.getUsers().stream().map(u -> u.getUser().getLogin())
-          .collect(toList());
+      List<String> assignedUsernames =
+          project.getUsers().stream().map(u -> u.getUser().getLogin()).collect(toList());
       assignUsersRQ.getUserNames().forEach((name, role) -> {
 
         ProjectRole projectRole = ProjectRole.forName(role)
@@ -240,7 +289,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
         ProjectRole modifierRole = projectDetails.getProjectRole();
         expect(modifierRole.sameOrHigherThan(projectRole), BooleanUtils::isTrue).verify(
             ACCESS_DENIED);
-        assignUser(name, projectRole, assignedUsernames, project);
+        assignUser(name, projectRole, assignedUsernames, project, user);
       });
     }
 
@@ -261,8 +310,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
         .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 
     expect(ofNullable(indexerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(
-        false), equalTo(false)).verify(
-        ErrorType.FORBIDDEN_OPERATION,
+        false), equalTo(false)).verify(ErrorType.FORBIDDEN_OPERATION,
         "Index can not be removed until index generation proceeds."
     );
 
@@ -289,18 +337,19 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
   private List<ProjectUser> unassignUsers(List<String> usernames, User modifier, Project project,
       ReportPortalUser user) {
+
     List<ProjectUser> unassignedUsers = Lists.newArrayListWithExpectedSize(usernames.size());
     if (modifier.getRole() == UserRole.ADMINISTRATOR) {
       usernames.forEach(username -> {
         User userForUnassign = userRepository.findByLogin(username)
             .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
         validateUnassigningUser(modifier, userForUnassign, project.getId(), project);
-        unassignedUsers.add(unassignUser(project, username, userForUnassign));
+        unassignedUsers.add(unassignUser(project, username, userForUnassign, user));
 
       });
     } else {
-      ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user,
-          project.getName());
+      ReportPortalUser.ProjectDetails projectDetails =
+          projectExtractor.extractProjectDetails(user, project.getName());
 
       usernames.forEach(username -> {
         User userForUnassign = userRepository.findByLogin(username)
@@ -319,7 +368,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
             ACCESS_DENIED);
 
         validateUnassigningUser(modifier, userForUnassign, project.getId(), project);
-        unassignedUsers.add(unassignUser(project, username, userForUnassign));
+        unassignedUsers.add(unassignUser(project, username, userForUnassign, user));
 
       });
     }
@@ -327,7 +376,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     return unassignedUsers;
   }
 
-  private ProjectUser unassignUser(Project project, String username, User userForUnassign) {
+  private ProjectUser unassignUser(Project project, String username, User userForUnassign,
+      ReportPortalUser authorizedUser) {
     ProjectUser projectUser = project.getUsers()
         .stream()
         .filter(it -> it.getUser().getLogin().equalsIgnoreCase(username))
@@ -335,11 +385,23 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
         .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
     project.getUsers().remove(projectUser);
     userForUnassign.getProjects().remove(projectUser);
+
+    UnassignUserEvent unassignUserEvent = new UnassignUserEvent(
+        convertUserToResource(userForUnassign, projectUser),
+        authorizedUser.getUserId(),
+        authorizedUser.getUsername());
+    applicationEventPublisher.publishEvent(unassignUserEvent);
+
     return projectUser;
   }
 
+  private UserActivityResource convertUserToResource(User user, ProjectUser projectUser) {
+    Long projectId = projectUser.getProject().getId();
+    return UserConverter.TO_ACTIVITY_RESOURCE.apply(user, projectId);
+  }
+
   private void assignUser(String name, ProjectRole projectRole, List<String> assignedUsernames,
-      Project project) {
+      Project project, ReportPortalUser authorizedUser) {
 
     User modifyingUser = userRepository.findByLogin(normalizeId(name))
         .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, name));
@@ -355,6 +417,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     projectUser.setUser(modifyingUser);
     projectUser.setProject(project);
     project.getUsers().add(projectUser);
+
+    AssignUserEvent assignUserEvent = new AssignUserEvent(
+        convertUserToResource(modifyingUser, projectUser),
+        authorizedUser.getUserId(),
+        authorizedUser.getUsername());
+    applicationEventPublisher.publishEvent(assignUserEvent);
   }
 
   private void validateUnassigningUser(User modifier, User userForUnassign, Long projectId,
@@ -375,44 +443,63 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
   }
 
   private void updateProjectUserRoles(Map<String, String> userRoles, Project project,
-      ReportPortalUser updater) {
+      ReportPortalUser user) {
 
-    if (!updater.getUserRole().equals(UserRole.ADMINISTRATOR)) {
-      expect(userRoles.get(updater.getUsername()), isNull()).verify(
-          ErrorType.UNABLE_TO_UPDATE_YOURSELF_ROLE, updater.getUsername());
+    if (!user.getUserRole().equals(UserRole.ADMINISTRATOR)) {
+      expect(userRoles.get(user.getUsername()), isNull()).verify(
+          ErrorType.UNABLE_TO_UPDATE_YOURSELF_ROLE, user.getUsername());
     }
 
     if (MapUtils.isNotEmpty(userRoles)) {
-      userRoles.forEach((username, role) -> {
+      userRoles.forEach((key, value) -> {
 
-        ProjectRole newProjectRole = ProjectRole.forName(role)
-            .orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, role));
+        Optional<ProjectRole> newProjectRole = ProjectRole.forName(value);
+        expect(newProjectRole, isPresent()).verify(ErrorType.ROLE_NOT_FOUND, value);
 
-        ProjectUser updatingProjectUser = ofNullable(ProjectUtils.findUserConfigByLogin(project,
-            username
-        )).orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
+        Optional<ProjectUser> updatingProjectUser =
+            ofNullable(ProjectUtils.findUserConfigByLogin(project, key));
+        expect(updatingProjectUser, isPresent()).verify(ErrorType.USER_NOT_FOUND, key);
 
-        if (UserRole.ADMINISTRATOR != updater.getUserRole()) {
-          ProjectRole principalRole = projectExtractor.extractProjectDetails(updater,
-              project.getName()).getProjectRole();
+        if (UserRole.ADMINISTRATOR != user.getUserRole()) {
+          ProjectRole principalRole =
+              projectExtractor.extractProjectDetails(user, project.getName()).getProjectRole();
           ProjectRole updatingUserRole = ofNullable(ProjectUtils.findUserConfigByLogin(project,
-              username
-          )).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username))
+              key
+          )).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, key))
               .getProjectRole();
           /*
            * Validate principal role level is high enough
            */
           if (principalRole.sameOrHigherThan(updatingUserRole)) {
-            expect(newProjectRole, Preconditions.isLevelEnough(principalRole)).verify(
+            expect(newProjectRole.get(), Preconditions.isLevelEnough(principalRole)).verify(
                 ErrorType.ACCESS_DENIED);
           } else {
             expect(updatingUserRole, Preconditions.isLevelEnough(principalRole)).verify(
                 ErrorType.ACCESS_DENIED);
           }
         }
-        updatingProjectUser.setProjectRole(newProjectRole);
+        String oldRole = updatingProjectUser.get().getProjectRole().getRoleName();
+        updatingProjectUser.get().setProjectRole(newProjectRole.get());
+
+        publishChangeRoleEvent(user, updatingProjectUser.get(), oldRole);
       });
     }
+  }
+
+  private void publishChangeRoleEvent(ReportPortalUser loggedUser, ProjectUser updatingProjectUser,
+      String oldRole) {
+    String newRole = updatingProjectUser.getProjectRole().getRoleName();
+    ChangeRoleEvent changeRoleEvent = getChangeRoleEvent(updatingProjectUser.getUser(),
+        updatingProjectUser.getProject().getId(), loggedUser, oldRole, newRole);
+    applicationEventPublisher.publishEvent(changeRoleEvent);
+  }
+
+  private ChangeRoleEvent getChangeRoleEvent(User updatingUser, Long projectId,
+      ReportPortalUser loggedUser, String oldRole, String newRole) {
+    UserActivityResource userActivityResource = new UserActivityResource(updatingUser.getId(),
+        projectId, updatingUser.getLogin());
+    return new ChangeRoleEvent(userActivityResource, oldRole, newRole, loggedUser.getUserId(),
+        loggedUser.getUsername());
   }
 
   private void updateProjectConfiguration(ProjectConfigurationUpdate configuration,
@@ -428,4 +515,93 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
               .ifPresent(attr -> attr.setValue(value)));
         });
   }
+
+  private void updateSenderCases(Project project, List<SenderCaseDTO> cases) {
+
+    project.getSenderCases().clear();
+    if (CollectionUtils.isNotEmpty(cases)) {
+      cases.forEach(sendCase -> {
+        expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(
+            BAD_REQUEST_ERROR, sendCase.getSendCase());
+        expect(sendCase.getRecipients(), notNull()).verify(BAD_REQUEST_ERROR,
+            "Recipients list should not be null");
+        expect(sendCase.getRecipients().isEmpty(), equalTo(false)).verify(BAD_REQUEST_ERROR,
+            formattedSupplier("Empty recipients list for email case '{}' ", sendCase)
+        );
+        sendCase.setRecipients(sendCase.getRecipients().stream().map(it -> {
+          EmailRulesValidator.validateRecipient(project, it);
+          return it.trim();
+        }).distinct().collect(toList()));
+
+        ofNullable(sendCase.getLaunchNames()).ifPresent(
+            launchNames -> sendCase.setLaunchNames(launchNames.stream().map(name -> {
+              EmailRulesValidator.validateLaunchName(name);
+              return name.trim();
+            }).distinct().collect(toList())));
+
+        ofNullable(sendCase.getAttributes()).ifPresent(
+            attributes -> sendCase.setAttributes(attributes.stream().peek(attribute -> {
+              EmailRulesValidator.validateLaunchAttribute(attribute);
+              cutAttributeToMaxLength(attribute);
+              attribute.setValue(attribute.getValue().trim());
+            }).collect(Collectors.toSet())));
+
+      });
+
+      /* If project email settings */
+      Set<SenderCase> withoutDuplicateCases = cases.stream()
+          .distinct()
+          .map(NotificationConfigConverter.TO_CASE_MODEL)
+          .peek(sc -> sc.setProject(project))
+          .collect(toSet());
+      if (cases.size() != withoutDuplicateCases.size()) {
+        fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
+      }
+
+      project.getSenderCases().addAll(withoutDuplicateCases);
+    }
+
+  }
+
+  private void cutAttributeToMaxLength(ItemAttributeResource entity) {
+    String key = entity.getKey();
+    String value = entity.getValue();
+    if (key != null && key.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {
+      entity.setKey(key.substring(0, ValidationConstraints.MAX_ATTRIBUTE_LENGTH));
+    }
+    if (value != null && value.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {
+      entity.setValue(value.substring(0, ValidationConstraints.MAX_ATTRIBUTE_LENGTH));
+    }
+  }
+
+  /**
+   * Resolves and publishes activities according to changed attributes
+   *
+   * @param before        Object before update
+   * @param after         Object after update
+   * @param user          User
+   * @param updateConfiguration Configuration fields that has been updated
+   */
+  private void publishUpdatedAttributesActivities(ProjectAttributesActivityResource before,
+      ProjectAttributesActivityResource after, ReportPortalUser user,
+      ProjectConfigurationUpdate updateConfiguration) {
+
+    if (ActivityDetailsUtil.configChanged(before.getConfig(), after.getConfig(), Prefix.JOB)) {
+      applicationEventPublisher.publishEvent(
+          new ProjectUpdatedEvent(before, after, user.getUserId(), user.getUsername()));
+    }
+
+    if (ActivityDetailsUtil.configChanged(before.getConfig(), after.getConfig(), Prefix.ANALYZER)) {
+      if (ActivityDetailsUtil.extractConfigByPrefix(updateConfiguration.getProjectAttributes(),
+          AUTO_PATTERN_ANALYZER_ENABLED.getAttribute()).isEmpty()) {
+        applicationEventPublisher.publishEvent(
+            new ProjectAnalyzerConfigEvent(before, after, user.getUserId(), user.getUsername()));
+      } else {
+        applicationEventPublisher.publishEvent(
+            new ProjectPatternAnalyzerUpdateEvent(before, after, user.getUserId(),
+                user.getUsername()));
+      }
+    }
+  }
+
 }

@@ -38,31 +38,29 @@ import org.springframework.stereotype.Service;
 @Service
 public class GetDashboardHandlerImpl implements GetDashboardHandler {
 
-  private DashboardRepository dashboardRepository;
+	private DashboardRepository dashboardRepository;
 
-  @Autowired
-  public void setDashboardRepository(DashboardRepository dashboardRepository) {
-    this.dashboardRepository = dashboardRepository;
-  }
+	@Autowired
+	public void setDashboardRepository(DashboardRepository dashboardRepository) {
+		this.dashboardRepository = dashboardRepository;
+	}
 
-  @Override
-  public Iterable<DashboardResource> getDashboards(ReportPortalUser.ProjectDetails projectDetails,
-      Pageable pageable, Filter filter,
-      ReportPortalUser user) {
-    final Page<Dashboard> dashboards = dashboardRepository.findByFilter(
-        ProjectFilter.of(filter, projectDetails.getProjectId()),
-        pageable
-    );
-    return PagedResourcesAssembler.pageConverter(DashboardConverter.TO_RESOURCE).apply(dashboards);
-  }
+	@Override
+	public Iterable<DashboardResource> getDashboards(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+			ReportPortalUser user) {
+		final Page<Dashboard> dashboards = dashboardRepository.findByFilter(ProjectFilter.of(filter, projectDetails.getProjectId()),
+				pageable
+		);
+		return PagedResourcesAssembler.pageConverter(DashboardConverter.TO_RESOURCE).apply(dashboards);
+	}
 
-  @Override
-  public DashboardResource getDashboard(Long id, ReportPortalUser.ProjectDetails projectDetails) {
-    final Dashboard dashboard = dashboardRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
-        .orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
+	@Override
+	public DashboardResource getDashboard(Long id, ReportPortalUser.ProjectDetails projectDetails) {
+		final Dashboard dashboard = dashboardRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
 						id,
 						projectDetails.getProjectName()
 				));
-    return DashboardConverter.TO_RESOURCE.apply(dashboard);
-  }
+		return DashboardConverter.TO_RESOURCE.apply(dashboard);
+	}
 }

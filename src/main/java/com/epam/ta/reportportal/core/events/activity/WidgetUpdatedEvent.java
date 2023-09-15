@@ -17,18 +17,19 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.CONTENT_FIELDS;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.ITEMS_COUNT;
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.SHARE;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.WIDGET_OPTIONS;
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processBoolean;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processDescription;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.WIDGET;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_WIDGET;
 
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
 import java.util.Optional;
 import java.util.Set;
@@ -72,14 +73,16 @@ public class WidgetUpdatedEvent extends AroundEvent<WidgetActivityResource> impl
   @Override
   public Activity toActivity() {
     return new ActivityBuilder().addCreatedNow()
-        .addAction(UPDATE_WIDGET)
-        .addActivityEntityType(WIDGET)
-        .addUserId(getUserId())
-        .addUserName(getUserLogin())
+        .addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_WIDGET.getValue())
+        .addPriority(EventPriority.LOW)
         .addObjectId(getAfter().getId())
         .addObjectName(getAfter().getName())
+        .addObjectType(EventObject.WIDGET)
         .addProjectId(getAfter().getProjectId())
-        .addHistoryField(processBoolean(SHARE, getBefore().isShared(), getAfter().isShared()))
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
         .addHistoryField(processName(getBefore().getName(), getAfter().getName()))
         .addHistoryField(
             processDescription(getBefore().getDescription(), getAfter().getDescription()))

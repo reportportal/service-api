@@ -23,7 +23,6 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.NOT_CUSTOMER
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.ws.converter.converters.ExceptionConverter.TO_ERROR_RS;
 import static com.google.common.net.HttpHeaders.CONTENT_DISPOSITION;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -65,16 +64,13 @@ import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
-import com.google.common.collect.Lists;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.Principal;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import org.jooq.Operator;
@@ -123,7 +119,8 @@ public class ProjectController {
       DeleteProjectHandler deleteProjectHandler,
       GetUserHandler getUserHandler, GetPreferenceHandler getPreference,
       UpdatePreferenceHandler updatePreference,
-      @Qualifier("projectJasperReportHandler") GetJasperReportHandler<ProjectInfo> jasperReportHandler) {
+      @Qualifier("projectJasperReportHandler")
+      GetJasperReportHandler<ProjectInfo> jasperReportHandler) {
     this.projectExtractor = projectExtractor;
     this.getProjectHandler = getProjectHandler;
     this.projectInfoHandler = projectInfoHandler;
@@ -157,24 +154,25 @@ public class ProjectController {
     return updateProjectHandler.updateProject(normalizeId(projectName), updateProjectRQ, user);
   }
 
+  @Transactional
+  @PutMapping("/{projectName}/notification")
+  @ResponseStatus(OK)
+  @PreAuthorize(PROJECT_MANAGER)
+  @ApiOperation("Update project notifications configuration")
+  public OperationCompletionRS updateProjectNotificationConfig(@PathVariable String projectName,
+      @RequestBody @Validated ProjectNotificationConfigDTO updateProjectNotificationConfigRQ,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return updateProjectHandler.updateProjectNotificationConfig(normalizeId(projectName), user,
+        updateProjectNotificationConfigRQ);
+  }
+
   @DeleteMapping
   @ResponseStatus(OK)
   @PreAuthorize(ADMIN_ONLY)
   @ApiOperation(value = "Delete multiple projects", notes = "Could be deleted only by users with administrator role")
   public DeleteBulkRS deleteProject(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
-    final List<ReportPortalException> exceptions = Lists.newArrayList();
-    final List<Long> deleted = Lists.newArrayList();
-    deleteBulkRQ.getIds().forEach(projectId -> {
-      try {
-        deleteProjectHandler.deleteProject(projectId);
-        deleted.add(projectId);
-      } catch (ReportPortalException ex) {
-        exceptions.add(ex);
-      }
-    });
-    return new DeleteBulkRS(deleted, Collections.emptyList(),
-        exceptions.stream().map(TO_ERROR_RS).collect(Collectors.toList()));
+    return deleteProjectHandler.bulkDeleteProjects(deleteBulkRQ.getIds(), user);
   }
 
   @DeleteMapping("/{projectId}")
@@ -183,7 +181,7 @@ public class ProjectController {
   @ApiOperation(value = "Delete project", notes = "Could be deleted only by users with administrator role")
   public OperationCompletionRS deleteProject(@PathVariable Long projectId,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return deleteProjectHandler.deleteProject(projectId);
+    return deleteProjectHandler.deleteProject(projectId, user);
   }
 
   @DeleteMapping("/{projectName}/index")
@@ -264,8 +262,8 @@ public class ProjectController {
   @PreAuthorize(NOT_CUSTOMER)
   @ApiOperation(value = "Load project users by filter", notes = "Only for users that are members of the project")
   public List<String> getProjectUsers(@PathVariable String projectName,
-      @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT
-          + "users") String value,
+      @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + "users")
+      String value,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getProjectHandler.getUserNames(projectExtractor.extractProjectDetails(user, projectName),
         normalizeId(value));
@@ -335,7 +333,8 @@ public class ProjectController {
   @ResponseStatus(HttpStatus.OK)
   @ApiOperation(value = "Exports information about all projects", notes = "Allowable only for users with administrator role")
   public void exportProjects(
-      @ApiParam(allowableValues = "csv") @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
+      @ApiParam(allowableValues = "csv")
+      @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
       @FilterFor(ProjectInfo.class) Filter filter,
       @FilterFor(ProjectInfo.class) Queryable predefinedFilter,
       @AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {

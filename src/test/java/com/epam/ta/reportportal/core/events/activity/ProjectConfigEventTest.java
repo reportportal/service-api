@@ -19,8 +19,11 @@ package com.epam.ta.reportportal.core.events.activity;
 import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
 
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
@@ -47,16 +50,19 @@ class ProjectConfigEventTest {
   private static final Pair<String, String> KEEP_SCREENSHOTS = Pair.of("2 weeks", "3 weeks");
   private static final Pair<String, String> INTERRUPT_JOB_TIME = Pair.of("1 day", "1 week");
 
-  private static Activity getExpectedActivity(ActivityAction action) {
+  private static Activity getExpectedActivity(EventAction action) {
     Activity activity = new Activity();
-    activity.setAction(action.getValue());
-    activity.setActivityEntityType(Activity.ActivityEntityType.PROJECT.getValue());
-    activity.setUserId(1L);
-    activity.setUsername("user");
+    activity.setAction(action);
+    activity.setPriority(EventPriority.LOW);
+    activity.setObjectType(EventObject.PROJECT);
+    activity.setSubjectId(1L);
+    activity.setSubjectName("user");
+    activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
     activity.setObjectId(3L);
     activity.setCreatedAt(LocalDateTime.now());
-    activity.setDetails(new ActivityDetails("test_project"));
+    activity.setObjectName("analyzer");
+    activity.setDetails(new ActivityDetails());
     return activity;
   }
 
@@ -78,7 +84,7 @@ class ProjectConfigEventTest {
         1L,
         "user"
     ).toActivity();
-    final Activity expected = getExpectedActivity(ActivityAction.UPDATE_ANALYZER);
+    final Activity expected = getExpectedActivity(EventAction.UPDATE);
     expected.getDetails()
         .setHistory(getAnalyzerConfigHistory(ANALYZER_MODE,
             MIN_SHOULD_MATCH,
@@ -86,6 +92,7 @@ class ProjectConfigEventTest {
             AUTO_ANALYZED_ENABLED,
             ALL_MESSAGES_SHOULD_MATCH
         ));
+    expected.setEventName("updateAnalyzer");
     checkActivity(expected, actual);
   }
 
@@ -132,9 +139,12 @@ class ProjectConfigEventTest {
         1L,
         "user"
     ).toActivity();
-    final Activity expected = getExpectedActivity(ActivityAction.UPDATE_PROJECT);
+    final Activity expected = getExpectedActivity(EventAction.UPDATE);
+    expected.setPriority(EventPriority.HIGH);
     expected.getDetails()
         .setHistory(getProjectConfigHistory(KEEP_LOGS, KEEP_SCREENSHOTS, INTERRUPT_JOB_TIME));
+    expected.setEventName("updateProject");
+    expected.setObjectName("test_project");
     checkActivity(expected, actual);
   }
 

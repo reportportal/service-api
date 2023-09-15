@@ -17,8 +17,8 @@ project.ext {
     ]
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
-    scriptsUrl = commonScriptsUrl + (releaseMode ? getProperty('scripts.version') : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? getProperty('migrations.version') : 'feature/settings-elastic')
+    scriptsUrl = commonScriptsUrl + (releaseMode ? '5.10.0' : 'develop')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.10.0' : 'develop')
     //TODO refactor with archive download
     testScriptsSrc = [
             (migrationsUrl + '/migrations/0_extensions.up.sql')                        : 'V001__extensions.sql',
@@ -61,10 +61,10 @@ project.ext {
             (migrationsUrl + '/migrations/62_remove_dashboard_cascade_drop.up.sql')    : 'V062__remove_dashboard_cascade_drop.sql',
             (migrationsUrl + '/migrations/65_launch_attribute_rules_length.up.sql')    : 'V065__launch_attribute_rules_length.sql',
             (migrationsUrl + '/migrations/67_api_keys.up.sql')                         : 'V067__api_keys.sql',
-            (migrationsUrl + '/migrations/68_sender_case_rule_name.up.sql')            : 'V068__sender_case_rule_name.sql',
-            (migrationsUrl + '/migrations/71_user_bid_extension.up.sql')               : 'V071__user_bid_extension.sql',
-            (migrationsUrl + '/migrations/72_organization_tables.up.sql')              : 'V072__organization_tables.sql',
-            (migrationsUrl + '/migrations/73_api_key_last_used_at.up.sql')             : 'V073__api_key_last_used_at.sql',
+            (migrationsUrl + '/migrations/68_api_key_last_used_at.up.sql')             : 'V068__api_key_last_used_at.sql',
+            (migrationsUrl + '/migrations/69_replace_activity_table.up.sql')           : 'V069__replace_activity_table.sql',
+            (migrationsUrl + '/migrations/71_user_bid_inviting_user_id.up.sql')        : 'V071__user_bid_inviting_user_id.sql',
+            (migrationsUrl + '/migrations/72_add_attachment_name.up.sql')              : 'V072__add_attachment_name.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

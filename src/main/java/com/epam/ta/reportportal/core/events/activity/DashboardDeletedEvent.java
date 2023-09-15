@@ -15,12 +15,14 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.DASHBOARD;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_DASHBOARD;
-
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 
 /**
@@ -39,13 +41,16 @@ public class DashboardDeletedEvent extends BeforeEvent<DashboardActivityResource
   @Override
   public Activity toActivity() {
     return new ActivityBuilder().addCreatedNow()
-        .addAction(DELETE_DASHBOARD)
-        .addActivityEntityType(DASHBOARD)
-        .addUserId(getUserId())
-        .addUserName(getUserLogin())
-        .addProjectId(getBefore().getProjectId())
+        .addAction(EventAction.DELETE)
+        .addEventName(ActivityAction.DELETE_DASHBOARD.getValue())
+        .addPriority(EventPriority.LOW)
         .addObjectId(getBefore().getId())
         .addObjectName(getBefore().getName())
+        .addObjectType(EventObject.DASHBOARD)
+        .addProjectId(getBefore().getProjectId())
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
         .get();
   }
 }

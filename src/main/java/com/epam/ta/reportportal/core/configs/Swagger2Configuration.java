@@ -98,20 +98,19 @@ public class Swagger2Configuration {
   @Value("${info.build.version}")
   private String buildVersion;
 
-  @Bean
-  public Docket docket() {
-    /* For more information see default params at {@link ApiInfo} */
-    ApiInfo rpInfo = new ApiInfo(
-        "Report Portal",
-        "Report Portal API documentation",
-        buildVersion,
-        null,
-        new Contact("Support", null,
-            "Support EPMC-TST Report Portal <SupportEPMC-TSTReportPortal@epam.com>"),
-        "Apache 2.0",
-        "http://www.apache.org/licenses/LICENSE-2.0",
-        Collections.emptyList()
-    );
+	@Bean
+	public Docket docket() {
+		/* For more information see default params at {@link ApiInfo} */
+		ApiInfo rpInfo = new ApiInfo(
+				"Report Portal",
+				"Report Portal API documentation",
+				buildVersion,
+				null,
+				new Contact("Support", null, "Support Report Portal <support@reportportal.io>"),
+				"Apache 2.0",
+				"http://www.apache.org/licenses/LICENSE-2.0",
+				Collections.emptyList()
+		);
 
     // @formatter:off
     Docket rpDocket = new Docket(DocumentationType.SWAGGER_2)

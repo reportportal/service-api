@@ -20,10 +20,7 @@ import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.entity.user.UserRole.ADMINISTRATOR;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
-import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import java.util.Optional;
@@ -36,13 +33,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProjectExtractor {
 
-  private final ProjectRepository projectRepository;
   private final ProjectUserRepository projectUserRepository;
 
   @Autowired
-  public ProjectExtractor(ProjectRepository projectRepository,
-      ProjectUserRepository projectUserRepository) {
-    this.projectRepository = projectRepository;
+  public ProjectExtractor(ProjectUserRepository projectUserRepository) {
     this.projectUserRepository = projectUserRepository;
   }
 
@@ -93,13 +87,12 @@ public class ProjectExtractor {
 
     //dirty hack to allow everything for user with 'admin' authority
     if (user.getUserRole().getAuthority().equals(ADMINISTRATOR.getAuthority())) {
-      Project project = projectRepository.findByName(normalizeId(projectName))
+      ReportPortalUser.ProjectDetails projectDetails = projectUserRepository.findAdminDetailsProjectName(
+              normalizeId(projectName))
           .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
       user.getProjectDetails().put(
           normalizeId(projectName),
-          new ReportPortalUser.ProjectDetails(project.getId(), project.getName(),
-              ProjectRole.PROJECT_MANAGER
-          )
+          projectDetails
       );
     }
 

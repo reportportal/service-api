@@ -15,12 +15,14 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.DEFECT_TYPE;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_DEFECT;
-
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.model.activity.IssueTypeActivityResource;
 
 /**
@@ -59,14 +61,18 @@ public class DefectTypeCreatedEvent extends AbstractEvent implements ActivityEve
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow()
-        .addAction(CREATE_DEFECT)
-        .addActivityEntityType(DEFECT_TYPE)
-        .addUserId(getUserId())
-        .addUserName(getUserLogin())
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.CREATE)
+        .addEventName(ActivityAction.CREATE_DEFECT.getValue())
+        .addPriority(EventPriority.LOW)
         .addObjectId(issueTypeActivityResource.getId())
         .addObjectName(issueTypeActivityResource.getLongName())
+        .addObjectType(EventObject.DEFECT_TYPE)
         .addProjectId(projectId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
         .get();
   }
 }

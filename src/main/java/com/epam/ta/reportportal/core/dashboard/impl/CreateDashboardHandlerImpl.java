@@ -16,8 +16,6 @@
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
-import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
-
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -34,6 +32,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
+
 /**
  * @author Pavel Bortnik
  */
@@ -45,17 +45,16 @@ public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
 
 	private final static int DASHBOARD_LIMIT = 300;
 
-  @Autowired
-  public CreateDashboardHandlerImpl(DashboardRepository dashboardRepository, MessageBus messageBus) {
+	@Autowired
+	public CreateDashboardHandlerImpl(DashboardRepository dashboardRepository, MessageBus messageBus) {
 		this.dashboardRepository = dashboardRepository;
 		this.messageBus = messageBus;
 	}
 
-  @Override
-  public EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails,
-      CreateDashboardRQ rq, ReportPortalUser user) {
+	@Override
+	public EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails, CreateDashboardRQ rq, ReportPortalUser user) {
 
-    BusinessRule.expect(dashboardRepository.findAllByProjectId(projectDetails.getProjectId()).size() >= DASHBOARD_LIMIT,
+		BusinessRule.expect(dashboardRepository.findAllByProjectId(projectDetails.getProjectId()).size() >= DASHBOARD_LIMIT,
 				BooleanUtils::isFalse).verify(ErrorType.DASHBOARD_UPDATE_ERROR, Suppliers.formattedSupplier(
 				"The limit of {} dashboards has been reached. To create a new one you need to delete at least one created previously.",
 				DASHBOARD_LIMIT
@@ -65,12 +64,12 @@ public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
 				projectDetails.getProjectId()
 		), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
 
-    Dashboard dashboard = new DashboardBuilder().addDashboardRq(rq)
-        .addProject(projectDetails.getProjectId())
-        .addOwner(user.getUsername())
-        .get();
-    dashboardRepository.save(dashboard);
-    messageBus.publishActivity(new DashboardCreatedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(), user.getUsername()));
+		Dashboard dashboard = new DashboardBuilder().addDashboardRq(rq)
+				.addProject(projectDetails.getProjectId())
+				.addOwner(user.getUsername())
+				.get();
+		dashboardRepository.save(dashboard);
+		messageBus.publishActivity(new DashboardCreatedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(), user.getUsername()));
 		return new EntryCreatedRS(dashboard.getId());
 	}
 }

@@ -16,8 +16,10 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.events.activity.PluginUpdatedEvent;
 import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
@@ -26,9 +28,11 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.activity.PluginActivityResource;
 import com.epam.ta.reportportal.ws.model.integration.UpdatePluginStateRQ;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -40,28 +44,33 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
   private final Pf4jPluginBox pluginBox;
   private final IntegrationTypeRepository integrationTypeRepository;
 
+  private final ApplicationEventPublisher applicationEventPublisher;
+
   @Autowired
   public UpdatePluginHandlerImpl(Pf4jPluginBox pluginBox,
-      IntegrationTypeRepository integrationTypeRepository) {
+      IntegrationTypeRepository integrationTypeRepository,
+      ApplicationEventPublisher applicationEventPublisher) {
     this.pluginBox = pluginBox;
     this.integrationTypeRepository = integrationTypeRepository;
+    this.applicationEventPublisher = applicationEventPublisher;
   }
 
   @Override
-  public OperationCompletionRS updatePluginState(Long id, UpdatePluginStateRQ updatePluginStateRQ) {
+  public OperationCompletionRS updatePluginState(Long id, UpdatePluginStateRQ updatePluginStateRQ,
+      ReportPortalUser user) {
 
-    IntegrationType integrationType = integrationTypeRepository.findById(id)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+    IntegrationType integrationType = integrationTypeRepository.findById(id).orElseThrow(
+        () -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
             Suppliers.formattedSupplier("Integration type with id - '{}' not found.", id).get()
         ));
 
     boolean isEnabled = updatePluginStateRQ.getEnabled();
     integrationType.setEnabled(isEnabled);
-    return handlePluginState(integrationType, isEnabled);
+    return handlePluginState(integrationType, isEnabled, user);
   }
 
   private OperationCompletionRS handlePluginState(IntegrationType integrationType,
-      boolean isEnabled) {
+      boolean isEnabled, ReportPortalUser user) {
 
     /*
      *	hack: while email and ldap isn't a plugin - it shouldn't be proceeded as a plugin
@@ -72,8 +81,7 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
     if (ReservedIntegrationTypeEnum.fromName(integrationType.getName()).isPresent()) {
       return new OperationCompletionRS(Suppliers.formattedSupplier(
           "Enabled state of the plugin with id = '{}' has been switched to - '{}'",
-          integrationType.getName(),
-          isEnabled
+          integrationType.getName(), isEnabled
       ).get());
     }
 
@@ -83,21 +91,23 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
       unloadPlugin(integrationType);
     }
 
+    publishEvent(integrationType, user, isEnabled);
+
     return new OperationCompletionRS(Suppliers.formattedSupplier(
         "Enabled state of the plugin with id = '{}' has been switched to - '{}'",
-        integrationType.getName(),
-        isEnabled
+        integrationType.getName(), isEnabled
     ).get());
   }
 
   private void loadPlugin(IntegrationType integrationType) {
     if (pluginBox.getPluginById(integrationType.getName()).isEmpty()) {
-      boolean isLoaded = pluginBox.loadPlugin(integrationType.getName(),
-          integrationType.getDetails());
+      boolean isLoaded =
+          pluginBox.loadPlugin(integrationType.getName(), integrationType.getDetails());
       BusinessRule.expect(isLoaded, BooleanUtils::isTrue)
           .verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
               Suppliers.formattedSupplier("Error during loading the plugin with id = '{}'",
-                  integrationType.getName()).get()
+                  integrationType.getName()
+              ).get()
           );
     }
   }
@@ -109,9 +119,30 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
       if (!pluginBox.unloadPlugin(integrationType)) {
         throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
             Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'",
-                integrationType.getName()).get()
+                integrationType.getName()
+            ).get()
         );
       }
     });
+  }
+
+  private void publishEvent(IntegrationType integrationType, ReportPortalUser user,
+      boolean isEnabled) {
+    PluginActivityResource before = new PluginActivityResource();
+
+    before.setId(integrationType.getId());
+    before.setName(integrationType.getName());
+    before.setEnabled(!isEnabled);
+
+    PluginActivityResource after = new PluginActivityResource();
+
+    after.setId(integrationType.getId());
+    after.setName(integrationType.getName());
+    after.setEnabled(isEnabled);
+
+    PluginUpdatedEvent pluginUpdatedEvent =
+        new PluginUpdatedEvent(user.getUserId(), user.getUsername(), before, after);
+
+    applicationEventPublisher.publishEvent(pluginUpdatedEvent);
   }
 }

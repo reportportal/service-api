@@ -49,47 +49,41 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 	private final DashboardRepository dashboardRepository;
 	private final DashboardWidgetRepository dashboardWidgetRepository;
 	private final WidgetRepository widgetRepository;
-  private final WidgetContentRemover widgetContentRemover;
-  private final MessageBus messageBus;
+	private final WidgetContentRemover widgetContentRemover;
+	private final MessageBus messageBus;
 
-  @Autowired
-  public DeleteDashboardHandlerImpl(DashboardRepository dashboardRepository, DashboardWidgetRepository dashboardWidgetRepository,
-			WidgetRepository widgetRepository,
-      @Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover,
-      MessageBus messageBus) {
-    this.dashboardRepository = dashboardRepository;
+	@Autowired
+	public DeleteDashboardHandlerImpl(DashboardRepository dashboardRepository, DashboardWidgetRepository dashboardWidgetRepository,
+			WidgetRepository widgetRepository, @Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover,
+			MessageBus messageBus) {
+		this.dashboardRepository = dashboardRepository;
 		this.dashboardWidgetRepository = dashboardWidgetRepository;
 		this.widgetRepository = widgetRepository;
-    this.widgetContentRemover = widgetContentRemover;
-    this.messageBus = messageBus;
-  }
+		this.widgetContentRemover = widgetContentRemover;
+		this.messageBus = messageBus;
+	}
 
-  @Override
-  public OperationCompletionRS deleteDashboard(Long dashboardId,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-    Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
+	@Override
+	public OperationCompletionRS deleteDashboard(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
 						dashboardId,
 						projectDetails.getProjectName()
 				));
 
-    Set<DashboardWidget> dashboardWidgets = dashboard.getDashboardWidgets();
-    List<Widget> widgets = dashboardWidgets.stream()
-        .filter(DashboardWidget::isCreatedOn)
-        .map(DashboardWidget::getWidget)
-        .peek(widgetContentRemover::removeContent)
-        .collect(Collectors.toList());
-    dashboardWidgets.addAll(
-        widgets.stream().flatMap(w -> w.getDashboardWidgets().stream()).collect(toSet()));
+		Set<DashboardWidget> dashboardWidgets = dashboard.getDashboardWidgets();
+		List<Widget> widgets = dashboardWidgets.stream()
+				.filter(DashboardWidget::isCreatedOn)
+				.map(DashboardWidget::getWidget)
+				.peek(widgetContentRemover::removeContent)
+				.collect(Collectors.toList());
+		dashboardWidgets.addAll(widgets.stream().flatMap(w -> w.getDashboardWidgets().stream()).collect(toSet()));
 
-    dashboardWidgetRepository.deleteAll(dashboardWidgets);
+		dashboardWidgetRepository.deleteAll(dashboardWidgets);
 		dashboardRepository.delete(dashboard);
 		widgetRepository.deleteAll(widgets);
 
-    messageBus.publishActivity(
-        new DashboardDeletedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(),
-            user.getUsername()));
-    return new OperationCompletionRS(
-        "Dashboard with ID = '" + dashboardId + "' successfully deleted.");
-  }
+		messageBus.publishActivity(new DashboardDeletedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(), user.getUsername()));
+		return new OperationCompletionRS("Dashboard with ID = '" + dashboardId + "' successfully deleted.");
+	}
 }

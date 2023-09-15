@@ -23,7 +23,7 @@ pipeline {
 
     stage('Build Artifact'){
       steps{
-        sh './gradlew build -PreleaseMode=true -PgithubUserName=$GITHUB_USR -PgithubToken=$GITHUB_PSW -Pscripts.version=master -Pmigrations.version=master -Pbom.version=$VERSION'
+        sh './gradlew build -PreleaseMode=true -PgithubUserName=$GITHUB_USR -PgithubToken=$GITHUB_PSW'
       }
     }
 

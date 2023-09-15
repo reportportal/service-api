@@ -21,12 +21,14 @@ import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetails
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.DESCRIPTION;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.ITEMS_COUNT;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.SHARE;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.WIDGET_OPTIONS;
 
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
 import com.google.common.collect.Lists;
@@ -42,16 +44,20 @@ import org.junit.jupiter.api.Test;
  */
 class WidgetEventsTest {
 
-  private static Activity getExpectedActivity(ActivityAction action, String name) {
+  private static Activity getExpectedActivity(EventAction action, String name) {
     Activity activity = new Activity();
-    activity.setAction(action.getValue());
-    activity.setActivityEntityType(Activity.ActivityEntityType.WIDGET.getValue());
-    activity.setUserId(1L);
-    activity.setUsername("user");
+    activity.setAction(action);
+    activity.setEventName("updateWidget");
+    activity.setPriority(EventPriority.LOW);
+    activity.setObjectType(EventObject.WIDGET);
+    activity.setSubjectId(1L);
+    activity.setSubjectName("user");
+    activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
     activity.setObjectId(2L);
     activity.setCreatedAt(LocalDateTime.now());
-    activity.setDetails(new ActivityDetails(name));
+    activity.setObjectName(name);
+    activity.setDetails(new ActivityDetails());
     return activity;
   }
 
@@ -61,7 +67,6 @@ class WidgetEventsTest {
       Pair<Set<String>, Set<String>> contentFields,
       Pair<String, String> options) {
     return Lists.newArrayList(HistoryField.of(NAME, name.getLeft(), name.getRight()),
-        HistoryField.of(SHARE, shared.getLeft().toString(), shared.getRight().toString()),
         HistoryField.of(DESCRIPTION, description.getLeft(), description.getRight()),
         HistoryField.of(ITEMS_COUNT, itemsCount.getLeft().toString(),
             itemsCount.getRight().toString()),
@@ -69,10 +74,10 @@ class WidgetEventsTest {
             String.join(", ", contentFields.getRight())),
         HistoryField.of(WIDGET_OPTIONS, options.getLeft(), options.getRight())
     );
-  }
+	}
 
-  @Test
-  void created() {
+	@Test
+	void created() {
     final String name = "name";
     final boolean shared = true;
     final String description = "description";
@@ -82,43 +87,41 @@ class WidgetEventsTest {
         1L,
         "user"
     ).toActivity();
-    final Activity expected = getExpectedActivity(ActivityAction.CREATE_WIDGET, name);
+    final Activity expected = getExpectedActivity(EventAction.CREATE, name);
+    expected.setEventName("createWidget");
     checkActivity(expected, actual);
   }
 
-  private static WidgetActivityResource getWidget(String name, boolean shared, String description,
-      int itemsCount,
-      Set<String> contentFields) {
-    WidgetActivityResource widget = new WidgetActivityResource();
-    widget.setName(name);
-    widget.setId(2L);
-    widget.setDescription(description);
-    widget.setShared(shared);
-    widget.setProjectId(3L);
-    widget.setItemsCount(itemsCount);
-    widget.setContentFields(contentFields);
-    return widget;
-  }
+	private static WidgetActivityResource getWidget(String name, boolean shared, String description, int itemsCount,
+			Set<String> contentFields) {
+		WidgetActivityResource widget = new WidgetActivityResource();
+		widget.setName(name);
+		widget.setId(2L);
+		widget.setDescription(description);
+		widget.setProjectId(3L);
+		widget.setItemsCount(itemsCount);
+		widget.setContentFields(contentFields);
+		return widget;
+	}
 
-  private static Set<String> getBeforeContentFields() {
-    return Sets.newHashSet("field1", "field2", "field3");
-  }
+	private static Set<String> getBeforeContentFields() {
+		return Sets.newHashSet("field1", "field2", "field3");
+	}
 
-  private static Set<String> getAfterContentFields() {
-    return Sets.newHashSet("field1", "field4", "field5", "field6");
-  }
+	private static Set<String> getAfterContentFields() {
+		return Sets.newHashSet("field1", "field4", "field5", "field6");
+	}
 
-  private static String getBeforeOptions() {
-    return "{ \"option1\": \"content\", \"option2\": \"enabled\"}";
-  }
+	private static String getBeforeOptions() {
+		return "{ \"option1\": \"content\", \"option2\": \"enabled\"}";
+	}
 
-  private static String getAfterOptions() {
-    return "{\n" + "  \"option1\": \"content\",\n" + "  \"option5\": \"disabled\",\n"
-        + "  \"superOption\": \"superContent\"\n" + "}";
-  }
+	private static String getAfterOptions() {
+		return "{\n" + "  \"option1\": \"content\",\n" + "  \"option5\": \"disabled\",\n" + "  \"superOption\": \"superContent\"\n" + "}";
+	}
 
-  @Test
-  void deleted() {
+	@Test
+	void deleted() {
     final String name = "name";
     final boolean shared = true;
     final String description = "description";
@@ -128,12 +131,13 @@ class WidgetEventsTest {
         1L,
         "user"
     ).toActivity();
-    final Activity expected = getExpectedActivity(ActivityAction.DELETE_WIDGET, name);
+    final Activity expected = getExpectedActivity(EventAction.DELETE, name);
+    expected.setEventName("deleteWidget");
     checkActivity(expected, actual);
   }
 
-  @Test
-  void update() {
+	@Test
+	void update() {
     final String oldName = "oldName";
     final boolean oldShared = false;
     final String oldDescription = "oldDescription";
@@ -147,7 +151,7 @@ class WidgetEventsTest {
         getBeforeOptions(),
         getAfterOptions(), 1L, "user"
     ).toActivity();
-    final Activity expected = getExpectedActivity(ActivityAction.UPDATE_WIDGET, newName);
+    final Activity expected = getExpectedActivity(EventAction.UPDATE, newName);
     expected.getDetails()
         .setHistory(getExpectedHistory(Pair.of(oldName, newName),
             Pair.of(oldShared, newShared),

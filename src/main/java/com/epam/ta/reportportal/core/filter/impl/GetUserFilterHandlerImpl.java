@@ -37,6 +37,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
  * @author Pavel Bortnik
  */
@@ -57,16 +59,15 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
     this.filterRepository = filterRepository;
   }
 
-  @Override
-  public UserFilterResource getUserFilter(Long id, ReportPortalUser.ProjectDetails projectDetails) {
-    final UserFilter userFilter = filterRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
-        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
+	@Override
+	public UserFilterResource getUserFilter(Long id, ReportPortalUser.ProjectDetails projectDetails) {
+		final UserFilter userFilter = filterRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
 						id,
 						projectDetails.getProjectName()
 				));
-    return UserFilterConverter.TO_FILTER_RESOURCE
-        .apply(userFilter);
-  }
+		return UserFilterConverter.TO_FILTER_RESOURCE.apply(userFilter);
+	}
 
   @Override
   public Iterable<UserFilterResource> getUserFilters(String projectName, Pageable pageable, Filter filter,

@@ -16,12 +16,14 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.PATTERN;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_PATTERN;
-
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
 
 /**
@@ -40,14 +42,18 @@ public class PatternDeletedEvent extends BeforeEvent<PatternTemplateActivityReso
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow()
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.DELETE)
+        .addEventName(ActivityAction.DELETE_PATTERN.getValue())
+        .addPriority(EventPriority.LOW)
         .addObjectId(getBefore().getId())
         .addObjectName(getBefore().getName())
-        .addUserId(getUserId())
-        .addUserName(getUserLogin())
+        .addObjectType(EventObject.PATTERN)
         .addProjectId(getBefore().getProjectId())
-        .addActivityEntityType(PATTERN)
-        .addAction(DELETE_PATTERN)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
         .get();
   }
 }

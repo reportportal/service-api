@@ -16,23 +16,26 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.PATTERN_ID;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.PATTERN;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.PATTERN_MATCHED;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.PATTERN_NAME;
 
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
 import java.util.Optional;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class PatternMatchedEvent implements ActivityEvent {
+public class PatternMatchedEvent extends AbstractEvent implements ActivityEvent {
 
-  private Long patternId;
+  private String itemName;
 
   private Long itemId;
 
@@ -41,19 +44,19 @@ public class PatternMatchedEvent implements ActivityEvent {
   public PatternMatchedEvent() {
   }
 
-  public PatternMatchedEvent(Long patternId, Long itemId,
+  public PatternMatchedEvent(String itemName, Long itemId,
       PatternTemplateActivityResource patternTemplateActivityResource) {
-    this.patternId = patternId;
+    this.itemName = itemName;
     this.itemId = itemId;
     this.patternTemplateActivityResource = patternTemplateActivityResource;
   }
 
-  public Long getPatternId() {
-    return patternId;
+  public String getItemName() {
+    return itemName;
   }
 
-  public void setPatternId(Long patternId) {
-    this.patternId = patternId;
+  public void setItemName(String itemName) {
+    this.itemName = itemName;
   }
 
   public Long getItemId() {
@@ -75,17 +78,22 @@ public class PatternMatchedEvent implements ActivityEvent {
 
   @Override
   public Activity toActivity() {
+    HistoryField patternNameField = new HistoryField();
+    patternNameField.setField(PATTERN_NAME);
+    patternNameField.setNewValue(patternTemplateActivityResource.getName());
 
-    HistoryField patternIdField = new HistoryField();
-    patternIdField.setField(PATTERN_ID);
-    patternIdField.setNewValue(String.valueOf(patternId));
-
-    return new ActivityBuilder().addCreatedNow().addObjectId(itemId)
-        .addObjectName(patternTemplateActivityResource.getName())
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.MATCH)
+        .addEventName(ActivityAction.PATTERN_MATCHED.getValue())
+        .addPriority(EventPriority.LOW)
+        .addObjectId(itemId)
+        .addObjectName(itemName)
+        .addObjectType(EventObject.ITEM_ISSUE)
         .addProjectId(patternTemplateActivityResource.getProjectId())
-        .addActivityEntityType(PATTERN)
-        .addAction(PATTERN_MATCHED)
-        .addHistoryField(Optional.of(patternIdField))
+        .addSubjectName("Pattern Analysis")
+        .addSubjectType(EventSubject.RULE)
+        .addHistoryField(Optional.of(patternNameField))
         .get();
   }
 }

@@ -21,6 +21,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import java.time.LocalDateTime;
@@ -43,16 +47,19 @@ class ActivityConverterTest {
   void testConvert() {
     Activity activity = new Activity();
     activity.setId(1L);
-    activity.setAction("LAUNCH_STARTED");
+    activity.setPriority(EventPriority.MEDIUM);
+    activity.setEventName("startLaunch");
+    activity.setAction(EventAction.START);
+    activity.setObjectType(EventObject.LAUNCH);
     activity.setCreatedAt(LocalDateTime.now());
+    activity.setObjectName("objectName");
     final ActivityDetails details = new ActivityDetails();
-    details.setObjectName("objectName");
     details.setHistory(Collections.singletonList(HistoryField.of("filed", "old", "new")));
     activity.setDetails(details);
-    activity.setUsername("username");
-    activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH.getValue());
+    activity.setSubjectName("username");
     activity.setProjectId(2L);
-    activity.setUserId(3L);
+    activity.setSubjectId(3L);
+    activity.setSubjectType(EventSubject.USER);
     validate(activity, ActivityConverter.TO_RESOURCE.apply(activity));
   }
 
@@ -60,15 +67,17 @@ class ActivityConverterTest {
   void toResourceWithUser() {
     Activity activity = new Activity();
     activity.setId(1L);
-    activity.setAction("LAUNCH_STARTED");
+    activity.setAction(EventAction.START);
+    activity.setObjectType(EventObject.LAUNCH);
+    activity.setPriority(EventPriority.MEDIUM);
     activity.setCreatedAt(LocalDateTime.now());
+    activity.setObjectName("objectName");
     final ActivityDetails details = new ActivityDetails();
-    details.setObjectName("objectName");
     details.setHistory(Collections.singletonList(HistoryField.of("filed", "old", "new")));
     activity.setDetails(details);
-    activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH.getValue());
     activity.setProjectId(2L);
-    activity.setUserId(3L);
+    activity.setSubjectId(3L);
+    activity.setSubjectType(EventSubject.USER);
     final ActivityResource resource = ActivityConverter.TO_RESOURCE_WITH_USER.apply(activity,
         "username");
     assertEquals("username", resource.getUser());
@@ -78,10 +87,10 @@ class ActivityConverterTest {
     assertEquals(Date.from(db.getCreatedAt().atZone(ZoneId.of("UTC")).toInstant()),
         resource.getLastModified());
     assertEquals(db.getId(), resource.getId());
-    assertEquals(db.getActivityEntityType(),
-        Activity.ActivityEntityType.fromString(resource.getObjectType()).get().getValue());
-    assertEquals(db.getUsername(), resource.getUser());
+    assertEquals(db.getObjectType(),
+        EventObject.valueOf(resource.getObjectType()));
+    assertEquals(db.getSubjectName(), resource.getUser());
     assertEquals(db.getProjectId(), resource.getProjectId());
-    assertEquals(db.getAction(), resource.getActionType());
+    assertEquals(db.getEventName(), resource.getActionType());
   }
 }

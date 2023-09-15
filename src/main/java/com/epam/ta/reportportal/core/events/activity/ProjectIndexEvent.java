@@ -16,13 +16,15 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.PROJECT;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_INDEX;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.GENERATE_INDEX;
-
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Pavel Bortnik
@@ -71,13 +73,18 @@ public class ProjectIndexEvent extends AbstractEvent implements ActivityEvent {
   @Override
   public Activity toActivity() {
     return new ActivityBuilder().addCreatedNow()
-        .addAction(indexing ? GENERATE_INDEX : DELETE_INDEX)
-        .addActivityEntityType(PROJECT)
-        .addUserId(getUserId())
-        .addUserName(getUserLogin())
+        .addAction(indexing ? EventAction.GENERATE : EventAction.DELETE)
+        .addEventName(indexing
+            ? ActivityAction.GENERATE_INDEX.getValue()
+            : ActivityAction.DELETE_INDEX.getValue())
+        .addPriority(indexing ? EventPriority.LOW : EventPriority.MEDIUM)
         .addObjectId(projectId)
-        .addObjectName(projectName)
+        .addObjectName(StringUtils.EMPTY)
+        .addObjectType(EventObject.INDEX)
         .addProjectId(projectId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
         .get();
   }
 }

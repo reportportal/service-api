@@ -15,9 +15,11 @@
  */
 package com.epam.ta.reportportal.core.filter.predefined;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ACTION;
-import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ENTITY;
-import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_LOGIN;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_EVENT_NAME;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_NAME;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_TYPE;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_SUBJECT_NAME;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_SUBJECT_TYPE;
 import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ORGANIZATION;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_ISSUE_TYPE;
@@ -117,12 +119,16 @@ public final class PredefinedFilters {
         @Override
         public Queryable build(String[] params) {
           return Filter.builder().withTarget(Activity.class)
+              .withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, normalizeSpaceSensitiveValue(params[0]),
+                  CRITERIA_EVENT_NAME))
               .withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0],
-                  CRITERIA_ACTION))
+                  CRITERIA_SUBJECT_TYPE))
               .withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0],
-                  CRITERIA_LOGIN))
+                  CRITERIA_SUBJECT_NAME))
+              .withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, normalizeSpaceSensitiveValue(params[0]),
+                  CRITERIA_OBJECT_TYPE))
               .withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0],
-                  CRITERIA_ENTITY))
+                  CRITERIA_OBJECT_NAME))
               .build();
 
         }
@@ -137,6 +143,16 @@ public final class PredefinedFilters {
   public static Queryable buildFilter(PredefinedFilterType type, String[] params) {
     final PredefinedFilterBuilder builder = FILTERS.get(type);
     return builder.buildFilter(params);
+  }
+
+  /**
+   * Removes spaces to avoid inconsistency between UI and DB value representation
+   * @param value Value
+   * @return Value without spaces
+   */
+  private static String normalizeSpaceSensitiveValue(String value) {
+    final String SPACES = "\\s";
+    return value.replaceAll(SPACES, "");
   }
 
 }

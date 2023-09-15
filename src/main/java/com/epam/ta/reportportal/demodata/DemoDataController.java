@@ -16,8 +16,6 @@
 
 package com.epam.ta.reportportal.demodata;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
-
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.demodata.model.DemoDataRq;
 import com.epam.ta.reportportal.demodata.model.DemoDataRs;
@@ -27,11 +25,9 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 
 /**
  * @author Ihar Kahadouski
@@ -41,20 +37,19 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize(PROJECT_MANAGER)
 class DemoDataController {
 
-  private final DemoDataService demoDataService;
+	private final DemoDataService demoDataService;
 
-  private final ProjectExtractor projectExtractor;
+	private final ProjectExtractor projectExtractor;
 
-  DemoDataController(DemoDataService demoDataService, ProjectExtractor projectExtractor) {
-    this.demoDataService = demoDataService;
-    this.projectExtractor = projectExtractor;
-  }
+	DemoDataController(DemoDataService demoDataService, ProjectExtractor projectExtractor) {
+		this.demoDataService = demoDataService;
+		this.projectExtractor = projectExtractor;
+	}
 
-  @PostMapping("/generate")
-  @ApiOperation(value = "generate")
-  public DemoDataRs generate(@PathVariable String projectName,
-      @Validated @RequestBody DemoDataRq demoDataRq,
-      @AuthenticationPrincipal ReportPortalUser user) {
+	@PostMapping("/generate")
+	@ApiOperation(value = "generate")
+	public DemoDataRs generate(@PathVariable String projectName, @Validated @RequestBody DemoDataRq demoDataRq,
+			@AuthenticationPrincipal ReportPortalUser user) {
 		return demoDataService.generate(demoDataRq, projectExtractor.extractProjectDetailsAdmin(user, projectName), user);
-  }
+	}
 }

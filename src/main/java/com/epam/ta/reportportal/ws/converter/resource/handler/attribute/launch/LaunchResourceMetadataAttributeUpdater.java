@@ -16,15 +16,17 @@
 
 package com.epam.ta.reportportal.ws.converter.resource.handler.attribute.launch;
 
-import static java.util.Optional.ofNullable;
-
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ResourceAttributeHandler;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.google.common.collect.Maps;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -41,7 +43,7 @@ public class LaunchResourceMetadataAttributeUpdater implements
   @Override
   public void handle(LaunchResource resource, Collection<ItemAttribute> attributes) {
     attributes.forEach(it -> {
-      if (supportedKeys.contains(it.getKey())) {
+      if (StringUtils.isNotBlank(it.getKey()) && supportedKeys.contains(it.getKey())) {
         ofNullable(resource.getMetadata()).ifPresentOrElse(metadata -> updateMetadata(it, metadata),
             () -> {
               final Map<String, Object> metadata = Maps.newHashMapWithExpectedSize(

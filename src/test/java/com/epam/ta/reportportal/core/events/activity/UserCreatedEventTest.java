@@ -19,8 +19,11 @@ package com.epam.ta.reportportal.core.events.activity;
 import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
 
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
@@ -32,14 +35,17 @@ class UserCreatedEventTest {
 
   private static Activity getExpectedActivity() {
     Activity activity = new Activity();
-    activity.setAction(ActivityAction.CREATE_USER.getValue());
-    activity.setActivityEntityType(Activity.ActivityEntityType.USER.getValue());
-    activity.setUserId(1L);
-    activity.setUsername("user");
-    activity.setProjectId(3L);
+    activity.setAction(EventAction.CREATE);
+    activity.setEventName("createUser");
+    activity.setPriority(EventPriority.HIGH);
+    activity.setObjectType(EventObject.USER);
+    activity.setSubjectId(1L);
+    activity.setSubjectName("user");
+    activity.setSubjectType(EventSubject.USER);
     activity.setObjectId(2L);
     activity.setCreatedAt(LocalDateTime.now());
-    activity.setDetails(new ActivityDetails("Jaja Juja"));
+    activity.setObjectName("Jaja Juja");
+    activity.setDetails(new ActivityDetails());
     return activity;
   }
 

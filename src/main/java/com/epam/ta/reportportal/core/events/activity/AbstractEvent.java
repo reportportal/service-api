@@ -21,13 +21,13 @@ package com.epam.ta.reportportal.core.events.activity;
  */
 public abstract class AbstractEvent {
 
-  private Long userId;
-  private String userLogin;
+  protected Long userId;
+  protected String userLogin;
 
-  public AbstractEvent() {
+  protected AbstractEvent() {
   }
 
-  public AbstractEvent(Long userId, String userLogin) {
+  protected AbstractEvent(Long userId, String userLogin) {
     this.userId = userId;
     this.userLogin = userLogin;
   }
@@ -47,4 +47,5 @@ public abstract class AbstractEvent {
   public void setUserLogin(String userLogin) {
     this.userLogin = userLogin;
   }
+
 }

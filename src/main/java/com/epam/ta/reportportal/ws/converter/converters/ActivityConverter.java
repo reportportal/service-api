@@ -37,11 +37,12 @@ public final class ActivityConverter {
     ActivityResource resource = new ActivityResource();
     resource.setId(activity.getId());
     resource.setLastModified(TO_DATE.apply(activity.getCreatedAt()));
-    resource.setObjectType(activity.getActivityEntityType());
-    resource.setActionType(activity.getAction());
+    resource.setObjectType(activity.getObjectType().toString());
+    resource.setActionType(activity.getEventName());
     resource.setProjectId(activity.getProjectId());
-    resource.setUser(activity.getUsername());
+    resource.setUser(activity.getSubjectName());
     ofNullable(activity.getObjectId()).ifPresent(resource::setLoggedObjectId);
+    resource.setObjectName(activity.getObjectName());
     resource.setDetails(activity.getDetails());
     return resource;
   };

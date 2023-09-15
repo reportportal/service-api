@@ -17,7 +17,9 @@
 package com.epam.ta.reportportal.core.user;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import java.util.List;
 
 /**
  * Delete request handler
@@ -35,5 +37,7 @@ public interface DeleteUserHandler {
    * @return Operation result
    */
   OperationCompletionRS deleteUser(Long userId, ReportPortalUser currentUser);
+
+	DeleteBulkRS deleteUsers(List<Long> ids, ReportPortalUser currentUser);
 
 }

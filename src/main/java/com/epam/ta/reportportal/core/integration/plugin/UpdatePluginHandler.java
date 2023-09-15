@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.integration.plugin;
 
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.UpdatePluginStateRQ;
 
@@ -25,14 +26,15 @@ import com.epam.ta.reportportal.ws.model.integration.UpdatePluginStateRQ;
 public interface UpdatePluginHandler {
 
   /**
-   * Updates plugin state. If 'enabled == true', plugin file will be downloaded from the
-   * {@link com.epam.ta.reportportal.filesystem.DataStore} (if not exists in the plugins' root path)
-   * and loaded in the memory. If 'enabled == false', plugin will be unloaded from the memory
+   * Updates plugin state. If 'enabled == true', plugin file will be downloaded from the {@link com.epam.ta.reportportal.filesystem.DataStore}
+   * (if not exists in the plugins' root path) and loaded in the memory.
+   * If 'enabled == false', plugin will be unloaded from the memory
    *
-   * @param id                  {@link
-   *                            com.epam.ta.reportportal.entity.integration.IntegrationType#id}
+   * @param id                  {@link com.epam.ta.reportportal.entity.integration.IntegrationType#id}
    * @param updatePluginStateRQ {@link UpdatePluginStateRQ}
+   * @param user                {@link ReportPortalUser} User that update plugin
    * @return {@link OperationCompletionRS}
    */
-  OperationCompletionRS updatePluginState(Long id, UpdatePluginStateRQ updatePluginStateRQ);
+  OperationCompletionRS updatePluginState(Long id, UpdatePluginStateRQ updatePluginStateRQ,
+      ReportPortalUser user);
 }

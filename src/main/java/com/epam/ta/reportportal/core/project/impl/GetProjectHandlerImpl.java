@@ -16,21 +16,9 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EMAIL;
-import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
-import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER;
-import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.CompositeFilterCondition;
-import com.epam.ta.reportportal.commons.querygen.Condition;
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.commons.querygen.*;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
@@ -49,11 +37,6 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.user.SearchUserResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
-import java.io.OutputStream;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
@@ -65,158 +48,157 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.io.OutputStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.*;
+import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+
 /**
  * @author Pavel Bortnik
  */
 @Service
 public class GetProjectHandlerImpl implements GetProjectHandler {
 
-  private final ProjectRepository projectRepository;
+	private static final String LENGTH_LESS_THAN_1_SYMBOL_MSG = "Length of the filtering string "
+			+ "'{}' is less than 1 symbol";
 
-  private final UserRepository userRepository;
+	private final ProjectRepository projectRepository;
 
-  private final GetJasperReportHandler<ProjectInfo> jasperReportHandler;
+	private final UserRepository userRepository;
 
-  private final ProjectConverter projectConverter;
+	private final GetJasperReportHandler<ProjectInfo> jasperReportHandler;
 
-  @Autowired
-  public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
-      @Qualifier("projectJasperReportHandler") GetJasperReportHandler<ProjectInfo> jasperReportHandler,
-      ProjectConverter projectConverter) {
-    this.projectRepository = projectRepository;
-    this.userRepository = userRepository;
-    this.jasperReportHandler = jasperReportHandler;
-    this.projectConverter = projectConverter;
-  }
+	private final ProjectConverter projectConverter;
 
-  @Override
-  public Iterable<UserResource> getProjectUsers(String projectName, Filter filter,
-      Pageable pageable) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
-    if (CollectionUtils.isEmpty(project.getUsers())) {
-      return Collections.emptyList();
-    }
-    filter.withCondition(
-        new FilterCondition(Condition.EQUALS, false, String.valueOf(project.getId()),
-            CRITERIA_PROJECT_ID));
-    Page<User> users = userRepository.findByFilterExcluding(filter, pageable, "email");
-    return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(users);
-  }
+	@Autowired
+	public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
+			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<ProjectInfo> jasperReportHandler,
+			ProjectConverter projectConverter) {
+		this.projectRepository = projectRepository;
+		this.userRepository = userRepository;
+		this.jasperReportHandler = jasperReportHandler;
+		this.projectConverter = projectConverter;
+	}
 
-  @Override
-  public boolean exists(Long id) {
-    return projectRepository.existsById(id);
-  }
+	@Override
+	public Iterable<UserResource> getProjectUsers(String projectName, Filter filter, Pageable pageable) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+		if (CollectionUtils.isEmpty(project.getUsers())) {
+			return Collections.emptyList();
+		}
+		filter.withCondition(new FilterCondition(Condition.EQUALS, false, String.valueOf(project.getId()), CRITERIA_PROJECT_ID));
+		Page<User> users = userRepository.findByFilterExcluding(filter, pageable, "email");
+		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(users);
+	}
 
-  @Override
-  public Project get(ReportPortalUser.ProjectDetails projectDetails) {
-    return projectRepository.findById(projectDetails.getProjectId())
-        .orElseThrow(
-            () -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectName()));
-  }
+	@Override
+	public boolean exists(Long id) {
+		return projectRepository.existsById(id);
+	}
 
-  @Override
-  public Project get(Long id) {
-    return projectRepository.findById(id)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, id));
-  }
+	@Override
+	public Project get(ReportPortalUser.ProjectDetails projectDetails) {
+		return projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectName()));
+	}
 
-  @Override
-  public Project get(String name) {
-    return projectRepository.findByName(name)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, name));
-  }
+	@Override
+	public Project get(Long id) {
+		return projectRepository.findById(id).orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, id));
+	}
 
-  @Override
-  public Project getRaw(String name) {
-    return projectRepository.findRawByName(name)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, name));
-  }
+	@Override
+	public Project get(String name) {
+		return projectRepository.findByName(name).orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, name));
+	}
 
-  @Override
-  public ProjectResource getResource(String projectName, ReportPortalUser user) {
+	@Override
+	public Project getRaw(String name) {
+		return projectRepository.findRawByName(name).orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, name));
+	}
 
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+	@Override
+	public ProjectResource getResource(String projectName, ReportPortalUser user) {
 
-    return projectConverter.TO_PROJECT_RESOURCE.apply(project);
-  }
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
-  @Override
-  public List<String> getUserNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
-    checkFilterLength(value);
-    return userRepository.findNamesByProject(projectDetails.getProjectId(), value);
-  }
+		return projectConverter.TO_PROJECT_RESOURCE.apply(project);
+	}
 
-  @Override
-  public Iterable<SearchUserResource> getUserNames(String value,
-      ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
-    checkFilterLength(value);
+	@Override
+	public List<String> getUserNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
+		checkBusinessRuleLessThan1Symbol(value);
+		return userRepository.findNamesByProject(projectDetails.getProjectId(), value);
+	}
 
-    final CompositeFilterCondition userCondition = getUserSearchCondition(value);
+	private void checkBusinessRuleLessThan1Symbol(String value) {
+		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true))
+				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+						Suppliers.formattedSupplier(LENGTH_LESS_THAN_1_SYMBOL_MSG, value));
+	}
 
-    final Filter filter = Filter.builder()
-        .withTarget(User.class)
-        .withCondition(userCondition)
-        .withCondition(
-            new FilterCondition(Operator.AND, Condition.ANY, true, projectDetails.getProjectName(),
-                CRITERIA_PROJECT))
-        .build();
+	@Override
+	public Iterable<SearchUserResource> getUserNames(String value, ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
+		checkBusinessRuleLessThan1Symbol(value);
 
-    return PagedResourcesAssembler.pageConverter(UserConverter.TO_SEARCH_RESOURCE)
-        .apply(userRepository.findByFilterExcludingProjects(filter, pageable));
-  }
+		final CompositeFilterCondition userCondition = getUserSearchCondition(value);
 
-  private void checkFilterLength(String value) {
-    BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true))
-        .verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-            Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 1 symbol",
-                value)
-        );
-  }
+		final Filter filter = Filter.builder()
+				.withTarget(User.class)
+				.withCondition(userCondition)
+				.withCondition(new FilterCondition(Operator.AND, Condition.ANY, true, projectDetails.getProjectName(), CRITERIA_PROJECT))
+				.build();
 
-  private CompositeFilterCondition getUserSearchCondition(String value) {
-    return new CompositeFilterCondition(
-        List.of(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER),
-            new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_FULL_NAME),
-            new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_EMAIL)
-        ), Operator.AND);
-  }
+		return PagedResourcesAssembler.pageConverter(UserConverter.TO_SEARCH_RESOURCE)
+				.apply(userRepository.findByFilterExcludingProjects(filter, pageable));
+	}
 
-  @Override
-  public List<String> getAllProjectNames() {
-    return projectRepository.findAllProjectNames();
-  }
+	private CompositeFilterCondition getUserSearchCondition(String value) {
+		return new CompositeFilterCondition(List.of(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER),
+				new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_FULL_NAME),
+				new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_EMAIL)
+		), Operator.AND);
+	}
 
-  @Override
-  public List<String> getAllProjectNamesByTerm(String term) {
-    return projectRepository.findAllProjectNamesByTerm(term);
-  }
+	@Override
+	public List<String> getAllProjectNames() {
+		return projectRepository.findAllProjectNames();
+	}
 
-  @Override
-  public void exportProjects(ReportFormat reportFormat, Queryable filter,
-      OutputStream outputStream) {
+	@Override
+	public List<String> getAllProjectNamesByTerm(String term) {
+		return projectRepository.findAllProjectNamesByTerm(term);
+	}
 
-    List<ProjectInfo> projects = projectRepository.findProjectInfoByFilter(filter);
+	@Override
+	public void exportProjects(ReportFormat reportFormat, Queryable filter, OutputStream outputStream) {
 
-    List<? extends Map<String, ?>> data = projects.stream().map(jasperReportHandler::convertParams)
-        .collect(Collectors.toList());
+		List<ProjectInfo> projects = projectRepository.findProjectInfoByFilter(filter);
 
-    JRDataSource jrDataSource = new JRBeanCollectionDataSource(data);
+		List<? extends Map<String, ?>> data = projects.stream().map(jasperReportHandler::convertParams).collect(Collectors.toList());
 
-    //don't provide any params to not overwrite params from the Jasper template
-    JasperPrint jasperPrint = jasperReportHandler.getJasperPrint(null, jrDataSource);
+		JRDataSource jrDataSource = new JRBeanCollectionDataSource(data);
 
-    jasperReportHandler.writeReport(reportFormat, outputStream, jasperPrint);
-  }
+		//don't provide any params to not overwrite params from the Jasper template
+		JasperPrint jasperPrint = jasperReportHandler.getJasperPrint(null, jrDataSource);
 
-  @Override
-  public Map<String, Boolean> getAnalyzerIndexingStatus() {
-    return projectRepository.findAll()
-        .stream()
-        .collect(
-            Collectors.toMap(Project::getName, it -> getAnalyzerConfig(it).isIndexingRunning()));
-  }
+		jasperReportHandler.writeReport(reportFormat, outputStream, jasperPrint);
+	}
+
+	@Override
+	public Map<String, Boolean> getAnalyzerIndexingStatus() {
+		return projectRepository.findAll()
+				.stream()
+				.collect(Collectors.toMap(Project::getName, it -> getAnalyzerConfig(it).isIndexingRunning()));
+	}
 
 }

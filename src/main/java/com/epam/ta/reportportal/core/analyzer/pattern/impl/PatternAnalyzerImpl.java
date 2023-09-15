@@ -45,9 +45,11 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -176,18 +178,18 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
         .collect(Collectors.toList());
   }
 
-  private void publishEvents(PatternTemplate patternTemplate,
-      List<PatternTemplateTestItemPojo> patternTemplateTestItems) {
-    final PatternTemplateActivityResource patternTemplateActivityResource = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(
-        patternTemplate);
-    patternTemplateTestItems.forEach(patternItem -> {
+	private void publishEvents(PatternTemplate patternTemplate, List<PatternTemplateTestItemPojo> patternTemplateTestItems) {
+		final PatternTemplateActivityResource patternTemplateActivityResource = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(
+				patternTemplate);
+		patternTemplateTestItems.forEach(patternItem -> {
+      Long testItemId = patternItem.getTestItemId();
+      Optional<String> itemNameByItemId = testItemRepository.findItemNameByItemId(testItemId);
       PatternMatchedEvent patternMatchedEvent = new PatternMatchedEvent(
-          patternItem.getPatternTemplateId(),
-          patternItem.getTestItemId(),
+          itemNameByItemId.orElse(StringUtils.EMPTY),
+          testItemId,
           patternTemplateActivityResource
       );
       messageBus.publishActivity(patternMatchedEvent);
     });
-  }
-
+	}
 }

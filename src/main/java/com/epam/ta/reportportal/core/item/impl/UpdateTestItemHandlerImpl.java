@@ -50,7 +50,6 @@ import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
-import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
@@ -100,190 +99,169 @@ import org.springframework.stereotype.Service;
 @Service
 public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
-  public static final String INITIAL_STATUS_ATTRIBUTE_KEY = "initialStatus";
-  private static final String MANUALLY_CHANGED_STATUS_ATTRIBUTE_KEY = "manually";
+	public static final String INITIAL_STATUS_ATTRIBUTE_KEY = "initialStatus";
+	private static final String MANUALLY_CHANGED_STATUS_ATTRIBUTE_KEY = "manually";
 
-  private final TestItemService testItemService;
+	private final TestItemService testItemService;
 
-  private final ProjectRepository projectRepository;
+	private final ProjectRepository projectRepository;
 
-  private final TestItemRepository testItemRepository;
+	private final TestItemRepository testItemRepository;
 
-  private final ExternalTicketHandler externalTicketHandler;
+	private final ExternalTicketHandler externalTicketHandler;
 
-  private final IssueTypeHandler issueTypeHandler;
+	private final IssueTypeHandler issueTypeHandler;
 
-  private final MessageBus messageBus;
+	private final MessageBus messageBus;
 
-  private final LogIndexerService logIndexerService;
+	private final LogIndexerService logIndexerService;
 
-  private final IssueEntityRepository issueEntityRepository;
+	private final IssueEntityRepository issueEntityRepository;
 
-  private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
+	private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
-  @Autowired
-  public UpdateTestItemHandlerImpl(TestItemService testItemService,
-      ProjectRepository projectRepository,
-      TestItemRepository testItemRepository, ExternalTicketHandler externalTicketHandler,
-      IssueTypeHandler issueTypeHandler,
-      MessageBus messageBus, LogIndexerService logIndexerService,
-      IssueEntityRepository issueEntityRepository,
-      Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
-    this.testItemService = testItemService;
-    this.projectRepository = projectRepository;
-    this.testItemRepository = testItemRepository;
-    this.externalTicketHandler = externalTicketHandler;
-    this.issueTypeHandler = issueTypeHandler;
-    this.messageBus = messageBus;
-    this.logIndexerService = logIndexerService;
-    this.issueEntityRepository = issueEntityRepository;
-    this.statusChangingStrategyMapping = statusChangingStrategyMapping;
-  }
+	@Autowired
+	public UpdateTestItemHandlerImpl(TestItemService testItemService, ProjectRepository projectRepository,
+			TestItemRepository testItemRepository, ExternalTicketHandler externalTicketHandler, IssueTypeHandler issueTypeHandler,
+			MessageBus messageBus, LogIndexerService logIndexerService, IssueEntityRepository issueEntityRepository,
+			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
+		this.testItemService = testItemService;
+		this.projectRepository = projectRepository;
+		this.testItemRepository = testItemRepository;
+		this.externalTicketHandler = externalTicketHandler;
+		this.issueTypeHandler = issueTypeHandler;
+		this.messageBus = messageBus;
+		this.logIndexerService = logIndexerService;
+		this.issueEntityRepository = issueEntityRepository;
+		this.statusChangingStrategyMapping = statusChangingStrategyMapping;
+	}
 
-  @Override
-  public List<Issue> defineTestItemsIssues(ReportPortalUser.ProjectDetails projectDetails,
-      DefineIssueRQ defineIssue,
-      ReportPortalUser user) {
-    Project project = projectRepository.findById(projectDetails.getProjectId())
-        .orElseThrow(
-            () -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+	@Override
+	public List<Issue> defineTestItemsIssues(ReportPortalUser.ProjectDetails projectDetails, DefineIssueRQ defineIssue,
+			ReportPortalUser user) {
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
-    List<String> errors = new ArrayList<>();
-    List<IssueDefinition> definitions = defineIssue.getIssues();
-    expect(CollectionUtils.isEmpty(definitions), equalTo(false)).verify(
-        FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION);
-    List<Issue> updated = new ArrayList<>(defineIssue.getIssues().size());
-    List<ItemIssueTypeDefinedEvent> events = new ArrayList<>();
-    List<TestItem> itemsForIndexUpdate = new ArrayList<>();
-    List<Long> itemsForIndexRemove = new ArrayList<>();
+		List<String> errors = new ArrayList<>();
+		List<IssueDefinition> definitions = defineIssue.getIssues();
+		expect(CollectionUtils.isEmpty(definitions), equalTo(false)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION);
+		List<Issue> updated = new ArrayList<>(defineIssue.getIssues().size());
+		List<ItemIssueTypeDefinedEvent> events = new ArrayList<>();
+		List<TestItem> itemsForIndexUpdate = new ArrayList<>();
+		List<Long> itemsForIndexRemove = new ArrayList<>();
 
-    definitions.forEach(issueDefinition -> {
-      try {
-        TestItem testItem = testItemRepository.findById(issueDefinition.getId())
-            .orElseThrow(() -> new BusinessRuleViolationException(formattedSupplier(
-                "Cannot update issue type for test item '{}', cause it is not found.",
-                issueDefinition.getId()
-            ).get()));
+		definitions.forEach(issueDefinition -> {
+			try {
+				TestItem testItem = testItemRepository.findById(issueDefinition.getId())
+						.orElseThrow(() -> new BusinessRuleViolationException(formattedSupplier(
+								"Cannot update issue type for test item '{}', cause it is not found.",
+								issueDefinition.getId()
+						).get()));
 
-        verifyTestItem(testItem, issueDefinition.getId());
-        TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem,
-            projectDetails.getProjectId());
+				verifyTestItem(testItem, issueDefinition.getId());
+				TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId());
 
-        Issue issue = issueDefinition.getIssue();
-        IssueType issueType = issueTypeHandler.defineIssueType(projectDetails.getProjectId(),
-            issue.getIssueType());
+				Issue issue = issueDefinition.getIssue();
+				IssueType issueType = issueTypeHandler.defineIssueType(projectDetails.getProjectId(), issue.getIssueType());
 
-        IssueEntity issueEntity = new IssueEntityBuilder(
-            testItem.getItemResults().getIssue()).addIssueType(issueType)
-            .addDescription(issue.getComment())
-            .addIgnoreFlag(issue.getIgnoreAnalyzer())
-            .addAutoAnalyzedFlag(issue.getAutoAnalyzed())
-            .get();
+				IssueEntity issueEntity = new IssueEntityBuilder(testItem.getItemResults().getIssue()).addIssueType(issueType)
+						.addDescription(issue.getComment())
+						.addIgnoreFlag(issue.getIgnoreAnalyzer())
+						.addAutoAnalyzedFlag(issue.getAutoAnalyzed())
+						.get();
 
-        externalTicketHandler.updateLinking(user.getUsername(), issueEntity,
-            issueDefinition.getIssue().getExternalSystemIssues());
+				externalTicketHandler.updateLinking(user.getUsername(), issueEntity, issueDefinition.getIssue().getExternalSystemIssues());
 
-        testItem.getItemResults().setIssue(issueEntity);
-        issueEntity.setTestItemResults(testItem.getItemResults());
-        testItemRepository.save(testItem);
+				testItem.getItemResults().setIssue(issueEntity);
+				issueEntity.setTestItemResults(testItem.getItemResults());
+				testItemRepository.save(testItem);
 
-        if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-          itemsForIndexUpdate.add(testItem);
-        } else {
-          itemsForIndexRemove.add(testItem.getItemId());
-        }
+				if (ITEM_CAN_BE_INDEXED.test(testItem)) {
+					itemsForIndexUpdate.add(testItem);
+				} else {
+					itemsForIndexRemove.add(testItem.getItemId());
+				}
 
-        updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
+				updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
 
-        TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem,
-            projectDetails.getProjectId());
+				TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId());
 
-        events.add(
-            new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername()));
-      } catch (BusinessRuleViolationException e) {
-        errors.add(e.getMessage());
-      }
-    });
-    expect(errors.isEmpty(), equalTo(TRUE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION,
-        errors.toString());
+				events.add(new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername()));
+			} catch (BusinessRuleViolationException e) {
+				errors.add(e.getMessage());
+			}
+		});
+		expect(errors.isEmpty(), equalTo(TRUE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 
-    logIndexerService.indexDefectsUpdate(project.getId(), AnalyzerUtils.getAnalyzerConfig(project),
-        itemsForIndexUpdate);
-    logIndexerService.indexItemsRemoveAsync(project.getId(), itemsForIndexRemove);
+		logIndexerService.indexDefectsUpdate(project.getId(), AnalyzerUtils.getAnalyzerConfig(project), itemsForIndexUpdate);
+		logIndexerService.indexItemsRemoveAsync(project.getId(), itemsForIndexRemove);
 
-    events.forEach(messageBus::publishActivity);
-    return updated;
-  }
+		events.forEach(messageBus::publishActivity);
+		return updated;
+	}
 
-  @Override
-  public OperationCompletionRS updateTestItem(ReportPortalUser.ProjectDetails projectDetails,
-      Long itemId, UpdateTestItemRQ rq,
-      ReportPortalUser user) {
-    TestItem testItem = testItemRepository.findById(itemId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
+	@Override
+	public OperationCompletionRS updateTestItem(ReportPortalUser.ProjectDetails projectDetails, Long itemId, UpdateTestItemRQ rq,
+			ReportPortalUser user) {
+		TestItem testItem = testItemRepository.findById(itemId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
 
-    validate(projectDetails, user, testItem);
+		validate(projectDetails, user, testItem);
 
-    Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
-    if (providedStatus.isPresent() && !providedStatus.get()
-        .equals(testItem.getItemResults().getStatus())) {
-      expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP),
-          equalTo(FALSE)).verify(INCORRECT_REQUEST,
-          "Unable to change status on test item with children"
-      );
-      checkInitialStatusAttribute(testItem, rq);
-      StatusChangingStrategy strategy = statusChangingStrategyMapping.get(providedStatus.get());
+		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
+		if (providedStatus.isPresent() && !providedStatus.get().equals(testItem.getItemResults().getStatus())) {
+			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(INCORRECT_REQUEST,
+					"Unable to change status on test item with children"
+			);
+			checkInitialStatusAttribute(testItem, rq);
+			StatusChangingStrategy strategy = statusChangingStrategyMapping.get(providedStatus.get());
 
-      expect(strategy, notNull()).verify(INCORRECT_REQUEST,
-          formattedSupplier("Actual status: '{}' cannot be changed to '{}'.",
-              testItem.getItemResults().getStatus(),
-              providedStatus.get()
-          )
-      );
-      TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem,
-          projectDetails.getProjectId());
-      strategy.changeStatus(testItem, providedStatus.get(), user);
-      messageBus.publishActivity(new TestItemStatusChangedEvent(before,
-          TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId()),
-          user.getUserId(),
-          user.getUsername()
-      ));
-    }
-    testItem = new TestItemBuilder(testItem).overwriteAttributes(rq.getAttributes())
-        .addDescription(rq.getDescription()).get();
-    testItemRepository.save(testItem);
+			expect(strategy, notNull()).verify(INCORRECT_REQUEST,
+					formattedSupplier("Actual status: '{}' cannot be changed to '{}'.",
+							testItem.getItemResults().getStatus(),
+							providedStatus.get()
+					)
+			);
+			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId());
+			strategy.changeStatus(testItem, providedStatus.get(), user);
+			messageBus.publishActivity(new TestItemStatusChangedEvent(before,
+					TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId()),
+					user.getUserId(),
+					user.getUsername()
+			));
+		}
+		testItem = new TestItemBuilder(testItem).overwriteAttributes(rq.getAttributes()).addDescription(rq.getDescription()).get();
+		testItemRepository.save(testItem);
 
-    return COMPOSE_UPDATE_RESPONSE.apply(itemId);
-  }
+		return COMPOSE_UPDATE_RESPONSE.apply(itemId);
+	}
 
-  @Override
-  public List<OperationCompletionRS> processExternalIssues(ExternalIssueRQ request,
-      ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user) {
-    List<String> errors = new ArrayList<>();
+	@Override
+	public List<OperationCompletionRS> processExternalIssues(ExternalIssueRQ request, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
+		List<String> errors = new ArrayList<>();
 
-    List<TestItem> testItems = testItemRepository.findAllById(request.getTestItemIds());
+		List<TestItem> testItems = testItemRepository.findAllById(request.getTestItemIds());
 
-    testItems.forEach(testItem -> {
-      try {
-        verifyTestItem(testItem, testItem.getItemId());
-      } catch (Exception e) {
-        errors.add(e.getMessage());
-      }
-    });
-    expect(errors.isEmpty(), equalTo(TRUE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION,
-        errors.toString());
+		testItems.forEach(testItem -> {
+			try {
+				verifyTestItem(testItem, testItem.getItemId());
+			} catch (Exception e) {
+				errors.add(e.getMessage());
+			}
+		});
+		expect(errors.isEmpty(), equalTo(TRUE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 
-    List<TestItemActivityResource> before = testItems.stream()
-        .map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
-        .collect(Collectors.toList());
+		List<TestItemActivityResource> before = testItems.stream()
+				.map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
+				.collect(Collectors.toList());
 
-    if (LinkExternalIssueRQ.class.equals(request.getClass())) {
-      LinkExternalIssueRQ linkRequest = (LinkExternalIssueRQ) request;
-      externalTicketHandler.linkExternalTickets(user.getUsername(),
-          testItems.stream().map(it -> it.getItemResults().getIssue()).collect(Collectors.toList()),
-          linkRequest.getIssues()
-      );
+		if (LinkExternalIssueRQ.class.equals(request.getClass())) {
+			LinkExternalIssueRQ linkRequest = (LinkExternalIssueRQ) request;
+			externalTicketHandler.linkExternalTickets(user.getUsername(),
+					testItems.stream().map(it -> it.getItemResults().getIssue()).collect(Collectors.toList()),
+					linkRequest.getIssues()
+			);
     }
 
     if (UnlinkExternalIssueRQ.class.equals(request.getClass())) {
@@ -298,174 +276,148 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
         after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
         user.getUserId(),
         user.getUsername(),
-        ActivityAction.LINK_ISSUE
+        false
     )));
     return testItems.stream().map(TestItem::getItemId).map(COMPOSE_UPDATE_RESPONSE)
         .collect(toList());
   }
 
-  private static final Function<Long, OperationCompletionRS> COMPOSE_UPDATE_RESPONSE = it -> {
-    String message = formattedSupplier("TestItem with ID = '{}' successfully updated.", it).get();
-    return new OperationCompletionRS(message);
-  };
+	private static final Function<Long, OperationCompletionRS> COMPOSE_UPDATE_RESPONSE = it -> {
+		String message = formattedSupplier("TestItem with ID = '{}' successfully updated.", it).get();
+		return new OperationCompletionRS(message);
+	};
 
-  private void checkInitialStatusAttribute(TestItem item, UpdateTestItemRQ request) {
-    Runnable addInitialStatusAttribute = () -> {
-      ItemAttribute initialStatusAttribute = new ItemAttribute(INITIAL_STATUS_ATTRIBUTE_KEY,
-          item.getItemResults().getStatus().getExecutionCounterField(),
-          true
-      );
-      initialStatusAttribute.setTestItem(item);
-      item.getAttributes().add(initialStatusAttribute);
-    };
+	private void checkInitialStatusAttribute(TestItem item, UpdateTestItemRQ request) {
+		Runnable addInitialStatusAttribute = () -> {
+			ItemAttribute initialStatusAttribute = new ItemAttribute(INITIAL_STATUS_ATTRIBUTE_KEY,
+					item.getItemResults().getStatus().getExecutionCounterField(),
+					true
+			);
+			initialStatusAttribute.setTestItem(item);
+			item.getAttributes().add(initialStatusAttribute);
+		};
 
-    Consumer<ItemAttribute> removeManuallyStatusAttributeIfSameAsInitial = statusAttribute -> extractAttributeResource(
-        request.getAttributes(),
-        MANUALLY_CHANGED_STATUS_ATTRIBUTE_KEY
-    ).filter(it -> it.getValue()
-            .equalsIgnoreCase(statusAttribute.getValue()))
-        .ifPresent(it -> request.getAttributes().remove(it));
+		Consumer<ItemAttribute> removeManuallyStatusAttributeIfSameAsInitial = statusAttribute -> extractAttributeResource(request.getAttributes(),
+				MANUALLY_CHANGED_STATUS_ATTRIBUTE_KEY
+		).filter(it -> it.getValue()
+				.equalsIgnoreCase(statusAttribute.getValue())).ifPresent(it -> request.getAttributes().remove(it));
 
-    extractAttribute(item.getAttributes(), INITIAL_STATUS_ATTRIBUTE_KEY).ifPresentOrElse(
-        removeManuallyStatusAttributeIfSameAsInitial,
-        addInitialStatusAttribute
-    );
-  }
+		extractAttribute(item.getAttributes(), INITIAL_STATUS_ATTRIBUTE_KEY).ifPresentOrElse(removeManuallyStatusAttributeIfSameAsInitial,
+				addInitialStatusAttribute
+		);
+	}
 
-  @Override
-  public void resetItemsIssue(List<Long> itemIds, Long projectId, ReportPortalUser user) {
-    itemIds.forEach(itemId -> {
-      TestItem item = testItemRepository.findById(itemId)
-          .orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, itemId));
-      TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(item, projectId);
+	@Override
+	public void resetItemsIssue(List<Long> itemIds, Long projectId, ReportPortalUser user) {
+		itemIds.forEach(itemId -> {
+			TestItem item = testItemRepository.findById(itemId).orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, itemId));
+			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(item, projectId);
 
-      IssueType issueType = issueTypeHandler.defineIssueType(projectId,
-          TestItemIssueGroup.TO_INVESTIGATE.getLocator());
-      IssueEntity issueEntity = new IssueEntityBuilder(issueEntityRepository.findById(itemId)
-          .orElseThrow(() -> new ReportPortalException(ErrorType.ISSUE_TYPE_NOT_FOUND,
-              itemId))).addIssueType(issueType)
-          .addAutoAnalyzedFlag(false)
-          .get();
-      issueEntityRepository.save(issueEntity);
-      item.getItemResults().setIssue(issueEntity);
+			IssueType issueType = issueTypeHandler.defineIssueType(projectId, TestItemIssueGroup.TO_INVESTIGATE.getLocator());
+			IssueEntity issueEntity = new IssueEntityBuilder(issueEntityRepository.findById(itemId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.ISSUE_TYPE_NOT_FOUND, itemId))).addIssueType(issueType)
+					.addAutoAnalyzedFlag(false)
+					.get();
+			issueEntityRepository.save(issueEntity);
+			item.getItemResults().setIssue(issueEntity);
 
-      TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(item, projectId);
-      if (!StringUtils.equalsIgnoreCase(before.getIssueTypeLongName(),
-          after.getIssueTypeLongName())) {
-        ItemIssueTypeDefinedEvent event = new ItemIssueTypeDefinedEvent(before, after,
-            user.getUserId(), user.getUsername());
-        messageBus.publishActivity(event);
-      }
-    });
-  }
+			TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(item, projectId);
+			if (!StringUtils.equalsIgnoreCase(before.getIssueTypeLongName(), after.getIssueTypeLongName())) {
+				ItemIssueTypeDefinedEvent event = new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername());
+				messageBus.publishActivity(event);
+			}
+		});
+	}
 
-  @Override
-  public OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq,
-      ReportPortalUser.ProjectDetails projectDetails) {
-    expect(projectRepository.existsById(projectDetails.getProjectId()), equalTo(TRUE)).verify(
-        PROJECT_NOT_FOUND,
-        projectDetails.getProjectId()
-    );
+	@Override
+	public OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq, ReportPortalUser.ProjectDetails projectDetails) {
+		expect(projectRepository.existsById(projectDetails.getProjectId()), equalTo(TRUE)).verify(PROJECT_NOT_FOUND,
+				projectDetails.getProjectId()
+		);
 
-    List<TestItem> items = testItemRepository.findAllById(bulkUpdateRq.getIds());
-    items.forEach(
-        it -> ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription())
-            .ifPresent(it::setDescription));
+		List<TestItem> items = testItemRepository.findAllById(bulkUpdateRq.getIds());
+		items.forEach(it -> ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription())
+				.ifPresent(it::setDescription));
 
-    bulkUpdateRq.getAttributes().forEach(it -> {
-      switch (it.getAction()) {
-        case DELETE: {
-          items.forEach(item -> {
-            ItemAttribute toDelete = ItemInfoUtils.findAttributeByResource(item.getAttributes(),
-                it.getFrom());
-            item.getAttributes().remove(toDelete);
-          });
-          break;
-        }
-        case UPDATE: {
-          items.forEach(item -> ItemInfoUtils.updateAttribute(item.getAttributes(), it));
-          break;
-        }
-        case CREATE: {
-          items.stream()
-              .filter(item -> ItemInfoUtils.containsAttribute(item.getAttributes(), it.getTo()))
-              .forEach(item -> {
-                ItemAttribute itemAttribute = ItemAttributeConverter.FROM_RESOURCE.apply(
-                    it.getTo());
-                itemAttribute.setTestItem(item);
-                item.getAttributes().add(itemAttribute);
-              });
-          break;
-        }
-      }
-    });
+		bulkUpdateRq.getAttributes().forEach(it -> {
+			switch (it.getAction()) {
+				case DELETE: {
+					items.forEach(item -> {
+						ItemAttribute toDelete = ItemInfoUtils.findAttributeByResource(item.getAttributes(), it.getFrom());
+						item.getAttributes().remove(toDelete);
+					});
+					break;
+				}
+				case UPDATE: {
+					items.forEach(item -> ItemInfoUtils.updateAttribute(item.getAttributes(), it));
+					break;
+				}
+				case CREATE: {
+					items.stream().filter(item -> ItemInfoUtils.containsAttribute(item.getAttributes(), it.getTo())).forEach(item -> {
+						ItemAttribute itemAttribute = ItemAttributeConverter.FROM_RESOURCE.apply(it.getTo());
+						itemAttribute.setTestItem(item);
+						item.getAttributes().add(itemAttribute);
+					});
+					break;
+				}
+			}
+		});
 
-    return new OperationCompletionRS("Attributes successfully updated");
-  }
+		return new OperationCompletionRS("Attributes successfully updated");
+	}
 
-  /**
-   * Validates test item access ability.
-   *
-   * @param projectDetails Project
-   * @param user           User
-   * @param testItem       Test Item
-   */
-  private void validate(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-      TestItem testItem) {
-    Launch launch = testItemService.getEffectiveLaunch(testItem);
-    if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-      expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED,
-          "Launch is not under the specified project."
-      );
-      if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
-        expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED,
-            "You are not a launch owner.");
-      }
-    }
-  }
+	/**
+	 * Validates test item access ability.
+	 *
+	 * @param projectDetails Project
+	 * @param user           User
+	 * @param testItem       Test Item
+	 */
+	private void validate(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, TestItem testItem) {
+		Launch launch = testItemService.getEffectiveLaunch(testItem);
+		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED,
+					"Launch is not under the specified project."
+			);
+			if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
+				expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED, "You are not a launch owner.");
+			}
+		}
+	}
 
-  /**
-   * Complex of domain verification for test item. Verifies that test item domain object could be
-   * processed correctly.
-   *
-   * @param id - test item id
-   * @throws BusinessRuleViolationException when business rule violation
-   */
-  private void verifyTestItem(TestItem item, Long id) throws BusinessRuleViolationException {
-    expect(item.getItemResults(),
-        notNull(),
-        formattedSupplier("Test item results were not found for test item with id = '{}",
-            item.getItemId())
-    ).verify();
+	/**
+	 * Complex of domain verification for test item. Verifies that test item
+	 * domain object could be processed correctly.
+	 *
+	 * @param id - test item id
+	 * @throws BusinessRuleViolationException when business rule violation
+	 */
+	private void verifyTestItem(TestItem item, Long id) throws BusinessRuleViolationException {
+		expect(item.getItemResults(),
+				notNull(),
+				formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
+		).verify();
 
-    expect(item.getItemResults().getStatus(),
-        not(status -> Stream.of(StatusEnum.values()).filter(StatusEnum::isPositive)
-            .anyMatch(s -> s == status)),
-        formattedSupplier(
-            "Issue status update cannot be applied on {} test items, cause it is not allowed.",
-            item.getItemResults().getStatus()
-        )
-    ).verify();
+		expect(item.getItemResults().getStatus(),
+				not(status -> Stream.of(StatusEnum.values()).filter(StatusEnum::isPositive).anyMatch(s -> s == status)),
+				formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
+						item.getItemResults().getStatus()
+				)
+		).verify();
 
-    expect(item.isHasChildren(),
-        equalTo(FALSE),
-        formattedSupplier(
-            "It is not allowed to update issue type for items with descendants. Test item '{}' has descendants.",
-            id)
-    ).verify();
+		expect(item.isHasChildren(),
+				equalTo(FALSE),
+				formattedSupplier("It is not allowed to update issue type for items with descendants. Test item '{}' has descendants.", id)
+		).verify();
 
-    expect(item.getItemResults().getIssue(),
-        notNull(),
-        formattedSupplier(
-            "Cannot update issue type for test item '{}', cause there is no info about actual issue type value.",
-            id)
-    ).verify();
+		expect(item.getItemResults().getIssue(),
+				notNull(),
+				formattedSupplier("Cannot update issue type for test item '{}', cause there is no info about actual issue type value.", id)
+		).verify();
 
-    expect(item.getItemResults().getIssue().getIssueType(),
-        notNull(),
-        formattedSupplier(
-            "Cannot update issue type for test item {}, cause it's actual issue type value is not provided.",
-            id)
-    ).verify();
-  }
+		expect(item.getItemResults().getIssue().getIssueType(),
+				notNull(),
+				formattedSupplier("Cannot update issue type for test item {}, cause it's actual issue type value is not provided.", id)
+		).verify();
+	}
 }

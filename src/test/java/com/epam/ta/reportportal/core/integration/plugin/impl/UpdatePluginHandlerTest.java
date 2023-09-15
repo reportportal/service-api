@@ -20,11 +20,17 @@ import static java.util.Optional.ofNullable;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.events.activity.PluginUpdatedEvent;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
@@ -45,6 +51,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.pf4j.PluginWrapper;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -53,14 +60,19 @@ class UpdatePluginHandlerTest {
 
   private static final String FILE_NAME = "file-name";
   private final Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
-  private final IntegrationTypeRepository integrationTypeRepository = mock(
-      IntegrationTypeRepository.class);
+  private final IntegrationTypeRepository integrationTypeRepository =
+      mock(IntegrationTypeRepository.class);
   private final DataStore dataStore = mock(DataStore.class);
+
+  private final ReportPortalUser user = mock(ReportPortalUser.class);
+
+  private final ApplicationEventPublisher applicationEventPublisher =
+      mock(ApplicationEventPublisher.class);
 
   private PluginWrapper pluginWrapper = mock(PluginWrapper.class);
 
-  private final UpdatePluginHandler updatePluginHandler = new UpdatePluginHandlerImpl(pluginBox,
-      integrationTypeRepository);
+  private final UpdatePluginHandler updatePluginHandler =
+      new UpdatePluginHandlerImpl(pluginBox, integrationTypeRepository, applicationEventPublisher);
 
   @AfterAll
   static void clearPluginDirectory() throws IOException {
@@ -76,7 +88,7 @@ class UpdatePluginHandlerTest {
     when(integrationTypeRepository.findById(1L)).thenReturn(Optional.empty());
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ)
+        () -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user)
     );
 
     assertEquals(Suppliers.formattedSupplier(
@@ -94,13 +106,12 @@ class UpdatePluginHandlerTest {
     IntegrationType emailIntegrationType = IntegrationTestUtil.getEmailIntegrationType();
     when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(emailIntegrationType));
 
-    OperationCompletionRS operationCompletionRS = updatePluginHandler.updatePluginState(1L,
-        updatePluginStateRQ);
+    OperationCompletionRS operationCompletionRS =
+        updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user);
 
     Assertions.assertEquals(Suppliers.formattedSupplier(
         "Enabled state of the plugin with id = '{}' has been switched to - '{}'",
-        emailIntegrationType.getName(),
-        updatePluginStateRQ.getEnabled()
+        emailIntegrationType.getName(), updatePluginStateRQ.getEnabled()
     ).get(), operationCompletionRS.getResultMessage());
   }
 
@@ -116,13 +127,12 @@ class UpdatePluginHandlerTest {
         Optional.ofNullable(pluginWrapper));
     when(pluginWrapper.getPluginId()).thenReturn(jiraIntegrationType.getName());
     when(pluginBox.unloadPlugin(jiraIntegrationType)).thenReturn(true);
-    OperationCompletionRS operationCompletionRS = updatePluginHandler.updatePluginState(1L,
-        updatePluginStateRQ);
+    OperationCompletionRS operationCompletionRS =
+        updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user);
 
     Assertions.assertEquals(Suppliers.formattedSupplier(
         "Enabled state of the plugin with id = '{}' has been switched to - '{}'",
-        jiraIntegrationType.getName(),
-        updatePluginStateRQ.getEnabled()
+        jiraIntegrationType.getName(), updatePluginStateRQ.getEnabled()
     ).get(), operationCompletionRS.getResultMessage());
   }
 
@@ -139,7 +149,7 @@ class UpdatePluginHandlerTest {
     when(pluginWrapper.getPluginId()).thenReturn(jiraIntegrationType.getName());
     when(pluginBox.unloadPlugin(jiraIntegrationType)).thenReturn(false);
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ)
+        () -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user)
     );
 
     assertEquals(Suppliers.formattedSupplier(
@@ -160,7 +170,7 @@ class UpdatePluginHandlerTest {
     when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(emailIntegrationType));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ)
+        () -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user)
     );
 
     assertEquals(Suppliers.formattedSupplier(
@@ -180,21 +190,24 @@ class UpdatePluginHandlerTest {
 
     when(integrationTypeRepository.findById(1L)).thenReturn(ofNullable(jiraIntegrationType));
     when(pluginBox.getPluginById(jiraIntegrationType.getName())).thenReturn(Optional.empty());
+    doNothing().when(applicationEventPublisher).publishEvent(any());
 
     File tempFile = File.createTempFile("qwe", "txt");
     tempFile.deleteOnExit();
 
     when(dataStore.load(any(String.class))).thenReturn(new FileInputStream(tempFile));
     when(pluginBox.loadPlugin(jiraIntegrationType.getName(),
-        jiraIntegrationType.getDetails())).thenReturn(true);
-    OperationCompletionRS operationCompletionRS = updatePluginHandler.updatePluginState(1L,
-        updatePluginStateRQ);
+        jiraIntegrationType.getDetails()
+    )).thenReturn(true);
+    OperationCompletionRS operationCompletionRS =
+        updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user);
 
     Assertions.assertEquals(Suppliers.formattedSupplier(
         "Enabled state of the plugin with id = '{}' has been switched to - '{}'",
-        jiraIntegrationType.getName(),
-        updatePluginStateRQ.getEnabled()
+        jiraIntegrationType.getName(), updatePluginStateRQ.getEnabled()
     ).get(), operationCompletionRS.getResultMessage());
+
+    verify(applicationEventPublisher, times(1)).publishEvent(isA(PluginUpdatedEvent.class));
   }
 
   private Map<String, Object> getCorrectJiraIntegrationDetailsParams() {

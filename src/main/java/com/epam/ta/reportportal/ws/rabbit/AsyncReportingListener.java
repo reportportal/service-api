@@ -223,12 +223,9 @@ public class AsyncReportingListener implements MessageListener {
         extractProjectDetails(user, normalizeId(projectName)), itemId, rq);
   }
 
-  private ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user,
-      String projectName) {
-    return projectExtractor.findProjectDetails(user, projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
-            "Please check the list of your available projects."));
-  }
+	private ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user, String projectName) {
+    return projectExtractor.extractProjectDetails(user, projectName);
+	}
 
   public void onLogCreate(DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload,
       Long projectId) {
@@ -315,7 +312,7 @@ public class AsyncReportingListener implements MessageListener {
     Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
     logService.saveLogMessage(logFull, effectiveLaunch.getId());
 
-    saveAttachment(metaInfo,
+    saveAttachment(request.getFile().getName(), metaInfo,
         logFull.getId(),
         projectId,
         effectiveLaunch.getId(),
@@ -334,11 +331,13 @@ public class AsyncReportingListener implements MessageListener {
     logFull.setId(log.getId());
     logService.saveLogMessage(logFull, launch.getId());
 
-    saveAttachment(metaInfo, logFull.getId(), projectId, launch.getId(), null, launch.getUuid(),
+    saveAttachment(request.getFile().getName(), metaInfo, logFull.getId(), projectId, launch.getId(),
+				null, launch.getUuid(),
         logFull.getUuid());
   }
 
-  private void saveAttachment(BinaryDataMetaInfo metaInfo, Long logId, Long projectId,
+  private void saveAttachment(String fileName, BinaryDataMetaInfo metaInfo, Long logId,
+			Long projectId,
       Long launchId, Long itemId, String launchUuid,
       String logUuid) {
     if (!Objects.isNull(metaInfo)) {
@@ -350,6 +349,7 @@ public class AsyncReportingListener implements MessageListener {
               .withLogId(logId)
               .withLaunchUuid(launchUuid)
               .withLogUuid(logUuid)
+							.withFileName(fileName)
               .withCreationDate(LocalDateTime.now(ZoneOffset.UTC))
               .build()
       );

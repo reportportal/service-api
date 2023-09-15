@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
+import com.epam.ta.reportportal.entity.enums.LogicalOperator;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -121,7 +122,7 @@ public class LaunchNotificationRunner
       SendCase sendCase = ec.getSendCase();
       boolean successRate = isSuccessRateEnough(launch, sendCase);
       boolean matchedNames = isLaunchNameMatched(launch, ec);
-      boolean matchedTags = isAttributesMatched(launch, ec.getLaunchAttributeRules());
+      boolean matchedTags = isAttributesMatched(launch, ec.getLaunchAttributeRules(), ec.getAttributesOperator());
 
       Set<String> recipients = ec.getRecipients();
       if (successRate && matchedNames && matchedTags) {
@@ -222,21 +223,27 @@ public class LaunchNotificationRunner
    */
   @VisibleForTesting
   private static boolean isAttributesMatched(Launch launch,
-      Set<LaunchAttributeRule> launchAttributeRules) {
+      Set<LaunchAttributeRule> launchAttributeRules, LogicalOperator logicalOperator) {
 
     if (CollectionUtils.isEmpty(launchAttributeRules)) {
       return true;
     }
 
-    return launch.getAttributes().stream().filter(attribute -> !attribute.isSystem())
-        .map(attribute -> {
-          ItemAttributeResource attributeResource = new ItemAttributeResource();
-          attributeResource.setKey(attribute.getKey());
-          attributeResource.setValue(attribute.getValue());
-          return attributeResource;
-        }).collect(Collectors.toSet()).containsAll(launchAttributeRules.stream()
-            .map(NotificationConfigConverter.TO_ATTRIBUTE_RULE_RESOURCE)
-            .collect(Collectors.toSet()));
-  }
+		Set<ItemAttributeResource> itemAttributesResource = launchAttributeRules.stream()
+				.map(NotificationConfigConverter.TO_ATTRIBUTE_RULE_RESOURCE)
+				.collect(Collectors.toSet());
 
+		Set<ItemAttributeResource> itemAttributes = launch.getAttributes().stream().filter(attribute -> !attribute.isSystem()).map(attribute -> {
+			ItemAttributeResource attributeResource = new ItemAttributeResource();
+			attributeResource.setKey(attribute.getKey());
+			attributeResource.setValue(attribute.getValue());
+			return attributeResource;
+		}).collect(Collectors.toSet());
+
+		if (LogicalOperator.AND.equals(logicalOperator)) {
+			return itemAttributes.containsAll(itemAttributesResource);
+		}
+
+		return CollectionUtils.containsAny(itemAttributes, itemAttributesResource);
+	}
 }

@@ -18,8 +18,8 @@ package com.epam.ta.reportportal.info;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 
-import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.springframework.boot.actuate.info.MapInfoContributor;
@@ -36,11 +36,13 @@ public class MetadataInfoContributor extends MapInfoContributor {
   }
 
   private static Map<String, Object> getMetadata() {
-    return ImmutableMap.<String, Object>builder().put("activityAction",
-        stream(ActivityAction.values()).map(ActivityAction::getValue).collect(toList())
-    ).put("activityEntityType",
-        stream(Activity.ActivityEntityType.values()).map(Activity.ActivityEntityType::getValue)
-            .collect(toList())
-    ).build();
+    return ImmutableMap.<String, Object>builder()
+        .put("activityAction", stream(EventAction.values())
+            .map(EventAction::toString)
+            .collect(toList()))
+        .put("activityObjectEvent", stream(EventObject.values())
+            .map(EventObject::toString)
+            .collect(toList()))
+        .build();
   }
 }

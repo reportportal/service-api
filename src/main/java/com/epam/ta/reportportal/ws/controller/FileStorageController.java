@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.google.common.net.HttpHeaders;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.io.InputStream;
@@ -133,23 +134,26 @@ public class FileStorageController {
     return deleteFilesHandler.removeFilesByCsv(file);
   }
 
-  /**
-   * Copies data from provided {@link InputStream} to Response
-   *
-   * @param response   Response
-   * @param binaryData Stored data
-   */
-  private void toResponse(HttpServletResponse response, BinaryData binaryData) {
-    //TODO investigate stream closing requirement
-    if (binaryData.getInputStream() != null) {
-      try {
-        response.setContentType(binaryData.getContentType());
-        IOUtils.copy(binaryData.getInputStream(), response.getOutputStream());
-      } catch (IOException e) {
-        throw new ReportPortalException("Unable to retrieve binary data from data storage", e);
-      }
-    } else {
-      response.setStatus(HttpStatus.NO_CONTENT.value());
-    }
-  }
+	/**
+	 * Copies data from provided {@link InputStream} to Response
+	 *
+	 * @param response   Response
+	 * @param binaryData Stored data
+	 */
+	private void toResponse(HttpServletResponse response, BinaryData binaryData) {
+		if (binaryData.getInputStream() != null) {
+			response.setContentType(binaryData.getContentType());
+			if (binaryData.getFileName() != null) {
+				response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+						"attachment; filename=\"" + binaryData.getFileName() + "\"");
+			}
+			try (InputStream inputStream = binaryData.getInputStream()) {
+				IOUtils.copy(inputStream, response.getOutputStream());
+			} catch (IOException e) {
+				throw new ReportPortalException("Unable to retrieve binary data from data storage", e);
+			}
+		} else {
+			response.setStatus(HttpStatus.NO_CONTENT.value());
+		}
+	}
 }

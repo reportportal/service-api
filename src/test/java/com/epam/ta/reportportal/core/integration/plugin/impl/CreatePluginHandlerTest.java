@@ -20,9 +20,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.activity.PluginUploadedEvent;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
@@ -52,10 +57,11 @@ public class CreatePluginHandlerTest {
 
   private final InputStream inputStream = mock(InputStream.class);
 
-  private final ApplicationEventPublisher applicationEventPublisher = mock(
-      ApplicationEventPublisher.class);
+  private final ApplicationEventPublisher applicationEventPublisher =
+      mock(ApplicationEventPublisher.class);
 
-  private final CreatePluginHandler createPluginHandler = new CreatePluginHandlerImpl(pluginBox);
+  private final CreatePluginHandler createPluginHandler =
+      new CreatePluginHandlerImpl(pluginBox, applicationEventPublisher);
 
   @Test
   void shouldUploadPluginWhenValid() throws IOException {
@@ -71,9 +77,13 @@ public class CreatePluginHandlerTest {
     when(pluginBox.uploadPlugin(FILE_NAME, inputStream)).thenReturn(
         IntegrationTestUtil.getJiraIntegrationType());
 
-    EntryCreatedRS entryCreatedRS = createPluginHandler.uploadPlugin(multipartFile);
+    ReportPortalUser reportPortalUser = mock(ReportPortalUser.class);
+
+    EntryCreatedRS entryCreatedRS =
+        createPluginHandler.uploadPlugin(multipartFile, reportPortalUser);
 
     assertNotNull(entryCreatedRS);
     assertEquals(IntegrationTestUtil.getJiraIntegrationType().getId(), entryCreatedRS.getId());
+    verify(applicationEventPublisher, times(1)).publishEvent(isA(PluginUploadedEvent.class));
   }
 }

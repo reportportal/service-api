@@ -29,12 +29,12 @@ class ActivityTestHelper {
 
   static void checkActivity(Activity expected, Activity actual) {
     assertThat(actual).isEqualToIgnoringGivenFields(expected, "details", "createdAt");
+    assertThat(actual.getObjectName()).isEqualTo(expected.getObjectName());
     checkActivityDetails(expected.getDetails(), actual.getDetails());
     checkCreatedAt(expected.getCreatedAt(), expected.getCreatedAt());
   }
 
   private static void checkActivityDetails(ActivityDetails expected, ActivityDetails actual) {
-    assertThat(actual.getObjectName()).isEqualTo(expected.getObjectName());
     assertThat(actual.getHistory()).containsExactlyInAnyOrderElementsOf(expected.getHistory());
   }
 

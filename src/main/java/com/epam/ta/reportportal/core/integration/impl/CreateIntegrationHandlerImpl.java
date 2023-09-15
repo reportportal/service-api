@@ -22,7 +22,6 @@ import static java.util.Optional.ofNullable;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.IntegrationCreatedEvent;
 import com.epam.ta.reportportal.core.events.activity.IntegrationUpdatedEvent;
 import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
@@ -44,6 +43,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -58,7 +58,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
   private final ProjectRepository projectRepository;
 
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher eventPublisher;
 
   private final IntegrationTypeRepository integrationTypeRepository;
 
@@ -68,13 +68,13 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
   public CreateIntegrationHandlerImpl(
       @Qualifier("integrationServiceMapping") Map<String, IntegrationService> integrationServiceMapping,
       IntegrationRepository integrationRepository, ProjectRepository projectRepository,
-      MessageBus messageBus,
+      ApplicationEventPublisher eventPublisher,
       IntegrationTypeRepository integrationTypeRepository,
       @Qualifier("basicIntegrationServiceImpl") IntegrationService integrationService) {
     this.integrationServiceMapping = integrationServiceMapping;
     this.integrationRepository = integrationRepository;
     this.projectRepository = projectRepository;
-    this.messageBus = messageBus;
+    this.eventPublisher = eventPublisher;
     this.integrationTypeRepository = integrationTypeRepository;
     this.basicIntegrationService = integrationService;
   }
@@ -101,6 +101,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
     integration.setCreator(user.getUsername());
     integrationService.checkConnection(integration);
     integrationRepository.save(integration);
+    publishCreationActivity(integration, user);
+
     return new EntryCreatedRS(integration.getId());
 
   }
@@ -135,25 +137,25 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
     integrationService.checkConnection(integration);
     integrationRepository.save(integration);
 
-    messageBus.publishActivity(new IntegrationCreatedEvent(TO_ACTIVITY_RESOURCE.apply(integration),
-        user.getUserId(),
-        user.getUsername()
-    ));
+    publishCreationActivity(integration, user);
 
     return new EntryCreatedRS(integration.getId());
   }
 
   @Override
-  public OperationCompletionRS updateGlobalIntegration(Long id, IntegrationRQ updateRequest) {
+  public OperationCompletionRS updateGlobalIntegration(Long id, IntegrationRQ updateRequest,
+      ReportPortalUser user) {
 
     final Integration integration = integrationRepository.findGlobalById(id)
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
 
+    IntegrationActivityResource beforeUpdate = TO_ACTIVITY_RESOURCE.apply(integration);
+
     ofNullable(updateRequest.getName()).map(String::toLowerCase).ifPresent(name -> {
       if (!name.equals(integration.getName())) {
         validateGlobalIntegrationName(name, integration.getType());
-        updateRequest.setName(name);
       }
+      updateRequest.setName(name);
     });
 
     IntegrationService integrationService = integrationServiceMapping.getOrDefault(
@@ -165,6 +167,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
         updateRequest);
     integrationService.checkConnection(integration);
     integrationRepository.save(updatedIntegration);
+
+    publishUpdateActivity(user, beforeUpdate, updatedIntegration);
 
     return new OperationCompletionRS(
         "Integration with id = " + updatedIntegration.getId() + " has been successfully updated.");
@@ -185,8 +189,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
     ofNullable(updateRequest.getName()).map(String::toLowerCase).ifPresent(name -> {
       if (!name.equals(integration.getName())) {
         validateProjectIntegrationName(name, integration.getType(), project);
-        updateRequest.setName(name);
       }
+      updateRequest.setName(name);
     });
 
     IntegrationService integrationService = integrationServiceMapping.getOrDefault(
@@ -200,11 +204,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
     integrationRepository.save(updatedIntegration);
 
-    messageBus.publishActivity(new IntegrationUpdatedEvent(user.getUserId(),
-        user.getUsername(),
-        beforeUpdate,
-        TO_ACTIVITY_RESOURCE.apply(updatedIntegration)
-    ));
+    publishUpdateActivity(user, beforeUpdate, updatedIntegration);
 
     return new OperationCompletionRS(
         "Integration with id = " + updatedIntegration.getId() + " has been successfully updated.");
@@ -244,6 +244,23 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
                 project.getName()
             )
         );
+  }
+
+  private void publishUpdateActivity(ReportPortalUser user,
+      IntegrationActivityResource beforeUpdate,
+      Integration updatedIntegration) {
+    eventPublisher.publishEvent(new IntegrationUpdatedEvent(user.getUserId(),
+        user.getUsername(),
+        beforeUpdate,
+        TO_ACTIVITY_RESOURCE.apply(updatedIntegration)
+    ));
+  }
+
+  private void publishCreationActivity(Integration integration, ReportPortalUser user) {
+    eventPublisher.publishEvent(new IntegrationCreatedEvent(TO_ACTIVITY_RESOURCE.apply(integration),
+        user.getUserId(),
+        user.getUsername()
+    ));
   }
 
 }

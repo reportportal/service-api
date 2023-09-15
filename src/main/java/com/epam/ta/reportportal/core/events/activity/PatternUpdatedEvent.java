@@ -18,13 +18,16 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processBoolean;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.PATTERN;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_PATTERN;
 
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
 
 /**
@@ -43,14 +46,18 @@ public class PatternUpdatedEvent extends AroundEvent<PatternTemplateActivityReso
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow()
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_PATTERN.getValue())
+        .addPriority(EventPriority.LOW)
         .addObjectId(getAfter().getId())
         .addObjectName(getAfter().getName())
-        .addUserId(getUserId())
-        .addUserName(getUserLogin())
+        .addObjectType(EventObject.PATTERN)
         .addProjectId(getAfter().getProjectId())
-        .addAction(UPDATE_PATTERN)
-        .addActivityEntityType(PATTERN)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
         .addHistoryField(processName(getBefore().getName(), getAfter().getName()))
         .addHistoryField(processBoolean(ActivityDetailsUtil.ENABLED, getBefore().isEnabled(),
             getAfter().isEnabled()))

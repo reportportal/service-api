@@ -34,10 +34,9 @@ public class EventListenerConfig {
 
   @Bean
   public LaunchFinishedEventListener launchFinishedEventListener(
-      LaunchFinishedMessagePublisher finishedMessagePublisher,
       ProjectConfigDelegatingSubscriber<LaunchFinishedEvent> launchFinishedDelegatingSubscriber) {
     return new LaunchFinishedEventListener(
-        List.of(finishedMessagePublisher, launchFinishedDelegatingSubscriber));
+        List.of( launchFinishedDelegatingSubscriber));
   }
 
   @Bean

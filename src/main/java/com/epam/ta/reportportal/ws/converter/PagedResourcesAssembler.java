@@ -17,6 +17,7 @@
 
 package com.epam.ta.reportportal.ws.converter;
 
+import com.epam.ta.reportportal.ws.model.PagedResponse;
 import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.function.Function;
@@ -46,6 +47,24 @@ public abstract class PagedResourcesAssembler<T, R> extends ResourceAssembler<T,
   public static <T, R> Function<Page<T>, com.epam.ta.reportportal.ws.model.Page<R>> pageConverter(
       Function<T, R> modelConverter) {
     return page -> PagedResourcesAssembler.<R>pageConverter().apply(page.map(modelConverter));
+  }
+
+  /**
+   * Convert Page to PagedResponse.
+   *
+   * @param <T> Page
+   * @return Function
+   */
+  public static <T> Function<Page<T>, PagedResponse<T>> pagedResponseConverter() {
+    return page -> new PagedResponse<>(page.getPageable().getOffset(), page.getSize(),
+        page.getTotalElements(), page.getSort().toList().get(0).getProperty(),
+        page.getSort().toList().get(0).getDirection().toString(), page.getContent());
+  }
+
+  public static <T, R> Function<Page<T>, PagedResponse<R>> pagedResponseConverter(
+      Function<T, R> modelConverter) {
+    return page -> PagedResourcesAssembler.<R>pagedResponseConverter()
+        .apply(page.map(modelConverter));
   }
 
   public static <T, R> Function<Page<T>, com.epam.ta.reportportal.ws.model.Page<R>> pageMultiConverter(

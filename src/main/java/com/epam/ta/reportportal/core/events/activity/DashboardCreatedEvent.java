@@ -15,12 +15,14 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.DASHBOARD;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_DASHBOARD;
-
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 
 /**
@@ -28,35 +30,38 @@ import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
  */
 public class DashboardCreatedEvent extends AbstractEvent implements ActivityEvent {
 
-  private DashboardActivityResource dashboardActivityResource;
+	private DashboardActivityResource dashboardActivityResource;
 
-  public DashboardCreatedEvent() {
-  }
+	public DashboardCreatedEvent() {
+	}
 
-  public DashboardCreatedEvent(DashboardActivityResource dashboardActivityResource, Long userId,
-      String userLogin) {
-    super(userId, userLogin);
-    this.dashboardActivityResource = dashboardActivityResource;
-  }
+	public DashboardCreatedEvent(DashboardActivityResource dashboardActivityResource, Long userId, String userLogin) {
+		super(userId, userLogin);
+		this.dashboardActivityResource = dashboardActivityResource;
+	}
 
-  public DashboardActivityResource getDashboardActivityResource() {
-    return dashboardActivityResource;
-  }
+	public DashboardActivityResource getDashboardActivityResource() {
+		return dashboardActivityResource;
+	}
 
-  public void setDashboardActivityResource(DashboardActivityResource dashboardActivityResource) {
-    this.dashboardActivityResource = dashboardActivityResource;
-  }
+	public void setDashboardActivityResource(DashboardActivityResource dashboardActivityResource) {
+		this.dashboardActivityResource = dashboardActivityResource;
+	}
 
-  @Override
-  public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow()
-        .addAction(CREATE_DASHBOARD)
-        .addActivityEntityType(DASHBOARD)
-        .addUserId(getUserId())
-        .addUserName(getUserLogin())
-        .addProjectId(dashboardActivityResource.getProjectId())
-        .addObjectId(dashboardActivityResource.getId())
-        .addObjectName(dashboardActivityResource.getName())
-        .get();
-  }
+	@Override
+	public Activity toActivity() {
+		return new ActivityBuilder()
+				.addCreatedNow()
+				.addAction(EventAction.CREATE)
+				.addEventName(ActivityAction.CREATE_DASHBOARD.getValue())
+				.addPriority(EventPriority.LOW)
+				.addObjectId(dashboardActivityResource.getId())
+				.addObjectName(dashboardActivityResource.getName())
+				.addObjectType(EventObject.DASHBOARD)
+				.addProjectId(dashboardActivityResource.getProjectId())
+				.addSubjectId(getUserId())
+				.addSubjectName(getUserLogin())
+				.addSubjectType(EventSubject.USER)
+				.get();
+	}
 }

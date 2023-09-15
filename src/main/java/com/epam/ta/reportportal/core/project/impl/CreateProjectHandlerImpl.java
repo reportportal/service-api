@@ -24,6 +24,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.events.activity.ProjectCreatedEvent;
 import com.epam.ta.reportportal.core.project.CreateProjectHandler;
 import com.epam.ta.reportportal.dao.AttributeRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
@@ -136,8 +137,16 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
     projectUserRepository.save(projectUser);
 
     applicationEventPublisher.publishEvent(new ProjectEvent(project.getId(), CREATE_KEY));
+    publishProjectCreatedEvent(user.getUserId(), user.getUsername(), project);
 
     return new EntryCreatedRS(project.getId());
+  }
+
+  private void publishProjectCreatedEvent(Long userId, String userLogin, Project project) {
+    Long projectId = project.getId();
+    String projectName = project.getName();
+    ProjectCreatedEvent event = new ProjectCreatedEvent(userId, userLogin, projectId, projectName);
+    applicationEventPublisher.publishEvent(event);
   }
 
   @Override
@@ -146,6 +155,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
     final Project personalProject = personalProjectService.generatePersonalProject(user);
     personalProject.getUsers().clear();
     projectRepository.save(personalProject);
+    publishProjectCreatedEvent(null, "ReportPortal", personalProject);
     return personalProject;
   }
 }

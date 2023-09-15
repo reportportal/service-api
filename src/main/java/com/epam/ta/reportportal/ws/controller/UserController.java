@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
-import static com.epam.ta.reportportal.ws.converter.converters.ExceptionConverter.TO_ERROR_RS;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -29,6 +28,7 @@ import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
+import com.epam.ta.reportportal.core.user.ApiKeyHandler;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
@@ -37,6 +37,9 @@ import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ApiKeyRQ;
+import com.epam.ta.reportportal.ws.model.ApiKeyRS;
+import com.epam.ta.reportportal.ws.model.ApiKeysRS;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -58,15 +61,11 @@ import com.epam.ta.reportportal.ws.resolver.ActiveRole;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.ResponseView;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
-import com.google.common.collect.Lists;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -99,20 +98,24 @@ public class UserController {
 
   private final DeleteUserHandler deleteUserHandler;
 
+  private final ApiKeyHandler apiKeyHandler;
+
   private final GetUserHandler getUserHandler;
 
   private final GetJasperReportHandler<User> jasperReportHandler;
 
   @Autowired
   public UserController(CreateUserHandler createUserMessageHandler,
-      EditUserHandler editUserMessageHandler,
-      DeleteUserHandler deleteUserHandler, GetUserHandler getUserHandler,
-      @Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler) {
+      EditUserHandler editUserMessageHandler, DeleteUserHandler deleteUserHandler,
+      GetUserHandler getUserHandler,
+      @Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler,
+      ApiKeyHandler apiKeyHandler) {
     this.createUserMessageHandler = createUserMessageHandler;
     this.editUserMessageHandler = editUserMessageHandler;
     this.deleteUserHandler = deleteUserHandler;
     this.getUserHandler = getUserHandler;
     this.jasperReportHandler = jasperReportHandler;
+    this.apiKeyHandler = apiKeyHandler;
   }
 
   @PostMapping
@@ -132,7 +135,8 @@ public class UserController {
   public CreateUserBidRS createUserBid(@RequestBody @Validated CreateUserRQ createUserRQ,
       @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
     return createUserMessageHandler.createUserBid(createUserRQ, currentUser,
-        composeBaseUrl(request));
+        composeBaseUrl(request)
+    );
   }
 
   @PostMapping(value = "/registration")
@@ -150,8 +154,7 @@ public class UserController {
   }
 
   @DeleteMapping(value = "/{id}")
-  @PreAuthorize(ADMIN_ONLY)
-  @ApiOperation(value = "Delete specified user", notes = "Allowable only for users with administrator role")
+  @ApiOperation(value = "Delete specified user")
   public OperationCompletionRS deleteUser(@PathVariable(value = "id") Long userId,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
     return deleteUserHandler.deleteUser(userId, currentUser);
@@ -163,18 +166,7 @@ public class UserController {
   @ApiOperation("Delete specified users by ids")
   public DeleteBulkRS deleteUsers(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
-    List<ReportPortalException> exceptions = Lists.newArrayList();
-    List<Long> deleted = Lists.newArrayList();
-    deleteBulkRQ.getIds().forEach(userId -> {
-      try {
-        deleteUserHandler.deleteUser(userId, user);
-        deleted.add(userId);
-      } catch (ReportPortalException rp) {
-        exceptions.add(rp);
-      }
-    });
-    return new DeleteBulkRS(deleted, Collections.emptyList(),
-        exceptions.stream().map(TO_ERROR_RS).collect(Collectors.toList()));
+    return deleteUserHandler.deleteUsers(deleteBulkRQ.getIds(), user);
   }
 
   @Transactional
@@ -182,8 +174,8 @@ public class UserController {
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
   @ApiOperation(value = "Edit specified user", notes = "Only for administrators and profile's owner")
   public OperationCompletionRS editUser(@PathVariable String login,
-      @RequestBody @Validated EditUserRQ editUserRQ,
-      @ActiveRole UserRole role, @AuthenticationPrincipal ReportPortalUser currentUser) {
+      @RequestBody @Validated EditUserRQ editUserRQ, @ActiveRole UserRole role,
+      @AuthenticationPrincipal ReportPortalUser currentUser) {
     return editUserMessageHandler.editUser(EntityUtils.normalizeId(login), editUserRQ, currentUser);
   }
 
@@ -210,11 +202,11 @@ public class UserController {
   @PreAuthorize(ADMIN_ONLY)
   @ApiOperation(value = "Return information about all users", notes = "Allowable only for users with administrator role")
   public Iterable<UserResource> getUsers(@FilterFor(User.class) Filter filter,
-      @SortFor(User.class) Pageable pageable,
-      @FilterFor(User.class) Queryable queryable,
+      @SortFor(User.class) Pageable pageable, @FilterFor(User.class) Queryable queryable,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
     return getUserHandler.getAllUsers(new CompositeFilter(Operator.AND, filter, queryable),
-        pageable);
+        pageable
+    );
   }
 
   @Transactional(readOnly = true)
@@ -273,8 +265,7 @@ public class UserController {
   @ResponseStatus(OK)
   @PreAuthorize(ADMIN_ONLY)
   public Iterable<UserResource> findUsers(@RequestParam(value = "term") String term,
-      Pageable pageable,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
     return getUserHandler.searchUsers(term, pageable);
   }
 
@@ -282,8 +273,8 @@ public class UserController {
   @GetMapping(value = "/export")
   @PreAuthorize(ADMIN_ONLY)
   @ApiOperation(value = "Exports information about all users", notes = "Allowable only for users with administrator role")
-  public void export(
-      @ApiParam(allowableValues = "csv") @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
+  public void export(@ApiParam(allowableValues = "csv")
+  @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
       @FilterFor(User.class) Filter filter, @FilterFor(User.class) Queryable queryable,
       @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletResponse response) {
 
@@ -292,16 +283,41 @@ public class UserController {
 
     response.setHeader(com.google.common.net.HttpHeaders.CONTENT_DISPOSITION,
         String.format("attachment; filename=RP_USERS_%s_Report.%s", format.name(),
-            format.getValue())
+            format.getValue()
+        )
     );
 
     try (OutputStream outputStream = response.getOutputStream()) {
       getUserHandler.exportUsers(format, outputStream,
-          new CompositeFilter(Operator.AND, filter, queryable));
+          new CompositeFilter(Operator.AND, filter, queryable)
+      );
     } catch (IOException e) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "Unable to write data to the response.");
+          "Unable to write data to the response."
+      );
     }
   }
 
+  @PostMapping(value = "/{userId}/api-keys")
+  @ResponseStatus(CREATED)
+  @ApiOperation("Create new Api Key for current user")
+  public ApiKeyRS createApiKey(@RequestBody @Validated ApiKeyRQ apiKeyRQ,
+      @AuthenticationPrincipal ReportPortalUser currentUser, @PathVariable Long userId) {
+    return apiKeyHandler.createApiKey(apiKeyRQ.getName(), currentUser.getUserId());
+  }
+
+  @DeleteMapping(value = "/{userId}/api-keys/{keyId}")
+  @ResponseStatus(OK)
+  @ApiOperation("Delete specified Api Key")
+  public OperationCompletionRS deleteApiKey(@PathVariable Long keyId, @PathVariable Long userId) {
+    return apiKeyHandler.deleteApiKey(keyId);
+  }
+
+  @GetMapping(value = "/{userId}/api-keys")
+  @ResponseStatus(OK)
+  @ApiOperation("Get List of users Api Keys")
+  public ApiKeysRS getUsersApiKeys(@AuthenticationPrincipal ReportPortalUser currentUser,
+      @PathVariable Long userId) {
+    return apiKeyHandler.getAllUsersApiKeys(currentUser.getUserId());
+  }
 }

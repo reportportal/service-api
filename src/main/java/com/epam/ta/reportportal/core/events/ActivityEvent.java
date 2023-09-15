@@ -30,4 +30,5 @@ public interface ActivityEvent extends Event, Serializable {
    * @return Persistable representation of event
    */
   Activity toActivity();
+
 }

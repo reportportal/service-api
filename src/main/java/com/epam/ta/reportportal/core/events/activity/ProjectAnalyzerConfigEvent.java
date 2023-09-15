@@ -18,8 +18,6 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.configEquals;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processParameter;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.PROJECT;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ANALYZER;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.ALL_MESSAGES_SHOULD_MATCH;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_ANALYZER_ENABLED;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_ANALYZER_MODE;
@@ -30,9 +28,14 @@ import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.Prefix;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.SEARCH_LOGS_MIN_SHOULD_MATCH;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS;
 
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -54,25 +57,24 @@ public class ProjectAnalyzerConfigEvent extends
 
   @Override
   public Activity toActivity() {
-    return configEquals(getBefore().getConfig(), getAfter().getConfig(), Prefix.ANALYZER) ? null
-        : convert();
-  }
-
-  private Activity convert() {
     final ProjectAttributesActivityResource before = getBefore();
     final ProjectAttributesActivityResource after = getAfter();
 
     final Map<String, String> oldConfig = before.getConfig();
     final Map<String, String> newConfig = after.getConfig();
 
-    final ActivityBuilder activityBuilder = new ActivityBuilder().addCreatedNow()
-        .addAction(UPDATE_ANALYZER)
-        .addActivityEntityType(PROJECT)
-        .addUserId(getUserId())
-        .addUserName(getUserLogin())
+    final ActivityBuilder activityBuilder = new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_ANALYZER.getValue())
+        .addPriority(EventPriority.LOW)
         .addObjectId(before.getProjectId())
-        .addObjectName(before.getProjectName())
-        .addProjectId(before.getProjectId());
+        .addObjectName("analyzer")
+        .addObjectType(EventObject.PROJECT)
+        .addProjectId(before.getProjectId())
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER);
 
     Stream.of(AUTO_ANALYZER_MODE,
             MIN_SHOULD_MATCH,
@@ -87,5 +89,4 @@ public class ProjectAnalyzerConfigEvent extends
 
     return activityBuilder.get();
   }
-
 }

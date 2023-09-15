@@ -15,16 +15,18 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.LAUNCH;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.FINISH_LAUNCH;
-
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.ProjectIdAwareEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 
 /**
  * Lifecycle events.
@@ -121,14 +123,18 @@ public class LaunchFinishedEvent extends AbstractEvent implements ActivityEvent,
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow()
-        .addAction(FINISH_LAUNCH)
-        .addActivityEntityType(LAUNCH)
-        .addUserId(getUserId())
-        .addUserName(getUserLogin())
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.FINISH)
+        .addEventName(ActivityAction.FINISH_LAUNCH.getValue())
+        .addPriority(EventPriority.LOW)
         .addObjectId(id)
         .addObjectName(name)
+        .addObjectType(EventObject.LAUNCH)
         .addProjectId(projectId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
         .get();
   }
 }

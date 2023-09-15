@@ -16,20 +16,6 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -42,26 +28,29 @@ import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
-import com.epam.ta.reportportal.ws.model.user.ChangePasswordRQ;
-import com.epam.ta.reportportal.ws.model.user.CreateUserBidRS;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQ;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRS;
-import com.epam.ta.reportportal.ws.model.user.EditUserRQ;
-import com.epam.ta.reportportal.ws.model.user.ResetPasswordRQ;
-import com.epam.ta.reportportal.ws.model.user.RestorePasswordRQ;
+import com.epam.ta.reportportal.ws.model.user.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -184,7 +173,7 @@ class UserControllerTest extends BaseMvcTest {
   void deleteUserNegative() throws Exception {
     /* Administrator cannot remove him/her-self */
     mockMvc.perform(delete("/v1/user/1").with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().is(400));
+        .andExpect(status().isForbidden());
   }
 
   @Test
@@ -263,7 +252,8 @@ class UserControllerTest extends BaseMvcTest {
 
   @Test
   void getUserPositiveUsingApiToken() throws Exception {
-    mockMvc.perform(get("/v1/user/default").with(token("test__ET4Byc1QUqO8VV8kiCGSP3O4SERb5MJWIowQQ3SiEqHO6hjicoPw-vm1tnrQI5V")))
+    mockMvc.perform(get("/v1/user/default").with(
+            token("test__ET4Byc1QUqO8VV8kiCGSP3O4SERb5MJWIowQQ3SiEqHO6hjicoPw-vm1tnrQI5V")))
         .andExpect(status().isOk());
   }
 
@@ -295,6 +285,10 @@ class UserControllerTest extends BaseMvcTest {
     ChangePasswordRQ rq = new ChangePasswordRQ();
     rq.setOldPassword("1q2w3e");
     rq.setNewPassword("12345");
+
+    when(mailServiceFactory.getDefaultEmailService(true)).thenReturn(emailService);
+    doNothing().when(emailService).sendChangePasswordConfirmation(any(), any(), any());
+
     mockMvc.perform(post("/v1/user/password/change").with(token(oAuthHelper.getDefaultToken()))
         .content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)).andExpect(status().isOk());

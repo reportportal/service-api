@@ -16,13 +16,17 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.INTEGRATION;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_INTEGRATION;
 
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.util.IntegrationActivityPriorityResolver;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
 import java.util.Optional;
 
@@ -54,16 +58,21 @@ public class IntegrationDeletedEvent extends AbstractEvent implements ActivityEv
   @Override
   public Activity toActivity() {
 
-    return new ActivityBuilder().addCreatedNow()
-        .addAction(DELETE_INTEGRATION)
-        .addActivityEntityType(INTEGRATION)
-        .addUserId(getUserId())
-        .addUserName(getUserLogin())
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.DELETE)
+        .addEventName(ActivityAction.DELETE_INTEGRATION.getValue())
+        .addPriority(
+            IntegrationActivityPriorityResolver.resolvePriority(integrationActivityResource))
         .addObjectId(integrationActivityResource.getId())
         .addObjectName(integrationActivityResource.getTypeName())
+        .addObjectType(EventObject.INTEGRATION)
         .addProjectId(integrationActivityResource.getProjectId())
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
         .addHistoryField(
-            Optional.of(HistoryField.of(NAME, null, integrationActivityResource.getName())))
+            Optional.of(HistoryField.of(NAME, integrationActivityResource.getName(), null)))
         .get();
   }
 }

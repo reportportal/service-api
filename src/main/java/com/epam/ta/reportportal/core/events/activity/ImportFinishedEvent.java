@@ -16,12 +16,14 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.IMPORT;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.FINISH_IMPORT;
-
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 
 /**
  * @author Pavel Bortnik
@@ -58,11 +60,17 @@ public class ImportFinishedEvent extends AbstractEvent implements ActivityEvent 
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow()
-        .addAction(FINISH_IMPORT).addActivityEntityType(IMPORT).addUserId(getUserId())
-        .addUserName(getUserLogin())
-        .addProjectId(projectId)
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.FINISH)
+        .addEventName(ActivityAction.FINISH_IMPORT.getValue())
+        .addPriority(EventPriority.LOW)
         .addObjectName(fileName)
+        .addObjectType(EventObject.IMPORT)
+        .addProjectId(projectId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
         .get();
   }
 }

@@ -15,19 +15,20 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.configEquals;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processParameter;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.PROJECT;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_PROJECT;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.INTERRUPT_JOB_TIME;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.KEEP_LAUNCHES;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.KEEP_LOGS;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.KEEP_SCREENSHOTS;
-import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.Prefix;
 
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
 
 /**
@@ -49,16 +50,17 @@ public class ProjectUpdatedEvent extends AroundEvent<ProjectAttributesActivityRe
 
   @Override
   public Activity toActivity() {
-    return configEquals(getBefore().getConfig(), getAfter().getConfig(), Prefix.JOB) ?
-        null :
-        new ActivityBuilder().addCreatedNow()
-            .addAction(UPDATE_PROJECT)
-            .addActivityEntityType(PROJECT)
-            .addUserId(getUserId())
-            .addUserName(getUserLogin())
+    return new ActivityBuilder().addCreatedNow()
+            .addAction(EventAction.UPDATE)
+            .addEventName(ActivityAction.UPDATE_PROJECT.getValue())
+            .addPriority(EventPriority.HIGH)
             .addObjectId(getBefore().getProjectId())
             .addObjectName(getBefore().getProjectName())
+            .addObjectType(EventObject.PROJECT)
             .addProjectId(getBefore().getProjectId())
+            .addSubjectId(getUserId())
+            .addSubjectName(getUserLogin())
+            .addSubjectType(EventSubject.USER)
             .addHistoryField(processParameter(getBefore().getConfig(),
                 getAfter().getConfig(),
                 INTERRUPT_JOB_TIME.getAttribute()

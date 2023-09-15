@@ -1,11 +1,26 @@
-FROM amazoncorretto:11.0.17
-LABEL version=5.7.4 description="EPAM Report portal. Main API Service" maintainer="Andrei Varabyeu <andrei_varabyeu@epam.com>, Hleb Kanonik <hleb_kanonik@epam.com>"
-ARG GH_TOKEN
-ARG GH_URL=https://__:$GH_TOKEN@maven.pkg.github.com/reportportal/service-api/com/epam/reportportal/service-api/5.7.4/service-api-5.7.4-exec.jar
-RUN curl -O -L $GH_URL \
-    --output service-api-5.7.4-exec.jar && \
-    echo 'exec java ${JAVA_OPTS} -jar service-api-5.7.4-exec.jar' > /start.sh && chmod +x /start.sh
+FROM gradle:6.8.3-jdk11 AS build
+ARG RELEASE_MODE
+ARG APP_VERSION
+ARG GITHUB_USER
+ARG GITHUB_TOKEN
+WORKDIR /usr/app
+COPY . /usr/app
+RUN if [ "${RELEASE_MODE}" = true ]; then \
+    gradle build --exclude-task test \
+        -PreleaseMode=true \
+        -PgithubUserName=${GITHUB_USER} \
+        -PgithubToken=${GITHUB_TOKEN} \
+        -Dorg.gradle.project.version=${APP_VERSION}; \
+    else gradle build --exclude-task test -Dorg.gradle.project.version=${APP_VERSION}; fi
+
+# For ARM build use flag: `--platform linux/arm64`
+FROM --platform=$BUILDPLATFORM amazoncorretto:11.0.20
+LABEL version=${APP_VERSION} description="EPAM Report portal. Main API Service" maintainer="Andrei Varabyeu <andrei_varabyeu@epam.com>, Hleb Kanonik <hleb_kanonik@epam.com>"
+ARG APP_VERSION=${APP_VERSION}
+ENV APP_DIR=/usr/app
 ENV JAVA_OPTS="-Xmx1g -XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=70 -Djava.security.egd=file:/dev/./urandom"
+WORKDIR $APP_DIR
+COPY --from=build $APP_DIR/build/libs/service-api-*exec.jar .
 VOLUME ["/tmp"]
 EXPOSE 8080
-ENTRYPOINT ./start.sh
+ENTRYPOINT exec java ${JAVA_OPTS} -jar ${APP_DIR}/service-api-*exec.jar

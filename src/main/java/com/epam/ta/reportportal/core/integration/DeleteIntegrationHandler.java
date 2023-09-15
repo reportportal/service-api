@@ -26,15 +26,17 @@ public interface DeleteIntegrationHandler {
 
   /**
    * @param integrationId Integration id
+   * @param user          {@link ReportPortalUser}
    * @return Response data
    */
-  OperationCompletionRS deleteGlobalIntegration(Long integrationId);
+  OperationCompletionRS deleteGlobalIntegration(Long integrationId, ReportPortalUser user);
 
   /**
    * @param type {@link com.epam.ta.reportportal.entity.integration.IntegrationType#name}
+   * @param user {@link ReportPortalUser}
    * @return Response data
    */
-  OperationCompletionRS deleteGlobalIntegrationsByType(String type);
+  OperationCompletionRS deleteGlobalIntegrationsByType(String type, ReportPortalUser user);
 
   /**
    * @param integrationId Integration id

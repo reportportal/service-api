@@ -18,7 +18,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.10.0' : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.10.0' : 'develop')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.10.0' : 'feature/settings')
     //TODO refactor with archive download
     testScriptsSrc = [
             (migrationsUrl + '/migrations/0_extensions.up.sql')                        : 'V001__extensions.sql',
@@ -65,6 +65,11 @@ project.ext {
             (migrationsUrl + '/migrations/69_replace_activity_table.up.sql')           : 'V069__replace_activity_table.sql',
             (migrationsUrl + '/migrations/71_user_bid_inviting_user_id.up.sql')        : 'V071__user_bid_inviting_user_id.sql',
             (migrationsUrl + '/migrations/72_add_attachment_name.up.sql')              : 'V072__add_attachment_name.sql',
+            (migrationsUrl + '/migrations/73_api_key_last_used_at.up.sql')             : 'V073__api_key_last_used_at.sql',
+            (migrationsUrl + '/migrations/74_sender_case_rule_name.up.sql')            : 'V074__sender_case_rule_name.sql',
+            (migrationsUrl + '/migrations/77_user_bid_extension.up.sql')               : 'V077__user_bid_extension.sql',
+            (migrationsUrl + '/migrations/78_email_server_documentation _link.up.sql') : 'V078__email_server_documentation _link.sql',
+            (migrationsUrl + '/migrations/79_drop_redundant_index.up.sql')             : 'V079__drop_redundant_index.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

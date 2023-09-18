@@ -32,6 +32,17 @@ import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfig
 public interface UpdateProjectHandler {
 
   /**
+   * Update specified project email configuration
+   *
+   * @param projectName                       Project Name
+   * @param updateProjectNotificationConfigRQ Request Data
+   * @param user                              User performing that update
+   * @return Operation Result
+   */
+  OperationCompletionRS updateProjectNotificationConfig(String projectName, ReportPortalUser user,
+      ProjectNotificationConfigDTO updateProjectNotificationConfigRQ);
+
+  /**
    * Update specified project(projectName, customer and addInfo)
    *
    * @param projectName     {@link com.epam.ta.reportportal.entity.project.Project#name}

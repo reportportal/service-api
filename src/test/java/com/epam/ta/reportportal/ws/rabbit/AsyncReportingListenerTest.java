@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.ws.rabbit;
 
+import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.LOG_FULL_TO_LOG;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -29,8 +30,9 @@ import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
+import com.epam.ta.reportportal.ws.converter.builders.LogFullBuilder;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
@@ -239,12 +241,13 @@ class AsyncReportingListenerTest {
     when(launch.getId()).thenReturn(ID);
     when(launchRepository.findByUuid(LAUNCH_ID)).thenReturn(Optional.of(launch));
 
-    Log log = new LogBuilder().addSaveLogRq(saveLogRQ).addLaunch(launch).addProjectId(ID).get();
+    LogFull logFull = new LogFullBuilder().addSaveLogRq(saveLogRQ).addLaunch(launch).addProjectId(ID).get();
+    final Log log = LOG_FULL_TO_LOG.apply(logFull);
 
     asyncReportingListener.onMessage(message);
 
     verify(logRepository).save(log);
-    verify(logService).saveLogMessageToElasticSearch(log, ID);
+    verify(logService).saveLogMessage(logFull, ID);
     verify(attachmentBinaryDataService).attachToLog(
         eq(binaryDataMetaInfo), any(AttachmentMetaInfo.class));
   }
@@ -277,7 +280,8 @@ class AsyncReportingListenerTest {
     TestItem testItem = mock(TestItem.class);
     when(testItemRepository.findByUuid(ITEM_ID)).thenReturn(Optional.of(testItem));
 
-    Log log = new LogBuilder().addSaveLogRq(saveLogRQ).addTestItem(testItem).addProjectId(ID).get();
+    LogFull logFull = new LogFullBuilder().addSaveLogRq(saveLogRQ).addTestItem(testItem).addProjectId(ID).get();
+    final Log log = LOG_FULL_TO_LOG.apply(logFull);
 
     Launch launch = mock(Launch.class);
     when(launch.getId()).thenReturn(ID);
@@ -286,7 +290,7 @@ class AsyncReportingListenerTest {
     asyncReportingListener.onMessage(message);
 
     verify(logRepository).save(log);
-    verify(logService).saveLogMessageToElasticSearch(log, ID);
+    verify(logService).saveLogMessage(logFull, ID);
     verify(attachmentBinaryDataService).attachToLog(
         eq(binaryDataMetaInfo), any(AttachmentMetaInfo.class));
   }

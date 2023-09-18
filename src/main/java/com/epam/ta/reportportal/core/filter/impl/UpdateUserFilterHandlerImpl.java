@@ -227,53 +227,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 		}
 		return attribute;
 	}
-	private String cutStringToLength(String string, int length) {
-		if (string.length() > length) {
-			string = string.substring(0, length);
-		}
 
-		return string;
-	}
-
-	private String cutAttributesToMaxLength(String keyAndValue) {
-		if (keyAndValue == null || keyAndValue.isEmpty()) {
-			return keyAndValue;
-		}
-		String[] attributeArray = keyAndValue.split(ATTRIBUTES_DELIMITER);
-		if (attributeArray.length == 0) {
-			return cutAttributeToLength(keyAndValue, ValidationConstraints.MAX_ATTRIBUTE_LENGTH);
-		}
-		StringBuilder result = new StringBuilder();
-		for (int i = 0; i < attributeArray.length; i++) {
-			String attribute = attributeArray[i];
-			attribute = cutAttributeToLength(attribute, ValidationConstraints.MAX_ATTRIBUTE_LENGTH);
-			result.append(attribute);
-			if (i != attributeArray.length - 1){
-				result.append(ATTRIBUTES_DELIMITER);
-			}
-		}
-		return result.toString();
-	}
-
-	private String cutAttributeToLength(String attribute, int length){
-		String[] keyAndValueArray = attribute.split(KEY_AND_VALUE_DELIMITER);
-		if (keyAndValueArray.length == 0) {
-			attribute = cutStringToLength(attribute, length);
-		} else {
-			if (keyAndValueArray.length == 1) {
-				if (attribute.contains(KEY_AND_VALUE_DELIMITER)) {
-					attribute = cutStringToLength(keyAndValueArray[0], length) + KEY_AND_VALUE_DELIMITER;
-				} else {
-					attribute = cutStringToLength(attribute, length);
-				}
-			} else {
-				String key = cutStringToLength(keyAndValueArray[0], length);
-				String value = cutStringToLength(keyAndValueArray[1], length);
-				attribute = key + KEY_AND_VALUE_DELIMITER + value;
-			}
-		}
-		return attribute;
-	}
 	private String cutStringToLength(String string, int length) {
 		if (string.length() > length) {
 			string = string.substring(0, length);

@@ -22,6 +22,7 @@ import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTE
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
@@ -30,6 +31,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.activity.ChangeUserTypeEvent;
+import com.epam.ta.reportportal.core.events.activity.CreateInvitationLinkEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
@@ -53,6 +56,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
@@ -75,6 +79,9 @@ class CreateUserHandlerImplTest {
 
   @Mock
   private ThreadPoolTaskExecutor emailExecutorService;
+
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks
   private CreateUserHandlerImpl handler;
@@ -226,6 +233,7 @@ class CreateUserHandlerImplTest {
         IntegrationGroupEnum.NOTIFICATION
     )).thenReturn(Optional.of(new Integration()));
     doNothing().when(emailExecutorService).execute(any());
+    doNothing().when(eventPublisher).publishEvent(isA(CreateInvitationLinkEvent.class));
 
     CreateUserRQ request = new CreateUserRQ();
     request.setDefaultProject(projectName);

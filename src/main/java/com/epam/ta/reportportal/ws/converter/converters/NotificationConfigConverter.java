@@ -93,6 +93,7 @@ public final class NotificationConfigConverter {
 				)));
 		senderCase.setEnabled(resource.isEnabled());
 		senderCase.setAttributesOperator(LogicalOperator.valueOf(resource.getAttributesOperator()));
+		senderCase.setRuleName(resource.getRuleName());
 		return senderCase;
 	};
 }

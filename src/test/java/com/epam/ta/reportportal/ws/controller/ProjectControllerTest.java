@@ -510,6 +510,7 @@ class ProjectControllerTest extends BaseMvcTest {
 		senderCaseDTO.setRecipients(Collections.singletonList("default"));
 		senderCaseDTO.setLaunchNames(Collections.singletonList("test launch"));
 		senderCaseDTO.setEnabled(true);
+		senderCaseDTO.setRuleName("rule #1");
 		ItemAttributeResource launchAttribute = new ItemAttributeResource();
 		launchAttribute.setKey("key");
 		launchAttribute.setValue("val");

@@ -110,13 +110,6 @@ public class MvcConfig implements WebMvcConfigurer {
 	}
 
 	@Override
-	public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-		converters.clear();
-		converters.add(jsonConverter());
-		converters.add(stringConverter());
-	}
-
-	@Override
 	public void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> exceptionResolvers) {
 		/* to propagate exceptions from downstream services */
 		ClientResponseForwardingExceptionHandler forwardingExceptionHandler = new ClientResponseForwardingExceptionHandler();

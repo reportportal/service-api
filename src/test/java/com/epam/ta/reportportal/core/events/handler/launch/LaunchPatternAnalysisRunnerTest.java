@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
-import com.epam.ta.reportportal.core.analyzer.pattern.PatternAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.pattern.LaunchPatternAnalyzer;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil;
@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -45,10 +46,10 @@ import org.junit.jupiter.api.Test;
 class LaunchPatternAnalysisRunnerTest {
 
   private final GetLaunchHandler getLaunchHandler = mock(GetLaunchHandler.class);
-  private final PatternAnalyzer patternAnalyzer = mock(PatternAnalyzer.class);
+  private final LaunchPatternAnalyzer launchPatternAnalyzer = mock(LaunchPatternAnalyzer.class);
 
   private final LaunchPatternAnalysisRunner runner = new LaunchPatternAnalysisRunner(
-      getLaunchHandler, patternAnalyzer);
+      getLaunchHandler, launchPatternAnalyzer);
 
   @Test
   public void shouldAnalyzeWhenEnabled() {
@@ -65,8 +66,8 @@ class LaunchPatternAnalysisRunnerTest {
     when(getLaunchHandler.get(event.getId())).thenReturn(launch);
     runner.handle(event, mapping);
 
-    verify(patternAnalyzer, times(1)).analyzeTestItems(launch,
-        Collections.singleton(AnalyzeItemsMode.TO_INVESTIGATE));
+    verify(launchPatternAnalyzer, times(1)).analyzeLaunch(launch,
+        Sets.newHashSet(AnalyzeItemsMode.TO_INVESTIGATE, AnalyzeItemsMode.IGNORE_IMMEDIATE));
 
   }
 
@@ -85,7 +86,7 @@ class LaunchPatternAnalysisRunnerTest {
     runner.handle(event, mapping);
 
     verify(getLaunchHandler, times(0)).get(event.getId());
-    verify(patternAnalyzer, times(0)).analyzeTestItems(launch,
+    verify(launchPatternAnalyzer, times(0)).analyzeLaunch(launch,
         Collections.singleton(AnalyzeItemsMode.TO_INVESTIGATE));
 
   }

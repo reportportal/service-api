@@ -17,14 +17,15 @@
 package com.epam.ta.reportportal.core.configs.event.listener;
 
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
+import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
+import com.epam.ta.reportportal.core.events.activity.item.TestItemFinishedEvent;
 import com.epam.ta.reportportal.core.events.listener.LaunchFinishedEventListener;
 import com.epam.ta.reportportal.core.events.listener.TestItemFinishedEventListener;
+import com.epam.ta.reportportal.core.events.listener.TestItemIssueResolvedEventListener;
 import com.epam.ta.reportportal.core.events.subscriber.impl.delegate.ProjectConfigDelegatingSubscriber;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -39,8 +40,14 @@ public class EventListenerConfig {
   }
 
   @Bean
+  public TestItemIssueResolvedEventListener testItemIssueResolvedEventListener(
+      ProjectConfigDelegatingSubscriber<IssueResolvedEvent> itemIssueResolvedDelegatingSubscriber) {
+    return new TestItemIssueResolvedEventListener(List.of(itemIssueResolvedDelegatingSubscriber));
+  }
+
+  @Bean
   public TestItemFinishedEventListener testItemFinishedEventListener(
-      ProjectConfigDelegatingSubscriber<ItemFinishedEvent> itemFinishedDelegatingSubscriber) {
-    return new TestItemFinishedEventListener(List.of(itemFinishedDelegatingSubscriber));
+      ProjectConfigDelegatingSubscriber<TestItemFinishedEvent> testItemFinishedDelegatingSubscriber) {
+    return new TestItemFinishedEventListener(List.of(testItemFinishedDelegatingSubscriber));
   }
 }

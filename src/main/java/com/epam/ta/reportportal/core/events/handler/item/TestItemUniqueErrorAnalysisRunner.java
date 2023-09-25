@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.events.handler.item;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getUniqueErrorConfig;
 
-import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
+import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.ta.reportportal.core.launch.cluster.ClusterGenerator;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.ws.model.project.UniqueErrorConfig;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -37,20 +36,17 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class TestItemUniqueErrorAnalysisRunner implements
-    ConfigurableEventHandler<ItemFinishedEvent, Map<String, String>> {
+    ConfigurableEventHandler<IssueResolvedEvent, Map<String, String>> {
 
   private final ClusterGenerator clusterGenerator;
-  private final ApplicationEventPublisher eventPublisher;
 
   public TestItemUniqueErrorAnalysisRunner(
-      @Qualifier("uniqueErrorGenerator") ClusterGenerator clusterGenerator,
-      ApplicationEventPublisher eventPublisher) {
+      @Qualifier("uniqueErrorGenerator") ClusterGenerator clusterGenerator) {
     this.clusterGenerator = clusterGenerator;
-    this.eventPublisher = eventPublisher;
   }
 
   @Override
-  public void handle(ItemFinishedEvent event, Map<String, String> projectConfig) {
+  public void handle(IssueResolvedEvent event, Map<String, String> projectConfig) {
     final UniqueErrorConfig uniqueErrorConfig = getUniqueErrorConfig(projectConfig);
 
     if (uniqueErrorConfig.isEnabled()) {

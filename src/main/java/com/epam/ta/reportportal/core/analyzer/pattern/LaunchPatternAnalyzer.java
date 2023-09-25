@@ -24,7 +24,7 @@ import java.util.Set;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface PatternAnalyzer {
+public interface LaunchPatternAnalyzer {
 
   /**
    * Analyze by {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate#value} all
@@ -41,5 +41,5 @@ public interface PatternAnalyzer {
    * @param analyzeModes {@link AnalyzeItemsMode} to modify
    *                     {@link com.epam.ta.reportportal.entity.item.TestItem} query conditions
    */
-  void analyzeTestItems(Launch launch, Set<AnalyzeItemsMode> analyzeModes);
+  void analyzeLaunch(Launch launch, Set<AnalyzeItemsMode> analyzeModes);
 }

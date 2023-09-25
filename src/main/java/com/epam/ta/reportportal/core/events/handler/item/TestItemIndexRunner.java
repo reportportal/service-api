@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.events.handler.item;
 
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
-import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
+import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Lists;
@@ -32,7 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class TestItemIndexRunner implements
-    ConfigurableEventHandler<ItemFinishedEvent, Map<String, String>> {
+    ConfigurableEventHandler<IssueResolvedEvent, Map<String, String>> {
 
   private final LogIndexer logIndexer;
 
@@ -43,7 +43,7 @@ public class TestItemIndexRunner implements
 
   @Override
   @Transactional(readOnly = true)
-  public void handle(ItemFinishedEvent event, Map<String, String> projectConfig) {
+  public void handle(IssueResolvedEvent event, Map<String, String> projectConfig) {
 
     final AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(projectConfig);
 

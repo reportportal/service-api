@@ -20,7 +20,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
+import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
 import com.epam.ta.reportportal.core.events.subscriber.impl.delegate.ProjectConfigDelegatingSubscriber;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -28,17 +28,17 @@ import org.junit.jupiter.api.Test;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-class TestItemFinishedEventListenerTest {
+class TestIssueResolvedEventListenerTest {
 
-  private final ProjectConfigDelegatingSubscriber<ItemFinishedEvent> delegatingSubscriber = (ProjectConfigDelegatingSubscriber<ItemFinishedEvent>) mock(
+  private final ProjectConfigDelegatingSubscriber<IssueResolvedEvent> delegatingSubscriber = (ProjectConfigDelegatingSubscriber<IssueResolvedEvent>) mock(
       ProjectConfigDelegatingSubscriber.class);
 
-  private final TestItemFinishedEventListener eventListener = new TestItemFinishedEventListener(
+  private final TestItemIssueResolvedEventListener eventListener = new TestItemIssueResolvedEventListener(
       List.of(delegatingSubscriber));
 
   @Test
   void shouldHandle() {
-    final ItemFinishedEvent event = new ItemFinishedEvent(3L, 2L, 1L);
+    final IssueResolvedEvent event = new IssueResolvedEvent(3L, 2L, 1L);
 
     eventListener.onApplicationEvent(event);
 

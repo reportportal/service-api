@@ -17,7 +17,9 @@
 package com.epam.ta.reportportal.core.configs.event.subscriber;
 
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
+import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
+import com.epam.ta.reportportal.core.events.activity.item.TestItemFinishedEvent;
+import com.epam.ta.reportportal.core.events.handler.item.TestItemPatternAnalysisRunner;
 import com.epam.ta.reportportal.core.events.handler.item.TestItemIndexRunner;
 import com.epam.ta.reportportal.core.events.handler.item.TestItemUniqueErrorAnalysisRunner;
 import com.epam.ta.reportportal.core.events.handler.launch.LaunchAnalysisFinishEventPublisher;
@@ -56,11 +58,20 @@ public class EventSubscriberConfig {
   }
 
   @Bean
-  public ProjectConfigDelegatingSubscriber<ItemFinishedEvent> itemFinishedDelegatingSubscriber(
+  public ProjectConfigDelegatingSubscriber<IssueResolvedEvent> itemIssueResolvedDelegatingSubscriber(
       ProjectConfigProvider projectConfigProvider, TestItemIndexRunner testItemIndexRunner,
       TestItemUniqueErrorAnalysisRunner testItemUniqueErrorAnalysisRunner) {
     return new ProjectConfigDelegatingSubscriber<>(projectConfigProvider,
         List.of(testItemIndexRunner, testItemUniqueErrorAnalysisRunner)
     );
   }
+
+  @Bean
+  public ProjectConfigDelegatingSubscriber<TestItemFinishedEvent> testItemFinishedDelegatingSubscriber(
+      ProjectConfigProvider projectConfigProvider, TestItemPatternAnalysisRunner testItemPatternAnalysisRunner) {
+    return new ProjectConfigDelegatingSubscriber<>(projectConfigProvider,
+        List.of(testItemPatternAnalysisRunner)
+    );
+  }
+
 }

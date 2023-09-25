@@ -17,13 +17,13 @@
 package com.epam.ta.reportportal.core.events.handler.launch;
 
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
-import com.epam.ta.reportportal.core.analyzer.pattern.PatternAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.pattern.LaunchPatternAnalyzer;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import java.util.Collections;
+import com.google.common.collect.Sets;
 import java.util.Map;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,13 +38,13 @@ public class LaunchPatternAnalysisRunner implements
     ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
 
   private final GetLaunchHandler getLaunchHandler;
-  private final PatternAnalyzer patternAnalyzer;
+  private final LaunchPatternAnalyzer launchPatternAnalyzer;
 
   @Autowired
   public LaunchPatternAnalysisRunner(GetLaunchHandler getLaunchHandler,
-      PatternAnalyzer patternAnalyzer) {
+      LaunchPatternAnalyzer launchPatternAnalyzer) {
     this.getLaunchHandler = getLaunchHandler;
-    this.patternAnalyzer = patternAnalyzer;
+    this.launchPatternAnalyzer = launchPatternAnalyzer;
   }
 
   @Override
@@ -56,8 +56,8 @@ public class LaunchPatternAnalysisRunner implements
 
     if (isPatternAnalysisEnabled) {
       final Launch launch = getLaunchHandler.get(launchFinishedEvent.getId());
-      patternAnalyzer.analyzeTestItems(launch,
-          Collections.singleton(AnalyzeItemsMode.TO_INVESTIGATE));
+      launchPatternAnalyzer.analyzeLaunch(launch,
+          Sets.newHashSet(AnalyzeItemsMode.TO_INVESTIGATE, AnalyzeItemsMode.IGNORE_IMMEDIATE));
     }
   }
 

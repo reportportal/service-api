@@ -67,6 +67,7 @@ public final class NotificationConfigConverter {
 		resource.setEnabled(model.isEnabled());
 		resource.setAttributesOperator(model.getAttributesOperator().getOperator());
 		resource.setRuleName(model.getRuleName());
+		resource.setId(model.getId());
 		return resource;
 	};
 
@@ -95,6 +96,7 @@ public final class NotificationConfigConverter {
 		senderCase.setEnabled(resource.isEnabled());
 		senderCase.setAttributesOperator(LogicalOperator.valueOf(resource.getAttributesOperator()));
 		senderCase.setRuleName(resource.getRuleName());
+		senderCase.setId(resource.getId());
 		return senderCase;
 	};
 }

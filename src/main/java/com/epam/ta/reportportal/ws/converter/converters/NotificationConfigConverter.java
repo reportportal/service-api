@@ -66,6 +66,7 @@ public final class NotificationConfigConverter {
 		resource.setRecipients(Lists.newArrayList(model.getRecipients()));
 		resource.setEnabled(model.isEnabled());
 		resource.setAttributesOperator(model.getAttributesOperator().getOperator());
+		resource.setRuleName(model.getRuleName());
 		return resource;
 	};
 

@@ -342,7 +342,7 @@ public class XunitImportHandlerTest {
           "2023-09-26T12:47:26 UTC",
           "2023-09-26T12:47:26 GMT",
           "2023-09-26T12:47:26+00:00 GMT",
-          "1695721646000"
+          "1695732446000"
       }
   )
   public void parseTimeStampDifferentFormats(String timestamp)
@@ -352,7 +352,7 @@ public class XunitImportHandlerTest {
 
     LocalDateTime startDateTime = (LocalDateTime) method.invoke(xunitImportHandler, timestamp);
 
-    assertEquals("2023-09-26T12:47:26", startDateTime.toString());
+   assertEquals("2023-09-26T12:47:26", startDateTime.toString());
   }
 
   private void setStartSuiteTime(XunitImportHandler xunitImportHandler,

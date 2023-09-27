@@ -15,6 +15,9 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl.junit;
 
+import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toMillis;
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
+
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
@@ -28,6 +31,18 @@ import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.google.common.base.Strings;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalQueries;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,23 +52,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
-
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalQueries;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.temporal.TemporalAccessor;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toMillis;
-import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -200,8 +198,7 @@ public class XunitImportHandler extends DefaultHandler {
   private LocalDateTime parseTimeStamp(String timestamp) {
     // try to parse datetime as Long, otherwise parse as timestamp
     try {
-      return LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(timestamp)),
-          ZoneId.systemDefault());
+      return LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(timestamp)), ZoneOffset.UTC);
     } catch (NumberFormatException ignored) {
       DateTimeFormatter formatter = new DateTimeFormatterBuilder()
           .appendOptional(DateTimeFormatter.RFC_1123_DATE_TIME)

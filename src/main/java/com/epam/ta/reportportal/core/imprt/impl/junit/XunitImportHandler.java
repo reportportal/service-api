@@ -44,6 +44,10 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalQueries;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Optional;
@@ -193,29 +197,38 @@ public class XunitImportHandler extends DefaultHandler {
 		itemUuids.push(id);
 	}
 
-	private LocalDateTime parseTimeStamp(String timestamp) {
-		LocalDateTime localDateTime = null;
-		try {
-			localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(timestamp)), ZoneId.systemDefault());
-		} catch (NumberFormatException ignored) {
-			//ignored
-		}
-		if (null == localDateTime) {
-			DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendOptional(DateTimeFormatter.RFC_1123_DATE_TIME)
-					.appendOptional(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-					.optionalStart()
-					.appendZoneId()
-					.optionalEnd()
-					.optionalStart()
-					.appendLiteral(' ')
-					.parseCaseSensitive()
-					.appendZoneId()
-					.optionalEnd()
-					.toFormatter();
-			localDateTime = LocalDateTime.parse(timestamp, formatter);
-		}
-		return localDateTime;
-	}
+  private LocalDateTime parseTimeStamp(String timestamp) {
+    // try to parse datetime as Long, otherwise parse as timestamp
+    try {
+      return LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(timestamp)),
+          ZoneId.systemDefault());
+    } catch (NumberFormatException ignored) {
+      DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+          .appendOptional(DateTimeFormatter.RFC_1123_DATE_TIME)
+          .appendOptional(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+          .appendOptional(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+          .optionalStart()
+            .appendOffsetId()
+            .appendZoneId()
+          .optionalEnd()
+          .optionalStart()
+            .appendLiteral(' ')
+            .parseCaseSensitive()
+            .appendZoneId()
+          .optionalEnd()
+          .toFormatter();
+
+      TemporalAccessor temporalAccessor = formatter.parse(timestamp);
+      if (isParsedTimeStampHasOffset(temporalAccessor)) {
+        return ZonedDateTime.from(temporalAccessor)
+            .withZoneSameInstant(ZoneOffset.UTC)
+            .toLocalDateTime();
+      } else {
+        return LocalDateTime.from(temporalAccessor);
+      }
+    }
+
+  }
 
 	private void startTestItem(String name) {
 		StartTestItemRQ rq = buildStartTestRq(name);
@@ -299,4 +312,9 @@ public class XunitImportHandler extends DefaultHandler {
 	long getCommonDuration() {
 		return commonDuration;
 	}
+
+  private boolean isParsedTimeStampHasOffset(TemporalAccessor temporalAccessor) {
+    return temporalAccessor.query(TemporalQueries.offset()) != null;
+  }
+
 }

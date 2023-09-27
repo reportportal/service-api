@@ -33,7 +33,7 @@ public abstract class AbstractPatternAnalysisSelector implements PatternAnalysis
     final Set<Long> sourceIds = Sets.newHashSet(itemIds);
     final List<Long> itemsWithMatchedLogs = getItemsWithMatches(pattern, sourceIds);
 
-    sourceIds.removeAll(itemsWithMatchedLogs);
+    itemsWithMatchedLogs.forEach(sourceIds::remove);
 
     if (CollectionUtils.isNotEmpty(sourceIds)) {
       final List<Long> itemsWithNestedSteps = testItemRepository.selectIdsByHasDescendants(

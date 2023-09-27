@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
+import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -224,6 +224,6 @@ class FinishTestItemHandlerImplTest {
     verify(statusChangingStrategy, times(1)).changeStatus(any(), any(), any());
     verify(issueEntityRepository, times(1)).save(any());
     verify(messageBus, times(1)).publishActivity(any());
-    verify(eventPublisher, times(1)).publishEvent(any(ItemFinishedEvent.class));
+    verify(eventPublisher, times(1)).publishEvent(any(IssueResolvedEvent.class));
   }
 }

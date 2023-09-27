@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 EPAM Systems
+ * Copyright 2021 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.events.listener;
 
-import com.epam.ta.reportportal.core.events.activity.item.TestItemFinishedEvent;
+import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
 import com.epam.ta.reportportal.core.events.subscriber.EventSubscriber;
 import java.util.List;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
- * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class TestItemFinishedEventListener {
+public class TestItemIssueResolvedEventListener {
 
-  private final List<EventSubscriber<TestItemFinishedEvent>> subscribers;
+  private final List<EventSubscriber<IssueResolvedEvent>> subscribers;
 
-  public TestItemFinishedEventListener(List<EventSubscriber<TestItemFinishedEvent>> subscribers) {
+  public TestItemIssueResolvedEventListener(List<EventSubscriber<IssueResolvedEvent>> subscribers) {
     this.subscribers = subscribers;
   }
 
   @Async(value = "eventListenerExecutor")
   @TransactionalEventListener
-  public void onApplicationEvent(TestItemFinishedEvent event) {
+  public void onApplicationEvent(IssueResolvedEvent event) {
     subscribers.forEach(s -> s.handleEvent(event));
   }
 }

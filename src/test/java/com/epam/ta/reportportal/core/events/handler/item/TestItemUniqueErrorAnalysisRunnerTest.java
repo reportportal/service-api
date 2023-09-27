@@ -23,7 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
+import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
 import com.epam.ta.reportportal.core.launch.cluster.ClusterGenerator;
 import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
@@ -31,7 +31,6 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -39,15 +38,13 @@ import org.springframework.context.ApplicationEventPublisher;
 class TestItemUniqueErrorAnalysisRunnerTest {
 
   private final ClusterGenerator clusterGenerator = mock(ClusterGenerator.class);
-  private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
-
   private final TestItemUniqueErrorAnalysisRunner runner = new TestItemUniqueErrorAnalysisRunner(
-      clusterGenerator, eventPublisher);
+      clusterGenerator);
 
   @Test
   void shouldAnalyzeWhenEnabled() {
 
-    final ItemFinishedEvent event = new ItemFinishedEvent(3L, 2L, 1L);
+    final IssueResolvedEvent event = new IssueResolvedEvent(3L, 2L, 1L);
 
     final Map<String, String> projectConfig = ImmutableMap.<String, String>builder()
         .put(ProjectAttributeEnum.AUTO_UNIQUE_ERROR_ANALYZER_ENABLED.getAttribute(), "true")
@@ -72,7 +69,7 @@ class TestItemUniqueErrorAnalysisRunnerTest {
   @Test
   void shouldNotAnalyzeWhenDisabled() {
 
-    final ItemFinishedEvent event = new ItemFinishedEvent(3L, 2L, 1L);
+    final IssueResolvedEvent event = new IssueResolvedEvent(3L, 2L, 1L);
 
     final Map<String, String> projectConfig = ImmutableMap.<String, String>builder()
         .put(ProjectAttributeEnum.AUTO_UNIQUE_ERROR_ANALYZER_ENABLED.getAttribute(), "false")

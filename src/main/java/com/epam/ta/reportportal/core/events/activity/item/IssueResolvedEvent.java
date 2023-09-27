@@ -21,7 +21,7 @@ import com.epam.ta.reportportal.core.events.ProjectIdAwareEvent;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class ItemFinishedEvent implements ProjectIdAwareEvent {
+public class IssueResolvedEvent implements ProjectIdAwareEvent {
 
   private final Long itemId;
 
@@ -29,7 +29,7 @@ public class ItemFinishedEvent implements ProjectIdAwareEvent {
 
   private final Long projectId;
 
-  public ItemFinishedEvent(Long itemId, Long launchId, Long projectId) {
+  public IssueResolvedEvent(Long itemId, Long launchId, Long projectId) {
     this.itemId = itemId;
     this.launchId = launchId;
     this.projectId = projectId;

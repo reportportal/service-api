@@ -45,7 +45,8 @@ import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
+import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
+import com.epam.ta.reportportal.core.events.activity.item.TestItemFinishedEvent;
 import com.epam.ta.reportportal.core.events.activity.item.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.core.item.ExternalTicketHandler;
@@ -200,6 +201,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
                       ))
               ));
     }
+    eventPublisher.publishEvent(
+        new TestItemFinishedEvent(itemForUpdate, projectDetails.getProjectId()));
 
     return new OperationCompletionRS(
         "TestItem with ID = '" + testItemId + "' successfully finished.");
@@ -259,7 +262,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
    */
   private void verifyTestItem(TestItem testItem, Optional<StatusEnum> actualStatus,
       boolean hasChildren) {
-    expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(
+    expect(actualStatus.isEmpty() && !hasChildren, equalTo(Boolean.FALSE)).verify(
         AMBIGUOUS_TEST_ITEM_STATUS,
         formattedSupplier(
             "There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
@@ -355,8 +358,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
   }
 
   private boolean isIssueRequired(TestItem testItem, StatusEnum status) {
-    return Preconditions.statusIn(FAILED, SKIPPED).test(status) && !ofNullable(
-        testItem.getRetryOf()).isPresent()
+    return Preconditions.statusIn(FAILED, SKIPPED).test(status) && ofNullable(
+        testItem.getRetryOf()).isEmpty()
         && testItem.isHasStats();
   }
 
@@ -415,7 +418,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
       updateItemIssue(testItemResults, issue);
       if (ITEM_CAN_BE_INDEXED.test(testItem)) {
         eventPublisher.publishEvent(
-            new ItemFinishedEvent(testItem.getItemId(), testItem.getLaunchId(), projectId));
+            new IssueResolvedEvent(testItem.getItemId(), testItem.getLaunchId(), projectId));
       }
     });
   }

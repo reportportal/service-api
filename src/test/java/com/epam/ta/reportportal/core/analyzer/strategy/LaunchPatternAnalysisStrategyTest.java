@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
-import com.epam.ta.reportportal.core.analyzer.pattern.PatternAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.pattern.LaunchPatternAnalyzer;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
@@ -50,12 +50,12 @@ class LaunchPatternAnalysisStrategyTest {
 
   private final ProjectRepository projectRepository = mock(ProjectRepository.class);
   private final LaunchRepository launchRepository = mock(LaunchRepository.class);
-  private final PatternAnalyzer patternAnalyzer = mock(PatternAnalyzer.class);
+  private final LaunchPatternAnalyzer launchPatternAnalyzer = mock(LaunchPatternAnalyzer.class);
 
   private final LaunchPatternAnalysisStrategy launchPatternAnalysisStrategy = new LaunchPatternAnalysisStrategy(
       projectRepository,
       launchRepository,
-      patternAnalyzer
+      launchPatternAnalyzer
   );
 
   @Test
@@ -82,7 +82,7 @@ class LaunchPatternAnalysisStrategyTest {
     analyzeLaunchRQ.setAnalyzerTypeName("patternAnalyzer");
     launchPatternAnalysisStrategy.analyze(analyzeLaunchRQ, projectDetails, user);
 
-    verify(patternAnalyzer, times(1)).analyzeTestItems(launch,
+    verify(launchPatternAnalyzer, times(1)).analyzeLaunch(launch,
         Sets.newHashSet(AnalyzeItemsMode.TO_INVESTIGATE));
 
   }

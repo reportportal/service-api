@@ -23,7 +23,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
+import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.ImmutableMap;
@@ -43,7 +43,7 @@ class TestItemIndexRunnerTest {
   @Test
   void shouldInvokeIndexer() {
 
-    final ItemFinishedEvent event = new ItemFinishedEvent(3L, 2L, 1L);
+    final IssueResolvedEvent event = new IssueResolvedEvent(3L, 2L, 1L);
 
     final Map<String, String> projectConfig = ImmutableMap.<String, String>builder()
         .put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), "false")

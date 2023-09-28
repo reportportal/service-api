@@ -22,7 +22,7 @@ import static java.util.stream.Collectors.toSet;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
-import com.epam.ta.reportportal.core.analyzer.pattern.PatternAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.pattern.LaunchPatternAnalyzer;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -40,14 +40,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class LaunchPatternAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
 
-  private final PatternAnalyzer patternAnalyzer;
+  private final LaunchPatternAnalyzer launchPatternAnalyzer;
 
   @Autowired
   public LaunchPatternAnalysisStrategy(ProjectRepository projectRepository,
       LaunchRepository launchRepository,
-      PatternAnalyzer patternAnalyzer) {
+      LaunchPatternAnalyzer launchPatternAnalyzer) {
     super(projectRepository, launchRepository);
-    this.patternAnalyzer = patternAnalyzer;
+    this.launchPatternAnalyzer = launchPatternAnalyzer;
   }
 
   public void analyze(AnalyzeLaunchRQ analyzeRQ, ReportPortalUser.ProjectDetails projectDetails,
@@ -65,7 +65,7 @@ public class LaunchPatternAnalysisStrategy extends AbstractLaunchAnalysisStrateg
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, analyzeRQ.getLaunchId()));
     validateLaunch(launch, projectDetails);
 
-    patternAnalyzer.analyzeTestItems(launch, analyzeItemsModes);
+    launchPatternAnalyzer.analyzeLaunch(launch, analyzeItemsModes);
 
   }
 }

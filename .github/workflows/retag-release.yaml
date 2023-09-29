@@ -1,8 +1,10 @@
 name: Retag RC Docker image
 
 on:
-  pull_request_review:
-    types: [submitted]
+  push:
+    branches:
+      - "master"
+      - "test/*"
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}         # set this to your preferred AWS region, e.g. us-west-1
@@ -15,6 +17,7 @@ jobs:
     name: Retag and push image 
     runs-on: ubuntu-latest
     environment: rc
+    if: contains(github.ref, 'rc/') || contains(github.ref, 'hotfix/')
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -32,11 +35,17 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
         with:
           mask-password: 'true'
-
+      
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      
       - name: Create variables
         id: vars
         run: |
-          echo "tag=$(echo '${{ github.event.pull_request.base.ref }}' | sed -nE 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/p')" >> $GITHUB_OUTPUT
+          echo "tag=$(echo '${{ github.ref_name }}' | sed -nE 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/p')" >> $GITHUB_OUTPUT
       
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2

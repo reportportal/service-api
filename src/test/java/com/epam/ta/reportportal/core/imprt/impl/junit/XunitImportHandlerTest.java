@@ -18,6 +18,8 @@ import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -28,6 +30,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -326,6 +330,29 @@ public class XunitImportHandlerTest {
     assertEquals(LogLevel.WARN.name(), capturedSaveLogRQ.getLevel(),
         "The log level should be WARN when handling the WARNING tag"
     );
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+      value = {
+          "2023-09-26T14:47:26+02:00",
+          "2023-09-26T07:47:26-05:00",
+          "2023-09-26T12:47:26+00:00",
+          "2023-09-26T12:47:26",
+          "2023-09-26T12:47:26 UTC",
+          "2023-09-26T12:47:26 GMT",
+          "2023-09-26T12:47:26+00:00 GMT",
+          "1695732446000"
+      }
+  )
+  public void parseTimeStampDifferentFormats(String timestamp)
+      throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    Method method = XunitImportHandler.class.getDeclaredMethod("parseTimeStamp", String.class);
+    method.setAccessible(true);
+
+    LocalDateTime startDateTime = (LocalDateTime) method.invoke(xunitImportHandler, timestamp);
+
+    assertEquals("2023-09-26T12:47:26", startDateTime.toString());
   }
 
   private void setStartSuiteTime(XunitImportHandler xunitImportHandler,

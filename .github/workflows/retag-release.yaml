@@ -17,7 +17,7 @@ jobs:
     name: Retag and push image 
     runs-on: ubuntu-latest
     environment: rc
-    if: contains(github.ref, 'rc/') || contains(github.ref, 'hotfix/')
+    if: contains(github.ref_name, 'rc/') || contains(github.ref_name, 'hotfix/')
     steps:
       - name: Checkout
         uses: actions/checkout@v3

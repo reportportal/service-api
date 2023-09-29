@@ -16,21 +16,20 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.starter.decorator;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
 import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.function.Predicate;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ExistingAnalyzerStarter implements LaunchAutoAnalysisStarter {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(ExistingAnalyzerStarter.class);
   private final AnalyzerService analyzerService;
   private final LaunchAutoAnalysisStarter launchAutoAnalysisStarter;
-
 
   public ExistingAnalyzerStarter(AnalyzerService analyzerService,
       LaunchAutoAnalysisStarter launchAutoAnalysisStarter) {
@@ -40,10 +39,10 @@ public class ExistingAnalyzerStarter implements LaunchAutoAnalysisStarter {
 
   @Override
   public void start(StartLaunchAutoAnalysisConfig config) {
-    if (analyzerService.hasAnalyzers()) {
-      launchAutoAnalysisStarter.start(config);
-    } else {
-      LOGGER.warn("There are no analyzer services are deployed.");
-    }
+    expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(
+        ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+        "There are no analyzer services are deployed."
+    );
+    launchAutoAnalysisStarter.start(config);
   }
 }

@@ -36,7 +36,7 @@ jobs:
       - name: Create variables
         id: vars
         run: |
-          echo "tag=$(echo '${{ github.head_ref }}' | sed -nE 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/p')" >> $GITHUB_OUTPUT
+          echo "tag=$(echo '${{ github.ref_name }}' | sed -nE 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/p')" >> $GITHUB_OUTPUT
       
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -46,10 +46,11 @@ jobs:
 
       - name: Build and Push Docker Image
         env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ steps.vars.outputs.tag }}
         run: |
-          docker buildx imagetools create $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION --tag $ECR_REPOSITORY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker buildx imagetools create $ECR_REGISTRY/$ECR_REPOSITORY:$LATEST_TAG --tag $ECR_REPOSITORY/$ECR_REPOSITORY:latest
+          docker buildx imagetools create $ECR_REGISTRY/$ECR_REPOSITORY:latest --tag $ECR_REPOSITORY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker buildx imagetools create $ECR_REGISTRY/$ECR_REPOSITORY:latest --tag $ECR_REPOSITORY/$ECR_REPOSITORY:latest
       
       - name: Summarize
         env:

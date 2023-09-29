@@ -31,7 +31,7 @@ import org.springframework.stereotype.Service;
 public class TestItemPatternAnalysisRunner implements
     ConfigurableEventHandler<TestItemFinishedEvent, Map<String, String>> {
 
-  public static final String IMMEDIATE_PATTERN_ANALYSIS = "immediatePatternAnalysis";
+  protected static final String IMMEDIATE_PATTERN_ANALYSIS = "immediatePatternAnalysis";
 
   private final ItemsPatternAnalyzer patternAnalyzer;
 

@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.querygen.CompositeFilterCondition;
 import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl.AutoAnalyzedPatternConditionProvider;
+import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl.IgnoreImmediatePatternAnalysisConditionProvider;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl.ManualPatternConditionProvider;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl.ToInvestigatePatternConditionProvider;
 import com.epam.ta.reportportal.dao.IssueGroupRepository;
@@ -52,7 +53,8 @@ public class PatternConditionProviderChain {
         new ManualPatternConditionProvider(AnalyzeItemsMode.MANUALLY_ANALYZED, issueGroupSupplier),
         new ToInvestigatePatternConditionProvider(AnalyzeItemsMode.TO_INVESTIGATE,
             issueGroupSupplier
-        )
+        ),
+        new IgnoreImmediatePatternAnalysisConditionProvider(AnalyzeItemsMode.IGNORE_IMMEDIATE)
     );
   }
 

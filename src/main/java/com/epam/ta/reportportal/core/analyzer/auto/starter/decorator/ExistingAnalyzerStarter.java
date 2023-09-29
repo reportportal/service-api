@@ -28,7 +28,6 @@ import java.util.function.Predicate;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ExistingAnalyzerStarter implements LaunchAutoAnalysisStarter {
-
   private final AnalyzerService analyzerService;
   private final LaunchAutoAnalysisStarter launchAutoAnalysisStarter;
 

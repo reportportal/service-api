@@ -65,7 +65,7 @@ jobs:
             GITHUB_TOKEN=${{ secrets.GH_TOKEN }}
             RELEASE_MODE=${{ env.RELEASE_MODE }}
           platforms: ${{ env.PLATFORMS }}
-          tags: Ё
+          tags: |
             ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
             ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
       

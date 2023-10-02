@@ -24,6 +24,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
@@ -68,9 +69,6 @@ class DeleteProjectHandlerImplTest {
 	private UserRepository userRepository;
 
 	@Mock
-	private AttachmentRepository attachmentRepository;
-
-	@Mock
 	private LogIndexer logIndexer;
 
 	@Mock
@@ -90,6 +88,9 @@ class DeleteProjectHandlerImplTest {
 
 	@Mock
 	private LogRepository logRepository;
+
+	@Mock
+	private AttachmentBinaryDataService attachmentBinaryDataService;
 
 	@InjectMocks
 	private DeleteProjectHandlerImpl handler;

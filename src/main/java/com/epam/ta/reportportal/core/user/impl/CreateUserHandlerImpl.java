@@ -38,6 +38,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.USER_NOT_FOUND;
 import com.epam.ta.reportportal.auth.authenticator.UserAuthenticator;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.events.activity.CreateInvitationLinkEvent;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.project.CreateProjectHandler;
@@ -345,6 +346,10 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     emailExecutorService.execute(() -> emailServiceFactory.getEmailService(integration, false)
         .sendCreateUserConfirmationEmail("User registration confirmation",
             new String[] {bid.getEmail()}, emailLink.toString()));
+
+    eventPublisher.publishEvent(
+        new CreateInvitationLinkEvent(loggedInUser.getUserId(), loggedInUser.getUsername(),
+            defaultProject.getId()));
 
     CreateUserBidRS response = new CreateUserBidRS();
     String msg = "Bid for user creation with email '" + request.getEmail()

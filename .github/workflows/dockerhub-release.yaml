@@ -5,11 +5,11 @@ on:
     types: [submitted]
 
 env:
-  AWS_REGION: ${{ vars.AWS_REGION }}                  # set this to your preferred AWS region, e.g. us-west-1
-  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}          # set this to your Amazon ECR repository name
+  AWS_REGION: ${{ vars.AWS_REGION }}               # set this to your preferred AWS region, e.g. us-west-1
+  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}       # set this to your Amazon ECR repository name
   TARGET_REGISTRY: ${{ vars.TARGET_REGISTRY }}     # set to target regestry (DockerHub, GitHub & etc)
   TARGET_REPOSITORY: ${{ vars.TARGET_REPOSITORY }} # set to target repository
-  PLATFORMS: ${{ vars.BUILD_PLATFORMS }}              # set target build platforms. By default linux/amd64
+  PLATFORMS: ${{ vars.BUILD_PLATFORMS }}           # set target build platforms. By default linux/amd64
   RELEASE_MODE: ${{ vars.RELEASE_MODE }}
 
 jobs:

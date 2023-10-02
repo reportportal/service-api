@@ -169,7 +169,7 @@ public class IntegrationController {
 	@PreAuthorize(ADMIN_ONLY)
 	public OperationCompletionRS updateGlobalIntegration(@PathVariable Long integrationId, @RequestBody @Valid IntegrationRQ updateRequest,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return createIntegrationHandler.updateGlobalIntegration(integrationId, updateRequest);
+		return createIntegrationHandler.updateGlobalIntegration(integrationId, updateRequest, user);
 
 	}
 
@@ -190,7 +190,7 @@ public class IntegrationController {
 	@ApiOperation("Delete global integration instance")
 	@PreAuthorize(ADMIN_ONLY)
 	public OperationCompletionRS deleteGlobalIntegration(@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
-		return deleteIntegrationHandler.deleteGlobalIntegration(integrationId);
+		return deleteIntegrationHandler.deleteGlobalIntegration(integrationId, user);
 	}
 
 	@Transactional
@@ -199,7 +199,7 @@ public class IntegrationController {
 	@ApiOperation("Delete all global integrations by type")
 	@PreAuthorize(ADMIN_ONLY)
 	public OperationCompletionRS deleteAllIntegrations(@PathVariable String type, @AuthenticationPrincipal ReportPortalUser user) {
-		return deleteIntegrationHandler.deleteGlobalIntegrationsByType(type);
+		return deleteIntegrationHandler.deleteGlobalIntegrationsByType(type, user);
 	}
 
 	@Transactional

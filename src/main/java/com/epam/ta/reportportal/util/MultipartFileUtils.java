@@ -32,7 +32,7 @@ import java.io.InputStream;
  */
 public class MultipartFileUtils {
 
-	private static Tika tika = new Tika();
+	private static final Tika tika = new Tika();
 
 	private MultipartFileUtils() {
 		//static only
@@ -41,15 +41,16 @@ public class MultipartFileUtils {
 	public static CommonsMultipartFile getMultipartFile(String path) throws IOException {
 		ClassPathResource resource = new ClassPathResource(path);
 		//TODO investigate stream closing requirement
-		InputStream bufferedInputStream = new BufferedInputStream(resource.getInputStream());
-		FileItem fileItem = new DiskFileItem("mainFile",
-				tika.detect(bufferedInputStream),
-				false,
-				resource.getFilename(),
-				bufferedInputStream.available(),
-				null
-		);
-		IOUtils.copy(bufferedInputStream, fileItem.getOutputStream());
-		return new CommonsMultipartFile(fileItem);
+		try (InputStream bufferedInputStream = new BufferedInputStream(resource.getInputStream())) {
+			FileItem fileItem = new DiskFileItem("mainFile",
+					tika.detect(bufferedInputStream),
+					false,
+					resource.getFilename(),
+					bufferedInputStream.available(),
+					null
+			);
+			IOUtils.copy(bufferedInputStream, fileItem.getOutputStream());
+			return new CommonsMultipartFile(fileItem);
+		}
 	}
 }

@@ -16,48 +16,55 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.EventAction;
+import com.epam.ta.reportportal.entity.activity.EventObject;
+import com.epam.ta.reportportal.entity.activity.EventPriority;
+import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
-
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.WIDGET;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_WIDGET;
 
 /**
  * @author pavel_bortnik
  */
 public class WidgetCreatedEvent extends AbstractEvent implements ActivityEvent {
 
-	private WidgetActivityResource widgetActivityResource;
+  private WidgetActivityResource widgetActivityResource;
 
-	public WidgetCreatedEvent() {
-	}
+  public WidgetCreatedEvent() {
+  }
 
-	public WidgetCreatedEvent(WidgetActivityResource widgetActivityResource, Long userId, String userLogin) {
-		super(userId, userLogin);
-		this.widgetActivityResource = widgetActivityResource;
-	}
+  public WidgetCreatedEvent(WidgetActivityResource widgetActivityResource, Long userId,
+      String userLogin) {
+    super(userId, userLogin);
+    this.widgetActivityResource = widgetActivityResource;
+  }
 
-	public WidgetActivityResource getWidgetActivityResource() {
-		return widgetActivityResource;
-	}
+  public WidgetActivityResource getWidgetActivityResource() {
+    return widgetActivityResource;
+  }
 
-	public void setWidgetActivityResource(WidgetActivityResource widgetActivityResource) {
-		this.widgetActivityResource = widgetActivityResource;
-	}
+  public void setWidgetActivityResource(WidgetActivityResource widgetActivityResource) {
+    this.widgetActivityResource = widgetActivityResource;
+  }
 
-	@Override
-	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(CREATE_WIDGET)
-				.addActivityEntityType(WIDGET)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(widgetActivityResource.getId())
-				.addObjectName(widgetActivityResource.getName())
-				.addProjectId(widgetActivityResource.getProjectId())
-				.get();
-	}
+  @Override
+  public Activity toActivity() {
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.CREATE)
+        .addEventName(ActivityAction.CREATE_WIDGET.getValue())
+        .addPriority(EventPriority.LOW)
+        .addObjectId(widgetActivityResource.getId())
+        .addObjectName(widgetActivityResource.getName())
+        .addObjectType(EventObject.WIDGET)
+        .addProjectId(widgetActivityResource.getProjectId())
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
+        .get();
+  }
 
 }

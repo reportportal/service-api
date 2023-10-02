@@ -21,7 +21,6 @@ package com.epam.ta.reportportal.core.events.activity.util;
 
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.google.common.base.Strings;
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -52,7 +51,7 @@ public class ActivityDetailsUtil {
 	public static final String ENABLED = "enabled";
 	public static final String ITEM_IDS = "itemIds";
 	public static final String LAUNCH_ID = "launchId";
-	public static final String PATTERN_ID = "patternId";
+  public static final String PATTERN_NAME = "patternName";
 
 	public static Optional<HistoryField> processName(String oldName, String newName) {
 		if (!Strings.isNullOrEmpty(newName) && !oldName.equals(newName)) {
@@ -93,7 +92,11 @@ public class ActivityDetailsUtil {
 		return beforeJobConfig.equals(afterJobConfig);
 	}
 
-	private static Map<String, String> extractConfigByPrefix(Map<String, String> config, String prefix) {
+	public static boolean configChanged(Map<String, String> before, Map<String, String> after, String prefix) {
+		return !configEquals(before, after, prefix);
+	}
+
+	public static Map<String, String> extractConfigByPrefix(Map<String, String> config, String prefix) {
 		return config.entrySet()
 				.stream()
 				.filter(entry -> entry.getKey().startsWith(prefix))

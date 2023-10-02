@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.events.activity.LaunchFinishForcedEvent;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.launch.StopLaunchHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -42,7 +41,6 @@ import java.util.List;
 import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validate;
 import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validateRoles;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.STOPPED;
-import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
@@ -57,15 +55,13 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
 
 	private final LaunchRepository launchRepository;
 	private final TestItemRepository testItemRepository;
-	private final MessageBus messageBus;
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public StopLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository, MessageBus messageBus,
+	public StopLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
 			ApplicationEventPublisher eventPublisher) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
-		this.messageBus = messageBus;
 		this.eventPublisher = eventPublisher;
 	}
 
@@ -89,7 +85,6 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
 		launchRepository.save(launch);
 		testItemRepository.interruptInProgressItems(launch.getId());
 
-		messageBus.publishActivity(new LaunchFinishForcedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));
 		eventPublisher.publishEvent(new LaunchFinishedEvent(launch, user.getUserId(), user.getUsername()));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully stopped.");
 	}

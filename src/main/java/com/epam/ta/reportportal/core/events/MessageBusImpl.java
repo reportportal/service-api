@@ -16,54 +16,64 @@
 
 package com.epam.ta.reportportal.core.events;
 
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.EXCHANGE_ACTIVITY;
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.EXCHANGE_ATTACHMENT;
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.EXCHANGE_EVENTS;
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.QUEUE_ATTACHMENT_DELETE;
+
 import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import java.util.Objects;
 import org.springframework.amqp.core.AmqpTemplate;
-
-import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.*;
 
 public class MessageBusImpl implements MessageBus {
 
-	private final AmqpTemplate amqpTemplate;
+  private final AmqpTemplate amqpTemplate;
 
-	public MessageBusImpl(AmqpTemplate amqpTemplate) {
-		this.amqpTemplate = amqpTemplate;
-	}
+  public MessageBusImpl(AmqpTemplate amqpTemplate) {
+    this.amqpTemplate = amqpTemplate;
+  }
 
-	@Override
-	public void publish(String exchange, String route, Object o) {
-		this.amqpTemplate.convertAndSend(exchange, route, o);
-	}
+  @Override
+  public void publish(String exchange, String route, Object o) {
+    this.amqpTemplate.convertAndSend(exchange, route, o);
+  }
 
-	@Override
-	public void publish(String route, Object o) {
-		this.amqpTemplate.convertSendAndReceive(route, o);
-	}
+  @Override
+  public void publish(String route, Object o) {
+    this.amqpTemplate.convertSendAndReceive(route, o);
+  }
 
-	@Override
-	public void broadcastEvent(Object o) {
-		this.amqpTemplate.convertAndSend(EXCHANGE_EVENTS, "", o);
-	}
+  @Override
+  public void broadcastEvent(Object o) {
+    this.amqpTemplate.convertAndSend(EXCHANGE_EVENTS, "", o);
+  }
 
-	/**
-	 * Publishes activity to the queue with the following routing key
-	 * <pre>{@code activity.<project-id>.<entity-type>.<action>}</pre>
-	 *
-	 * @param event Activity event to be converted to Activity object
-	 */
-	@Override
-	public void publishActivity(ActivityEvent event) {
-		final Activity activity = event.toActivity();
-		if (activity != null) {
-			String key = "activity." + activity.getProjectId() + "." + activity.getActivityEntityType() + "." + activity.getAction();
-			this.amqpTemplate.convertAndSend(EXCHANGE_ACTIVITY, key, activity);
-		}
-	}
+  /**
+   * Publishes activity to the queue with the following routing key
+   * <pre>{@code activity.<project-id>.<entity-type>.<action>}</pre>
+   *
+   * @param event Activity event to be converted to Activity object
+   */
+  @Override
+  public void publishActivity(ActivityEvent event) {
+    final Activity activity = event.toActivity();
+    if (Objects.nonNull(activity)) {
+      this.amqpTemplate.convertAndSend(EXCHANGE_ACTIVITY, generateKey(activity), activity);
+    }
+  }
 
-	@Override
-	public void publishDeleteAttachmentEvent(DeleteAttachmentEvent event) {
+  private String generateKey(Activity activity) {
+    return String.format("activity.%d.%s.%s",
+        activity.getProjectId(),
+        activity.getObjectType(),
+        activity.getEventName());
+  }
 
-		amqpTemplate.convertAndSend(EXCHANGE_ATTACHMENT, QUEUE_ATTACHMENT_DELETE, event);
+  @Override
+  public void publishDeleteAttachmentEvent(DeleteAttachmentEvent event) {
 
-	}
+    amqpTemplate.convertAndSend(EXCHANGE_ATTACHMENT, QUEUE_ATTACHMENT_DELETE, event);
+
+  }
 }

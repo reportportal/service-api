@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.dao.ApiKeyRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.user.ApiKey;
 import com.google.common.collect.Maps;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -71,6 +72,7 @@ public class CombinedTokenStore extends JwtTokenStore {
     }
   }
 
+  @Transactional
   @Override
   public OAuth2Authentication readAuthentication(String tokenId) {
     try {
@@ -81,6 +83,10 @@ public class CombinedTokenStore extends JwtTokenStore {
       if (apiKey != null) {
         Optional<ReportPortalUser> user = userRepository.findReportPortalUser(apiKey.getUserId());
         if (user.isPresent()) {
+          LocalDate today = LocalDate.now();
+          if (apiKey.getLastUsedAt() == null || !apiKey.getLastUsedAt().equals(today)) {
+            apiKeyRepository.updateLastUsedAt(apiKey.getId(), hashedKey, today);
+          }
           return getAuthentication(getUserWithAuthorities(user.get()));
         }
       }
@@ -88,15 +94,24 @@ public class CombinedTokenStore extends JwtTokenStore {
     }
   }
 
+  @Transactional
   @Override
   public OAuth2AccessToken readAccessToken(String tokenValue) {
     try {
       return super.readAccessToken(tokenValue);
     } catch (InvalidTokenException e) {
       if (ApiKeyUtils.validateToken(tokenValue)) {
-        DefaultOAuth2AccessToken defaultOAuth2AccessToken = new DefaultOAuth2AccessToken(
-            tokenValue);
+        DefaultOAuth2AccessToken defaultOAuth2AccessToken =
+            new DefaultOAuth2AccessToken(tokenValue);
         defaultOAuth2AccessToken.setExpiration(new Date(System.currentTimeMillis() + 60 * 1000L));
+        String hashedKey = DatatypeConverter.printHexBinary(DigestUtils.sha3_256(tokenValue));
+        ApiKey apiKey = apiKeyRepository.findByHash(hashedKey);
+        if (apiKey != null) {
+          LocalDate today = LocalDate.now();
+          if (apiKey.getLastUsedAt() == null || !apiKey.getLastUsedAt().equals(today)) {
+            apiKeyRepository.updateLastUsedAt(apiKey.getId(), hashedKey, today);
+          }
+        }
         return defaultOAuth2AccessToken;
       }
       return null; //let spring security handle the invalid token
@@ -113,30 +128,26 @@ public class CombinedTokenStore extends JwtTokenStore {
 
     Set<String> scopes = Collections.singleton(ReportPortalClient.api.name());
 
-    OAuth2Request authorizationRequest = new OAuth2Request(
-        requestParameters, ReportPortalClient.api.name(),
-        authorities, true, scopes, Collections.emptySet(), null,
-        Collections.emptySet(), null);
+    OAuth2Request authorizationRequest =
+        new OAuth2Request(requestParameters, ReportPortalClient.api.name(), authorities, true,
+            scopes, Collections.emptySet(), null, Collections.emptySet(), null
+        );
 
-    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-        user, null, authorities);
+    UsernamePasswordAuthenticationToken authenticationToken =
+        new UsernamePasswordAuthenticationToken(user, null, authorities);
 
-    OAuth2Authentication authenticationRequest = new OAuth2Authentication(
-        authorizationRequest, authenticationToken);
+    OAuth2Authentication authenticationRequest =
+        new OAuth2Authentication(authorizationRequest, authenticationToken);
     authenticationRequest.setAuthenticated(true);
 
     return authenticationRequest;
   }
 
   private ReportPortalUser getUserWithAuthorities(ReportPortalUser user) {
-    return ReportPortalUser.userBuilder()
-        .withUserName(user.getUsername())
+    return ReportPortalUser.userBuilder().withUserName(user.getUsername())
         .withPassword(user.getPassword())
         .withAuthorities(AuthUtils.AS_AUTHORITIES.apply(user.getUserRole()))
-        .withUserId(user.getUserId())
-        .withUserRole(user.getUserRole())
-        .withProjectDetails(Maps.newHashMapWithExpectedSize(1))
-        .withEmail(user.getEmail())
-        .build();
+        .withUserId(user.getUserId()).withUserRole(user.getUserRole())
+        .withProjectDetails(Maps.newHashMapWithExpectedSize(1)).withEmail(user.getEmail()).build();
   }
 }

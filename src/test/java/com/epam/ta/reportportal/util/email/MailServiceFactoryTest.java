@@ -16,6 +16,14 @@
 
 package com.epam.ta.reportportal.util.email;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
@@ -27,6 +35,10 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import javax.mail.MessagingException;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,212 +47,214 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.mail.MessagingException;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @ExtendWith(MockitoExtension.class)
 class MailServiceFactoryTest {
 
-	@Mock
-	private TemplateEngine templateEngine;
+  @Mock
+  private TemplateEngine templateEngine;
 
-	@Mock
-	private IntegrationRepository integrationRepository;
+  @Mock
+  private IntegrationRepository integrationRepository;
 
-	@Mock
-	private IntegrationTypeRepository integrationTypeRepository;
+  @Mock
+  private IntegrationTypeRepository integrationTypeRepository;
 
-	private Integration integration = mock(Integration.class);
+  private Integration integration = mock(Integration.class);
 
-	private IntegrationType integrationType = mock(IntegrationType.class);
+  private IntegrationType integrationType = mock(IntegrationType.class);
 
-	private EmailService emailService = mock(EmailService.class);
+  private EmailService emailService = mock(EmailService.class);
 
-	private IntegrationParams integrationParams = mock(IntegrationParams.class);
+  private IntegrationParams integrationParams = mock(IntegrationParams.class);
 
-	private BasicTextEncryptor basicTextEncryptor;
+  private BasicTextEncryptor basicTextEncryptor;
 
-	private MailServiceFactory mailServiceFactory;
+  private MailServiceFactory mailServiceFactory;
 
-	@BeforeEach
-	void setUp() {
-		basicTextEncryptor = new BasicTextEncryptor();
-		basicTextEncryptor.setPassword("123");
-		mailServiceFactory = new MailServiceFactory(templateEngine, basicTextEncryptor, integrationRepository, integrationTypeRepository);
-	}
+  @BeforeEach
+  void setUp() {
+    basicTextEncryptor = new BasicTextEncryptor();
+    basicTextEncryptor.setPassword("123");
+    mailServiceFactory = new MailServiceFactory(templateEngine, basicTextEncryptor,
+        integrationRepository, integrationTypeRepository);
+  }
 
-	@Test
-	void shouldThrowWhenIntegrationIsNull() {
+  @Test
+  void shouldThrowWhenIntegrationIsNull() {
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> mailServiceFactory.getEmailService(null));
-		assertEquals("Impossible interact with integration. Integration should be not null.", exception.getMessage());
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> mailServiceFactory.getEmailService(null));
+    assertEquals("Impossible interact with integration. Integration should be not null.",
+        exception.getMessage());
+  }
 
-	@Test
-	void shouldReturnEmptyWhenIntegrationIsDisabled() {
+  @Test
+  void shouldReturnEmptyWhenIntegrationIsDisabled() {
 
-		when(integration.isEnabled()).thenReturn(false);
+    when(integration.isEnabled()).thenReturn(false);
 
-		Optional<EmailService> emailService = mailServiceFactory.getEmailService(integration);
+    Optional<EmailService> emailService = mailServiceFactory.getEmailService(integration);
 
-		Assertions.assertFalse(emailService.isPresent());
-	}
+    Assertions.assertFalse(emailService.isPresent());
+  }
 
-	@Test
-	void shouldReturnEmptyWhenIntegrationParamsAreEmpty() {
+  @Test
+  void shouldReturnEmptyWhenIntegrationParamsAreEmpty() {
 
-		when(integration.isEnabled()).thenReturn(true);
-		when(integration.getParams()).thenReturn(integrationParams);
-		when(integrationParams.getParams()).thenReturn(null);
+    when(integration.isEnabled()).thenReturn(true);
+    when(integration.getParams()).thenReturn(integrationParams);
+    when(integrationParams.getParams()).thenReturn(null);
 
-		Optional<EmailService> emailService = mailServiceFactory.getEmailService(integration);
+    Optional<EmailService> emailService = mailServiceFactory.getEmailService(integration);
 
-		Assertions.assertFalse(emailService.isPresent());
-	}
+    Assertions.assertFalse(emailService.isPresent());
+  }
 
-	@Test
-	void shouldReturnEmailServiceWithAuthParamsWhenEnabled() {
+  @Test
+  void shouldReturnEmailServiceWithAuthParamsWhenEnabled() {
 
-		Map<String, Object> config = ImmutableMap.<String, Object>builder().put(EmailSettingsEnum.AUTH_ENABLED.getAttribute(), true)
-				.put(EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute(), true)
-				.put(EmailSettingsEnum.USERNAME.getAttribute(), "user")
-				.put(EmailSettingsEnum.PASSWORD.getAttribute(), basicTextEncryptor.encrypt("password"))
-				.build();
+    Map<String, Object> config = ImmutableMap.<String, Object>builder()
+        .put(EmailSettingsEnum.AUTH_ENABLED.getAttribute(), true)
+        .put(EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute(), true)
+        .put(EmailSettingsEnum.USERNAME.getAttribute(), "user")
+        .put(EmailSettingsEnum.PASSWORD.getAttribute(), basicTextEncryptor.encrypt("password"))
+        .build();
 
-		when(integration.isEnabled()).thenReturn(true);
-		when(integration.getParams()).thenReturn(integrationParams);
-		when(integrationParams.getParams()).thenReturn(config);
+    when(integration.isEnabled()).thenReturn(true);
+    when(integration.getParams()).thenReturn(integrationParams);
+    when(integrationParams.getParams()).thenReturn(config);
 
-		Optional<EmailService> emailService = mailServiceFactory.getEmailService(integration);
+    Optional<EmailService> emailService = mailServiceFactory.getEmailService(integration);
 
-		Assertions.assertTrue(emailService.isPresent());
+    Assertions.assertTrue(emailService.isPresent());
 
-		EmailService service = emailService.get();
+    EmailService service = emailService.get();
 
-		Assertions.assertEquals("password", service.getPassword());
-		Assertions.assertEquals("user", service.getUsername());
-		Properties javaMailProperties = service.getJavaMailProperties();
-		Boolean startTlsEnabled = (Boolean) javaMailProperties.get("mail.smtp.starttls.enable");
-		Assertions.assertTrue(startTlsEnabled);
+    Assertions.assertEquals("password", service.getPassword());
+    Assertions.assertEquals("user", service.getUsername());
+    Properties javaMailProperties = service.getJavaMailProperties();
+    Boolean startTlsEnabled = (Boolean) javaMailProperties.get("mail.smtp.starttls.enable");
+    Assertions.assertTrue(startTlsEnabled);
 
-	}
+  }
 
-	@Test
-	void shouldReturnEmailServiceWithoutAuthParamsWhenDisabled() {
+  @Test
+  void shouldReturnEmailServiceWithoutAuthParamsWhenDisabled() {
 
-		Map<String, Object> config = ImmutableMap.<String, Object>builder().put(EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute(), true)
-				.put(EmailSettingsEnum.USERNAME.getAttribute(), "user")
-				.put(EmailSettingsEnum.PASSWORD.getAttribute(), basicTextEncryptor.encrypt("password"))
-				.build();
+    Map<String, Object> config = ImmutableMap.<String, Object>builder()
+        .put(EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute(), true)
+        .put(EmailSettingsEnum.USERNAME.getAttribute(), "user")
+        .put(EmailSettingsEnum.PASSWORD.getAttribute(), basicTextEncryptor.encrypt("password"))
+        .build();
 
-		when(integration.isEnabled()).thenReturn(true);
-		when(integration.getParams()).thenReturn(integrationParams);
-		when(integrationParams.getParams()).thenReturn(config);
+    when(integration.isEnabled()).thenReturn(true);
+    when(integration.getParams()).thenReturn(integrationParams);
+    when(integrationParams.getParams()).thenReturn(config);
 
-		Optional<EmailService> emailService = mailServiceFactory.getEmailService(integration);
+    Optional<EmailService> emailService = mailServiceFactory.getEmailService(integration);
 
-		Assertions.assertTrue(emailService.isPresent());
+    Assertions.assertTrue(emailService.isPresent());
 
-		EmailService service = emailService.get();
+    EmailService service = emailService.get();
 
-		Assertions.assertNull(service.getPassword());
-		Assertions.assertNull(service.getUsername());
-		Properties javaMailProperties = service.getJavaMailProperties();
-		Boolean startTlsEnabled = (Boolean) javaMailProperties.get("mail.smtp.starttls.enable");
-		Assertions.assertFalse(startTlsEnabled);
+    Assertions.assertNull(service.getPassword());
+    Assertions.assertNull(service.getUsername());
+    Properties javaMailProperties = service.getJavaMailProperties();
+    Boolean startTlsEnabled = (Boolean) javaMailProperties.get("mail.smtp.starttls.enable");
+    Assertions.assertFalse(startTlsEnabled);
 
-	}
+  }
 
-	@Test
-	void shouldReturnEmailServiceWithSslEnabled() {
+  @Test
+  void shouldReturnEmailServiceWithSslEnabled() {
 
-		Map<String, Object> config = ImmutableMap.<String, Object>builder().put(EmailSettingsEnum.AUTH_ENABLED.getAttribute(), true)
-				.put(EmailSettingsEnum.SSL_ENABLED.getAttribute(), true)
-				.put(EmailSettingsEnum.USERNAME.getAttribute(), "user")
-				.put(EmailSettingsEnum.PASSWORD.getAttribute(), basicTextEncryptor.encrypt("password"))
-				.build();
+    Map<String, Object> config = ImmutableMap.<String, Object>builder()
+        .put(EmailSettingsEnum.AUTH_ENABLED.getAttribute(), true)
+        .put(EmailSettingsEnum.SSL_ENABLED.getAttribute(), true)
+        .put(EmailSettingsEnum.USERNAME.getAttribute(), "user")
+        .put(EmailSettingsEnum.PASSWORD.getAttribute(), basicTextEncryptor.encrypt("password"))
+        .build();
 
-		when(integration.isEnabled()).thenReturn(true);
-		when(integration.getParams()).thenReturn(integrationParams);
-		when(integrationParams.getParams()).thenReturn(config);
+    when(integration.isEnabled()).thenReturn(true);
+    when(integration.getParams()).thenReturn(integrationParams);
+    when(integrationParams.getParams()).thenReturn(config);
 
-		Optional<EmailService> emailService = mailServiceFactory.getEmailService(integration);
+    Optional<EmailService> emailService = mailServiceFactory.getEmailService(integration);
 
-		Assertions.assertTrue(emailService.isPresent());
+    Assertions.assertTrue(emailService.isPresent());
 
-		EmailService service = emailService.get();
+    EmailService service = emailService.get();
 
-		Assertions.assertEquals("password", service.getPassword());
-		Assertions.assertEquals("user", service.getUsername());
-		Properties javaMailProperties = service.getJavaMailProperties();
-		String sslClass = (String) javaMailProperties.get("mail.smtp.socketFactory.class");
-		Assertions.assertEquals("javax.net.ssl.SSLSocketFactory", sslClass);
+    Assertions.assertEquals("password", service.getPassword());
+    Assertions.assertEquals("user", service.getUsername());
+    Properties javaMailProperties = service.getJavaMailProperties();
+    String sslClass = (String) javaMailProperties.get("mail.smtp.socketFactory.class");
+    Assertions.assertEquals("javax.net.ssl.SSLSocketFactory", sslClass);
 
-	}
+  }
 
-	@Test
-	void getDefaultEmailServiceWithoutConnectionCheckPositive() {
+  @Test
+  void getDefaultEmailServiceWithoutConnectionCheckPositive() {
 
-		when(integrationType.getId()).thenReturn(1L);
-		when(integrationTypeRepository.findAllByIntegrationGroup(IntegrationGroupEnum.NOTIFICATION)).thenReturn(Lists.newArrayList(
-				integrationType));
-		when(integration.isEnabled()).thenReturn(true);
-		when(integrationRepository.findAllGlobalInIntegrationTypeIds(any())).thenReturn(Lists.newArrayList(integration));
+    when(integrationType.getId()).thenReturn(1L);
+    when(integrationTypeRepository.findAllByIntegrationGroup(
+        IntegrationGroupEnum.NOTIFICATION)).thenReturn(Lists.newArrayList(
+        integrationType));
+    when(integration.isEnabled()).thenReturn(true);
+    when(integration.getType()).thenReturn(integrationType);
+    when(integration.getType().isEnabled()).thenReturn(true);
+    when(integrationRepository.findAllGlobalInIntegrationTypeIds(any())).thenReturn(
+        Lists.newArrayList(integration));
 
-		Map<String, Object> config = ImmutableMap.<String, Object>builder().put(EmailSettingsEnum.AUTH_ENABLED.getAttribute(), true)
-				.put(EmailSettingsEnum.SSL_ENABLED.getAttribute(), true)
-				.put(EmailSettingsEnum.USERNAME.getAttribute(), "user")
-				.put(EmailSettingsEnum.PASSWORD.getAttribute(), basicTextEncryptor.encrypt("password"))
-				.build();
+    Map<String, Object> config = ImmutableMap.<String, Object>builder()
+        .put(EmailSettingsEnum.AUTH_ENABLED.getAttribute(), true)
+        .put(EmailSettingsEnum.SSL_ENABLED.getAttribute(), true)
+        .put(EmailSettingsEnum.USERNAME.getAttribute(), "user")
+        .put(EmailSettingsEnum.PASSWORD.getAttribute(), basicTextEncryptor.encrypt("password"))
+        .build();
 
-		when(integration.getParams()).thenReturn(integrationParams);
-		when(integrationParams.getParams()).thenReturn(config);
+    when(integration.getParams()).thenReturn(integrationParams);
+    when(integrationParams.getParams()).thenReturn(config);
 
-		mailServiceFactory.getDefaultEmailService(false);
-	}
+    mailServiceFactory.getDefaultEmailService(false);
+  }
 
-	@Test
-	void testConnectionPositive() throws MessagingException {
+  @Test
+  void testConnectionPositive() throws MessagingException {
 
-		doNothing().when(emailService).testConnection();
+    doNothing().when(emailService).testConnection();
 
-		mailServiceFactory.checkConnection(emailService);
-	}
+    mailServiceFactory.checkConnection(emailService);
+  }
 
-	@Test
-	void testConnectionWithNullEmailService() {
+  @Test
+  void testConnectionWithNullEmailService() {
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> mailServiceFactory.checkConnection(null));
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> mailServiceFactory.checkConnection(null));
 
-		Assertions.assertEquals(
-				"Email server is not configured or configuration is incorrect. Please configure email server in Report Portal settings.",
-				exception.getMessage()
-		);
-	}
+    Assertions.assertEquals(
+        "Email server is not configured or configuration is incorrect. Please configure email server in Report Portal settings.",
+        exception.getMessage()
+    );
+  }
 
-	@Test
-	void testConnectionNegative() throws MessagingException {
+  @Test
+  void testConnectionNegative() throws MessagingException {
 
-		doThrow(new MessagingException()).when(emailService).testConnection();
+    doThrow(new MessagingException()).when(emailService).testConnection();
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> mailServiceFactory.checkConnection(emailService)
-		);
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> mailServiceFactory.checkConnection(emailService)
+    );
 
-		Assertions.assertEquals(
-				"Email server is not configured or configuration is incorrect. Please configure email server in Report Portal settings.",
-				exception.getMessage()
-		);
-	}
+    Assertions.assertEquals(
+        "Email server is not configured or configuration is incorrect. Please configure email server in Report Portal settings.",
+        exception.getMessage()
+    );
+  }
 
 }

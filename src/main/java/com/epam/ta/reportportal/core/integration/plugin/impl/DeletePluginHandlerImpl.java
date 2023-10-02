@@ -16,7 +16,11 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.events.activity.PluginDeletedEvent;
 import com.epam.ta.reportportal.core.integration.plugin.DeletePluginHandler;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
@@ -25,12 +29,11 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
+import com.epam.ta.reportportal.ws.model.activity.PluginActivityResource;
 import java.util.Optional;
-
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -38,36 +41,53 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 @Service
 public class DeletePluginHandlerImpl implements DeletePluginHandler {
 
-	private final IntegrationTypeRepository integrationTypeRepository;
-	private final Pf4jPluginBox pluginBox;
+  private final IntegrationTypeRepository integrationTypeRepository;
+  private final Pf4jPluginBox pluginBox;
 
-	@Autowired
-	public DeletePluginHandlerImpl(IntegrationTypeRepository integrationTypeRepository, Pf4jPluginBox pluginBox) {
-		this.integrationTypeRepository = integrationTypeRepository;
-		this.pluginBox = pluginBox;
-	}
+  private final ApplicationEventPublisher applicationEventPublisher;
 
-	@Override
-	public OperationCompletionRS deleteById(Long id) {
+  @Autowired
+  public DeletePluginHandlerImpl(IntegrationTypeRepository integrationTypeRepository,
+      Pf4jPluginBox pluginBox, ApplicationEventPublisher applicationEventPublisher) {
+    this.integrationTypeRepository = integrationTypeRepository;
+    this.pluginBox = pluginBox;
+    this.applicationEventPublisher = applicationEventPublisher;
+  }
 
-		IntegrationType integrationType = integrationTypeRepository.findById(id)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR,
-						Suppliers.formattedSupplier("Plugin with id = '{}' not found", id).get()
-				));
+  @Override
+  public OperationCompletionRS deleteById(Long id, ReportPortalUser user) {
 
-		expect(ReservedIntegrationTypeEnum.fromName(integrationType.getName()), Optional::isEmpty).verify(ErrorType.PLUGIN_REMOVE_ERROR,
-				Suppliers.formattedSupplier("Unable to remove reserved plugin - '{}'", integrationType.getName())
-		);
+    IntegrationType integrationType = integrationTypeRepository.findById(id).orElseThrow(
+        () -> new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR,
+            Suppliers.formattedSupplier("Plugin with id = '{}' not found", id).get()
+        ));
 
-		if (!pluginBox.deletePlugin(integrationType.getName())) {
-			throw new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR, "Unable to remove from plugin manager.");
-		}
+    expect(
+        ReservedIntegrationTypeEnum.fromName(integrationType.getName()), Optional::isEmpty).verify(
+        ErrorType.PLUGIN_REMOVE_ERROR,
+        Suppliers.formattedSupplier("Unable to remove reserved plugin - '{}'",
+            integrationType.getName()
+        )
+    );
 
-		integrationTypeRepository.deleteById(integrationType.getId());
+    PluginActivityResource pluginActivityResource = new PluginActivityResource();
+    pluginActivityResource.setName(integrationType.getName());
+    pluginActivityResource.setId(integrationType.getId());
 
-		return new OperationCompletionRS(Suppliers.formattedSupplier("Plugin = '{}' has been successfully removed",
-				integrationType.getName()
-		).get());
+    if (!pluginBox.deletePlugin(integrationType.getName())) {
+      throw new ReportPortalException(
+          ErrorType.PLUGIN_REMOVE_ERROR, "Unable to remove from plugin manager.");
+    }
 
-	}
+    integrationTypeRepository.deleteById(integrationType.getId());
+
+    applicationEventPublisher.publishEvent(
+        new PluginDeletedEvent(pluginActivityResource, user.getUserId(), user.getUsername()));
+
+    return new OperationCompletionRS(
+        Suppliers.formattedSupplier("Plugin = '{}' has been successfully removed",
+            integrationType.getName()
+        ).get());
+
+  }
 }

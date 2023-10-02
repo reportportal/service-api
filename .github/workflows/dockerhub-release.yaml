@@ -15,7 +15,7 @@ jobs:
     name: Retag and push image 
     runs-on: ubuntu-latest
     environment: rc
-    if: github.base_ref == 'master' || github.base_ref == 'main'
+    if: github.event.pull_request.base.ref == 'master' || github.event.pull_request.base.ref == 'main'
     steps:
       - name: Checkout
         uses: actions/checkout@v3

@@ -5,9 +5,11 @@ on:
     types: [submitted]
 
 env:
-  AWS_REGION: ${{ vars.AWS_REGION }}         # set this to your preferred AWS region, e.g. us-west-1
-  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }} # set this to your Amazon ECR repository name
-  PLATFORMS: ${{ vars.BUILD_PLATFORMS }}     # set target build platforms. By default linux/amd64
+  AWS_REGION: ${{ vars.AWS_REGION }}                  # set this to your preferred AWS region, e.g. us-west-1
+  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}          # set this to your Amazon ECR repository name
+  TARGET_REGISTRY: ${{ vars.TARGET_REGISTRY }}     # set to target regestry (DockerHub, GitHub & etc)
+  TARGET_REPOSITORY: ${{ vars.TARGET_REPOSITORY }} # set to target repository
+  PLATFORMS: ${{ vars.BUILD_PLATFORMS }}              # set target build platforms. By default linux/amd64
   RELEASE_MODE: ${{ vars.RELEASE_MODE }}
 
 jobs:
@@ -37,8 +39,8 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          username: ${{ secrets.REGESTRY_USERNAME }}
+          password: ${{ secrets.REGESTRY_PASSWORD }}
       
       - name: Create variables
         id: vars
@@ -56,7 +58,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ steps.vars.outputs.tag }}
         run: |
-          docker buildx imagetools create $ECR_REGISTRY/$ECR_REPOSITORY:latest --tag $DOCKERHUB_REGISTRY/$DOCKERHUB_REPOSITORY:$IMAGE_TAG --tag $DOCKERHUB_REGISTRY/$DOCKERHUB_REPOSITORY:latest
+          docker buildx imagetools create $ECR_REGISTRY/$ECR_REPOSITORY:latest --tag $TARGET_REGISTRY/$TARGET_REPOSITORY:$IMAGE_TAG --tag $TARGET_REGISTRY/$TARGET_REPOSITORY:latest
       
       - name: Summarize
         env:
@@ -65,5 +67,5 @@ jobs:
         run: |
           echo "## General information about the build:" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- :whale: Docker image: $DOCKERHUB_REGISTRY/$DOCKERHUB_REPOSITORY:$IMAGE_TAG" >> $GITHUB_STEP_SUMMARY
+          echo "- :whale: Docker image: $TARGET_REGISTRY/$TARGET_REPOSITORY:$IMAGE_TAG" >> $GITHUB_STEP_SUMMARY
           echo "- :octocat: The commit SHA from which the build was performed: [$GITHUB_SHA](https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA)" >> $GITHUB_STEP_SUMMARY

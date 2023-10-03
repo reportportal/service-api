@@ -45,6 +45,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -55,7 +56,8 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileUrlResource;
+import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -389,8 +391,9 @@ public class EmailService extends JavaMailSenderImpl {
     message.addInline("ic-slack.png", emailTemplateResource("ic-slack.png"));
   }
 
-  private ClassPathResource emailTemplateResource(String resource) {
-    return new ClassPathResource(EMAIL_TEMPLATE_PREFIX + resource);
+  private Resource emailTemplateResource(String resource) {
+    return new FileUrlResource(Objects.requireNonNull(
+        EmailService.class.getClassLoader().getResource(EMAIL_TEMPLATE_PREFIX + resource)));
   }
 
   public void sendAccountSelfDeletionNotification(String recipient) {

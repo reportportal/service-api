@@ -69,10 +69,11 @@ public class EventSubscriberConfig {
 
   @Bean
   public ProjectConfigDelegatingSubscriber<TestItemFinishedEvent> testItemFinishedDelegatingSubscriber(
-          ProjectConfigProvider projectConfigProvider, TestItemPatternAnalysisRunner testItemPatternAnalysisRunner,
-          TestItemAutoAnalysisRunner testItemAutoAnalysisRunner) {
+      ProjectConfigProvider projectConfigProvider,
+      TestItemPatternAnalysisRunner testItemPatternAnalysisRunner,
+      TestItemAutoAnalysisRunner testItemAutoAnalysisRunner) {
     return new ProjectConfigDelegatingSubscriber<>(projectConfigProvider,
-            List.of(testItemPatternAnalysisRunner, testItemAutoAnalysisRunner)
+        List.of(testItemPatternAnalysisRunner, testItemAutoAnalysisRunner)
     );
   }
 

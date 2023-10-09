@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.events.handler.item;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
-import com.epam.ta.reportportal.core.analyzer.auto.indexer.BatchLogIndexer;
 import com.epam.ta.reportportal.core.events.activity.item.TestItemFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
@@ -32,6 +31,11 @@ import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 
+/**
+ * Run auto analyzer for finished test item with immediateAA attribute.
+ *
+ * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
+ */
 @Component
 public class TestItemAutoAnalysisRunner implements
     ConfigurableEventHandler<TestItemFinishedEvent, Map<String, String>> {

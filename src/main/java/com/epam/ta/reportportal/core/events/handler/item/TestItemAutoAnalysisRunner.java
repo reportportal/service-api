@@ -22,13 +22,11 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.activity.item.TestItemFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
-import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 /**
@@ -58,7 +56,8 @@ public class TestItemAutoAnalysisRunner implements
   @Override
   public void handle(TestItemFinishedEvent testItemFinishedEvent,
       Map<String, String> projectConfig) {
-    if (analyzerService.hasAnalyzers() && isContainAttribute(testItemFinishedEvent.getTestItem())) {
+    if (analyzerService.hasAnalyzers() && containsImmediateAutoAnalysisAttribute(
+        testItemFinishedEvent.getTestItem())) {
       final AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(projectConfig);
       TestItem testItem = testItemFinishedEvent.getTestItem();
       logIndex(testItem, testItemFinishedEvent.getProjectId(), analyzerConfig);
@@ -73,9 +72,9 @@ public class TestItemAutoAnalysisRunner implements
         config);
   }
 
-  private boolean isContainAttribute(TestItem testItem) {
-    Optional<ItemAttribute> first = testItem.getAttributes().stream()
-        .filter(it -> IMMEDIATE_AUTO_ANALYSIS.equals(it.getKey())).findFirst();
-    return first.isPresent() && Boolean.parseBoolean(first.get().getValue());
+  private boolean containsImmediateAutoAnalysisAttribute(TestItem testItem) {
+    return testItem.getAttributes().stream()
+        .anyMatch(it -> IMMEDIATE_AUTO_ANALYSIS.equals(it.getKey()) && Boolean.parseBoolean(
+            it.getValue()));
   }
 }

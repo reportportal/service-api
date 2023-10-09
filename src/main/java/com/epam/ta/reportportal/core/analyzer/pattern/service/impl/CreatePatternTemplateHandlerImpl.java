@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2023 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.ta.reportportal.core.analyzer.pattern.impl;
+package com.epam.ta.reportportal.core.analyzer.pattern.service.impl;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.core.analyzer.pattern.CreatePatternTemplateHandler;
+import com.epam.ta.reportportal.core.analyzer.pattern.service.CreatePatternTemplateHandler;
 import com.epam.ta.reportportal.dao.PatternTemplateRepository;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.ws.converter.builders.PatternTemplateBuilder;

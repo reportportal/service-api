@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2023 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer.pattern;
+package com.epam.ta.reportportal.core.analyzer.pattern.service;
 
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
@@ -27,8 +27,8 @@ import java.util.Set;
 public interface LaunchPatternAnalyzer {
 
   /**
-   * Analyze by {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate#value} all
-   * {@link com.epam.ta.reportportal.entity.log.Log#logMessage} of
+   * Analyze by {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} all
+   * {@link com.epam.ta.reportportal.entity.log.Log} of
    * {@link com.epam.ta.reportportal.entity.item.TestItem} with
    * {@link TestItemIssueGroup#TO_INVESTIGATE} for
    * {@link com.epam.ta.reportportal.entity.launch.Launch} with provided ID. Every matched

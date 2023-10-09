@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.ta.reportportal.core.analyzer.pattern.handler;
+package com.epam.ta.reportportal.core.analyzer.pattern.handler.impl;
 
+import com.epam.ta.reportportal.core.analyzer.pattern.handler.ItemsPatternsAnalyzer;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.PatternAnalysisSelector;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.PatternMatchedEvent;
@@ -37,7 +38,7 @@ import org.springframework.util.CollectionUtils;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
-public class ItemsPatternAnalyzer {
+public class ItemsPatternAnalyzerImpl implements ItemsPatternsAnalyzer {
 
   private final PatternTemplateRepository patternTemplateRepository;
 
@@ -47,7 +48,7 @@ public class ItemsPatternAnalyzer {
 
   private final MessageBus messageBus;
 
-  public ItemsPatternAnalyzer(PatternTemplateRepository patternTemplateRepository,
+  public ItemsPatternAnalyzerImpl(PatternTemplateRepository patternTemplateRepository,
       Map<PatternTemplateType, PatternAnalysisSelector> patternAnalysisSelectorMapping,
       TestItemRepository testItemRepository, MessageBus messageBus) {
     this.patternTemplateRepository = patternTemplateRepository;
@@ -56,7 +57,8 @@ public class ItemsPatternAnalyzer {
     this.messageBus = messageBus;
   }
 
-  public void analyzeItems(long projectId, long launchId, List<Long> itemIds) {
+  @Override
+  public void analyze(long projectId, long launchId, List<Long> itemIds) {
     patternTemplateRepository.findAllByProjectIdAndEnabled(
         projectId, true).forEach(pattern -> analyzeByPattern(pattern, launchId, itemIds));
   }

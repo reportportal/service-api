@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
-import com.epam.ta.reportportal.core.analyzer.pattern.LaunchPatternAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.pattern.service.LaunchPatternAnalyzer;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil;

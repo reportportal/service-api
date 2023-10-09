@@ -16,17 +16,20 @@
 
 package com.epam.ta.reportportal.core.analyzer.config;
 
-import com.epam.ta.reportportal.core.analyzer.pattern.CreatePatternTemplateHandler;
-import com.epam.ta.reportportal.core.analyzer.pattern.impl.CreatePatternTemplateHandlerImpl;
-import com.epam.ta.reportportal.core.analyzer.pattern.impl.CreateRegexPatternTemplateHandler;
+import com.epam.ta.reportportal.core.analyzer.pattern.service.CreatePatternTemplateHandler;
+import com.epam.ta.reportportal.core.analyzer.pattern.service.impl.CreatePatternTemplateHandlerImpl;
+import com.epam.ta.reportportal.core.analyzer.pattern.service.impl.CreateRegexPatternTemplateHandler;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.PatternAnalysisSelector;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.impl.RegexPatternAnalysisSelector;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.impl.StringPartPatternAnalysisSelector;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateType;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
@@ -39,6 +42,8 @@ import org.springframework.context.annotation.Configuration;
 public class PatternAnalysisConfig implements ApplicationContextAware {
 
   private ApplicationContext applicationContext;
+
+  public static final String PATTERN_ANALYSIS_QUEUE = "analysis.pattern.queue";
 
   @Autowired
   @Override
@@ -62,6 +67,12 @@ public class PatternAnalysisConfig implements ApplicationContextAware {
             applicationContext.getBean(StringPartPatternAnalysisSelector.class)
         ).put(PatternTemplateType.REGEX,
             applicationContext.getBean(RegexPatternAnalysisSelector.class)).build();
+  }
+
+  @Bean
+  @ConditionalOnProperty(prefix = "rp.environment.variable.pattern-analysis", name = "queued", havingValue = "true")
+  public Queue stepHandlerQueue() {
+    return QueueBuilder.durable(PATTERN_ANALYSIS_QUEUE).build();
   }
 
 }

@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTask;
 import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTaskAsync;
-import java.util.concurrent.ThreadPoolExecutor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -110,20 +109,6 @@ public class ExecutorConfiguration {
     threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
     threadPoolTaskExecutor.setThreadNamePrefix("auto-analyze-exec");
     return threadPoolTaskExecutor;
-  }
-
-  @Bean("patternAnalysisTaskExecutor")
-  public TaskExecutor patternAnalysisTaskExecutor(
-      @Value("${rp.environment.variable.executor.pool.pattern-analyze.core}") Integer corePoolSize,
-      @Value("${rp.environment.variable.executor.pool.pattern-analyze.max}") Integer maxPoolSize,
-      @Value("${rp.environment.variable.executor.pool.pattern-analyze.queue}") Integer queueCapacity) {
-    ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-    taskExecutor.setCorePoolSize(corePoolSize);
-    taskExecutor.setMaxPoolSize(maxPoolSize);
-    taskExecutor.setQueueCapacity(queueCapacity);
-    taskExecutor.setThreadNamePrefix("pattern-analysis-task-exec");
-    taskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-    return taskExecutor;
   }
 
   @Bean(name = "demoDataTaskExecutor")

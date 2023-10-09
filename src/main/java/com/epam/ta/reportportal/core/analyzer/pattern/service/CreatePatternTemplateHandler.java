@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2023 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer.pattern;
+package com.epam.ta.reportportal.core.analyzer.pattern.service;
 
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
@@ -28,8 +28,7 @@ public interface CreatePatternTemplateHandler {
    * Create {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} entity for specified
    * {@link com.epam.ta.reportportal.entity.project.Project}
    *
-   * @param projectId               {@link
-   *                                com.epam.ta.reportportal.entity.pattern.PatternTemplate#projectId}
+   * @param projectId               {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate}
    * @param createPatternTemplateRQ {@link CreatePatternTemplateRQ}
    * @return {@link java.util.regex.Pattern}
    */

@@ -21,7 +21,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import com.epam.ta.reportportal.core.analyzer.pattern.handler.ItemsPatternAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.pattern.handler.proxy.ItemsAnalyzeEventProducer;
 import com.epam.ta.reportportal.core.events.activity.item.TestItemFinishedEvent;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -35,7 +35,8 @@ import org.junit.jupiter.api.Test;
  */
 public class TestItemPatternAnalysisRunnerTest {
 
-  private final ItemsPatternAnalyzer itemsPatternAnalyzer = mock(ItemsPatternAnalyzer.class);
+  private final ItemsAnalyzeEventProducer itemsPatternAnalyzer = mock(
+      ItemsAnalyzeEventProducer.class);
   private final TestItemPatternAnalysisRunner runner = new TestItemPatternAnalysisRunner(
       itemsPatternAnalyzer);
 
@@ -69,7 +70,7 @@ public class TestItemPatternAnalysisRunnerTest {
     TestItemFinishedEvent event = new TestItemFinishedEvent(testItem, 1L);
     runner.handle(event, Collections.emptyMap());
 
-    verify(itemsPatternAnalyzer, times(1)).analyzeItems(1L, 1L, Lists.newArrayList(1L));
+    verify(itemsPatternAnalyzer, times(1)).analyze(1L, 1L, Lists.newArrayList(1L));
   }
 
 }

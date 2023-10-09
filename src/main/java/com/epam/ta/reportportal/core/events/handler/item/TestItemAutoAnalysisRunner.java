@@ -74,7 +74,7 @@ public class TestItemAutoAnalysisRunner implements
 
   private boolean containsImmediateAutoAnalysisAttribute(TestItem testItem) {
     return testItem.getAttributes().stream()
-        .anyMatch(it -> IMMEDIATE_AUTO_ANALYSIS.equals(it.getKey()) && Boolean.parseBoolean(
-            it.getValue()));
+        .anyMatch(at -> IMMEDIATE_AUTO_ANALYSIS.equals(at.getKey()) && Boolean.parseBoolean(
+            at.getValue()) && at.isSystem());
   }
 }

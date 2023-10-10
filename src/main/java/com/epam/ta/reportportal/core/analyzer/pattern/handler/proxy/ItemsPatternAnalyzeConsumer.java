@@ -26,24 +26,26 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
+ * Consumes items for pattern analysis from the queue
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Component
-public class ItemsAnalyzeEventConsumer {
+public class ItemsPatternAnalyzeConsumer {
 
   private final ItemsPatternsAnalyzer itemsPatternsAnalyzer;
 
   private final AnalyzerStatusCache analyzerStatusCache;
 
-  public ItemsAnalyzeEventConsumer(
+  public ItemsPatternAnalyzeConsumer(
       @Qualifier("itemsPatternAnalyzerImpl") ItemsPatternsAnalyzer itemsPatternsAnalyzer,
       AnalyzerStatusCache analyzerStatusCache) {
     this.itemsPatternsAnalyzer = itemsPatternsAnalyzer;
     this.analyzerStatusCache = analyzerStatusCache;
   }
 
-  @RabbitListener(queues = PATTERN_ANALYSIS_QUEUE, concurrency = "${rp.environment.variable.pattern-analysis.consumers-count}")
-  public void handleEvent(ItemsAnalyzeEventDto event) {
+  @RabbitListener(queues = PATTERN_ANALYSIS_QUEUE,
+      concurrency = "${rp.environment.variable.pattern-analysis.consumers-count}")
+  public void handleEvent(ItemsPatternAnalyzeDto event) {
     if (event.isLastItem()) {
       analyzerStatusCache.analyzeFinished(PATTERN_ANALYZER_KEY, event.getLaunchId());
     } else {

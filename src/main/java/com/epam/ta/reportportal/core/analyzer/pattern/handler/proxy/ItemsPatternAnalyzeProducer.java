@@ -29,17 +29,18 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 /**
+ * Sends items for pattern analysis queue
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Primary
 @Component
 @ConditionalOnProperty(prefix = "rp.environment.variable.pattern-analysis", name = "queued", havingValue = "true")
-public class ItemsAnalyzeEventProducer implements ItemsPatternsAnalyzer {
+public class ItemsPatternAnalyzeProducer implements ItemsPatternsAnalyzer {
 
   private final boolean isSingleItem;
   private final MessageBus messageBus;
 
-  public ItemsAnalyzeEventProducer(
+  public ItemsPatternAnalyzeProducer(
       @Value("${rp.environment.variable.pattern-analysis.single-item}") boolean isSingleItem,
       MessageBus messageBus) {
     this.isSingleItem = isSingleItem;
@@ -53,15 +54,15 @@ public class ItemsAnalyzeEventProducer implements ItemsPatternsAnalyzer {
     }
     if (isSingleItem) {
       itemIds.forEach(id -> messageBus.publish(PATTERN_ANALYSIS_QUEUE,
-          new ItemsAnalyzeEventDto(projectId, launchId, Collections.singletonList(id))));
+          new ItemsPatternAnalyzeDto(projectId, launchId, Collections.singletonList(id))));
     } else {
       messageBus.publish(PATTERN_ANALYSIS_QUEUE,
-          new ItemsAnalyzeEventDto(projectId, launchId, itemIds));
+          new ItemsPatternAnalyzeDto(projectId, launchId, itemIds));
     }
   }
 
   public void sendFinishedEvent(long projectId, long launchId) {
     messageBus.publish(PATTERN_ANALYSIS_QUEUE,
-        new ItemsAnalyzeEventDto(projectId, launchId, Collections.emptyList(), true));
+        new ItemsPatternAnalyzeDto(projectId, launchId, Collections.emptyList(), true));
   }
 }

@@ -19,25 +19,26 @@ package com.epam.ta.reportportal.core.analyzer.pattern.handler.proxy;
 import java.util.List;
 
 /**
+ * Dto of item analysis event
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class ItemsAnalyzeEventDto {
+public class ItemsPatternAnalyzeDto {
 
   private long projectId;
   private long launchId;
   private List<Long> itemIds;
   private boolean isLastItem;
 
-  public ItemsAnalyzeEventDto() {
+  public ItemsPatternAnalyzeDto() {
   }
 
-  public ItemsAnalyzeEventDto(long projectId, long launchId, List<Long> itemIds) {
+  public ItemsPatternAnalyzeDto(long projectId, long launchId, List<Long> itemIds) {
     this.projectId = projectId;
     this.launchId = launchId;
     this.itemIds = itemIds;
   }
 
-  public ItemsAnalyzeEventDto(long projectId, long launchId, List<Long> itemIds,
+  public ItemsPatternAnalyzeDto(long projectId, long launchId, List<Long> itemIds,
       boolean isLastItem) {
     this.projectId = projectId;
     this.launchId = launchId;

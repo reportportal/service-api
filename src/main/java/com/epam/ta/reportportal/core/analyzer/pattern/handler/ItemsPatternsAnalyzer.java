@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.analyzer.pattern.handler;
 import java.util.List;
 
 /**
+ * Analyse list of items by project patterns
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public interface ItemsPatternsAnalyzer {

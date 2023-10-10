@@ -22,7 +22,7 @@ import static java.util.stream.Collectors.toSet;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
-import com.epam.ta.reportportal.core.analyzer.pattern.LaunchPatternAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.pattern.service.LaunchPatternAnalyzer;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;

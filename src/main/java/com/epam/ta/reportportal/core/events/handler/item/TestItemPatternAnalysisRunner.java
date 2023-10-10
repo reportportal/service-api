@@ -15,11 +15,11 @@
  */
 package com.epam.ta.reportportal.core.events.handler.item;
 
-import com.epam.ta.reportportal.core.analyzer.pattern.handler.ItemsPatternAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.pattern.handler.ItemsPatternsAnalyzer;
 import com.epam.ta.reportportal.core.events.activity.item.TestItemFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.ta.reportportal.entity.ItemAttribute;
-import com.google.common.collect.Lists;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -33,20 +33,23 @@ public class TestItemPatternAnalysisRunner implements
 
   protected static final String IMMEDIATE_PATTERN_ANALYSIS = "immediatePatternAnalysis";
 
-  private final ItemsPatternAnalyzer patternAnalyzer;
+  private final ItemsPatternsAnalyzer patternsAnalyzer;
 
-  public TestItemPatternAnalysisRunner(ItemsPatternAnalyzer patternAnalyzer) {
-    this.patternAnalyzer = patternAnalyzer;
+  public TestItemPatternAnalysisRunner(ItemsPatternsAnalyzer patternsAnalyzer) {
+    this.patternsAnalyzer = patternsAnalyzer;
   }
 
   @Override
   public void handle(TestItemFinishedEvent event, Map<String, String> config) {
-    Optional<ItemAttribute> first = event.getTestItem().getAttributes().stream()
-        .filter(it -> IMMEDIATE_PATTERN_ANALYSIS.equals(it.getKey())).findFirst();
-
-    if (first.isPresent() && Boolean.parseBoolean(first.get().getValue())) {
-      patternAnalyzer.analyzeItems(event.getProjectId(), event.getTestItem().getLaunchId(),
-          Lists.newArrayList(event.getTestItem().getItemId()));
+    if (isImmediatePaProvided(event)) {
+      patternsAnalyzer.analyze(event.getProjectId(), event.getTestItem().getLaunchId(),
+          Collections.singletonList(event.getTestItem().getItemId()));
     }
+  }
+
+  private static boolean isImmediatePaProvided(TestItemFinishedEvent event) {
+    Optional<ItemAttribute> immediatePa = event.getTestItem().getAttributes().stream()
+        .filter(it -> IMMEDIATE_PATTERN_ANALYSIS.equals(it.getKey())).findAny();
+    return immediatePa.isPresent() && Boolean.parseBoolean(immediatePa.get().getValue());
   }
 }

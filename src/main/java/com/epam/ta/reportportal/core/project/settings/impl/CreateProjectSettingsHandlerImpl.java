@@ -31,7 +31,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.analyzer.pattern.CreatePatternTemplateHandler;
+import com.epam.ta.reportportal.core.analyzer.pattern.service.CreatePatternTemplateHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeCreatedEvent;
 import com.epam.ta.reportportal.core.events.activity.PatternCreatedEvent;

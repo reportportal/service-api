@@ -2,7 +2,7 @@ spring:
   application:
     name: api
     quartz:
-#      org.quartz.jobStore.class: org.quartz.impl.jdbcjobstore.JobStoreTX
+      #      org.quartz.jobStore.class: org.quartz.impl.jdbcjobstore.JobStoreTX
       org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
       org.quartz.jobStore.dataSource: dataSource
       org.quartz.jobStore.tablePrefix: quartz.scheduler_
@@ -70,6 +70,9 @@ rp:
         batch-size: 20
       pattern-analysis:
         batch-size: 100
+        queued: true
+        single-item: true
+        consumers-count: 1
       elements-counter:
         batch-size: 50
       history:
@@ -94,10 +97,6 @@ rp:
             queue: 500
           auto-analyze:
             core: 10
-            max: 30
-            queue: 500
-          pattern-analyze:
-            core: 20
             max: 30
             queue: 500
           demo-data:

@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
  *
  * @author Pavel Bortnik
  */
+@Deprecated(since = "This cache is not representable since api scaling")
 @Service
 public class AnalyzerStatusCache {
 

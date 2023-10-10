@@ -1,5 +1,8 @@
 package com.epam.ta.reportportal.core.file;
 
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.EXCHANGE_ATTACHMENT;
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.QUEUE_ATTACHMENT_DELETE;
+
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -46,7 +49,7 @@ public class DeleteFilesHandler {
       ListUtils.partition(pathsForDelete, BATCH).forEach(partition -> {
         DeleteAttachmentEvent deleteAttachmentEvent = new DeleteAttachmentEvent();
         deleteAttachmentEvent.setPaths(partition);
-        messageBus.publishDeleteAttachmentEvent(deleteAttachmentEvent);
+        messageBus.publish(EXCHANGE_ATTACHMENT, QUEUE_ATTACHMENT_DELETE, deleteAttachmentEvent);
       });
       return new OperationCompletionRS(
           "Csv file " + file.getName() + " is accepted for delete process");

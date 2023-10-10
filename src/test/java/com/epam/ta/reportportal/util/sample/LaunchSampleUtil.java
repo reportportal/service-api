@@ -23,6 +23,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 /**
  * Utility class for generating {@link Launch } samples.
+ *
  * @author Siarhei Hrabko
  */
 public final class LaunchSampleUtil {

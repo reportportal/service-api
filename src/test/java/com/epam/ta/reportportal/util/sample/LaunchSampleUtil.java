@@ -22,6 +22,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.apache.commons.lang3.RandomStringUtils;
 
 /**
+ * Utility class for generating {@link Launch } samples.
  * @author Siarhei Hrabko
  */
 public final class LaunchSampleUtil {
@@ -30,7 +31,7 @@ public final class LaunchSampleUtil {
   }
 
   /**
-   * Generates sample launch object for testing purposes
+   * Generates sample launch object for testing purposes.
    *
    * @param uuid {@link String} uuid of generated launch
    * @return {@link Launch } generated launch object

@@ -129,6 +129,28 @@ class TestItemBuilderTest {
   }
 
   @Test
+  void overwriteAttributesValuesTest() {
+    TestItem item = new TestItem();
+    final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
+    item.setStartTime(now);
+    final TestItemResults itemResults = new TestItemResults();
+    itemResults.setEndTime(now.plusSeconds(120));
+    item.setItemResults(itemResults);
+    final ItemAttribute systemAttribute = new ItemAttribute("key", "val", true);
+    item.setAttributes(Sets.newHashSet(new ItemAttribute("someKey", "val", false), systemAttribute));
+
+    final TestItem resultItem = new TestItemBuilder(item).addTestItemResults(itemResults)
+        .addStatus(StatusEnum.PASSED)
+        .overwriteAttributesValues(Sets.newHashSet(new ItemAttributeResource("someKey", "newVal")))
+        .get();
+
+    assertEquals(120, resultItem.getItemResults().getDuration(), 0.1);
+    assertEquals(StatusEnum.PASSED, resultItem.getItemResults().getStatus());
+    assertThat(resultItem.getAttributes()).containsExactlyInAnyOrder(systemAttribute,
+        new ItemAttribute("someKey", "newVal", false));
+  }
+
+  @Test
   void providedTestCaseIdTest() {
     StartTestItemRQ request = new StartTestItemRQ();
     request.setName("item");

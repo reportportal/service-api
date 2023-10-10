@@ -157,6 +157,10 @@ public class ImportLaunchHandlerImplTest {
           BASE_URL, new HashMap<>()
       );
 
+      assertEquals(sampleLaunch.getUuid(), response.getData().getId());
+      assertEquals(FILE_NAME, response.getData().getName());
+      assertEquals(sampleLaunch.getNumber(), response.getData().getNumber());
+
       verify(importStrategyFactory).getImportStrategy(ImportType.XUNIT, FILE_NAME);
       verify(xmlImportStrategy).importLaunch(projectDetails, reportPortalUser, tempFile, BASE_URL,
           new HashMap<>()
@@ -168,9 +172,6 @@ public class ImportLaunchHandlerImplTest {
       assertEquals(ID, importFinishedEvent.getUserId());
       assertEquals(FILE_NAME, importFinishedEvent.getFileName());
 
-      assertEquals(sampleLaunch.getUuid(), response.getData().getId());
-      assertEquals(FILE_NAME, response.getData().getName());
-      assertEquals(sampleLaunch.getNumber(), response.getData().getNumber());
     }
   }
 }

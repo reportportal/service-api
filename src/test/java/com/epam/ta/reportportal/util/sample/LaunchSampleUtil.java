@@ -21,11 +21,20 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import org.apache.commons.lang3.RandomStringUtils;
 
+/**
+ * @author Siarhei Hrabko
+ */
 public final class LaunchSampleUtil {
 
   private LaunchSampleUtil() {
   }
 
+  /**
+   * Generates sample launch object for testing purposes
+   *
+   * @param uuid {@link String} uuid of generated launch
+   * @return {@link Launch } generated launch object
+   */
   public static Launch getSampleLaunch(String uuid) {
     var launch = new Launch();
     launch.setUuid(uuid);

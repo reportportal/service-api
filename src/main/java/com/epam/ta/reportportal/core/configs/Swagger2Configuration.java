@@ -134,6 +134,9 @@ public class Swagger2Configuration {
     return new RelativePathProvider(servletContext) {
       @Override
       public String getApplicationBasePath() {
+        if (super.getApplicationBasePath().contains(applicationName)) {
+          return super.getApplicationBasePath();
+        }
         return "/" + applicationName + super.getApplicationBasePath();
       }
     };

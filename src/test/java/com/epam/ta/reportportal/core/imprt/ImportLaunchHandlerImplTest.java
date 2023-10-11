@@ -14,10 +14,14 @@ import com.epam.ta.reportportal.core.events.activity.ImportFinishedEvent;
 import com.epam.ta.reportportal.core.imprt.impl.ImportStrategyFactory;
 import com.epam.ta.reportportal.core.imprt.impl.ImportType;
 import com.epam.ta.reportportal.core.imprt.impl.XmlImportStrategy;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.sample.LaunchSampleUtil;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.LaunchImportCompletionRS;
 import java.io.File;
 import java.util.HashMap;
+import java.util.Optional;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,6 +46,9 @@ public class ImportLaunchHandlerImplTest {
 
   @Mock
   private MessageBus messageBus;
+
+  @Mock
+  private LaunchRepository launchRepository;
 
   @Captor
   private ArgumentCaptor<ImportFinishedEvent> importFinishedEventCaptor;
@@ -126,7 +133,7 @@ public class ImportLaunchHandlerImplTest {
   }
 
   @Test
-  public void whenImportLaunch_AndFileIsValid_ThenCallImportLaunch() throws Exception {
+  public void whenImportLaunch_AndFileIsValid_ThenCallImportLaunch() {
     when(multipartFile.getOriginalFilename()).thenReturn(FILE_NAME);
     when(multipartFile.getSize()).thenReturn(FILE_SIZE);
 
@@ -141,9 +148,18 @@ public class ImportLaunchHandlerImplTest {
       when(importStrategyFactory.getImportStrategy(ImportType.XUNIT, FILE_NAME)).thenReturn(
           xmlImportStrategy);
 
-      importLaunchHandlerImpl.importLaunch(projectDetails, reportPortalUser, FORMAT, multipartFile,
+      var sampleLaunch = LaunchSampleUtil.getSampleLaunch(LAUNCH_ID);
+      when(launchRepository.findByUuid(LAUNCH_ID)).thenReturn(Optional.of(sampleLaunch));
+
+      var response = (LaunchImportCompletionRS) importLaunchHandlerImpl.importLaunch(projectDetails,
+          reportPortalUser, FORMAT,
+          multipartFile,
           BASE_URL, new HashMap<>()
       );
+
+      assertEquals(sampleLaunch.getUuid(), response.getData().getId());
+      assertEquals(FILE_NAME, response.getData().getName());
+      assertEquals(sampleLaunch.getNumber(), response.getData().getNumber());
 
       verify(importStrategyFactory).getImportStrategy(ImportType.XUNIT, FILE_NAME);
       verify(xmlImportStrategy).importLaunch(projectDetails, reportPortalUser, tempFile, BASE_URL,
@@ -155,6 +171,7 @@ public class ImportLaunchHandlerImplTest {
       assertEquals(USER_NAME, importFinishedEvent.getUserLogin());
       assertEquals(ID, importFinishedEvent.getUserId());
       assertEquals(FILE_NAME, importFinishedEvent.getFileName());
+
     }
   }
 }

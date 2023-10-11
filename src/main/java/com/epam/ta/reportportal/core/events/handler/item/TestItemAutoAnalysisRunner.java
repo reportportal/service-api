@@ -56,8 +56,7 @@ public class TestItemAutoAnalysisRunner implements
   @Override
   public void handle(TestItemFinishedEvent testItemFinishedEvent,
       Map<String, String> projectConfig) {
-    if (analyzerService.hasAnalyzers() && containsImmediateAutoAnalysisAttribute(
-        testItemFinishedEvent.getTestItem())) {
+    if (analyzerService.hasAnalyzers() && isNeedToRunAA(testItemFinishedEvent.getTestItem())) {
       final AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(projectConfig);
       TestItem testItem = testItemFinishedEvent.getTestItem();
       logIndex(testItem, testItemFinishedEvent.getProjectId(), analyzerConfig);
@@ -72,8 +71,9 @@ public class TestItemAutoAnalysisRunner implements
         config);
   }
 
-  private boolean containsImmediateAutoAnalysisAttribute(TestItem testItem) {
+  private boolean isNeedToRunAA(TestItem testItem) {
     return testItem.getAttributes().stream()
+        .filter(at -> !at.getTestItem().getItemResults().getIssue().getIgnoreAnalyzer())
         .anyMatch(at -> IMMEDIATE_AUTO_ANALYSIS.equals(at.getKey()) && Boolean.parseBoolean(
             at.getValue()) && at.isSystem());
   }

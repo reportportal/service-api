@@ -80,7 +80,7 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 				projectDetails.getProjectId(),
 				file.getOriginalFilename()
 		));
-    return prepareLaunchImportResponse(launchId, params, file.getOriginalFilename());
+    return prepareLaunchImportResponse(launchId);
 	}
 
 	private void validate(MultipartFile file) {
@@ -102,17 +102,14 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 		}
 	}
 
-  private OperationCompletionRS prepareLaunchImportResponse(String launchId,
-      Map<String, String> params, String originalFilename) {
+  private OperationCompletionRS prepareLaunchImportResponse(String launchId) {
 
     var launch = launchRepository.findByUuid(launchId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
 
     var data = new LaunchImportData();
-    var launchName = params.get(LAUNCH_NAME) != null ? launch.getName() : originalFilename;
-
     data.setId(launchId);
-    data.setName(launchName);
+    data.setName(launch.getName());
     data.setNumber(launch.getNumber());
 
     var response = new LaunchImportCompletionRS();

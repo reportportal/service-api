@@ -143,7 +143,8 @@ public class TestItemBuilder implements Supplier<TestItem> {
         ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
         itemAttribute.setTestItem(testItem);
         Optional<ItemAttribute> existingAttr = testItem.getAttributes().stream()
-            .filter(attr -> attr.getKey().equals(itemAttribute.getKey()))
+            .filter(attr -> Objects.nonNull(attr.getKey()) && attr.getKey()
+                .equals(itemAttribute.getKey()))
             .findFirst();
         if (existingAttr.isPresent()) {
           existingAttr.get().setValue(itemAttribute.getValue());

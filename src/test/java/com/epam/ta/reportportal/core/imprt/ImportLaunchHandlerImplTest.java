@@ -158,7 +158,7 @@ public class ImportLaunchHandlerImplTest {
       );
 
       assertEquals(sampleLaunch.getUuid(), response.getData().getId());
-      assertEquals(FILE_NAME, response.getData().getName());
+      assertEquals(sampleLaunch.getName(), response.getData().getName());
       assertEquals(sampleLaunch.getNumber(), response.getData().getNumber());
 
       verify(importStrategyFactory).getImportStrategy(ImportType.XUNIT, FILE_NAME);

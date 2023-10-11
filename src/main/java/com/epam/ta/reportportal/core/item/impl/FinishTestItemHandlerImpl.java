@@ -177,7 +177,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
     final TestItem itemForUpdate = new TestItemBuilder(testItem).addDescription(
             finishExecutionRQ.getDescription())
         .addTestCaseId(finishExecutionRQ.getTestCaseId())
-        .addAttributes(finishExecutionRQ.getAttributes())
+        .overwriteAttributesValues(finishExecutionRQ.getAttributes())
         .addTestItemResults(testItemResults)
         .get();
 

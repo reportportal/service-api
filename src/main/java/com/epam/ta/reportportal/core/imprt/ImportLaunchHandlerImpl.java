@@ -116,7 +116,7 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
     data.setNumber(launch.getNumber());
 
     var response = new LaunchImportCompletionRS();
-    response.setResultMessage("Launch with id = " + launchId + " successfully imported.");
+    response.setResultMessage("Launch with id = " + launchId + " is successfully imported.");
     response.setData(data);
 
     return response;

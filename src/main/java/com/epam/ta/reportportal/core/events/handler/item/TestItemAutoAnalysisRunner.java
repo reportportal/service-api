@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.activity.item.TestItemFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
+import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
@@ -73,6 +74,9 @@ public class TestItemAutoAnalysisRunner implements
 
   private boolean isNeedToRunAA(TestItem testItem) {
     return testItem.getAttributes().stream()
+        .filter(
+            at -> at.getTestItem().getItemResults().getIssue().getIssueType().getLocator().equals(
+                TestItemIssueGroup.TO_INVESTIGATE.getLocator()))
         .filter(at -> !at.getTestItem().getItemResults().getIssue().getIgnoreAnalyzer())
         .anyMatch(at -> IMMEDIATE_AUTO_ANALYSIS.equals(at.getKey()) && Boolean.parseBoolean(
             at.getValue()) && at.isSystem());

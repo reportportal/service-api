@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
@@ -73,12 +74,14 @@ public class TestItemAutoAnalysisRunner implements
   }
 
   private boolean isNeedToRunAA(TestItem testItem) {
-    return testItem.getAttributes().stream()
-        .filter(
-            at -> at.getTestItem().getItemResults().getIssue().getIssueType().getLocator().equals(
-                TestItemIssueGroup.TO_INVESTIGATE.getLocator()))
-        .filter(at -> !at.getTestItem().getItemResults().getIssue().getIgnoreAnalyzer())
-        .anyMatch(at -> IMMEDIATE_AUTO_ANALYSIS.equals(at.getKey()) && Boolean.parseBoolean(
-            at.getValue()) && at.isSystem());
+    if (Objects.nonNull(testItem.getItemResults().getIssue()) && testItem.getItemResults()
+        .getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
+        .equals(TestItemIssueGroup.TO_INVESTIGATE)) {
+      return testItem.getAttributes().stream()
+          .filter(at -> !at.getTestItem().getItemResults().getIssue().getIgnoreAnalyzer())
+          .anyMatch(at -> IMMEDIATE_AUTO_ANALYSIS.equals(at.getKey()) && Boolean.parseBoolean(
+              at.getValue()) && at.isSystem());
+    }
+    return false;
   }
 }

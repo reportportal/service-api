@@ -69,6 +69,8 @@ public class XunitImportHandlerTest {
 
   private static final String TEST_CASE = "testcase";
 
+  private static final ZoneId TEST_ZONE_ID = ZoneId.of("UTC");
+
   private static final String ATTR_NAME = "attribute";
 
   private static final String TIMESTAMP = "1690210345";
@@ -100,12 +102,12 @@ public class XunitImportHandlerTest {
 
     LocalDateTime startSuiteTime =
         LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(suiteTimestamp)),
-            ZoneId.systemDefault()
+            TEST_ZONE_ID
         );
 
     LocalDateTime startItemTime =
         LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(TIMESTAMP)),
-            ZoneId.systemDefault()
+            TEST_ZONE_ID
         );
 
     setStartSuiteTime(xunitImportHandler, startSuiteTime);
@@ -214,7 +216,7 @@ public class XunitImportHandlerTest {
 
     LocalDateTime startItemTime =
         LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(TIMESTAMP)),
-            ZoneId.systemDefault()
+            TEST_ZONE_ID
         );
 
     setStartItemTime(xunitImportHandler, startItemTime);

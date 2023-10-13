@@ -1,30 +1,11 @@
-/*
- * Copyright 2019 EPAM Systems
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
@@ -33,16 +14,13 @@ import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ApiKeyRQ;
 import com.epam.ta.reportportal.ws.model.ApiKeyRS;
 import com.epam.ta.reportportal.ws.model.ApiKeysRS;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ModelViews;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
@@ -61,15 +39,13 @@ import com.epam.ta.reportportal.ws.resolver.ActiveRole;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.ResponseView;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
@@ -89,235 +65,204 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/users")
-public class UserController {
-
-  private final CreateUserHandler createUserMessageHandler;
-
-  private final EditUserHandler editUserMessageHandler;
-
-  private final DeleteUserHandler deleteUserHandler;
-
-  private final ApiKeyHandler apiKeyHandler;
-
-  private final GetUserHandler getUserHandler;
-
-  private final GetJasperReportHandler<User> jasperReportHandler;
+@RequestMapping("/v1/user")
+@Deprecated
+@Api(tags = "deprecated-user-controller", hidden = false, description = "Deprecated UserController")
+public class DeprecatedUserController extends UserController {
 
   @Autowired
-  public UserController(CreateUserHandler createUserMessageHandler,
+  public DeprecatedUserController(CreateUserHandler createUserMessageHandler,
       EditUserHandler editUserMessageHandler, DeleteUserHandler deleteUserHandler,
       GetUserHandler getUserHandler,
       @Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler,
       ApiKeyHandler apiKeyHandler) {
-    this.createUserMessageHandler = createUserMessageHandler;
-    this.editUserMessageHandler = editUserMessageHandler;
-    this.deleteUserHandler = deleteUserHandler;
-    this.getUserHandler = getUserHandler;
-    this.jasperReportHandler = jasperReportHandler;
-    this.apiKeyHandler = apiKeyHandler;
+    super(createUserMessageHandler, editUserMessageHandler, deleteUserHandler, getUserHandler,
+        jasperReportHandler, apiKeyHandler
+    );
   }
 
+  @Override
   @PostMapping
   @ResponseStatus(CREATED)
   @PreAuthorize(ADMIN_ONLY)
-  @ApiOperation(value = "Create specified user", notes = "Allowable only for users with administrator role")
+  @ApiOperation(value = "Create specified user (DEPRECATED)", notes = "Allowable only for users with administrator role")
   public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq,
       @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
-    return createUserMessageHandler.createUserByAdmin(rq, currentUser, composeBaseUrl(request));
+    return super.createUserByAdmin(rq, currentUser, request);
   }
 
   @Transactional
   @PostMapping(value = "/bid")
   @ResponseStatus(CREATED)
   @PreAuthorize("(hasPermission(#createUserRQ.getDefaultProject(), 'projectManagerPermission')) || hasRole('ADMINISTRATOR')")
-  @ApiOperation("Register invitation for user who will be created")
+  @ApiOperation("Register invitation for user who will be created (DEPRECATED)")
   public CreateUserBidRS createUserBid(@RequestBody @Validated CreateUserRQ createUserRQ,
       @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
-    return createUserMessageHandler.createUserBid(createUserRQ, currentUser,
-        composeBaseUrl(request)
-    );
+    return super.createUserBid(createUserRQ, currentUser, request);
   }
 
   @PostMapping(value = "/registration")
   @ResponseStatus(CREATED)
-  @ApiOperation("Activate invitation and create user in system")
+  @ApiOperation("Activate invitation and create user in system (DEPRECATED)")
   public CreateUserRS createUser(@RequestBody @Validated CreateUserRQConfirm request,
       @RequestParam(value = "uuid") String uuid) {
-    return createUserMessageHandler.createUser(request, uuid);
+    return super.createUser(request, uuid);
   }
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/registration")
+  @ApiOperation(value = "Get user's registration info (DEPRECATED)")
   public UserBidRS getUserBidInfo(@RequestParam(value = "uuid") String uuid) {
-    return getUserHandler.getBidInformation(uuid);
+    return super.getUserBidInfo(uuid);
   }
 
   @DeleteMapping(value = "/{id}")
-  @ApiOperation(value = "Delete specified user")
+  @ApiOperation(value = "Delete specified user (DEPRECATED)")
   public OperationCompletionRS deleteUser(@PathVariable(value = "id") Long userId,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
-    return deleteUserHandler.deleteUser(userId, currentUser);
+    return super.deleteUser(userId, currentUser);
   }
 
   @DeleteMapping
   @PreAuthorize(ADMIN_ONLY)
   @ResponseStatus(OK)
-  @ApiOperation("Delete specified users by ids")
+  @ApiOperation("Delete specified users by ids (DEPRECATED)")
   public DeleteBulkRS deleteUsers(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return deleteUserHandler.deleteUsers(deleteBulkRQ.getIds(), user);
+    return super.deleteUsers(deleteBulkRQ, user);
   }
 
   @Transactional
   @PutMapping(value = "/{login}")
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
-  @ApiOperation(value = "Edit specified user", notes = "Only for administrators and profile's owner")
+  @ApiOperation(value = "Edit specified user (DEPRECATED)", notes = "Only for administrators and profile's owner")
   public OperationCompletionRS editUser(@PathVariable String login,
       @RequestBody @Validated EditUserRQ editUserRQ, @ActiveRole UserRole role,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
-    return editUserMessageHandler.editUser(EntityUtils.normalizeId(login), editUserRQ, currentUser);
+    return super.editUser(login, editUserRQ, role, currentUser);
   }
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/{login}")
   @ResponseView(ModelViews.FullUserView.class)
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
-  @ApiOperation(value = "Return information about specified user", notes = "Only for administrators and profile's owner")
+  @ApiOperation(value = "Return information about specified user (DEPRECATED)", notes = "Only for administrators and profile's owner")
   public UserResource getUser(@PathVariable String login,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
-    return getUserHandler.getUser(EntityUtils.normalizeId(login), currentUser);
+    return super.getUser(login, currentUser);
   }
 
   @Transactional(readOnly = true)
-  @GetMapping(value = {"", "/"})
-  @ApiOperation("Return information about current logged-in user")
+  @GetMapping(value = { "", "/" })
+  @ApiOperation("Return information about current logged-in user (DEPRECATED)")
   public UserResource getMyself(@AuthenticationPrincipal ReportPortalUser currentUser) {
-    return getUserHandler.getUser(currentUser);
+    return super.getMyself(currentUser);
   }
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/all")
   @ResponseView(ModelViews.FullUserView.class)
   @PreAuthorize(ADMIN_ONLY)
-  @ApiOperation(value = "Return information about all users", notes = "Allowable only for users with administrator role")
+  @ApiOperation(value = "Return information about all users (DEPRECATED)", notes = "Allowable only for users with administrator role")
   public Iterable<UserResource> getUsers(@FilterFor(User.class) Filter filter,
       @SortFor(User.class) Pageable pageable, @FilterFor(User.class) Queryable queryable,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
-    return getUserHandler.getAllUsers(new CompositeFilter(Operator.AND, filter, queryable),
-        pageable
-    );
+    return super.getUsers(filter, pageable, queryable, currentUser);
   }
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/registration/info")
-
+  @ApiOperation(value = "Validate registration information (DEPRECATED)")
   public YesNoRS validateInfo(@RequestParam(value = "username", required = false) String username,
       @RequestParam(value = "email", required = false) String email) {
-    return getUserHandler.validateInfo(username, email);
+    return super.validateInfo(username, email);
   }
 
   @Transactional
   @PostMapping(value = "/password/restore")
   @ResponseStatus(OK)
-  @ApiOperation("Create a restore password request")
+  @ApiOperation("Create a restore password request (DEPRECATED)")
   public OperationCompletionRS restorePassword(@RequestBody @Validated RestorePasswordRQ rq,
       HttpServletRequest request) {
-    return createUserMessageHandler.createRestorePasswordBid(rq, composeBaseUrl(request));
+    return super.restorePassword(rq, request);
   }
 
   @Transactional
   @PostMapping(value = "/password/reset")
   @ResponseStatus(OK)
-  @ApiOperation("Reset password")
+  @ApiOperation("Reset password (DEPRECATED")
   public OperationCompletionRS resetPassword(@RequestBody @Validated ResetPasswordRQ rq) {
-    return createUserMessageHandler.resetPassword(rq);
+    return super.resetPassword(rq);
   }
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/password/reset/{uuid}")
   @ResponseStatus(OK)
-  @ApiOperation("Check if a restore password bid exists")
+  @ApiOperation("Check if a restore password bid exists (DEPRECATED)")
   public YesNoRS isRestorePasswordBidExist(@PathVariable String uuid) {
-    return createUserMessageHandler.isResetPasswordBidExist(uuid);
+    return super.isRestorePasswordBidExist(uuid);
   }
 
   @Transactional
   @PostMapping(value = "/password/change")
   @ResponseStatus(OK)
-  @ApiOperation("Change own password")
+  @ApiOperation("Change own password (DEPRECATED)")
   public OperationCompletionRS changePassword(
       @RequestBody @Validated ChangePasswordRQ changePasswordRQ,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
-    return editUserMessageHandler.changePassword(currentUser, changePasswordRQ);
+    return super.changePassword(changePasswordRQ, currentUser);
   }
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/{userName}/projects")
   @ResponseStatus(OK)
+  @ApiOperation(value = "Get user's projects (DEPRECATED)")
   public Map<String, UserResource.AssignedProject> getUserProjects(@PathVariable String userName,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
-    return getUserHandler.getUserProjects(userName);
+    return super.getUserProjects(userName, currentUser);
   }
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/search")
   @ResponseStatus(OK)
   @PreAuthorize(ADMIN_ONLY)
+  @ApiOperation(value = "Find users by term (DEPRECATED)", notes = "Only for administrators")
   public Iterable<UserResource> findUsers(@RequestParam(value = "term") String term,
       Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-    return getUserHandler.searchUsers(term, pageable);
+    return super.findUsers(term, pageable, user);
   }
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/export")
   @PreAuthorize(ADMIN_ONLY)
-  @ApiOperation(value = "Exports information about all users", notes = "Allowable only for users with administrator role")
+  @ApiOperation(value = "Exports information about all users (DEPRECATED)", notes = "Allowable only for users with administrator role")
   public void export(@ApiParam(allowableValues = "csv")
   @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
       @FilterFor(User.class) Filter filter, @FilterFor(User.class) Queryable queryable,
       @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletResponse response) {
-
-    ReportFormat format = jasperReportHandler.getReportFormat(view);
-    response.setContentType(format.getContentType());
-
-    response.setHeader(com.google.common.net.HttpHeaders.CONTENT_DISPOSITION,
-        String.format("attachment; filename=\"RP_USERS_%s_Report.%s\"", format.name(),
-            format.getValue()
-        )
-    );
-
-    try (OutputStream outputStream = response.getOutputStream()) {
-      getUserHandler.exportUsers(format, outputStream,
-          new CompositeFilter(Operator.AND, filter, queryable)
-      );
-    } catch (IOException e) {
-      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "Unable to write data to the response."
-      );
-    }
+    super.export(view, filter, queryable, currentUser, response);
   }
 
   @PostMapping(value = "/{userId}/api-keys")
   @ResponseStatus(CREATED)
-  @ApiOperation("Create new Api Key for current user")
+  @ApiOperation("Create new Api Key for current user (DEPRECATED)")
   public ApiKeyRS createApiKey(@RequestBody @Validated ApiKeyRQ apiKeyRQ,
       @AuthenticationPrincipal ReportPortalUser currentUser, @PathVariable Long userId) {
-    return apiKeyHandler.createApiKey(apiKeyRQ.getName(), currentUser.getUserId());
+    return super.createApiKey(apiKeyRQ, currentUser, userId);
   }
 
   @DeleteMapping(value = "/{userId}/api-keys/{keyId}")
   @ResponseStatus(OK)
-  @ApiOperation("Delete specified Api Key")
+  @ApiOperation("Delete specified Api Key (DEPRECATED)")
   public OperationCompletionRS deleteApiKey(@PathVariable Long keyId, @PathVariable Long userId) {
-    return apiKeyHandler.deleteApiKey(keyId);
+    return super.deleteApiKey(keyId, userId);
   }
 
   @GetMapping(value = "/{userId}/api-keys")
   @ResponseStatus(OK)
-  @ApiOperation("Get List of users Api Keys")
+  @ApiOperation("Get List of users Api Keys (DEPRECATED)")
   public ApiKeysRS getUsersApiKeys(@AuthenticationPrincipal ReportPortalUser currentUser,
       @PathVariable Long userId) {
-    return apiKeyHandler.getAllUsersApiKeys(currentUser.getUserId());
+    return super.getUsersApiKeys(currentUser, userId);
   }
 }

@@ -26,14 +26,15 @@ public class ProjectUserHandlerImpl implements ProjectUserHandler {
   }
 
   @Override
-  public ProjectUser assign(User user, Project project, ProjectRole projectRole, User creator) {
+  public ProjectUser assign(User user, Project project, ProjectRole projectRole, User creator,
+      boolean isSystemEvent) {
     final ProjectUser projectUser = new ProjectUser().withProjectRole(projectRole)
         .withUser(user)
         .withProject(project);
     projectUserRepository.save(projectUser);
 
     AssignUserEvent assignUserEvent = new AssignUserEvent(getUserActivityResource(user, project),
-        creator.getId(), creator.getLogin());
+        creator.getId(), creator.getLogin(), isSystemEvent);
     eventPublisher.publishEvent(assignUserEvent);
 
     return projectUser;

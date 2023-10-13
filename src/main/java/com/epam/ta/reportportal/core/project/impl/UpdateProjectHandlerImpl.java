@@ -421,7 +421,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     AssignUserEvent assignUserEvent = new AssignUserEvent(
         convertUserToResource(modifyingUser, projectUser),
         authorizedUser.getUserId(),
-        authorizedUser.getUsername());
+        authorizedUser.getUsername(),
+        false);
     applicationEventPublisher.publishEvent(assignUserEvent);
   }
 

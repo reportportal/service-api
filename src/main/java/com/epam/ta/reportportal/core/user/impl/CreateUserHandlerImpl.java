@@ -163,7 +163,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
     normalize(request);
 
-    Pair<UserActivityResource, CreateUserRS> pair = saveUser(request, administrator);
+    Pair<UserActivityResource, CreateUserRS> pair = saveUser(request, administrator, false);
 
     emailExecutorService.execute(() -> emailServiceFactory.getDefaultEmailService(true)
         .sendCreateUserConfirmationEmail(request, basicUrl));
@@ -212,7 +212,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   }
 
   private Pair<UserActivityResource, CreateUserRS> saveUser(CreateUserRQFull request,
-      User creator) {
+      User creator, boolean isSystemEvent) {
 
     final Project projectToAssign =
         getProjectHandler.getRaw(normalizeId(request.getDefaultProject()));
@@ -227,7 +227,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
       userRepository.save(user);
       UserActivityResource userActivityResource = getUserActivityResource(user);
       UserCreatedEvent userCreatedEvent = new UserCreatedEvent(userActivityResource,
-          creator.getId(), creator.getLogin());
+          creator.getId(), creator.getLogin(), isSystemEvent);
       eventPublisher.publishEvent(userCreatedEvent);
     } catch (PersistenceException pe) {
       if (pe.getCause() instanceof ConstraintViolationException) {
@@ -241,9 +241,9 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
     userAuthenticator.authenticate(user);
 
-    projectUserHandler.assign(user, projectToAssign, projectRole, creator);
+    projectUserHandler.assign(user, projectToAssign, projectRole, creator, false);
     final Project personalProject = createProjectHandler.createPersonal(user);
-    projectUserHandler.assign(user, personalProject, ProjectRole.PROJECT_MANAGER, creator);
+    projectUserHandler.assign(user, personalProject, ProjectRole.PROJECT_MANAGER, creator, isSystemEvent);
 
     final CreateUserRS response = new CreateUserRS();
     response.setId(user.getId());
@@ -284,7 +284,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
         "Email from bid not match.");
 
     User invitingUser = bid.getInvitingUser();
-    final Pair<UserActivityResource, CreateUserRS> pair = saveUser(createUserRQFull, invitingUser);
+    final Pair<UserActivityResource, CreateUserRS> pair = saveUser(createUserRQFull, invitingUser, true);
 
     userCreationBidRepository.deleteAllByEmail(createUserRQFull.getEmail());
 

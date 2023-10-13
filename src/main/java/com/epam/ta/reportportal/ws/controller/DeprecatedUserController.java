@@ -2,12 +2,10 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
@@ -16,16 +14,13 @@ import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ApiKeyRQ;
 import com.epam.ta.reportportal.ws.model.ApiKeyRS;
 import com.epam.ta.reportportal.ws.model.ApiKeysRS;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ModelViews;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
@@ -44,15 +39,13 @@ import com.epam.ta.reportportal.ws.resolver.ActiveRole;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.ResponseView;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
@@ -74,6 +67,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/user")
 @Deprecated
+@Api(tags = "deprecated-user-controller", hidden = false, description = "Deprecated UserController")
 public class DeprecatedUserController extends UserController {
 
   @Autowired
@@ -101,7 +95,7 @@ public class DeprecatedUserController extends UserController {
   @PostMapping(value = "/bid")
   @ResponseStatus(CREATED)
   @PreAuthorize("(hasPermission(#createUserRQ.getDefaultProject(), 'projectManagerPermission')) || hasRole('ADMINISTRATOR')")
-  @ApiOperation("Register invitation for user who will be created")
+  @ApiOperation("Register invitation for user who will be created (DEPRECATED)")
   public CreateUserBidRS createUserBid(@RequestBody @Validated CreateUserRQ createUserRQ,
       @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
     return super.createUserBid(createUserRQ, currentUser, request);
@@ -109,7 +103,7 @@ public class DeprecatedUserController extends UserController {
 
   @PostMapping(value = "/registration")
   @ResponseStatus(CREATED)
-  @ApiOperation("Activate invitation and create user in system")
+  @ApiOperation("Activate invitation and create user in system (DEPRECATED)")
   public CreateUserRS createUser(@RequestBody @Validated CreateUserRQConfirm request,
       @RequestParam(value = "uuid") String uuid) {
     return super.createUser(request, uuid);
@@ -117,12 +111,13 @@ public class DeprecatedUserController extends UserController {
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/registration")
+  @ApiOperation(value = "Get user's registration info (DEPRECATED)")
   public UserBidRS getUserBidInfo(@RequestParam(value = "uuid") String uuid) {
     return super.getUserBidInfo(uuid);
   }
 
   @DeleteMapping(value = "/{id}")
-  @ApiOperation(value = "Delete specified user")
+  @ApiOperation(value = "Delete specified user (DEPRECATED)")
   public OperationCompletionRS deleteUser(@PathVariable(value = "id") Long userId,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
     return super.deleteUser(userId, currentUser);
@@ -131,7 +126,7 @@ public class DeprecatedUserController extends UserController {
   @DeleteMapping
   @PreAuthorize(ADMIN_ONLY)
   @ResponseStatus(OK)
-  @ApiOperation("Delete specified users by ids")
+  @ApiOperation("Delete specified users by ids (DEPRECATED)")
   public DeleteBulkRS deleteUsers(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return super.deleteUsers(deleteBulkRQ, user);
@@ -140,7 +135,7 @@ public class DeprecatedUserController extends UserController {
   @Transactional
   @PutMapping(value = "/{login}")
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
-  @ApiOperation(value = "Edit specified user", notes = "Only for administrators and profile's owner")
+  @ApiOperation(value = "Edit specified user (DEPRECATED)", notes = "Only for administrators and profile's owner")
   public OperationCompletionRS editUser(@PathVariable String login,
       @RequestBody @Validated EditUserRQ editUserRQ, @ActiveRole UserRole role,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
@@ -151,7 +146,7 @@ public class DeprecatedUserController extends UserController {
   @GetMapping(value = "/{login}")
   @ResponseView(ModelViews.FullUserView.class)
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
-  @ApiOperation(value = "Return information about specified user", notes = "Only for administrators and profile's owner")
+  @ApiOperation(value = "Return information about specified user (DEPRECATED)", notes = "Only for administrators and profile's owner")
   public UserResource getUser(@PathVariable String login,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
     return super.getUser(login, currentUser);
@@ -159,7 +154,7 @@ public class DeprecatedUserController extends UserController {
 
   @Transactional(readOnly = true)
   @GetMapping(value = { "", "/" })
-  @ApiOperation("Return information about current logged-in user")
+  @ApiOperation("Return information about current logged-in user (DEPRECATED)")
   public UserResource getMyself(@AuthenticationPrincipal ReportPortalUser currentUser) {
     return super.getMyself(currentUser);
   }
@@ -168,7 +163,7 @@ public class DeprecatedUserController extends UserController {
   @GetMapping(value = "/all")
   @ResponseView(ModelViews.FullUserView.class)
   @PreAuthorize(ADMIN_ONLY)
-  @ApiOperation(value = "Return information about all users", notes = "Allowable only for users with administrator role")
+  @ApiOperation(value = "Return information about all users (DEPRECATED)", notes = "Allowable only for users with administrator role")
   public Iterable<UserResource> getUsers(@FilterFor(User.class) Filter filter,
       @SortFor(User.class) Pageable pageable, @FilterFor(User.class) Queryable queryable,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
@@ -177,6 +172,7 @@ public class DeprecatedUserController extends UserController {
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/registration/info")
+  @ApiOperation(value = "Validate registration information (DEPRECATED)")
   public YesNoRS validateInfo(@RequestParam(value = "username", required = false) String username,
       @RequestParam(value = "email", required = false) String email) {
     return super.validateInfo(username, email);
@@ -185,7 +181,7 @@ public class DeprecatedUserController extends UserController {
   @Transactional
   @PostMapping(value = "/password/restore")
   @ResponseStatus(OK)
-  @ApiOperation("Create a restore password request")
+  @ApiOperation("Create a restore password request (DEPRECATED)")
   public OperationCompletionRS restorePassword(@RequestBody @Validated RestorePasswordRQ rq,
       HttpServletRequest request) {
     return super.restorePassword(rq, request);
@@ -194,7 +190,7 @@ public class DeprecatedUserController extends UserController {
   @Transactional
   @PostMapping(value = "/password/reset")
   @ResponseStatus(OK)
-  @ApiOperation("Reset password")
+  @ApiOperation("Reset password (DEPRECATED")
   public OperationCompletionRS resetPassword(@RequestBody @Validated ResetPasswordRQ rq) {
     return super.resetPassword(rq);
   }
@@ -202,7 +198,7 @@ public class DeprecatedUserController extends UserController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/password/reset/{uuid}")
   @ResponseStatus(OK)
-  @ApiOperation("Check if a restore password bid exists")
+  @ApiOperation("Check if a restore password bid exists (DEPRECATED)")
   public YesNoRS isRestorePasswordBidExist(@PathVariable String uuid) {
     return super.isRestorePasswordBidExist(uuid);
   }
@@ -210,7 +206,7 @@ public class DeprecatedUserController extends UserController {
   @Transactional
   @PostMapping(value = "/password/change")
   @ResponseStatus(OK)
-  @ApiOperation("Change own password")
+  @ApiOperation("Change own password (DEPRECATED)")
   public OperationCompletionRS changePassword(
       @RequestBody @Validated ChangePasswordRQ changePasswordRQ,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
@@ -220,6 +216,7 @@ public class DeprecatedUserController extends UserController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/{userName}/projects")
   @ResponseStatus(OK)
+  @ApiOperation(value = "Get user's projects (DEPRECATED)")
   public Map<String, UserResource.AssignedProject> getUserProjects(@PathVariable String userName,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
     return super.getUserProjects(userName, currentUser);
@@ -229,6 +226,7 @@ public class DeprecatedUserController extends UserController {
   @GetMapping(value = "/search")
   @ResponseStatus(OK)
   @PreAuthorize(ADMIN_ONLY)
+  @ApiOperation(value = "Find users by term (DEPRECATED)", notes = "Only for administrators")
   public Iterable<UserResource> findUsers(@RequestParam(value = "term") String term,
       Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
     return super.findUsers(term, pageable, user);
@@ -237,7 +235,7 @@ public class DeprecatedUserController extends UserController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/export")
   @PreAuthorize(ADMIN_ONLY)
-  @ApiOperation(value = "Exports information about all users", notes = "Allowable only for users with administrator role")
+  @ApiOperation(value = "Exports information about all users (DEPRECATED)", notes = "Allowable only for users with administrator role")
   public void export(@ApiParam(allowableValues = "csv")
   @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
       @FilterFor(User.class) Filter filter, @FilterFor(User.class) Queryable queryable,
@@ -247,7 +245,7 @@ public class DeprecatedUserController extends UserController {
 
   @PostMapping(value = "/{userId}/api-keys")
   @ResponseStatus(CREATED)
-  @ApiOperation("Create new Api Key for current user")
+  @ApiOperation("Create new Api Key for current user (DEPRECATED)")
   public ApiKeyRS createApiKey(@RequestBody @Validated ApiKeyRQ apiKeyRQ,
       @AuthenticationPrincipal ReportPortalUser currentUser, @PathVariable Long userId) {
     return super.createApiKey(apiKeyRQ, currentUser, userId);
@@ -255,14 +253,14 @@ public class DeprecatedUserController extends UserController {
 
   @DeleteMapping(value = "/{userId}/api-keys/{keyId}")
   @ResponseStatus(OK)
-  @ApiOperation("Delete specified Api Key")
+  @ApiOperation("Delete specified Api Key (DEPRECATED)")
   public OperationCompletionRS deleteApiKey(@PathVariable Long keyId, @PathVariable Long userId) {
     return super.deleteApiKey(keyId, userId);
   }
 
   @GetMapping(value = "/{userId}/api-keys")
   @ResponseStatus(OK)
-  @ApiOperation("Get List of users Api Keys")
+  @ApiOperation("Get List of users Api Keys (DEPRECATED)")
   public ApiKeysRS getUsersApiKeys(@AuthenticationPrincipal ReportPortalUser currentUser,
       @PathVariable Long userId) {
     return super.getUsersApiKeys(currentUser, userId);

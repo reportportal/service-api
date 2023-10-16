@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.project.impl;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 import static com.epam.ta.reportportal.ws.converter.converters.ExceptionConverter.TO_ERROR_RS;
 
 import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
@@ -32,12 +33,10 @@ import com.epam.ta.reportportal.core.events.activity.ProjectDeletedEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
-import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.entity.enums.FeatureFlag;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
@@ -126,7 +125,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
       String username = user.getUsername();
       publishProjectDeletedEvent(userId, username, project.getId(), project.getName());
     } else {
-      publishProjectDeletedEvent(null, "ReportPortal", project.getId(), "personal_project");
+      publishProjectDeletedEvent(null, RP_SUBJECT_NAME, project.getId(), "personal_project");
     }
   }
 

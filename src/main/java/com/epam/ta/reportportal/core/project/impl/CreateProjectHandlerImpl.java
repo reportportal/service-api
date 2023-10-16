@@ -20,6 +20,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.isPresent;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 
 import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -155,7 +156,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
     final Project personalProject = personalProjectService.generatePersonalProject(user);
     personalProject.getUsers().clear();
     projectRepository.save(personalProject);
-    publishProjectCreatedEvent(null, "ReportPortal", personalProject);
+    publishProjectCreatedEvent(null, RP_SUBJECT_NAME, personalProject);
     return personalProject;
   }
 }

@@ -182,11 +182,11 @@ class SecurityConfiguration {
     public void configure(HttpSecurity http) throws Exception {
       http.authorizeRequests()
           .accessDecisionManager(webAccessDecisionManager())
-          .antMatchers("/**/user/registration/info*",
-              "/**/user/registration**",
-              "/**/user/password/reset/*",
-              "/**/user/password/reset**",
-              "/**/user/password/restore**",
+          .antMatchers("/**/user**/registration/info*",
+              "/**/user**/registration**",
+              "/**/user**/password/reset/*",
+              "/**/user**/password/reset**",
+              "/**/user**/password/restore**",
               "/**/plugin/public/**",
               "/documentation.html",
               "/health",

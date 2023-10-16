@@ -15,6 +15,8 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
+
 import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
@@ -31,14 +33,13 @@ import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 public class UserCreatedEvent extends AbstractEvent implements ActivityEvent {
 
   private UserActivityResource userActivityResource;
-
-  public UserCreatedEvent() {
-  }
+  private final boolean isSystemEvent;
 
   public UserCreatedEvent(UserActivityResource userActivityResource, Long userId,
-      String userLogin) {
+      String userLogin, boolean isSystemEvent) {
     super(userId, userLogin);
     this.userActivityResource = userActivityResource;
+    this.isSystemEvent = isSystemEvent;
   }
 
   public UserActivityResource getUserActivityResource() {
@@ -59,9 +60,9 @@ public class UserCreatedEvent extends AbstractEvent implements ActivityEvent {
         .addObjectId(userActivityResource.getId())
         .addObjectName(userActivityResource.getFullName())
         .addObjectType(EventObject.USER)
-        .addSubjectId(getUserId())
-        .addSubjectName(getUserLogin())
-        .addSubjectType(EventSubject.USER)
+        .addSubjectId(isSystemEvent ? null : getUserId())
+        .addSubjectName(isSystemEvent ? RP_SUBJECT_NAME : getUserLogin())
+        .addSubjectType(isSystemEvent ? EventSubject.APPLICATION : EventSubject.USER)
         .get();
   }
 }

@@ -137,6 +137,10 @@ rp:
   jwt:
     signing-key:
 
+
+  jobs:
+    baseUrl: http://jobs:8686
+
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driverClassName: org.postgresql.Driver

@@ -111,8 +111,8 @@
                   <a href="http://twitter.com/ReportPortal_io" target="_blank">
                     <img src="cid:ic-twitter.png"
                          border="0"
-                         width="20"
-                         height="16"
+                         width="18"
+                         height="18"
                          alt="twitter">
                   </a>
                 </td>

@@ -385,10 +385,12 @@ public class EmailService extends JavaMailSenderImpl {
   }
 
   private void attachSocialImages(MimeMessageHelper message) throws MessagingException {
-    message.addInline("ic-github.png", emailTemplateResource("ic-github.png"));
     message.addInline("ic-twitter.png", emailTemplateResource("ic-twitter.png"));
-    message.addInline("ic-youtube.png", emailTemplateResource("ic-youtube.png"));
     message.addInline("ic-slack.png", emailTemplateResource("ic-slack.png"));
+    message.addInline("ic-youtube.png", emailTemplateResource("ic-youtube.png"));
+    message.addInline("ic-linkedin.png", emailTemplateResource("ic-linkedin.png"));
+    message.addInline("ic-facebook.png", emailTemplateResource("ic-facebook.png"));
+    message.addInline("ic-github.png", emailTemplateResource("ic-github.png"));
   }
 
   private Resource emailTemplateResource(String resource) {
@@ -461,6 +463,7 @@ public class EmailService extends JavaMailSenderImpl {
     message.addInline("new-ic-slack.png", emailTemplateResource("new-ic-slack.png"));
     message.addInline("new-ic-youtube.png", emailTemplateResource("new-ic-youtube.png"));
     message.addInline("new-ic-linkedin.png", emailTemplateResource("new-ic-linkedin.png"));
+    message.addInline("new-ic-facebook.png", emailTemplateResource("new-ic-facebook.png"));
     message.addInline("new-ic-github.png", emailTemplateResource("new-ic-github.png"));
   }
 

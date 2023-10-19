@@ -240,7 +240,7 @@
                            alt="YouTube icon">
                     </a>
                   </td>
-                  <td style="padding-right: 10px">
+                  <td style="padding-right: 22px">
                     <a href="https://www.linkedin.com/company/reportportal/"
                        target="_blank"
                        rel="noopener noreferrer">

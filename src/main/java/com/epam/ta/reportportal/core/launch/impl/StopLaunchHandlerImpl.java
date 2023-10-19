@@ -85,7 +85,8 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
 		launchRepository.save(launch);
 		testItemRepository.interruptInProgressItems(launch.getId());
 
-		eventPublisher.publishEvent(new LaunchFinishedEvent(launch, user.getUserId(), user.getUsername()));
+    eventPublisher.publishEvent(
+        new LaunchFinishedEvent(launch, user.getUserId(), user.getUsername(), false));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully stopped.");
 	}
 

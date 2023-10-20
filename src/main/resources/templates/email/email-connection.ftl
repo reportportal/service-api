@@ -48,12 +48,6 @@
         display: none;
       }
     }
-
-    .sm-icon {
-      border: 0;
-      height: 20px;
-      width: 20px;
-    }
   </style>
 </head>
 <body bgcolor="#f9f9f9" topmargin="0" bottommargin="0" leftmargin="0" rightmargin="0" link="#39c2d7"

@@ -76,7 +76,7 @@ public class EmailService extends JavaMailSenderImpl {
       " ReportPortal Notification: [%s] launch '%s' #%s finished";
   private static final String URL_FORMAT = "%s/launches/all";
   private static final String COMPOSITE_ATTRIBUTE_FILTER_FORMAT = "%s?launchesParams=filter.has.compositeAttribute=%s";
-  private static final String EMAIL_TEMPLATE_PREFIX = "templates/email/";
+  private static final String TEMPLATE_IMAGES_PREFIX = "templates/email/images/";
   private TemplateEngine templateEngine;
   /* Default value for FROM project notifications field */
   private String from;
@@ -395,7 +395,7 @@ public class EmailService extends JavaMailSenderImpl {
 
   private Resource emailTemplateResource(String resource) {
     return new FileUrlResource(Objects.requireNonNull(
-        EmailService.class.getClassLoader().getResource(EMAIL_TEMPLATE_PREFIX + resource)));
+        EmailService.class.getClassLoader().getResource(TEMPLATE_IMAGES_PREFIX + resource)));
   }
 
   public void sendAccountSelfDeletionNotification(String recipient) {

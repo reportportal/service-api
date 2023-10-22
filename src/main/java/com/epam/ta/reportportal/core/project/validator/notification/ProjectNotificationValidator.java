@@ -120,6 +120,7 @@ public class ProjectNotificationValidator {
         && Objects.equals(senderCase.getSendCase(), toCompare.getSendCase())
         && CollectionUtils.isEqualCollection(senderCase.getLaunchNames(),
         toCompare.getLaunchNames())
-        && CollectionUtils.isEqualCollection(senderCase.getAttributes(), toCompare.getAttributes());
+        && CollectionUtils.isEqualCollection(senderCase.getAttributes(), toCompare.getAttributes())
+        && Objects.equals(senderCase.getAttributesOperator(), toCompare.getAttributesOperator());
   }
 }

@@ -72,6 +72,7 @@ class UpdateProjectNotificationHandlerImplTest {
     updateNotificationRQ = new SenderCaseDTO();
     updateNotificationRQ.setId(1L);
     updateNotificationRQ.setSendCase("always");
+    updateNotificationRQ.setAttributesOperator(LogicalOperator.AND.getOperator());
     updateNotificationRQ.setRuleName(DEFAULT_RULE_NAME);
     updateNotificationRQ.setRecipients(Collections.singletonList("OWNER"));
     updateNotificationRQ.setLaunchNames(Collections.singletonList("test launch"));

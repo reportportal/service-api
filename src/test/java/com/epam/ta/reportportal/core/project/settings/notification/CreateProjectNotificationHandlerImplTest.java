@@ -71,6 +71,7 @@ class CreateProjectNotificationHandlerImplTest {
     createNotificationRQ = new SenderCaseDTO();
     createNotificationRQ.setSendCase("always");
     createNotificationRQ.setRuleName(DEFAULT_RULE_NAME);
+    createNotificationRQ.setAttributesOperator(LogicalOperator.AND.getOperator());
     createNotificationRQ.setRecipients(Collections.singletonList("OWNER"));
     createNotificationRQ.setLaunchNames(Collections.singletonList("test launch"));
     createNotificationRQ.setEnabled(true);

@@ -47,6 +47,8 @@ public class AnalyzeCollectorConfig implements ApplicationContextAware {
         applicationContext.getBean(AutoAnalyzedCollector.class));
     mapping.put(AnalyzeItemsMode.MANUALLY_ANALYZED,
         applicationContext.getBean(ManuallyAnalyzedCollector.class));
+    mapping.put(AnalyzeItemsMode.IGNORE_IMMEDIATE,
+        applicationContext.getBean(IgnoreImmediateCollector.class));
     return mapping;
   }
 

@@ -296,16 +296,16 @@ public class AsyncReportingListener implements MessageListener {
 		Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
 		logService.saveLogMessageToElasticSearch(log, effectiveLaunch.getId());
 
-		if (Objects.nonNull(request.getFile())) {
-			saveAttachment(request.getFile().getName(), metaInfo,
-					log.getId(),
-					projectId,
-					effectiveLaunch.getId(),
-					item.getItemId(),
-					effectiveLaunch.getUuid(),
-					log.getUuid()
-			);
-		}
+    if (Objects.nonNull(request.getFile())) {
+      saveAttachment(request.getFile().getName(), metaInfo,
+          log.getId(),
+          projectId,
+          effectiveLaunch.getId(),
+          item.getItemId(),
+          effectiveLaunch.getUuid(),
+          log.getUuid()
+      );
+    }
 	}
 
 	private void createLaunchLog(SaveLogRQ request, Launch launch, BinaryDataMetaInfo metaInfo,

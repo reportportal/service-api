@@ -27,10 +27,10 @@ import org.springframework.util.ErrorHandler;
 @Service
 public class LoggingEventErrorHandler implements ErrorHandler {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(LoggingEventErrorHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(LoggingEventErrorHandler.class);
 
-	@Override
-	public void handleError(Throwable throwable) {
-		LOGGER.error("Error during event publishing", throwable);
-	}
+  @Override
+  public void handleError(Throwable throwable) {
+    LOGGER.error("Error during event publishing", throwable);
+  }
 }

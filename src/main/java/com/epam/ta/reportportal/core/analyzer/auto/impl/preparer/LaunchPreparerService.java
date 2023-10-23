@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -29,12 +28,13 @@ import java.util.Optional;
  */
 public interface LaunchPreparerService {
 
-	Optional<IndexLaunch> prepare(Launch launch, List<TestItem> testItems, AnalyzerConfig analyzerConfig);
+  Optional<IndexLaunch> prepare(Launch launch, List<TestItem> testItems,
+      AnalyzerConfig analyzerConfig);
 
-	Optional<IndexLaunch> prepare(Long id, AnalyzerConfig analyzerConfig);
+  Optional<IndexLaunch> prepare(Long id, AnalyzerConfig analyzerConfig);
 
-	List<IndexLaunch> prepare(List<Long> ids, AnalyzerConfig analyzerConfig);
+  List<IndexLaunch> prepare(List<Long> ids, AnalyzerConfig analyzerConfig);
 
-	List<IndexLaunch> prepare(AnalyzerConfig analyzerConfig, List<TestItem> testItems);
+  List<IndexLaunch> prepare(AnalyzerConfig analyzerConfig, List<TestItem> testItems);
 
 }

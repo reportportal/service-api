@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.ws.converter.resource.handler.attribute.matcher
 
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ItemAttributeType;
-
 import java.util.function.Predicate;
 
 /**
@@ -26,21 +25,22 @@ import java.util.function.Predicate;
  */
 public class PredicateItemAttributeTypeMatcher implements ItemAttributeTypeMatcher {
 
-	private final Predicate<ItemAttribute> predicate;
-	private final ItemAttributeType type;
+  private final Predicate<ItemAttribute> predicate;
+  private final ItemAttributeType type;
 
-	public PredicateItemAttributeTypeMatcher(Predicate<ItemAttribute> predicate, ItemAttributeType type) {
-		this.predicate = predicate;
-		this.type = type;
-	}
+  public PredicateItemAttributeTypeMatcher(Predicate<ItemAttribute> predicate,
+      ItemAttributeType type) {
+    this.predicate = predicate;
+    this.type = type;
+  }
 
-	@Override
-	public boolean matches(ItemAttribute attribute) {
-		return predicate.test(attribute);
-	}
+  @Override
+  public boolean matches(ItemAttribute attribute) {
+    return predicate.test(attribute);
+  }
 
-	@Override
-	public ItemAttributeType getType() {
-		return type;
-	}
+  @Override
+  public ItemAttributeType getType() {
+    return type;
+  }
 }

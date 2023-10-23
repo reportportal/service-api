@@ -16,6 +16,14 @@
 
 package com.epam.ta.reportportal.core.widget.content.loader;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.INCLUDE_METHODS;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LATEST_LAUNCH;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
+import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -26,20 +34,14 @@ import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.google.common.collect.ImmutableMap;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
-import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
-import static java.util.Optional.ofNullable;
 
 /**
  * Content loader for {@link com.epam.ta.reportportal.entity.widget.WidgetType#TOP_TEST_CASES}
@@ -49,45 +51,48 @@ import static java.util.Optional.ofNullable;
 @Service
 public class TopTestCasesContentLoader implements LoadContentStrategy {
 
-	private final LaunchRepository launchRepository;
+  private final LaunchRepository launchRepository;
 
-	private final LaunchConverter launchConverter;
+  private final LaunchConverter launchConverter;
 
-	private final WidgetContentRepository widgetContentRepository;
+  private final WidgetContentRepository widgetContentRepository;
 
-	@Autowired
-	public TopTestCasesContentLoader(LaunchRepository launchRepository, LaunchConverter launchConverter,
-			WidgetContentRepository widgetContentRepository) {
-		this.launchRepository = launchRepository;
-		this.launchConverter = launchConverter;
-		this.widgetContentRepository = widgetContentRepository;
-	}
+  @Autowired
+  public TopTestCasesContentLoader(LaunchRepository launchRepository,
+      LaunchConverter launchConverter,
+      WidgetContentRepository widgetContentRepository) {
+    this.launchRepository = launchRepository;
+    this.launchConverter = launchConverter;
+    this.widgetContentRepository = widgetContentRepository;
+  }
 
-	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			int limit) {
-		String criteria = contentFields.get(0);
-		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet())
-				.withCondition(new FilterCondition(Condition.EQUALS,
-						false,
-						WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions),
-						CRITERIA_NAME
-				));
+  @Override
+  public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping,
+      WidgetOptions widgetOptions,
+      int limit) {
+    String criteria = contentFields.get(0);
+    Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet())
+        .withCondition(new FilterCondition(Condition.EQUALS,
+            false,
+            WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions),
+            CRITERIA_NAME
+        ));
 
-		return launchRepository.findLatestByFilter(filter)
-				.map(it -> Pair.of(it,
-						widgetContentRepository.topItemsByCriteria(filter,
-								criteria,
-								limit,
-								ofNullable(widgetOptions.getOptions()
-										.get(INCLUDE_METHODS)).map(v -> BooleanUtils.toBoolean(String.valueOf(v))).orElse(false)
-						)
-				))
-				.filter(it -> !it.getRight().isEmpty())
-				.map(it -> (Map<String, ?>) ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH,
-						launchConverter.TO_RESOURCE.apply(it.getLeft())
-				).put(RESULT, it.getRight()).build())
-				.orElse(Collections.emptyMap());
-	}
+    return launchRepository.findLatestByFilter(filter)
+        .map(it -> Pair.of(it,
+            widgetContentRepository.topItemsByCriteria(filter,
+                criteria,
+                limit,
+                ofNullable(widgetOptions.getOptions()
+                    .get(INCLUDE_METHODS)).map(v -> BooleanUtils.toBoolean(String.valueOf(v)))
+                    .orElse(false)
+            )
+        ))
+        .filter(it -> !it.getRight().isEmpty())
+        .map(it -> (Map<String, ?>) ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH,
+            launchConverter.TO_RESOURCE.apply(it.getLeft())
+        ).put(RESULT, it.getRight()).build())
+        .orElse(Collections.emptyMap());
+  }
 
 }

@@ -12,26 +12,27 @@ import org.springframework.stereotype.Component;
 @Component
 public class CumulativeTrendChartPostProcessor implements WidgetPostProcessor {
 
-	private final WidgetValidator cumulativeTrendChartValidator;
+  private final WidgetValidator cumulativeTrendChartValidator;
 
-	private final WidgetUpdater materializedWidgetStateUpdater;
+  private final WidgetUpdater materializedWidgetStateUpdater;
 
-	@Autowired
-	public CumulativeTrendChartPostProcessor(WidgetValidator cumulativeTrendChartValidator, WidgetUpdater materializedWidgetStateUpdater) {
-		this.cumulativeTrendChartValidator = cumulativeTrendChartValidator;
-		this.materializedWidgetStateUpdater = materializedWidgetStateUpdater;
-	}
+  @Autowired
+  public CumulativeTrendChartPostProcessor(WidgetValidator cumulativeTrendChartValidator,
+      WidgetUpdater materializedWidgetStateUpdater) {
+    this.cumulativeTrendChartValidator = cumulativeTrendChartValidator;
+    this.materializedWidgetStateUpdater = materializedWidgetStateUpdater;
+  }
 
-	@Override
-	public boolean supports(Widget widget) {
-		return WidgetType.CUMULATIVE.getType().equalsIgnoreCase(widget.getWidgetType());
-	}
+  @Override
+  public boolean supports(Widget widget) {
+    return WidgetType.CUMULATIVE.getType().equalsIgnoreCase(widget.getWidgetType());
+  }
 
-	@Override
-	public void postProcess(Widget widget) {
-		if (supports(widget)) {
-			cumulativeTrendChartValidator.validate(widget);
-			materializedWidgetStateUpdater.update(widget);
-		}
-	}
+  @Override
+  public void postProcess(Widget widget) {
+    if (supports(widget)) {
+      cumulativeTrendChartValidator.validate(widget);
+      materializedWidgetStateUpdater.update(widget);
+    }
+  }
 }

@@ -26,5 +26,5 @@ import com.epam.ta.reportportal.entity.item.TestItem;
  */
 public interface StatusChangingStrategy {
 
-	void changeStatus(TestItem testItem, StatusEnum providedStatus, ReportPortalUser user);
+  void changeStatus(TestItem testItem, StatusEnum providedStatus, ReportPortalUser user);
 }

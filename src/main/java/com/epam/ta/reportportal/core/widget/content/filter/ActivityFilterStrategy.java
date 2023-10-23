@@ -16,18 +16,17 @@
 
 package com.epam.ta.reportportal.core.widget.content.filter;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.google.common.collect.Lists;
+import java.util.Map;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
-
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -35,17 +34,18 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 @Service("activityFilterStrategy")
 public class ActivityFilterStrategy extends AbstractStatisticsFilterStrategy {
 
-	@Override
-	public Map<Filter, Sort> buildFilter(Widget widget) {
+  @Override
+  public Map<Filter, Sort> buildFilter(Widget widget) {
 
-		return super.buildFilter(widget);
-	}
+    return super.buildFilter(widget);
+  }
 
-	@Override
-	protected Filter buildDefaultFilter(Widget widget, Long projectId) {
-		return new Filter(
-				Activity.class,
-				Lists.newArrayList(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID))
-		);
-	}
+  @Override
+  protected Filter buildDefaultFilter(Widget widget, Long projectId) {
+    return new Filter(
+        Activity.class,
+        Lists.newArrayList(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId),
+            CRITERIA_PROJECT_ID))
+    );
+  }
 }

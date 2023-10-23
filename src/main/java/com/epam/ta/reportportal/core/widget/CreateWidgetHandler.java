@@ -25,14 +25,15 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
  */
 public interface CreateWidgetHandler {
 
-	/**
-	 * Creates a new widget
-	 *
-	 * @param createWidgetRQ Widget details
-	 * @param projectDetails Project details
-	 * @param user           User
-	 * @return EntryCreatedRS
-	 */
-	EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+  /**
+   * Creates a new widget
+   *
+   * @param createWidgetRQ Widget details
+   * @param projectDetails Project details
+   * @param user           User
+   * @return EntryCreatedRS
+   */
+  EntryCreatedRS createWidget(WidgetRQ createWidgetRQ,
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 }

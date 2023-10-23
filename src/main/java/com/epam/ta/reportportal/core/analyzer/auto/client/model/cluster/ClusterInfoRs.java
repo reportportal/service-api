@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -26,47 +25,47 @@ import java.util.Set;
  */
 public class ClusterInfoRs {
 
-	private Long clusterId;
-	private String clusterMessage;
+  private Long clusterId;
+  private String clusterMessage;
 
-	@JsonDeserialize(as = LinkedHashSet.class)
-	private Set<Long> itemIds;
+  @JsonDeserialize(as = LinkedHashSet.class)
+  private Set<Long> itemIds;
 
-	@JsonDeserialize(as = LinkedHashSet.class)
-	private Set<Long> logIds;
+  @JsonDeserialize(as = LinkedHashSet.class)
+  private Set<Long> logIds;
 
-	public ClusterInfoRs() {
-	}
+  public ClusterInfoRs() {
+  }
 
-	public Long getClusterId() {
-		return clusterId;
-	}
+  public Long getClusterId() {
+    return clusterId;
+  }
 
-	public void setClusterId(Long clusterId) {
-		this.clusterId = clusterId;
-	}
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
+  }
 
-	public String getClusterMessage() {
-		return clusterMessage;
-	}
+  public String getClusterMessage() {
+    return clusterMessage;
+  }
 
-	public void setClusterMessage(String clusterMessage) {
-		this.clusterMessage = clusterMessage;
-	}
+  public void setClusterMessage(String clusterMessage) {
+    this.clusterMessage = clusterMessage;
+  }
 
-	public Set<Long> getItemIds() {
-		return itemIds;
-	}
+  public Set<Long> getItemIds() {
+    return itemIds;
+  }
 
-	public void setItemIds(Set<Long> itemIds) {
-		this.itemIds = itemIds;
-	}
+  public void setItemIds(Set<Long> itemIds) {
+    this.itemIds = itemIds;
+  }
 
-	public Set<Long> getLogIds() {
-		return logIds;
-	}
+  public Set<Long> getLogIds() {
+    return logIds;
+  }
 
-	public void setLogIds(Set<Long> logIds) {
-		this.logIds = logIds;
-	}
+  public void setLogIds(Set<Long> logIds) {
+    this.logIds = logIds;
+  }
 }

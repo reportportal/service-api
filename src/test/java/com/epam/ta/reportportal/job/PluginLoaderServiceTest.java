@@ -16,6 +16,11 @@
 
 package com.epam.ta.reportportal.job;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
@@ -26,128 +31,129 @@ import com.epam.ta.reportportal.job.service.PluginLoaderService;
 import com.epam.ta.reportportal.job.service.impl.PluginLoaderServiceImpl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.pf4j.PluginDescriptor;
-import org.pf4j.PluginWrapper;
-
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.pf4j.PluginDescriptor;
+import org.pf4j.PluginWrapper;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class PluginLoaderServiceTest {
 
-	private IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
+  private IntegrationTypeRepository integrationTypeRepository = mock(
+      IntegrationTypeRepository.class);
 
-	private Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
+  private Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
 
-	private PluginLoaderService pluginLoaderService = new PluginLoaderServiceImpl(integrationTypeRepository, pluginBox);
+  private PluginLoaderService pluginLoaderService = new PluginLoaderServiceImpl(
+      integrationTypeRepository, pluginBox);
 
-	private PluginWrapper jiraPlugin = mock(PluginWrapper.class);
-	private PluginWrapper rallyPlugin = mock(PluginWrapper.class);
+  private PluginWrapper jiraPlugin = mock(PluginWrapper.class);
+  private PluginWrapper rallyPlugin = mock(PluginWrapper.class);
 
-	private PluginDescriptor jiraPluginDescriptor = mock(PluginDescriptor.class);
-	private PluginDescriptor rallyPluginDescriptor = mock(PluginDescriptor.class);
+  private PluginDescriptor jiraPluginDescriptor = mock(PluginDescriptor.class);
+  private PluginDescriptor rallyPluginDescriptor = mock(PluginDescriptor.class);
 
-	@Test
-	void getNotLoadedPluginsInfoTest() {
+  @Test
+  void getNotLoadedPluginsInfoTest() {
 
-		when(pluginBox.getPluginById("jira")).thenReturn(Optional.ofNullable(jiraPlugin));
-		when(pluginBox.getPluginById("rally")).thenReturn(Optional.ofNullable(rallyPlugin));
-		when(jiraPlugin.getDescriptor()).thenReturn(jiraPluginDescriptor);
-		when(jiraPluginDescriptor.getVersion()).thenReturn("v1");
-		when(rallyPlugin.getDescriptor()).thenReturn(rallyPluginDescriptor);
-		when(rallyPluginDescriptor.getVersion()).thenReturn("another version");
-		when(integrationTypeRepository.findAll()).thenReturn(getIntegrationTypes());
-		List<PluginInfo> notLoadedPluginsInfo = pluginLoaderService.getNotLoadedPluginsInfo();
+    when(pluginBox.getPluginById("jira")).thenReturn(Optional.ofNullable(jiraPlugin));
+    when(pluginBox.getPluginById("rally")).thenReturn(Optional.ofNullable(rallyPlugin));
+    when(jiraPlugin.getDescriptor()).thenReturn(jiraPluginDescriptor);
+    when(jiraPluginDescriptor.getVersion()).thenReturn("v1");
+    when(rallyPlugin.getDescriptor()).thenReturn(rallyPluginDescriptor);
+    when(rallyPluginDescriptor.getVersion()).thenReturn("another version");
+    when(integrationTypeRepository.findAll()).thenReturn(getIntegrationTypes());
+    List<PluginInfo> notLoadedPluginsInfo = pluginLoaderService.getNotLoadedPluginsInfo();
 
-		Assertions.assertFalse(notLoadedPluginsInfo.isEmpty());
-		Assertions.assertEquals(1, notLoadedPluginsInfo.size());
-		Assertions.assertEquals("rally", notLoadedPluginsInfo.get(0).getId());
-	}
+    Assertions.assertFalse(notLoadedPluginsInfo.isEmpty());
+    Assertions.assertEquals(1, notLoadedPluginsInfo.size());
+    Assertions.assertEquals("rally", notLoadedPluginsInfo.get(0).getId());
+  }
 
-	@Test
-	void checkAndDeleteIntegrationTypeWhenPluginPositive() {
-		IntegrationType integrationType = new IntegrationType();
-		integrationType.setId(1L);
-		integrationType.setName("jira");
+  @Test
+  void checkAndDeleteIntegrationTypeWhenPluginPositive() {
+    IntegrationType integrationType = new IntegrationType();
+    integrationType.setId(1L);
+    integrationType.setName("jira");
 
-		when(pluginBox.getPluginById(integrationType.getName())).thenReturn(Optional.ofNullable(jiraPlugin));
-		when(jiraPlugin.getPluginId()).thenReturn("jira");
-		when(jiraPlugin.getPluginPath()).thenReturn(Paths.get("plugins", "file.jar"));
-		when(pluginBox.unloadPlugin(integrationType)).thenReturn(true);
+    when(pluginBox.getPluginById(integrationType.getName())).thenReturn(
+        Optional.ofNullable(jiraPlugin));
+    when(jiraPlugin.getPluginId()).thenReturn("jira");
+    when(jiraPlugin.getPluginPath()).thenReturn(Paths.get("plugins", "file.jar"));
+    when(pluginBox.unloadPlugin(integrationType)).thenReturn(true);
 
-		pluginLoaderService.checkAndDeleteIntegrationType(integrationType);
+    pluginLoaderService.checkAndDeleteIntegrationType(integrationType);
 
-		verify(integrationTypeRepository, times(1)).deleteById(integrationType.getId());
-	}
+    verify(integrationTypeRepository, times(1)).deleteById(integrationType.getId());
+  }
 
-	@Test
-	void checkAndDeleteIntegrationTypeWhenPluginNegative() {
-		IntegrationType integrationType = new IntegrationType();
-		integrationType.setId(1L);
-		integrationType.setName("jira");
+  @Test
+  void checkAndDeleteIntegrationTypeWhenPluginNegative() {
+    IntegrationType integrationType = new IntegrationType();
+    integrationType.setId(1L);
+    integrationType.setName("jira");
 
-		when(pluginBox.getPluginById(integrationType.getName())).thenReturn(Optional.ofNullable(jiraPlugin));
-		when(jiraPlugin.getPluginId()).thenReturn("jira");
-		when(pluginBox.unloadPlugin(integrationType)).thenReturn(false);
+    when(pluginBox.getPluginById(integrationType.getName())).thenReturn(
+        Optional.ofNullable(jiraPlugin));
+    when(jiraPlugin.getPluginId()).thenReturn("jira");
+    when(pluginBox.unloadPlugin(integrationType)).thenReturn(false);
 
-		pluginLoaderService.checkAndDeleteIntegrationType(integrationType);
+    pluginLoaderService.checkAndDeleteIntegrationType(integrationType);
 
-		verify(integrationTypeRepository, times(0)).deleteById(integrationType.getId());
-	}
+    verify(integrationTypeRepository, times(0)).deleteById(integrationType.getId());
+  }
 
-	@Test
-	void checkAndDeleteIntegrationTypeWhenNotPluginTest() {
-		IntegrationType integrationType = new IntegrationType();
-		integrationType.setId(1L);
-		integrationType.setName("EMAIL");
+  @Test
+  void checkAndDeleteIntegrationTypeWhenNotPluginTest() {
+    IntegrationType integrationType = new IntegrationType();
+    integrationType.setId(1L);
+    integrationType.setName("EMAIL");
 
-		pluginLoaderService.checkAndDeleteIntegrationType(integrationType);
+    pluginLoaderService.checkAndDeleteIntegrationType(integrationType);
 
-		verify(integrationTypeRepository, times(0)).deleteById(integrationType.getId());
-	}
+    verify(integrationTypeRepository, times(0)).deleteById(integrationType.getId());
+  }
 
-	private List<IntegrationType> getIntegrationTypes() {
+  private List<IntegrationType> getIntegrationTypes() {
 
-		IntegrationType jira = new IntegrationType();
-		jira.setName("jira");
-		IntegrationTypeDetails jiraDetails = new IntegrationTypeDetails();
-		Map<String, Object> jiraParams = Maps.newHashMap();
-		jiraParams.put(IntegrationTypeProperties.FILE_ID.getAttribute(), "f1");
-		jiraParams.put(IntegrationTypeProperties.FILE_NAME.getAttribute(), "fname1");
-		jiraParams.put(IntegrationTypeProperties.VERSION.getAttribute(), "v1");
-		jiraParams.put(IntegrationTypeProperties.COMMANDS.getAttribute(), "");
-		jiraDetails.setDetails(jiraParams);
-		jira.setEnabled(true);
-		jira.setDetails(jiraDetails);
+    IntegrationType jira = new IntegrationType();
+    jira.setName("jira");
+    IntegrationTypeDetails jiraDetails = new IntegrationTypeDetails();
+    Map<String, Object> jiraParams = Maps.newHashMap();
+    jiraParams.put(IntegrationTypeProperties.FILE_ID.getAttribute(), "f1");
+    jiraParams.put(IntegrationTypeProperties.FILE_NAME.getAttribute(), "fname1");
+    jiraParams.put(IntegrationTypeProperties.VERSION.getAttribute(), "v1");
+    jiraParams.put(IntegrationTypeProperties.COMMANDS.getAttribute(), "");
+    jiraDetails.setDetails(jiraParams);
+    jira.setEnabled(true);
+    jira.setDetails(jiraDetails);
 
-		IntegrationType rally = new IntegrationType();
-		rally.setEnabled(true);
-		Map<String, Object> rallyParams = Maps.newHashMap();
-		rallyParams.put(IntegrationTypeProperties.FILE_ID.getAttribute(), "f2");
-		rallyParams.put(IntegrationTypeProperties.FILE_NAME.getAttribute(), "fname2");
-		rallyParams.put(IntegrationTypeProperties.VERSION.getAttribute(), "v2");
-		rallyParams.put(IntegrationTypeProperties.COMMANDS.getAttribute(), "");
-		IntegrationTypeDetails rallyDetails = new IntegrationTypeDetails();
-		rallyDetails.setDetails(rallyParams);
-		rally.setName("rally");
-		rally.setDetails(rallyDetails);
+    IntegrationType rally = new IntegrationType();
+    rally.setEnabled(true);
+    Map<String, Object> rallyParams = Maps.newHashMap();
+    rallyParams.put(IntegrationTypeProperties.FILE_ID.getAttribute(), "f2");
+    rallyParams.put(IntegrationTypeProperties.FILE_NAME.getAttribute(), "fname2");
+    rallyParams.put(IntegrationTypeProperties.VERSION.getAttribute(), "v2");
+    rallyParams.put(IntegrationTypeProperties.COMMANDS.getAttribute(), "");
+    IntegrationTypeDetails rallyDetails = new IntegrationTypeDetails();
+    rallyDetails.setDetails(rallyParams);
+    rally.setName("rally");
+    rally.setDetails(rallyDetails);
 
-		IntegrationType noDetails = new IntegrationType();
-		noDetails.setName("NO DETAILS");
+    IntegrationType noDetails = new IntegrationType();
+    noDetails.setName("NO DETAILS");
 
-		IntegrationType emptyParams = new IntegrationType();
-		emptyParams.setName("EMPTY PARAMS");
-		emptyParams.setDetails(new IntegrationTypeDetails());
+    IntegrationType emptyParams = new IntegrationType();
+    emptyParams.setName("EMPTY PARAMS");
+    emptyParams.setDetails(new IntegrationTypeDetails());
 
-		return Lists.newArrayList(jira, rally, noDetails, emptyParams);
-	}
+    return Lists.newArrayList(jira, rally, noDetails, emptyParams);
+  }
 
 }

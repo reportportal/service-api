@@ -23,26 +23,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Validates this is {@link ProjectRole#PROJECT_MANAGER} or higher authority in the
- * authentication context
+ * Validates this is {@link ProjectRole#PROJECT_MANAGER} or higher authority in the authentication
+ * context
  *
  * @author Andrei Varabyeu
  */
 @Component
-@LookupPermission({ "projectManagerPermission" })
+@LookupPermission({"projectManagerPermission"})
 public class ProjectManagerPermission extends BaseProjectPermission {
 
-	@Autowired
-	public ProjectManagerPermission(ProjectExtractor projectExtractor) {
-		super(projectExtractor);
-	}
+  @Autowired
+  public ProjectManagerPermission(ProjectExtractor projectExtractor) {
+    super(projectExtractor);
+  }
 
-	/**
-	 * Validates this is {@link ProjectRole#PROJECT_MANAGER} or higher authority in the
-	 * authentication context
-	 */
-	@Override
-	protected boolean checkAllowed(ReportPortalUser user, String project, ProjectRole role) {
-		return role.sameOrHigherThan(ProjectRole.PROJECT_MANAGER);
-	}
+  /**
+   * Validates this is {@link ProjectRole#PROJECT_MANAGER} or higher authority in the authentication
+   * context
+   */
+  @Override
+  protected boolean checkAllowed(ReportPortalUser user, String project, ProjectRole role) {
+    return role.sameOrHigherThan(ProjectRole.PROJECT_MANAGER);
+  }
 }

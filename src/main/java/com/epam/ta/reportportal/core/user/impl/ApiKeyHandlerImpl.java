@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.user.impl;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.NOT_FOUND;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -29,6 +30,7 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.ws.converter.converters.ApiKeyConverter;
 import com.epam.ta.reportportal.ws.model.ApiKeyRS;
 import com.epam.ta.reportportal.ws.model.ApiKeysRS;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.annotations.VisibleForTesting;
 import java.nio.ByteBuffer;
@@ -37,6 +39,7 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -92,6 +95,8 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
 
   @Override
   public OperationCompletionRS deleteApiKey(Long id) {
+    expect(apiKeyRepository.existsById(id), Predicates.equalTo(true))
+        .verify(NOT_FOUND, "Api key");
     apiKeyRepository.deleteById(id);
     return new OperationCompletionRS("Api key with ID = '" + id + "' was successfully deleted.");
   }

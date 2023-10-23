@@ -33,25 +33,26 @@ import org.springframework.stereotype.Service;
 @Service
 public class UniqueErrorGeneratorAsync extends UniqueErrorGenerator {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(UniqueErrorGeneratorAsync.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(UniqueErrorGeneratorAsync.class);
 
-	private final TaskExecutor logClusterExecutor;
+  private final TaskExecutor logClusterExecutor;
 
-	@Autowired
-	public UniqueErrorGeneratorAsync(AnalyzerStatusCache analyzerStatusCache,
-			PipelineConstructor<GenerateClustersConfig> generateClustersPipelineConstructor, TransactionalPipeline transactionalPipeline,
-			@Qualifier(value = "logClusterExecutor") TaskExecutor logClusterExecutor) {
-		super(analyzerStatusCache, generateClustersPipelineConstructor, transactionalPipeline);
-		this.logClusterExecutor = logClusterExecutor;
-	}
+  @Autowired
+  public UniqueErrorGeneratorAsync(AnalyzerStatusCache analyzerStatusCache,
+      PipelineConstructor<GenerateClustersConfig> generateClustersPipelineConstructor,
+      TransactionalPipeline transactionalPipeline,
+      @Qualifier(value = "logClusterExecutor") TaskExecutor logClusterExecutor) {
+    super(analyzerStatusCache, generateClustersPipelineConstructor, transactionalPipeline);
+    this.logClusterExecutor = logClusterExecutor;
+  }
 
-	@Override
-	protected void generateClusters(GenerateClustersConfig config) {
-		try {
-			logClusterExecutor.execute(() -> super.generateClusters(config));
-		} catch (Exception ex) {
-			LOGGER.error(ex.getMessage(), ex);
-			cleanCache(config.getEntityContext());
-		}
-	}
+  @Override
+  protected void generateClusters(GenerateClustersConfig config) {
+    try {
+      logClusterExecutor.execute(() -> super.generateClusters(config));
+    } catch (Exception ex) {
+      LOGGER.error(ex.getMessage(), ex);
+      cleanCache(config.getEntityContext());
+    }
+  }
 }

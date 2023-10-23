@@ -59,7 +59,7 @@ class UserCreatedEventTest {
 
   @Test
   void toActivity() {
-    final Activity actual = new UserCreatedEvent(getUser(), 1L, "user").toActivity();
+    final Activity actual = new UserCreatedEvent(getUser(), 1L, "user", false).toActivity();
     final Activity expected = getExpectedActivity();
     checkActivity(expected, actual);
 

@@ -16,7 +16,12 @@
 
 package com.epam.ta.reportportal.auth.basic;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.dao.UserRepository;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,32 +29,26 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @ExtendWith(MockitoExtension.class)
 class DatabaseUserDetailsServiceTest {
 
-	@Mock
-	private UserRepository userRepository;
+  @Mock
+  private UserRepository userRepository;
 
-	@InjectMocks
-	private DatabaseUserDetailsService userDetailsService;
+  @InjectMocks
+  private DatabaseUserDetailsService userDetailsService;
 
-	@Test
-	void userNotFoundTest() {
-		when(userRepository.findReportPortalUser("not_exist")).thenReturn(Optional.empty());
+  @Test
+  void userNotFoundTest() {
+    when(userRepository.findReportPortalUser("not_exist")).thenReturn(Optional.empty());
 
-		UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class,
-				() -> userDetailsService.loadUserByUsername("not_exist")
-		);
+    UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class,
+        () -> userDetailsService.loadUserByUsername("not_exist")
+    );
 
-		assertEquals("User not found", exception.getMessage());
-	}
+    assertEquals("User not found", exception.getMessage());
+  }
 }

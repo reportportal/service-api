@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.analyzer.auto;
 
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -27,21 +26,22 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface AnalyzerServiceAsync {
 
-	/**
-	 * Analyze history to find similar issues and updates items if some were found
-	 * Indexes investigated issues as well.
-	 *
-	 * @param launch         - Initial launch for history
-	 * @param testItemIds    - Prepared ids of test item for analyzing
-	 * @param analyzerConfig - Analyze mode
-	 */
-	CompletableFuture<Void> analyze(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig);
+  /**
+   * Analyze history to find similar issues and updates items if some were found Indexes
+   * investigated issues as well.
+   *
+   * @param launch         - Initial launch for history
+   * @param testItemIds    - Prepared ids of test item for analyzing
+   * @param analyzerConfig - Analyze mode
+   */
+  CompletableFuture<Void> analyze(Launch launch, List<Long> testItemIds,
+      AnalyzerConfig analyzerConfig);
 
-	/**
-	 * Checks if any analyzer is available
-	 *
-	 * @return <code>true</code> if some exists
-	 */
-	boolean hasAnalyzers();
+  /**
+   * Checks if any analyzer is available
+   *
+   * @return <code>true</code> if some exists
+   */
+  boolean hasAnalyzers();
 
 }

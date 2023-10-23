@@ -18,40 +18,40 @@ package com.epam.ta.reportportal.core.events.handler.item;
 
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
+import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
-import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Lists;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Map;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class TestItemIndexRunner implements ConfigurableEventHandler<ItemFinishedEvent, Map<String, String>> {
+public class TestItemIndexRunner implements
+    ConfigurableEventHandler<IssueResolvedEvent, Map<String, String>> {
 
-	private final LogIndexer logIndexer;
+  private final LogIndexer logIndexer;
 
-	@Autowired
-	public TestItemIndexRunner(LogIndexer logIndexer) {
-		this.logIndexer = logIndexer;
-	}
+  @Autowired
+  public TestItemIndexRunner(LogIndexer logIndexer) {
+    this.logIndexer = logIndexer;
+  }
 
-	@Override
-	@Transactional(readOnly = true)
-	public void handle(ItemFinishedEvent event, Map<String, String> projectConfig) {
+  @Override
+  @Transactional(readOnly = true)
+  public void handle(IssueResolvedEvent event, Map<String, String> projectConfig) {
 
-		final AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(projectConfig);
+    final AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(projectConfig);
 
-		logIndexer.indexItemsLogs(
-				event.getProjectId(),
-				event.getLaunchId(),
-				Lists.newArrayList(event.getItemId()),
-				analyzerConfig
-		);
-	}
+    logIndexer.indexItemsLogs(
+        event.getProjectId(),
+        event.getLaunchId(),
+        Lists.newArrayList(event.getItemId()),
+        analyzerConfig
+    );
+  }
 }

@@ -27,14 +27,15 @@ import org.springframework.context.annotation.Import;
  *
  * @author Andrei Varabyeu
  */
-@SpringBootApplication(scanBasePackages = { "com.epam.ta.reportportal", "com.epam.reportportal" }, exclude = {
-		MultipartAutoConfiguration.class, FlywayAutoConfiguration.class })
+@SpringBootApplication(scanBasePackages = {"com.epam.ta.reportportal",
+    "com.epam.reportportal"}, exclude = {
+    MultipartAutoConfiguration.class, FlywayAutoConfiguration.class})
 @Configuration
-@Import({ com.epam.ta.reportportal.config.DatabaseConfiguration.class })
+@Import({com.epam.ta.reportportal.config.DatabaseConfiguration.class})
 public class ReportPortalApp {
 
-	public static void main(String[] args) {
-		SpringApplication.run(ReportPortalApp.class, args);
-	}
+  public static void main(String[] args) {
+    SpringApplication.run(ReportPortalApp.class, args);
+  }
 
 }

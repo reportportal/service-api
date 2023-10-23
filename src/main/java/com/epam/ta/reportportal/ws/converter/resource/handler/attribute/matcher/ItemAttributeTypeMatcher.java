@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ItemAttr
  */
 public interface ItemAttributeTypeMatcher {
 
-	boolean matches(ItemAttribute attribute);
+  boolean matches(ItemAttribute attribute);
 
-	ItemAttributeType getType();
+  ItemAttributeType getType();
 }

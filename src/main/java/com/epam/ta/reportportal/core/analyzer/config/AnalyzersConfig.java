@@ -20,12 +20,11 @@ import com.epam.ta.reportportal.core.analyzer.strategy.LaunchAnalysisStrategy;
 import com.epam.ta.reportportal.core.analyzer.strategy.LaunchAutoAnalysisStrategy;
 import com.epam.ta.reportportal.core.analyzer.strategy.LaunchPatternAnalysisStrategy;
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Map;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -33,13 +32,15 @@ import java.util.Map;
 @Configuration
 public class AnalyzersConfig {
 
-	@Autowired
-	private ApplicationContext applicationContext;
+  @Autowired
+  private ApplicationContext applicationContext;
 
-	@Bean
-	public Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping() {
-		return ImmutableMap.<AnalyzerType, LaunchAnalysisStrategy>builder().put(AnalyzerType.AUTO_ANALYZER,
-				applicationContext.getBean(LaunchAutoAnalysisStrategy.class)
-		).put(AnalyzerType.PATTERN_ANALYZER, applicationContext.getBean(LaunchPatternAnalysisStrategy.class)).build();
-	}
+  @Bean
+  public Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping() {
+    return ImmutableMap.<AnalyzerType, LaunchAnalysisStrategy>builder()
+        .put(AnalyzerType.AUTO_ANALYZER,
+            applicationContext.getBean(LaunchAutoAnalysisStrategy.class)
+        ).put(AnalyzerType.PATTERN_ANALYZER,
+            applicationContext.getBean(LaunchPatternAnalysisStrategy.class)).build();
+  }
 }

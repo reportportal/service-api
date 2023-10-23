@@ -24,5 +24,5 @@ import com.epam.ta.reportportal.util.message.MessageProvider;
  */
 public interface TestItemValidator extends MessageProvider<TestItem> {
 
-	boolean validate(TestItem item);
+  boolean validate(TestItem item);
 }

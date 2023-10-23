@@ -19,19 +19,20 @@
 package com.epam.ta.reportportal.demodata.service;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-
 import java.util.List;
 
 /**
  * @author Pavel Bortnik
  */
 public interface DemoDataFacade {
-	/**
-	 * Generates demo launches
-	 *
-	 * @param user
-	 * @param projectDetails
-	 * @return {@link List} of generated launch ids
-	 */
-	List<Long> generateDemoLaunches(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails);
+
+  /**
+   * Generates demo launches
+   *
+   * @param user
+   * @param projectDetails
+   * @return {@link List} of generated launch ids
+   */
+  List<Long> generateDemoLaunches(ReportPortalUser user,
+      ReportPortalUser.ProjectDetails projectDetails);
 }

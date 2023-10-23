@@ -16,33 +16,36 @@
 
 package com.epam.ta.reportportal.core.widget.content.remover;
 
+import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import org.junit.jupiter.api.Test;
-
 import java.util.Map;
-
-import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class MaterializedViewRemoverTest {
 
-	private final WidgetContentRepository widgetContentRepository = mock(WidgetContentRepository.class);
-	private final MaterializedViewRemover materializedViewRemover = new MaterializedViewRemover(widgetContentRepository);
+  private final WidgetContentRepository widgetContentRepository = mock(
+      WidgetContentRepository.class);
+  private final MaterializedViewRemover materializedViewRemover = new MaterializedViewRemover(
+      widgetContentRepository);
 
-	@Test
-	void shouldRemove() {
-		final Widget widget = new Widget();
-		final String viewName = "name";
-		widget.setWidgetOptions(new WidgetOptions(Map.of(VIEW_NAME, viewName)));
+  @Test
+  void shouldRemove() {
+    final Widget widget = new Widget();
+    final String viewName = "name";
+    widget.setWidgetOptions(new WidgetOptions(Map.of(VIEW_NAME, viewName)));
 
-		materializedViewRemover.removeContent(widget);
+    materializedViewRemover.removeContent(widget);
 
-		verify(widgetContentRepository, times(1)).removeWidgetView(viewName);
-	}
+    verify(widgetContentRepository, times(1)).removeWidgetView(viewName);
+  }
 
 }

@@ -89,7 +89,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/v1/user")
+@RequestMapping("/users")
 public class UserController {
 
   private final CreateUserHandler createUserMessageHandler;
@@ -282,7 +282,7 @@ public class UserController {
     response.setContentType(format.getContentType());
 
     response.setHeader(com.google.common.net.HttpHeaders.CONTENT_DISPOSITION,
-        String.format("attachment; filename=RP_USERS_%s_Report.%s", format.name(),
+        String.format("attachment; filename=\"RP_USERS_%s_Report.%s\"", format.name(),
             format.getValue()
         )
     );

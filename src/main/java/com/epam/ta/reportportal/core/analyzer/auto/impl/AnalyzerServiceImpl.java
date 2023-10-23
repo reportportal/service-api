@@ -63,80 +63,88 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class AnalyzerServiceImpl implements AnalyzerService {
 
-	private static final Logger LOGGER = LogManager.getLogger(AnalyzerServiceImpl.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(AnalyzerServiceImpl.class.getName());
 
-	private final AnalyzerStatusCache analyzerStatusCache;
+  private final AnalyzerStatusCache analyzerStatusCache;
 
-	private final LaunchPreparerService launchPreparerService;
+  private final LaunchPreparerService launchPreparerService;
 
-	private final AnalyzerServiceClient analyzerServicesClient;
+  private final AnalyzerServiceClient analyzerServicesClient;
 
-	private final IssueTypeHandler issueTypeHandler;
+  private final IssueTypeHandler issueTypeHandler;
 
-	private final TestItemRepository testItemRepository;
+  private final TestItemRepository testItemRepository;
 
-	private final MessageBus messageBus;
+  private final MessageBus messageBus;
 
-	private final Integer itemsBatchSize;
+  private final Integer itemsBatchSize;
 
-	@Autowired
-	public AnalyzerServiceImpl(@Value("${rp.environment.variable.item-analyze.batch-size}") Integer itemsBatchSize,
-			AnalyzerStatusCache analyzerStatusCache, LaunchPreparerService launchPreparerService,
-			AnalyzerServiceClient analyzerServicesClient, IssueTypeHandler issueTypeHandler, TestItemRepository testItemRepository,
-			MessageBus messageBus) {
-		this.itemsBatchSize = itemsBatchSize;
-		this.analyzerStatusCache = analyzerStatusCache;
-		this.launchPreparerService = launchPreparerService;
-		this.analyzerServicesClient = analyzerServicesClient;
-		this.issueTypeHandler = issueTypeHandler;
-		this.testItemRepository = testItemRepository;
-		this.messageBus = messageBus;
-	}
+  @Autowired
+  public AnalyzerServiceImpl(
+      @Value("${rp.environment.variable.item-analyze.batch-size}") Integer itemsBatchSize,
+      AnalyzerStatusCache analyzerStatusCache, LaunchPreparerService launchPreparerService,
+      AnalyzerServiceClient analyzerServicesClient, IssueTypeHandler issueTypeHandler,
+      TestItemRepository testItemRepository,
+      MessageBus messageBus) {
+    this.itemsBatchSize = itemsBatchSize;
+    this.analyzerStatusCache = analyzerStatusCache;
+    this.launchPreparerService = launchPreparerService;
+    this.analyzerServicesClient = analyzerServicesClient;
+    this.issueTypeHandler = issueTypeHandler;
+    this.testItemRepository = testItemRepository;
+    this.messageBus = messageBus;
+  }
 
-	@Override
-	public boolean hasAnalyzers() {
-		return analyzerServicesClient.hasClients();
-	}
+  @Override
+  public boolean hasAnalyzers() {
+    return analyzerServicesClient.hasClients();
+  }
 
-	@Override
-	public void runAnalyzers(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig) {
-		try {
-			analyzerStatusCache.analyzeStarted(AUTO_ANALYZER_KEY, launch.getId(), launch.getProjectId());
-			Iterables.partition(testItemIds, itemsBatchSize).forEach(partition -> analyzeItemsPartition(launch, partition, analyzerConfig));
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-		} finally {
-			analyzerStatusCache.analyzeFinished(AUTO_ANALYZER_KEY, launch.getId());
-		}
-	}
+  @Override
+  public void runAnalyzers(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig) {
+    try {
+      analyzerStatusCache.analyzeStarted(AUTO_ANALYZER_KEY, launch.getId(), launch.getProjectId());
+      Iterables.partition(testItemIds, itemsBatchSize)
+          .forEach(partition -> analyzeItemsPartition(launch, partition, analyzerConfig));
+    } catch (Exception e) {
+      LOGGER.error(e.getMessage(), e);
+    } finally {
+      analyzerStatusCache.analyzeFinished(AUTO_ANALYZER_KEY, launch.getId());
+    }
+  }
 
-	/**
-	 * Prepare and analyze the number of provided test item ids.
-	 *
-	 * @param launch         Launch
-	 * @param testItemIds    Item ids for analyzing
-	 * @param analyzerConfig Analyzer config
-	 */
-	private void analyzeItemsPartition(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig) {
-		LOGGER.info("Start analysis of '{}' items for launch with id '{}'", testItemIds.size(), launch.getId());
-		List<TestItem> toAnalyze = testItemRepository.findAllById(testItemIds);
-		Optional<IndexLaunch> rqLaunch = launchPreparerService.prepare(launch, toAnalyze, analyzerConfig);
-		rqLaunch.ifPresent(rq -> {
-			Map<String, List<AnalyzedItemRs>> analyzedMap = analyzerServicesClient.analyze(rq);
-			if (!MapUtils.isEmpty(analyzedMap)) {
-				analyzedMap.forEach((key, value) -> updateTestItems(key, value, toAnalyze, launch.getProjectId()));
-			}
-		});
-	}
+  /**
+   * Prepare and analyze the number of provided test item ids.
+   *
+   * @param launch         Launch
+   * @param testItemIds    Item ids for analyzing
+   * @param analyzerConfig Analyzer config
+   */
+  private void analyzeItemsPartition(Launch launch, List<Long> testItemIds,
+      AnalyzerConfig analyzerConfig) {
+    LOGGER.info("Start analysis of '{}' items for launch with id '{}'", testItemIds.size(),
+        launch.getId());
+    List<TestItem> toAnalyze = testItemRepository.findAllById(testItemIds);
+    Optional<IndexLaunch> rqLaunch = launchPreparerService.prepare(launch, toAnalyze,
+        analyzerConfig);
+    rqLaunch.ifPresent(rq -> {
+      Map<String, List<AnalyzedItemRs>> analyzedMap = analyzerServicesClient.analyze(rq);
+      if (!MapUtils.isEmpty(analyzedMap)) {
+        analyzedMap.forEach(
+            (key, value) -> updateTestItems(key, value, toAnalyze, launch.getProjectId()));
+      }
+    });
+  }
 
-	/**
-	 * Update issue types for analyzed items and posted events for updated
-	 *
-	 * @param rs        Results of analyzing
-	 * @param testItems items to be updated
-	 * @return List of updated items
-	 */
-	private List<TestItem> updateTestItems(String analyzerInstance, List<AnalyzedItemRs> rs, List<TestItem> testItems, Long projectId) {
+  /**
+   * Update issue types for analyzed items and posted events for updated
+   *
+   * @param rs        Results of analyzing
+   * @param testItems items to be updated
+   * @return List of updated items
+   */
+  private List<TestItem> updateTestItems(String analyzerInstance, List<AnalyzedItemRs> rs,
+      List<TestItem> testItems, Long projectId) {
     return rs.stream().map(analyzed -> {
       Optional<TestItem> toUpdate = testItems.stream()
           .filter(item -> item.getItemId().equals(analyzed.getItemId())).findAny();
@@ -164,50 +172,52 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     }).filter(Optional::isPresent).map(Optional::get).collect(toList());
   }
 
-	/**
-	 * Updates issue for a specified test item
-	 *
-	 * @param projectId - Project id
-	 * @param rs        - Response from an analyzer
-	 * @param testItem  - Test item to be updated
-	 * @return Updated issue entity
-	 */
-	private RelevantItemInfo updateTestItemIssue(Long projectId, AnalyzedItemRs rs, TestItem testItem) {
-		IssueType issueType = issueTypeHandler.defineIssueType(projectId, rs.getLocator());
-		IssueEntity issueEntity = new IssueEntityBuilder(testItem.getItemResults().getIssue()).addIssueType(issueType)
-				.addIgnoreFlag(testItem.getItemResults().getIssue().getIgnoreAnalyzer())
-				.addAutoAnalyzedFlag(true)
-				.get();
-		issueEntity.setIssueId(testItem.getItemId());
-		issueEntity.setTestItemResults(testItem.getItemResults());
-		testItem.getItemResults().setIssue(issueEntity);
+  /**
+   * Updates issue for a specified test item
+   *
+   * @param projectId - Project id
+   * @param rs        - Response from an analyzer
+   * @param testItem  - Test item to be updated
+   * @return Updated issue entity
+   */
+  private RelevantItemInfo updateTestItemIssue(Long projectId, AnalyzedItemRs rs,
+      TestItem testItem) {
+    IssueType issueType = issueTypeHandler.defineIssueType(projectId, rs.getLocator());
+    IssueEntity issueEntity = new IssueEntityBuilder(
+        testItem.getItemResults().getIssue()).addIssueType(issueType)
+        .addIgnoreFlag(testItem.getItemResults().getIssue().getIgnoreAnalyzer())
+        .addAutoAnalyzedFlag(true)
+        .get();
+    issueEntity.setIssueId(testItem.getItemId());
+    issueEntity.setTestItemResults(testItem.getItemResults());
+    testItem.getItemResults().setIssue(issueEntity);
 
-		RelevantItemInfo relevantItemInfo = null;
-		if (rs.getRelevantItemId() != null) {
-			Optional<TestItem> relevantItemOptional = testItemRepository.findById(rs.getRelevantItemId());
-			if (relevantItemOptional.isPresent()) {
-				relevantItemInfo = updateIssueFromRelevantItem(issueEntity, relevantItemOptional.get());
-			} else {
-				LOGGER.error(ErrorType.TEST_ITEM_NOT_FOUND.getDescription(), rs.getRelevantItemId());
-			}
-		}
+    RelevantItemInfo relevantItemInfo = null;
+    if (rs.getRelevantItemId() != null) {
+      Optional<TestItem> relevantItemOptional = testItemRepository.findById(rs.getRelevantItemId());
+      if (relevantItemOptional.isPresent()) {
+        relevantItemInfo = updateIssueFromRelevantItem(issueEntity, relevantItemOptional.get());
+      } else {
+        LOGGER.error(ErrorType.TEST_ITEM_NOT_FOUND.getDescription(), rs.getRelevantItemId());
+      }
+    }
 
-		return relevantItemInfo;
-	}
+    return relevantItemInfo;
+  }
 
-	/**
-	 * Updates issue with values are taken from most relevant item
-	 *
-	 * @param issue        Issue to update
-	 * @param relevantItem Relevant item
-	 */
-	private RelevantItemInfo updateIssueFromRelevantItem(IssueEntity issue, TestItem relevantItem) {
-		ofNullable(relevantItem.getItemResults().getIssue()).ifPresent(relevantIssue -> {
-			issue.setIssueDescription(relevantIssue.getIssueDescription());
-			issue.setTickets(Sets.newHashSet(relevantIssue.getTickets()));
-		});
+  /**
+   * Updates issue with values are taken from most relevant item
+   *
+   * @param issue        Issue to update
+   * @param relevantItem Relevant item
+   */
+  private RelevantItemInfo updateIssueFromRelevantItem(IssueEntity issue, TestItem relevantItem) {
+    ofNullable(relevantItem.getItemResults().getIssue()).ifPresent(relevantIssue -> {
+      issue.setIssueDescription(relevantIssue.getIssueDescription());
+      issue.setTickets(Sets.newHashSet(relevantIssue.getTickets()));
+    });
 
-		return AnalyzerUtils.TO_RELEVANT_ITEM_INFO.apply(relevantItem);
-	}
+    return AnalyzerUtils.TO_RELEVANT_ITEM_INFO.apply(relevantItem);
+  }
 
 }

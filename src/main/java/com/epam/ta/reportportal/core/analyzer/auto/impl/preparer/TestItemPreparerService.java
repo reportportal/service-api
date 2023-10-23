@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl.preparer;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
-
 import java.util.Collection;
 import java.util.List;
 
@@ -27,15 +26,15 @@ import java.util.List;
  */
 public interface TestItemPreparerService {
 
-	/**
-	 * Creates {@link IndexTestItem} from {@link TestItem}
-	 *
-	 * @param launchId  {@link TestItem#getLaunchId()}
-	 * @param testItems Test item for preparing
-	 * @return Prepared list of {@link IndexTestItem} for indexing
-	 */
-	List<IndexTestItem> prepare(Long launchId, Collection<TestItem> testItems);
+  /**
+   * Creates {@link IndexTestItem} from {@link TestItem}
+   *
+   * @param launchId  {@link TestItem#getLaunchId()}
+   * @param testItems Test item for preparing
+   * @return Prepared list of {@link IndexTestItem} for indexing
+   */
+  List<IndexTestItem> prepare(Long launchId, Collection<TestItem> testItems);
 
-	List<IndexTestItem> prepare(Long launchId);
+  List<IndexTestItem> prepare(Long launchId);
 
 }

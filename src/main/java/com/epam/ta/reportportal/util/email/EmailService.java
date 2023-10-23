@@ -45,6 +45,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -55,7 +56,8 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileUrlResource;
+import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -73,9 +75,7 @@ public class EmailService extends JavaMailSenderImpl {
   private static final String FINISH_LAUNCH_EMAIL_SUBJECT =
       " ReportPortal Notification: [%s] launch '%s' #%s finished";
   private static final String URL_FORMAT = "%s/launches/all";
-  private static final String FULL_ATTRIBUTE_FILTER_FORMAT =
-      "%s?filter.has.key=%s&filter.has.value=%s";
-  private static final String VALUE_ATTRIBUTE_FILTER_FORMAT = "%s?filter.has.value=%s";
+  private static final String COMPOSITE_ATTRIBUTE_FILTER_FORMAT = "%s?launchesParams=filter.has.compositeAttribute=%s";
   private static final String EMAIL_TEMPLATE_PREFIX = "templates/email/";
   private TemplateEngine templateEngine;
   /* Default value for FROM project notifications field */
@@ -218,13 +218,13 @@ public class EmailService extends JavaMailSenderImpl {
 
   private String buildAttributesLink(String basicUrl, ItemAttribute attribute) {
     if (null != attribute.getKey()) {
-      return format(FULL_ATTRIBUTE_FILTER_FORMAT,
+      return format(COMPOSITE_ATTRIBUTE_FILTER_FORMAT,
           basicUrl,
-          urlPathSegmentEscaper().escape(attribute.getKey()),
+          urlPathSegmentEscaper().escape(attribute.getKey()) + ":" +
           urlPathSegmentEscaper().escape(attribute.getValue())
       );
     } else {
-      return format(VALUE_ATTRIBUTE_FILTER_FORMAT, basicUrl,
+      return format(COMPOSITE_ATTRIBUTE_FILTER_FORMAT, basicUrl,
           urlPathSegmentEscaper().escape(attribute.getValue()));
     }
   }
@@ -385,14 +385,17 @@ public class EmailService extends JavaMailSenderImpl {
   }
 
   private void attachSocialImages(MimeMessageHelper message) throws MessagingException {
-    message.addInline("ic-github.png", emailTemplateResource("ic-github.png"));
     message.addInline("ic-twitter.png", emailTemplateResource("ic-twitter.png"));
-    message.addInline("ic-youtube.png", emailTemplateResource("ic-youtube.png"));
     message.addInline("ic-slack.png", emailTemplateResource("ic-slack.png"));
+    message.addInline("ic-youtube.png", emailTemplateResource("ic-youtube.png"));
+    message.addInline("ic-linkedin.png", emailTemplateResource("ic-linkedin.png"));
+    message.addInline("ic-facebook.png", emailTemplateResource("ic-facebook.png"));
+    message.addInline("ic-github.png", emailTemplateResource("ic-github.png"));
   }
 
-  private ClassPathResource emailTemplateResource(String resource) {
-    return new ClassPathResource(EMAIL_TEMPLATE_PREFIX + resource);
+  private Resource emailTemplateResource(String resource) {
+    return new FileUrlResource(Objects.requireNonNull(
+        EmailService.class.getClassLoader().getResource(EMAIL_TEMPLATE_PREFIX + resource)));
   }
 
   public void sendAccountSelfDeletionNotification(String recipient) {
@@ -460,6 +463,7 @@ public class EmailService extends JavaMailSenderImpl {
     message.addInline("new-ic-slack.png", emailTemplateResource("new-ic-slack.png"));
     message.addInline("new-ic-youtube.png", emailTemplateResource("new-ic-youtube.png"));
     message.addInline("new-ic-linkedin.png", emailTemplateResource("new-ic-linkedin.png"));
+    message.addInline("new-ic-facebook.png", emailTemplateResource("new-ic-facebook.png"));
     message.addInline("new-ic-github.png", emailTemplateResource("new-ic-github.png"));
   }
 

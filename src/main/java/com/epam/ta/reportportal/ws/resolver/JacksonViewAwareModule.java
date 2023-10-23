@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
-
 import java.io.IOException;
 
 /**
@@ -31,39 +30,38 @@ import java.io.IOException;
  */
 public class JacksonViewAwareModule extends SimpleModule {
 
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	/**
-	 * @param objectMapper - We need to provide ObjectMapper here since it's impossible
-	 *                     to serialize using JSON Views without mapper. It's little bit
-	 *                     unusual from Jackson point of view, but this is only one way
-	 *                     to avoid 'instaceOf' and classcast on http message converters
-	 *                     level
-	 * @see <a
-	 * href="http://wiki.fasterxml.com/JacksonHowToCustomSerializers">Jackson
-	 * - HowTo - CustomSerializers</a>
-	 */
-	public JacksonViewAwareModule(ObjectMapper objectMapper) {
-		addSerializer(JacksonViewAware.class, new JacksonViewAwareSerializer(objectMapper));
-	}
+  /**
+   * @param objectMapper - We need to provide ObjectMapper here since it's impossible to serialize
+   *                     using JSON Views without mapper. It's little bit unusual from Jackson point
+   *                     of view, but this is only one way to avoid 'instaceOf' and classcast on
+   *                     http message converters level
+   * @see <a href="http://wiki.fasterxml.com/JacksonHowToCustomSerializers">Jackson - HowTo -
+   * CustomSerializers</a>
+   */
+  public JacksonViewAwareModule(ObjectMapper objectMapper) {
+    addSerializer(JacksonViewAware.class, new JacksonViewAwareSerializer(objectMapper));
+  }
 
-	public static class JacksonViewAwareSerializer extends StdScalarSerializer<JacksonViewAware> {
+  public static class JacksonViewAwareSerializer extends StdScalarSerializer<JacksonViewAware> {
 
-		private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
-		protected JacksonViewAwareSerializer(ObjectMapper objectMapper) {
-			super(JacksonViewAware.class);
-			this.objectMapper = objectMapper;
-		}
+    protected JacksonViewAwareSerializer(ObjectMapper objectMapper) {
+      super(JacksonViewAware.class);
+      this.objectMapper = objectMapper;
+    }
 
-		@Override
-		public void serialize(JacksonViewAware value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
-			/*
-			 * Writes bean with specified view
-			 */
-			objectMapper.writerWithView(value.getView()).writeValue(jgen, value.getPojo());
-		}
+    @Override
+    public void serialize(JacksonViewAware value, JsonGenerator jgen, SerializerProvider provider)
+        throws IOException {
+      /*
+       * Writes bean with specified view
+       */
+      objectMapper.writerWithView(value.getView()).writeValue(jgen, value.getPojo());
+    }
 
-	}
+  }
 
 }

@@ -13,7 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.imprt;
+
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
+import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.ZIP_EXTENSION;
+import static com.epam.ta.reportportal.core.imprt.impl.AbstractImportStrategy.LAUNCH_NAME;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+import static org.apache.commons.io.FileUtils.ONE_MB;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -21,36 +30,37 @@ import com.epam.ta.reportportal.core.events.activity.ImportFinishedEvent;
 import com.epam.ta.reportportal.core.imprt.impl.ImportStrategy;
 import com.epam.ta.reportportal.core.imprt.impl.ImportStrategyFactory;
 import com.epam.ta.reportportal.core.imprt.impl.ImportType;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.LaunchImportCompletionRS;
+import com.epam.ta.reportportal.ws.model.LaunchImportData;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
-
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
-import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.ZIP_EXTENSION;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
-
 @Service
 public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
-	private static final int MAX_FILE_SIZE = 32 * 1024 * 1024;
 
-	private ImportStrategyFactory importStrategyFactory;
-	private MessageBus messageBus;
+  private static final long MAX_FILE_SIZE = 32 * ONE_MB;
 
-	@Autowired
-	public ImportLaunchHandlerImpl(ImportStrategyFactory importStrategyFactory, MessageBus messageBus) {
-		this.importStrategyFactory = importStrategyFactory;
-		this.messageBus = messageBus;
-	}
+  private ImportStrategyFactory importStrategyFactory;
+  private MessageBus messageBus;
+  private LaunchRepository launchRepository;
+
+
+  @Autowired
+  public ImportLaunchHandlerImpl(ImportStrategyFactory importStrategyFactory, MessageBus messageBus,
+      LaunchRepository launchRepository) {
+    this.importStrategyFactory = importStrategyFactory;
+    this.messageBus = messageBus;
+    this.launchRepository = launchRepository;
+  }
 
 	@Override
   public OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails,
@@ -70,7 +80,7 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 				projectDetails.getProjectId(),
 				file.getOriginalFilename()
 		));
-		return new OperationCompletionRS("Launch with id = " + launchId + " is successfully imported.");
+    return prepareLaunchImportResponse(launchId);
 	}
 
 	private void validate(MultipartFile file) {
@@ -91,4 +101,21 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 			throw new ReportPortalException("Error during transferring multipart file.", e);
 		}
 	}
+
+  private OperationCompletionRS prepareLaunchImportResponse(String launchId) {
+
+    var launch = launchRepository.findByUuid(launchId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
+
+    var data = new LaunchImportData();
+    data.setId(launchId);
+    data.setName(launch.getName());
+    data.setNumber(launch.getNumber());
+
+    var response = new LaunchImportCompletionRS();
+    response.setResultMessage("Launch with id = " + launchId + " is successfully imported.");
+    response.setData(data);
+
+    return response;
+  }
 }

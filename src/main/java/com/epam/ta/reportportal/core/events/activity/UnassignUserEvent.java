@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.UNASSIGN_USER;
 
 import com.epam.ta.reportportal.builder.ActivityBuilder;
@@ -79,7 +80,7 @@ public class UnassignUserEvent extends AbstractEvent implements ActivityEvent {
         .addObjectType(EventObject.USER)
         .addProjectId(userActivityResource.getDefaultProjectId())
         .addSubjectId(isSystemEvent ? null : getUserId())
-        .addSubjectName(isSystemEvent ? "ReportPortal" : getUserLogin())
+        .addSubjectName(isSystemEvent ? RP_SUBJECT_NAME : getUserLogin())
         .addSubjectType(isSystemEvent ? EventSubject.APPLICATION : EventSubject.USER)
         .get();
   }

@@ -16,6 +16,17 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
+import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
@@ -31,6 +42,12 @@ import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -38,166 +55,178 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
-import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @ExtendWith(MockitoExtension.class)
 class FinishLaunchHandlerImplTest {
 
-	@Mock
-	private LaunchRepository launchRepository;
+  @Mock
+  private LaunchRepository launchRepository;
 
-	@Mock
-	private FinishHierarchyHandler<Launch> finishHierarchyHandler;
+  @Mock
+  private FinishHierarchyHandler<Launch> finishHierarchyHandler;
 
-	@Mock
-	private TestItemRepository testItemRepository;
+  @Mock
+  private TestItemRepository testItemRepository;
 
-	@Mock
-	private MessageBus messageBus;
+  @Mock
+  private MessageBus messageBus;
 
-	@Mock
-	private ApplicationEventPublisher publisher;
+  @Mock
+  private ApplicationEventPublisher publisher;
 
-	@InjectMocks
-	private FinishLaunchHandlerImpl handler;
+  @InjectMocks
+  private FinishLaunchHandlerImpl handler;
 
-	@InjectMocks
-	private StopLaunchHandlerImpl stopLaunchHandler;
+  @InjectMocks
+  private StopLaunchHandlerImpl stopLaunchHandler;
 
-	@Test
-	void finishLaunch() {
-		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+  @Test
+  void finishLaunch() {
+    FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
+    finishExecutionRQ.setEndTime(
+        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
-		ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+    ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+        1L);
 
-		when(launchRepository.findByUuid("1")).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
+    when(launchRepository.findByUuid("1")).thenReturn(
+        getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		FinishLaunchRS response = handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser, null);
+    FinishLaunchRS response = handler.finishLaunch("1", finishExecutionRQ,
+        extractProjectDetails(rpUser, "test_project"), rpUser, null);
 
-		verify(finishHierarchyHandler,times(1)).finishDescendants(any(), any(),any(),any(),any());
+    verify(finishHierarchyHandler, times(1)).finishDescendants(any(), any(), any(), any(), any());
 
-		assertNotNull(response);
-	}
+    assertNotNull(response);
+  }
 
-	@Test
-	void finishLaunchWithLink() {
-		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+  @Test
+  void finishLaunchWithLink() {
+    FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
+    finishExecutionRQ.setEndTime(
+        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
-		ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+    ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+        1L);
 
-		when(launchRepository.findByUuid("1")).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
+    when(launchRepository.findByUuid("1")).thenReturn(
+        getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		final FinishLaunchRS finishLaunchRS = handler.finishLaunch("1",
-				finishExecutionRQ,
-				extractProjectDetails(rpUser, "test_project"),
-				rpUser,
-				"http://example.com"
-		);
+    final FinishLaunchRS finishLaunchRS = handler.finishLaunch("1",
+        finishExecutionRQ,
+        extractProjectDetails(rpUser, "test_project"),
+        rpUser,
+        "http://example.com"
+    );
 
-		verify(finishHierarchyHandler,times(1)).finishDescendants(any(), any(),any(),any(),any());
+    verify(finishHierarchyHandler, times(1)).finishDescendants(any(), any(), any(), any(), any());
 
-		assertNotNull(finishLaunchRS);
-		assertEquals("http://example.com/ui/#test_project/launches/all/1", finishLaunchRS.getLink());
-	}
+    assertNotNull(finishLaunchRS);
+    assertEquals("http://example.com/ui/#test_project/launches/all/1", finishLaunchRS.getLink());
+  }
 
-	@Test
-	void stopLaunch() {
-		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+  @Test
+  void stopLaunch() {
+    FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
+    finishExecutionRQ.setEndTime(
+        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
-		ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+    ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+        1L);
 
-		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
+    when(launchRepository.findById(1L)).thenReturn(
+        getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		final OperationCompletionRS response = stopLaunchHandler.stopLaunch(1L,
-				finishExecutionRQ,
-				extractProjectDetails(rpUser, "test_project"),
-				rpUser
-		);
-		assertNotNull(response);
-		assertEquals("Launch with ID = '1' successfully stopped.", response.getResultMessage());
-	}
+    final OperationCompletionRS response = stopLaunchHandler.stopLaunch(1L,
+        finishExecutionRQ,
+        extractProjectDetails(rpUser, "test_project"),
+        rpUser
+    );
+    assertNotNull(response);
+    assertEquals("Launch with ID = '1' successfully stopped.", response.getResultMessage());
+  }
 
-	@Test
-	void bulkStopLaunch() {
-		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+  @Test
+  void bulkStopLaunch() {
+    FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
+    finishExecutionRQ.setEndTime(
+        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
-		Map<Long, FinishExecutionRQ> entities = new HashMap<>();
-		entities.put(1L, finishExecutionRQ);
+    Map<Long, FinishExecutionRQ> entities = new HashMap<>();
+    entities.put(1L, finishExecutionRQ);
 
-		BulkRQ<Long, FinishExecutionRQ> bulkRq = new BulkRQ<>();
-		bulkRq.setEntities(entities);
+    BulkRQ<Long, FinishExecutionRQ> bulkRq = new BulkRQ<>();
+    bulkRq.setEntities(entities);
 
-		ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+    ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+        1L);
 
-		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
+    when(launchRepository.findById(1L)).thenReturn(
+        getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		final List<OperationCompletionRS> response = stopLaunchHandler.stopLaunch(bulkRq,
-				extractProjectDetails(rpUser, "test_project"),
-				rpUser
-		);
-		assertNotNull(response);
-		assertEquals(1, response.size());
-	}
+    final List<OperationCompletionRS> response = stopLaunchHandler.stopLaunch(bulkRq,
+        extractProjectDetails(rpUser, "test_project"),
+        rpUser
+    );
+    assertNotNull(response);
+    assertEquals(1, response.size());
+  }
 
-	@Test
-	void finishWithIncorrectStatus() {
-		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+  @Test
+  void finishWithIncorrectStatus() {
+    FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
+    finishExecutionRQ.setEndTime(
+        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR,
+        ProjectRole.PROJECT_MANAGER, 1L);
 
-		when(launchRepository.findByUuid("1")).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
+    when(launchRepository.findByUuid("1")).thenReturn(
+        getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
 
-		assertThrows(ReportPortalException.class,
-				() -> handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser, null)
-		);
-	}
+    assertThrows(ReportPortalException.class,
+        () -> handler.finishLaunch("1", finishExecutionRQ,
+            extractProjectDetails(rpUser, "test_project"), rpUser, null)
+    );
+  }
 
-	@Test
-	void finishWithIncorrectEndTime() {
-		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().minusHours(5).atZone(ZoneId.of("UTC")).toInstant()));
+  @Test
+  void finishWithIncorrectEndTime() {
+    FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
+    finishExecutionRQ.setEndTime(
+        Date.from(LocalDateTime.now().minusHours(5).atZone(ZoneId.of("UTC")).toInstant()));
 
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR,
+        ProjectRole.PROJECT_MANAGER, 1L);
 
-		when(launchRepository.findByUuid("1")).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
+    when(launchRepository.findByUuid("1")).thenReturn(
+        getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		assertThrows(ReportPortalException.class,
-				() -> handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser, null)
-		);
-	}
+    assertThrows(ReportPortalException.class,
+        () -> handler.finishLaunch("1", finishExecutionRQ,
+            extractProjectDetails(rpUser, "test_project"), rpUser, null)
+    );
+  }
 
-	@Test
-	void finishNotOwnLaunch() {
-		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+  @Test
+  void finishNotOwnLaunch() {
+    FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
+    finishExecutionRQ.setEndTime(
+        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
-		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
-		rpUser.setUserId(2L);
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+    rpUser.setUserId(2L);
 
-		when(launchRepository.findByUuid("1")).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
+    when(launchRepository.findByUuid("1")).thenReturn(
+        getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser, null)
-		);
-		assertEquals("You do not have enough permissions. You are not launch owner.", exception.getMessage());
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.finishLaunch("1", finishExecutionRQ,
+            extractProjectDetails(rpUser, "test_project"), rpUser, null)
+    );
+    assertEquals("You do not have enough permissions. You are not launch owner.",
+        exception.getMessage());
+  }
 }

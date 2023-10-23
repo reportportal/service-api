@@ -23,5 +23,5 @@ import com.epam.ta.reportportal.ws.rabbit.QueryRQ;
  */
 public interface QueryHandler {
 
-	Object find(QueryRQ queryRQ);
+  Object find(QueryRQ queryRQ);
 }

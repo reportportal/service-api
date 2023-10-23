@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.IssueCriteriaConstant.CRITERIA_ISSUE_AUTO_ANALYZED;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_ISSUE_GROUP_ID;
+
 import com.epam.ta.reportportal.commons.querygen.CompositeFilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
@@ -23,33 +26,32 @@ import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
 import com.google.common.collect.Lists;
-import org.jooq.Operator;
-
 import java.util.function.Supplier;
-
-import static com.epam.ta.reportportal.commons.querygen.constant.IssueCriteriaConstant.CRITERIA_ISSUE_AUTO_ANALYZED;
-import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_ISSUE_GROUP_ID;
+import org.jooq.Operator;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ManualPatternConditionProvider extends AbstractPatternConditionProvider {
 
-	private final Supplier<IssueGroup> issueGroupSupplier;
+  private final Supplier<IssueGroup> issueGroupSupplier;
 
-	public ManualPatternConditionProvider(AnalyzeItemsMode analyzeItemsMode, Supplier<IssueGroup> issueGroupSupplier) {
-		super(analyzeItemsMode);
-		this.issueGroupSupplier = issueGroupSupplier;
-	}
+  public ManualPatternConditionProvider(AnalyzeItemsMode analyzeItemsMode,
+      Supplier<IssueGroup> issueGroupSupplier) {
+    super(analyzeItemsMode);
+    this.issueGroupSupplier = issueGroupSupplier;
+  }
 
-	@Override
-	protected ConvertibleCondition provideCondition() {
+  @Override
+  protected ConvertibleCondition provideCondition() {
 
-		return new CompositeFilterCondition(Lists.newArrayList(FilterCondition.builder()
-				.withCondition(Condition.NOT_EQUALS)
-				.withSearchCriteria(CRITERIA_ISSUE_GROUP_ID)
-				.withValue(String.valueOf(issueGroupSupplier.get().getId()))
-				.build(), FilterCondition.builder().eq(CRITERIA_ISSUE_AUTO_ANALYZED, Boolean.FALSE.toString()).build()), Operator.OR);
-	}
+    return new CompositeFilterCondition(Lists.newArrayList(FilterCondition.builder()
+            .withCondition(Condition.NOT_EQUALS)
+            .withSearchCriteria(CRITERIA_ISSUE_GROUP_ID)
+            .withValue(String.valueOf(issueGroupSupplier.get().getId()))
+            .build(),
+        FilterCondition.builder().eq(CRITERIA_ISSUE_AUTO_ANALYZED, Boolean.FALSE.toString())
+            .build()), Operator.OR);
+  }
 
 }

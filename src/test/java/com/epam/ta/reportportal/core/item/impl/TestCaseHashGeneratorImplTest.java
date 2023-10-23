@@ -16,26 +16,25 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.core.item.identity.IdentityUtil;
 import com.epam.ta.reportportal.core.item.identity.TestCaseHashGeneratorImpl;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -43,52 +42,52 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class TestCaseHashGeneratorImplTest {
 
-	@Mock
-	private TestItemRepository testItemRepository;
+  @Mock
+  private TestItemRepository testItemRepository;
 
-	@InjectMocks
-	private TestCaseHashGeneratorImpl testCaseHashGenerator;
+  @InjectMocks
+  private TestCaseHashGeneratorImpl testCaseHashGenerator;
 
-	@Test
-	void sameHashesForSameObjectsTest() {
-		TestItem item = getItem();
-		item.setItemId(3L);
-		item.setPath("1.2.3");
+  @Test
+  void sameHashesForSameObjectsTest() {
+    TestItem item = getItem();
+    item.setItemId(3L);
+    item.setPath("1.2.3");
 
-		Map<Long, String> pathNames = new LinkedHashMap<>();
-		pathNames.put(1L, "suite");
-		pathNames.put(2L, "test");
+    Map<Long, String> pathNames = new LinkedHashMap<>();
+    pathNames.put(1L, "suite");
+    pathNames.put(2L, "test");
 
-		List<TestItem> parents = pathNames.entrySet().stream().map(entry -> {
-			TestItem parent = new TestItem();
-			parent.setItemId(entry.getKey());
-			parent.setName(entry.getValue());
-			return parent;
-		}).collect(Collectors.toList());
+    List<TestItem> parents = pathNames.entrySet().stream().map(entry -> {
+      TestItem parent = new TestItem();
+      parent.setItemId(entry.getKey());
+      parent.setName(entry.getValue());
+      return parent;
+    }).collect(Collectors.toList());
 
-		final List<Long> parentIds = IdentityUtil.getParentIds(item);
+    final List<Long> parentIds = IdentityUtil.getParentIds(item);
 
-		when(testItemRepository.findAllById(parentIds)).thenReturn(parents);
+    when(testItemRepository.findAllById(parentIds)).thenReturn(parents);
 
-		Integer first = testCaseHashGenerator.generate(item, parentIds, 100L);
-		Integer second = testCaseHashGenerator.generate(item, parentIds, 100L);
+    Integer first = testCaseHashGenerator.generate(item, parentIds, 100L);
+    Integer second = testCaseHashGenerator.generate(item, parentIds, 100L);
 
-		assertNotNull(first);
-		assertNotNull(second);
-		assertEquals(first, second);
-	}
+    assertNotNull(first);
+    assertNotNull(second);
+    assertEquals(first, second);
+  }
 
-	private TestItem getItem() {
-		TestItem item = new TestItem();
-		item.setName("item");
-		HashSet<Parameter> parameters = new HashSet<>();
-		Parameter parameter = new Parameter();
-		parameter.setKey("key");
-		parameter.setValue("value");
-		parameters.add(parameter);
-		item.setParameters(parameters);
-		item.setPath("1.2.3");
-		item.setLaunchId(1L);
-		return item;
-	}
+  private TestItem getItem() {
+    TestItem item = new TestItem();
+    item.setName("item");
+    HashSet<Parameter> parameters = new HashSet<>();
+    Parameter parameter = new Parameter();
+    parameter.setKey("key");
+    parameter.setValue("value");
+    parameters.add(parameter);
+    item.setParameters(parameters);
+    item.setPath("1.2.3");
+    item.setLaunchId(1L);
+    return item;
+  }
 }

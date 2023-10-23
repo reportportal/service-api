@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.demodata.service;
 
+import static com.epam.ta.reportportal.demodata.service.Constants.NAME;
+import static java.util.stream.Collectors.toList;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.demodata.model.DemoLaunch;
@@ -30,19 +33,15 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Stream;
-
-import static com.epam.ta.reportportal.demodata.service.Constants.NAME;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Ihar Kahadouski
@@ -50,64 +49,71 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class DefaultDemoDataFacade implements DemoDataFacade {
 
-	public static final int LAUNCH_LOGS_COUNT = 10;
+  public static final int LAUNCH_LOGS_COUNT = 10;
 
-	private final ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
 
-	private final DemoDataLaunchService demoDataLaunchService;
-	private final DemoLogsService demoLogsService;
-	private final SuiteGeneratorResolver suiteGeneratorResolver;
+  private final DemoDataLaunchService demoDataLaunchService;
+  private final DemoLogsService demoLogsService;
+  private final SuiteGeneratorResolver suiteGeneratorResolver;
 
-	private final TaskExecutor executor;
+  private final TaskExecutor executor;
 
-	private final UserRepository userRepository;
+  private final UserRepository userRepository;
 
-	@Value("classpath:demo/launch/")
-	private String resourceFolder;
+  @Value("classpath:demo/launch/")
+  private String resourceFolder;
 
-	@Value("${rp.environment.variable.demo.source}")
-	private String[] sources;
+  @Value("${rp.environment.variable.demo.source}")
+  private String[] sources;
 
-	public DefaultDemoDataFacade(DemoDataLaunchService demoDataLaunchService, DemoLogsService demoLogsService, ObjectMapper objectMapper,
-			SuiteGeneratorResolver suiteGeneratorResolver, UserRepository userRepository,
-			@Qualifier("demoDataTaskExecutor") TaskExecutor executor) {
-		this.demoDataLaunchService = demoDataLaunchService;
-		this.suiteGeneratorResolver = suiteGeneratorResolver;
-		this.demoLogsService = demoLogsService;
-		this.objectMapper = objectMapper;
-		this.userRepository = userRepository;
-		this.executor = executor;
-	}
+  public DefaultDemoDataFacade(DemoDataLaunchService demoDataLaunchService,
+      DemoLogsService demoLogsService, ObjectMapper objectMapper,
+      SuiteGeneratorResolver suiteGeneratorResolver, UserRepository userRepository,
+      @Qualifier("demoDataTaskExecutor") TaskExecutor executor) {
+    this.demoDataLaunchService = demoDataLaunchService;
+    this.suiteGeneratorResolver = suiteGeneratorResolver;
+    this.demoLogsService = demoLogsService;
+    this.objectMapper = objectMapper;
+    this.userRepository = userRepository;
+    this.executor = executor;
+  }
 
-	@Override
-	public List<Long> generateDemoLaunches(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
-		return CompletableFuture.supplyAsync(() -> Stream.of(sources).map(source -> resourceFolder + source).map(source -> {
-			try {
-				final DemoLaunch demoLaunch = objectMapper.readValue(ResourceUtils.getURL(source), new TypeReference<DemoLaunch>() {
-				});
-				return generateLaunch(demoLaunch, user, projectDetails);
-			} catch (IOException e) {
-				throw new ReportPortalException("Unable to load suites description. " + e.getMessage(), e);
-			}
-		}).collect(toList()), executor).join();
-	}
+  @Override
+  public List<Long> generateDemoLaunches(ReportPortalUser user,
+      ReportPortalUser.ProjectDetails projectDetails) {
+    return CompletableFuture.supplyAsync(
+        () -> Stream.of(sources).map(source -> resourceFolder + source).map(source -> {
+          try {
+            final DemoLaunch demoLaunch = objectMapper.readValue(ResourceUtils.getURL(source),
+                new TypeReference<DemoLaunch>() {
+                });
+            return generateLaunch(demoLaunch, user, projectDetails);
+          } catch (IOException e) {
+            throw new ReportPortalException("Unable to load suites description. " + e.getMessage(),
+                e);
+          }
+        }).collect(toList()), executor).join();
+  }
 
-	private Long generateLaunch(DemoLaunch demoLaunch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
+  private Long generateLaunch(DemoLaunch demoLaunch, ReportPortalUser user,
+      ReportPortalUser.ProjectDetails projectDetails) {
 
-		final User creator = userRepository.findById(user.getUserId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUsername()));
+    final User creator = userRepository.findById(user.getUserId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUsername()));
 
-		final Launch launch = demoDataLaunchService.startLaunch(NAME, creator, projectDetails);
+    final Launch launch = demoDataLaunchService.startLaunch(NAME, creator, projectDetails);
 
-		demoLaunch.getSuites().forEach(suite -> {
-			final SuiteGeneratorType suiteGeneratorType = SuiteGeneratorType.valueOf(suite.getType());
-			final SuiteGenerator suiteGenerator = suiteGeneratorResolver.resolve(suiteGeneratorType);
-			suiteGenerator.generateSuites(suite, RootMetaData.of(launch.getUuid(), user, projectDetails));
-		});
+    demoLaunch.getSuites().forEach(suite -> {
+      final SuiteGeneratorType suiteGeneratorType = SuiteGeneratorType.valueOf(suite.getType());
+      final SuiteGenerator suiteGenerator = suiteGeneratorResolver.resolve(suiteGeneratorType);
+      suiteGenerator.generateSuites(suite, RootMetaData.of(launch.getUuid(), user, projectDetails));
+    });
 
-		demoDataLaunchService.finishLaunch(launch.getUuid());
-		final List<Log> logs = demoLogsService.generateLaunchLogs(LAUNCH_LOGS_COUNT, launch.getUuid(), launch.getStatus());
-		demoLogsService.attachFiles(logs, projectDetails.getProjectId(), launch.getUuid());
-		return launch.getId();
-	}
+    final List<Log> logs = demoLogsService.generateLaunchLogs(LAUNCH_LOGS_COUNT, launch.getUuid(),
+        launch.getStatus());
+    demoDataLaunchService.finishLaunch(launch.getUuid());
+    demoLogsService.attachFiles(logs, projectDetails.getProjectId(), launch.getUuid());
+    return launch.getId();
+  }
 }

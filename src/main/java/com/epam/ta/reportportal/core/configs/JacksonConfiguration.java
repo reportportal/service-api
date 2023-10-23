@@ -31,17 +31,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class JacksonConfiguration {
 
-	/**
-	 * @return Configured object mapper
-	 */
-	@Bean(name = "objectMapper")
-	public ObjectMapper objectMapper() {
-		ObjectMapper om = new ObjectMapper();
-		om.setAnnotationIntrospector(new JacksonAnnotationIntrospector());
-		om.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true);
-		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		om.registerModule(new JacksonViewAwareModule(om));
-		om.registerModule(new JavaTimeModule());
-		return om;
-	}
+  /**
+   * @return Configured object mapper
+   */
+  @Bean(name = "objectMapper")
+  public ObjectMapper objectMapper() {
+    ObjectMapper om = new ObjectMapper();
+    om.setAnnotationIntrospector(new JacksonAnnotationIntrospector());
+    om.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true);
+    om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    om.registerModule(new JacksonViewAwareModule(om));
+    om.registerModule(new JavaTimeModule());
+    return om;
+  }
 }

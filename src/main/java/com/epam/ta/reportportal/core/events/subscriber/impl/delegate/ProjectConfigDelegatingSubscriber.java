@@ -20,27 +20,27 @@ import com.epam.ta.reportportal.core.events.ProjectIdAwareEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.ta.reportportal.core.events.subscriber.EventSubscriber;
 import com.epam.ta.reportportal.core.project.config.ProjectConfigProvider;
-
 import java.util.List;
 import java.util.Map;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class ProjectConfigDelegatingSubscriber<T extends ProjectIdAwareEvent> implements EventSubscriber<T> {
+public class ProjectConfigDelegatingSubscriber<T extends ProjectIdAwareEvent> implements
+    EventSubscriber<T> {
 
-	private final ProjectConfigProvider projectConfigProvider;
-	private final List<ConfigurableEventHandler<T, Map<String, String>>> eventHandlers;
+  private final ProjectConfigProvider projectConfigProvider;
+  private final List<ConfigurableEventHandler<T, Map<String, String>>> eventHandlers;
 
-	public ProjectConfigDelegatingSubscriber(ProjectConfigProvider projectConfigProvider,
-			List<ConfigurableEventHandler<T, Map<String, String>>> eventHandlers) {
-		this.projectConfigProvider = projectConfigProvider;
-		this.eventHandlers = eventHandlers;
-	}
+  public ProjectConfigDelegatingSubscriber(ProjectConfigProvider projectConfigProvider,
+      List<ConfigurableEventHandler<T, Map<String, String>>> eventHandlers) {
+    this.projectConfigProvider = projectConfigProvider;
+    this.eventHandlers = eventHandlers;
+  }
 
-	@Override
-	public void handleEvent(T event) {
-		final Map<String, String> projectConfig = projectConfigProvider.provide(event.getProjectId());
-		eventHandlers.forEach(h -> h.handle(event, projectConfig));
-	}
+  @Override
+  public void handleEvent(T event) {
+    final Map<String, String> projectConfig = projectConfigProvider.provide(event.getProjectId());
+    eventHandlers.forEach(h -> h.handle(event, projectConfig));
+  }
 }

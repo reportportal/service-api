@@ -145,7 +145,6 @@ public class FlushingDataJob implements Job {
   private void restartSequences() {
     jdbcTemplate.execute("ALTER SEQUENCE project_id_seq RESTART WITH 2");
     jdbcTemplate.execute("ALTER SEQUENCE users_id_seq RESTART WITH 2");
-    jdbcTemplate.execute("ALTER SEQUENCE oauth_access_token_id_seq RESTART WITH 2");
     jdbcTemplate.execute("ALTER SEQUENCE project_attribute_attribute_id_seq RESTART WITH 15");
     jdbcTemplate.execute("ALTER SEQUENCE statistics_field_sf_id_seq RESTART WITH 15");
   }

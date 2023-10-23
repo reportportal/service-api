@@ -16,69 +16,70 @@
 
 package com.epam.ta.reportportal.core.events.handler.item;
 
-import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
 import com.epam.ta.reportportal.core.launch.cluster.ClusterGenerator;
 import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.context.ApplicationEventPublisher;
-
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class TestItemUniqueErrorAnalysisRunnerTest {
 
-	private final ClusterGenerator clusterGenerator = mock(ClusterGenerator.class);
-	private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
+  private final ClusterGenerator clusterGenerator = mock(ClusterGenerator.class);
+  private final TestItemUniqueErrorAnalysisRunner runner = new TestItemUniqueErrorAnalysisRunner(
+      clusterGenerator);
 
-	private final TestItemUniqueErrorAnalysisRunner runner = new TestItemUniqueErrorAnalysisRunner(clusterGenerator, eventPublisher);
+  @Test
+  void shouldAnalyzeWhenEnabled() {
 
-	@Test
-	void shouldAnalyzeWhenEnabled() {
+    final IssueResolvedEvent event = new IssueResolvedEvent(3L, 2L, 1L);
 
-		final ItemFinishedEvent event = new ItemFinishedEvent(3L, 2L, 1L);
+    final Map<String, String> projectConfig = ImmutableMap.<String, String>builder()
+        .put(ProjectAttributeEnum.AUTO_UNIQUE_ERROR_ANALYZER_ENABLED.getAttribute(), "true")
+        .put(ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getAttribute(), "true")
+        .build();
 
-		final Map<String, String> projectConfig = ImmutableMap.<String, String>builder()
-				.put(ProjectAttributeEnum.AUTO_UNIQUE_ERROR_ANALYZER_ENABLED.getAttribute(), "true")
-				.put(ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getAttribute(), "true")
-				.build();
+    runner.handle(event, projectConfig);
 
-		runner.handle(event, projectConfig);
+    final ArgumentCaptor<GenerateClustersConfig> configArgumentCaptor = ArgumentCaptor.forClass(
+        GenerateClustersConfig.class);
+    verify(clusterGenerator, times(1)).generate(configArgumentCaptor.capture());
 
-		final ArgumentCaptor<GenerateClustersConfig> configArgumentCaptor = ArgumentCaptor.forClass(GenerateClustersConfig.class);
-		verify(clusterGenerator, times(1)).generate(configArgumentCaptor.capture());
+    final GenerateClustersConfig config = configArgumentCaptor.getValue();
 
-		final GenerateClustersConfig config = configArgumentCaptor.getValue();
+    assertEquals(event.getLaunchId(), config.getEntityContext().getLaunchId());
+    assertEquals(event.getProjectId(), config.getEntityContext().getProjectId());
+    assertEquals(event.getItemId(), config.getEntityContext().getItemIds().get(0));
+    assertTrue(config.isForUpdate());
+    assertTrue(config.isCleanNumbers());
+  }
 
-		assertEquals(event.getLaunchId(), config.getEntityContext().getLaunchId());
-		assertEquals(event.getProjectId(), config.getEntityContext().getProjectId());
-		assertEquals(event.getItemId(), config.getEntityContext().getItemIds().get(0));
-		assertTrue(config.isForUpdate());
-		assertTrue(config.isCleanNumbers());
-	}
+  @Test
+  void shouldNotAnalyzeWhenDisabled() {
 
-	@Test
-	void shouldNotAnalyzeWhenDisabled() {
+    final IssueResolvedEvent event = new IssueResolvedEvent(3L, 2L, 1L);
 
-		final ItemFinishedEvent event = new ItemFinishedEvent(3L, 2L, 1L);
+    final Map<String, String> projectConfig = ImmutableMap.<String, String>builder()
+        .put(ProjectAttributeEnum.AUTO_UNIQUE_ERROR_ANALYZER_ENABLED.getAttribute(), "false")
+        .put(ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getAttribute(), "true")
+        .build();
 
-		final Map<String, String> projectConfig = ImmutableMap.<String, String>builder()
-				.put(ProjectAttributeEnum.AUTO_UNIQUE_ERROR_ANALYZER_ENABLED.getAttribute(), "false")
-				.put(ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getAttribute(), "true")
-				.build();
+    runner.handle(event, projectConfig);
 
-		runner.handle(event, projectConfig);
+    verify(clusterGenerator, times(0)).generate(any(GenerateClustersConfig.class));
 
-		verify(clusterGenerator, times(0)).generate(any(GenerateClustersConfig.class));
-
-	}
+  }
 
 }

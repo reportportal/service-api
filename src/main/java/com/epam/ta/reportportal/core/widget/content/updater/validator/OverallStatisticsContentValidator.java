@@ -16,18 +16,17 @@
 
 package com.epam.ta.reportportal.core.widget.content.updater.validator;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
-
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 
 /**
  * @author Pavel Bortnik
@@ -35,20 +34,21 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 @Service
 public class OverallStatisticsContentValidator implements WidgetValidatorStrategy {
 
-	@Override
-	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions, int limit) {
-		validateContentFields(contentFields);
-	}
+  @Override
+  public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping,
+      WidgetOptions widgetOptions, int limit) {
+    validateContentFields(contentFields);
+  }
 
-	/**
-	 * Validate provided content fields.
-	 * <p>
-	 * The value of at least one of the content fields should not be empty
-	 *
-	 * @param contentFields List of provided content.
-	 */
-	private void validateContentFields(List<String> contentFields) {
-		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
-	}
+  /**
+   * Validate provided content fields.
+   * <p>
+   * The value of at least one of the content fields should not be empty
+   *
+   * @param contentFields List of provided content.
+   */
+  private void validateContentFields(List<String> contentFields) {
+    BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
+        .verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
+  }
 }

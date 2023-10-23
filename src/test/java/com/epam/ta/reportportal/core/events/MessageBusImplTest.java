@@ -1,9 +1,6 @@
 package com.epam.ta.reportportal.core.events;
 
 import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.EXCHANGE_ACTIVITY;
-import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.EXCHANGE_ATTACHMENT;
-import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.EXCHANGE_EVENTS;
-import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.QUEUE_ATTACHMENT_DELETE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -11,7 +8,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,14 +64,7 @@ public class MessageBusImplTest {
   public void whenPublishWithoutExchange_thenCallConvertSendAndReceive() {
     messageBus.publish(ROUTE, MESSAGE);
 
-    verify(amqpTemplate).convertSendAndReceive(ROUTE, MESSAGE);
-  }
-
-  @Test
-  public void whenBroadcastEvent_thenCallConvertAndSendWithExchangeEvents() {
-    messageBus.broadcastEvent(MESSAGE);
-
-    verify(amqpTemplate).convertAndSend(EXCHANGE_EVENTS, "", MESSAGE);
+    verify(amqpTemplate).convertAndSend(ROUTE, MESSAGE);
   }
 
   @Test
@@ -104,12 +93,4 @@ public class MessageBusImplTest {
     verify(amqpTemplate).convertAndSend(EXCHANGE_ACTIVITY, activityKey, activity);
   }
 
-  @Test
-  public void whenPublishDeleteAttachmentEvent_thenCallConvertAndSendWithAttachmentExchange() {
-    DeleteAttachmentEvent deleteAttachmentEvent = mock(DeleteAttachmentEvent.class);
-    messageBus.publishDeleteAttachmentEvent(deleteAttachmentEvent);
-
-    verify(amqpTemplate).convertAndSend(
-        EXCHANGE_ATTACHMENT, QUEUE_ATTACHMENT_DELETE, deleteAttachmentEvent);
-  }
 }

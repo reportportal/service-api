@@ -29,39 +29,40 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public interface EditUserHandler {
 
-	/**
-	 * Edit User
-	 *
-	 * @param username   Name of user
-	 * @param editUserRQ Edit request
-	 * @param editor     User performing the edit operation
-	 * @return Completion result
-	 */
-	OperationCompletionRS editUser(String username, EditUserRQ editUserRQ, ReportPortalUser editor);
+  /**
+   * Edit User
+   *
+   * @param username   Name of user
+   * @param editUserRQ Edit request
+   * @param editor     User performing the edit operation
+   * @return Completion result
+   */
+  OperationCompletionRS editUser(String username, EditUserRQ editUserRQ, ReportPortalUser editor);
 
-	/**
-	 * Upload photo
-	 *
-	 * @param username Name of user
-	 * @param file     New photo
-	 * @return Completion result
-	 */
-	OperationCompletionRS uploadPhoto(String username, MultipartFile file);
+  /**
+   * Upload photo
+   *
+   * @param username Name of user
+   * @param file     New photo
+   * @return Completion result
+   */
+  OperationCompletionRS uploadPhoto(String username, MultipartFile file);
 
-	/**
-	 * Delete user's photo
-	 *
-	 * @param username Name of user
-	 * @return Completion result
-	 */
-	OperationCompletionRS deletePhoto(String username);
+  /**
+   * Delete user's photo
+   *
+   * @param username Name of user
+   * @return Completion result
+   */
+  OperationCompletionRS deletePhoto(String username);
 
-	/**
-	 * Change password
-	 *
-	 * @param currentUser      User performing the edit operation
-	 * @param changePasswordRQ Request body
-	 * @return Completion result
-	 */
-	OperationCompletionRS changePassword(ReportPortalUser currentUser, ChangePasswordRQ changePasswordRQ);
+  /**
+   * Change password
+   *
+   * @param currentUser      User performing the edit operation
+   * @param changePasswordRQ Request body
+   * @return Completion result
+   */
+  OperationCompletionRS changePassword(ReportPortalUser currentUser,
+      ChangePasswordRQ changePasswordRQ);
 }

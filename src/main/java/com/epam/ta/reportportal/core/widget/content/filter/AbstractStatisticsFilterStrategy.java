@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.widget.content.filter;
 
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.entity.filter.FilterSort;
@@ -23,45 +25,44 @@ import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.springframework.data.domain.Sort;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static java.util.Optional.ofNullable;
+import org.springframework.data.domain.Sort;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class AbstractStatisticsFilterStrategy implements BuildFilterStrategy {
 
-	@Override
-	public Map<Filter, Sort> buildFilter(Widget widget) {
-		return buildFilterSortMap(widget, widget.getProject().getId());
-	}
+  @Override
+  public Map<Filter, Sort> buildFilter(Widget widget) {
+    return buildFilterSortMap(widget, widget.getProject().getId());
+  }
 
-	protected Map<Filter, Sort> buildFilterSortMap(Widget widget, Long projectId) {
-		Map<Filter, Sort> filterSortMap = Maps.newLinkedHashMap();
-		Set<UserFilter> userFilters = Optional.ofNullable(widget.getFilters()).orElse(Collections.emptySet());
-		Filter defaultFilter = buildDefaultFilter(widget, projectId);
-		Optional.ofNullable(defaultFilter).ifPresent(f -> filterSortMap.put(defaultFilter, Sort.unsorted()));
-		userFilters.forEach(userFilter -> {
-			Filter filter = new Filter(userFilter.getId(),
-					userFilter.getTargetClass().getClassObject(),
-					Lists.newArrayList(userFilter.getFilterCondition())
-			);
-			Optional<Set<FilterSort>> filterSorts = ofNullable(userFilter.getFilterSorts());
-			Sort sort = Sort.by(filterSorts.map(filterSort -> filterSort.stream()
-					.map(s -> Sort.Order.by(s.getField()).with(s.getDirection()))
-					.collect(Collectors.toList())).orElseGet(Collections::emptyList));
-			filterSortMap.put(filter, sort);
-		});
+  protected Map<Filter, Sort> buildFilterSortMap(Widget widget, Long projectId) {
+    Map<Filter, Sort> filterSortMap = Maps.newLinkedHashMap();
+    Set<UserFilter> userFilters = Optional.ofNullable(widget.getFilters())
+        .orElse(Collections.emptySet());
+    Filter defaultFilter = buildDefaultFilter(widget, projectId);
+    Optional.ofNullable(defaultFilter)
+        .ifPresent(f -> filterSortMap.put(defaultFilter, Sort.unsorted()));
+    userFilters.forEach(userFilter -> {
+      Filter filter = new Filter(userFilter.getId(),
+          userFilter.getTargetClass().getClassObject(),
+          Lists.newArrayList(userFilter.getFilterCondition())
+      );
+      Optional<Set<FilterSort>> filterSorts = ofNullable(userFilter.getFilterSorts());
+      Sort sort = Sort.by(filterSorts.map(filterSort -> filterSort.stream()
+          .map(s -> Sort.Order.by(s.getField()).with(s.getDirection()))
+          .collect(Collectors.toList())).orElseGet(Collections::emptyList));
+      filterSortMap.put(filter, sort);
+    });
 
-		return filterSortMap;
-	}
+    return filterSortMap;
+  }
 
-	protected abstract Filter buildDefaultFilter(Widget widget, Long projectId);
+  protected abstract Filter buildDefaultFilter(Widget widget, Long projectId);
 }

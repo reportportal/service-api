@@ -31,55 +31,58 @@ import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfig
  */
 public interface UpdateProjectHandler {
 
-	/**
-	 * Update specified project(projectName, customer and addInfo)
-	 *
-	 * @param projectName     {@link com.epam.ta.reportportal.entity.project.Project#name}
-	 * @param updateProjectRQ Project data
-	 * @param user            ReportPortal user
-	 * @return Operation result
-	 * @throws ReportPortalException
-	 */
-	OperationCompletionRS updateProject(String projectName, UpdateProjectRQ updateProjectRQ, ReportPortalUser user);
+  /**
+   * Update specified project email configuration
+   *
+   * @param projectName                       Project Name
+   * @param updateProjectNotificationConfigRQ Request Data
+   * @param user                              User performing that update
+   * @return Operation Result
+   */
+  OperationCompletionRS updateProjectNotificationConfig(String projectName, ReportPortalUser user,
+      ProjectNotificationConfigDTO updateProjectNotificationConfigRQ);
 
-	/**
-	 * Update specified project email configuration
-	 *
-	 * @param projectName                       Project Name
-	 * @param updateProjectNotificationConfigRQ Request Data
-	 * @param user                              User performing that update
-	 * @return Operation Result
-	 */
-	OperationCompletionRS updateProjectNotificationConfig(String projectName, ReportPortalUser user,
-			ProjectNotificationConfigDTO updateProjectNotificationConfigRQ);
+  /**
+   * Update specified project(projectName, customer and addInfo)
+   *
+   * @param projectName     {@link com.epam.ta.reportportal.entity.project.Project#name}
+   * @param updateProjectRQ Project data
+   * @param user            ReportPortal user
+   * @return Operation result
+   * @throws ReportPortalException
+   */
+  OperationCompletionRS updateProject(String projectName, UpdateProjectRQ updateProjectRQ,
+      ReportPortalUser user);
 
-	/**
-	 * Un-assign specified user from project
-	 *
-	 * @param projectName     {@link com.epam.ta.reportportal.entity.project.Project#name}
-	 * @param modifier        Modifier User
-	 * @param unassignUsersRQ Request Data
-	 * @return Operation Result
-	 * @throws ReportPortalException
-	 */
-	OperationCompletionRS unassignUsers(String projectName, UnassignUsersRQ unassignUsersRQ, ReportPortalUser modifier);
+  /**
+   * Un-assign specified user from project
+   *
+   * @param projectName     {@link com.epam.ta.reportportal.entity.project.Project#name}
+   * @param modifier        Modifier User
+   * @param unassignUsersRQ Request Data
+   * @return Operation Result
+   * @throws ReportPortalException
+   */
+  OperationCompletionRS unassignUsers(String projectName, UnassignUsersRQ unassignUsersRQ,
+      ReportPortalUser modifier);
 
-	/**
-	 * Assign specified user from project
-	 *
-	 * @param projectName   {@link com.epam.ta.reportportal.entity.project.Project#name}
-	 * @param modifier      Modifier User
-	 * @param assignUsersRQ Request Data
-	 * @return Operation Result
-	 */
-	OperationCompletionRS assignUsers(String projectName, AssignUsersRQ assignUsersRQ, ReportPortalUser modifier);
+  /**
+   * Assign specified user from project
+   *
+   * @param projectName   {@link com.epam.ta.reportportal.entity.project.Project#name}
+   * @param modifier      Modifier User
+   * @param assignUsersRQ Request Data
+   * @return Operation Result
+   */
+  OperationCompletionRS assignUsers(String projectName, AssignUsersRQ assignUsersRQ,
+      ReportPortalUser modifier);
 
-	/**
-	 * Index logs for specified project
-	 *
-	 * @param projectName Project name
-	 * @param user        User
-	 * @return Operation Result
-	 */
-	OperationCompletionRS indexProjectData(String projectName, ReportPortalUser user);
+  /**
+   * Index logs for specified project
+   *
+   * @param projectName Project name
+   * @param user        User
+   * @return Operation Result
+   */
+  OperationCompletionRS indexProjectData(String projectName, ReportPortalUser user);
 }

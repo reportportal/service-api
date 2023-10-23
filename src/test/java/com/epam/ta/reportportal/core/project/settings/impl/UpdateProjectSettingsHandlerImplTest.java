@@ -16,6 +16,12 @@
 
 package com.epam.ta.reportportal.core.project.settings.impl;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -24,20 +30,13 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
+import java.util.Collections;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Collections;
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -45,75 +44,80 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class UpdateProjectSettingsHandlerImplTest {
 
-	@Mock
-	private ProjectRepository projectRepository;
+  @Mock
+  private ProjectRepository projectRepository;
 
-	@InjectMocks
-	private UpdateProjectSettingsHandlerImpl handler;
+  @InjectMocks
+  private UpdateProjectSettingsHandlerImpl handler;
 
-	@Test
-	void emptyRequest() {
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
+  @Test
+  void emptyRequest() {
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
 
-		UpdateIssueSubTypeRQ updateIssueSubTypeRQ = new UpdateIssueSubTypeRQ();
-		updateIssueSubTypeRQ.setIds(Collections.emptyList());
+    UpdateIssueSubTypeRQ updateIssueSubTypeRQ = new UpdateIssueSubTypeRQ();
+    updateIssueSubTypeRQ.setIds(Collections.emptyList());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.updateProjectIssueSubType("test_project", user, updateIssueSubTypeRQ)
-		);
-		assertEquals("Forbidden operation. Please specify at least one item data for update.", exception.getMessage());
-	}
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.updateProjectIssueSubType("test_project", user, updateIssueSubTypeRQ)
+    );
+    assertEquals("Forbidden operation. Please specify at least one item data for update.",
+        exception.getMessage());
+  }
 
-	@Test
-	void updateSubtypeOnNotExistProject() {
-		long projectId = 1L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+  @Test
+  void updateSubtypeOnNotExistProject() {
+    long projectId = 1L;
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+        projectId);
 
-		UpdateIssueSubTypeRQ updateIssueSubTypeRQ = new UpdateIssueSubTypeRQ();
-		updateIssueSubTypeRQ.setIds(Collections.singletonList(new UpdateOneIssueSubTypeRQ()));
+    UpdateIssueSubTypeRQ updateIssueSubTypeRQ = new UpdateIssueSubTypeRQ();
+    updateIssueSubTypeRQ.setIds(Collections.singletonList(new UpdateOneIssueSubTypeRQ()));
 
-		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
+    when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.updateProjectIssueSubType(TEST_PROJECT_NAME, user, updateIssueSubTypeRQ)
-		);
-		assertEquals("Project 'test_project' not found. Did you use correct project name?", exception.getMessage());
-	}
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.updateProjectIssueSubType(TEST_PROJECT_NAME, user, updateIssueSubTypeRQ)
+    );
+    assertEquals("Project 'test_project' not found. Did you use correct project name?",
+        exception.getMessage());
+  }
 
-	@Test
-	void updateSubtypeWithIncorrectGroup() {
-		long projectId = 1L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+  @Test
+  void updateSubtypeWithIncorrectGroup() {
+    long projectId = 1L;
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+        projectId);
 
-		UpdateIssueSubTypeRQ updateIssueSubTypeRQ = new UpdateIssueSubTypeRQ();
-		UpdateOneIssueSubTypeRQ oneIssueSubTypeRQ = new UpdateOneIssueSubTypeRQ();
-		oneIssueSubTypeRQ.setTypeRef("wrongType");
-		updateIssueSubTypeRQ.setIds(Collections.singletonList(oneIssueSubTypeRQ));
+    UpdateIssueSubTypeRQ updateIssueSubTypeRQ = new UpdateIssueSubTypeRQ();
+    UpdateOneIssueSubTypeRQ oneIssueSubTypeRQ = new UpdateOneIssueSubTypeRQ();
+    oneIssueSubTypeRQ.setTypeRef("wrongType");
+    updateIssueSubTypeRQ.setIds(Collections.singletonList(oneIssueSubTypeRQ));
 
-		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
+    when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.updateProjectIssueSubType(TEST_PROJECT_NAME, user, updateIssueSubTypeRQ)
-		);
-		assertEquals("Issue Type 'wrongType' not found.", exception.getMessage());
-	}
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.updateProjectIssueSubType(TEST_PROJECT_NAME, user, updateIssueSubTypeRQ)
+    );
+    assertEquals("Issue Type 'wrongType' not found.", exception.getMessage());
+  }
 
-	@Test
-	void updateNotExistSubtype() {
-		long projectId = 1L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+  @Test
+  void updateNotExistSubtype() {
+    long projectId = 1L;
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+        projectId);
 
-		UpdateIssueSubTypeRQ updateIssueSubTypeRQ = new UpdateIssueSubTypeRQ();
-		UpdateOneIssueSubTypeRQ oneIssueSubTypeRQ = new UpdateOneIssueSubTypeRQ();
-		oneIssueSubTypeRQ.setTypeRef("product_bug");
-		oneIssueSubTypeRQ.setLocator("locator");
-		updateIssueSubTypeRQ.setIds(Collections.singletonList(oneIssueSubTypeRQ));
+    UpdateIssueSubTypeRQ updateIssueSubTypeRQ = new UpdateIssueSubTypeRQ();
+    UpdateOneIssueSubTypeRQ oneIssueSubTypeRQ = new UpdateOneIssueSubTypeRQ();
+    oneIssueSubTypeRQ.setTypeRef("product_bug");
+    oneIssueSubTypeRQ.setLocator("locator");
+    updateIssueSubTypeRQ.setIds(Collections.singletonList(oneIssueSubTypeRQ));
 
-		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
+    when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.updateProjectIssueSubType(TEST_PROJECT_NAME, user, updateIssueSubTypeRQ)
-		);
-		assertEquals("Issue Type 'locator' not found.", exception.getMessage());
-	}
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.updateProjectIssueSubType(TEST_PROJECT_NAME, user, updateIssueSubTypeRQ)
+    );
+    assertEquals("Issue Type 'locator' not found.", exception.getMessage());
+  }
 }

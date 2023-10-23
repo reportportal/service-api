@@ -5,5 +5,5 @@ package com.epam.ta.reportportal.core.remover;
  */
 public interface ContentRemover<T> {
 
-	void remove(T entity);
+  void remove(T entity);
 }

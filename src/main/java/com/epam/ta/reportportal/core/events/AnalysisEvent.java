@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.events;
 
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-
 import java.util.List;
 
 /**
@@ -26,39 +25,39 @@ import java.util.List;
  */
 public class AnalysisEvent {
 
-	private Launch launch;
+  private Launch launch;
 
-	private List<Long> itemIds;
+  private List<Long> itemIds;
 
-	private AnalyzerConfig analyzerConfig;
+  private AnalyzerConfig analyzerConfig;
 
-	public AnalysisEvent(Launch launch, List<Long> itemIds, AnalyzerConfig analyzerConfig) {
-		this.launch = launch;
-		this.itemIds = itemIds;
-		this.analyzerConfig = analyzerConfig;
-	}
+  public AnalysisEvent(Launch launch, List<Long> itemIds, AnalyzerConfig analyzerConfig) {
+    this.launch = launch;
+    this.itemIds = itemIds;
+    this.analyzerConfig = analyzerConfig;
+  }
 
-	public List<Long> getItemIds() {
-		return itemIds;
-	}
+  public List<Long> getItemIds() {
+    return itemIds;
+  }
 
-	public void setItemIds(List<Long> itemIds) {
-		this.itemIds = itemIds;
-	}
+  public void setItemIds(List<Long> itemIds) {
+    this.itemIds = itemIds;
+  }
 
-	public AnalyzerConfig getAnalyzerConfig() {
-		return analyzerConfig;
-	}
+  public AnalyzerConfig getAnalyzerConfig() {
+    return analyzerConfig;
+  }
 
-	public void setAnalyzerConfig(AnalyzerConfig analyzerConfig) {
-		this.analyzerConfig = analyzerConfig;
-	}
+  public void setAnalyzerConfig(AnalyzerConfig analyzerConfig) {
+    this.analyzerConfig = analyzerConfig;
+  }
 
-	public Launch getLaunch() {
-		return launch;
-	}
+  public Launch getLaunch() {
+    return launch;
+  }
 
-	public void setLaunch(Launch launch) {
-		this.launch = launch;
-	}
+  public void setLaunch(Launch launch) {
+    this.launch = launch;
+  }
 }

@@ -8,24 +8,24 @@ import org.springframework.util.MultiValueMap;
  */
 public class GenerateWidgetViewEvent {
 
-	private final Long widgetId;
-	private final MultiValueMap<String, String> params;
+  private final Long widgetId;
+  private final MultiValueMap<String, String> params;
 
-	public GenerateWidgetViewEvent(Long widgetId, MultiValueMap<String, String> params) {
-		this.widgetId = widgetId;
-		this.params = params;
-	}
+  public GenerateWidgetViewEvent(Long widgetId, MultiValueMap<String, String> params) {
+    this.widgetId = widgetId;
+    this.params = params;
+  }
 
-	public GenerateWidgetViewEvent(Long widgetId) {
-		this.widgetId = widgetId;
-		this.params = new LinkedMultiValueMap<>();
-	}
+  public GenerateWidgetViewEvent(Long widgetId) {
+    this.widgetId = widgetId;
+    this.params = new LinkedMultiValueMap<>();
+  }
 
-	public Long getWidgetId() {
-		return widgetId;
-	}
+  public Long getWidgetId() {
+    return widgetId;
+  }
 
-	public MultiValueMap<String, String> getParams() {
-		return params;
-	}
+  public MultiValueMap<String, String> getParams() {
+    return params;
+  }
 }

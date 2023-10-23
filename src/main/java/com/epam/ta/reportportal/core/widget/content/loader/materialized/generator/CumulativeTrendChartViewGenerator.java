@@ -16,19 +16,18 @@
 
 package com.epam.ta.reportportal.core.widget.content.loader.materialized.generator;
 
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTES;
+
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
-
-import java.util.List;
-
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTES;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -36,18 +35,21 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 @Service
 public class CumulativeTrendChartViewGenerator extends AbstractViewGenerator {
 
-	private final WidgetContentRepository widgetContentRepository;
+  private final WidgetContentRepository widgetContentRepository;
 
-	@Autowired
-	public CumulativeTrendChartViewGenerator(WidgetRepository widgetRepository, WidgetContentRepository widgetContentRepository) {
-		super(widgetRepository);
-		this.widgetContentRepository = widgetContentRepository;
-	}
+  @Autowired
+  public CumulativeTrendChartViewGenerator(WidgetRepository widgetRepository,
+      WidgetContentRepository widgetContentRepository) {
+    super(widgetRepository);
+    this.widgetContentRepository = widgetContentRepository;
+  }
 
-	@Override
-	protected void generateView(boolean refresh, String viewName, Widget widget, Filter launchesFilter, Sort launchesSort,
-			MultiValueMap<String, String> params) {
-		List<String> attributes = WidgetOptionUtil.getListByKey(ATTRIBUTES, widget.getWidgetOptions());
-		widgetContentRepository.generateCumulativeTrendChartView(refresh, viewName, launchesFilter, launchesSort, attributes, widget.getItemsCount());
-	}
+  @Override
+  protected void generateView(boolean refresh, String viewName, Widget widget,
+      Filter launchesFilter, Sort launchesSort,
+      MultiValueMap<String, String> params) {
+    List<String> attributes = WidgetOptionUtil.getListByKey(ATTRIBUTES, widget.getWidgetOptions());
+    widgetContentRepository.generateCumulativeTrendChartView(refresh, viewName, launchesFilter,
+        launchesSort, attributes, widget.getItemsCount());
+  }
 }

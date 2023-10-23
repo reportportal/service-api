@@ -16,9 +16,14 @@
 
 package com.epam.ta.reportportal.core.item.impl.provider;
 
-import com.epam.ta.reportportal.core.item.impl.provider.impl.*;
+import com.epam.ta.reportportal.core.item.impl.provider.impl.BaselineLaunchDataProvider;
+import com.epam.ta.reportportal.core.item.impl.provider.impl.CumulativeTestItemDataProviderImpl;
+import com.epam.ta.reportportal.core.item.impl.provider.impl.DelegatingClusterDataProviderHandler;
+import com.epam.ta.reportportal.core.item.impl.provider.impl.LaunchDataProviderHandlerImpl;
+import com.epam.ta.reportportal.core.item.impl.provider.impl.MaterializedWidgetProviderHandlerImpl;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,44 +31,48 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Map;
-
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Configuration
 public class ProviderTypeConfig {
 
-	private ApplicationContext applicationContext;
+  private ApplicationContext applicationContext;
 
-	@Autowired
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
-	}
+  @Autowired
+  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    this.applicationContext = applicationContext;
+  }
 
-	@Bean
-	public DelegatingClusterDataProviderHandler delegatingClusterDataProviderHandler(
-			@Value("${rp.environment.variable.cluster.item.page-size}") Integer maxPageSize,
-			@Autowired LaunchDataProviderHandlerImpl launchDataProviderHandler) {
-		return new DelegatingClusterDataProviderHandler(maxPageSize, launchDataProviderHandler);
-	}
+  @Bean
+  public DelegatingClusterDataProviderHandler delegatingClusterDataProviderHandler(
+      @Value("${rp.environment.variable.cluster.item.page-size}") Integer maxPageSize,
+      @Autowired LaunchDataProviderHandlerImpl launchDataProviderHandler) {
+    return new DelegatingClusterDataProviderHandler(maxPageSize, launchDataProviderHandler);
+  }
 
-	@Bean("testItemDataProviders")
-	public Map<DataProviderType, DataProviderHandler> testItemDataProviders() {
-		return ImmutableMap.<DataProviderType, DataProviderHandler>builder()
-				.put(DataProviderType.WIDGET_BASED, applicationContext.getBean(MaterializedWidgetProviderHandlerImpl.class))
-				.put(DataProviderType.LAUNCH_BASED, applicationContext.getBean(LaunchDataProviderHandlerImpl.class))
-				.put(DataProviderType.FILTER_BASED, applicationContext.getBean(FilterDataProviderImpl.class))
-				.put(DataProviderType.CLUSTER_BASED,applicationContext.getBean(DelegatingClusterDataProviderHandler.class))
-				.put(DataProviderType.BASELINE_BASED,applicationContext.getBean(BaselineLaunchDataProvider.class))
-				.build();
-	}
+  @Bean("testItemDataProviders")
+  public Map<DataProviderType, DataProviderHandler> testItemDataProviders() {
+    return ImmutableMap.<DataProviderType, DataProviderHandler>builder()
+        .put(DataProviderType.WIDGET_BASED,
+            applicationContext.getBean(MaterializedWidgetProviderHandlerImpl.class))
+        .put(DataProviderType.LAUNCH_BASED,
+            applicationContext.getBean(LaunchDataProviderHandlerImpl.class))
+        .put(DataProviderType.FILTER_BASED,
+            applicationContext.getBean(FilterDataProviderImpl.class))
+        .put(DataProviderType.CLUSTER_BASED,
+            applicationContext.getBean(DelegatingClusterDataProviderHandler.class))
+        .put(DataProviderType.BASELINE_BASED,
+            applicationContext.getBean(BaselineLaunchDataProvider.class))
+        .build();
+  }
 
-	@Bean("testItemWidgetDataProviders")
-	public Map<WidgetType, DataProviderHandler> testItemWidgetDataProviders() {
-		return ImmutableMap.<WidgetType, DataProviderHandler>builder()
-				.put(WidgetType.CUMULATIVE, applicationContext.getBean(CumulativeTestItemDataProviderImpl.class))
-				.build();
-	}
+  @Bean("testItemWidgetDataProviders")
+  public Map<WidgetType, DataProviderHandler> testItemWidgetDataProviders() {
+    return ImmutableMap.<WidgetType, DataProviderHandler>builder()
+        .put(WidgetType.CUMULATIVE,
+            applicationContext.getBean(CumulativeTestItemDataProviderImpl.class))
+        .build();
+  }
 
 }

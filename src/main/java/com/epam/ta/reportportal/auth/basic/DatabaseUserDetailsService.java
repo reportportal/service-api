@@ -15,6 +15,8 @@
  */
 package com.epam.ta.reportportal.auth.basic;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+
 import com.epam.ta.reportportal.auth.util.AuthUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -27,43 +29,41 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-
 /**
- * Spring's {@link UserDetailsService} implementation. Uses {@link User} entity
- * from ReportPortal database
+ * Spring's {@link UserDetailsService} implementation. Uses {@link User} entity from ReportPortal
+ * database
  *
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
  */
 @Service
 public class DatabaseUserDetailsService implements UserDetailsService {
 
-	private UserRepository userRepository;
+  private UserRepository userRepository;
 
-	@Autowired
-	public void setUserRepository(UserRepository userRepository) {
-		this.userRepository = userRepository;
-	}
+  @Autowired
+  public void setUserRepository(UserRepository userRepository) {
+    this.userRepository = userRepository;
+  }
 
-	@Override
-	@Transactional(readOnly = true)
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		ReportPortalUser user = userRepository.findReportPortalUser(normalizeId(username))
-				.orElseThrow(() -> new UsernameNotFoundException("User not found"));
+  @Override
+  @Transactional(readOnly = true)
+  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    ReportPortalUser user = userRepository.findReportPortalUser(normalizeId(username))
+        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-		UserDetails userDetails = User.builder()
-				.username(user.getUsername())
-				.password(user.getPassword() == null ? "" : user.getPassword())
-				.authorities(AuthUtils.AS_AUTHORITIES.apply(user.getUserRole()))
-				.build();
+    UserDetails userDetails = User.builder()
+        .username(user.getUsername())
+        .password(user.getPassword() == null ? "" : user.getPassword())
+        .authorities(AuthUtils.AS_AUTHORITIES.apply(user.getUserRole()))
+        .build();
 
-		return ReportPortalUser.userBuilder()
-				.withUserDetails(userDetails)
-				.withUserId(user.getUserId())
-				.withUserRole(user.getUserRole())
-				.withProjectDetails(Maps.newHashMapWithExpectedSize(1))
-				.withEmail(user.getEmail())
-				.build();
-	}
+    return ReportPortalUser.userBuilder()
+        .withUserDetails(userDetails)
+        .withUserId(user.getUserId())
+        .withUserRole(user.getUserRole())
+        .withProjectDetails(Maps.newHashMapWithExpectedSize(1))
+        .withEmail(user.getEmail())
+        .build();
+  }
 
 }

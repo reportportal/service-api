@@ -16,20 +16,27 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.ws.BaseMvcTest;
-import org.junit.jupiter.api.Test;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.epam.ta.reportportal.ws.BaseMvcTest;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class PluginControllerTest extends BaseMvcTest {
 
-	@Test
-	void getLaunchPositive() throws Exception {
-		mockMvc.perform(get("/v1/plugin").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
-	}
+  @Test
+  void getLaunchPositive() throws Exception {
+    mockMvc.perform(get("/v1/plugin").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void shouldNotGetFileWhenNotAuthenticated() throws Exception {
+    mockMvc.perform(get("/v1/plugin/pluginName/file/image.png"))
+        .andExpect(status().isUnauthorized());
+  }
 
 }

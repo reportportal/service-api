@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.remover.project;
 
 import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.entity.project.Project;
-
 import java.util.List;
 
 /**
@@ -26,14 +25,14 @@ import java.util.List;
  */
 public class ProjectContentRemover implements ContentRemover<Project> {
 
-	private final List<ContentRemover<Project>> removers;
+  private final List<ContentRemover<Project>> removers;
 
-	public ProjectContentRemover(List<ContentRemover<Project>> removers) {
-		this.removers = removers;
-	}
+  public ProjectContentRemover(List<ContentRemover<Project>> removers) {
+    this.removers = removers;
+  }
 
-	@Override
-	public void remove(Project project) {
-		removers.forEach(r -> r.remove(project));
-	}
+  @Override
+  public void remove(Project project) {
+    removers.forEach(r -> r.remove(project));
+  }
 }

@@ -16,6 +16,11 @@
 
 package com.epam.ta.reportportal.core.events.handler;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
+import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
+
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
@@ -33,11 +38,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
-import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
@@ -45,42 +45,47 @@ import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.get
 @Transactional
 public class DefectTypeDeletedHandler {
 
-	private final AnalyzerStatusCache analyzerStatusCache;
+  private final AnalyzerStatusCache analyzerStatusCache;
 
-	private final AnalyzerServiceClient analyzerServiceClient;
+  private final AnalyzerServiceClient analyzerServiceClient;
 
-	private final LaunchRepository launchRepository;
+  private final LaunchRepository launchRepository;
 
-	private final LogIndexer logIndexer;
+  private final LogIndexer logIndexer;
 
-	private final ProjectRepository projectRepository;
+  private final ProjectRepository projectRepository;
 
-	@Autowired
-	public DefectTypeDeletedHandler(AnalyzerStatusCache analyzerStatusCache, AnalyzerServiceClient analyzerServiceClient,
-			LaunchRepository launchRepository, LogIndexer logIndexer, ProjectRepository projectRepository) {
-		this.analyzerStatusCache = analyzerStatusCache;
-		this.analyzerServiceClient = analyzerServiceClient;
-		this.launchRepository = launchRepository;
-		this.logIndexer = logIndexer;
-		this.projectRepository = projectRepository;
-	}
+  @Autowired
+  public DefectTypeDeletedHandler(AnalyzerStatusCache analyzerStatusCache,
+      AnalyzerServiceClient analyzerServiceClient,
+      LaunchRepository launchRepository, LogIndexer logIndexer,
+      ProjectRepository projectRepository) {
+    this.analyzerStatusCache = analyzerStatusCache;
+    this.analyzerServiceClient = analyzerServiceClient;
+    this.launchRepository = launchRepository;
+    this.logIndexer = logIndexer;
+    this.projectRepository = projectRepository;
+  }
 
-	@Transactional
-	@Retryable(value = ReportPortalException.class, maxAttempts = 5, backoff = @Backoff(value = 5000L))
-	@TransactionalEventListener
-	public void handleDefectTypeDeleted(DefectTypeDeletedEvent event) {
-		Project project = projectRepository.findById(event.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, event.getProjectId()));
+  @Transactional
+  @Retryable(value = ReportPortalException.class, maxAttempts = 5, backoff = @Backoff(value = 5000L))
+  @TransactionalEventListener
+  public void handleDefectTypeDeleted(DefectTypeDeletedEvent event) {
+    Project project = projectRepository.findById(event.getProjectId())
+        .orElseThrow(
+            () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, event.getProjectId()));
 
-		if (analyzerServiceClient.hasClients()) {
-			Cache<Long, Long> analyzeStatus = analyzerStatusCache.getAnalyzeStatus(AUTO_ANALYZER_KEY)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.ANALYZER_NOT_FOUND, AUTO_ANALYZER_KEY));
-			expect(analyzeStatus.asMap().containsValue(event.getProjectId()), equalTo(false)).verify(ErrorType.FORBIDDEN_OPERATION,
-					"Index can not be removed until auto-analysis proceeds."
-			);
+    if (analyzerServiceClient.hasClients()) {
+      Cache<Long, Long> analyzeStatus = analyzerStatusCache.getAnalyzeStatus(AUTO_ANALYZER_KEY)
+          .orElseThrow(
+              () -> new ReportPortalException(ErrorType.ANALYZER_NOT_FOUND, AUTO_ANALYZER_KEY));
+      expect(analyzeStatus.asMap().containsValue(event.getProjectId()), equalTo(false)).verify(
+          ErrorType.FORBIDDEN_OPERATION,
+          "Index can not be removed until auto-analysis proceeds."
+      );
 
-			logIndexer.index(event.getProjectId(), getAnalyzerConfig(project));
-		}
-	}
+      logIndexer.index(event.getProjectId(), getAnalyzerConfig(project));
+    }
+  }
 
 }

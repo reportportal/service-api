@@ -16,82 +16,82 @@
 
 package com.epam.ta.reportportal.core.plugin;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
+import javax.annotation.Nullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class PluginInfo implements Serializable {
 
-	private String id;
+  private String id;
 
-	private String version;
+  private String version;
 
-	private String fileId;
+  private String fileId;
 
-	private String fileName;
+  private String fileName;
 
-	private boolean isEnabled;
+  private boolean isEnabled;
 
-	public PluginInfo() {
-	}
+  public PluginInfo() {
+  }
 
-	public PluginInfo(String id, String version) {
-		this.id = id;
-		this.version = version;
-	}
+  public PluginInfo(String id, String version) {
+    this.id = id;
+    this.version = version;
+  }
 
-	public PluginInfo(String id, String version, String fileId, String fileName, boolean isEnabled) {
-		this.id = id;
-		this.version = version;
-		this.fileId = fileId;
-		this.fileName = fileName;
-		this.isEnabled = isEnabled;
-	}
+  public PluginInfo(String id, String version, String fileId, String fileName, boolean isEnabled) {
+    this.id = id;
+    this.version = version;
+    this.fileId = fileId;
+    this.fileName = fileName;
+    this.isEnabled = isEnabled;
+  }
 
-	@Nullable
-	public String getId() {
-		return id;
-	}
+  @Nullable
+  public String getId() {
+    return id;
+  }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+  public void setId(String id) {
+    this.id = id;
+  }
 
-	@Nullable
-	public String getVersion() {
-		return version;
-	}
+  @Nullable
+  public String getVersion() {
+    return version;
+  }
 
-	public void setVersion(String version) {
-		this.version = version;
-	}
+  public void setVersion(String version) {
+    this.version = version;
+  }
 
-	@Nullable
-	public String getFileId() {
-		return fileId;
-	}
+  @Nullable
+  public String getFileId() {
+    return fileId;
+  }
 
-	public void setFileId(String fileId) {
-		this.fileId = fileId;
-	}
+  public void setFileId(String fileId) {
+    this.fileId = fileId;
+  }
 
-	@Nullable
-	public String getFileName() {
-		return fileName;
-	}
+  @Nullable
+  public String getFileName() {
+    return fileName;
+  }
 
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
-	}
+  public void setFileName(String fileName) {
+    this.fileName = fileName;
+  }
 
-	public boolean isEnabled() {
-		return isEnabled;
-	}
+  public boolean isEnabled() {
+    return isEnabled;
+  }
 
-	public void setEnabled(boolean enabled) {
-		isEnabled = enabled;
-	}
+  public void setEnabled(boolean enabled) {
+    isEnabled = enabled;
+  }
 
 }

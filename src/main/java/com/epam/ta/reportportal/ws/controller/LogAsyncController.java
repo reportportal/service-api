@@ -16,6 +16,13 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.util.ControllerUtils.findByFileName;
+import static com.epam.ta.reportportal.util.ControllerUtils.getUploadedFiles;
+import static com.epam.ta.reportportal.util.ControllerUtils.validateSaveRQ;
+import static org.springframework.http.HttpStatus.CREATED;
+
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -23,9 +30,16 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.core.logging.HttpLogging;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.*;
+import com.epam.ta.reportportal.ws.model.BatchElementCreatedRS;
+import com.epam.ta.reportportal.ws.model.BatchSaveOperatingRS;
+import com.epam.ta.reportportal.ws.model.Constants;
+import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import io.swagger.annotations.ApiOperation;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Validator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,18 +48,15 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Validator;
-import java.util.Map;
-
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.util.ControllerUtils.*;
-import static org.springframework.http.HttpStatus.CREATED;
 
 /**
  * @author Konstantin Antipin
@@ -55,94 +66,104 @@ import static org.springframework.http.HttpStatus.CREATED;
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LogAsyncController {
 
-	private final ProjectExtractor projectExtractor;
-	private final CreateLogHandler createLogHandler;
-	private final Validator validator;
+  private final ProjectExtractor projectExtractor;
+  private final CreateLogHandler createLogHandler;
+  private final Validator validator;
 
-	@Autowired
-	public LogAsyncController(ProjectExtractor projectExtractor, @Qualifier("asyncCreateLogHandler") CreateLogHandler createLogHandler, Validator validator) {
-		this.projectExtractor = projectExtractor;
-		this.createLogHandler = createLogHandler;
-		this.validator = validator;
-	}
+  @Autowired
+  public LogAsyncController(ProjectExtractor projectExtractor,
+      @Qualifier("asyncCreateLogHandler") CreateLogHandler createLogHandler, Validator validator) {
+    this.projectExtractor = projectExtractor;
+    this.createLogHandler = createLogHandler;
+    this.validator = validator;
+  }
 
-	/**
-	 * @deprecated in favour of {@link LogAsyncController#createLogEntry(String, SaveLogRQ, ReportPortalUser)} because of mapping collisions
-	 */
-	/* Report client API */
-	@Deprecated
-	@HttpLogging
-	@PostMapping(consumes = { MediaType.APPLICATION_JSON_VALUE })
-	@ResponseStatus(CREATED)
-	@ApiIgnore
-	@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedAsyncRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		validateSaveRQ(validator, createLogRQ);
-		return createLogHandler.createLog(createLogRQ, null, projectExtractor.extractProjectDetails(user, projectName));
-	}
+  /**
+   * @deprecated in favour of
+   * {@link LogAsyncController#createLogEntry(String, SaveLogRQ, ReportPortalUser)} because of
+   * mapping collisions
+   */
+  /* Report client API */
+  @Deprecated
+  @HttpLogging
+  @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
+  @ResponseStatus(CREATED)
+  @ApiIgnore
+  @PreAuthorize(ALLOWED_TO_REPORT)
+  public EntryCreatedAsyncRS createLog(@PathVariable String projectName,
+      @RequestBody SaveLogRQ createLogRQ,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    validateSaveRQ(validator, createLogRQ);
+    return createLogHandler.createLog(createLogRQ, null,
+        projectExtractor.extractProjectDetails(user, projectName));
+  }
 
-	@HttpLogging
-	@PostMapping(value = "/entry", consumes = { MediaType.APPLICATION_JSON_VALUE })
-	@ResponseStatus(CREATED)
-	@ApiOperation("Create log")
-	@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedAsyncRS createLogEntry(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		validateSaveRQ(validator, createLogRQ);
-		return createLogHandler.createLog(createLogRQ, null, projectExtractor.extractProjectDetails(user, projectName));
-	}
+  @HttpLogging
+  @PostMapping(value = "/entry", consumes = {MediaType.APPLICATION_JSON_VALUE})
+  @ResponseStatus(CREATED)
+  @ApiOperation("Create log")
+  @PreAuthorize(ALLOWED_TO_REPORT)
+  public EntryCreatedAsyncRS createLogEntry(@PathVariable String projectName,
+      @RequestBody SaveLogRQ createLogRQ,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    validateSaveRQ(validator, createLogRQ);
+    return createLogHandler.createLog(createLogRQ, null,
+        projectExtractor.extractProjectDetails(user, projectName));
+  }
 
-	@HttpLogging
-	@PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-	@ApiOperation("Create log (batching operation)")
-	// Specific handler should be added for springfox in case of similar POST
-	// request mappings
-	//	@Async
-	@PreAuthorize(ALLOWED_TO_REPORT)
-	public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectName,
-			@RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs, HttpServletRequest request,
-			@AuthenticationPrincipal ReportPortalUser user) {
+  @HttpLogging
+  @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  @ApiOperation("Create log (batching operation)")
+  // Specific handler should be added for springfox in case of similar POST
+  // request mappings
+  //	@Async
+  @PreAuthorize(ALLOWED_TO_REPORT)
+  public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectName,
+      @RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs,
+      HttpServletRequest request,
+      @AuthenticationPrincipal ReportPortalUser user) {
 
-		/*
-		 * Since this is multipart request we can retrieve list of uploaded
-		 * attachments
-		 */
-		Map<String, MultipartFile> uploadedFiles = getUploadedFiles(request);
-		BatchSaveOperatingRS response = new BatchSaveOperatingRS();
-		EntryCreatedAsyncRS responseItem;
-		/* Go through all provided save log request items */
-		for (SaveLogRQ createLogRq : createLogRQs) {
-			try {
-				validateSaveRQ(validator, createLogRq);
-				String filename = createLogRq.getFile() == null ? null : createLogRq.getFile().getName();
-				if (StringUtils.isEmpty(filename)) {
-					/*
-					 * There is no filename in request. Use simple save
-					 * method
-					 */
-					responseItem = createLog(projectName, createLogRq, user);
+    /*
+     * Since this is multipart request we can retrieve list of uploaded
+     * attachments
+     */
+    Map<String, MultipartFile> uploadedFiles = getUploadedFiles(request);
+    BatchSaveOperatingRS response = new BatchSaveOperatingRS();
+    EntryCreatedAsyncRS responseItem;
+    /* Go through all provided save log request items */
+    for (SaveLogRQ createLogRq : createLogRQs) {
+      try {
+        validateSaveRQ(validator, createLogRq);
+        String filename = createLogRq.getFile() == null ? null : createLogRq.getFile().getName();
+        if (StringUtils.isEmpty(filename)) {
+          /*
+           * There is no filename in request. Use simple save
+           * method
+           */
+          responseItem = createLog(projectName, createLogRq, user);
 
-				} else {
-					/* Find by request part */
-					MultipartFile data = findByFileName(filename, uploadedFiles);
-					BusinessRule.expect(data, Predicates.notNull()).verify(
-							ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
-							Suppliers.formattedSupplier("There is no request part or file with name {}", filename)
-					);
-					/*
-					 * If provided content type is null or this is octet
-					 * stream, try to detect real content type of binary
-					 * data
-					 */
-					//noinspection ConstantConditions
-					responseItem = createLogHandler.createLog(createLogRq, data, projectExtractor.extractProjectDetails(user, projectName));
-				}
-				response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
-			} catch (Exception e) {
-				response.addResponse(new BatchElementCreatedRS(ExceptionUtils.getStackTrace(e), ExceptionUtils.getMessage(e)));
-			}
-		}
-		return new ResponseEntity<>(response, CREATED);
-	}
+        } else {
+          /* Find by request part */
+          MultipartFile data = findByFileName(filename, uploadedFiles);
+          BusinessRule.expect(data, Predicates.notNull()).verify(
+              ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
+              Suppliers.formattedSupplier("There is no request part or file with name {}", filename)
+          );
+          /*
+           * If provided content type is null or this is octet
+           * stream, try to detect real content type of binary
+           * data
+           */
+          //noinspection ConstantConditions
+          responseItem = createLogHandler.createLog(createLogRq, data,
+              projectExtractor.extractProjectDetails(user, projectName));
+        }
+        response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
+      } catch (Exception e) {
+        response.addResponse(new BatchElementCreatedRS(ExceptionUtils.getStackTrace(e),
+            ExceptionUtils.getMessage(e)));
+      }
+    }
+    return new ResponseEntity<>(response, CREATED);
+  }
 }

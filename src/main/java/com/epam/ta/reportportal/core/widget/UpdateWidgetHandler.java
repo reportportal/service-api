@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
-
 import java.util.Collection;
 
 /**
@@ -28,10 +27,11 @@ import java.util.Collection;
  */
 public interface UpdateWidgetHandler {
 
-	/**
-	 * Update widget with specified id
-	 */
-	OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+  /**
+   * Update widget with specified id
+   */
+  OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ,
+      ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user);
 
 }

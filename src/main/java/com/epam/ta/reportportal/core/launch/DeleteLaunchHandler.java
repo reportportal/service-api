@@ -30,23 +30,25 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 public interface DeleteLaunchHandler {
 
-	/**
-	 * Delete {@link com.epam.ta.reportportal.entity.launch.Launch} instance
-	 *
-	 * @param launchId       ID of launch
-	 * @param projectDetails Project Details
-	 * @param user           User
-	 * @return OperationCompletionRS
-	 */
-	OperationCompletionRS deleteLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+  /**
+   * Delete {@link com.epam.ta.reportportal.entity.launch.Launch} instance
+   *
+   * @param launchId       ID of launch
+   * @param projectDetails Project Details
+   * @param user           User
+   * @return OperationCompletionRS
+   */
+  OperationCompletionRS deleteLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user);
 
-	/**
-	 * Bul launches delete.
-	 *
-	 * @param deleteBulkRQ   {@link DeleteBulkRQ}
-	 * @param projectDetails Project Details
-	 * @param user           User
-	 * @return DeleteLaunchesRS
-	 */
-	DeleteBulkRS deleteLaunches(DeleteBulkRQ deleteBulkRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+  /**
+   * Bul launches delete.
+   *
+   * @param deleteBulkRQ   {@link DeleteBulkRQ}
+   * @param projectDetails Project Details
+   * @param user           User
+   * @return DeleteLaunchesRS
+   */
+  DeleteBulkRS deleteLaunches(DeleteBulkRQ deleteBulkRQ,
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 }

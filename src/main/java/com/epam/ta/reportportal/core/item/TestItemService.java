@@ -16,18 +16,17 @@
 
 package com.epam.ta.reportportal.core.item;
 
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * @author Konstantin Antipin
@@ -35,31 +34,33 @@ import static java.util.Optional.ofNullable;
 @Service
 public class TestItemService {
 
-	private final TestItemRepository testItemRepository;
+  private final TestItemRepository testItemRepository;
 
-	private final LaunchRepository launchRepository;
+  private final LaunchRepository launchRepository;
 
-	@Autowired
-	public TestItemService(TestItemRepository testItemRepository, LaunchRepository launchRepository) {
-		this.testItemRepository = testItemRepository;
-		this.launchRepository = launchRepository;
-	}
+  @Autowired
+  public TestItemService(TestItemRepository testItemRepository, LaunchRepository launchRepository) {
+    this.testItemRepository = testItemRepository;
+    this.launchRepository = launchRepository;
+  }
 
-	public Launch getEffectiveLaunch(TestItem testItem) {
+  public Launch getEffectiveLaunch(TestItem testItem) {
 
-		return ofNullable(testItem.getRetryOf()).map(retryParentId -> {
-			TestItem retryParent = testItemRepository.findById(retryParentId)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItem.getRetryOf()));
-			return getLaunch(retryParent);
-		}).orElseGet(() -> getLaunch(testItem)).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
-	}
+    return ofNullable(testItem.getRetryOf()).map(retryParentId -> {
+          TestItem retryParent = testItemRepository.findById(retryParentId)
+              .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND,
+                  testItem.getRetryOf()));
+          return getLaunch(retryParent);
+        }).orElseGet(() -> getLaunch(testItem))
+        .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
+  }
 
-	private Optional<Launch> getLaunch(TestItem testItem) {
-		return ofNullable(testItem.getLaunchId()).map(launchRepository::findById)
-				.orElseGet(() -> ofNullable(testItem.getParentId()).flatMap(testItemRepository::findById)
-						.map(TestItem::getLaunchId)
-						.map(launchRepository::findById)
-						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
-	}
+  private Optional<Launch> getLaunch(TestItem testItem) {
+    return ofNullable(testItem.getLaunchId()).map(launchRepository::findById)
+        .orElseGet(() -> ofNullable(testItem.getParentId()).flatMap(testItemRepository::findById)
+            .map(TestItem::getLaunchId)
+            .map(launchRepository::findById)
+            .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
+  }
 
 }

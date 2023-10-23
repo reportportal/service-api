@@ -16,30 +16,34 @@
 
 package com.epam.ta.reportportal.core.analyzer.config;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 class AnalyzerTypeTest {
 
-	@Test
-	void testFromStringPositive() {
-		String autoAnalyser = "autoAnalyzer";
-		AnalyzerType analyzer = AnalyzerType.fromString(autoAnalyser);
-		assertTrue(analyzer.getName().equalsIgnoreCase(autoAnalyser));
-	}
+  @Test
+  void testFromStringPositive() {
+    String autoAnalyser = "autoAnalyzer";
+    AnalyzerType analyzer = AnalyzerType.fromString(autoAnalyser);
+    assertTrue(analyzer.getName().equalsIgnoreCase(autoAnalyser));
+  }
 
-	@Test
-	void testFromStringNegative() {
-		String autoAnalyser = "incorrect";
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> AnalyzerType.fromString(autoAnalyser));
-		assertEquals(exception.getErrorType(), ErrorType.INCORRECT_REQUEST);
-		assertEquals(exception.getMessage(), "Incorrect Request. Incorrect analyzer type. Allowed are: [autoAnalyzer, patternAnalyzer]");
-	}
+  @Test
+  void testFromStringNegative() {
+    String autoAnalyser = "incorrect";
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> AnalyzerType.fromString(autoAnalyser));
+    assertEquals(exception.getErrorType(), ErrorType.INCORRECT_REQUEST);
+    assertEquals(exception.getMessage(),
+        "Incorrect Request. Incorrect analyzer type. Allowed are: [autoAnalyzer, patternAnalyzer]");
+  }
 
 }

@@ -79,14 +79,16 @@ public class DashboardController {
 		this.deleteDashboardHandler = deleteDashboardHandler;
 	}
 
-	@Transactional
-	@PostMapping
-	@ResponseStatus(CREATED)
-	@ApiOperation("Create dashboard for specified project")
-	public EntryCreatedRS createDashboard(@PathVariable String projectName, @RequestBody @Validated CreateDashboardRQ createRQ,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return createDashboardHandler.createDashboard(projectExtractor.extractProjectDetails(user, projectName), createRQ, user);
-	}
+  @Transactional
+  @PostMapping
+  @ResponseStatus(CREATED)
+  @ApiOperation("Create dashboard for specified project")
+  public EntryCreatedRS createDashboard(@PathVariable String projectName,
+      @RequestBody @Validated CreateDashboardRQ createRQ,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return createDashboardHandler.createDashboard(
+        projectExtractor.extractProjectDetails(user, projectName), createRQ, user);
+  }
 
 	@Transactional(readOnly = true)
 	@GetMapping
@@ -138,12 +140,13 @@ public class DashboardController {
 		return deleteDashboardHandler.deleteDashboard(dashboardId, projectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
-	@Transactional
-	@GetMapping(value = "/{dashboardId}")
-	@ResponseStatus(OK)
-	@ApiOperation("Get specified dashboard by ID for specified project")
-	public DashboardResource getDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getDashboardHandler.getDashboard(dashboardId, projectExtractor.extractProjectDetails(user, projectName));
+  @Transactional
+  @GetMapping(value = "/{dashboardId}")
+  @ResponseStatus(OK)
+  @ApiOperation("Get specified dashboard by ID for specified project")
+  public DashboardResource getDashboard(@PathVariable String projectName,
+      @PathVariable Long dashboardId,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return getDashboardHandler.getDashboard(dashboardId, projectExtractor.extractProjectDetails(user, projectName));
 	}
 }

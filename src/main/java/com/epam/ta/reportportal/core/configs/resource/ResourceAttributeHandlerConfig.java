@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.configs.resource;
 
+import static com.epam.ta.reportportal.core.launch.cluster.pipeline.SaveLastRunAttributePartProvider.RP_CLUSTER_LAST_RUN_KEY;
+
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ItemAttributeType;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ResourceAttributeHandler;
@@ -28,14 +30,11 @@ import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.resolver
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.resolver.ItemAttributeTypeResolverDelegate;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.google.common.collect.ImmutableMap;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.epam.ta.reportportal.core.launch.cluster.pipeline.SaveLastRunAttributePartProvider.RP_CLUSTER_LAST_RUN_KEY;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -43,42 +42,43 @@ import static com.epam.ta.reportportal.core.launch.cluster.pipeline.SaveLastRunA
 @Configuration
 public class ResourceAttributeHandlerConfig {
 
-	@Bean
-	public ResourceAttributeHandler<LaunchResource> launchResourceAttributeUpdater() {
-		return new LaunchResourceAttributeUpdater();
-	}
+  @Bean
+  public ResourceAttributeHandler<LaunchResource> launchResourceAttributeUpdater() {
+    return new LaunchResourceAttributeUpdater();
+  }
 
-	@Bean
-	public ResourceAttributeHandler<LaunchResource> launchResourceMetadataAttributeUpdater() {
-		return new LaunchResourceMetadataAttributeUpdater(Set.of(RP_CLUSTER_LAST_RUN_KEY));
-	}
+  @Bean
+  public ResourceAttributeHandler<LaunchResource> launchResourceMetadataAttributeUpdater() {
+    return new LaunchResourceMetadataAttributeUpdater(Set.of(RP_CLUSTER_LAST_RUN_KEY));
+  }
 
-	@Bean
-	public ResourceAttributeHandler<LaunchResource> unresolvedAttributesLaunchLogger() {
-		return new LaunchResourceAttributeLogger("Attributes with unresolved type: ");
-	}
+  @Bean
+  public ResourceAttributeHandler<LaunchResource> unresolvedAttributesLaunchLogger() {
+    return new LaunchResourceAttributeLogger("Attributes with unresolved type: ");
+  }
 
-	@Bean
-	public ItemAttributeTypeMatcher systemAttributeTypePredicateMatcher() {
-		return new PredicateItemAttributeTypeMatcher(ItemAttribute::isSystem, ItemAttributeType.SYSTEM);
-	}
+  @Bean
+  public ItemAttributeTypeMatcher systemAttributeTypePredicateMatcher() {
+    return new PredicateItemAttributeTypeMatcher(ItemAttribute::isSystem, ItemAttributeType.SYSTEM);
+  }
 
-	@Bean
-	public ItemAttributeTypeMatcher publicAttributeTypePredicateMatcher() {
-		return new PredicateItemAttributeTypeMatcher(it -> !it.isSystem(), ItemAttributeType.PUBLIC);
-	}
+  @Bean
+  public ItemAttributeTypeMatcher publicAttributeTypePredicateMatcher() {
+    return new PredicateItemAttributeTypeMatcher(it -> !it.isSystem(), ItemAttributeType.PUBLIC);
+  }
 
-	@Bean
-	public ItemAttributeTypeResolver itemAttributeTypeResolver() {
-		return new ItemAttributeTypeResolverDelegate(List.of(publicAttributeTypePredicateMatcher(), systemAttributeTypePredicateMatcher()));
-	}
+  @Bean
+  public ItemAttributeTypeResolver itemAttributeTypeResolver() {
+    return new ItemAttributeTypeResolverDelegate(
+        List.of(publicAttributeTypePredicateMatcher(), systemAttributeTypePredicateMatcher()));
+  }
 
-	@Bean
-	public Map<ItemAttributeType, ResourceAttributeHandler<LaunchResource>> attributeUpdaterMapping() {
-		return ImmutableMap.<ItemAttributeType, ResourceAttributeHandler<LaunchResource>>builder()
-				.put(ItemAttributeType.PUBLIC, launchResourceAttributeUpdater())
-				.put(ItemAttributeType.SYSTEM, launchResourceMetadataAttributeUpdater())
-				.put(ItemAttributeType.UNRESOLVED, unresolvedAttributesLaunchLogger())
-				.build();
-	}
+  @Bean
+  public Map<ItemAttributeType, ResourceAttributeHandler<LaunchResource>> attributeUpdaterMapping() {
+    return ImmutableMap.<ItemAttributeType, ResourceAttributeHandler<LaunchResource>>builder()
+        .put(ItemAttributeType.PUBLIC, launchResourceAttributeUpdater())
+        .put(ItemAttributeType.SYSTEM, launchResourceMetadataAttributeUpdater())
+        .put(ItemAttributeType.UNRESOLVED, unresolvedAttributesLaunchLogger())
+        .build();
+  }
 }

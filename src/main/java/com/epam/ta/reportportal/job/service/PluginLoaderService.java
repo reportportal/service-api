@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.job.service;
 
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
-
 import java.util.List;
 
 /**
@@ -26,7 +25,7 @@ import java.util.List;
  */
 public interface PluginLoaderService {
 
-	List<PluginInfo> getNotLoadedPluginsInfo();
+  List<PluginInfo> getNotLoadedPluginsInfo();
 
-	void checkAndDeleteIntegrationType(IntegrationType integrationType);
+  void checkAndDeleteIntegrationType(IntegrationType integrationType);
 }

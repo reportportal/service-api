@@ -17,11 +17,10 @@
 package com.epam.ta.reportportal.core.jasper;
 
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
-import net.sf.jasperreports.engine.JRDataSource;
-import net.sf.jasperreports.engine.JasperPrint;
-
 import java.io.OutputStream;
 import java.util.Map;
+import net.sf.jasperreports.engine.JRDataSource;
+import net.sf.jasperreports.engine.JasperPrint;
 
 /**
  * Get export reports utilities
@@ -30,36 +29,36 @@ import java.util.Map;
  */
 public interface GetJasperReportHandler<T> {
 
-	/**
-	 * Generate rendered report representation.
-	 *
-	 * @param params     Parameters for Jasper view
-	 * @param dataSource Data for Jasper view
-	 * @return {@link JasperPrint}
-	 */
-	JasperPrint getJasperPrint(Map<String, Object> params, JRDataSource dataSource);
+  /**
+   * Generate rendered report representation.
+   *
+   * @param params     Parameters for Jasper view
+   * @param dataSource Data for Jasper view
+   * @return {@link JasperPrint}
+   */
+  JasperPrint getJasperPrint(Map<String, Object> params, JRDataSource dataSource);
 
-	/**
-	 * Finds report format and checks whether it's valid
-	 *
-	 * @param format ReportFormat
-	 */
-	ReportFormat getReportFormat(String format);
+  /**
+   * Finds report format and checks whether it's valid
+   *
+   * @param format ReportFormat
+   */
+  ReportFormat getReportFormat(String format);
 
-	/**
-	 * Convert rendered report to output stream.
-	 *
-	 * @param format       Report format
-	 * @param outputStream Stream report should be written to
-	 * @param jasperPrint  Report Data
-	 */
-	void writeReport(ReportFormat format, OutputStream outputStream, JasperPrint jasperPrint);
+  /**
+   * Convert rendered report to output stream.
+   *
+   * @param format       Report format
+   * @param outputStream Stream report should be written to
+   * @param jasperPrint  Report Data
+   */
+  void writeReport(ReportFormat format, OutputStream outputStream, JasperPrint jasperPrint);
 
-	/**
-	 * Convert entity parameters for {@link JasperPrint} creation
-	 *
-	 * @param entity Entity for report parameters retrieving
-	 * @return {@link Map} with Jasper column name as KEY and Launch parameter as VALUE
-	 */
-	Map<String, Object> convertParams(T entity);
+  /**
+   * Convert entity parameters for {@link JasperPrint} creation
+   *
+   * @param entity Entity for report parameters retrieving
+   * @return {@link Map} with Jasper column name as KEY and Launch parameter as VALUE
+   */
+  Map<String, Object> convertParams(T entity);
 }

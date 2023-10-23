@@ -28,15 +28,16 @@ import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 
 public interface CreateTicketHandler {
 
-	/**
-	 * Post ticket to external system.
-	 *
-	 * @param postTicketRQ   Request Data
-	 * @param integrationId  Integration id
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @param user           User
-	 * @return Found Ticket
-	 */
-	Ticket createIssue(PostTicketRQ postTicketRQ, Long integrationId, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+  /**
+   * Post ticket to external system.
+   *
+   * @param postTicketRQ   Request Data
+   * @param integrationId  Integration id
+   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param user           User
+   * @return Found Ticket
+   */
+  Ticket createIssue(PostTicketRQ postTicketRQ, Long integrationId,
+      ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user);
 }

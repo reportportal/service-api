@@ -18,10 +18,9 @@ package com.epam.ta.reportportal.core.widget.content;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import org.springframework.data.domain.Sort;
-
 import java.util.List;
 import java.util.Map;
+import org.springframework.data.domain.Sort;
 
 /**
  * Strategy definition interface for loading widget content.
@@ -30,6 +29,7 @@ import java.util.Map;
  */
 public interface LoadContentStrategy {
 
-	Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions, int limit);
+  Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap,
+      WidgetOptions widgetOptions, int limit);
 
 }

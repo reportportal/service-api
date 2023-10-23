@@ -25,13 +25,13 @@ import java.util.Map;
  */
 public class AnalyzeCollectorFactory {
 
-	private Map<AnalyzeItemsMode, AnalyzeItemsCollector> mapping;
+  private Map<AnalyzeItemsMode, AnalyzeItemsCollector> mapping;
 
-	public AnalyzeCollectorFactory(Map<AnalyzeItemsMode, AnalyzeItemsCollector> mapping) {
-		this.mapping = mapping;
-	}
+  public AnalyzeCollectorFactory(Map<AnalyzeItemsMode, AnalyzeItemsCollector> mapping) {
+    this.mapping = mapping;
+  }
 
-	public AnalyzeItemsCollector getCollector(AnalyzeItemsMode type) {
-		return this.mapping.get(type);
-	}
+  public AnalyzeItemsCollector getCollector(AnalyzeItemsMode type) {
+    return this.mapping.get(type);
+  }
 }

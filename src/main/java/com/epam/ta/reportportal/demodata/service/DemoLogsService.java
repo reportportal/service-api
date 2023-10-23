@@ -27,8 +27,11 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +46,9 @@ import java.util.stream.IntStream;
 import static com.epam.ta.reportportal.entity.enums.LogLevel.*;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 import static com.epam.ta.reportportal.util.MultipartFileUtils.getMultipartFile;
+import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.LOG_FULL_TO_LOG;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 @Service
 public class DemoLogsService {
@@ -74,55 +79,75 @@ public class DemoLogsService {
 	public List<Log> generateLaunchLogs(int count, String launchUUid, StatusEnum status) {
 		final Launch launch = launchRepository.findByUuid(launchUUid)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchUUid));
-		final List<Log> logs = IntStream.range(0, count)
-				.mapToObj(it -> getLog(launch, ContentUtils.getLogMessage(), infoLevel()))
+		final List<LogFull> logFulls = IntStream.range(0, count)
+				.mapToObj(it -> getLogFull(launch, ContentUtils.getLogMessage(), infoLevel()))
 				.collect(toList());
 		if (FAILED.equals(status)) {
 			List<String> errors = ContentUtils.getErrorLogs();
-			logs.addAll(errors.stream().map(msg -> getLog(launch, msg, errorLevel())).collect(toList()));
+			logFulls.addAll(
+					errors.stream().map(msg -> getLogFull(launch, msg, errorLevel())).collect(toList()));
 		}
+		List<Log> logs = logFulls.stream().map(LOG_FULL_TO_LOG).collect(toList());
 		logRepository.saveAll(logs);
-		logService.saveLogMessageListToElasticSearch(logs, launch.getId());
+		fillIdByUuid(logFulls, logs);
+		logService.saveLogMessageList(logFulls, launch.getId());
 
 		return logs;
 	}
 
-	private Log getLog(Launch launch, String message, LogLevel logLevel) {
-		Log log = new Log();
-		log.setLogLevel(logLevel.toInt());
-		log.setLogTime(LocalDateTime.now());
-		log.setLaunch(launch);
-		log.setProjectId(launch.getProjectId());
-		log.setLogMessage(message);
-		log.setUuid(UUID.randomUUID().toString());
-		return log;
+	private LogFull getLogFull(Launch launch, String message, LogLevel logLevel) {
+		LogFull logFull = new LogFull();
+		logFull.setLogLevel(logLevel.toInt());
+		logFull.setLogTime(LocalDateTime.now());
+		logFull.setLaunch(launch);
+		logFull.setProjectId(launch.getProjectId());
+		logFull.setLogMessage(message);
+		logFull.setUuid(UUID.randomUUID().toString());
+		return logFull;
 	}
 
 	public List<Log> generateItemLogs(int count, Long projectId, String itemUuid, StatusEnum status) {
 		final TestItem testItem = testItemRepository.findByUuid(itemUuid)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemUuid));
-		List<Log> logs = IntStream.range(0, count)
-				.mapToObj(it -> getLog(projectId, testItem, infoLevel(), ContentUtils.getLogMessage()))
+		List<LogFull> logFulls = IntStream.range(0, count)
+				.mapToObj(it -> getLogFull(projectId, testItem, infoLevel(), ContentUtils.getLogMessage()))
 				.collect(toList());
 		if (FAILED.equals(status)) {
 			List<String> errors = ContentUtils.getErrorLogs();
-			logs.addAll(errors.stream().map(msg -> getLog(projectId, testItem, errorLevel(), msg)).collect(toList()));
+			logFulls.addAll(errors.stream().map(msg -> getLogFull(projectId, testItem, errorLevel(), msg))
+					.collect(toList()));
 		}
+		List<Log> logs = logFulls.stream().map(LOG_FULL_TO_LOG).collect(toList());
 		logRepository.saveAll(logs);
-		logService.saveLogMessageListToElasticSearch(logs, testItem.getLaunchId());
+		fillIdByUuid(logFulls, logs);
+		logService.saveLogMessageList(logFulls, testItem.getLaunchId());
 
 		return logs;
 	}
 
-	private Log getLog(Long projectId, TestItem testItem, LogLevel logLevel, String logMessage) {
-		Log log = new Log();
-		log.setLogLevel(logLevel.toInt());
-		log.setLogTime(LocalDateTime.now());
-		log.setTestItem(testItem);
-		log.setProjectId(projectId);
-		log.setLogMessage(logMessage);
-		log.setUuid(UUID.randomUUID().toString());
-		return log;
+	private LogFull getLogFull(Long projectId, TestItem testItem, LogLevel logLevel,
+			String logMessage) {
+		LogFull logFull = new LogFull();
+		logFull.setLogLevel(logLevel.toInt());
+		logFull.setLogTime(LocalDateTime.now());
+		logFull.setTestItem(testItem);
+		logFull.setProjectId(projectId);
+		logFull.setLogMessage(logMessage);
+		logFull.setUuid(UUID.randomUUID().toString());
+		return logFull;
+	}
+
+	private void fillIdByUuid(List<LogFull> logFulls, List<Log> logs) {
+		if (isNotEmpty(logFulls) && isNotEmpty(logs)) {
+			Map<String, Long> logIdsMap = new HashMap<>(logs.size());
+			for (Log log : logs) {
+				logIdsMap.put(log.getUuid(), log.getId());
+			}
+
+			for (LogFull logFull : logFulls) {
+				logFull.setId(logIdsMap.get(logFull.getUuid()));
+			}
+		}
 	}
 
 	public void attachFiles(List<Log> logs, Long projectId, String launchUuid) {

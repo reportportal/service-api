@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.launch.cluster.pipeline.data.resolver.eval
 
 import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.core.launch.cluster.pipeline.data.ClusterDataProvider;
-
 import java.util.function.Predicate;
 
 /**
@@ -26,19 +25,20 @@ import java.util.function.Predicate;
  */
 public class ClusterDataProviderEvaluator {
 
-	private final Predicate<GenerateClustersConfig> supportsPredicate;
-	private final ClusterDataProvider clusterDataProvider;
+  private final Predicate<GenerateClustersConfig> supportsPredicate;
+  private final ClusterDataProvider clusterDataProvider;
 
-	public ClusterDataProviderEvaluator(Predicate<GenerateClustersConfig> supportsPredicate, ClusterDataProvider clusterDataProvider) {
-		this.supportsPredicate = supportsPredicate;
-		this.clusterDataProvider = clusterDataProvider;
-	}
+  public ClusterDataProviderEvaluator(Predicate<GenerateClustersConfig> supportsPredicate,
+      ClusterDataProvider clusterDataProvider) {
+    this.supportsPredicate = supportsPredicate;
+    this.clusterDataProvider = clusterDataProvider;
+  }
 
-	public boolean supports(GenerateClustersConfig config) {
-		return supportsPredicate.test(config);
-	}
+  public boolean supports(GenerateClustersConfig config) {
+    return supportsPredicate.test(config);
+  }
 
-	public ClusterDataProvider getProvider() {
-		return clusterDataProvider;
-	}
+  public ClusterDataProvider getProvider() {
+    return clusterDataProvider;
+  }
 }

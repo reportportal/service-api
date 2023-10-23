@@ -19,11 +19,10 @@ package com.epam.ta.reportportal.core.project.config;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Map;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -31,16 +30,16 @@ import java.util.Map;
 @Service
 public class ProjectConfigProvider {
 
-	private final GetProjectHandler getProjectHandler;
+  private final GetProjectHandler getProjectHandler;
 
-	@Autowired
-	public ProjectConfigProvider(GetProjectHandler getProjectHandler) {
-		this.getProjectHandler = getProjectHandler;
-	}
+  @Autowired
+  public ProjectConfigProvider(GetProjectHandler getProjectHandler) {
+    this.getProjectHandler = getProjectHandler;
+  }
 
-	@Transactional(readOnly = true)
-	public Map<String, String> provide(Long projectId) {
-		final Project project = getProjectHandler.get(projectId);
-		return ProjectUtils.getConfigParameters(project.getProjectAttributes());
-	}
+  @Transactional(readOnly = true)
+  public Map<String, String> provide(Long projectId) {
+    final Project project = getProjectHandler.get(projectId);
+    return ProjectUtils.getConfigParameters(project.getProjectAttributes());
+  }
 }

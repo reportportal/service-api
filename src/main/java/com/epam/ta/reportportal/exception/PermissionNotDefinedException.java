@@ -24,10 +24,10 @@ package com.epam.ta.reportportal.exception;
 // TODO add exception mapping
 public class PermissionNotDefinedException extends RuntimeException {
 
-	private static final long serialVersionUID = 843053936838256383L;
+  private static final long serialVersionUID = 843053936838256383L;
 
-	public PermissionNotDefinedException(String exception) {
-		super(exception);
-	}
+  public PermissionNotDefinedException(String exception) {
+    super(exception);
+  }
 
 }

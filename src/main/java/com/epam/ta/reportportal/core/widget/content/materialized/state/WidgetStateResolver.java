@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.core.widget.content.materialized.state;
 
+import static com.epam.ta.reportportal.core.widget.content.updater.MaterializedWidgetStateUpdater.STATE;
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.WidgetState;
@@ -23,17 +26,16 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.stereotype.Component;
 
-import static com.epam.ta.reportportal.core.widget.content.updater.MaterializedWidgetStateUpdater.STATE;
-import static java.util.Optional.ofNullable;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Component
 public class WidgetStateResolver {
 
-	public WidgetState resolve(WidgetOptions widgetOptions) {
-		return ofNullable(WidgetOptionUtil.getValueByKey(STATE, widgetOptions)).flatMap(WidgetState::findByName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Widget state not provided"));
-	}
+  public WidgetState resolve(WidgetOptions widgetOptions) {
+    return ofNullable(WidgetOptionUtil.getValueByKey(STATE, widgetOptions)).flatMap(
+            WidgetState::findByName)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
+            "Widget state not provided"));
+  }
 }

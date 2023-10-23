@@ -21,15 +21,15 @@ package com.epam.ta.reportportal.core.integration.util.property;
  */
 public enum AuthProperties {
 
-	MANAGER_PASSWORD("managerPassword");
+  MANAGER_PASSWORD("managerPassword");
 
-	private String name;
+  private String name;
 
-	AuthProperties(String name) {
-		this.name = name;
-	}
+  AuthProperties(String name) {
+    this.name = name;
+  }
 
-	public String getName() {
-		return name;
-	}
+  public String getName() {
+    return name;
+  }
 }

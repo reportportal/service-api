@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
+import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -28,112 +31,110 @@ import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
-import static java.util.Optional.ofNullable;
+import org.apache.commons.lang3.StringUtils;
 
 public class LaunchBuilder implements Supplier<Launch> {
 
-	private static final int LAUNCH_DESCRIPTION_LENGTH_LIMIT = 2048;
-	private static final int DESCRIPTION_START_SYMBOL_INDEX = 0;
+  private static final int LAUNCH_DESCRIPTION_LENGTH_LIMIT = 2048;
+  private static final int DESCRIPTION_START_SYMBOL_INDEX = 0;
 
-	private Launch launch;
+  private Launch launch;
 
-	public LaunchBuilder() {
-		this.launch = new Launch();
-	}
+  public LaunchBuilder() {
+    this.launch = new Launch();
+  }
 
-	public LaunchBuilder(Launch launch) {
-		this.launch = launch;
-	}
+  public LaunchBuilder(Launch launch) {
+    this.launch = launch;
+  }
 
-	public LaunchBuilder addStartRQ(StartLaunchRQ request) {
-		Preconditions.checkNotNull(request, ErrorType.BAD_REQUEST_ERROR);
-		launch.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(request.getStartTime()));
-		launch.setName(request.getName().trim());
-		launch.setStatus(StatusEnum.IN_PROGRESS);
-		launch.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
-		addDescription(request.getDescription());
-		LaunchModeEnum.findByName(ofNullable(request.getMode()).map(Enum::name).orElse(LaunchModeEnum.DEFAULT.name()))
-				.ifPresent(it -> launch.setMode(it));
-		return this;
-	}
+  public LaunchBuilder addStartRQ(StartLaunchRQ request) {
+    Preconditions.checkNotNull(request, ErrorType.BAD_REQUEST_ERROR);
+    launch.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(request.getStartTime()));
+    launch.setName(request.getName().trim());
+    launch.setStatus(StatusEnum.IN_PROGRESS);
+    launch.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
+    addDescription(request.getDescription());
+    LaunchModeEnum.findByName(
+            ofNullable(request.getMode()).map(Enum::name).orElse(LaunchModeEnum.DEFAULT.name()))
+        .ifPresent(it -> launch.setMode(it));
+    return this;
+  }
 
-	public LaunchBuilder addDescription(String description) {
-		ofNullable(description).ifPresent(it -> launch.setDescription(StringUtils.substring(it.trim(),
-				DESCRIPTION_START_SYMBOL_INDEX,
-				LAUNCH_DESCRIPTION_LENGTH_LIMIT
-		)));
-		return this;
-	}
+  public LaunchBuilder addDescription(String description) {
+    ofNullable(description).ifPresent(it -> launch.setDescription(StringUtils.substring(it.trim(),
+        DESCRIPTION_START_SYMBOL_INDEX,
+        LAUNCH_DESCRIPTION_LENGTH_LIMIT
+    )));
+    return this;
+  }
 
-	public LaunchBuilder addUserId(Long userId) {
-		launch.setUserId(userId);
-		return this;
-	}
+  public LaunchBuilder addUserId(Long userId) {
+    launch.setUserId(userId);
+    return this;
+  }
 
-	public LaunchBuilder addProject(Long projectId) {
-		launch.setProjectId(projectId);
-		return this;
-	}
+  public LaunchBuilder addProject(Long projectId) {
+    launch.setProjectId(projectId);
+    return this;
+  }
 
-	public LaunchBuilder addAttribute(ItemAttributeResource attributeResource) {
-		ItemAttribute itemAttribute = FROM_RESOURCE.apply(attributeResource);
-		itemAttribute.setLaunch(launch);
-		launch.getAttributes().add(itemAttribute);
-		return this;
-	}
+  public LaunchBuilder addAttribute(ItemAttributeResource attributeResource) {
+    ItemAttribute itemAttribute = FROM_RESOURCE.apply(attributeResource);
+    itemAttribute.setLaunch(launch);
+    launch.getAttributes().add(itemAttribute);
+    return this;
+  }
 
-	public LaunchBuilder addAttributes(Set<ItemAttributesRQ> attributes) {
-		ofNullable(attributes).ifPresent(it -> launch.getAttributes().addAll(it.stream().map(val -> {
-			ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
-			itemAttribute.setLaunch(launch);
-			return itemAttribute;
-		}).collect(Collectors.toSet())));
-		return this;
-	}
+  public LaunchBuilder addAttributes(Set<ItemAttributesRQ> attributes) {
+    ofNullable(attributes).ifPresent(it -> launch.getAttributes().addAll(it.stream().map(val -> {
+      ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
+      itemAttribute.setLaunch(launch);
+      return itemAttribute;
+    }).collect(Collectors.toSet())));
+    return this;
+  }
 
-	public LaunchBuilder overwriteAttributes(Set<ItemAttributeResource> attributes) {
-		if (attributes != null) {
-			final Set<ItemAttribute> overwrittenAttributes = launch.getAttributes()
-					.stream()
-					.filter(ItemAttribute::isSystem)
-					.collect(Collectors.toSet());
-			attributes.stream().map(val -> {
-				ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
-				itemAttribute.setLaunch(launch);
-				return itemAttribute;
-			}).forEach(overwrittenAttributes::add);
-			launch.setAttributes(overwrittenAttributes);
-		}
-		return this;
-	}
+  public LaunchBuilder overwriteAttributes(Set<ItemAttributeResource> attributes) {
+    if (attributes != null) {
+      final Set<ItemAttribute> overwrittenAttributes = launch.getAttributes()
+          .stream()
+          .filter(ItemAttribute::isSystem)
+          .collect(Collectors.toSet());
+      attributes.stream().map(val -> {
+        ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
+        itemAttribute.setLaunch(launch);
+        return itemAttribute;
+      }).forEach(overwrittenAttributes::add);
+      launch.setAttributes(overwrittenAttributes);
+    }
+    return this;
+  }
 
-	public LaunchBuilder addMode(Mode mode) {
-		ofNullable(mode).ifPresent(it -> launch.setMode(LaunchModeEnum.valueOf(it.name())));
-		return this;
-	}
+  public LaunchBuilder addMode(Mode mode) {
+    ofNullable(mode).ifPresent(it -> launch.setMode(LaunchModeEnum.valueOf(it.name())));
+    return this;
+  }
 
-	public LaunchBuilder addStatus(String status) {
-		launch.setStatus(StatusEnum.fromValue(status).orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FINISH_STATUS)));
-		return this;
-	}
+  public LaunchBuilder addStatus(String status) {
+    launch.setStatus(StatusEnum.fromValue(status)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FINISH_STATUS)));
+    return this;
+  }
 
-	public LaunchBuilder addEndTime(Date date) {
-		launch.setEndTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(date));
-		return this;
-	}
+  public LaunchBuilder addEndTime(Date date) {
+    launch.setEndTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(date));
+    return this;
+  }
 
-	@Override
-	public Launch get() {
-		return launch;
-	}
+  @Override
+  public Launch get() {
+    return launch;
+  }
 }

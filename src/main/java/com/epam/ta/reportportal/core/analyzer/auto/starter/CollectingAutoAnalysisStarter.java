@@ -83,6 +83,6 @@ public class CollectingAutoAnalysisStarter implements LaunchAutoAnalysisStarter 
           .collectItems(launch.getProjectId(), launch.getId(), user);
       LOGGER.debug("Item itemIds collected by '{}' mode: {}", it, itemIds);
       return itemIds.stream();
-    }).collect(toList());
+    }).distinct().collect(toList());
   }
 }

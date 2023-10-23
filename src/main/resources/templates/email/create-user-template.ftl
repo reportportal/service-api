@@ -40,7 +40,7 @@
 
       table[class="mainimgwrapper"] {
         height: 130px;
-        background-image: url("create-user.png");
+        background-image: url("images/create-user.png");
         background-size: cover;
         background-position: center;
       }
@@ -128,53 +128,32 @@
                 </td>
                 <td>
                   <a href="http://twitter.com/ReportPortal_io" target="_blank">
-                    <img src="cid:ic-twitter.png"
-                         border="0"
-                         width="18"
-                         height="18"
-                         alt="twitter">
+                    <img src="cid:ic-twitter.png" alt="twitter">
                   </a>
                 </td>
                 <td>
                   <a href="https://slack.epmrpp.reportportal.io" target="_blank">
-                    <img src="cid:ic-slack.png"
-                         border="0" width="18"
-                         height="18"
-                         alt="slack">
+                    <img src="cid:ic-slack.png" alt="slack">
                   </a>
                 </td>
                 <td>
                   <a href="https://www.youtube.com/c/ReportPortal" target="_blank">
-                    <img src="cid:ic-youtube.png"
-                         border="0" width="20"
-                         height="15" alt="youtube">
+                    <img src="cid:ic-youtube.png" alt="youtube">
                   </a>
                 </td>
                 <td>
                   <a href="https://www.linkedin.com/company/reportportal/" target="_blank">
-                    <img src="cid:ic-linkedin.png"
-                         border="0"
-                         width="18"
-                         height="18"
-                         alt="linkedin">
+                    <img src="cid:ic-linkedin.png" alt="linkedin">
                   </a>
                 </td>
                 <td>
                   <a href="https://www.facebook.com/ReportPortal.io" target="_blank">
-                    <img src="cid:ic-facebook.png"
-                         border="0"
-                         width="18"
-                         height="18"
-                         alt="facebook">
+                    <img src="cid:ic-facebook.png" alt="facebook">
                   </a>
                 </td>
                 <td>
                   <a href="https://github.com/reportportal" target="_blank">
-                    <img src="cid:ic-github.png"
-                         border="0"
-                         width="20"
-                         height="21"
-                         alt="github">
+                    <img src="cid:ic-github.png" alt="github">
                   </a>
                 </td>
               </tr>

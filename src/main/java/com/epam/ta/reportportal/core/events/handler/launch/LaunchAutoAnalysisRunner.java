@@ -46,7 +46,7 @@ public class LaunchAutoAnalysisRunner implements
     final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(
         launchFinishedEvent.getId(),
         analyzerConfig,
-        Set.of(AnalyzeItemsMode.TO_INVESTIGATE),
+        Set.of(AnalyzeItemsMode.IGNORE_IMMEDIATE),
         launchFinishedEvent.getUser()
     );
     autoAnalysisStarter.start(config);

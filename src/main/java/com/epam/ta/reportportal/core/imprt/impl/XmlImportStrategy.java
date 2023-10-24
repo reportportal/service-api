@@ -15,21 +15,20 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl;
 
+import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.imprt.LaunchImportRQ;
 import com.epam.ta.reportportal.core.imprt.impl.junit.XunitParseJob;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import javax.inject.Provider;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-
-import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
-import static java.util.Optional.ofNullable;
+import javax.inject.Provider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -42,10 +41,9 @@ public class XmlImportStrategy extends AbstractImportStrategy {
 
   @Override
   public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-      File file, String baseUrl, Map<String, String> params) {
-    validateOverrideParameters(params);
+      File file, String baseUrl, LaunchImportRQ rq) {
     try {
-      return processXmlFile(file, projectDetails, user, baseUrl, params);
+      return processXmlFile(file, projectDetails, user, baseUrl, rq);
     } finally {
       try {
         ofNullable(file).ifPresent(File::delete);
@@ -56,17 +54,16 @@ public class XmlImportStrategy extends AbstractImportStrategy {
   }
 
   private String processXmlFile(File xml, ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user, String baseUrl, Map<String, String> params) {
+      ReportPortalUser user, String baseUrl, LaunchImportRQ rq) {
     //copy of the launch's id to use it in catch block if something goes wrong
     String savedLaunchId = null;
     try (InputStream xmlStream = new FileInputStream(xml)) {
       String launchId = startLaunch(projectDetails, user,
-          xml.getName().substring(0, xml.getName().indexOf("." + XML_EXTENSION)), params);
+          xml.getName().substring(0, xml.getName().indexOf("." + XML_EXTENSION)), rq);
       savedLaunchId = launchId;
       XunitParseJob job = xmlParseJobProvider.get()
           .withParameters(projectDetails, launchId, user, xmlStream,
-              params.get(SKIPPED_IS_NOT_ISSUE) != null && Boolean.parseBoolean(params.get(
-                  SKIPPED_IS_NOT_ISSUE)));
+              getSkippedIsNotIssueAttribute(rq.getAttributes()));
       ParseResults parseResults = job.call();
       finishLaunch(launchId, projectDetails, user, parseResults, baseUrl);
       return launchId;

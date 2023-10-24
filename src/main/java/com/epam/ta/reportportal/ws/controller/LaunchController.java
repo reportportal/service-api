@@ -16,6 +16,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
@@ -25,6 +26,7 @@ import static org.springframework.http.HttpStatus.OK;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.imprt.ImportLaunchHandler;
+import com.epam.ta.reportportal.core.imprt.LaunchImportRQ;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.launch.DeleteLaunchHandler;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
@@ -57,8 +59,6 @@ import com.epam.ta.reportportal.ws.model.launch.cluster.CreateClustersRQ;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.net.HttpHeaders;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import java.io.IOException;
@@ -88,22 +88,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
-
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
 
 /**
  * Controller implementation for {@link com.epam.ta.reportportal.entity.launch.Launch} entity
@@ -429,21 +413,22 @@ public class LaunchController {
         projectExtractor.extractProjectDetails(user, normalizeId(projectName)), ids);
   }
 
-	@Transactional(readOnly = true)
-	@GetMapping(value = "/{launchId}/report")
-	@ResponseStatus(OK)
-	@PreAuthorize(ASSIGNED_TO_PROJECT)
-	@ApiOperation(value = "Export specified launch", notes = "Only following formats are supported: pdf (by default), xls, html.")
-	public void getLaunchReport(@PathVariable String projectName, @PathVariable Long launchId,
-			@ApiParam(allowableValues = "pdf, xls, html") @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
-			@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
+  @Transactional(readOnly = true)
+  @GetMapping(value = "/{launchId}/report")
+  @ResponseStatus(OK)
+  @PreAuthorize(ASSIGNED_TO_PROJECT)
+  @ApiOperation(value = "Export specified launch", notes = "Only following formats are supported: pdf (by default), xls, html.")
+  public void getLaunchReport(@PathVariable String projectName, @PathVariable Long launchId,
+      @ApiParam(allowableValues = "pdf, xls, html") @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
+      @AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
 
     ReportFormat format = getJasperHandler.getReportFormat(view);
     response.setContentType(format.getContentType());
 
-		response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-				String.format("attachment; filename=\"RP_LAUNCH_%s_Report.%s\"", format.name(), format.getValue())
-		);
+    response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+        String.format("attachment; filename=\"RP_LAUNCH_%s_Report.%s\"", format.name(),
+            format.getValue())
+    );
 
     try (OutputStream outputStream = response.getOutputStream()) {
       getLaunchMessageHandler.exportLaunch(launchId, format, outputStream, user);
@@ -465,50 +450,20 @@ public class LaunchController {
         projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user);
   }
 
-  @ApiImplicitParams({
-      @ApiImplicitParam(
-          name = "launchName",
-          dataType = "string",
-          paramType = "query",
-          value = "Override Launch Name"
-      ),
-      @ApiImplicitParam(
-          name = "description",
-          dataType = "string",
-          paramType = "query",
-          value = "Override Launch Description"
-      ),
-      @ApiImplicitParam(
-          name = "attributeKey",
-          dataType = "string",
-          paramType = "query",
-          value = "Add Launch attribute key"
-      ),
-      @ApiImplicitParam(
-          name = "attributeValue",
-          dataType = "string",
-          paramType = "query",
-          value = "Add Launch attribute value"
-      ),
-      @ApiImplicitParam(
-          name = "skippedIsNotIssue",
-          dataType = "boolean",
-          paramType = "query",
-          value = "true: no defect type is applied to skipped issue"
-      )
-  })
-  @PostMapping(value = "/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+  @PostMapping(value = "/import", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(OK)
   @ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip and xml.")
-  public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file,
+  public OperationCompletionRS importLaunch(@PathVariable String projectName,
+      @RequestParam("file") MultipartFile file,
       @AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request,
-      @ApiParam(required = false) @RequestParam Map<String, String> params) {
-    return importLaunchHandler.importLaunch(projectExtractor.extractProjectDetails(user, normalizeId(projectName)),
+      @RequestBody(required = false) LaunchImportRQ launchImportRq) {
+    return importLaunchHandler.importLaunch(
+        projectExtractor.extractProjectDetails(user, normalizeId(projectName)),
         user,
         "XUNIT",
         file,
         composeBaseUrl(request),
-        params
+        launchImportRq
     );
   }
 }

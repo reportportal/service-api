@@ -16,9 +16,8 @@
 package com.epam.ta.reportportal.core.imprt.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-
+import com.epam.ta.reportportal.core.imprt.LaunchImportRQ;
 import java.io.File;
-import java.util.Map;
 
 /**
  * Handler for processing launch importing.
@@ -26,14 +25,15 @@ import java.util.Map;
  * @author Pavel_Bortnik
  */
 public interface ImportStrategy {
-	/**
-	 * Processing launch importing.
-	 *
-	 * @param projectDetails project
-	 * @param user           user
-	 * @param file           zip file that contains xml test reports
-	 * @return launch uuid
-	 */
-	String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			File file, String baseUrl, Map<String, String> params);
+
+  /**
+   * Processing launch importing.
+   *
+   * @param projectDetails project
+   * @param user           user
+   * @param file           zip file that contains xml test reports
+   * @return launch uuid
+   */
+  String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      File file, String baseUrl, LaunchImportRQ rq);
 }

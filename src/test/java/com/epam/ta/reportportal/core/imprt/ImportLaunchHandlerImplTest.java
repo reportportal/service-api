@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.util.sample.LaunchSampleUtil;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.LaunchImportCompletionRS;
 import java.io.File;
-import java.util.HashMap;
 import java.util.Optional;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -91,7 +90,7 @@ public class ImportLaunchHandlerImplTest {
   public void whenImportLaunch_AndFileNameIsNotValid_ThenThrowException() {
     ReportPortalException reportPortalException = assertThrows(ReportPortalException.class,
         () -> importLaunchHandlerImpl.importLaunch(projectDetails, reportPortalUser, FORMAT,
-            multipartFile, BASE_URL, new HashMap<>()
+            multipartFile, BASE_URL, new LaunchImportRQ()
         )
     );
 
@@ -105,7 +104,7 @@ public class ImportLaunchHandlerImplTest {
     when(multipartFile.getOriginalFilename()).thenReturn(INCORRECT_FILE_NAME);
     ReportPortalException reportPortalException = assertThrows(ReportPortalException.class,
         () -> importLaunchHandlerImpl.importLaunch(projectDetails, reportPortalUser, FORMAT,
-            multipartFile, BASE_URL, new HashMap<>()
+            multipartFile, BASE_URL, new LaunchImportRQ()
         )
     );
 
@@ -122,7 +121,7 @@ public class ImportLaunchHandlerImplTest {
     when(multipartFile.getSize()).thenReturn(MAX_FILE_SIZE + 1L);
     ReportPortalException reportPortalException = assertThrows(ReportPortalException.class,
         () -> importLaunchHandlerImpl.importLaunch(projectDetails, reportPortalUser, FORMAT,
-            multipartFile, BASE_URL, new HashMap<>()
+            multipartFile, BASE_URL, new LaunchImportRQ()
         )
     );
 
@@ -139,11 +138,13 @@ public class ImportLaunchHandlerImplTest {
 
     File tempFile = mock(File.class);
     try (MockedStatic<File> fileMockedStatic = Mockito.mockStatic(File.class)) {
-      fileMockedStatic.when(()->File.createTempFile(eq(FILE_NAME), eq("." + FilenameUtils.getExtension(FILE_NAME))))
+      fileMockedStatic.when(
+              () -> File.createTempFile(eq(FILE_NAME), eq("." + FilenameUtils.getExtension(FILE_NAME))))
           .thenReturn(tempFile);
       XmlImportStrategy xmlImportStrategy = mock(XmlImportStrategy.class);
+      LaunchImportRQ rq = new LaunchImportRQ();
       when(xmlImportStrategy.importLaunch(projectDetails, reportPortalUser, tempFile, BASE_URL,
-          new HashMap<>()
+          rq
       )).thenReturn(LAUNCH_ID);
       when(importStrategyFactory.getImportStrategy(ImportType.XUNIT, FILE_NAME)).thenReturn(
           xmlImportStrategy);
@@ -154,7 +155,7 @@ public class ImportLaunchHandlerImplTest {
       var response = (LaunchImportCompletionRS) importLaunchHandlerImpl.importLaunch(projectDetails,
           reportPortalUser, FORMAT,
           multipartFile,
-          BASE_URL, new HashMap<>()
+          BASE_URL, rq
       );
 
       assertEquals(sampleLaunch.getUuid(), response.getData().getId());
@@ -163,7 +164,7 @@ public class ImportLaunchHandlerImplTest {
 
       verify(importStrategyFactory).getImportStrategy(ImportType.XUNIT, FILE_NAME);
       verify(xmlImportStrategy).importLaunch(projectDetails, reportPortalUser, tempFile, BASE_URL,
-          new HashMap<>()
+          rq
       );
       verify(messageBus).publishActivity(importFinishedEventCaptor.capture());
       ImportFinishedEvent importFinishedEvent = importFinishedEventCaptor.getValue();

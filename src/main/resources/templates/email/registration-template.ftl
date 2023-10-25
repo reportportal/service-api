@@ -152,7 +152,7 @@
                 </td>
                 <td>
                   <a href="https://github.com/reportportal" target="_blank">
-                    <img src="cid:ic-github.svg" alt="github">
+                    <img src="cid:ic-github.png" alt="github">
                   </a>
                 </td>
               </tr>

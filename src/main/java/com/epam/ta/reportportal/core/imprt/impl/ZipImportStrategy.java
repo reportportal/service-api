@@ -20,10 +20,10 @@ import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.ZIP_EXTE
 import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.imprt.LaunchImportRQ;
 import com.epam.ta.reportportal.core.imprt.impl.junit.XunitParseJob;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.launch.LaunchImportRQ;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

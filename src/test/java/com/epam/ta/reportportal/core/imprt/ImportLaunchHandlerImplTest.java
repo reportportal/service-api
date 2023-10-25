@@ -19,6 +19,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.sample.LaunchSampleUtil;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.LaunchImportCompletionRS;
+import com.epam.ta.reportportal.ws.model.launch.LaunchImportRQ;
 import java.io.File;
 import java.util.Optional;
 import org.apache.commons.io.FilenameUtils;

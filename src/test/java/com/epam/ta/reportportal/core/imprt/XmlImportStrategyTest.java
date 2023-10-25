@@ -17,6 +17,7 @@ import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
+import com.epam.ta.reportportal.ws.model.launch.LaunchImportRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import java.io.BufferedWriter;
 import java.io.File;

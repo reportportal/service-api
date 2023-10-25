@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.LaunchImportCompletionRS;
 import com.epam.ta.reportportal.ws.model.LaunchImportData;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.launch.LaunchImportRQ;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;

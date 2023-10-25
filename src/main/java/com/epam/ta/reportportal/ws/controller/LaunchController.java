@@ -454,8 +454,7 @@ public class LaunchController {
   }
 
   @ApiImplicitParams(
-      @ApiImplicitParam(name = "launchImportRq",
-          dataType = "com.epam.ta.reportportal.ws.model.launch.LaunchImportRQ", paramType = "body")
+      @ApiImplicitParam(name = "launchImportRq", dataType = "LaunchImportRQ", paramType = "body")
   )
   @PostMapping(value = "/import", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(OK)

@@ -20,7 +20,6 @@ import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
 import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.ZIP_EXTENSION;
-import static com.epam.ta.reportportal.core.imprt.impl.AbstractImportStrategy.LAUNCH_NAME;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 import static org.apache.commons.io.FileUtils.ONE_MB;
 
@@ -36,9 +35,10 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.LaunchImportCompletionRS;
 import com.epam.ta.reportportal.ws.model.LaunchImportData;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.launch.LaunchImportRQ;
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
+import java.util.Optional;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -49,9 +49,9 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 
   private static final long MAX_FILE_SIZE = 32 * ONE_MB;
 
-  private ImportStrategyFactory importStrategyFactory;
-  private MessageBus messageBus;
-  private LaunchRepository launchRepository;
+  private final ImportStrategyFactory importStrategyFactory;
+  private final MessageBus messageBus;
+  private final LaunchRepository launchRepository;
 
 
   @Autowired
@@ -62,45 +62,57 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
     this.launchRepository = launchRepository;
   }
 
-	@Override
+  @Override
   public OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails,
       ReportPortalUser user, String format,
-      MultipartFile file, String baseUrl, Map<String, String> params) {
+      MultipartFile file, String baseUrl, LaunchImportRQ rq) {
 
-		validate(file);
+    validate(file);
+    rq = getBackCompatibleRq(rq);
 
-		ImportType type = ImportType.fromValue(format)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unknown import type - " + format));
+    ImportType type = ImportType.fromValue(format)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            "Unknown import type - " + format));
 
-		File tempFile = transferToTempFile(file);
-		ImportStrategy strategy = importStrategyFactory.getImportStrategy(type, file.getOriginalFilename());
-    String launchId = strategy.importLaunch(projectDetails, user, tempFile, baseUrl, params);
-		messageBus.publishActivity(new ImportFinishedEvent(user.getUserId(),
-				user.getUsername(),
-				projectDetails.getProjectId(),
-				file.getOriginalFilename()
-		));
+    File tempFile = transferToTempFile(file);
+    ImportStrategy strategy = importStrategyFactory.getImportStrategy(type,
+        file.getOriginalFilename());
+    String launchId = strategy.importLaunch(projectDetails, user, tempFile, baseUrl, rq);
+    messageBus.publishActivity(new ImportFinishedEvent(user.getUserId(),
+        user.getUsername(),
+        projectDetails.getProjectId(),
+        file.getOriginalFilename()
+    ));
     return prepareLaunchImportResponse(launchId);
-	}
+  }
 
-	private void validate(MultipartFile file) {
-		expect(file.getOriginalFilename(), notNull()).verify(ErrorType.INCORRECT_REQUEST, "File name should be not empty.");
+  //back compatibility with ui
+  private LaunchImportRQ getBackCompatibleRq(LaunchImportRQ rq) {
+    return Optional.ofNullable(rq).orElse(new LaunchImportRQ());
+  }
 
-		expect(file.getOriginalFilename(), it -> it.endsWith(ZIP_EXTENSION) || it.endsWith(XML_EXTENSION)).verify(INCORRECT_REQUEST,
-				"Should be a zip archive or an xml file " + file.getOriginalFilename()
-		);
-		expect(file.getSize(), size -> size <= MAX_FILE_SIZE).verify(INCORRECT_REQUEST, "File size is more than 32 Mb.");
-	}
+  private void validate(MultipartFile file) {
+    expect(file.getOriginalFilename(), notNull()).verify(ErrorType.INCORRECT_REQUEST,
+        "File name should be not empty.");
 
-	private File transferToTempFile(MultipartFile file) {
-		try {
-			File tmp = File.createTempFile(file.getOriginalFilename(), "." + FilenameUtils.getExtension(file.getOriginalFilename()));
-			file.transferTo(tmp);
-			return tmp;
-		} catch (IOException e) {
-			throw new ReportPortalException("Error during transferring multipart file.", e);
-		}
-	}
+    expect(file.getOriginalFilename(),
+        it -> it.endsWith(ZIP_EXTENSION) || it.endsWith(XML_EXTENSION)).verify(INCORRECT_REQUEST,
+        "Should be a zip archive or an xml file " + file.getOriginalFilename()
+    );
+    expect(file.getSize(), size -> size <= MAX_FILE_SIZE).verify(INCORRECT_REQUEST,
+        "File size is more than 32 Mb.");
+  }
+
+  private File transferToTempFile(MultipartFile file) {
+    try {
+      File tmp = File.createTempFile(file.getOriginalFilename(),
+          "." + FilenameUtils.getExtension(file.getOriginalFilename()));
+      file.transferTo(tmp);
+      return tmp;
+    } catch (IOException e) {
+      throw new ReportPortalException("Error during transferring multipart file.", e);
+    }
+  }
 
   private OperationCompletionRS prepareLaunchImportResponse(String launchId) {
 

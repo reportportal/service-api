@@ -312,7 +312,7 @@ public class AsyncReportingListener implements MessageListener {
     Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
     logService.saveLogMessage(logFull, effectiveLaunch.getId());
 
-    saveAttachment(request.getFile().getName(), metaInfo,
+    if (Objects.nonNull(request.getFile())) {saveAttachment(request.getFile().getName(), metaInfo,
         logFull.getId(),
         projectId,
         effectiveLaunch.getId(),
@@ -320,7 +320,7 @@ public class AsyncReportingListener implements MessageListener {
         effectiveLaunch.getUuid(),
         logFull.getUuid()
     );
-  }
+  }}
 
   private void createLaunchLog(SaveLogRQ request, Launch launch, BinaryDataMetaInfo metaInfo,
       Long projectId) {

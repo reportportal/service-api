@@ -88,7 +88,7 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
   protected String startLaunch(ReportPortalUser.ProjectDetails projectDetails,
       ReportPortalUser user, String launchName, LaunchImportRQ rq) {
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
-    startLaunchRQ.setStartTime(initialStartTime);
+    startLaunchRQ.setStartTime(ofNullable(rq.getStartTime()).orElse(initialStartTime));
     startLaunchRQ.setName(ofNullable(rq.getName()).orElse(launchName));
     ofNullable(rq.getDescription())
         .ifPresent(startLaunchRQ::setDescription);

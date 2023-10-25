@@ -15,15 +15,15 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl;
 
+import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
+import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.ZIP_EXTENSION;
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.imprt.impl.junit.XunitParseJob;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import javax.inject.Provider;
+import com.epam.ta.reportportal.ws.model.launch.LaunchImportRQ;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,28 +31,28 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
-import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.ZIP_EXTENSION;
-import static java.util.Optional.ofNullable;
+import javax.inject.Provider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
 public class ZipImportStrategy extends AbstractImportStrategy {
+
   private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
-  private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().endsWith(XML_EXTENSION);
+  private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName()
+      .endsWith(XML_EXTENSION);
 
   @Autowired
   private Provider<XunitParseJob> xmlParseJobProvider;
 
   @Override
   public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-      File file, String baseUrl, Map<String, String> params) {
-    validateOverrideParameters(params);
+      File file, String baseUrl, LaunchImportRQ rq) {
     try {
-      return processZipFile(file, projectDetails, user, baseUrl, params);
+      return processZipFile(file, projectDetails, user, baseUrl, rq);
     } finally {
       try {
         ofNullable(file).ifPresent(File::delete);
@@ -63,18 +63,17 @@ public class ZipImportStrategy extends AbstractImportStrategy {
   }
 
   private String processZipFile(File zip, ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user, String baseUrl, Map<String, String> params) {
+      ReportPortalUser user, String baseUrl, LaunchImportRQ rq) {
     //copy of the launch's id to use it in catch block if something goes wrong
     String savedLaunchId = null;
     try (ZipFile zipFile = new ZipFile(zip)) {
       String launchId = startLaunch(projectDetails, user,
-          zip.getName().substring(0, zip.getName().indexOf("." + ZIP_EXTENSION)), params);
+          zip.getName().substring(0, zip.getName().indexOf("." + ZIP_EXTENSION)), rq);
       savedLaunchId = launchId;
       CompletableFuture[] futures = zipFile.stream().filter(isFile.and(isXml)).map(zipEntry -> {
         XunitParseJob job = xmlParseJobProvider.get()
             .withParameters(projectDetails, launchId, user, getEntryStream(zipFile, zipEntry),
-                params.get(SKIPPED_IS_NOT_ISSUE) != null && Boolean.parseBoolean(params.get(
-                    SKIPPED_IS_NOT_ISSUE)));
+                getSkippedIsNotIssueAttribute(rq.getAttributes()));
         return CompletableFuture.supplyAsync(job::call, service);
       }).toArray(CompletableFuture[]::new);
       ParseResults parseResults = processResults(futures);

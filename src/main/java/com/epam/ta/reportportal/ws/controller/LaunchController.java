@@ -59,6 +59,8 @@ import com.epam.ta.reportportal.ws.model.launch.cluster.CreateClustersRQ;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.net.HttpHeaders;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import java.io.IOException;
@@ -451,6 +453,10 @@ public class LaunchController {
         projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user);
   }
 
+  @ApiImplicitParams(
+      @ApiImplicitParam(name = "launchImportRq",
+          dataType = "com.epam.ta.reportportal.ws.model.launch.LaunchImportRQ", paramType = "body")
+  )
   @PostMapping(value = "/import", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(OK)
   @ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip and xml.")

@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Consumes items for pattern analysis from the queue
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Component
@@ -43,8 +44,7 @@ public class ItemsPatternAnalyzeConsumer {
     this.analyzerStatusCache = analyzerStatusCache;
   }
 
-  @RabbitListener(queues = PATTERN_ANALYSIS_QUEUE,
-      concurrency = "${rp.environment.variable.pattern-analysis.consumers-count}")
+  @RabbitListener(queues = PATTERN_ANALYSIS_QUEUE, containerFactory = "patternAnalysisContainerFactory")
   public void handleEvent(ItemsPatternAnalyzeDto event) {
     if (event.isLastItem()) {
       analyzerStatusCache.analyzeFinished(PATTERN_ANALYZER_KEY, event.getLaunchId());

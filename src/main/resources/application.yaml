@@ -70,9 +70,6 @@ rp:
         batch-size: 20
       pattern-analysis:
         batch-size: 100
-        queued: true
-        single-item: false
-        consumers-count: 1
       elements-counter:
         batch-size: 50
       history:

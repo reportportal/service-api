@@ -23,25 +23,24 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 /**
  * Sends items for pattern analysis queue
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Primary
 @Component
-@ConditionalOnProperty(prefix = "rp.environment.variable.pattern-analysis", name = "queued", havingValue = "true")
 public class ItemsPatternAnalyzeProducer implements ItemsPatternsAnalyzer {
 
   private final boolean isSingleItem;
   private final MessageBus messageBus;
 
   public ItemsPatternAnalyzeProducer(
-      @Value("${rp.environment.variable.pattern-analysis.single-item}") boolean isSingleItem,
+      @Value("${rp.environment.variable.pattern-analysis.single-item:true}") boolean isSingleItem,
       MessageBus messageBus) {
     this.isSingleItem = isSingleItem;
     this.messageBus = messageBus;

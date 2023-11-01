@@ -29,7 +29,6 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
@@ -69,8 +68,6 @@ public class PatternAnalysisConfig implements ApplicationContextAware {
   }
 
   @Bean
-  @ConditionalOnProperty(prefix = "rp.environment.variable.pattern-analysis",
-      name = "queued", havingValue = "true")
   public Queue stepHandlerQueue() {
     return QueueBuilder.durable(PATTERN_ANALYSIS_QUEUE).build();
   }

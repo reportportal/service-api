@@ -44,7 +44,7 @@ public class PatternAnalysisRabbitConfiguration {
   public RabbitListenerContainerFactory<SimpleMessageListenerContainer> patternAnalysisContainerFactory(
       ConnectionFactory connectionFactory,
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
-      @Value("${rp.environment.variable.pattern-analysis.consumers:2}") int consumersCount,
+      @Value("${rp.environment.variable.pattern-analysis.consumers-count:2}") int consumersCount,
       @Value("${rp.environment.variable.pattern-analysis.prefetch-count:0}") int prefetchCount) {
     SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
     factory.setConcurrentConsumers(consumersCount);

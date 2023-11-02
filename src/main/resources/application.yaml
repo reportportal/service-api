@@ -70,6 +70,9 @@ rp:
         batch-size: 20
       pattern-analysis:
         batch-size: 100
+        consumers-count: 2
+        prefetch-count: 0
+        single-item: true
       elements-counter:
         batch-size: 50
       history:

@@ -69,7 +69,8 @@ public class LaunchPreparerServiceImpl implements LaunchPreparerService {
             launch.getName(),
             launch.getStartTime(),
             analyzerConfig,
-            preparedItems
+            preparedItems,
+            launch.getNumber()
         ));
       }
     }
@@ -78,7 +79,7 @@ public class LaunchPreparerServiceImpl implements LaunchPreparerService {
 
   private IndexLaunch createIndexLaunch(Long projectId, Long launchId, String name,
       LocalDateTime startLaunchTime, AnalyzerConfig analyzerConfig,
-      List<IndexTestItem> rqTestItems) {
+      List<IndexTestItem> rqTestItems, Long launchNumber) {
     IndexLaunch rqLaunch = new IndexLaunch();
     rqLaunch.setLaunchId(launchId);
     rqLaunch.setLaunchName(name);
@@ -86,6 +87,7 @@ public class LaunchPreparerServiceImpl implements LaunchPreparerService {
     rqLaunch.setProjectId(projectId);
     rqLaunch.setAnalyzerConfig(analyzerConfig);
     rqLaunch.setTestItems(rqTestItems);
+    rqLaunch.setLaunchNumber(launchNumber);
     setClusters(rqLaunch);
     return rqLaunch;
   }

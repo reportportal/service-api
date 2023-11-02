@@ -67,6 +67,9 @@ public class TestConfig {
   @MockBean(name = "connectionFactory")
   protected ConnectionFactory connectionFactory;
 
+  @MockBean(name = "simpleRabbitListenerContainerFactoryConfigurer")
+  protected SimpleRabbitListenerContainerFactoryConfigurer simpleRabbitListenerContainerFactoryConfigurer;
+
   @MockBean
   protected MessageConverter messageConverter;
 

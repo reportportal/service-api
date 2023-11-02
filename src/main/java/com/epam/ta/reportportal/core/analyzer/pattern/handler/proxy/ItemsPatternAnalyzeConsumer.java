@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.pattern.handler.proxy;
 
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.PATTERN_ANALYZER_KEY;
-import static com.epam.ta.reportportal.core.analyzer.config.PatternAnalysisConfig.PATTERN_ANALYSIS_QUEUE;
+import static com.epam.ta.reportportal.core.analyzer.config.PatternAnalysisRabbitConfiguration.PATTERN_ANALYSIS_QUEUE;
 
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.pattern.handler.ItemsPatternsAnalyzer;
@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Consumes items for pattern analysis from the queue
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Component
@@ -43,8 +44,7 @@ public class ItemsPatternAnalyzeConsumer {
     this.analyzerStatusCache = analyzerStatusCache;
   }
 
-  @RabbitListener(queues = PATTERN_ANALYSIS_QUEUE,
-      concurrency = "${rp.environment.variable.pattern-analysis.consumers-count}")
+  @RabbitListener(queues = PATTERN_ANALYSIS_QUEUE, containerFactory = "patternAnalysisContainerFactory")
   public void handleEvent(ItemsPatternAnalyzeDto event) {
     if (event.isLastItem()) {
       analyzerStatusCache.analyzeFinished(PATTERN_ANALYZER_KEY, event.getLaunchId());

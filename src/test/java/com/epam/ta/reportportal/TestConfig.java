@@ -24,14 +24,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rabbitmq.http.client.Client;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
+import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.DefaultUserAuthenticationConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
@@ -40,58 +46,65 @@ import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenCo
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Configuration
-@EnableAutoConfiguration(exclude = { QuartzAutoConfiguration.class, RabbitAutoConfiguration.class })
-@ComponentScan(value = { "com.epam.ta.reportportal" }, excludeFilters = {
-		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.ws.rabbit.*"),
-		@ComponentScan.Filter(type = FilterType.REGEX, pattern = { "com.epam.ta.reportportal.job.*" }),
-		@ComponentScan.Filter(type = FilterType.REGEX, pattern = { "com.epam.ta.reportportal.core.integration.migration.*" }),
-		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ApplicationContextAwareFactoryBeanTest.TestConfig.class) })
+@EnableAutoConfiguration(exclude = {QuartzAutoConfiguration.class, RabbitAutoConfiguration.class})
+@ComponentScan(value = {"com.epam.ta.reportportal"}, excludeFilters = {
+    @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.ws.rabbit.*"),
+    @ComponentScan.Filter(type = FilterType.REGEX, pattern = {"com.epam.ta.reportportal.job.*"}),
+    @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
+        "com.epam.ta.reportportal.core.integration.migration.*"}),
+    @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ApplicationContextAwareFactoryBeanTest.TestConfig.class)})
 public class TestConfig {
 
-	@MockBean
-	protected Client rabbitClient;
+  @MockBean
+  protected Client rabbitClient;
 
-	@MockBean(name = "analyzerRabbitTemplate")
-	protected RabbitTemplate analyzerRabbitTemplate;
+  @MockBean(name = "analyzerRabbitTemplate")
+  protected RabbitTemplate analyzerRabbitTemplate;
 
-	@MockBean(name = "rabbitTemplate")
-	protected RabbitTemplate rabbitTemplate;
+  @MockBean(name = "rabbitTemplate")
+  protected RabbitTemplate rabbitTemplate;
 
-	@MockBean
-	protected MessageConverter messageConverter;
+  @MockBean(name = "connectionFactory")
+  protected ConnectionFactory connectionFactory;
 
-	@Autowired
-	private DatabaseUserDetailsService userDetailsService;
+  @MockBean(name = "simpleRabbitListenerContainerFactoryConfigurer")
+  protected SimpleRabbitListenerContainerFactoryConfigurer simpleRabbitListenerContainerFactoryConfigurer;
 
-	@Bean
-	@Profile("unittest")
-	protected RabbitMqManagementClient managementTemplate() {
-		return new RabbitMqManagementClientTemplate(rabbitClient, "analyzer");
-	}
+  @MockBean
+  protected MessageConverter messageConverter;
 
-	@Bean
-	@Profile("unittest")
-	public JwtAccessTokenConverter accessTokenConverter() {
-		JwtAccessTokenConverter jwtConverter = new JwtAccessTokenConverter();
-		jwtConverter.setSigningKey("123");
+  @Autowired
+  private DatabaseUserDetailsService userDetailsService;
 
-		DefaultAccessTokenConverter accessTokenConverter = new DefaultAccessTokenConverter();
-		DefaultUserAuthenticationConverter defaultUserAuthenticationConverter = new DefaultUserAuthenticationConverter();
-		defaultUserAuthenticationConverter.setUserDetailsService(userDetailsService);
-		accessTokenConverter.setUserTokenConverter(defaultUserAuthenticationConverter);
+  @Bean
+  @Profile("unittest")
+  protected RabbitMqManagementClient managementTemplate() {
+    return new RabbitMqManagementClientTemplate(rabbitClient, "analyzer");
+  }
 
-		jwtConverter.setAccessTokenConverter(accessTokenConverter);
+  @Bean
+  @Profile("unittest")
+  public JwtAccessTokenConverter accessTokenConverter() {
+    JwtAccessTokenConverter jwtConverter = new JwtAccessTokenConverter();
+    jwtConverter.setSigningKey("123");
 
-		return jwtConverter;
-	}
+    DefaultAccessTokenConverter accessTokenConverter = new DefaultAccessTokenConverter();
+    DefaultUserAuthenticationConverter defaultUserAuthenticationConverter = new DefaultUserAuthenticationConverter();
+    defaultUserAuthenticationConverter.setUserDetailsService(userDetailsService);
+    accessTokenConverter.setUserTokenConverter(defaultUserAuthenticationConverter);
 
-	@Bean
-	public ObjectMapper testObjectMapper() {
-		ObjectMapper objectMapper = new ObjectMapper();
+    jwtConverter.setAccessTokenConverter(accessTokenConverter);
 
-		objectMapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
-		objectMapper.registerModule(new JavaTimeModule());
+    return jwtConverter;
+  }
 
-		return objectMapper;
-	}
+  @Bean
+  public ObjectMapper testObjectMapper() {
+    ObjectMapper objectMapper = new ObjectMapper();
+
+    objectMapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
+    objectMapper.registerModule(new JavaTimeModule());
+
+    return objectMapper;
+  }
 }

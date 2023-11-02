@@ -36,9 +36,7 @@ public class PatternAnalysisRabbitConfiguration {
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       CachingConnectionFactory connectionFactory,
       @Value("${rp.environment.variable.pattern-analysis.consumers:2}") int consumersCount,
-      @Value("${rp.environment.variable.pattern-analysis.prefetch-count:0}") int prefetchCount,
-      @Value("${rp.environment.variable.pattern-analysis.consumer-timeout:600000}") int connectionTimeout) {
-    connectionFactory.setConnectionTimeout(connectionTimeout);
+      @Value("${rp.environment.variable.pattern-analysis.prefetch-count:0}") int prefetchCount) {
     SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
     factory.setConcurrentConsumers(consumersCount);
     factory.setPrefetchCount(prefetchCount);

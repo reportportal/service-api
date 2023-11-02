@@ -29,6 +29,9 @@ public class ItemsPatternAnalyzeDto {
   private List<Long> itemIds;
   private boolean isLastItem;
 
+  public ItemsPatternAnalyzeDto() {
+  }
+
   public ItemsPatternAnalyzeDto(long projectId, long launchId, List<Long> itemIds) {
     this.projectId = projectId;
     this.launchId = launchId;

@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer.pattern.config;
+package com.epam.ta.reportportal.core.analyzer.config;
 
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
-import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.RabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,10 +33,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class PatternAnalysisRabbitConfiguration {
 
+  public static final String PATTERN_ANALYSIS_QUEUE = "analysis.pattern.queue";
+
+  @Bean
+  public Queue patternAnalysisQueue() {
+    return QueueBuilder.durable(PATTERN_ANALYSIS_QUEUE).build();
+  }
+
   @Bean
   public RabbitListenerContainerFactory<SimpleMessageListenerContainer> patternAnalysisContainerFactory(
+      ConnectionFactory connectionFactory,
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
-      CachingConnectionFactory connectionFactory,
       @Value("${rp.environment.variable.pattern-analysis.consumers:2}") int consumersCount,
       @Value("${rp.environment.variable.pattern-analysis.prefetch-count:0}") int prefetchCount) {
     SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();

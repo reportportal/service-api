@@ -16,7 +16,8 @@
 
 package com.epam.ta.reportportal.core.analyzer.pattern.handler.proxy;
 
-import static com.epam.ta.reportportal.core.analyzer.config.PatternAnalysisConfig.PATTERN_ANALYSIS_QUEUE;
+
+import static com.epam.ta.reportportal.core.analyzer.config.PatternAnalysisRabbitConfiguration.PATTERN_ANALYSIS_QUEUE;
 
 import com.epam.ta.reportportal.core.analyzer.pattern.handler.ItemsPatternsAnalyzer;
 import com.epam.ta.reportportal.core.events.MessageBus;

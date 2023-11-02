@@ -27,8 +27,14 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.listener.RabbitListenerContainerFactory;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
@@ -39,8 +45,6 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class PatternAnalysisConfig implements ApplicationContextAware {
-
-  public static final String PATTERN_ANALYSIS_QUEUE = "analysis.pattern.queue";
   private ApplicationContext applicationContext;
 
   @Autowired
@@ -65,11 +69,6 @@ public class PatternAnalysisConfig implements ApplicationContextAware {
             applicationContext.getBean(StringPartPatternAnalysisSelector.class)
         ).put(PatternTemplateType.REGEX,
             applicationContext.getBean(RegexPatternAnalysisSelector.class)).build();
-  }
-
-  @Bean
-  public Queue stepHandlerQueue() {
-    return QueueBuilder.durable(PATTERN_ANALYSIS_QUEUE).build();
   }
 
 }

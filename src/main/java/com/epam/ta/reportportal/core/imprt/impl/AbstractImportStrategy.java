@@ -111,7 +111,7 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
 
   protected Boolean getSkippedIsNotIssueAttribute(Set<ItemAttributesRQ> attributes) {
     return ofNullable(attributes).orElse(Collections.emptySet()).stream()
-        .filter(attribute -> attribute.getKey().equals(SKIPPED_ISSUE)).findAny()
+        .filter(attribute -> SKIPPED_ISSUE.equals(attribute.getKey())).findAny()
         .filter(itemAttributesRQ -> Boolean.parseBoolean(itemAttributesRQ.getValue())).isPresent();
   }
 

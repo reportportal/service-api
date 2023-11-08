@@ -17,12 +17,12 @@
 package com.epam.ta.reportportal.core.analyzer.pattern.handler.proxy;
 
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.PATTERN_ANALYZER_KEY;
-import static com.epam.ta.reportportal.core.analyzer.config.PatternAnalysisRabbitConfiguration.PATTERN_ANALYSIS_QUEUE;
+import static com.epam.ta.reportportal.core.analyzer.config.PatternAnalysisRabbitConfiguration.PATTERN_ANALYSIS_REGEX;
+import static com.epam.ta.reportportal.core.analyzer.config.PatternAnalysisRabbitConfiguration.PATTERN_ANALYSIS_STRING;
 
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
-import com.epam.ta.reportportal.core.analyzer.pattern.handler.ItemsPatternsAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.pattern.handler.impl.ItemsPatternAnalyzerImpl;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -33,23 +33,24 @@ import org.springframework.stereotype.Component;
 @Component
 public class ItemsPatternAnalyzeConsumer {
 
-  private final ItemsPatternsAnalyzer itemsPatternsAnalyzer;
+  private final ItemsPatternAnalyzerImpl itemsPatternsAnalyzer;
 
   private final AnalyzerStatusCache analyzerStatusCache;
 
-  public ItemsPatternAnalyzeConsumer(
-      @Qualifier("itemsPatternAnalyzerImpl") ItemsPatternsAnalyzer itemsPatternsAnalyzer,
+  public ItemsPatternAnalyzeConsumer(ItemsPatternAnalyzerImpl itemsPatternsAnalyzer,
       AnalyzerStatusCache analyzerStatusCache) {
     this.itemsPatternsAnalyzer = itemsPatternsAnalyzer;
     this.analyzerStatusCache = analyzerStatusCache;
   }
 
-  @RabbitListener(queues = PATTERN_ANALYSIS_QUEUE, containerFactory = "patternAnalysisContainerFactory")
+  @RabbitListener(queues = {PATTERN_ANALYSIS_REGEX,
+      PATTERN_ANALYSIS_STRING}, containerFactory = "patternAnalysisContainerFactory")
   public void handleEvent(ItemsPatternAnalyzeDto event) {
     if (event.isLastItem()) {
       analyzerStatusCache.analyzeFinished(PATTERN_ANALYZER_KEY, event.getLaunchId());
     } else {
-      itemsPatternsAnalyzer.analyze(event.getProjectId(), event.getLaunchId(), event.getItemIds());
+      itemsPatternsAnalyzer.analyzeByPattern(event.getPatternTemplate(), event.getLaunchId(),
+          event.getItemIds());
     }
   }
 

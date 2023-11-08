@@ -16,6 +16,11 @@
 
 package com.epam.ta.reportportal.core.analyzer.config;
 
+import com.epam.ta.reportportal.entity.pattern.PatternTemplateType;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
@@ -33,18 +38,42 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class PatternAnalysisRabbitConfiguration {
 
-  public static final String PATTERN_ANALYSIS_QUEUE = "analysis.pattern.queue";
+  public static final String PATTERN_ANALYSIS = "pattern.analysis";
+  public static final String PATTERN_ANALYSIS_STRING = "analysis.pattern.string";
+  public static final String PATTERN_ANALYSIS_REGEX = "analysis.pattern.regex";
 
   @Bean
-  public Queue patternAnalysisQueue() {
-    return QueueBuilder.durable(PATTERN_ANALYSIS_QUEUE).build();
+  public Exchange patternAnalysisExchange() {
+    return new DirectExchange(PATTERN_ANALYSIS);
+  }
+
+  @Bean
+  public Queue patternAnalysisStringQueue() {
+    return QueueBuilder.durable(PATTERN_ANALYSIS_STRING).build();
+  }
+
+  @Bean
+  public Queue patternAnalysisRegexQueue() {
+    return QueueBuilder.durable(PATTERN_ANALYSIS_REGEX).build();
+  }
+
+  @Bean
+  public Binding stringQueueBinding() {
+    return BindingBuilder.bind(patternAnalysisStringQueue()).to(patternAnalysisExchange()).with(
+        PatternTemplateType.STRING.toString()).noargs();
+  }
+
+  @Bean
+  public Binding regexQueueBinding() {
+    return BindingBuilder.bind(patternAnalysisRegexQueue()).to(patternAnalysisExchange()).with(
+        PatternTemplateType.REGEX.toString()).noargs();
   }
 
   @Bean
   public RabbitListenerContainerFactory<SimpleMessageListenerContainer> patternAnalysisContainerFactory(
       ConnectionFactory connectionFactory,
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
-      @Value("${rp.environment.variable.pattern-analysis.consumers-count:2}") int consumersCount,
+      @Value("${rp.environment.variable.pattern-analysis.consumers-count:1}") int consumersCount,
       @Value("${rp.environment.variable.pattern-analysis.prefetch-count:0}") int prefetchCount) {
     SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
     factory.setConcurrentConsumers(consumersCount);

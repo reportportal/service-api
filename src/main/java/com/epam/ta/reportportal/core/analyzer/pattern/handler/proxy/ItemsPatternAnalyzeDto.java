@@ -16,14 +16,17 @@
 
 package com.epam.ta.reportportal.core.analyzer.pattern.handler.proxy;
 
+import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import java.util.List;
 
 /**
  * Dto of item analysis event
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class ItemsPatternAnalyzeDto {
 
+  private PatternTemplate patternTemplate;
   private long projectId;
   private long launchId;
   private List<Long> itemIds;
@@ -32,10 +35,12 @@ public class ItemsPatternAnalyzeDto {
   public ItemsPatternAnalyzeDto() {
   }
 
-  public ItemsPatternAnalyzeDto(long projectId, long launchId, List<Long> itemIds) {
+  public ItemsPatternAnalyzeDto(long projectId, long launchId, List<Long> itemIds,
+      PatternTemplate patternTemplate) {
     this.projectId = projectId;
     this.launchId = launchId;
     this.itemIds = itemIds;
+    this.patternTemplate = patternTemplate;
   }
 
   public ItemsPatternAnalyzeDto(long projectId, long launchId, List<Long> itemIds,
@@ -44,6 +49,14 @@ public class ItemsPatternAnalyzeDto {
     this.launchId = launchId;
     this.itemIds = itemIds;
     this.isLastItem = isLastItem;
+  }
+
+  public PatternTemplate getPatternTemplate() {
+    return patternTemplate;
+  }
+
+  public void setPatternTemplate(PatternTemplate patternTemplate) {
+    this.patternTemplate = patternTemplate;
   }
 
   public long getProjectId() {

@@ -16,36 +16,18 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
-import static java.util.Optional.ofNullable;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.activity.PluginUpdatedEvent;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
-import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
-import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.UpdatePluginStateRQ;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -53,13 +35,27 @@ import org.junit.jupiter.api.Test;
 import org.pf4j.PluginWrapper;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import static java.util.Optional.of;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.*;
+
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class UpdatePluginHandlerTest {
 
   private static final String FILE_NAME = "file-name";
-  private final Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
+  private final PluginLoader pluginLoader = mock(PluginLoader.class);
   private final IntegrationTypeRepository integrationTypeRepository =
       mock(IntegrationTypeRepository.class);
   private final DataStore dataStore = mock(DataStore.class);
@@ -71,8 +67,8 @@ class UpdatePluginHandlerTest {
 
   private PluginWrapper pluginWrapper = mock(PluginWrapper.class);
 
-  private final UpdatePluginHandler updatePluginHandler =
-      new UpdatePluginHandlerImpl(pluginBox, integrationTypeRepository, applicationEventPublisher);
+  private final UpdatePluginHandlerImpl updatePluginHandler =
+      new UpdatePluginHandlerImpl(pluginLoader, integrationTypeRepository, applicationEventPublisher);
 
   @AfterAll
   static void clearPluginDirectory() throws IOException {
@@ -104,7 +100,7 @@ class UpdatePluginHandlerTest {
     updatePluginStateRQ.setEnabled(true);
 
     IntegrationType emailIntegrationType = IntegrationTestUtil.getEmailIntegrationType();
-    when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(emailIntegrationType));
+    when(integrationTypeRepository.findById(1L)).thenReturn(of(emailIntegrationType));
 
     OperationCompletionRS operationCompletionRS =
         updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user);
@@ -121,12 +117,10 @@ class UpdatePluginHandlerTest {
     updatePluginStateRQ.setEnabled(false);
 
     IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
-    when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(jiraIntegrationType));
+    when(integrationTypeRepository.findById(1L)).thenReturn(of(jiraIntegrationType));
 
-    when(pluginBox.getPluginById(jiraIntegrationType.getName())).thenReturn(
-        Optional.ofNullable(pluginWrapper));
     when(pluginWrapper.getPluginId()).thenReturn(jiraIntegrationType.getName());
-    when(pluginBox.unloadPlugin(jiraIntegrationType)).thenReturn(true);
+    when(pluginLoader.unload(jiraIntegrationType)).thenReturn(true);
     OperationCompletionRS operationCompletionRS =
         updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user);
 
@@ -142,12 +136,10 @@ class UpdatePluginHandlerTest {
     updatePluginStateRQ.setEnabled(false);
 
     IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
-    when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(jiraIntegrationType));
+    when(integrationTypeRepository.findById(1L)).thenReturn(of(jiraIntegrationType));
 
-    when(pluginBox.getPluginById(jiraIntegrationType.getName())).thenReturn(
-        Optional.ofNullable(pluginWrapper));
     when(pluginWrapper.getPluginId()).thenReturn(jiraIntegrationType.getName());
-    when(pluginBox.unloadPlugin(jiraIntegrationType)).thenReturn(false);
+    when(pluginLoader.unload(jiraIntegrationType)).thenReturn(false);
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user)
     );
@@ -167,7 +159,7 @@ class UpdatePluginHandlerTest {
     IntegrationType emailIntegrationType = IntegrationTestUtil.getEmailIntegrationType();
     final String wrongIntegrationTypeName = "QWEQWE";
     emailIntegrationType.setName(wrongIntegrationTypeName);
-    when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(emailIntegrationType));
+    when(integrationTypeRepository.findById(1L)).thenReturn(of(emailIntegrationType));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user)
@@ -188,17 +180,14 @@ class UpdatePluginHandlerTest {
     IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
     jiraIntegrationType.getDetails().setDetails(getCorrectJiraIntegrationDetailsParams());
 
-    when(integrationTypeRepository.findById(1L)).thenReturn(ofNullable(jiraIntegrationType));
-    when(pluginBox.getPluginById(jiraIntegrationType.getName())).thenReturn(Optional.empty());
+    when(integrationTypeRepository.findById(1L)).thenReturn(of(jiraIntegrationType));
     doNothing().when(applicationEventPublisher).publishEvent(any());
 
     File tempFile = File.createTempFile("qwe", "txt");
     tempFile.deleteOnExit();
 
     when(dataStore.load(any(String.class))).thenReturn(new FileInputStream(tempFile));
-    when(pluginBox.loadPlugin(jiraIntegrationType.getName(),
-        jiraIntegrationType.getDetails()
-    )).thenReturn(true);
+    when(pluginLoader.load(jiraIntegrationType)).thenReturn(true);
     OperationCompletionRS operationCompletionRS =
         updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user);
 

@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.google.common.collect.Maps;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.function.Supplier;
 import javax.validation.constraints.NotNull;
 
@@ -67,6 +68,16 @@ public class IntegrationTypeBuilder implements Supplier<IntegrationType> {
 
   public IntegrationTypeBuilder setEnabled(boolean enabled) {
     integrationType.setEnabled(enabled);
+    return this;
+  }
+
+  public IntegrationTypeBuilder putDetails(Map<String, ?> details) {
+    integrationType.getDetails().getDetails().putAll(details);
+    return this;
+  }
+
+  public IntegrationTypeBuilder putDetails(String key, Object value) {
+    integrationType.getDetails().getDetails().put(key, value);
     return this;
   }
 

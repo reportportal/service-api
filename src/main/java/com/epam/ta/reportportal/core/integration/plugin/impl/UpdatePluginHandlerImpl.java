@@ -21,7 +21,7 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.activity.PluginUpdatedEvent;
 import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
-import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.ReservedIntegrationTypeEnum;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
@@ -41,16 +41,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 
-  private final Pf4jPluginBox pluginBox;
+  private final PluginLoader pluginLoader;
+
   private final IntegrationTypeRepository integrationTypeRepository;
 
   private final ApplicationEventPublisher applicationEventPublisher;
 
   @Autowired
-  public UpdatePluginHandlerImpl(Pf4jPluginBox pluginBox,
-      IntegrationTypeRepository integrationTypeRepository,
-      ApplicationEventPublisher applicationEventPublisher) {
-    this.pluginBox = pluginBox;
+  public UpdatePluginHandlerImpl(PluginLoader pluginLoader, IntegrationTypeRepository integrationTypeRepository,
+          ApplicationEventPublisher applicationEventPublisher) {
+    this.pluginLoader = pluginLoader;
     this.integrationTypeRepository = integrationTypeRepository;
     this.applicationEventPublisher = applicationEventPublisher;
   }
@@ -100,30 +100,19 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
   }
 
   private void loadPlugin(IntegrationType integrationType) {
-    if (pluginBox.getPluginById(integrationType.getName()).isEmpty()) {
-      boolean isLoaded =
-          pluginBox.loadPlugin(integrationType.getName(), integrationType.getDetails());
-      BusinessRule.expect(isLoaded, BooleanUtils::isTrue)
-          .verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-              Suppliers.formattedSupplier("Error during loading the plugin with id = '{}'",
-                  integrationType.getName()
-              ).get()
-          );
-    }
+	BusinessRule.expect(pluginLoader.load(integrationType), BooleanUtils::isTrue)
+	  .verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		  Suppliers.formattedSupplier("Error during loading the plugin with id = '{}'",
+			  integrationType.getName()
+		  ).get()
+	  );
   }
 
   private void unloadPlugin(IntegrationType integrationType) {
-
-    pluginBox.getPluginById(integrationType.getName()).ifPresent(plugin -> {
-
-      if (!pluginBox.unloadPlugin(integrationType)) {
-        throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-            Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'",
-                integrationType.getName()
-            ).get()
-        );
-      }
-    });
+	BusinessRule.expect(pluginLoader.unload(integrationType), BooleanUtils::isTrue)
+	  .verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+			  Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'", integrationType.getName()).get()
+	  );
   }
 
   private void publishEvent(IntegrationType integrationType, ReportPortalUser user,

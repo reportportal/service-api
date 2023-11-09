@@ -1,195 +1,98 @@
-/*
- * Copyright 2019 EPAM Systems
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
-import static java.util.Optional.ofNullable;
-
-import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.integration.plugin.file.PluginFileManager;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
-import com.epam.ta.reportportal.core.plugin.PluginInfo;
-import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
-import com.epam.ta.reportportal.entity.enums.FeatureFlag;
+import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.core.plugin.PluginPathInfo;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.filesystem.DataStore;
-import com.epam.ta.reportportal.util.FeatureFlagHandler;
-import com.epam.ta.reportportal.ws.converter.builders.IntegrationTypeBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import org.pf4j.ExtensionPoint;
+import org.pf4j.PluginState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import javax.validation.constraints.NotNull;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.pf4j.PluginDescriptor;
-import org.pf4j.PluginDescriptorFinder;
-import org.pf4j.PluginException;
-import org.pf4j.PluginWrapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+
+import static java.util.Optional.ofNullable;
 
 /**
- * Service responsible for plugin load.
- *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
 public class PluginLoaderImpl implements PluginLoader {
 
-  private static final String PLUGINS_ROOT_PATH = "plugins";
-  private final DataStore dataStore;
-  private final IntegrationTypeRepository integrationTypeRepository;
-  private final PluginDescriptorFinder pluginDescriptorFinder;
+	private static final Logger LOGGER = LoggerFactory.getLogger(PluginLoaderImpl.class);
 
-  private final FeatureFlagHandler featureFlagHandler;
+	private final String pluginsDir;
 
-  /**
-   * Creates instance of {@link PluginLoader}.
-   *
-   * @param dataStore                 {@link DataStore}
-   * @param integrationTypeRepository {@link IntegrationTypeRepository}
-   * @param pluginDescriptorFinder    {@link PluginDescriptorFinder}
-   * @param featureFlagHandler        {@link FeatureFlagHandler}
-   */
-  @Autowired
-  public PluginLoaderImpl(DataStore dataStore, IntegrationTypeRepository integrationTypeRepository,
-      PluginDescriptorFinder pluginDescriptorFinder, FeatureFlagHandler featureFlagHandler) {
-    this.dataStore = dataStore;
-    this.integrationTypeRepository = integrationTypeRepository;
-    this.pluginDescriptorFinder = pluginDescriptorFinder;
-    this.featureFlagHandler = featureFlagHandler;
-  }
+	private final PluginFileManager pluginFileManager;
+	private final Pf4jPluginBox pluginBox;
 
-  @Override
-  @NotNull
-  public PluginInfo extractPluginInfo(Path pluginPath) throws PluginException {
-    PluginDescriptor pluginDescriptor = pluginDescriptorFinder.find(pluginPath);
-    return new PluginInfo(pluginDescriptor.getPluginId(), pluginDescriptor.getVersion());
-  }
+	@Autowired
+	public PluginLoaderImpl(@Value("${rp.plugins.path}") String pluginsDir, PluginFileManager pluginFileManager, Pf4jPluginBox pluginBox) {
+		this.pluginsDir = pluginsDir;
+		this.pluginFileManager = pluginFileManager;
+		this.pluginBox = pluginBox;
+	}
 
-  @Override
-  public IntegrationTypeDetails resolvePluginDetails(PluginInfo pluginInfo) {
+	@Override
+	public boolean load(IntegrationType integrationType) {
+		if (pluginBox.getPluginById(integrationType.getName()).isPresent()) {
+			return true;
+		}
+		return ofNullable(integrationType.getDetails()).map(IntegrationTypeDetails::getDetails).map(details -> {
+			final String pluginId = integrationType.getName();
+			final String fileName = getPropertyValue(pluginId, details, IntegrationTypeProperties.FILE_NAME);
+			final Path pluginPath = Paths.get(pluginsDir, fileName);
+			if (Files.notExists(pluginPath)) {
+				loadPlugin(details, pluginId, fileName, pluginPath);
+			}
 
-    integrationTypeRepository.findByName(pluginInfo.getId())
-        .flatMap(it -> ofNullable(it.getDetails())).flatMap(
-            typeDetails -> IntegrationTypeProperties.VERSION.getValue(typeDetails.getDetails())
-                .map(String::valueOf)).ifPresent(
-                    version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(
-                pluginInfo.getVersion()))
-                .verify(
-                    ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
-                        "Plugin with ID = '{}' of the same VERSION = '{}' "
-                            + "has already been uploaded.", pluginInfo.getId(),
-                        pluginInfo.getVersion()
-                    )));
+			return pluginBox.loadPlugin(pluginPath).flatMap(pluginBox::getPluginById).map(pluginWrapper -> {
+				if (PluginState.STARTED == pluginBox.startUpPlugin(pluginWrapper)) {
+					final Optional<ExtensionPoint> extensionPoint = pluginBox.getInstance(pluginId, org.pf4j.ExtensionPoint.class);
+					extensionPoint.ifPresent(extension -> LOGGER.info(Suppliers.formattedSupplier("Plugin - '{}' initialized.", pluginId)
+							.get()));
+					return true;
+				} else {
+					return false;
+				}
+			}).orElse(Boolean.FALSE);
+		}).orElse(Boolean.FALSE);
 
-    IntegrationTypeDetails pluginDetails = IntegrationTypeBuilder.createIntegrationTypeDetails();
-    IntegrationTypeProperties.VERSION.setValue(pluginDetails, pluginInfo.getVersion());
-    return pluginDetails;
-  }
+	}
 
-  @Override
-  public boolean validatePluginExtensionClasses(PluginWrapper plugin) {
-    return plugin.getPluginManager().getExtensionClasses(plugin.getPluginId()).stream()
-        .map(ExtensionPoint::findByExtension).anyMatch(Optional::isPresent);
-  }
+	private void loadPlugin(Map<String, Object> details, String pluginId, String fileName, Path pluginPath) {
+		final String resourcesDir = getPropertyValue(pluginId, details, IntegrationTypeProperties.RESOURCES_DIRECTORY);
+		final String fileId = getPropertyValue(pluginId, details, IntegrationTypeProperties.FILE_ID);
+		final PluginPathInfo pluginPathInfo = new PluginPathInfo(pluginPath, Paths.get(resourcesDir), fileName, fileId);
+		pluginFileManager.download(pluginPathInfo);
+	}
 
-  @Override
-  public String saveToDataStore(String fileName, InputStream fileStream)
-      throws ReportPortalException {
-    if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
-      return dataStore.save(Paths.get(PLUGINS_ROOT_PATH, fileName).toString(), fileStream);
-    } else {
-      return dataStore.save(fileName, fileStream);
-    }
-  }
+	private String getPropertyValue(String pluginId, Map<String, Object> details, IntegrationTypeProperties property) {
+		return property.getValue(details)
+				.map(String::valueOf)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+						Suppliers.formattedSupplier("'{}' property of the plugin - '{}' is not specified",
+								property.name().toLowerCase(),
+								pluginId
+						).get()
+				));
+	}
 
-  @Override
-  public void savePlugin(Path pluginPath, InputStream fileStream) throws IOException {
-    Files.copy(fileStream, pluginPath, StandardCopyOption.REPLACE_EXISTING);
-  }
-
-  @Override
-  public void copyFromDataStore(String fileId, Path pluginPath, Path resourcesPath)
-      throws IOException {
-    if (Objects.nonNull(pluginPath.getParent())) {
-      Files.createDirectories(pluginPath.getParent());
-    }
-    try (InputStream inputStream = dataStore.load(fileId)) {
-      Files.copy(inputStream, pluginPath, StandardCopyOption.REPLACE_EXISTING);
-    }
-    copyPluginResource(pluginPath, resourcesPath);
-  }
-
-  @Override
-  public void deleteFromDataStore(String fileId) {
-    dataStore.delete(fileId);
-  }
-
-  @Override
-  public void copyPluginResource(Path pluginPath, Path resourcesTargetPath) throws IOException {
-    if (Objects.nonNull(resourcesTargetPath.getParent())) {
-      Files.createDirectories(resourcesTargetPath.getParent());
-    }
-    try (JarFile jar = new JarFile(pluginPath.toFile())) {
-      if (!Files.isDirectory(resourcesTargetPath)) {
-        Files.createDirectories(resourcesTargetPath);
-      }
-      copyJarResourcesRecursively(resourcesTargetPath, jar);
-    }
-  }
-
-  private void copyJarResourcesRecursively(Path destination, JarFile jarFile) {
-    jarFile.stream().filter(jarEntry -> jarEntry.getName().startsWith("resources"))
-        .forEach(entry -> {
-          try {
-            copyResources(jarFile, entry, destination);
-          } catch (IOException e) {
-            throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, e.getMessage());
-          }
-        });
-  }
-
-  private void copyResources(JarFile jarFile, JarEntry entry, Path destination) throws IOException {
-    String fileName = StringUtils.substringAfter(entry.getName(), "resources/");
-    if (!entry.isDirectory()) {
-      try (InputStream entryInputStream = jarFile.getInputStream(entry)) {
-        FileUtils.copyToFile(entryInputStream, new File(destination.toFile(), fileName));
-      }
-    } else {
-      Files.createDirectories(Paths.get(destination.toString(), fileName));
-    }
-  }
-
-  @Override
-  public void deleteTempPlugin(String pluginFileDirectory, String pluginFileName)
-      throws IOException {
-    Files.deleteIfExists(Paths.get(pluginFileDirectory, pluginFileName));
-  }
-
+	@Override
+	public boolean unload(IntegrationType integrationType) {
+		return pluginBox.getPluginById(integrationType.getName()).map(pluginBox::unloadPlugin).orElse(Boolean.TRUE);
+	}
 }

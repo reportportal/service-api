@@ -16,11 +16,10 @@
 
 package com.epam.ta.reportportal.core.plugin;
 
-import org.pf4j.PluginState;
-import org.pf4j.PluginWrapper;
-
 import java.nio.file.Path;
 import java.util.Optional;
+import org.pf4j.PluginState;
+import org.pf4j.PluginWrapper;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>

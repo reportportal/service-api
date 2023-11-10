@@ -16,20 +16,19 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import static java.util.Optional.ofNullable;
+
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.plugin.PluginPathInfo;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
-import org.pf4j.PluginWrapper;
-
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-
-import static java.util.Optional.ofNullable;
+import org.pf4j.PluginWrapper;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -52,12 +51,14 @@ public final class IntegrationTypeConverter {
     final PluginPathInfo pluginPathInfo = new PluginPathInfo();
     final Map<String, Object> details = typeDetails.getDetails();
     pluginPathInfo.setPluginPath(pluginWrapper.getPluginPath());
-    IntegrationTypeProperties.FILE_ID.getValue(details).map(String::valueOf).ifPresent(pluginPathInfo::setFileId);
-    IntegrationTypeProperties.FILE_NAME.getValue(details).map(String::valueOf).ifPresent(pluginPathInfo::setFileName);
+    IntegrationTypeProperties.FILE_ID.getValue(details).map(String::valueOf)
+        .ifPresent(pluginPathInfo::setFileId);
+    IntegrationTypeProperties.FILE_NAME.getValue(details).map(String::valueOf)
+        .ifPresent(pluginPathInfo::setFileName);
     IntegrationTypeProperties.RESOURCES_DIRECTORY.getValue(details)
-            .map(String::valueOf)
-            .map(Paths::get)
-            .ifPresent(pluginPathInfo::setResourcesPath);
+        .map(String::valueOf)
+        .map(Paths::get)
+        .ifPresent(pluginPathInfo::setResourcesPath);
     return pluginPathInfo;
   };
 

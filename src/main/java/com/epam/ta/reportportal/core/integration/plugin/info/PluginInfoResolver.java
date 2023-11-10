@@ -1,7 +1,6 @@
 package com.epam.ta.reportportal.core.integration.plugin.info;
 
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
-
 import java.nio.file.Path;
 
 /**

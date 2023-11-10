@@ -16,21 +16,20 @@
 
 package com.epam.ta.reportportal.plugin;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.core.plugin.Plugin;
 import com.google.common.collect.Lists;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.pf4j.PluginManager;
 import org.pf4j.PluginWrapper;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -47,7 +46,8 @@ class Pf4jPluginManagerTest {
   private final ApplicationEventPublisher applicationEventPublisher = mock(
       ApplicationEventPublisher.class);
 
-  private final Pf4jPluginManager pluginBox = new Pf4jPluginManager(pluginManager, beanFactory, applicationEventPublisher);
+  private final Pf4jPluginManager pluginBox = new Pf4jPluginManager(pluginManager, beanFactory,
+      applicationEventPublisher);
 
   Pf4jPluginManagerTest() {
   }

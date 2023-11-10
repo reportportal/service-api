@@ -16,6 +16,17 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
+import static java.util.Optional.of;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -28,26 +39,18 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.UpdatePluginStateRQ;
-import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.pf4j.PluginWrapper;
-import org.springframework.context.ApplicationEventPublisher;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import static java.util.Optional.of;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.*;
+import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.pf4j.PluginWrapper;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -68,7 +71,8 @@ class UpdatePluginHandlerTest {
   private PluginWrapper pluginWrapper = mock(PluginWrapper.class);
 
   private final UpdatePluginHandlerImpl updatePluginHandler =
-      new UpdatePluginHandlerImpl(pluginLoader, integrationTypeRepository, applicationEventPublisher);
+      new UpdatePluginHandlerImpl(pluginLoader, integrationTypeRepository,
+          applicationEventPublisher);
 
   @AfterAll
   static void clearPluginDirectory() throws IOException {

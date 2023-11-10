@@ -16,20 +16,24 @@
 
 package com.epam.ta.reportportal.job;
 
+import static com.epam.reportportal.extension.common.IntegrationTypeProperties.FILE_ID;
+import static com.epam.reportportal.extension.common.IntegrationTypeProperties.FILE_NAME;
+import static com.epam.reportportal.extension.common.IntegrationTypeProperties.VERSION;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.google.common.collect.Lists;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-
 import java.util.List;
 import java.util.Map;
-
-import static com.epam.reportportal.extension.common.IntegrationTypeProperties.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -41,7 +45,8 @@ class LoadPluginsJobTest {
 
   private final PluginLoader pluginLoader = mock(PluginLoader.class);
 
-  private LoadPluginsJob loadPluginsJob = new LoadPluginsJob(integrationTypeRepository, pluginLoader);
+  private LoadPluginsJob loadPluginsJob = new LoadPluginsJob(integrationTypeRepository,
+      pluginLoader);
 
   @Test
   void loadEnabledPluginTest() {
@@ -51,7 +56,8 @@ class LoadPluginsJobTest {
 
     loadPluginsJob.execute();
 
-    final ArgumentCaptor<IntegrationType> integrationTypeArgumentCaptor = ArgumentCaptor.forClass(IntegrationType.class);
+    final ArgumentCaptor<IntegrationType> integrationTypeArgumentCaptor = ArgumentCaptor.forClass(
+        IntegrationType.class);
     verify(pluginLoader, times(1)).load(integrationTypeArgumentCaptor.capture());
 
     final IntegrationType capturedValue = integrationTypeArgumentCaptor.getValue();
@@ -65,7 +71,8 @@ class LoadPluginsJobTest {
     jira.setName("jira");
     jira.setEnabled(true);
     final IntegrationTypeDetails details = new IntegrationTypeDetails();
-    details.setDetails(Map.of(FILE_ID.getAttribute(), "fileId", VERSION.getAttribute(), "v1", FILE_NAME.getAttribute(), "file.jar"));
+    details.setDetails(Map.of(FILE_ID.getAttribute(), "fileId", VERSION.getAttribute(), "v1",
+        FILE_NAME.getAttribute(), "file.jar"));
     jira.setDetails(details);
     IntegrationType rally = new IntegrationType();
     rally.setName("rally");

@@ -1,9 +1,8 @@
 package com.epam.ta.reportportal.core.plugin;
 
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
-
-import javax.annotation.Nullable;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>

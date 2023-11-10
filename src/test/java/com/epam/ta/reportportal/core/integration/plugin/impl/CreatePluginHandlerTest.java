@@ -16,6 +16,17 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.PluginUploadedEvent;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
@@ -28,18 +39,13 @@ import com.epam.ta.reportportal.core.plugin.PluginMetadata;
 import com.epam.ta.reportportal.core.plugin.PluginPathInfo;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import org.junit.jupiter.api.Test;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -68,11 +74,11 @@ public class CreatePluginHandlerTest {
       mock(ApplicationEventPublisher.class);
 
   private final CreatePluginHandlerImpl createPluginHandler = new CreatePluginHandlerImpl(
-          pluginFileManager,
-          pluginInfoResolver,
-          pluginBox,
-          integrationTypeHandler,
-          applicationEventPublisher
+      pluginFileManager,
+      pluginInfoResolver,
+      pluginBox,
+      integrationTypeHandler,
+      applicationEventPublisher
   );
 
   @Test
@@ -81,21 +87,21 @@ public class CreatePluginHandlerTest {
     when(multipartFile.getOriginalFilename()).thenReturn(FILE_NAME);
     when(multipartFile.getInputStream()).thenReturn(inputStream);
 
-  	final Path path = Path.of("");
-  	when(pluginFileManager.uploadTemp(multipartFile)).thenReturn(path);
-	when(pluginInfoResolver.resolveInfo(path)).thenReturn(pluginInfo);
+    final Path path = Path.of("");
+    when(pluginFileManager.uploadTemp(multipartFile)).thenReturn(path);
+    when(pluginInfoResolver.resolveInfo(path)).thenReturn(pluginInfo);
 
-	when(pluginInfo.getId()).thenReturn(PLUGIN_ID);
-	when(pluginInfo.getVersion()).thenReturn(PLUGIN_VERSION);
+    when(pluginInfo.getId()).thenReturn(PLUGIN_ID);
+    when(pluginInfo.getVersion()).thenReturn(PLUGIN_VERSION);
 
-	when(pluginFileManager.download(pluginInfo)).thenReturn(pluginPathInfo);
+    when(pluginFileManager.download(pluginInfo)).thenReturn(pluginPathInfo);
 
-	when(pluginPathInfo.getPluginPath()).thenReturn(path);
+    when(pluginPathInfo.getPluginPath()).thenReturn(path);
 
-  	final IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
+    final IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
 
-	when(integrationTypeHandler.getByName(anyString())).thenReturn(Optional.empty());
-	when(integrationTypeHandler.create(any(PluginMetadata.class))).thenReturn(jiraIntegrationType);
+    when(integrationTypeHandler.getByName(anyString())).thenReturn(Optional.empty());
+    when(integrationTypeHandler.create(any(PluginMetadata.class))).thenReturn(jiraIntegrationType);
 
     doNothing().when(applicationEventPublisher).publishEvent(any());
 
@@ -105,9 +111,9 @@ public class CreatePluginHandlerTest {
         createPluginHandler.uploadPlugin(multipartFile, reportPortalUser);
 
     assertNotNull(entryCreatedRS);
-  	assertEquals(jiraIntegrationType.getId(), entryCreatedRS.getId());
+    assertEquals(jiraIntegrationType.getId(), entryCreatedRS.getId());
 
-	verify(pluginBox, times(1)).startUpPlugin(path);
+    verify(pluginBox, times(1)).startUpPlugin(path);
     verify(applicationEventPublisher, times(1)).publishEvent(isA(PluginUploadedEvent.class));
   }
 }

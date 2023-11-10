@@ -3,11 +3,10 @@ package com.epam.ta.reportportal.core.integration.plugin.file.validator;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.Set;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.core.Ordered;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.Set;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>

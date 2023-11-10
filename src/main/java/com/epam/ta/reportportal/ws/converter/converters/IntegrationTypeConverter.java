@@ -50,6 +50,14 @@ public final class IntegrationTypeConverter {
     //static only
   }
 
+  /**
+   * Convert plugin details and plugin wrapper entity properties to single entity with files'
+   * locations info.
+   *
+   * @param typeDetails   {@link IntegrationTypeDetails} container for plugin details
+   * @param pluginWrapper {@link PluginWrapper} Pf4j plugin entity
+   * @return {@link PluginPathInfo}
+   */
   public static PluginPathInfo toPathInfo(IntegrationTypeDetails typeDetails,
       PluginWrapper pluginWrapper) {
     final PluginPathInfo pluginPathInfo = new PluginPathInfo();

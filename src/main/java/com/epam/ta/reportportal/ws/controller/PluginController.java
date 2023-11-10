@@ -98,9 +98,9 @@ public class PluginController {
   @ApiOperation("Update Report Portal plugin state")
   @PreAuthorize(ADMIN_ONLY)
   public OperationCompletionRS updatePluginState(@PathVariable(value = "pluginId") Long id,
-      @RequestBody @Valid UpdatePluginStateRQ updatePluginStateRQ,
+      @RequestBody @Valid UpdatePluginStateRQ updatePluginStateRq,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return updatePluginHandler.updatePluginState(id, updatePluginStateRQ, user);
+    return updatePluginHandler.updatePluginState(id, updatePluginStateRq, user);
   }
 
   @Transactional(readOnly = true)

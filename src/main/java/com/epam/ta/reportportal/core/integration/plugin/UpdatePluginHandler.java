@@ -32,10 +32,10 @@ public interface UpdatePluginHandler {
    * loaded in the memory. If 'enabled == false', plugin will be unloaded from the memory
    *
    * @param id                  {@link IntegrationType#getId()}
-   * @param updatePluginStateRQ {@link UpdatePluginStateRQ}
+   * @param updatePluginStateRq {@link UpdatePluginStateRQ}
    * @param user                {@link ReportPortalUser} User that update plugin
    * @return {@link OperationCompletionRS}
    */
-  OperationCompletionRS updatePluginState(Long id, UpdatePluginStateRQ updatePluginStateRQ,
+  OperationCompletionRS updatePluginState(Long id, UpdatePluginStateRQ updatePluginStateRq,
       ReportPortalUser user);
 }

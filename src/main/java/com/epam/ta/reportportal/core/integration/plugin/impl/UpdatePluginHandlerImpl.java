@@ -57,7 +57,7 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
   }
 
   @Override
-  public OperationCompletionRS updatePluginState(Long id, UpdatePluginStateRQ updatePluginStateRQ,
+  public OperationCompletionRS updatePluginState(Long id, UpdatePluginStateRQ updatePluginStateRq,
       ReportPortalUser user) {
 
     IntegrationType integrationType = integrationTypeRepository.findById(id).orElseThrow(
@@ -65,7 +65,7 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
             Suppliers.formattedSupplier("Integration type with id - '{}' not found.", id).get()
         ));
 
-    boolean isEnabled = updatePluginStateRQ.getEnabled();
+    boolean isEnabled = updatePluginStateRq.getEnabled();
     integrationType.setEnabled(isEnabled);
     return handlePluginState(integrationType, isEnabled, user);
   }

@@ -27,7 +27,7 @@ public interface DeletePluginHandler {
 
   /**
    * Delete plugin representation from the database and from the {@link
-   * com.epam.ta.reportportal.core.plugin.Pf4jPluginBox} instance
+   * com.epam.ta.reportportal.core.plugin.Pf4jPluginBox} instance.
    *
    * @param id               {@link IntegrationType#getId()}
    * @param reportPortalUser {@link ReportPortalUser} that deleted plugin

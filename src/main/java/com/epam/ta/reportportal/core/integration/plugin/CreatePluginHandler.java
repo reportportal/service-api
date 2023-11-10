@@ -27,7 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 public interface CreatePluginHandler {
 
   /**
-   * Upload and start up the plugin
+   * Upload and start up the plugin.
    *
    * @param pluginFile Plugin file
    * @param user       User that uploaded plugin

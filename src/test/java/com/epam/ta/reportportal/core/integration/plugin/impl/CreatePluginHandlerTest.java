@@ -94,7 +94,7 @@ public class CreatePluginHandlerTest {
     when(pluginInfo.getId()).thenReturn(PLUGIN_ID);
     when(pluginInfo.getVersion()).thenReturn(PLUGIN_VERSION);
 
-    when(pluginFileManager.download(pluginInfo)).thenReturn(pluginPathInfo);
+    when(pluginFileManager.upload(pluginInfo)).thenReturn(pluginPathInfo);
 
     when(pluginPathInfo.getPluginPath()).thenReturn(path);
 

@@ -81,7 +81,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
   public EntryCreatedRS uploadPlugin(MultipartFile pluginFile, ReportPortalUser user) {
     final Path tempPluginPath = pluginFileManager.uploadTemp(pluginFile);
     final PluginInfo pluginInfo = pluginInfoResolver.resolveInfo(tempPluginPath);
-    final PluginPathInfo pluginPathInfo = pluginFileManager.download(pluginInfo);
+    final PluginPathInfo pluginPathInfo = pluginFileManager.upload(pluginInfo);
     final IntegrationType integrationType = loadPlugin(pluginInfo, pluginPathInfo);
     publishEvent(user, integrationType);
     return new EntryCreatedRS(integrationType.getId());
@@ -165,7 +165,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
   }
 
   /**
-   * Load and start up the previous plugin
+   * Load and start up the previous plugin.
    *
    * @param previousPlugin    {@link PluginWrapper} with mandatory data for plugin loading: {@link
    *                          PluginWrapper#getPluginPath()}
@@ -177,7 +177,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
     final PluginInfo previousPluginInfo = pluginInfoResolver.resolveInfo(
         previousPlugin.getPluginPath());
-    final PluginPathInfo previousPluginPathInfo = pluginFileManager.download(previousPluginInfo);
+    final PluginPathInfo previousPluginPathInfo = pluginFileManager.upload(previousPluginInfo);
 
     pluginBox.getPluginById(previousPlugin.getPluginId()).ifPresent(pluginBox::deletePlugin);
     pluginBox.loadPlugin(previousPluginPathInfo.getPluginPath())

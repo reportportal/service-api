@@ -1,3 +1,19 @@
+/*
+ * Copyright 2023 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.core.integration.plugin.file;
 
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -31,7 +47,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * Plugin file manager is built over {@link DataStore} that provides operations with plugin binaries
+ * (save, get, delete, etc.).
+ *
+ * @author <a href="mailto:budaevqwerty@gmail.com">Ivan Budayeu</a>
  */
 @Service
 public class DataStorePluginFileManager implements PluginFileManager {
@@ -67,6 +86,12 @@ public class DataStorePluginFileManager implements PluginFileManager {
     Files.createDirectories(Paths.get(this.resourcesDir));
   }
 
+  /**
+   * Upload file to {@link DataStorePluginFileManager#pluginsTempDir}.
+   *
+   * @param pluginFile {@link MultipartFile} source file.
+   * @return {@link Path} to uploaded plugin file.
+   */
   @Override
   public Path uploadTemp(MultipartFile pluginFile) {
     fileValidators.forEach(v -> v.validate(pluginFile));
@@ -86,25 +111,56 @@ public class DataStorePluginFileManager implements PluginFileManager {
     }
   }
 
+  /**
+   * Save file in the {@link DataStore} and make a local copy.
+   *
+   * @param pluginInfo {@link PluginInfo} that contains plugin properties
+   * @return {@link PluginPathInfo} that contains binaries' store properties
+   */
   @Override
-  public PluginPathInfo download(PluginInfo pluginInfo) {
+  public PluginPathInfo upload(PluginInfo pluginInfo) {
     final String newPluginFileName = generatePluginFileName(pluginInfo);
     final String fileId = saveToDataStore(pluginInfo.getOriginalFilePath(), pluginInfo,
         newPluginFileName);
 
     final Path targetPluginPath = Paths.get(pluginsDir, newPluginFileName);
     final Path targetResourcesPath = Paths.get(resourcesDir, pluginInfo.getId());
-    copyPluginToRootDirectory(targetPluginPath, targetResourcesPath, fileId);
+    final PluginPathInfo pluginPathInfo = new PluginPathInfo(targetPluginPath, targetResourcesPath,
+        newPluginFileName, fileId);
 
-    return new PluginPathInfo(targetPluginPath, targetResourcesPath, newPluginFileName, fileId);
+    download(pluginPathInfo);
+    return pluginPathInfo;
   }
 
+  /**
+   * Download plugin binaries.
+   *
+   * @param pluginPathInfo {@link PluginPathInfo} that contains download source and target.
+   */
   @Override
   public void download(PluginPathInfo pluginPathInfo) {
-    copyPluginToRootDirectory(pluginPathInfo.getPluginPath(), pluginPathInfo.getResourcesPath(),
-        pluginPathInfo.getFileId());
+    try {
+      try (InputStream inputStream = dataStore.load(pluginPathInfo.getFileId())) {
+        Files.copy(inputStream, pluginPathInfo.getPluginPath(),
+            StandardCopyOption.REPLACE_EXISTING);
+      }
+      copyPluginResource(pluginPathInfo.getPluginPath(), pluginPathInfo.getResourcesPath());
+    } catch (IOException e) {
+      throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+          Suppliers.formattedSupplier(
+              "Unable to copy new plugin file = '{}' from the data store to the root directory: {}",
+              pluginPathInfo.getFileName(),
+              e.getMessage()
+          ).get()
+      );
+    }
   }
 
+  /**
+   * Delete plugin binaries.
+   *
+   * @param pluginPathInfo {@link PluginPathInfo} that contains binaries' store properties
+   */
   @Override
   public void delete(PluginPathInfo pluginPathInfo) {
     delete(pluginPathInfo.getFileId());
@@ -112,6 +168,11 @@ public class DataStorePluginFileManager implements PluginFileManager {
     delete(pluginPathInfo.getResourcesPath());
   }
 
+  /**
+   * Delete plugin local binaries.
+   *
+   * @param path {@link Path} to plugin local binaries.
+   */
   @Override
   public void delete(Path path) {
     try {
@@ -122,6 +183,11 @@ public class DataStorePluginFileManager implements PluginFileManager {
     }
   }
 
+  /**
+   * Delete plugin binaries form {@link DataStore}.
+   *
+   * @param fileId {@link} plugin file id
+   */
   @Override
   public void delete(String fileId) {
     try {
@@ -153,24 +219,6 @@ public class DataStorePluginFileManager implements PluginFileManager {
         pluginInfo.getOriginalFilePath()
             .getFileName()
             .toString());
-  }
-
-  private void copyPluginToRootDirectory(Path targetPluginPath, Path targetResourcesPath,
-      String fileId) {
-    try {
-      try (InputStream inputStream = dataStore.load(fileId)) {
-        Files.copy(inputStream, targetPluginPath, StandardCopyOption.REPLACE_EXISTING);
-      }
-      copyPluginResource(targetPluginPath, targetResourcesPath);
-    } catch (IOException e) {
-      throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-          Suppliers.formattedSupplier(
-              "Unable to copy new plugin file = '{}' from the data store to the root directory: {}",
-              targetPluginPath.getFileName().toString(),
-              e.getMessage()
-          ).get()
-      );
-    }
   }
 
   private void copyPluginResource(Path pluginPath, Path resourcesTargetPath) throws IOException {

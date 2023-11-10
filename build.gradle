@@ -31,8 +31,7 @@ apply from: "$scriptsUrl/release-service.gradle"
 apply from: "$scriptsUrl/signing.gradle"
 apply from: "$scriptsUrl/copy-database-scripts.gradle"
 //apply from: "$scriptsUrl/build-quality.gradle"
-//apply from: "$scriptsUrl/jacoco.gradle"
-//apply plugin: 'jacoco'
+apply from: "$scriptsUrl/jacoco.gradle"
 project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
 
 repositories {
@@ -136,7 +135,7 @@ dependencies {
 
     //  Tests
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.mockito:mockito-core:5.6.0'
+    testImplementation 'org.mockito:mockito-core:5.7.0'
     testImplementation 'net.bytebuddy:byte-buddy:1.14.9'
     testImplementation 'org.flywaydb.flyway-test-extensions:flyway-spring-test:7.0.0'
 }
@@ -148,12 +147,12 @@ processResources {
     }
 }
 
-//tasks.withType(Javaimplementation) {
-//    options.encoding = "UTF-8"
-//    options.implementationrArgs << "-parameters"
-//    options.debug = true
-//    options.debugOptions.debugLevel = "source,lines,vars"
-//}
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+    options.compilerArgs << "-parameters"
+    options.debug = true
+    options.debugOptions.debugLevel = "source,lines,vars"
+}
 
 dependencyCheck {
     formats = [ReportGenerator.Format.HTML, ReportGenerator.Format.XML]
@@ -174,27 +173,12 @@ test {
         events = ['failed']
         exceptionFormat = 'short'
     }
-//    reports {
-//        junitXml.enabled = true
-//    }
+    reports {
+        junitXml.required = true
+    }
 }
-
-//jacocoTestReport {
-//    doFirst {
-//        classDirectories.setFrom(
-//                classDirectories.files.collect {
-//                    fileTree(dir: it, exclude: [
-//                            'com/epam/ta/reportportal/core/events/AnalysisEvent.class',
-//                            'com/epam/ta/reportportal/auth/acl/ReportPortalAclAuthorizationStrategyImpl.class',
-//                            '**/Abstract*.class'
-//                    ])
-//                }
-//        )
-//    }
-//
-//}
 
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts
-//build.dependsOn jacocoTestReport
+build.dependsOn jacocoTestReport

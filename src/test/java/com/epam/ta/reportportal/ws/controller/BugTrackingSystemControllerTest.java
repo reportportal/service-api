@@ -228,6 +228,8 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
         "type",
         true,
         Lists.newArrayList("value"),
+        null,
+        null,
         Lists.newArrayList(new AllowedValue("id", "name"))
     );
 

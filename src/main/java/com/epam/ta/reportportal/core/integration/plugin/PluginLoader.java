@@ -8,19 +8,19 @@ import org.pf4j.PluginWrapper;
  */
 public interface PluginLoader {
 
-	/**
-	 * Load plugin to the plugin manager using plugin data
-	 *
-	 * @param integrationType {@link IntegrationType}
-	 * @return {@link PluginWrapper#getPluginId()}
-	 */
-	boolean load(IntegrationType integrationType);
+  /**
+   * Load plugin to the plugin manager using plugin data
+   *
+   * @param integrationType {@link IntegrationType}
+   * @return {@link PluginWrapper#getPluginId()}
+   */
+  boolean load(IntegrationType integrationType);
 
-	/**
-	 * Unload plugin from the plugin manager using plugin data
-	 *
-	 * @param integrationType {@link IntegrationType}
-	 * @return {@link PluginWrapper#getPluginId()}
-	 */
-	boolean unload(IntegrationType integrationType);
+  /**
+   * Unload plugin from the plugin manager using plugin data
+   *
+   * @param integrationType {@link IntegrationType}
+   * @return {@link PluginWrapper#getPluginId()}
+   */
+  boolean unload(IntegrationType integrationType);
 }

@@ -5,11 +5,11 @@ package com.epam.ta.reportportal.core.integration.plugin.validator.exception;
  */
 public class PluginValidationException extends Exception {
 
-	public PluginValidationException(String message) {
-		super(message);
-	}
+  public PluginValidationException(String message) {
+    super(message);
+  }
 
-	public PluginValidationException(String message, Throwable cause) {
-		super(message, cause);
-	}
+  public PluginValidationException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

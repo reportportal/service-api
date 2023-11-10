@@ -13,13 +13,14 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class EmptyNameValidator implements FileValidator, Ordered {
 
-	@Override
-	public void validate(MultipartFile pluginFile) {
-		BusinessRule.expect(pluginFile.getName(), StringUtils::isNotBlank).verify(ErrorType.BAD_REQUEST_ERROR, "File name should be not empty.");
-	}
+  @Override
+  public void validate(MultipartFile pluginFile) {
+    BusinessRule.expect(pluginFile.getName(), StringUtils::isNotBlank)
+        .verify(ErrorType.BAD_REQUEST_ERROR, "File name should be not empty.");
+  }
 
-	@Override
-	public int getOrder() {
-		return 0;
-	}
+  @Override
+  public int getOrder() {
+    return 0;
+  }
 }

@@ -10,9 +10,9 @@ import java.util.Optional;
  */
 public interface IntegrationTypeHandler {
 
-	Optional<IntegrationType> getByName(String name);
+  Optional<IntegrationType> getByName(String name);
 
-	IntegrationType create(PluginMetadata pluginMetadata);
+  IntegrationType create(PluginMetadata pluginMetadata);
 
-	IntegrationType update(IntegrationType integrationType, PluginMetadata pluginMetadata);
+  IntegrationType update(IntegrationType integrationType, PluginMetadata pluginMetadata);
 }

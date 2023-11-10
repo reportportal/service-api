@@ -48,7 +48,8 @@ public class CleanOutdatedPluginsJob {
   private final Pf4jPluginBox pluginBox;
 
   @Autowired
-  public CleanOutdatedPluginsJob(IntegrationTypeRepository integrationTypeRepository, Pf4jPluginBox pf4jPluginBox) {
+  public CleanOutdatedPluginsJob(IntegrationTypeRepository integrationTypeRepository,
+      Pf4jPluginBox pf4jPluginBox) {
     this.integrationTypeRepository = integrationTypeRepository;
     this.pluginBox = pf4jPluginBox;
   }
@@ -65,9 +66,11 @@ public class CleanOutdatedPluginsJob {
 
     LOGGER.debug("Unloading of removed plugins...");
 
-    final Set<String> pluginIds = pluginBox.getPlugins().stream().map(Plugin::getId).collect(Collectors.toSet());
+    final Set<String> pluginIds = pluginBox.getPlugins().stream().map(Plugin::getId)
+        .collect(Collectors.toSet());
 
-    pluginIds.removeAll(integrationTypes.stream().map(IntegrationType::getName).collect(Collectors.toSet()));
+    pluginIds.removeAll(
+        integrationTypes.stream().map(IntegrationType::getName).collect(Collectors.toSet()));
 
     pluginIds.forEach(pluginId -> pluginBox.getPluginById(pluginId).ifPresent(plugin -> {
       if (!pluginBox.deletePlugin(plugin)) {
@@ -82,14 +85,17 @@ public class CleanOutdatedPluginsJob {
   private void unloadDisabledPlugins(List<IntegrationType> integrationTypes) {
 
     List<IntegrationType> disabledPlugins = integrationTypes.stream()
-            .filter(it -> BooleanUtils.isFalse(it.isEnabled()))
-            .collect(Collectors.toList());
+        .filter(it -> BooleanUtils.isFalse(it.isEnabled()))
+        .collect(Collectors.toList());
 
     disabledPlugins.forEach(dp -> pluginBox.getPluginById(dp.getName()).ifPresent(plugin -> {
       if (pluginBox.unloadPlugin(plugin)) {
-        LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has been successfully unloaded.", plugin.getPluginId()).get());
+        LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has been successfully unloaded.",
+            plugin.getPluginId()).get());
       } else {
-        LOGGER.error(Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'.", plugin.getPluginId()).get());
+        LOGGER.error(
+            Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'.",
+                plugin.getPluginId()).get());
       }
     }));
   }

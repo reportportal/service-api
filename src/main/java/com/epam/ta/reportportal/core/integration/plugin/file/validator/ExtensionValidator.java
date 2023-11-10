@@ -14,27 +14,29 @@ import java.util.Set;
  */
 public class ExtensionValidator implements FileValidator, Ordered {
 
-	private final Set<String> allowedExtensions;
+  private final Set<String> allowedExtensions;
 
-	public ExtensionValidator(Set<String> allowedExtensions) {
-		this.allowedExtensions = allowedExtensions;
-	}
+  public ExtensionValidator(Set<String> allowedExtensions) {
+    this.allowedExtensions = allowedExtensions;
+  }
 
-	/**
-	 * Resolve and validate file type.
-	 *
-	 * @param pluginFile uploaded plugin
-	 */
-	@Override
-	public void validate(MultipartFile pluginFile) {
-		String resolvedExtension = FilenameUtils.getExtension(pluginFile.getName());
-		BusinessRule.expect(resolvedExtension, allowedExtensions::contains).verify(ErrorType.PLUGIN_UPLOAD_ERROR,
-				Suppliers.formattedSupplier("Unsupported plugin file extension = '{}'", resolvedExtension).get()
-		);
-	}
+  /**
+   * Resolve and validate file type.
+   *
+   * @param pluginFile uploaded plugin
+   */
+  @Override
+  public void validate(MultipartFile pluginFile) {
+    String resolvedExtension = FilenameUtils.getExtension(pluginFile.getName());
+    BusinessRule.expect(resolvedExtension, allowedExtensions::contains)
+        .verify(ErrorType.PLUGIN_UPLOAD_ERROR,
+            Suppliers.formattedSupplier("Unsupported plugin file extension = '{}'",
+                resolvedExtension).get()
+        );
+  }
 
-	@Override
-	public int getOrder() {
-		return 1;
-	}
+  @Override
+  public int getOrder() {
+    return 1;
+  }
 }

@@ -8,6 +8,6 @@ import com.epam.ta.reportportal.core.plugin.PluginInfo;
  */
 public interface PluginInfoValidator {
 
-	void validate(PluginInfo pluginInfo) throws PluginValidationException;
+  void validate(PluginInfo pluginInfo) throws PluginValidationException;
 
 }

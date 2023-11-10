@@ -21,42 +21,43 @@ import static java.util.Optional.ofNullable;
 @Service
 public class ExtensionClassesValidator implements PluginInfoValidator {
 
-	private final PluginManager validationBox;
+  private final PluginManager validationBox;
 
-	@Autowired
-	public ExtensionClassesValidator(PluginManager validationBox) {
-		this.validationBox = validationBox;
-	}
+  @Autowired
+  public ExtensionClassesValidator(PluginManager validationBox) {
+    this.validationBox = validationBox;
+  }
 
-	@Override
-	public void validate(PluginInfo pluginInfo) throws PluginValidationException {
+  @Override
+  public void validate(PluginInfo pluginInfo) throws PluginValidationException {
 
-		final String pluginId = ofNullable(validationBox.loadPlugin(pluginInfo.getOriginalFilePath())).orElseThrow(() -> {
-			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-					Suppliers.formattedSupplier("Failed to load plugin into validation box from file = '{}'",
-							pluginInfo.getOriginalFilePath().getFileName().toString()
-					).get()
-			);
-		});
+    final String pluginId = ofNullable(
+        validationBox.loadPlugin(pluginInfo.getOriginalFilePath())).orElseThrow(() -> {
+      throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+          Suppliers.formattedSupplier("Failed to load plugin into validation box from file = '{}'",
+              pluginInfo.getOriginalFilePath().getFileName().toString()
+          ).get()
+      );
+    });
 
-		validationBox.startPlugin(pluginId);
-		final PluginWrapper plugin = validationBox.getPlugin(pluginId);
+    validationBox.startPlugin(pluginId);
+    final PluginWrapper plugin = validationBox.getPlugin(pluginId);
 
-		final boolean validExtension = plugin.getPluginManager()
-				.getExtensionClasses(plugin.getPluginId())
-				.stream()
-				.map(ExtensionPoint::findByExtension)
-				.anyMatch(Optional::isPresent);
+    final boolean validExtension = plugin.getPluginManager()
+        .getExtensionClasses(plugin.getPluginId())
+        .stream()
+        .map(ExtensionPoint::findByExtension)
+        .anyMatch(Optional::isPresent);
 
-		validationBox.unloadPlugin(pluginId);
+    validationBox.unloadPlugin(pluginId);
 
-		if (!validExtension) {
-			throw new PluginValidationException(Suppliers.formattedSupplier(
-					"New plugin with id = '{}' doesn't have mandatory extension classes.",
-					pluginId
-			).get());
-		}
+    if (!validExtension) {
+      throw new PluginValidationException(Suppliers.formattedSupplier(
+          "New plugin with id = '{}' doesn't have mandatory extension classes.",
+          pluginId
+      ).get());
+    }
 
-	}
+  }
 
 }

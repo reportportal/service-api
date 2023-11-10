@@ -21,41 +21,42 @@ import java.util.List;
 @Service
 public class DefaultPluginInfoResolver implements PluginInfoResolver {
 
-	private final PluginDescriptorFinder pluginDescriptorFinder;
-	private final List<PluginInfoValidator> pluginInfoValidators;
-	private final PluginFileManager pluginFileManager;
+  private final PluginDescriptorFinder pluginDescriptorFinder;
+  private final List<PluginInfoValidator> pluginInfoValidators;
+  private final PluginFileManager pluginFileManager;
 
-	@Autowired
-	public DefaultPluginInfoResolver(PluginDescriptorFinder pluginDescriptorFinder, List<PluginInfoValidator> pluginInfoValidators,
-			PluginFileManager pluginFileManager) {
-		this.pluginDescriptorFinder = pluginDescriptorFinder;
-		this.pluginInfoValidators = pluginInfoValidators;
-		this.pluginFileManager = pluginFileManager;
-	}
+  @Autowired
+  public DefaultPluginInfoResolver(PluginDescriptorFinder pluginDescriptorFinder,
+      List<PluginInfoValidator> pluginInfoValidators,
+      PluginFileManager pluginFileManager) {
+    this.pluginDescriptorFinder = pluginDescriptorFinder;
+    this.pluginInfoValidators = pluginInfoValidators;
+    this.pluginFileManager = pluginFileManager;
+  }
 
-	@Override
-	public PluginInfo resolveInfo(Path pluginPath) {
-		try {
-			PluginDescriptor pluginDescriptor = pluginDescriptorFinder.find(pluginPath);
-			final PluginInfo pluginInfo = new PluginInfo(pluginDescriptor.getPluginId(), pluginDescriptor.getVersion(), pluginPath);
-			validateInfo(pluginInfo);
-			return pluginInfo;
-		} catch (PluginException e) {
-			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, e.getMessage());
-		}
-	}
+  @Override
+  public PluginInfo resolveInfo(Path pluginPath) {
+    try {
+      PluginDescriptor pluginDescriptor = pluginDescriptorFinder.find(pluginPath);
+      final PluginInfo pluginInfo = new PluginInfo(pluginDescriptor.getPluginId(),
+          pluginDescriptor.getVersion(), pluginPath);
+      validateInfo(pluginInfo);
+      return pluginInfo;
+    } catch (PluginException e) {
+      throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, e.getMessage());
+    }
+  }
 
 
-
-	private void validateInfo(PluginInfo pluginInfo) {
-		pluginInfoValidators.forEach(v -> {
-			try {
-				v.validate(pluginInfo);
-			} catch (PluginValidationException e) {
-				pluginFileManager.delete(pluginInfo.getOriginalFilePath());
-				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, e.getMessage());
-			}
-		});
-	}
+  private void validateInfo(PluginInfo pluginInfo) {
+    pluginInfoValidators.forEach(v -> {
+      try {
+        v.validate(pluginInfo);
+      } catch (PluginValidationException e) {
+        pluginFileManager.delete(pluginInfo.getOriginalFilePath());
+        throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, e.getMessage());
+      }
+    });
+  }
 
 }

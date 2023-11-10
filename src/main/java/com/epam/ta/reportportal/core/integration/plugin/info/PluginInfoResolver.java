@@ -9,5 +9,5 @@ import java.nio.file.Path;
  */
 public interface PluginInfoResolver {
 
-	PluginInfo resolveInfo(Path pluginPath);
+  PluginInfo resolveInfo(Path pluginPath);
 }

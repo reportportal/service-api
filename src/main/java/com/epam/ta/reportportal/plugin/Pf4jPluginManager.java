@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.plugin;
 
+import static java.util.Optional.ofNullable;
+
 import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.reportportal.extension.event.PluginEvent;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -23,6 +25,10 @@ import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.Plugin;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.pf4j.PluginManager;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
@@ -31,13 +37,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
-
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static java.util.Optional.ofNullable;
 
 public class Pf4jPluginManager implements Pf4jPluginBox {
 
@@ -51,8 +50,9 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 
   private final ApplicationEventPublisher applicationEventPublisher;
 
-  public Pf4jPluginManager(PluginManager pluginManager, AutowireCapableBeanFactory autowireCapableBeanFactory,
-          ApplicationEventPublisher applicationEventPublisher) {
+  public Pf4jPluginManager(PluginManager pluginManager,
+      AutowireCapableBeanFactory autowireCapableBeanFactory,
+      ApplicationEventPublisher applicationEventPublisher) {
     this.pluginManager = pluginManager;
     this.autowireCapableBeanFactory = autowireCapableBeanFactory;
     this.applicationEventPublisher = applicationEventPublisher;
@@ -88,11 +88,12 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
   @Override
   public PluginState startUpPlugin(Path pluginPath) {
     return loadPlugin(pluginPath).flatMap(this::getPluginById)
-            .map(this::startUpPlugin)
-            .orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-                    Suppliers.formattedSupplier("Error during loading the plugin file = '{}'", pluginPath.getFileName().toString())
-                            .get()
-            ));
+        .map(this::startUpPlugin)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+            Suppliers.formattedSupplier("Error during loading the plugin file = '{}'",
+                    pluginPath.getFileName().toString())
+                .get()
+        ));
   }
 
   @Override
@@ -109,7 +110,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 
   @Override
   public boolean unloadPlugin(PluginWrapper pluginWrapper) {
-    applicationEventPublisher.publishEvent(new PluginEvent(pluginWrapper.getPluginId(), UNLOAD_KEY));
+    applicationEventPublisher.publishEvent(
+        new PluginEvent(pluginWrapper.getPluginId(), UNLOAD_KEY));
     destroyDependency(pluginWrapper.getPluginId());
     return pluginManager.unloadPlugin(pluginWrapper.getPluginId());
   }
@@ -121,7 +123,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 
   @Override
   public boolean deletePlugin(PluginWrapper pluginWrapper) {
-    applicationEventPublisher.publishEvent(new PluginEvent(pluginWrapper.getPluginId(), UNLOAD_KEY));
+    applicationEventPublisher.publishEvent(
+        new PluginEvent(pluginWrapper.getPluginId(), UNLOAD_KEY));
     destroyDependency(pluginWrapper.getPluginId());
     return pluginManager.deletePlugin(pluginWrapper.getPluginId());
   }

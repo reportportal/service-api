@@ -10,40 +10,40 @@ import java.util.Map;
  */
 public class PluginMetadata {
 
-	private final PluginInfo pluginInfo;
-	private final PluginPathInfo pluginPathInfo;
+  private final PluginInfo pluginInfo;
+  private final PluginPathInfo pluginPathInfo;
 
-	private IntegrationGroupEnum integrationGroup;
-	private Map<String, ?> pluginParams;
+  private IntegrationGroupEnum integrationGroup;
+  private Map<String, ?> pluginParams;
 
-	public PluginMetadata(PluginInfo pluginInfo, PluginPathInfo pluginPathInfo) {
-		this.pluginInfo = pluginInfo;
-		this.pluginPathInfo = pluginPathInfo;
-	}
+  public PluginMetadata(PluginInfo pluginInfo, PluginPathInfo pluginPathInfo) {
+    this.pluginInfo = pluginInfo;
+    this.pluginPathInfo = pluginPathInfo;
+  }
 
-	public PluginInfo getPluginInfo() {
-		return pluginInfo;
-	}
+  public PluginInfo getPluginInfo() {
+    return pluginInfo;
+  }
 
-	public PluginPathInfo getPluginPathInfo() {
-		return pluginPathInfo;
-	}
+  public PluginPathInfo getPluginPathInfo() {
+    return pluginPathInfo;
+  }
 
-	@Nullable
-	public IntegrationGroupEnum getIntegrationGroup() {
-		return integrationGroup;
-	}
+  @Nullable
+  public IntegrationGroupEnum getIntegrationGroup() {
+    return integrationGroup;
+  }
 
-	public void setIntegrationGroup(IntegrationGroupEnum integrationGroup) {
-		this.integrationGroup = integrationGroup;
-	}
+  public void setIntegrationGroup(IntegrationGroupEnum integrationGroup) {
+    this.integrationGroup = integrationGroup;
+  }
 
-	@Nullable
-	public Map<String, ?> getPluginParams() {
-		return pluginParams;
-	}
+  @Nullable
+  public Map<String, ?> getPluginParams() {
+    return pluginParams;
+  }
 
-	public void setPluginParams(Map<String, ?> pluginParams) {
-		this.pluginParams = pluginParams;
-	}
+  public void setPluginParams(Map<String, ?> pluginParams) {
+    this.pluginParams = pluginParams;
+  }
 }

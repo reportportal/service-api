@@ -11,15 +11,15 @@ import java.nio.file.Path;
  */
 public interface PluginFileManager {
 
-	Path uploadTemp(MultipartFile pluginFile);
+  Path uploadTemp(MultipartFile pluginFile);
 
-	PluginPathInfo download(PluginInfo pluginInfo);
+  PluginPathInfo download(PluginInfo pluginInfo);
 
-	void download(PluginPathInfo pluginPathInfo);
+  void download(PluginPathInfo pluginPathInfo);
 
-	void delete(PluginPathInfo pluginPathInfo);
+  void delete(PluginPathInfo pluginPathInfo);
 
-	void delete(Path path);
+  void delete(Path path);
 
-	void delete(String fileId);
+  void delete(String fileId);
 }

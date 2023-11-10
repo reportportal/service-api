@@ -16,23 +16,24 @@
 
 package com.epam.ta.reportportal.job;
 
+import static com.epam.reportportal.extension.common.IntegrationTypeProperties.FILE_ID;
+import static com.epam.reportportal.extension.common.IntegrationTypeProperties.FILE_NAME;
+import static com.epam.reportportal.extension.common.IntegrationTypeProperties.VERSION;
+
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.configs.Conditions;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Stream;
-
-import static com.epam.reportportal.extension.common.IntegrationTypeProperties.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -47,7 +48,8 @@ public class LoadPluginsJob {
   private final PluginLoader pluginLoader;
 
   @Autowired
-  public LoadPluginsJob(IntegrationTypeRepository integrationTypeRepository, PluginLoader pluginLoader) {
+  public LoadPluginsJob(IntegrationTypeRepository integrationTypeRepository,
+      PluginLoader pluginLoader) {
     this.integrationTypeRepository = integrationTypeRepository;
     this.pluginLoader = pluginLoader;
   }
@@ -55,23 +57,28 @@ public class LoadPluginsJob {
   @Scheduled(fixedDelayString = "${com.ta.reportportal.job.load.plugins.cron}")
   public void execute() {
     integrationTypeRepository.findAll()
-            .stream()
-            .filter(IntegrationType::isEnabled)
-            .filter(it -> Objects.nonNull(it.getDetails()) && Objects.nonNull(it.getDetails().getDetails()))
-            .filter(this::isMandatoryFieldsExist)
-            .forEach(it -> {
-              final boolean loaded = pluginLoader.load(it);
-              if (loaded) {
-                LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has been successfully started.", it.getName()).get());
-              } else {
-                LOGGER.error(Suppliers.formattedSupplier("Plugin - '{}' has not been started.", it.getName()).get());
-              }
-            });
+        .stream()
+        .filter(IntegrationType::isEnabled)
+        .filter(
+            it -> Objects.nonNull(it.getDetails()) && Objects.nonNull(it.getDetails().getDetails()))
+        .filter(this::isMandatoryFieldsExist)
+        .forEach(it -> {
+          final boolean loaded = pluginLoader.load(it);
+          if (loaded) {
+            LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has been successfully started.",
+                it.getName()).get());
+          } else {
+            LOGGER.error(
+                Suppliers.formattedSupplier("Plugin - '{}' has not been started.", it.getName())
+                    .get());
+          }
+        });
   }
 
   private boolean isMandatoryFieldsExist(IntegrationType integrationType) {
     Map<String, Object> details = integrationType.getDetails().getDetails();
-    return Stream.of(FILE_ID, VERSION, FILE_NAME).allMatch(property -> property.getValue(details).isPresent());
+    return Stream.of(FILE_ID, VERSION, FILE_NAME)
+        .allMatch(property -> property.getValue(details).isPresent());
 
   }
 

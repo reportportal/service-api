@@ -48,8 +48,9 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
   private final ApplicationEventPublisher applicationEventPublisher;
 
   @Autowired
-  public UpdatePluginHandlerImpl(PluginLoader pluginLoader, IntegrationTypeRepository integrationTypeRepository,
-          ApplicationEventPublisher applicationEventPublisher) {
+  public UpdatePluginHandlerImpl(PluginLoader pluginLoader,
+      IntegrationTypeRepository integrationTypeRepository,
+      ApplicationEventPublisher applicationEventPublisher) {
     this.pluginLoader = pluginLoader;
     this.integrationTypeRepository = integrationTypeRepository;
     this.applicationEventPublisher = applicationEventPublisher;
@@ -100,19 +101,20 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
   }
 
   private void loadPlugin(IntegrationType integrationType) {
-	BusinessRule.expect(pluginLoader.load(integrationType), BooleanUtils::isTrue)
-	  .verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-		  Suppliers.formattedSupplier("Error during loading the plugin with id = '{}'",
-			  integrationType.getName()
-		  ).get()
-	  );
+    BusinessRule.expect(pluginLoader.load(integrationType), BooleanUtils::isTrue)
+        .verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+            Suppliers.formattedSupplier("Error during loading the plugin with id = '{}'",
+                integrationType.getName()
+            ).get()
+        );
   }
 
   private void unloadPlugin(IntegrationType integrationType) {
-	BusinessRule.expect(pluginLoader.unload(integrationType), BooleanUtils::isTrue)
-	  .verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-			  Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'", integrationType.getName()).get()
-	  );
+    BusinessRule.expect(pluginLoader.unload(integrationType), BooleanUtils::isTrue)
+        .verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+            Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'",
+                integrationType.getName()).get()
+        );
   }
 
   private void publishEvent(IntegrationType integrationType, ReportPortalUser user,

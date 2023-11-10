@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.integration.plugin.bootstrap;
 
 import static java.util.Optional.ofNullable;
 
+import com.epam.ta.reportportal.core.configs.Conditions;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
@@ -9,12 +10,14 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
+@Conditional(Conditions.NotTestCondition.class)
 public class DefaultPluginBootstrapper implements PluginBootstrapper {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPluginBootstrapper.class);

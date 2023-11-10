@@ -4,11 +4,13 @@ datastore:
 rp:
   plugins:
     rooDir: ${java.io.tmpdir}/reportportal/plugins
+  encryptor:
+    password: test
 logging:
   file:
     name: ${java.io.tmpdir}/reportportal/logs/${spring.application.name}.log
 embedded:
   datasource:
-    dir: ${java.io.tmpdir}/reportportal/embedded-postgres
+    dir: D:/PS/reportportal/embedded-postgres
     clean: true
     port: 0

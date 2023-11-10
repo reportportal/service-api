@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.converter.converters.IntegrationTypeConverter.TO_PATH_INFO;
+import static com.epam.ta.reportportal.ws.converter.converters.IntegrationTypeConverter.toPathInfo;
 import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -97,7 +97,7 @@ public class DeletePluginHandlerImpl implements DeletePluginHandler {
             "Unable to remove from plugin manager.");
       }
       ofNullable(integrationType.getDetails()).map(
-              details -> TO_PATH_INFO.apply(details, pluginWrapper))
+              details -> toPathInfo(details, pluginWrapper))
           .ifPresent(pluginFileManager::delete);
     });
   }

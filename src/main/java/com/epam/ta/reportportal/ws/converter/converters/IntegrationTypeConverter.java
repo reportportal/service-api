@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
 import java.nio.file.Paths;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.pf4j.PluginWrapper;
 
@@ -47,7 +46,12 @@ public final class IntegrationTypeConverter {
     return resource;
   };
 
-  public static final BiFunction<IntegrationTypeDetails, PluginWrapper, PluginPathInfo> TO_PATH_INFO = (typeDetails, pluginWrapper) -> {
+  private IntegrationTypeConverter() {
+    //static only
+  }
+
+  public static PluginPathInfo toPathInfo(IntegrationTypeDetails typeDetails,
+      PluginWrapper pluginWrapper) {
     final PluginPathInfo pluginPathInfo = new PluginPathInfo();
     final Map<String, Object> details = typeDetails.getDetails();
     pluginPathInfo.setPluginPath(pluginWrapper.getPluginPath());
@@ -60,9 +64,5 @@ public final class IntegrationTypeConverter {
         .map(Paths::get)
         .ifPresent(pluginPathInfo::setResourcesPath);
     return pluginPathInfo;
-  };
-
-  private IntegrationTypeConverter() {
-    //static only
   }
 }

@@ -60,7 +60,8 @@ public class CleanOutdatedPluginsJob {
     unloadDisabledPlugins(integrationTypes);
   }
 
-  //TODO this two methods could be moved to separate services (Single Responsibility violation) + tests writing will be easier
+  //TODO this two methods could be moved to separate services (Single Responsibility violation)
+  // + tests writing will be easier
   private void deleteRemovedPlugins(List<IntegrationType> integrationTypes) {
 
     LOGGER.debug("Unloading of removed plugins...");
@@ -80,7 +81,8 @@ public class CleanOutdatedPluginsJob {
     LOGGER.debug("Unloading of removed plugins has finished...");
   }
 
-  //TODO this two methods could be moved to separate services (Single Responsibility violation) + tests writing will be easier
+  //TODO this two methods could be moved to separate services (Single Responsibility violation)
+  // + tests writing will be easier
   private void unloadDisabledPlugins(List<IntegrationType> integrationTypes) {
 
     List<IntegrationType> disabledPlugins = integrationTypes.stream()

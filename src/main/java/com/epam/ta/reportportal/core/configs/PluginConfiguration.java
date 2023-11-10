@@ -20,7 +20,6 @@ import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.ta.reportportal.core.integration.plugin.file.validator.ExtensionValidator;
-import com.epam.ta.reportportal.core.integration.plugin.file.validator.FileValidator;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.plugin.PluginFileExtension;
@@ -116,8 +115,11 @@ public class PluginConfiguration {
     return new ManifestPluginDescriptorFinder();
   }
 
+  /**
+   * @return {@link ExtensionValidator} that contains extensions from {@link PluginFileExtension}
+   */
   @Bean
-  public FileValidator extensionValidator() {
+  public ExtensionValidator extensionValidator() {
     final Set<String> allowedExtensions = Arrays.stream(PluginFileExtension.values())
         .map(v -> v.getExtension().split("\\.")[1])
         .collect(Collectors.toSet());

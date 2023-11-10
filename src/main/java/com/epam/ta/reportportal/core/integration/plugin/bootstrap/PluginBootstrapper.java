@@ -16,10 +16,55 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.bootstrap;
 
+import static java.util.Optional.ofNullable;
+
+import com.epam.ta.reportportal.core.configs.Conditions;
+import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
+import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import javax.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.stereotype.Service;
+
 /**
+ * Service that loads plugins on application start.
+ *
  * @author <a href="mailto:budaevqwerty@gmail.com">Ivan Budayeu</a>
  */
-public interface PluginBootstrapper {
+@Service
+@Conditional(Conditions.NotTestCondition.class)
+public class PluginBootstrapper {
 
-  void startUp();
+  private static final Logger LOGGER = LoggerFactory.getLogger(PluginBootstrapper.class);
+
+  private final IntegrationTypeRepository integrationTypeRepository;
+  private final PluginLoader pluginLoader;
+
+  @Autowired
+  public PluginBootstrapper(IntegrationTypeRepository integrationTypeRepository,
+      PluginLoader pluginLoader) {
+    this.integrationTypeRepository = integrationTypeRepository;
+    this.pluginLoader = pluginLoader;
+  }
+
+  @PostConstruct
+  public void startUp() {
+    // load and start all enabled plugins of application
+    integrationTypeRepository.findAll()
+        .stream()
+        .filter(IntegrationType::isEnabled)
+        .forEach(integrationType -> ofNullable(integrationType.getDetails()).ifPresent(
+            integrationTypeDetails -> {
+              try {
+                pluginLoader.load(integrationType);
+              } catch (Exception ex) {
+                LOGGER.error("Unable to load plugin '{}'", integrationType.getName());
+              }
+            }));
+
+  }
+
 }

@@ -175,7 +175,7 @@ public class DeleteIntegrationHandlerTest {
         )));
 
     when(integrationTypeRepository.findByName(anyString())).thenReturn(
-        Optional.ofNullable(IntegrationTestUtil.getEmailIntegrationType()));
+        Optional.of(IntegrationTestUtil.getEmailIntegrationType()));
 
     OperationCompletionRS operationCompletionRs = handler.deleteProjectIntegrationsByType(
         "EMAIL",
@@ -186,8 +186,10 @@ public class DeleteIntegrationHandlerTest {
         anyLong());
 
     assertNotNull(operationCompletionRs);
+    final String expected = "All integrations with type ='EMAIL' for project with "
+        + "name ='test_project' have been successfully deleted";
     assertEquals(
-        "All integrations with type ='EMAIL' for project with name ='test_project' have been successfully deleted",
+        expected,
         operationCompletionRs.getResultMessage()
     );
 

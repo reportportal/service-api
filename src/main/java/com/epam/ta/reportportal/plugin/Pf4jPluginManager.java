@@ -50,6 +50,13 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 
   private final ApplicationEventPublisher applicationEventPublisher;
 
+  /**
+   * Constructor with required components.
+   *
+   * @param pluginManager              {@link PluginManager}
+   * @param autowireCapableBeanFactory {@link AutowireCapableBeanFactory}
+   * @param applicationEventPublisher  {@link ApplicationEventPublisher}
+   */
   public Pf4jPluginManager(PluginManager pluginManager,
       AutowireCapableBeanFactory autowireCapableBeanFactory,
       ApplicationEventPublisher applicationEventPublisher) {

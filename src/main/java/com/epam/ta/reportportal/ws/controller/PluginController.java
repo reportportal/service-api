@@ -71,12 +71,12 @@ public class PluginController {
   /**
    * Controller constructor with required handlers.
    *
-   * @param createPluginHandler {@link CreatePluginHandler}
-   * @param updatePluginHandler {@link UpdatePluginHandler}
-   * @param getPluginHandler {@link GetPluginHandler}
-   * @param deletePluginHandler {@link DeletePluginHandler}
+   * @param createPluginHandler       {@link CreatePluginHandler}
+   * @param updatePluginHandler       {@link UpdatePluginHandler}
+   * @param getPluginHandler          {@link GetPluginHandler}
+   * @param deletePluginHandler       {@link DeletePluginHandler}
    * @param executeIntegrationHandler {@link ExecuteIntegrationHandler}
-   * @param projectExtractor {@link ProjectExtractor}
+   * @param projectExtractor          {@link ProjectExtractor}
    */
   @Autowired
   public PluginController(CreatePluginHandler createPluginHandler,
@@ -131,6 +131,16 @@ public class PluginController {
     return deletePluginHandler.deleteById(id, user);
   }
 
+  /**
+   * End-point for plugin commands execution.
+   *
+   * @param projectName     user project name
+   * @param pluginName      plugin name to execute command
+   * @param command         command name for execution
+   * @param executionParams command execution parameters
+   * @param user            {@link ReportPortalUser} that executes command
+   * @return execution result
+   */
   @Transactional
   @PutMapping(value = "{projectName}/{pluginName}/common/{command}", consumes = {
       APPLICATION_JSON_VALUE})

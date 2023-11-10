@@ -38,7 +38,7 @@ import org.springframework.beans.factory.support.AbstractAutowireCapableBeanFact
  */
 class ReportPortalExtensionFactoryTest {
 
-  private final static String RESOURCES_DIR = "resources";
+  private static final String RESOURCES_DIR = "resources";
 
   private final PluginManager pluginManager = mock(PluginManager.class);
   private final PluginWrapper pluginWrapper = mock(PluginWrapper.class);
@@ -90,7 +90,7 @@ class ReportPortalExtensionFactoryTest {
     verify(beanFactory, times(1)).registerSingleton(pluginWrapper.getDescriptor().getPluginId(),
         pluginBean);
     verify(beanFactory, times(1)).registerDisposableBean(
-        pluginWrapper.getDescriptor().getPluginId(), (DisposableBean) pluginBean);
+        pluginWrapper.getDescriptor().getPluginId(), pluginBean);
 
   }
 

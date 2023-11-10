@@ -21,6 +21,8 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 /**
+ * Container for plugin properties.
+ *
  * @author <a href="mailto:budaevqwerty@gmail.com">Ivan Budayeu</a>
  */
 public class PluginMetadata {

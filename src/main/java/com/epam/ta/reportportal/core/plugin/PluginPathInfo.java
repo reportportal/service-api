@@ -19,6 +19,8 @@ package com.epam.ta.reportportal.core.plugin;
 import java.nio.file.Path;
 
 /**
+ * Container for plugin binaries store info.
+ *
  * @author <a href="mailto:budaevqwerty@gmail.com">Ivan Budayeu</a>
  */
 public class PluginPathInfo {
@@ -28,9 +30,20 @@ public class PluginPathInfo {
   private String fileName;
   private String fileId;
 
+  /**
+   * Default constructor.
+   */
   public PluginPathInfo() {
   }
 
+  /**
+   * All args constructor.
+   *
+   * @param pluginPath    path to plugin file
+   * @param resourcesPath path to plugin resources
+   * @param fileName      plugin file name
+   * @param fileId        plugin file id
+   */
   public PluginPathInfo(Path pluginPath, Path resourcesPath, String fileName, String fileId) {
     this.pluginPath = pluginPath;
     this.resourcesPath = resourcesPath;

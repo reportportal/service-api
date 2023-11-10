@@ -24,10 +24,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 /**
+ * Validator to check that plugin version was provided.
+ *
  * @author <a href="mailto:budaevqwerty@gmail.com">Ivan Budayeu</a>
  */
 @Service
-public class PluginPropertiesValidator implements PluginInfoValidator {
+public class PluginVersionValidator implements PluginInfoValidator {
 
   @Override
   public void validate(PluginInfo pluginInfo) throws PluginValidationException {

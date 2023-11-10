@@ -42,6 +42,8 @@ import java.nio.file.Path;
 import java.util.Optional;
 import org.apache.commons.lang3.BooleanUtils;
 import org.pf4j.PluginWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -52,6 +54,8 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Service
 public class CreatePluginHandlerImpl implements CreatePluginHandler {
+
+  private static final Logger logger = LoggerFactory.getLogger(CreatePluginHandlerImpl.class);
 
   private final PluginFileManager pluginFileManager;
   private final PluginInfoResolver pluginInfoResolver;
@@ -100,6 +104,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
       previousPlugin.map(PluginWrapper::getPluginPath).ifPresent(pluginFileManager::delete);
       return integrationType;
     } catch (Exception ex) {
+      logger.error(ex.getMessage(), ex);
       previousPlugin.ifPresent(p -> loadPreviousPlugin(p, pluginPathInfo));
       throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, ex.getMessage());
     } finally {

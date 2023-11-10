@@ -9,6 +9,8 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.pf4j.PluginDescriptor;
 import org.pf4j.PluginDescriptorFinder;
 import org.pf4j.PluginException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,9 @@ import java.util.List;
  */
 @Service
 public class DefaultPluginInfoResolver implements PluginInfoResolver {
+
+  private static final Logger logger = LoggerFactory.getLogger(DefaultPluginInfoResolver.class);
+
 
   private final PluginDescriptorFinder pluginDescriptorFinder;
   private final List<PluginInfoValidator> pluginInfoValidators;
@@ -43,6 +48,7 @@ public class DefaultPluginInfoResolver implements PluginInfoResolver {
       validateInfo(pluginInfo);
       return pluginInfo;
     } catch (PluginException e) {
+      logger.error(e.getMessage(), e);
       throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, e.getMessage());
     }
   }

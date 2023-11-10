@@ -38,6 +38,8 @@ public class SuggestRq {
 
   private String launchName;
 
+  private Long launchNumber;
+
   private Long project;
 
   private AnalyzerConfig analyzerConfig;
@@ -117,5 +119,13 @@ public class SuggestRq {
 
   public void setLogs(Set<IndexLog> logs) {
     this.logs = logs;
+  }
+
+  public Long getLaunchNumber() {
+    return launchNumber;
+  }
+
+  public void setLaunchNumber(Long launchNumber) {
+    this.launchNumber = launchNumber;
   }
 }

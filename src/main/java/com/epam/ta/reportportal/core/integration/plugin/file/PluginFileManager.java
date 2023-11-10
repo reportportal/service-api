@@ -68,7 +68,7 @@ public interface PluginFileManager {
   /**
    * Delete plugin binaries by plugin file id.
    *
-   * @param fileId {@link} plugin file id
+   * @param fileId plugin file id
    */
   void delete(String fileId);
 }

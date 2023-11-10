@@ -21,6 +21,8 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import java.util.Optional;
 
 /**
+ * Handler that provides CRU (create, read, update) operations for {@link IntegrationType} entity
+ *
  * @author <a href="mailto:budaevqwerty@gmail.com">Ivan Budayeu</a>
  */
 public interface IntegrationTypeHandler {

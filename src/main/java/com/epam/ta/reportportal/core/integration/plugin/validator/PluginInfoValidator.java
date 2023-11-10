@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.core.integration.plugin.validator.exception.Plug
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 
 /**
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * @author <a href="mailto:budaevqwerty@gmail.com">Ivan Budayeu</a>
  */
 public interface PluginInfoValidator {
 

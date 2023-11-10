@@ -38,7 +38,7 @@ import org.springframework.beans.factory.support.AbstractAutowireCapableBeanFact
  */
 class ReportPortalExtensionFactoryTest {
 
-  private final String RESOURCES_DIR = "resources";
+  private final static String RESOURCES_DIR = "resources";
 
   private final PluginManager pluginManager = mock(PluginManager.class);
   private final PluginWrapper pluginWrapper = mock(PluginWrapper.class);
@@ -47,7 +47,7 @@ class ReportPortalExtensionFactoryTest {
   private final AbstractAutowireCapableBeanFactory beanFactory = mock(
       AbstractAutowireCapableBeanFactory.class);
 
-  private final ReportPortalExtensionFactory reportPortalExtensionFactory = new ReportPortalExtensionFactory(
+  private final ReportPortalExtensionFactory extensionFactory = new ReportPortalExtensionFactory(
       RESOURCES_DIR,
       pluginManager,
       beanFactory
@@ -61,7 +61,7 @@ class ReportPortalExtensionFactoryTest {
     when(beanFactory.containsSingleton(pluginWrapper.getPluginId())).thenReturn(true);
     when(beanFactory.getSingleton("testId")).thenReturn(new DummyPluginBean("testId"));
 
-    DummyPluginBean pluginBean = (DummyPluginBean) reportPortalExtensionFactory.create(
+    DummyPluginBean pluginBean = (DummyPluginBean) extensionFactory.create(
         DummyPluginBean.class);
 
     assertEquals(pluginWrapper.getPluginId(), pluginBean.getId());
@@ -76,7 +76,7 @@ class ReportPortalExtensionFactoryTest {
     when(pluginManager.whichPlugin(any())).thenReturn(pluginWrapper);
     when(beanFactory.containsSingleton(pluginWrapper.getPluginId())).thenReturn(false);
 
-    DummyPluginBean pluginBean = (DummyPluginBean) reportPortalExtensionFactory.create(
+    DummyPluginBean pluginBean = (DummyPluginBean) extensionFactory.create(
         DummyPluginBean.class);
 
     assertEquals("resources" + File.separator + "testId",

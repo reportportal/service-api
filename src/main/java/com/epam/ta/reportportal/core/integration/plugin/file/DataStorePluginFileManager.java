@@ -68,6 +68,17 @@ public class DataStorePluginFileManager implements PluginFileManager {
 
   private final FeatureFlagHandler featureFlagHandler;
 
+  /**
+   * Constructors with required components.
+   *
+   * @param pluginsTempPath    path to the plugins directory for temporary uploads
+   * @param pluginsDir         root plugins directory
+   * @param resourcesDir       plugins' resources directory
+   * @param fileValidators     {@link List} of {@link FileValidator}
+   * @param dataStore          {@link DataStore}
+   * @param featureFlagHandler {@link FeatureFlagHandler}
+   * @throws IOException if directories creation fails
+   */
   @Autowired
   public DataStorePluginFileManager(@Value("${rp.plugins.temp.path}") String pluginsTempPath,
       @Value("${rp.plugins.path}") String pluginsDir,
@@ -178,7 +189,8 @@ public class DataStorePluginFileManager implements PluginFileManager {
     try {
       FileUtils.deleteDirectory(path.toFile());
     } catch (IOException e) {
-      //error during temp plugin is not crucial, temp files cleaning will be delegated to the plugins cleaning job
+      //error during temp plugin is not crucial,
+      //temp files cleaning will be delegated to the plugins cleaning job
       LOGGER.error("Error during plugin file removing: '{}'", e.getMessage());
     }
   }
@@ -186,7 +198,7 @@ public class DataStorePluginFileManager implements PluginFileManager {
   /**
    * Delete plugin binaries form {@link DataStore}.
    *
-   * @param fileId {@link} plugin file id
+   * @param fileId plugin file id
    */
   @Override
   public void delete(String fileId) {

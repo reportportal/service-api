@@ -21,7 +21,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 /**
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * @author <a href="mailto:budaevqwerty@gmail.com">Ivan Budayeu</a>
  */
 public class PluginMetadata {
 

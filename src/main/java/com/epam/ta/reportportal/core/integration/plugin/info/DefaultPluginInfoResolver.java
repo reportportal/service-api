@@ -48,6 +48,13 @@ public class DefaultPluginInfoResolver implements PluginInfoResolver {
   private final List<PluginInfoValidator> pluginInfoValidators;
   private final PluginFileManager pluginFileManager;
 
+  /**
+   * Constructor with required components.
+   *
+   * @param pluginDescriptorFinder {@link PluginDescriptorFinder}
+   * @param pluginInfoValidators   {@link List} of {@link PluginInfoValidator}
+   * @param pluginFileManager      {@link PluginFileManager}
+   */
   @Autowired
   public DefaultPluginInfoResolver(PluginDescriptorFinder pluginDescriptorFinder,
       List<PluginInfoValidator> pluginInfoValidators,

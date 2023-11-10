@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.configs;
 
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.ta.reportportal.core.integration.plugin.file.validator.ExtensionValidator;
 import com.epam.ta.reportportal.core.integration.plugin.file.validator.FileValidator;
@@ -24,7 +26,20 @@ import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.plugin.PluginFileExtension;
 import com.epam.ta.reportportal.plugin.Pf4jPluginManager;
 import com.epam.ta.reportportal.plugin.ReportPortalExtensionFactory;
-import org.pf4j.*;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.activation.FileTypeMap;
+import org.pf4j.DefaultExtensionFinder;
+import org.pf4j.DefaultPluginManager;
+import org.pf4j.ExtensionFactory;
+import org.pf4j.ExtensionFinder;
+import org.pf4j.LegacyExtensionFinder;
+import org.pf4j.ManifestPluginDescriptorFinder;
+import org.pf4j.PluginDescriptorFinder;
+import org.pf4j.PluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -32,15 +47,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.ConfigurableMimeFileTypeMap;
-
-import javax.activation.FileTypeMap;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static java.util.Optional.ofNullable;
 
 @Configuration
 public class PluginConfiguration {
@@ -113,8 +119,8 @@ public class PluginConfiguration {
   @Bean
   public FileValidator extensionValidator() {
     final Set<String> allowedExtensions = Arrays.stream(PluginFileExtension.values())
-            .map(v -> v.getExtension().split("\\.")[1])
-            .collect(Collectors.toSet());
+        .map(v -> v.getExtension().split("\\.")[1])
+        .collect(Collectors.toSet());
     return new ExtensionValidator(allowedExtensions);
   }
 

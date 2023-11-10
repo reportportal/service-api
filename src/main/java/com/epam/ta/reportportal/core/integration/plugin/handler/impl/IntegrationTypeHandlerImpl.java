@@ -31,6 +31,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Implementation of {@link IntegrationTypeHandler} that provides CRU (create, read, update)
+ * operations for {@link IntegrationType} entity
+ *
  * @author <a href="mailto:budaevqwerty@gmail.com">Ivan Budayeu</a>
  */
 @Service

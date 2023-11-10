@@ -30,7 +30,6 @@ import static org.mockito.Mockito.when;
 import com.epam.ta.reportportal.ReportPortalUserUtil;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.integration.DeleteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
@@ -55,7 +54,7 @@ public class DeleteIntegrationHandlerTest {
   private final ProjectRepository projectRepository = mock(ProjectRepository.class);
   private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
-  private final DeleteIntegrationHandler deleteIntegrationHandler = new DeleteIntegrationHandlerImpl(
+  private final DeleteIntegrationHandlerImpl handler = new DeleteIntegrationHandlerImpl(
       integrationRepository,
       projectRepository,
       integrationTypeRepository,
@@ -79,14 +78,14 @@ public class DeleteIntegrationHandlerTest {
 
     doNothing().when(integrationRepository).deleteById(emailIntegrationId);
 
-    OperationCompletionRS operationCompletionRS = deleteIntegrationHandler.deleteGlobalIntegration(
+    OperationCompletionRS operationCompletionRs = handler.deleteGlobalIntegration(
         emailIntegrationId, user);
 
-    assertNotNull(operationCompletionRS);
+    assertNotNull(operationCompletionRs);
     assertEquals(
         Suppliers.formattedSupplier("Global integration with id = {} has been successfully removed",
             emailIntegrationId).get(),
-        operationCompletionRS.getResultMessage()
+        operationCompletionRs.getResultMessage()
     );
 
   }
@@ -103,14 +102,14 @@ public class DeleteIntegrationHandlerTest {
     when(integrationTypeRepository.findByName(anyString())).thenReturn(
         Optional.of(IntegrationTestUtil.getEmailIntegrationType()));
 
-    OperationCompletionRS operationCompletionRS = deleteIntegrationHandler.deleteGlobalIntegrationsByType(
+    OperationCompletionRS operationCompletionRs = handler.deleteGlobalIntegrationsByType(
         "EMAIL", user);
     verify(integrationRepository, times(1)).deleteAllGlobalByIntegrationTypeId(anyLong());
 
-    assertNotNull(operationCompletionRS);
+    assertNotNull(operationCompletionRs);
     assertEquals(
         "All global integrations with type ='EMAIL' integrations have been successfully removed.",
-        operationCompletionRS.getResultMessage()
+        operationCompletionRs.getResultMessage()
     );
   }
 
@@ -139,16 +138,16 @@ public class DeleteIntegrationHandlerTest {
 
     doNothing().when(integrationRepository).deleteById(emailIntegrationId);
 
-    OperationCompletionRS operationCompletionRS = deleteIntegrationHandler.deleteProjectIntegration(
+    OperationCompletionRS operationCompletionRs = handler.deleteProjectIntegration(
         emailIntegrationId,
         TEST_PROJECT_NAME,
         user
     );
 
-    assertNotNull(operationCompletionRS);
+    assertNotNull(operationCompletionRs);
     assertEquals(
         "Integration with ID = '" + emailIntegrationId + "' has been successfully deleted.",
-        operationCompletionRS.getResultMessage()
+        operationCompletionRs.getResultMessage()
     );
   }
 
@@ -178,7 +177,7 @@ public class DeleteIntegrationHandlerTest {
     when(integrationTypeRepository.findByName(anyString())).thenReturn(
         Optional.ofNullable(IntegrationTestUtil.getEmailIntegrationType()));
 
-    OperationCompletionRS operationCompletionRS = deleteIntegrationHandler.deleteProjectIntegrationsByType(
+    OperationCompletionRS operationCompletionRs = handler.deleteProjectIntegrationsByType(
         "EMAIL",
         TEST_PROJECT_NAME,
         user
@@ -186,10 +185,10 @@ public class DeleteIntegrationHandlerTest {
     verify(integrationRepository, times(1)).deleteAllByProjectIdAndIntegrationTypeId(anyLong(),
         anyLong());
 
-    assertNotNull(operationCompletionRS);
+    assertNotNull(operationCompletionRs);
     assertEquals(
         "All integrations with type ='EMAIL' for project with name ='test_project' have been successfully deleted",
-        operationCompletionRS.getResultMessage()
+        operationCompletionRs.getResultMessage()
     );
 
   }

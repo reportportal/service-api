@@ -26,6 +26,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
+ * Service that provides plugin load/unload mechanism.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
@@ -38,6 +40,13 @@ public class PluginLoaderImpl implements PluginLoader {
   private final PluginFileManager pluginFileManager;
   private final Pf4jPluginBox pluginBox;
 
+  /**
+   * Constructor with required components.
+   *
+   * @param pluginsDir        root plugins directory
+   * @param pluginFileManager {@link PluginFileManager}
+   * @param pluginBox         {@link Pf4jPluginBox}
+   */
   @Autowired
   public PluginLoaderImpl(@Value("${rp.plugins.path}") String pluginsDir,
       PluginFileManager pluginFileManager, Pf4jPluginBox pluginBox) {

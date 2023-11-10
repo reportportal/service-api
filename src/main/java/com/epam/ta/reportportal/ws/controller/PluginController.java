@@ -68,6 +68,16 @@ public class PluginController {
   private final ExecuteIntegrationHandler executeIntegrationHandler;
   private final ProjectExtractor projectExtractor;
 
+  /**
+   * Controller constructor with required handlers.
+   *
+   * @param createPluginHandler {@link CreatePluginHandler}
+   * @param updatePluginHandler {@link UpdatePluginHandler}
+   * @param getPluginHandler {@link GetPluginHandler}
+   * @param deletePluginHandler {@link DeletePluginHandler}
+   * @param executeIntegrationHandler {@link ExecuteIntegrationHandler}
+   * @param projectExtractor {@link ProjectExtractor}
+   */
   @Autowired
   public PluginController(CreatePluginHandler createPluginHandler,
       UpdatePluginHandler updatePluginHandler,

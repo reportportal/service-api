@@ -17,7 +17,9 @@
 package com.epam.ta.reportportal.core.integration.plugin.validator.exception;
 
 /**
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * Exception for invalid plugin cases.
+ *
+ * @author <a href="mailto:budaevqwerty@gmail.com">Ivan Budayeu</a>
  */
 public class PluginValidationException extends Exception {
 

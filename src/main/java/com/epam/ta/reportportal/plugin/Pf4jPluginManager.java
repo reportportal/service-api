@@ -350,7 +350,13 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
             return newIntegrationType;
           } catch (Exception ex) {
             previousPlugin.ifPresent(p -> loadPreviousPlugin(p, newPluginDetails));
-            throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, ex.getMessage());
+            Throwable exception = ex;
+            String exMessage = exception.toString();
+            while (exception.getCause() != null) {
+              exception = exception.getCause();
+              exMessage += exception.toString() + "\n";
+            }
+            throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, exMessage);
           }
         }).orElseThrow(() -> {
       previousPlugin.ifPresent(p -> loadPreviousPlugin(p, pluginDetails));

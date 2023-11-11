@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.analyzer.pattern.handler.impl;
 
-import com.epam.ta.reportportal.core.analyzer.pattern.handler.ItemsPatternsAnalyzer;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.PatternAnalysisSelector;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.PatternMatchedEvent;
@@ -39,7 +38,7 @@ import org.springframework.util.CollectionUtils;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
-public class ItemsPatternAnalyzerImpl implements ItemsPatternsAnalyzer {
+public class ItemsPatternAnalyzerImpl {
 
   private final PatternTemplateRepository patternTemplateRepository;
 
@@ -58,13 +57,7 @@ public class ItemsPatternAnalyzerImpl implements ItemsPatternsAnalyzer {
     this.messageBus = messageBus;
   }
 
-  @Override
-  public void analyze(long projectId, long launchId, List<Long> itemIds) {
-    patternTemplateRepository.findAllByProjectIdAndEnabled(
-        projectId, true).forEach(pattern -> analyzeByPattern(pattern, launchId, itemIds));
-  }
-
-  private void analyzeByPattern(PatternTemplate pattern, Long launchId, List<Long> itemIds) {
+  public void analyzeByPattern(PatternTemplate pattern, Long launchId, List<Long> itemIds) {
     List<Long> filtered = filterAlreadyMatched(pattern, itemIds);
     PatternAnalysisSelector patternAnalysisSelector = patternAnalysisSelectorMapping.get(
         pattern.getTemplateType());

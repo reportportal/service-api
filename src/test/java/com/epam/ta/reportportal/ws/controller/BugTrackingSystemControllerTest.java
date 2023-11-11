@@ -222,15 +222,9 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
   }
 
   private List<PostFormField> getPostFormFields() {
-
-    PostFormField field = new PostFormField("id",
-        "name",
-        "type",
-        true,
-        Lists.newArrayList("value"),
-        Lists.newArrayList(new AllowedValue("id", "name"))
-    );
-
+    PostFormField field = PostFormField.builder().id("id").fieldName("name")
+        .fieldType("type").isRequired(true)
+        .value(List.of("value")).definedValues(List.of(new AllowedValue("id", "name"))).build();
     return Lists.newArrayList(field);
   }
 }

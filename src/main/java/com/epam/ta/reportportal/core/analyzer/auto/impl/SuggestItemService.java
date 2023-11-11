@@ -151,6 +151,7 @@ public class SuggestItemService {
     suggestRq.setLaunchName(launch.getName());
     suggestRq.setProject(project.getId());
     suggestRq.setAnalyzerConfig(getAnalyzerConfig(project));
+    suggestRq.setLaunchNumber(launch.getNumber());
     return suggestRq;
   }
 

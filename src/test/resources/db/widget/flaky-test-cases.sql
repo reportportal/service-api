@@ -117,6 +117,17 @@ update test_item_results
 set status   = 'FAILED',
     end_time = now()
 where result_id = 10;
+
+insert into test_item(test_case_hash, item_id, uuid, name, type, start_time, description, unique_id,
+                      last_modified, path, parent_id, launch_id)
+values (11, 11, 'uuid11', 'test item 4', 'STEP', now(), 'desc', 'uuid4', now(), '11', null, 2);
+insert into test_item_results(result_id, status)
+values (11, 'IN_PROGRESS');
+update test_item_results
+set status   = 'FAILED',
+    end_time = now()
+where result_id = 11;
+
 insert into issue(issue_id, issue_type, issue_description, auto_analyzed, ignore_analyzer)
 values (10, 1, 'to investigate', false, true);
 

@@ -85,11 +85,11 @@ dependencies {
     } else {
         compile 'com.github.reportportal:commons-events:e337f8b7be'
         compile 'com.github.reportportal:commons-dao:fb01d820'
-        compile 'com.github.reportportal:commons-rules:12ce5d4'
-        compile 'com.github.reportportal:commons-model:67c5f50'
+        compile 'com.github.reportportal:commons-rules:8a83e18'
+        compile 'com.github.reportportal:commons-model:bf40974'
         compile 'com.github.reportportal:commons:ce2166b'
         compile 'com.github.reportportal:commons-fonts:d6e62dd'
-        compile 'com.github.reportportal:plugin-api:fb8845f'
+        compile 'com.github.reportportal:plugin-api:bc96df2'
     }
 
     compile 'org.springframework.boot:spring-boot-starter-aop'

@@ -49,11 +49,8 @@ public class UserPhotoRemover implements ContentRemover<User> {
     ofNullable(user.getAttachment()).ifPresent(fileId -> {
       List<Long> attachmentsIds = new ArrayList<>(2);
       attachmentsIds.add(prepareAttachmentAndGetId(fileId));
-      user.setAttachment(null);
-      Optional.ofNullable(user.getAttachmentThumbnail()).ifPresent(thumbnailId -> {
-        attachmentsIds.add(prepareAttachmentAndGetId(thumbnailId));
-        user.setAttachmentThumbnail(null);
-      });
+      Optional.ofNullable(user.getAttachmentThumbnail())
+          .ifPresent(thumbnailId -> attachmentsIds.add(prepareAttachmentAndGetId(thumbnailId)));
       ofNullable(user.getMetadata()).ifPresent(
           metadata -> metadata.getMetadata().remove(ATTACHMENT_CONTENT_TYPE));
       attachmentRepository.moveForDeletion(attachmentsIds);

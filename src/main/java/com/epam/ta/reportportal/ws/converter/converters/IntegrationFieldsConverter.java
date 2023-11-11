@@ -35,16 +35,19 @@ import org.apache.commons.collections.CollectionUtils;
  */
 public final class IntegrationFieldsConverter {
 
-  private IntegrationFieldsConverter() {
-    //static only
-  }
-
+  public static final Function<AllowedValue, DefectFieldAllowedValue> VALUE_TO_DB = value -> {
+    Preconditions.checkNotNull(value);
+    DefectFieldAllowedValue allowedValue = new DefectFieldAllowedValue();
+    allowedValue.setValueId(value.getValueId());
+    allowedValue.setValueName(value.getValueName());
+    return allowedValue;
+  };
   public static final Function<PostFormField, DefectFormField> FIELD_TO_DB = field -> {
     Preconditions.checkNotNull(field);
     DefectFormField defectFormField = new DefectFormField();
     defectFormField.setFieldId(field.getId());
     defectFormField.setType(field.getFieldType());
-    defectFormField.setRequired(field.getIsRequired());
+    defectFormField.setRequired(field.isRequired());
     if (!CollectionUtils.isEmpty(field.getValue())) {
       defectFormField.setValues(new HashSet<>(field.getValue()));
     }
@@ -55,28 +58,6 @@ public final class IntegrationFieldsConverter {
             .collect(Collectors.toSet())).orElseGet(Sets::newHashSet));
     return defectFormField;
   };
-
-  public static final Function<DefectFormField, PostFormField> FIELD_TO_MODEL = defectFormField -> {
-    Preconditions.checkNotNull(defectFormField);
-    PostFormField postFormField = new PostFormField();
-    postFormField.setId(defectFormField.getFieldId());
-    postFormField.setFieldType(defectFormField.getType());
-    postFormField.setIsRequired(defectFormField.isRequired());
-    postFormField.setDefinedValues(defectFormField.getDefectFieldAllowedValues().stream()
-        .map(IntegrationFieldsConverter.VALUE_TO_MODEL)
-        .collect(Collectors.toList()));
-    postFormField.setValue(new ArrayList<>(defectFormField.getValues()));
-    return postFormField;
-  };
-
-  public static final Function<AllowedValue, DefectFieldAllowedValue> VALUE_TO_DB = value -> {
-    Preconditions.checkNotNull(value);
-    DefectFieldAllowedValue allowedValue = new DefectFieldAllowedValue();
-    allowedValue.setValueId(value.getValueId());
-    allowedValue.setValueName(value.getValueName());
-    return allowedValue;
-  };
-
   public static final Function<DefectFieldAllowedValue, AllowedValue> VALUE_TO_MODEL = defectFieldAllowedValue -> {
     Preconditions.checkNotNull(defectFieldAllowedValue);
     AllowedValue allowedValue = new AllowedValue();
@@ -84,4 +65,20 @@ public final class IntegrationFieldsConverter {
     allowedValue.setValueName(defectFieldAllowedValue.getValueName());
     return allowedValue;
   };
+  public static final Function<DefectFormField, PostFormField> FIELD_TO_MODEL = defectFormField -> {
+    Preconditions.checkNotNull(defectFormField);
+    PostFormField postFormField = new PostFormField();
+    postFormField.setId(defectFormField.getFieldId());
+    postFormField.setFieldType(defectFormField.getType());
+    postFormField.setRequired(defectFormField.isRequired());
+    postFormField.setDefinedValues(defectFormField.getDefectFieldAllowedValues().stream()
+        .map(IntegrationFieldsConverter.VALUE_TO_MODEL)
+        .collect(Collectors.toList()));
+    postFormField.setValue(new ArrayList<>(defectFormField.getValues()));
+    return postFormField;
+  };
+
+  private IntegrationFieldsConverter() {
+    //static only
+  }
 }

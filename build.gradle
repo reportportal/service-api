@@ -84,9 +84,9 @@ dependencies {
         compile 'com.epam.reportportal:plugin-api'
     } else {
         compile 'com.github.reportportal:commons-events:e337f8b7be'
-        compile 'com.github.reportportal:commons-dao:d8b020fe'
+        compile 'com.github.reportportal:commons-dao:5f1bec3'
         compile 'com.github.reportportal:commons-rules:8a83e18'
-        compile 'com.github.reportportal:commons-model:bf40974'
+        compile 'com.github.reportportal:commons-model:6ee9287'
         compile 'com.github.reportportal:commons:ce2166b'
         compile 'com.github.reportportal:commons-fonts:d6e62dd'
         compile 'com.github.reportportal:plugin-api:bc96df2'
@@ -151,6 +151,12 @@ dependencies {
 
     // Metrics
     compile 'io.micrometer:micrometer-registry-prometheus:1.7.10'
+
+    // add lombok support
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
     //  Tests
     testCompile 'org.springframework.boot:spring-boot-starter-test'

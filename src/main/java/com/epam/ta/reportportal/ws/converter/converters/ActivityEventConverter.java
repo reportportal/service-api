@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.model.ActivityEventResource;
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -43,6 +44,7 @@ public final class ActivityEventConverter {
           .projectName(activity.getProjectName())
           .subjectName(activity.getSubjectName())
           .subjectType(activity.getSubjectType().getValue())
+          .subjectId(Objects.toString(activity.getSubjectId(), null))
           .details(activity.getDetails())
           .build();
 

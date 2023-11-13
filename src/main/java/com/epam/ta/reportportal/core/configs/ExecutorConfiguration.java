@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTask;
 import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTaskAsync;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -64,12 +63,6 @@ public class ExecutorConfiguration {
     executor.setRejectedExecutionHandler(
         new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
     return executor;
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  public SaveLogBinaryDataTask saveLogBinaryDataTask() {
-    return new SaveLogBinaryDataTask();
   }
 
   @Bean
@@ -160,7 +153,8 @@ public class ExecutorConfiguration {
   public TaskExecutor eventListenerExecutor(
       @Value("${rp.environment.variable.executor.pool.event-listener.core}") Integer corePoolSize,
       @Value("${rp.environment.variable.executor.pool.event-listener.max}") Integer maxPoolSize,
-      @Value("${rp.environment.variable.executor.pool.event-listener.queue}") Integer queueCapacity) {
+      @Value("${rp.environment.variable.executor.pool.event-listener.queue}")
+      Integer queueCapacity) {
     final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
     threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
     threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);

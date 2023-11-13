@@ -33,6 +33,8 @@ public class SuggestInfo {
 
   private String launchName;
 
+  private Long launchNumber;
+
   private String issueType;
 
   private Long relevantItem;
@@ -241,5 +243,13 @@ public class SuggestInfo {
 
   public void setClusterId(Long clusterId) {
     this.clusterId = clusterId;
+  }
+
+  public Long getLaunchNumber() {
+    return launchNumber;
+  }
+
+  public void setLaunchNumber(Long launchNumber) {
+    this.launchNumber = launchNumber;
   }
 }

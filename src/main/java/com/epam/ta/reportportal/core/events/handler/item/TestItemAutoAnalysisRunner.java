@@ -32,7 +32,7 @@ import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
- * Run auto analyzer for finished test item with immediateAA attribute.
+ * Run auto analyzer for finished test item with immediateAutoAnalysis attribute.
  *
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
 public class TestItemAutoAnalysisRunner implements
     ConfigurableEventHandler<TestItemFinishedEvent, Map<String, String>> {
 
-  protected static final String IMMEDIATE_AUTO_ANALYSIS = "immediateAA";
+  protected static final String IMMEDIATE_AUTO_ANALYSIS = "immediateAutoAnalysis";
 
   private final AnalyzerService analyzerService;
 

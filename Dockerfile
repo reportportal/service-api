@@ -1,4 +1,4 @@
-FROM gradle:6.8.3-jdk11 AS build
+FROM --platform=$BUILDPLATFORM gradle:6.8.3-jdk11 AS build
 ARG RELEASE_MODE
 ARG APP_VERSION
 ARG GITHUB_USER

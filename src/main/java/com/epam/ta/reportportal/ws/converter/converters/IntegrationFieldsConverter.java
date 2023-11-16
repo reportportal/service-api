@@ -47,7 +47,7 @@ public final class IntegrationFieldsConverter {
     DefectFormField defectFormField = new DefectFormField();
     defectFormField.setFieldId(field.getId());
     defectFormField.setType(field.getFieldType());
-    defectFormField.setRequired(field.isRequired());
+    defectFormField.setRequired(field.getIsRequired());
     if (!CollectionUtils.isEmpty(field.getValue())) {
       defectFormField.setValues(new HashSet<>(field.getValue()));
     }
@@ -70,7 +70,7 @@ public final class IntegrationFieldsConverter {
     PostFormField postFormField = new PostFormField();
     postFormField.setId(defectFormField.getFieldId());
     postFormField.setFieldType(defectFormField.getType());
-    postFormField.setRequired(defectFormField.isRequired());
+    postFormField.setIsRequired(defectFormField.isRequired());
     postFormField.setDefinedValues(defectFormField.getDefectFieldAllowedValues().stream()
         .map(IntegrationFieldsConverter.VALUE_TO_MODEL)
         .collect(Collectors.toList()));

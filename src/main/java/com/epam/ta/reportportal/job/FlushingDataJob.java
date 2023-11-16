@@ -167,14 +167,9 @@ public class FlushingDataJob implements Job {
   }
 
   private void deleteProject(Project project) {
-    Set<Long> defaultIssueTypeIds = issueTypeRepository.getDefaultIssueTypes()
-        .stream()
-        .map(IssueType::getId)
-        .collect(Collectors.toSet());
     Set<IssueType> issueTypesToRemove = project.getProjectIssueTypes()
         .stream()
         .map(ProjectIssueType::getIssueType)
-        .filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
         .collect(Collectors.toSet());
     projectRepository.delete(project);
     analyzerServiceClient.removeSuggest(project.getId());

@@ -99,7 +99,7 @@ public class FlushingDataJob implements Job {
   @Value("${datastore.bucketPostfix}")
   private String bucketPostfix;
 
-  @Value("${datastore.defaultBucketName")
+  @Value("${datastore.defaultBucketName}")
   private String defaultBucketName;
 
   @Override
@@ -152,7 +152,7 @@ public class FlushingDataJob implements Job {
   private void createDefaultUser() {
     final CreateUserRQFull request = new CreateUserRQFull();
     request.setLogin("default");
-    request.setPassword(passwordEncoder.encode("1q2w3e"));
+    request.setPassword("1q2w3e");
     request.setEmail("defaultemail@domain.com");
     User user = new UserBuilder().addCreateUserFullRQ(request)
         .addUserRole(UserRole.USER)
@@ -171,14 +171,9 @@ public class FlushingDataJob implements Job {
   }
 
   private void deleteProject(Project project) {
-    Set<Long> defaultIssueTypeIds = issueTypeRepository.getDefaultIssueTypes()
-        .stream()
-        .map(IssueType::getId)
-        .collect(Collectors.toSet());
     Set<IssueType> issueTypesToRemove = project.getProjectIssueTypes()
         .stream()
         .map(ProjectIssueType::getIssueType)
-        .filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
         .collect(Collectors.toSet());
     projectRepository.delete(project);
     analyzerServiceClient.removeSuggest(project.getId());

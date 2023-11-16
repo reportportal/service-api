@@ -6,75 +6,38 @@ on:
       - "rc/*"
       - "hotfix/*"
 
-env:
-  AWS_REGION: ${{ vars.AWS_REGION }}         # set this to your preferred AWS region, e.g. us-west-1
-  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }} # set this to your Amazon ECR repository name
-  PLATFORMS: ${{ vars.BUILD_PLATFORMS }}     # set target build platforms. By default linux/amd64
-  RELEASE_MODE: ${{ vars.RELEASE_MODE }}
-
 jobs:
-  build-and-export:
-    name: Build and export to AWS ECR
+  variables-setup:
+    name: Setting variables for docker build
     runs-on: ubuntu-latest
     environment: rc
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          # role-to-assume: arn:aws:iam::123456789012:role/my-github-actions-role
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-        with:
-          mask-password: 'true'
-
       - name: Create variables
         id: vars
         run: |
+          echo "platforms=${{ vars.BUILD_PLATFORMS }}" >> $GITHUB_OUTPUT
+          echo "version=$(echo '${{ github.ref_name }}' | sed -nE 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/p')" >> $GITHUB_OUTPUT
           echo "tag=$(echo ${{ github.ref_name }}-${{ github.run_number }} | tr '/' '-')" >> $GITHUB_OUTPUT
           echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-          echo "version=$(echo '${{ github.ref_name }}' | sed -nE 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/p')" >> $GITHUB_OUTPUT
+    outputs:
+      platforms: ${{ steps.vars.outputs.platforms }}
+      version: ${{ steps.vars.outputs.version }}
+      tag: ${{ steps.vars.outputs.tag }}
+      date: ${{ steps.vars.outputs.date }}
       
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Build
-        uses: docker/build-push-action@v4
-        env:
-          VERSION: ${{ steps.vars.outputs.version }}
-          DATE: ${{ steps.vars.outputs.date }}
-          IMAGE_TAG: ${{ steps.vars.outputs.tag }}
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        with:
-          context: .
-          push: true
-          build-args: |
-            APP_VERSION=${{ env.VERSION }}
-            BUILD_DATE=${{ env.DATE }}
-            GITHUB_USER=${{ secrets.GH_USER }}
-            GITHUB_TOKEN=${{ secrets.GH_TOKEN }}
-            RELEASE_MODE=${{ env.RELEASE_MODE }}
-          platforms: ${{ env.PLATFORMS }}
-          tags: |
-            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
-            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-      
-      - name: Summarize
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ steps.vars.outputs.tag }}
-        run: |
-          echo "## General information about the build:" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- :gift: Docker image in Amazon ECR: ecr/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_STEP_SUMMARY
-          echo "- :octocat: The commit SHA from which the build was performed: [$GITHUB_SHA](https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA)" >> $GITHUB_STEP_SUMMARY
+  call-docker-build:
+    name: Call release candidate Docker build
+    needs: variables-setup
+    uses: reportportal/.github/.github/workflows/build-docker-image.yaml@main
+    with:
+      aws-region: ${{ vars.AWS_REGION }}
+      image-tag: ${{ needs.variables-setup.outputs.tag }}
+      release-mode: true
+      additional-tag: 'latest'
+      build-platforms: ${{ needs.variables-setup.outputs.platforms }}
+      version: ${{ needs.variables-setup.outputs.version }}
+      date: ${{ needs.variables-setup.outputs.date }}
+    secrets: inherit

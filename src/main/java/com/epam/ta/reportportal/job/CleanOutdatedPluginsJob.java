@@ -72,15 +72,15 @@ public class CleanOutdatedPluginsJob {
   @Scheduled(fixedDelayString = "${com.ta.reportportal.job.clean.outdated.plugins.cron}")
   public void execute() {
 
-    removeTemporaryPlugins();
-
-    List<IntegrationType> integrationTypes = integrationTypeRepository.findAll();
-    integrationTypes.stream()
-        .filter(it -> it.getDetails() == null || it.getDetails().getDetails() == null)
-        .forEach(pluginLoaderService::checkAndDeleteIntegrationType);
-
-    unloadRemovedPlugins(integrationTypes);
-    unloadDisabledPlugins(integrationTypes);
+//    removeTemporaryPlugins();
+//
+//    List<IntegrationType> integrationTypes = integrationTypeRepository.findAll();
+//    integrationTypes.stream()
+//        .filter(it -> it.getDetails() == null || it.getDetails().getDetails() == null)
+//        .forEach(pluginLoaderService::checkAndDeleteIntegrationType);
+//
+//    unloadRemovedPlugins(integrationTypes);
+//    unloadDisabledPlugins(integrationTypes);
   }
 
   private void removeTemporaryPlugins() {

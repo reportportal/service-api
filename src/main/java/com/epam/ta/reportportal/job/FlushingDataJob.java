@@ -130,11 +130,7 @@ public class FlushingDataJob implements Job {
    * Get exclusive lock. Kill all running transactions. Truncate tables
    */
   private void truncateTables() {
-    jdbcTemplate.execute("BEGIN; " + "SELECT PG_ADVISORY_XACT_LOCK(1);"
-        + "SELECT PG_TERMINATE_BACKEND(pid) FROM pg_stat_activity WHERE datname = 'reportportal'\n"
-        + "AND pid <> PG_BACKEND_PID()\n"
-        + "AND state IN "
-        + "('idle', 'idle in transaction', 'idle in transaction (aborted)', 'disabled'); "
+    jdbcTemplate.execute("BEGIN; "
         + "TRUNCATE TABLE launch RESTART IDENTITY CASCADE;"
         + "TRUNCATE TABLE activity RESTART IDENTITY CASCADE;"
         + "TRUNCATE TABLE owned_entity RESTART IDENTITY CASCADE;"
@@ -171,9 +167,14 @@ public class FlushingDataJob implements Job {
   }
 
   private void deleteProject(Project project) {
+    Set<Long> defaultIssueTypeIds = issueTypeRepository.getDefaultIssueTypes()
+        .stream()
+        .map(IssueType::getId)
+        .collect(Collectors.toSet());
     Set<IssueType> issueTypesToRemove = project.getProjectIssueTypes()
         .stream()
         .map(ProjectIssueType::getIssueType)
+        .filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
         .collect(Collectors.toSet());
     projectRepository.delete(project);
     analyzerServiceClient.removeSuggest(project.getId());

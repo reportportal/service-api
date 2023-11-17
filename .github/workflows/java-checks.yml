@@ -1,0 +1,22 @@
+name: Java checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '.github/**'
+      - README.md
+      - gradle.properties
+  push:
+    branches:
+      - master
+      - develop
+    paths-ignore:
+      - '.github/**'
+      - README.md
+      - gradle.properties
+
+jobs:
+  call-java-cheks:
+    name: Call Java checks
+    uses: reportportal/.github/.github/workflows/java-checks.yaml@main

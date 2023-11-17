@@ -70,7 +70,7 @@
                             You can start to use Auto-Analyzer on your project.
                         </p>
                         <p height='34' style="margin: 5px 0 0 0;font-size: 14px;color: #777777;">
-                            the search engine Index contains <b>${indexedLogsCount}</b> record(s) now.
+                            The search engine Index contains <b>${indexedLogsCount}</b> record(s) now.
                         </p>
                         <h3 style="margin:25px 0 0 0;font-size: 14px;font-weight: bold;color: #777777;">Your ReportPortal.io Team</h3>
                     </td>

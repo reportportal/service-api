@@ -39,7 +39,7 @@ class IntegrationFieldsConverterTest {
 
     assertEquals(defectFormField.getFieldId(), field.getId());
     assertEquals(defectFormField.getType(), field.getFieldType());
-    assertEquals(defectFormField.isRequired(), field.isRequired());
+    assertEquals(defectFormField.isRequired(), field.getIsRequired());
     assertThat(defectFormField.getValues()).containsExactlyElementsOf(field.getValue());
     assertThat(defectFormField.getDefectFieldAllowedValues()).hasSameSizeAs(
         field.getDefinedValues());
@@ -52,7 +52,7 @@ class IntegrationFieldsConverterTest {
         defectFormField);
 
     assertEquals(postFormField.getFieldType(), defectFormField.getType());
-    assertEquals(postFormField.isRequired(), defectFormField.isRequired());
+    assertEquals(postFormField.getIsRequired(), defectFormField.isRequired());
     assertThat(postFormField.getValue()).containsExactlyInAnyOrder("value1", "value2");
     assertThat(postFormField.getDefinedValues()).hasSameSizeAs(
         defectFormField.getDefectFieldAllowedValues());
@@ -62,7 +62,7 @@ class IntegrationFieldsConverterTest {
     final PostFormField postFormField = new PostFormField();
     postFormField.setFieldType("type");
     postFormField.setId("id");
-    postFormField.setRequired(true);
+    postFormField.setIsRequired(true);
     postFormField.setFieldName("name");
     final AllowedValue allowedValue = new AllowedValue();
     allowedValue.setValueId("valueId");

@@ -1,15 +1,11 @@
 FROM --platform=$BUILDPLATFORM gradle:6.8.3-jdk11 AS build
 ARG RELEASE_MODE
 ARG APP_VERSION
-ARG GITHUB_USER
-ARG GITHUB_TOKEN
 WORKDIR /usr/app
 COPY . /usr/app
 RUN if [ "${RELEASE_MODE}" = true ]; then \
     gradle build --exclude-task test \
         -PreleaseMode=true \
-        -PgithubUserName=${GITHUB_USER} \
-        -PgithubToken=${GITHUB_TOKEN} \
         -Dorg.gradle.project.version=${APP_VERSION}; \
     else gradle build --exclude-task test -Dorg.gradle.project.version=${APP_VERSION}; fi
 

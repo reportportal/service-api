@@ -37,19 +37,11 @@ project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from
 
 repositories {
     mavenCentral { url "https://repo1.maven.org/maven2" }
-    if (releaseMode) {
-        dependencyRepos.forEach { path ->
-            maven {
-                setUrl("https://maven.pkg.github.com/reportportal/${path}")
-                credentials {
-                    username = findProperty("githubUserName")
-                    password = findProperty("githubToken")
-                }
-            }
-        }
-    } else {
+
+    if (!releaseMode) {
         maven { url 'https://jitpack.io' }
     }
+
 //    maven { url "http://jasperreports.sourceforge.net/maven2" }
 //    maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
     maven { url "https://jaspersoft.jfrog.io/artifactory/third-party-ce-artifacts" }

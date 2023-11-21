@@ -62,7 +62,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Transactional
 public class CreateLogHandlerImpl implements CreateLogHandler {
 
-  private final Logger LOGGER = LoggerFactory.getLogger(CreateLogHandlerImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CreateLogHandlerImpl.class);
 
   @Autowired
   TestItemRepository testItemRepository;

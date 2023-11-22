@@ -41,6 +41,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
@@ -59,6 +61,8 @@ import org.springframework.web.multipart.MultipartFile;
 @Primary
 @Transactional
 public class CreateLogHandlerImpl implements CreateLogHandler {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(CreateLogHandlerImpl.class);
 
   @Autowired
   TestItemRepository testItemRepository;
@@ -103,15 +107,19 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 
     final LogFull logFull = logFullBuilder.get();
     final Log log = LOG_FULL_TO_LOG.apply(logFull);
-    CompletableFuture<Log> saveLogFuture =
-        CompletableFuture.supplyAsync(() -> logRepository.saveAndFlush(log));
-    logFull.setId(log.getId());
-    logService.saveLogMessage(logFull, launch.getId());
-
-    if (file != null) {
-      saveLogFuture.thenAcceptAsync(
-          savedLog -> saveBinaryData(file, launch, savedLog), taskExecutor);
-    }
+    CompletableFuture.supplyAsync(() -> logRepository.saveAndFlush(log))
+        .thenAcceptAsync(savedLog -> {
+          logFull.setId(savedLog.getId());
+          logService.saveLogMessage(logFull, launch.getId());
+          if (file != null) {
+            saveBinaryData(file, launch, savedLog);
+          }
+        }, taskExecutor)
+        .exceptionally(e -> {
+              LOGGER.error("Failed to save log with attachments", e);
+              return null;
+            }
+        );
 
     return new EntryCreatedAsyncRS(log.getUuid());
   }

@@ -19,15 +19,15 @@ package com.epam.ta.reportportal.util;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.Path;
 import javax.validation.Validator;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -44,10 +44,14 @@ public class ControllerUtils {
    * @param files    Files map
    * @return Found file
    */
-  public static MultipartFile findByFileName(String filename, Map<String, MultipartFile> files) {
+  public static MultipartFile findByFileName(String filename, MultiValuedMap<String, MultipartFile> files) {
     /* Request part name? */
     if (files.containsKey(filename)) {
-      return files.get(filename);
+      var multipartFile = files.get(filename).stream()
+          .findFirst()
+          .get();
+      files.get(filename).remove(multipartFile);
+      return multipartFile;
     }
     /* Filename? */
     for (MultipartFile file : files.values()) {
@@ -93,8 +97,8 @@ public class ControllerUtils {
     }
   }
 
-  public static Map<String, MultipartFile> getUploadedFiles(HttpServletRequest request) {
-    Map<String, MultipartFile> uploadedFiles = new HashMap<>();
+  public static MultiValuedMap<String, MultipartFile> getUploadedFiles(HttpServletRequest request) {
+    MultiValuedMap<String, MultipartFile> uploadedFiles = new ArrayListValuedHashMap<>();
     if (request instanceof MultipartHttpServletRequest) {
       MultiValueMap<String, MultipartFile> multiFileMap = (((MultipartHttpServletRequest) request)).getMultiFileMap();
       for (List<MultipartFile> multipartFiles : multiFileMap.values()) {

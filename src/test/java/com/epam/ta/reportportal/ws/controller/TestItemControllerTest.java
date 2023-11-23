@@ -758,7 +758,7 @@ class TestItemControllerTest extends BaseMvcTest {
 
   @Sql("/db/test-item/item-change-status-from-passed.sql")
   @Test
-  void finishTestItemWithFinishedParent() throws Exception {
+  void finishChildTestItemWithFailedStatusWithFinishedParentWithPassedStatus() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid(UUID.randomUUID().toString());
     rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
@@ -783,12 +783,12 @@ class TestItemControllerTest extends BaseMvcTest {
         updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup()
             .getTestItemIssueGroup()
     );
-    assertEquals(StatusEnum.FAILED,
+    assertEquals(StatusEnum.PASSED,
         testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
             .getStatus());
 
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
-    assertEquals(StatusEnum.FAILED, launch.getStatus());
+    assertEquals(StatusEnum.PASSED, launch.getStatus());
   }
 
   @Sql("/db/test-item/item-change-status-from-failed.sql")

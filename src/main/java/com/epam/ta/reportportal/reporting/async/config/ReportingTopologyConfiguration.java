@@ -49,19 +49,14 @@ public class ReportingTopologyConfiguration {
   public static final String RETRY_EXCHANGE = "retry";
   public static final String RETRY_QUEUE = "q.retry.reporting";
   public static final String REPORTING_PARKING_LOT = "q.parkingLot.reporting";
-
+  private final AmqpAdmin amqpAdmin;
+  private final Client managementClient;
   @Value("${reporting.parkingLot.ttl:7}")
   private long PARKING_LOT_TTL;
-
   @Value("${reporting.queues.count:5}")
   private Integer queuesCount;
-
   @Value("${reporting.consumers.reconnect:true}")
   private Boolean reconnect;
-
-  private final AmqpAdmin amqpAdmin;
-
-  private final Client managementClient;
 
   public ReportingTopologyConfiguration(AmqpAdmin amqpAdmin, Client managementClient) {
     this.amqpAdmin = amqpAdmin;
@@ -96,7 +91,8 @@ public class ReportingTopologyConfiguration {
 
 
   @Bean("reportingConsistentBindings")
-  List<Binding> reportingConsistentBindings(@Qualifier("reportingConsistentQueues") List<Queue> queues) {
+  List<Binding> reportingConsistentBindings(
+      @Qualifier("reportingConsistentQueues") List<Queue> queues) {
     List<Binding> bindings = new ArrayList<>();
     for (Queue queue : queues) {
       Binding queueBinding = buildQueueBinding(queue);
@@ -151,7 +147,6 @@ public class ReportingTopologyConfiguration {
     Queue queue = QueueBuilder.durable(queueName)
         .deadLetterExchange(RETRY_EXCHANGE)
         .deadLetterRoutingKey(RETRY_QUEUE)
-        .singleActiveConsumer()
         .build();
     queue.setShouldDeclare(true);
     queue.setAdminsThatShouldDeclare(amqpAdmin);

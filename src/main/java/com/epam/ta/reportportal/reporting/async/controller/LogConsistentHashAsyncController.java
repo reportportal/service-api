@@ -40,6 +40,7 @@ import io.swagger.annotations.ApiOperation;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Validator;
+import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,7 +120,7 @@ public class LogConsistentHashAsyncController {
 		 * Since this is multipart request we can retrieve list of uploaded
 		 * attachments
 		 */
-		Map<String, MultipartFile> uploadedFiles = getUploadedFiles(request);
+		MultiValuedMap<String, MultipartFile> uploadedFiles = getUploadedFiles(request);
 		BatchSaveOperatingRS response = new BatchSaveOperatingRS();
 		EntryCreatedAsyncRS responseItem;
 		/* Go through all provided save log request items */

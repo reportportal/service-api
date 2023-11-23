@@ -22,14 +22,13 @@ import com.epam.ta.reportportal.reporting.async.handler.ReportingMessageHandler;
 import com.epam.ta.reportportal.reporting.async.handler.provider.ReportingHandlerProvider;
 import java.util.Optional;
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.core.MessageListener;
 import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-@Service
-public class ReportingConsumer {
+public class ReportingConsumer implements MessageListener {
 
   private final ReportingHandlerProvider handlerProvider;
 
@@ -37,8 +36,8 @@ public class ReportingConsumer {
     this.handlerProvider = handlerProvider;
   }
 
-  @RabbitListener(queues = "#{reportingConsistentQueues}", errorHandler = "reportingErrorHandler")
-  public void receiveMessage(Message message) {
+  @Override
+  public void onMessage(Message message) {
     RequestType requestType = getRequestType(message);
     Optional<ReportingMessageHandler> messageHandler = handlerProvider.provideHandler(requestType);
     messageHandler.ifPresent(handler -> handler.handleMessage(message));

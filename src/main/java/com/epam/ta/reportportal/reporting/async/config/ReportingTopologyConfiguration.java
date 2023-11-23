@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.reporting.async.config;
 
+import com.epam.ta.reportportal.reporting.async.consumer.ReportingConsumer;
+import com.epam.ta.reportportal.reporting.async.handler.provider.ReportingHandlerProvider;
 import com.rabbitmq.http.client.Client;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,10 +32,15 @@ import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.CustomExchange;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Exchange;
+import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -155,4 +162,33 @@ public class ReportingTopologyConfiguration {
   }
 
 
+  @Bean
+  @Qualifier("consistentListenerContainers")
+  public List<AbstractMessageListenerContainer> listenerContainers(
+      ConnectionFactory connectionFactory,
+      ApplicationEventPublisher applicationEventPublisher,
+      ReportingHandlerProvider reportingHandlerProvider,
+      @Qualifier("reportingConsistentQueues") List<Queue> queues) {
+    List<AbstractMessageListenerContainer> containers = new ArrayList<>();
+    queues.forEach(q -> {
+      SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(
+          connectionFactory);
+      containers.add(listenerContainer);
+      listenerContainer.setConnectionFactory(connectionFactory);
+      listenerContainer.addQueueNames(q.getName());
+      listenerContainer.setExclusive(true);
+      listenerContainer.setMissingQueuesFatal(false);
+      listenerContainer.setApplicationEventPublisher(applicationEventPublisher);
+      listenerContainer.setupMessageListener(consistentListener(reportingHandlerProvider));
+      listenerContainer.afterPropertiesSet();
+      containers.add(listenerContainer);
+    });
+    return containers;
+  }
+
+  @Bean
+  public MessageListener consistentListener(
+      ReportingHandlerProvider reportingHandlerProvider) {
+    return new ReportingConsumer(reportingHandlerProvider);
+  }
 }

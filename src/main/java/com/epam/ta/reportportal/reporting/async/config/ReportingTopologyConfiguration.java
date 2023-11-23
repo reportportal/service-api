@@ -162,9 +162,8 @@ public class ReportingTopologyConfiguration {
   }
 
 
-  @Bean
-  @Qualifier("consistentListenerContainers")
-  public List<AbstractMessageListenerContainer> listenerContainers(
+  @Bean("consistentListenerContainers")
+  public List<AbstractMessageListenerContainer> consistentListenerContainers(
       ConnectionFactory connectionFactory,
       ApplicationEventPublisher applicationEventPublisher,
       ReportingHandlerProvider reportingHandlerProvider,

@@ -41,9 +41,6 @@ repositories {
     if (!releaseMode) {
         maven { url 'https://jitpack.io' }
     }
-
-//    maven { url "http://jasperreports.sourceforge.net/maven2" }
-//    maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
     maven { url "https://jaspersoft.jfrog.io/artifactory/third-party-ce-artifacts" }
 }
 
@@ -155,6 +152,8 @@ dependencies {
 
     //  Tests
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.mockito:mockito-core:5.7.0'
+    testImplementation 'net.bytebuddy:byte-buddy:1.14.9'
     testImplementation 'org.flywaydb.flyway-test-extensions:flyway-spring-test:9.5.0'
 }
 
@@ -166,6 +165,8 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
     options.encoding = "UTF-8"
     options.compilerArgs << "-parameters"
     options.debug = true
@@ -192,7 +193,7 @@ test {
         exceptionFormat = 'short'
     }
     reports {
-        junitXml.enabled = true
+        junitXml.required = true
     }
 }
 

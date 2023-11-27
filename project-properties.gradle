@@ -1,5 +1,3 @@
-sourceCompatibility = JavaVersion.VERSION_11
-targetCompatibility = JavaVersion.VERSION_11
 
 def commonScriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/'
 def migrationsScriptsUrl = 'https://raw.githubusercontent.com/reportportal/migrations/'
@@ -17,7 +15,7 @@ project.ext {
     ]
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
-    scriptsUrl = commonScriptsUrl + (releaseMode ? '5.10.0' : 'develop')
+    scriptsUrl = commonScriptsUrl + 'java21'//(releaseMode ? '5.10.0' : 'develop')
     migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.10.0' : 'feature/settings')
     //TODO refactor with archive download
     testScriptsSrc = [
@@ -84,5 +82,5 @@ project.ext {
 }
 
 wrapper {
-    gradleVersion = '6.8'
+    gradleVersion = '8.4'
 }

@@ -54,11 +54,11 @@ public interface ActivityHandler {
   ActivityResource getActivity(ReportPortalUser.ProjectDetails projectDetails, Long activityId);
 
 	/**
-	 * Load list of {@link com.epam.ta.reportportal.ws.model.ActivityEventResource}
-	 * for specified
+	 * Load list of {@link com.epam.ta.reportportal.ws.model.ActivityEventResource} for specified
 	 * {@link com.epam.ta.reportportal.entity.item.TestItem}
 	 *
-	 * @param projectDetails Details of project {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails Details of project
+	 *                       {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @param itemId         ID of test item
 	 * @param filter         Filter
 	 * @param pageable       Page Details

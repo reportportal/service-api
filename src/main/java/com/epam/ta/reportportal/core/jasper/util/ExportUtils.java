@@ -43,7 +43,7 @@ public class ExportUtils {
   /**
    * Add right shifting for child items depends on depth level
    *
-   * @param input - target {@see TestItem}
+   * @param input - The target {@link TestItem} for which the name will be updated
    * @return updated test item name with shifted name
    */
   public static String adjustName(TestItem input) {

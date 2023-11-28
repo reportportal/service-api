@@ -41,7 +41,7 @@ public interface ITestItemsHistoryService {
    *                           statuses<br>
    *                           <code>false</code> - if history should contain only passed and
    *                           failed launches
-   * @return
+   * @return {@link List} of {@link Launch} - list of founded launches
    */
   List<Launch> loadLaunches(int quantity, Long startingLaunchId, String projectName,
       boolean showBrokenLaunches);

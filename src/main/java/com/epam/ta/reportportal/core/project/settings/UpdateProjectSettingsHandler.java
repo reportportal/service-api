@@ -30,6 +30,7 @@ public interface UpdateProjectSettingsHandler {
    * Update issue sub-type for specified project
    *
    * @param projectName Project name
+   * @param user        {@link ReportPortalUser}
    * @param rq          Update rq
    * @return OperationCompletionRS
    */
@@ -42,6 +43,7 @@ public interface UpdateProjectSettingsHandler {
    * @param projectName             {@link com.epam.ta.reportportal.entity.project.Project#name}
    * @param updatePatternTemplateRQ {@link UpdatePatternTemplateRQ}
    * @param user                    {@link ReportPortalUser}
+   * @param id                      id of pattern template
    * @return {@link OperationCompletionRS}
    */
   OperationCompletionRS updatePatternTemplate(Long id, String projectName,

@@ -32,6 +32,8 @@ public interface ImportStrategy {
    * @param projectDetails project
    * @param user           user
    * @param file           zip file that contains xml test reports
+   * @param baseUrl        application base url
+   * @param rq             {@link LaunchImportRQ} launch import request
    * @return launch uuid
    */
   String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,

@@ -65,7 +65,7 @@ public interface AnalyzerServiceClient {
    * Searches logs with similar log message
    *
    * @param rq {@link SearchRq} request
-   * @return {@link List<SearchRs>} of log ids
+   * @return {@link List} of {@link SearchRs} of log ids
    */
   List<SearchRs> searchLogs(SearchRq rq);
 
@@ -80,7 +80,7 @@ public interface AnalyzerServiceClient {
    * Searches suggests in analyzer for provided item
    *
    * @param rq {@link SuggestRq} request
-   * @return {@link List<SuggestInfo>} list of founded suggests
+   * @return {@link List} of {@link SuggestInfo} - list of founded suggests
    */
   List<SuggestInfo> searchSuggests(SuggestRq rq);
 

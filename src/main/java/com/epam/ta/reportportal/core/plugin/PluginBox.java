@@ -40,6 +40,7 @@ public interface PluginBox {
   /**
    * Creates (or takes from cache) instance of given plugin
    *
+   * @param <T>  The Extension Point class
    * @param name Plugin name / ID
    * @param type Type of plugin
    * @return Optional of plugin by given type
@@ -49,6 +50,7 @@ public interface PluginBox {
   /**
    * Creates (or takes from cache) instance of given plugin
    *
+   * @param <T>  The Extension Point class
    * @param type Type of plugin
    * @return Optional of plugin by given type
    */

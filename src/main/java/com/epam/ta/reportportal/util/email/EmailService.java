@@ -117,6 +117,7 @@ public class EmailService extends JavaMailSenderImpl {
    * Finish launch notification
    *
    * @param recipients List of recipients
+   * @param project    {@link Project}
    * @param url        ReportPortal URL
    * @param launch     Launch
    */

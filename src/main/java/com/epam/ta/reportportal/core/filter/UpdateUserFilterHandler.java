@@ -35,12 +35,12 @@ import java.util.List;
 public interface UpdateUserFilterHandler {
 
 	/**
-	 * Creates new filter
+	 * Creates new filter for a specific project and user.
 	 *
-	 * @param createFilterRQ
-	 * @param projectName
-	 * @param user
-	 * @return EntryCreatedRS
+	 * @param createFilterRQ The request containing the filter creation data
+	 * @param projectName    The name of the project where the filter will be created
+	 * @param user           The {@link ReportPortalUser} who is creating the filter
+	 * @return An {@link EntryCreatedRS} instance containing the created filter's ID
 	 */
 	EntryCreatedRS createFilter(UpdateUserFilterRQ createFilterRQ, String projectName, ReportPortalUser user);
 
@@ -59,9 +59,9 @@ public interface UpdateUserFilterHandler {
 	/**
 	 * Update user filter
 	 *
-	 * @param updateRQ
-	 * @param projectDetails
-	 * @param user
+	 * @param updateRQ        Request for filter update
+	 * @param projectDetails  {@link ReportPortalUser.ProjectDetails}
+	 * @param user            {@link ReportPortalUser} filter's owner
 	 * @return List of {@link OperationCompletionRS}
 	 */
 	List<OperationCompletionRS> updateUserFilter(CollectionsRQ<BulkUpdateFilterRQ> updateRQ, ReportPortalUser.ProjectDetails projectDetails,

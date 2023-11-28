@@ -149,6 +149,7 @@ public class MailServiceFactory {
   /**
    * Build mail service based on default server configs
    *
+   * @param integration  {@link Integration}
    * @return Built email service
    */
   public Optional<EmailService> getDefaultEmailService(Integration integration) {
@@ -160,6 +161,8 @@ public class MailServiceFactory {
   /**
    * Build mail service based on default server configs and check connection
    *
+   * @param integration     {@link Integration}
+   * @param checkConnection true if need to check connection with integration
    * @return Built email service
    */
   @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -179,6 +182,7 @@ public class MailServiceFactory {
   /**
    * Build mail service based on default server configs and check connection
    *
+   * @param checkConnection true if need to check connection with integration
    * @return Built email service
    */
   @Transactional(propagation = Propagation.REQUIRES_NEW)

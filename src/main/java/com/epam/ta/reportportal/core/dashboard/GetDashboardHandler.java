@@ -42,6 +42,8 @@ public interface GetDashboardHandler {
 	 *
 	 * @param projectDetails Project details
 	 * @param user           User
+	 * @param pageable       Page Details
+	 * @param filter         {@link Filter}
 	 * @return Page of permitted dashboard resources
 	 */
 	Iterable<DashboardResource> getDashboards(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,

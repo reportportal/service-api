@@ -39,6 +39,7 @@ public class PageUtil {
    *
    * @param getFunc  Get Page function
    * @param consumer Page processor
+   * @param sort     Sort by
    * @param <T>      Type of page entity
    */
   public static <T> void iterateOverPages(Sort sort, Function<Pageable, Page<T>> getFunc,
@@ -52,6 +53,7 @@ public class PageUtil {
    * @param pageSize page size
    * @param getFunc  Get Page function
    * @param consumer Page processor
+   * @param sort     Sort by
    * @param <T>      Type of page entity
    */
   public static <T> void iterateOverPages(int pageSize, Sort sort,

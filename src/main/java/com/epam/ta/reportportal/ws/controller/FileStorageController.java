@@ -81,9 +81,6 @@ public class FileStorageController {
         projectExtractor.extractProjectDetails(user, projectName)));
   }
 
-  /**
-   * (non-Javadoc)
-   */
   @Transactional(readOnly = true)
   @GetMapping(value = "/photo")
   @ApiOperation("Get photo of current user")
@@ -93,9 +90,6 @@ public class FileStorageController {
     toResponse(response, getFileHandler.getUserPhoto(user, loadThumbnail));
   }
 
-  /**
-   * (non-Javadoc)
-   */
   @Transactional(readOnly = true)
   @PreAuthorize(NOT_CUSTOMER)
   @GetMapping(value = "/{projectName}/userphoto")

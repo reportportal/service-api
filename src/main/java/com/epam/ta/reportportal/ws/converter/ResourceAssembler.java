@@ -29,7 +29,7 @@ public abstract class ResourceAssembler<T, R> implements Function<T, R> {
    * Converts all given entities into resources.
    *
    * @param entities must not be {@literal null}.
-   * @return
+   * @return List of resources
    * @see #toResource(Object)
    */
   public List<R> toResources(Iterable<? extends T> entities) {

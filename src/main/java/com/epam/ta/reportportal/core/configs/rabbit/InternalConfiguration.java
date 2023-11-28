@@ -66,9 +66,7 @@ public class InternalConfiguration {
     return new MessageBusImpl(amqpTemplate);
   }
 
-  /**
-   * Exchanges definition
-   */
+//  Exchanges definition
 
   @Bean
   public FanoutExchange eventsExchange() {
@@ -90,9 +88,7 @@ public class InternalConfiguration {
 		return new DirectExchange(EXCHANGE_NOTIFICATION, true, false);
 	}
 
-	/**
-	 * Queues definition
-	 */
+//  Queues definition
 
   @Bean
   public Queue eventsQueue() {
@@ -119,9 +115,7 @@ public class InternalConfiguration {
 		return new Queue(QUEUE_EMAIL);
 	}
 
-	/**
-	 * Bindings
-	 */
+//  Bindings
 
   @Bean
   public Binding eventsQueueBinding() {

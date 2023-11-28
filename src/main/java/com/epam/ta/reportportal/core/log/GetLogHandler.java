@@ -38,9 +38,11 @@ public interface GetLogHandler {
   /**
    * Returns logs for specified filter
    *
-   * @param filterable - filter definition
-   * @param pageable   - pageable definition
-   * @return Iterable<LogResource>
+   * @param filterable      - filter definition
+   * @param pageable        - pageable definition
+   * @param path            - logs path
+   * @param projectDetails  - project details
+   * @return mapping with {@link TestItem#getItemId()} as key and its list of {@link LogResource} as value
    */
   Iterable<LogResource> getLogs(String path, ReportPortalUser.ProjectDetails projectDetails,
       Filter filterable, Pageable pageable);
@@ -79,8 +81,8 @@ public interface GetLogHandler {
   /**
    * Get logs and nested steps as one collection, filtered and sorted by passed args
    *
-   * @param parentId       {@link Log#testItem} ID or
-   *                       {@link com.epam.ta.reportportal.entity.item.TestItem#parent} ID
+   * @param parentId       {@link com.epam.ta.reportportal.entity.log.Log#testItem} ID or
+   *                       {@link com.epam.ta.reportportal.entity.item.TestItem#parentId} ID
    * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
    * @param params         Request params
    * @param queryable      {@link Queryable}

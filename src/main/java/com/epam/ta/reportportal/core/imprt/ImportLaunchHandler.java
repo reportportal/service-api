@@ -32,6 +32,8 @@ public interface ImportLaunchHandler {
    * @param user           user
    * @param format         report format
    * @param file           file with report
+   * @param baseUrl        Application base url
+   * @param rq             Launch import request
    * @return OperationCompletionRS
    */
   OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails,

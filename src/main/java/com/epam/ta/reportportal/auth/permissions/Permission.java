@@ -32,9 +32,9 @@ public interface Permission {
   /**
    * Is action allowed for user with {@link Authentication} for target object
    *
-   * @param authentication
-   * @param targetDomainObject
-   * @return
+   * @param authentication     {@link Authentication}
+   * @param targetDomainObject target domain object
+   * @return true if access is allowed
    */
   boolean isAllowed(Authentication authentication, Object targetDomainObject);
 }

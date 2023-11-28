@@ -51,8 +51,9 @@ public interface RerunHandler {
   /**
    * Finds child {@link TestItem} to rerun and creates retries
    *
-   * @param request Request data
-   * @param launch  {@link Launch}
+   * @param request     Request data
+   * @param launch      {@link Launch}
+   * @param parentUuid  Parent testItem's id
    * @return {@link ItemCreatedRS} if item is rerun, otherwise {@link Optional#empty()}
    */
   Optional<ItemCreatedRS> handleChildItem(StartTestItemRQ request, Launch launch,

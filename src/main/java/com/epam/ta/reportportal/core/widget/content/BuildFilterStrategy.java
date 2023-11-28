@@ -31,7 +31,9 @@ public interface BuildFilterStrategy {
   /**
    * Get widget content with predefined filter in accordance with used strategy
    *
-   * @return
+   * @param widget the widget to apply the filters and sorting on
+   * @return Map of filters and sorts where the key is the {@link Filter}
+   * and the value is the corresponding {@link Sort} for the given widget
    */
   Map<Filter, Sort> buildFilter(Widget widget);
 

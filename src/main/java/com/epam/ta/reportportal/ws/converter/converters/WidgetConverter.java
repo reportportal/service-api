@@ -81,9 +81,10 @@ public class WidgetConverter {
 	/**
 	 * Creates many-to-many object representation of dashboards and widgets
 	 *
-	 * @param model     Widget model object
-	 * @param dashboard Dashboard
-	 * @param widget    Widget
+	 * @param model       Widget model object
+	 * @param dashboard   Dashboard
+	 * @param widget      Widget
+	 * @param isCreatedOn true if widget was created
 	 * @return many-to-many object representation
 	 */
 	public static DashboardWidget toDashboardWidget(DashboardResource.WidgetObjectModel model, Dashboard dashboard, Widget widget,

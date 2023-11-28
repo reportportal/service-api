@@ -18,6 +18,9 @@ public interface LogService {
 
   /**
    * launchId - temporary, need to bring log launch/testItem to normal value.
+   *
+   * @param logFull  Log info for saving
+   * @param launchId Log's launch id
    */
   void saveLogMessage(LogFull logFull, Long launchId);
 
@@ -25,7 +28,7 @@ public interface LogService {
    * Used only for generation demo data, that send all per message to avoid some object/collection
    * wrapping during reporting.
    *
-   * @param logFullList
+   * @param logFullList - The {@link List} of {@link LogFull}
    * @param launchId    - temporary, need to bring log launch/testItem to normal value.
    */
   void saveLogMessageList(List<LogFull> logFullList, Long launchId);
@@ -55,7 +58,7 @@ public interface LogService {
    * Retrieves log message of specified test item with log level greather or equals than
    * {@code level}
    *
-   * @param launchId @link TestItem#getLaunchId()}
+   * @param launchId {@link TestItem#getLaunchId()}
    * @param itemId   ID of {@link Log#getTestItem()}
    * @param path     {@link TestItem#getPath()}
    * @param level    log level

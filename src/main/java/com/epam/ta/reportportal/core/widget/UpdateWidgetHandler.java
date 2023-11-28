@@ -28,7 +28,13 @@ import java.util.Collection;
 public interface UpdateWidgetHandler {
 
   /**
-   * Update widget with specified id
+   * Update a widget with a specified id.
+   *
+   * @param widgetId The ID of the widget to be updated
+   * @param updateRQ The {@link WidgetRQ} containing the updated information for the widget
+   * @param projectDetails The {@link ReportPortalUser.ProjectDetails} for the project associated with the widget
+   * @param user The {@link ReportPortalUser} who is updating the widget
+   * @return An {@link OperationCompletionRS} instance indicating the result of the update operation
    */
   OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ,
       ReportPortalUser.ProjectDetails projectDetails,

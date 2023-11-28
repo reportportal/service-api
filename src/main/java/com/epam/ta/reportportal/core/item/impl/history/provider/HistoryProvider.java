@@ -38,6 +38,7 @@ public interface HistoryProvider {
    *                             {@link
    *                             com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
    * @param user                 - {@link ReportPortalUser}
+   * @param usingHash            - true if need use hash
    * @return {@link Page} with {@link TestItemHistory} content
    */
   Page<TestItemHistory> provide(Queryable filter, Pageable pageable,

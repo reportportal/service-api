@@ -17,7 +17,10 @@
 package com.epam.ta.reportportal.info;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.validation.JaskonRequiredPropertiesValidator;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.info.Info.Builder;
 import org.springframework.boot.actuate.info.InfoContributor;
@@ -32,6 +35,8 @@ import org.springframework.web.client.RestTemplate;
  */
 @Component
 public class JobsInfoContributor implements InfoContributor {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(JobsInfoContributor.class);
 
   private final RestTemplate restTemplate;
 
@@ -50,7 +55,7 @@ public class JobsInfoContributor implements InfoContributor {
           .withDetail("jobsInfo", jobsInfoRs)
           .build();
     } catch (Exception e) {
-      throw new ReportPortalException(e.getMessage());
+      LOGGER.error("Jobs service was not found");
     }
   }
 }

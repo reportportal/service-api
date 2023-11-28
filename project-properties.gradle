@@ -15,7 +15,7 @@ project.ext {
     ]
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
-    scriptsUrl = commonScriptsUrl + 'java21'//(releaseMode ? '5.10.0' : 'develop')
+    scriptsUrl = commonScriptsUrl + (releaseMode ? '5.10.0' : 'develop')
     migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.10.0' : 'feature/settings')
     //TODO refactor with archive download
     testScriptsSrc = [

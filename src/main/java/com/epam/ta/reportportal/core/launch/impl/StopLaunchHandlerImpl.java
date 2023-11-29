@@ -16,8 +16,13 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validate;
+import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validateRoles;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.STOPPED;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.launch.StopLaunchHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -30,19 +35,12 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Date;
-import java.util.List;
-
-import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validate;
-import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validateRoles;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.STOPPED;
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -77,7 +75,7 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
 		launch = new LaunchBuilder(launch).addDescription(ofNullable(finishLaunchRQ.getDescription()).orElse(ofNullable(launch.getDescription())
 				.orElse("")).concat(LAUNCH_STOP_DESCRIPTION))
 				.addStatus(ofNullable(finishLaunchRQ.getStatus()).orElse(STOPPED.name()))
-				.addEndTime(ofNullable(finishLaunchRQ.getEndTime()).orElse(new Date()))
+				.addEndTime(ofNullable(finishLaunchRQ.getEndTime()).orElse(LocalDateTime.now()))
 				.addAttributes(finishLaunchRQ.getAttributes())
 				.addAttribute(new ItemAttributeResource("status", "stopped"))
 				.get();

@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
 import com.google.common.collect.Sets;
-import java.sql.Date;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.HashMap;
@@ -46,8 +45,11 @@ class IntegrationConverterTest {
     final IntegrationResource resource = IntegrationConverter.TO_INTEGRATION_RESOURCE.apply(
         integration);
 
-    assertEquals(resource.getCreationDate(),
-        Date.from(integration.getCreationDate().atZone(ZoneId.of("UTC")).toInstant()));
+    assertEquals(resource.getCreationDate(), integration.getCreationDate()
+        .atZone(ZoneId.systemDefault())
+        .withZoneSameInstant(ZoneId.of("UTC"))
+        .toLocalDateTime()
+    );
     assertEquals(resource.getEnabled(), integration.isEnabled());
     assertEquals(resource.getId(), integration.getId());
     assertEquals(resource.getProjectId(), integration.getProject().getId());

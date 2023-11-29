@@ -16,6 +16,10 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
+import static com.epam.ta.reportportal.ws.converter.converters.ProjectSettingsConverter.TO_SUBTYPE_RESOURCE;
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.core.analyzer.auto.indexer.IndexerStatusCache;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -25,17 +29,13 @@ import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeResource;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
-import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.ws.converter.converters.ProjectSettingsConverter.TO_SUBTYPE_RESOURCE;
-import static java.util.Optional.ofNullable;
+import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Pavel Bortnik
@@ -57,7 +57,7 @@ public final class ProjectConverter {
 		projectResource.setProjectId(project.getId());
 		projectResource.setProjectName(project.getName());
 		projectResource.setEntryType(project.getProjectType().name());
-		projectResource.setCreationDate(project.getCreationDate());
+		projectResource.setCreationDate(TO_LOCAL_DATE_TIME.apply(project.getCreationDate()));
 		projectResource.setAllocatedStorage(project.getAllocatedStorage());
 		projectResource.setUsers(project.getUsers().stream().map(user -> {
 			ProjectResource.ProjectUser projectUser = new ProjectResource.ProjectUser();

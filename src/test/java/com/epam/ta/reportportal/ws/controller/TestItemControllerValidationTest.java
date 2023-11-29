@@ -37,9 +37,8 @@ import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -389,8 +388,7 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
     startTestItemRQ.setLaunchUuid("a7b66ef2-db30-4db7-94df-f5f7786b398a");
     startTestItemRQ.setType("SUITE");
     startTestItemRQ.setUniqueId(UUID.randomUUID().toString());
-    startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    startTestItemRQ.setStartTime(LocalDateTime.now(Clock.systemUTC()));
     return startTestItemRQ;
   }
 }

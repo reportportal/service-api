@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.collect.Sets;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -52,7 +53,10 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
 
   public static final String SKIPPED_ISSUE = "skippedIssue";
   protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractImportStrategy.class);
-  private static final Date initialStartTime = new Date(0);
+  private static final LocalDateTime initialStartTime = new Date(0)
+      .toInstant()
+      .atZone(ZoneId.systemDefault())
+      .toLocalDateTime();
   protected static final ExecutorService service = Executors.newFixedThreadPool(5);
 
   private StartLaunchHandler startLaunchHandler;

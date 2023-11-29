@@ -36,7 +36,7 @@ import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,7 +147,7 @@ public class LaunchControllerValidationTest extends BaseMvcTest {
   private StartLaunchRQ prepareLaunch() {
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
     startLaunchRQ.setDescription("some description");
-    startLaunchRQ.setStartTime(new Date());
+    startLaunchRQ.setStartTime(LocalDateTime.now());
     startLaunchRQ.setMode(DEFAULT);
     startLaunchRQ.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
     return startLaunchRQ;
@@ -245,8 +245,8 @@ public class LaunchControllerValidationTest extends BaseMvcTest {
 
     mergeLaunchesRQ.setLaunches(set);
     mergeLaunchesRQ.setMergeStrategyType("BASIC");
-    mergeLaunchesRQ.setStartTime(new Date());
-    mergeLaunchesRQ.setEndTime(new Date());
+    mergeLaunchesRQ.setStartTime(LocalDateTime.now());
+    mergeLaunchesRQ.setEndTime(LocalDateTime.now());
 
     return mergeLaunchesRQ;
   }

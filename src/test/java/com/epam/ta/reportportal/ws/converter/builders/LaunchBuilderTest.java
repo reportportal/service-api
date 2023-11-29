@@ -30,8 +30,8 @@ import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.collect.Sets;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -43,7 +43,10 @@ class LaunchBuilderTest {
   void launchBuilder() {
     final String description = "description";
     final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
-    final Date date = TO_DATE.apply(now);
+    final LocalDateTime date = TO_DATE.apply(now)
+        .toInstant()
+        .atZone(ZoneId.systemDefault())
+        .toLocalDateTime();
     final Long projectId = 1L;
     final ItemAttributeResource attributeResource = new ItemAttributeResource("key", "value");
     final Long userId = 2L;
@@ -79,7 +82,10 @@ class LaunchBuilderTest {
     final String name = "name";
     request.setName(name);
     final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
-    request.setStartTime(TO_DATE.apply(now));
+    request.setStartTime(TO_DATE.apply(now)
+        .toInstant()
+        .atZone(ZoneId.systemDefault())
+        .toLocalDateTime());
     request.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
 
     final Launch launch = new LaunchBuilder().addStartRQ(request)

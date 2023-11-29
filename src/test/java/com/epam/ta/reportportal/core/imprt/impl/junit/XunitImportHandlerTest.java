@@ -124,7 +124,7 @@ public class XunitImportHandlerTest {
         eq(user), eq(projectDetails), startTestItemRQArgumentCaptor.capture());
     StartTestItemRQ startTestItemRQ = startTestItemRQArgumentCaptor.getValue();
     assertEquals(startTestItemRQ.getLaunchUuid(), LAUNCH_ID);
-    assertEquals(startTestItemRQ.getStartTime(), EntityUtils.TO_DATE.apply(startItemTime));
+    assertEquals(startTestItemRQ.getStartTime(), EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(startItemTime));
     assertEquals(startTestItemRQ.getType(), TestItemTypeEnum.TEST.name());
     assertEquals(startTestItemRQ.getName(), ATTR_NAME);
 
@@ -163,7 +163,7 @@ public class XunitImportHandlerTest {
         eq(user), eq(projectDetails), startTestItemRQArgumentCaptor.capture());
     StartTestItemRQ startTestItemRQ = startTestItemRQArgumentCaptor.getValue();
     assertEquals(startTestItemRQ.getLaunchUuid(), LAUNCH_ID);
-    assertEquals(startTestItemRQ.getStartTime(), EntityUtils.TO_DATE.apply(startItemTime));
+    assertEquals(startTestItemRQ.getStartTime(), EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(startItemTime));
     assertEquals(startTestItemRQ.getType(), TestItemTypeEnum.TEST.name());
     assertEquals(startTestItemRQ.getName(), ATTR_NAME);
 
@@ -199,7 +199,7 @@ public class XunitImportHandlerTest {
         eq(user), eq(projectDetails), startTestItemRQArgumentCaptor.capture(), eq(parentId));
     StartTestItemRQ startTestItemRQ = startTestItemRQArgumentCaptor.getValue();
     assertEquals(startTestItemRQ.getLaunchUuid(), LAUNCH_ID);
-    assertEquals(startTestItemRQ.getStartTime(), EntityUtils.TO_DATE.apply(startItemTime));
+    assertEquals(startTestItemRQ.getStartTime(), EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(startItemTime));
     assertEquals(startTestItemRQ.getType(), TestItemTypeEnum.TEST.name());
     assertEquals(startTestItemRQ.getName(), ATTR_NAME);
 
@@ -238,7 +238,7 @@ public class XunitImportHandlerTest {
         eq(user), eq(projectDetails), startTestItemRQArgumentCaptor.capture(), eq(parentId));
     StartTestItemRQ startTestItemRQ = startTestItemRQArgumentCaptor.getValue();
     assertEquals(startTestItemRQ.getLaunchUuid(), LAUNCH_ID);
-    assertEquals(startTestItemRQ.getStartTime(), EntityUtils.TO_DATE.apply(startItemTime));
+    assertEquals(startTestItemRQ.getStartTime(), EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(startItemTime));
     assertEquals(startTestItemRQ.getType(), TestItemTypeEnum.STEP.name());
     assertEquals(startTestItemRQ.getName(), ATTR_NAME);
 

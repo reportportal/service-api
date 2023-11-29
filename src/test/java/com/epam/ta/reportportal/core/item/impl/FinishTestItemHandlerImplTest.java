@@ -46,7 +46,6 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -213,7 +212,7 @@ class FinishTestItemHandlerImplTest {
 
     FinishTestItemRQ finishExecutionRQ = new FinishTestItemRQ();
     finishExecutionRQ.setStatus("FAILED");
-    finishExecutionRQ.setEndTime(new Date());
+    finishExecutionRQ.setEndTime(LocalDateTime.now());
 
     OperationCompletionRS operationCompletionRS = handler.finishTestItem(rpUser,
         extractProjectDetails(rpUser, "test_project"),

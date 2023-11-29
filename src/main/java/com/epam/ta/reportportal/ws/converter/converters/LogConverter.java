@@ -52,7 +52,7 @@ public final class LogConverter {
     resource.setId(model.getId());
     resource.setUuid(model.getUuid());
     resource.setMessage(ofNullable(model.getLogMessage()).orElse("NULL"));
-    resource.setLogTime(EntityUtils.TO_DATE.apply(model.getLogTime()));
+    resource.setLogTime(EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(model.getLogTime()));
 
     if (isBinaryDataExists(model)) {
 

@@ -236,7 +236,8 @@ public class XunitImportHandler extends DefaultHandler {
 	private void startStepItem(String name, String startTime, String duration) {
 		StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setLaunchUuid(launchUuid);
-		rq.setStartTime(EntityUtils.TO_DATE.apply(startTime != null ? parseTimeStamp(startTime) : startItemTime));
+    rq.setStartTime(EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(
+        startTime != null ? parseTimeStamp(startTime) : startItemTime));
 		rq.setType(TestItemTypeEnum.STEP.name());
 		rq.setName(StringUtils.abbreviate(name, MAX_LAUNCH_NAME_LENGTH));
 		String id = startTestItemHandler.startChildItem(user, projectDetails, rq, itemUuids.peek()).getId();
@@ -248,7 +249,7 @@ public class XunitImportHandler extends DefaultHandler {
 	private void finishRootItem() {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
 		markAsNotIssue(rq);
-		rq.setEndTime(EntityUtils.TO_DATE.apply(startItemTime));
+		rq.setEndTime(EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(startItemTime));
 		finishTestItemHandler.finishTestItem(user, projectDetails, itemUuids.poll(), rq);
 		status = null;
 	}
@@ -258,7 +259,7 @@ public class XunitImportHandler extends DefaultHandler {
 		markAsNotIssue(rq);
 		startItemTime = startItemTime.plus(currentDuration, ChronoUnit.MILLIS);
 		commonDuration += currentDuration;
-		rq.setEndTime(EntityUtils.TO_DATE.apply(startItemTime));
+		rq.setEndTime(EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(startItemTime));
 		rq.setStatus(Optional.ofNullable(status).orElse(StatusEnum.PASSED).name());
 		currentItemUuid = itemUuids.poll();
 		finishTestItemHandler.finishTestItem(user, projectDetails, currentItemUuid, rq);
@@ -277,7 +278,7 @@ public class XunitImportHandler extends DefaultHandler {
 		if (null != message && message.length() != 0) {
 			SaveLogRQ saveLogRQ = new SaveLogRQ();
 			saveLogRQ.setLevel(logLevel.name());
-			saveLogRQ.setLogTime(EntityUtils.TO_DATE.apply(startItemTime));
+			saveLogRQ.setLogTime(EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(startItemTime));
 			saveLogRQ.setMessage(message.toString().trim());
 			saveLogRQ.setItemUuid(currentItemUuid);
 			createLogHandler.createLog(saveLogRQ, null, projectDetails);
@@ -296,7 +297,7 @@ public class XunitImportHandler extends DefaultHandler {
 	private StartTestItemRQ buildStartTestRq(String name) {
 		StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setLaunchUuid(launchUuid);
-		rq.setStartTime(EntityUtils.TO_DATE.apply(startItemTime));
+		rq.setStartTime(EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(startItemTime));
 		rq.setType(TestItemTypeEnum.TEST.name());
 		rq.setName(Strings.isNullOrEmpty(name) ? "no_name" : name);
 		return rq;

@@ -57,7 +57,7 @@ public final class IntegrationConverter {
     resource.setId(integration.getId());
     resource.setName(integration.getName());
     resource.setCreator(integration.getCreator());
-    resource.setCreationDate(EntityUtils.TO_DATE.apply(integration.getCreationDate()));
+    resource.setCreationDate(EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(integration.getCreationDate()));
     resource.setEnabled(integration.isEnabled());
     ofNullable(integration.getProject()).ifPresent(p -> resource.setProjectId(p.getId()));
     ofNullable(integration.getParams()).flatMap(IntegrationConverter::convertToResourceParams)
@@ -66,7 +66,7 @@ public final class IntegrationConverter {
     type.setId(integration.getType().getId());
     type.setName(integration.getType().getName());
     type.setEnabled(integration.getType().isEnabled());
-    type.setCreationDate(EntityUtils.TO_DATE.apply(integration.getType().getCreationDate()));
+    type.setCreationDate(EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(integration.getType().getCreationDate()));
     type.setGroupType(integration.getType().getIntegrationGroup().name());
     ofNullable(integration.getType().getDetails()).ifPresent(
         it -> type.setDetails(it.getDetails()));

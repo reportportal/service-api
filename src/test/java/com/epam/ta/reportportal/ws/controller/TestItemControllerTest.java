@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -55,11 +56,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -91,7 +92,11 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setType("SUITE");
     rq.setParameters(getParameters());
     rq.setUniqueId(UUID.randomUUID().toString());
-    rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    var now = TO_DATE.apply(LocalDateTime.now())
+        .toInstant()
+        .atZone(ZoneId.systemDefault())
+        .toLocalDateTime();
+    rq.setStartTime(now);
     mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/item").contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(rq))
         .with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isCreated());
@@ -104,7 +109,11 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setName("RootItem");
     rq.setType("SUITE");
     rq.setParameters(getParameters());
-    rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    var now = TO_DATE.apply(LocalDateTime.now())
+        .toInstant()
+        .atZone(ZoneId.systemDefault())
+        .toLocalDateTime();
+    rq.setStartTime(now);
     mockMvc.perform(post(SUPERADMIN_PROJECT_BASE_URL + "/item").contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(rq))
         .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
@@ -118,7 +127,11 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setType("TEST");
     rq.setUniqueId(UUID.randomUUID().toString());
     rq.setParameters(getParameters());
-    rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    var now = TO_DATE.apply(LocalDateTime.now())
+        .toInstant()
+        .atZone(ZoneId.systemDefault())
+        .toLocalDateTime();
+    rq.setStartTime(now);
     mockMvc.perform(post(
         DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(
             objectMapper.writeValueAsBytes(rq))
@@ -133,7 +146,11 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setName("ChildItem");
     rq.setType("TEST");
     rq.setParameters(getParameters());
-    rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    var now = TO_DATE.apply(LocalDateTime.now())
+        .toInstant()
+        .atZone(ZoneId.systemDefault())
+        .toLocalDateTime();
+    rq.setStartTime(now);
     mockMvc.perform(post(
         DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(
             objectMapper.writeValueAsBytes(rq))
@@ -145,7 +162,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemPositive() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid(UUID.randomUUID().toString());
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(LocalDateTime.now(Clock.systemUTC()));
     rq.setStatus("PASSED");
     mockMvc.perform(
             put(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(
@@ -158,7 +175,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishRootTestItemWithoutStatus() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid(UUID.randomUUID().toString());
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(LocalDateTime.now(Clock.systemUTC()));
     mockMvc.perform(
             put(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(
                 objectMapper.writeValueAsBytes(
@@ -170,7 +187,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemWithFailedStatus() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid(UUID.randomUUID().toString());
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(LocalDateTime.now(Clock.systemUTC()));
     rq.setStatus("FAILED");
     Issue issue = new Issue();
     issue.setIssueType("pb001");
@@ -186,7 +203,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemWithoutIssueType() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid(UUID.randomUUID().toString());
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(LocalDateTime.now(Clock.systemUTC()));
     rq.setStatus("FAILED");
     mockMvc.perform(put(
         SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
@@ -458,7 +475,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemWithLinkedTicketsBadTicketId() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(LocalDateTime.now(Clock.systemUTC()));
     rq.setStatus("FAILED");
 
     Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
@@ -484,7 +501,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemWithLinkedTicketsBadBtsUrl() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(LocalDateTime.now(Clock.systemUTC()));
     rq.setStatus("FAILED");
 
     Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
@@ -510,7 +527,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemWithLinkedTicketsBadBtsProject() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(LocalDateTime.now(Clock.systemUTC()));
     rq.setStatus("FAILED");
 
     Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
@@ -536,7 +553,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemWithLinkedTicketsBadUrl() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(LocalDateTime.now(Clock.systemUTC()));
     rq.setStatus("FAILED");
 
     Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
@@ -562,7 +579,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemWithEmptyLinkedTickets() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(LocalDateTime.now(Clock.systemUTC()));
     rq.setStatus("FAILED");
 
     Issue issue = new Issue();
@@ -583,7 +600,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemWithLinkedTickets() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(LocalDateTime.now(Clock.systemUTC()));
     rq.setStatus("FAILED");
 
     Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
@@ -761,7 +778,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishChildTestItemWithFailedStatusWithFinishedParentWithPassedStatus() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid(UUID.randomUUID().toString());
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(LocalDateTime.now(Clock.systemUTC()));
     rq.setStatus("FAILED");
     Issue issue = new Issue();
     issue.setIssueType("pb001");

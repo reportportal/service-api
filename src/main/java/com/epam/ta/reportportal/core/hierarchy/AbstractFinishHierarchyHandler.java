@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.hierarchy;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_UTC_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.item.impl.status.ToSkippedStatusChangingStrategy.SKIPPED_ISSUE_KEY;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
@@ -44,7 +44,6 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.job.PageUtil;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -113,14 +112,14 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
   }
 
   @Override
-  public int finishDescendants(T parentEntity, StatusEnum status, Date endDate,
+  public int finishDescendants(T parentEntity, StatusEnum status, LocalDateTime endDate,
       ReportPortalUser user,
       ReportPortalUser.ProjectDetails projectDetails) {
 
     expect(status, s -> s != IN_PROGRESS).verify(INCORRECT_REQUEST,
         "Unable to update current status to - " + IN_PROGRESS);
 
-    LocalDateTime endTime = TO_LOCAL_DATE_TIME.apply(endDate);
+    LocalDateTime endTime = TO_UTC_LOCAL_DATE_TIME.apply(endDate);
 
     final int withoutChildren = updateDescendantsWithoutChildren(parentEntity,
         projectDetails.getProjectId(), status, endTime, user);

@@ -33,10 +33,9 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.collect.Lists;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
-import java.time.ZoneId;
-import java.util.Date;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -85,8 +84,10 @@ class FinishLaunchHierarchyHandlerTest {
         anyLong()
     )).thenReturn(idsWithoutChildren);
 
-    Date endTime = Date.from(
-        LocalDate.of(2020, Month.OCTOBER, 30).atStartOfDay(ZoneId.systemDefault()).toInstant());
+    LocalDateTime endTime = LocalDateTime.of(2020, Month.OCTOBER, 30,0,0)
+        .atZone(ZoneOffset.UTC)
+        .toLocalDateTime();
+
     ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
     when(testItemRepository.findAllById(idsWithChildren)).thenReturn(
@@ -135,8 +136,9 @@ class FinishLaunchHierarchyHandlerTest {
         anyLong()
     )).thenReturn(idsWithoutChildren);
 
-    Date endTime = Date.from(
-        LocalDate.of(2020, Month.OCTOBER, 30).atStartOfDay(ZoneId.systemDefault()).toInstant());
+    LocalDateTime endTime = LocalDateTime.of(2020, Month.OCTOBER, 30,0,0)
+        .atZone(ZoneOffset.UTC)
+        .toLocalDateTime();
     ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
     when(testItemRepository.findAllById(idsWithChildren)).thenReturn(

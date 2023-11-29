@@ -35,7 +35,7 @@ public final class ActivityEventConverter {
   public static final Function<Activity, ActivityEventResource> TO_RESOURCE = activity ->
       ActivityEventResource.builder()
           .id(activity.getId())
-          .createdAt(EntityUtils.TO_DATE.apply(activity.getCreatedAt()))
+          .createdAt(EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(activity.getCreatedAt()))
           .eventName(activity.getEventName())
           .objectId(activity.getObjectId())
           .objectName(activity.getObjectName())

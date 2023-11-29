@@ -28,9 +28,8 @@ import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRq;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +52,7 @@ class LogControllerTest extends BaseMvcTest {
     rq.setItemUuid("f3960757-1a06-405e-9eb7-607c34683154");
     rq.setLevel("ERROR");
     rq.setMessage("log message");
-    rq.setLogTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setLogTime(LocalDateTime.now(Clock.systemUTC()));
     mockMvc.perform(
         post(DEFAULT_PROJECT_BASE_URL + "/log").with(token(oAuthHelper.getDefaultToken()))
             .contentType(MediaType.APPLICATION_JSON)

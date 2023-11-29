@@ -40,7 +40,6 @@ import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.google.common.collect.Sets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
@@ -103,10 +102,14 @@ class TestItemConverterTest {
     assertEquals(resource.getPath(), item.getPath());
     assertEquals(resource.getStatus(), item.getItemResults().getStatus().name());
     assertEquals(resource.getType(), item.getType().name());
-    assertEquals(resource.getStartTime(),
-        Date.from(item.getStartTime().atZone(ZoneId.of("UTC")).toInstant()));
-    assertEquals(resource.getEndTime(),
-        Date.from(item.getItemResults().getEndTime().atZone(ZoneId.of("UTC")).toInstant()));
+    assertEquals(resource.getStartTime(), item.getStartTime()
+        .atZone(ZoneId.systemDefault())
+        .withZoneSameInstant(ZoneId.of("UTC"))
+        .toLocalDateTime());
+    assertEquals(resource.getEndTime(), item.getItemResults().getEndTime()
+        .atZone(ZoneId.systemDefault())
+        .withZoneSameInstant(ZoneId.of("UTC"))
+        .toLocalDateTime());
     assertEquals(resource.getUniqueId(), item.getUniqueId());
     assertThat(resource.getAttributes()
         .stream()
@@ -143,10 +146,14 @@ class TestItemConverterTest {
     assertEquals(resource.getPath(), item.getPath());
     assertEquals(resource.getStatus(), item.getItemResults().getStatus().name());
     assertEquals(resource.getType(), item.getType().name());
-    assertEquals(resource.getStartTime(),
-        Date.from(item.getStartTime().atZone(ZoneId.of("UTC")).toInstant()));
-    assertEquals(resource.getEndTime(),
-        Date.from(item.getItemResults().getEndTime().atZone(ZoneId.of("UTC")).toInstant()));
+    assertEquals(resource.getStartTime(), item.getStartTime()
+        .atZone(ZoneId.systemDefault())
+        .withZoneSameInstant(ZoneId.of("UTC"))
+        .toLocalDateTime());
+    assertEquals(resource.getEndTime(), item.getItemResults().getEndTime()
+        .atZone(ZoneId.systemDefault())
+        .withZoneSameInstant(ZoneId.of("UTC"))
+        .toLocalDateTime());
     assertEquals(resource.getUniqueId(), item.getUniqueId());
     assertThat(resource.getAttributes()
         .stream()

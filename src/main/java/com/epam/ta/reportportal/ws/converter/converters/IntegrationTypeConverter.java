@@ -33,7 +33,7 @@ public final class IntegrationTypeConverter {
     resource.setId(integrationType.getId());
     resource.setName(integrationType.getName());
     resource.setEnabled(integrationType.isEnabled());
-    resource.setCreationDate(EntityUtils.TO_DATE.apply(integrationType.getCreationDate()));
+    resource.setCreationDate(EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(integrationType.getCreationDate()));
     resource.setGroupType(integrationType.getIntegrationGroup().name());
     ofNullable(integrationType.getDetails()).ifPresent(
         it -> resource.setDetails(integrationType.getDetails().getDetails()));

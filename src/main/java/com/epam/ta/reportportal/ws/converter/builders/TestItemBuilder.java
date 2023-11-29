@@ -64,7 +64,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 
   public TestItemBuilder addStartItemRequest(StartTestItemRQ rq) {
 
-    testItem.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(rq.getStartTime()));
+    testItem.setStartTime(EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(rq.getStartTime()));
     testItem.setName(rq.getName().trim());
     testItem.setUniqueId(rq.getUniqueId());
     testItem.setUuid(Optional.ofNullable(rq.getUuid()).orElse(UUID.randomUUID().toString()));

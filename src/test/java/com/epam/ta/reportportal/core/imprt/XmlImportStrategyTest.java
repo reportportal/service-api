@@ -25,6 +25,7 @@ import java.io.FileWriter;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
@@ -86,7 +87,8 @@ class XmlImportStrategyTest {
         any(InputStream.class), eq(false)
     )).thenReturn(xunitParseJob);
     ParseResults parseResults = mock(ParseResults.class);
-    when(parseResults.getEndTime()).thenReturn(Date.from(Instant.EPOCH));
+    when(parseResults.getEndTime()).thenReturn(Date
+        .from(Instant.EPOCH).toInstant().atZone(ZoneOffset.systemDefault()).toLocalDateTime());
     when(xunitParseJob.call()).thenReturn(parseResults);
 
     when(startLaunchHandler.startLaunch(any(), any(), any())).thenReturn(startLaunchRS);
@@ -120,7 +122,8 @@ class XmlImportStrategyTest {
         any(InputStream.class), eq(true)
     )).thenReturn(xunitParseJob);
     ParseResults parseResults = mock(ParseResults.class);
-    when(parseResults.getEndTime()).thenReturn(Date.from(Instant.EPOCH));
+    when(parseResults.getEndTime()).thenReturn(Date
+        .from(Instant.EPOCH).toInstant().atZone(ZoneOffset.systemDefault()).toLocalDateTime());
     when(xunitParseJob.call()).thenReturn(parseResults);
 
     when(startLaunchHandler.startLaunch(any(), any(), any())).thenReturn(startLaunchRS);

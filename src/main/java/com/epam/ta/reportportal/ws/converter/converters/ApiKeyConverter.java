@@ -37,10 +37,9 @@ public class ApiKeyConverter {
     resource.setId(apiKey.getId());
     resource.setName(apiKey.getName());
     resource.setUserId(apiKey.getUserId());
-    resource.setCreatedAt(EntityUtils.TO_DATE.apply(apiKey.getCreatedAt()));
-    if (apiKey.getLastUsedAt() != null) {
-      resource.setLastUsedAt(EntityUtils.TO_DATE.apply(apiKey.getLastUsedAt().atStartOfDay()));
-    }
+    resource.setCreatedAt(EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(apiKey.getCreatedAt()));
+    resource.setLastUsedAt(apiKey.getLastUsedAt());
+
     return resource;
   };
 

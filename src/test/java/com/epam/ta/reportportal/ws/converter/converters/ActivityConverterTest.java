@@ -30,7 +30,6 @@ import com.epam.ta.reportportal.ws.model.ActivityResource;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
-import java.util.Date;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -84,8 +83,10 @@ class ActivityConverterTest {
   }
 
   private void validate(Activity db, ActivityResource resource) {
-    assertEquals(Date.from(db.getCreatedAt().atZone(ZoneId.of("UTC")).toInstant()),
-        resource.getLastModified());
+    var createdAt = db.getCreatedAt().atZone(ZoneId.systemDefault())
+        .withZoneSameInstant(ZoneId.of("UTC"))
+        .toLocalDateTime();
+    assertEquals(createdAt, resource.getLastModified());
     assertEquals(db.getId(), resource.getId());
     assertEquals(db.getObjectType(),
         EventObject.valueOf(resource.getObjectType()));

@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -65,7 +66,7 @@ class TestItemBuilderTest {
         .addParentId(1L)
         .get();
 
-    assertThat(testItem.getLaunchId()).isEqualToComparingFieldByField(launch.getId());
+    assertEquals(testItem.getLaunchId(), launch.getId());
     assertEquals(description, testItem.getDescription());
     assertEquals(TestItemTypeEnum.STEP, testItem.getType());
     final Parameter param = new Parameter();
@@ -89,7 +90,11 @@ class TestItemBuilderTest {
     final String description = "description";
     rq.setDescription(description);
     final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
-    rq.setStartTime(TO_DATE.apply(now));
+    rq.setStartTime(TO_DATE.apply(LocalDateTime.now())
+        .toInstant()
+        .atZone(ZoneId.systemDefault())
+        .toLocalDateTime()
+    );
     final String name = "name";
     rq.setName(name);
 

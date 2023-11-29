@@ -39,10 +39,9 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -98,8 +97,7 @@ class StartTestItemHandlerImplTest {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
-    startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    startTestItemRQ.setStartTime(LocalDateTime.now(Clock.systemUTC()));
 
     final Launch launch = getLaunch(2L, StatusEnum.IN_PROGRESS);
     launch.setStartTime(LocalDateTime.now().minusHours(1));
@@ -135,8 +133,7 @@ class StartTestItemHandlerImplTest {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
-    startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    startTestItemRQ.setStartTime(LocalDateTime.now(Clock.systemUTC()));
 
     final Launch launch = getLaunch(1L, StatusEnum.IN_PROGRESS);
     launch.setStartTime(LocalDateTime.now().plusHours(1));
@@ -172,8 +169,7 @@ class StartTestItemHandlerImplTest {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
-    startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    startTestItemRQ.setStartTime(LocalDateTime.now(Clock.systemUTC()));
 
     TestItem item = new TestItem();
     item.setStartTime(LocalDateTime.now().plusHours(1));
@@ -194,8 +190,7 @@ class StartTestItemHandlerImplTest {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
-    startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    startTestItemRQ.setStartTime(LocalDateTime.now(Clock.systemUTC()));
 
     TestItem item = new TestItem();
     item.setItemId(1L);
@@ -227,8 +222,7 @@ class StartTestItemHandlerImplTest {
     ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
-    startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    startTestItemRQ.setStartTime(LocalDateTime.now(Clock.systemUTC()));
     startTestItemRQ.setLaunchUuid("1");
 
     when(launchRepository.findByUuid("1")).thenReturn(Optional.empty());

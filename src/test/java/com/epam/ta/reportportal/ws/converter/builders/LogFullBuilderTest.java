@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.Test;
 
@@ -40,7 +41,11 @@ class LogFullBuilderTest {
     createLogRQ.setLevel("ERROR");
     final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
 
-    createLogRQ.setLogTime(TO_DATE.apply(now));
+    createLogRQ.setLogTime(TO_DATE.apply(LocalDateTime.now())
+        .toInstant()
+        .atZone(ZoneId.systemDefault())
+        .toLocalDateTime()
+    );
     TestItem item = new TestItem();
     item.setItemId(1L);
     item.setUniqueId("uuid");

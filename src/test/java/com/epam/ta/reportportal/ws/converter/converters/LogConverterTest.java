@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -62,8 +61,11 @@ class LogConverterTest {
     assertEquals(resource.getUuid(), logFull.getUuid());
     assertEquals(resource.getMessage(), logFull.getLogMessage());
     assertEquals(resource.getLevel(), LogLevel.toLevel(logFull.getLogLevel()).toString());
-    assertEquals(resource.getLogTime(),
-        Date.from(logFull.getLogTime().atZone(ZoneId.of("UTC")).toInstant()));
+    assertEquals(resource.getLogTime(), logFull.getLogTime()
+        .atZone(ZoneId.systemDefault())
+        .withZoneSameInstant(ZoneId.of("UTC"))
+        .toLocalDateTime()
+    );
     assertEquals(resource.getItemId(), logFull.getTestItem().getItemId());
 
     final LogResource.BinaryContent binaryContent = resource.getBinaryContent();

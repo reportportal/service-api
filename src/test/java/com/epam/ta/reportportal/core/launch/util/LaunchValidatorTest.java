@@ -16,8 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.util;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_UTC_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -45,7 +44,7 @@ class LaunchValidatorTest {
         LocalDateTime.ofInstant(Instant.ofEpochMilli(1575551458336L), ZoneOffset.UTC));
 
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-    finishExecutionRQ.setEndTime(TO_DATE.apply(
+    finishExecutionRQ.setEndTime(TO_UTC_LOCAL_DATE_TIME.apply(
         LocalDateTime.ofInstant(Instant.ofEpochMilli(1575551458334L), ZoneOffset.UTC)));
 
     ReportPortalException reportPortalException = assertThrows(ReportPortalException.class,
@@ -53,7 +52,7 @@ class LaunchValidatorTest {
     );
 
     assertEquals(Suppliers.formattedSupplier(FINISH_TIME_EARLIER_THAN_START_TIME.getDescription(),
-        TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()),
+        TO_UTC_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()),
         launch.getStartTime(),
         launch.getId()
     ).get(), reportPortalException.getMessage());

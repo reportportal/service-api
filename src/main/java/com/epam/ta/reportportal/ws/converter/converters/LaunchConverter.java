@@ -77,10 +77,10 @@ public class LaunchConverter {
     resource.setDescription(db.getDescription());
     resource.setStatus(db.getStatus() == null ? null : db.getStatus().toString());
     resource.setStartTime(
-        db.getStartTime() == null ? null : EntityUtils.TO_DATE.apply(db.getStartTime()));
+        db.getStartTime() == null ? null : EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(db.getStartTime()));
     resource.setEndTime(
-        db.getEndTime() == null ? null : EntityUtils.TO_DATE.apply(db.getEndTime()));
-    ofNullable(db.getLastModified()).map(EntityUtils.TO_DATE).ifPresent(resource::setLastModified);
+        db.getEndTime() == null ? null : EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(db.getEndTime()));
+    ofNullable(db.getLastModified()).map(EntityUtils.TO_UTC_LOCAL_DATE_TIME).ifPresent(resource::setLastModified);
     ofNullable(db.getAttributes()).ifPresent(attributes -> updateAttributes(resource, attributes));
     ofNullable(resource.getAttributes()).ifPresentOrElse(a -> {
     }, () -> resource.setAttributes(Collections.emptySet()));

@@ -16,23 +16,16 @@
 
 package com.epam.ta.reportportal.core.item.impl.status;
 
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.INFO;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.WARN;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
-import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.events.activity.item.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
@@ -47,12 +40,6 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
-import com.google.common.collect.Lists;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -73,9 +60,8 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
   protected final LogIndexer logIndexer;
 
   protected AbstractStatusChangingStrategy(TestItemService testItemService,
-      ProjectRepository projectRepository,
-      LaunchRepository launchRepository, TestItemRepository testItemRepository,
-      IssueTypeHandler issueTypeHandler,
+      ProjectRepository projectRepository, LaunchRepository launchRepository,
+      TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
       MessageBus messageBus, IssueEntityRepository issueEntityRepository,
       LogRepository logRepository, LogIndexer logIndexer) {
     this.testItemService = testItemService;
@@ -90,19 +76,18 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
   }
 
   protected abstract void updateStatus(Project project, Launch launch, TestItem testItem,
-      StatusEnum providedStatus,
-      ReportPortalUser user);
+      StatusEnum providedStatus, ReportPortalUser user);
 
   protected abstract StatusEnum evaluateParentItemStatus(TestItem parentItem, TestItem childItem);
 
   @Override
   public void changeStatus(TestItem testItem, StatusEnum providedStatus, ReportPortalUser user) {
     BusinessRule.expect(testItem.getItemResults().getStatus(),
-            currentStatus -> !IN_PROGRESS.equals(currentStatus))
-        .verify(INCORRECT_REQUEST, Suppliers.formattedSupplier(
+        currentStatus -> !IN_PROGRESS.equals(currentStatus)
+    ).verify(
+        INCORRECT_REQUEST, Suppliers.formattedSupplier(
             "Unable to update status of test item = '{}' because of '{}' status",
-            testItem.getItemId(),
-            testItem.getItemResults().getStatus()
+            testItem.getItemId(), testItem.getItemResults().getStatus()
         ).get());
     if (providedStatus == testItem.getItemResults().getStatus()) {
       return;
@@ -117,85 +102,12 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 
   protected void addToInvestigateIssue(TestItem testItem, Long projectId) {
     IssueEntity issueEntity = new IssueEntity();
-    IssueType toInvestigate = issueTypeHandler.defineIssueType(projectId,
-        TO_INVESTIGATE.getLocator());
+    IssueType toInvestigate =
+        issueTypeHandler.defineIssueType(projectId, TO_INVESTIGATE.getLocator());
     issueEntity.setIssueType(toInvestigate);
     issueEntity.setTestItemResults(testItem.getItemResults());
     issueEntityRepository.save(issueEntity);
     testItem.getItemResults().setIssue(issueEntity);
-  }
-
-  protected List<Long> changeParentsStatuses(TestItem testItem, Launch launch,
-      boolean issueRequired, ReportPortalUser user) {
-    List<Long> updatedParents = Lists.newArrayList();
-
-    Long parentId = testItem.getParentId();
-    while (parentId != null) {
-
-      TestItem parent = testItemRepository.findById(parentId)
-          .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND,
-              testItem.getParentId()));
-
-      StatusEnum currentParentStatus = parent.getItemResults().getStatus();
-      if (!StatusEnum.IN_PROGRESS.equals(currentParentStatus)) {
-
-        StatusEnum newParentStatus = evaluateParentItemStatus(parent, testItem);
-        if (!currentParentStatus.equals(newParentStatus)) {
-          TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent,
-              launch.getProjectId());
-          parent.getItemResults().setStatus(newParentStatus);
-          updateItem(parent, launch.getProjectId(), issueRequired).ifPresent(updatedParents::add);
-          publishUpdateActivity(before, TO_ACTIVITY_RESOURCE.apply(parent, launch.getProjectId()),
-              user);
-        } else {
-          return updatedParents;
-        }
-
-      } else {
-        return updatedParents;
-      }
-
-      parentId = parent.getParentId();
-    }
-
-    if (launch.getStatus() != IN_PROGRESS) {
-      launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(),
-          StatusEnum.PASSED.name(),
-          INFO.name(),
-          WARN.name()
-      ) ? FAILED : PASSED);
-    }
-
-    return updatedParents;
-  }
-
-  private Optional<Long> updateItem(TestItem parent, Long projectId, boolean issueRequired) {
-    if (parent.isHasStats() && !parent.isHasChildren()) {
-      updateIssue(parent, projectId, issueRequired);
-      return Optional.of(parent.getItemId());
-    }
-    return Optional.empty();
-  }
-
-  private void updateIssue(TestItem parent, Long projectId, boolean issueRequired) {
-    if (issueRequired) {
-      if (ofNullable(parent.getItemResults().getIssue()).isEmpty()) {
-        addToInvestigateIssue(parent, projectId);
-      }
-    } else {
-      ofNullable(parent.getItemResults().getIssue()).ifPresent(issue -> {
-        issue.setTestItemResults(null);
-        issueEntityRepository.delete(issue);
-        parent.getItemResults().setIssue(null);
-        logIndexer.indexItemsRemoveAsync(projectId, Collections.singletonList(parent.getItemId()));
-      });
-    }
-  }
-
-  private void publishUpdateActivity(TestItemActivityResource before,
-      TestItemActivityResource after, ReportPortalUser user) {
-    messageBus.publishActivity(
-        new TestItemStatusChangedEvent(before, after, user.getUserId(), user.getUsername()));
   }
 
 }

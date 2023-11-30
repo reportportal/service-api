@@ -93,7 +93,6 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
             Collections.singletonList(testItem.getItemId()));
       });
 
-      changeParentsStatuses(testItem, launch, false, user);
     }
   }
 

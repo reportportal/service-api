@@ -693,14 +693,8 @@ class TestItemControllerTest extends BaseMvcTest {
 
     assertTrue(updatedItem.isPresent());
     assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
-    assertEquals(StatusEnum.FAILED,
-        testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
-            .getStatus());
 
-    Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
-    assertEquals(StatusEnum.FAILED, launch.getStatus());
-
-    verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+    verify(messageBus, times(1)).publishActivity(ArgumentMatchers.any());
   }
 
   @Sql("/db/test-item/item-change-status-from-passed.sql")
@@ -721,14 +715,8 @@ class TestItemControllerTest extends BaseMvcTest {
         updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup()
             .getTestItemIssueGroup()
     );
-    assertEquals(StatusEnum.FAILED,
-        testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
-            .getStatus());
 
-    Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
-    assertEquals(StatusEnum.FAILED, launch.getStatus());
-
-    verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+    verify(messageBus, times(1)).publishActivity(ArgumentMatchers.any());
   }
 
   @Sql("/db/test-item/item-change-status-from-passed.sql")
@@ -746,14 +734,8 @@ class TestItemControllerTest extends BaseMvcTest {
     assertTrue(updatedItem.isPresent());
     assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
     assertNull(updatedItem.get().getItemResults().getIssue());
-    assertEquals(StatusEnum.FAILED,
-        testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
-            .getStatus());
 
-    Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
-    assertEquals(StatusEnum.FAILED, launch.getStatus());
-
-    verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+    verify(messageBus, times(1)).publishActivity(ArgumentMatchers.any());
   }
 
   @Sql("/db/test-item/item-change-status-from-passed.sql")
@@ -806,14 +788,8 @@ class TestItemControllerTest extends BaseMvcTest {
     assertTrue(updatedItem.isPresent());
     assertEquals(StatusEnum.PASSED, updatedItem.get().getItemResults().getStatus());
     assertNull(updatedItem.get().getItemResults().getIssue());
-    assertEquals(StatusEnum.PASSED,
-        testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
-            .getStatus());
 
-    Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
-    assertEquals(StatusEnum.PASSED, launch.getStatus());
-
-    verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+    verify(messageBus, times(1)).publishActivity(ArgumentMatchers.any());
   }
 
   @Sql("/db/test-item/item-change-status-from-failed.sql")
@@ -887,14 +863,8 @@ class TestItemControllerTest extends BaseMvcTest {
     assertTrue(updatedItem.isPresent());
     assertEquals(StatusEnum.PASSED, updatedItem.get().getItemResults().getStatus());
     assertNull(updatedItem.get().getItemResults().getIssue());
-    assertEquals(StatusEnum.PASSED,
-        testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
-            .getStatus());
 
-    Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
-    assertEquals(StatusEnum.PASSED, launch.getStatus());
-
-    verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+    verify(messageBus, times(1)).publishActivity(ArgumentMatchers.any());
   }
 
   @Sql("/db/test-item/item-change-status-from-interrupted.sql")
@@ -912,14 +882,8 @@ class TestItemControllerTest extends BaseMvcTest {
     assertTrue(updatedItem.isPresent());
     assertEquals(StatusEnum.PASSED, updatedItem.get().getItemResults().getStatus());
     assertNull(updatedItem.get().getItemResults().getIssue());
-    assertEquals(StatusEnum.PASSED,
-        testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
-            .getStatus());
 
-    Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
-    assertEquals(StatusEnum.PASSED, launch.getStatus());
-
-    verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+    verify(messageBus, times(1)).publishActivity(ArgumentMatchers.any());
   }
 
   @Sql("/db/test-item/item-change-status-from-interrupted.sql")

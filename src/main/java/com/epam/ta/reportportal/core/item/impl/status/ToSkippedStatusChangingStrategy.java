@@ -40,6 +40,7 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -60,21 +61,13 @@ public class ToSkippedStatusChangingStrategy extends AbstractStatusChangingStrat
 
   @Autowired
   protected ToSkippedStatusChangingStrategy(TestItemService testItemService,
-      ProjectRepository projectRepository,
-      LaunchRepository launchRepository, TestItemRepository testItemRepository,
-      IssueTypeHandler issueTypeHandler,
+      ProjectRepository projectRepository, LaunchRepository launchRepository,
+      TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
       MessageBus messageBus, IssueEntityRepository issueEntityRepository,
       LogRepository logRepository, LogIndexer logIndexer,
       ItemAttributeRepository itemAttributeRepository) {
-    super(testItemService,
-        projectRepository,
-        launchRepository,
-        testItemRepository,
-        issueTypeHandler,
-        messageBus,
-        issueEntityRepository,
-        logRepository,
-        logIndexer
+    super(testItemService, projectRepository, launchRepository, testItemRepository,
+        issueTypeHandler, messageBus, issueEntityRepository, logRepository, logIndexer
     );
     this.itemAttributeRepository = itemAttributeRepository;
   }
@@ -82,21 +75,19 @@ public class ToSkippedStatusChangingStrategy extends AbstractStatusChangingStrat
   @Override
   protected void updateStatus(Project project, Launch launch, TestItem testItem,
       StatusEnum providedStatus, ReportPortalUser user) {
-    BusinessRule.expect(providedStatus, statusIn(StatusEnum.SKIPPED))
-        .verify(INCORRECT_REQUEST,
-            Suppliers.formattedSupplier("Incorrect status - '{}', only '{}' is allowed",
-                    providedStatus, StatusEnum.SKIPPED)
-                .get()
-        );
+    BusinessRule.expect(providedStatus, statusIn(StatusEnum.SKIPPED)).verify(INCORRECT_REQUEST,
+        Suppliers.formattedSupplier("Incorrect status - '{}', only '{}' is allowed", providedStatus,
+            StatusEnum.SKIPPED
+        ).get()
+    );
 
     testItem.getItemResults().setStatus(providedStatus);
 
     if (Objects.isNull(testItem.getRetryOf())) {
-      Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(
-          testItem.getLaunchId(),
-          SKIPPED_ISSUE_KEY,
-          true
-      );
+      Optional<ItemAttribute> skippedIssueAttribute =
+          itemAttributeRepository.findByLaunchIdAndKeyAndSystem(testItem.getLaunchId(),
+              SKIPPED_ISSUE_KEY, true
+          );
 
       boolean issueRequired = skippedIssueAttribute.isPresent() && BooleanUtils.toBoolean(
           skippedIssueAttribute.get().getValue());
@@ -113,7 +104,7 @@ public class ToSkippedStatusChangingStrategy extends AbstractStatusChangingStrat
         }).ifPresent(issueEntityRepository::deleteById);
       }
 
-      List<Long> itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
+      List<Long> itemsToReindex = new ArrayList<>();
       itemsToReindex.add(testItem.getItemId());
       logIndexer.indexItemsRemove(project.getId(), itemsToReindex);
 
@@ -122,7 +113,8 @@ public class ToSkippedStatusChangingStrategy extends AbstractStatusChangingStrat
       }
 
       logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemsToReindex,
-          AnalyzerUtils.getAnalyzerConfig(project));
+          AnalyzerUtils.getAnalyzerConfig(project)
+      );
     }
   }
 

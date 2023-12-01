@@ -52,36 +52,27 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
 
   @Autowired
   protected ToPassedStatusChangingStrategy(TestItemService testItemService,
-      ProjectRepository projectRepository,
-      LaunchRepository launchRepository, IssueTypeHandler issueTypeHandler, MessageBus messageBus,
+      ProjectRepository projectRepository, LaunchRepository launchRepository,
+      IssueTypeHandler issueTypeHandler, MessageBus messageBus,
       IssueEntityRepository issueEntityRepository, LogRepository logRepository,
-      LogIndexer logIndexer,
-      TestItemRepository testItemRepository) {
-    super(testItemService,
-        projectRepository,
-        launchRepository,
-        testItemRepository,
-        issueTypeHandler,
-        messageBus,
-        issueEntityRepository,
-        logRepository,
-        logIndexer
+      LogIndexer logIndexer, TestItemRepository testItemRepository) {
+    super(testItemService, projectRepository, launchRepository, testItemRepository,
+        issueTypeHandler, messageBus, issueEntityRepository, logRepository, logIndexer
     );
   }
 
   @Override
   protected void updateStatus(Project project, Launch launch, TestItem testItem,
-      StatusEnum providedStatus, ReportPortalUser user) {
+      StatusEnum providedStatus, ReportPortalUser user, boolean updateParents) {
     BusinessRule.expect(providedStatus,
-            statusIn(StatusEnum.PASSED, StatusEnum.INFO, StatusEnum.WARN))
-        .verify(INCORRECT_REQUEST,
-            Suppliers.formattedSupplier("Incorrect status - '{}', only '{}' are allowed",
-                providedStatus,
-                Stream.of(StatusEnum.PASSED, StatusEnum.INFO, StatusEnum.WARN)
-                    .map(StatusEnum::name)
-                    .collect(Collectors.joining(", "))
-            ).get()
-        );
+        statusIn(StatusEnum.PASSED, StatusEnum.INFO, StatusEnum.WARN)
+    ).verify(INCORRECT_REQUEST,
+        Suppliers.formattedSupplier("Incorrect status - '{}', only '{}' are allowed",
+            providedStatus,
+            Stream.of(StatusEnum.PASSED, StatusEnum.INFO, StatusEnum.WARN).map(StatusEnum::name)
+                .collect(Collectors.joining(", "))
+        ).get()
+    );
 
     testItem.getItemResults().setStatus(providedStatus);
     if (Objects.isNull(testItem.getRetryOf())) {
@@ -90,22 +81,22 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
         issueEntityRepository.delete(issue);
         testItem.getItemResults().setIssue(null);
         logIndexer.indexItemsRemoveAsync(project.getId(),
-            Collections.singletonList(testItem.getItemId()));
+            Collections.singletonList(testItem.getItemId())
+        );
       });
 
+      if (updateParents) {
+        changeParentsStatuses(testItem, launch, false, user);
+      }
     }
   }
 
   @Override
   protected StatusEnum evaluateParentItemStatus(TestItem parentItem, TestItem childItem) {
     return testItemRepository.hasDescendantsNotInStatusExcludingById(parentItem.getItemId(),
-        childItem.getItemId(),
-        StatusEnum.PASSED.name(),
-        StatusEnum.INFO.name(),
+        childItem.getItemId(), StatusEnum.PASSED.name(), StatusEnum.INFO.name(),
         StatusEnum.WARN.name()
-    ) ?
-        StatusEnum.FAILED :
-        StatusEnum.PASSED;
+    ) ? StatusEnum.FAILED : StatusEnum.PASSED;
   }
 
 }

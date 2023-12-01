@@ -62,7 +62,7 @@ public class ToFailedStatusChangingStrategy extends AbstractStatusChangingStrate
 
   @Override
   protected void updateStatus(Project project, Launch launch, TestItem testItem,
-      StatusEnum providedStatus, ReportPortalUser user) {
+      StatusEnum providedStatus, ReportPortalUser user, boolean updateParents) {
     BusinessRule.expect(providedStatus, statusIn(StatusEnum.FAILED)).verify(INCORRECT_REQUEST,
         Suppliers.formattedSupplier("Incorrect status - '{}', only '{}' is allowed", providedStatus,
             StatusEnum.FAILED
@@ -76,6 +76,9 @@ public class ToFailedStatusChangingStrategy extends AbstractStatusChangingStrate
       }
 
       List<Long> itemsToReindex = new ArrayList<>();
+      if (updateParents) {
+        itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
+      }
       itemsToReindex.add(testItem.getItemId());
       logIndexer.indexItemsRemove(project.getId(), itemsToReindex);
       logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemsToReindex,

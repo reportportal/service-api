@@ -65,7 +65,7 @@ class TestItemBuilderTest {
         .addParentId(1L)
         .get();
 
-    assertThat(testItem.getLaunchId()).isEqualToComparingFieldByField(launch.getId());
+    assertEquals(testItem.getLaunchId(), launch.getId());
     assertEquals(description, testItem.getDescription());
     assertEquals(TestItemTypeEnum.STEP, testItem.getType());
     final Parameter param = new Parameter();

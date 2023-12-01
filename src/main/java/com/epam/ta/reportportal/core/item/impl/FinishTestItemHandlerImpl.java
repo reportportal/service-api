@@ -385,7 +385,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
       Optional<StatusChangingStrategy> statusChangingStrategy =
           ofNullable(statusChangingStrategyMapping.get(actualStatus));
       if (statusChangingStrategy.isPresent()) {
-        statusChangingStrategy.get().changeStatus(testItem, actualStatus, user);
+        statusChangingStrategy.get().changeStatus(testItem, actualStatus, user, false);
       } else {
         testItemResults.setStatus(actualStatus);
       }

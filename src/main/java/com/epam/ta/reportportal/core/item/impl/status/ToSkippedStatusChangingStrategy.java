@@ -74,7 +74,7 @@ public class ToSkippedStatusChangingStrategy extends AbstractStatusChangingStrat
 
   @Override
   protected void updateStatus(Project project, Launch launch, TestItem testItem,
-      StatusEnum providedStatus, ReportPortalUser user) {
+      StatusEnum providedStatus, ReportPortalUser user, boolean updateParents) {
     BusinessRule.expect(providedStatus, statusIn(StatusEnum.SKIPPED)).verify(INCORRECT_REQUEST,
         Suppliers.formattedSupplier("Incorrect status - '{}', only '{}' is allowed", providedStatus,
             StatusEnum.SKIPPED
@@ -105,6 +105,9 @@ public class ToSkippedStatusChangingStrategy extends AbstractStatusChangingStrat
       }
 
       List<Long> itemsToReindex = new ArrayList<>();
+      if (updateParents) {
+        itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
+      }
       itemsToReindex.add(testItem.getItemId());
       logIndexer.indexItemsRemove(project.getId(), itemsToReindex);
 

@@ -112,7 +112,7 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
       Optional<StatusChangingStrategy> statusChangingStrategy = ofNullable(
           statusChangingStrategyMapping.get(resolvedStatus));
       if (statusChangingStrategy.isPresent()) {
-        statusChangingStrategy.get().changeStatus(parent, resolvedStatus, user);
+        statusChangingStrategy.get().changeStatus(parent, resolvedStatus, user, false);
       } else {
         parent.getItemResults().setStatus(resolvedStatus);
       }

@@ -197,21 +197,6 @@ test {
     }
 }
 
-jacocoTestReport {
-    doFirst {
-        classDirectories.setFrom(
-                classDirectories.files.collect {
-                    fileTree(dir: it, exclude: [
-                            'com/epam/ta/reportportal/core/events/AnalysisEvent.class',
-                            'com/epam/ta/reportportal/auth/acl/ReportPortalAclAuthorizationStrategyImpl.class',
-                            '**/Abstract*.class'
-                    ])
-                }
-        )
-    }
-
-}
-
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts

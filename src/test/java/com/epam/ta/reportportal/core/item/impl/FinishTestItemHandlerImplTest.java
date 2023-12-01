@@ -21,6 +21,7 @@ import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectD
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -93,13 +94,14 @@ class FinishTestItemHandlerImplTest {
   void finishNotExistedTestItem() {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
     when(repository.findByUuid("1")).thenReturn(Optional.empty());
-    final ReportPortalException exception = assertThrows(
-        ReportPortalException.class,
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
-            new FinishTestItemRQ())
+            new FinishTestItemRQ()
+        )
     );
     assertEquals("Test Item '1' not found. Did you use correct Test Item ID?",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
@@ -112,10 +114,10 @@ class FinishTestItemHandlerImplTest {
     item.setItemId(1L);
     when(repository.findByUuid("1")).thenReturn(Optional.of(item));
 
-    final ReportPortalException exception = assertThrows(
-        ReportPortalException.class,
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
-            new FinishTestItemRQ())
+            new FinishTestItemRQ()
+        )
     );
     assertEquals("Launch '' not found. Did you use correct Launch ID?", exception.getMessage());
   }
@@ -141,13 +143,14 @@ class FinishTestItemHandlerImplTest {
     item.setItemId(1L);
     when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
 
-    final ReportPortalException exception = assertThrows(
-        ReportPortalException.class,
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
-            new FinishTestItemRQ())
+            new FinishTestItemRQ()
+        )
     );
     assertEquals("Finish test item is not allowed. You are not a launch owner.",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
@@ -167,10 +170,10 @@ class FinishTestItemHandlerImplTest {
     when(repository.findByUuid("1")).thenReturn(Optional.of(item));
     when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
 
-    final ReportPortalException exception = assertThrows(
-        ReportPortalException.class,
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
-            new FinishTestItemRQ())
+            new FinishTestItemRQ()
+        )
     );
     assertEquals(
         "Test item status is ambiguous. There is no status provided from request and there are no descendants to check statistics for test item id '1'",
@@ -215,13 +218,12 @@ class FinishTestItemHandlerImplTest {
     finishExecutionRQ.setStatus("FAILED");
     finishExecutionRQ.setEndTime(new Date());
 
-    OperationCompletionRS operationCompletionRS = handler.finishTestItem(rpUser,
-        extractProjectDetails(rpUser, "test_project"),
-        "1",
-        finishExecutionRQ
-    );
+    OperationCompletionRS operationCompletionRS =
+        handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+            finishExecutionRQ
+        );
 
-    verify(statusChangingStrategy, times(1)).changeStatus(any(), any(), any());
+    verify(statusChangingStrategy, times(1)).changeStatus(any(), any(), any(), eq(false));
     verify(issueEntityRepository, times(1)).save(any());
     verify(messageBus, times(1)).publishActivity(any());
     verify(eventPublisher, times(1)).publishEvent(any(IssueResolvedEvent.class));

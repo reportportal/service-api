@@ -93,8 +93,8 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setUniqueId(UUID.randomUUID().toString());
     rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
     mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/item").contentType(APPLICATION_JSON)
-        .content(objectMapper.writeValueAsBytes(rq))
-        .with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isCreated());
+            .content(objectMapper.writeValueAsBytes(rq)).with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isCreated());
   }
 
   @Test
@@ -106,8 +106,8 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setParameters(getParameters());
     rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
     mockMvc.perform(post(SUPERADMIN_PROJECT_BASE_URL + "/item").contentType(APPLICATION_JSON)
-        .content(objectMapper.writeValueAsBytes(rq))
-        .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
+            .content(objectMapper.writeValueAsBytes(rq)).with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isCreated());
   }
 
   @Test
@@ -119,11 +119,10 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setUniqueId(UUID.randomUUID().toString());
     rq.setParameters(getParameters());
     rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
-    mockMvc.perform(post(
-        DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(
-            objectMapper.writeValueAsBytes(rq))
-        .contentType(APPLICATION_JSON)
-        .with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isCreated());
+    mockMvc.perform(
+        post(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(
+                objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isCreated());
   }
 
   @Test
@@ -134,11 +133,10 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setType("TEST");
     rq.setParameters(getParameters());
     rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
-    mockMvc.perform(post(
-        DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(
-            objectMapper.writeValueAsBytes(rq))
-        .contentType(APPLICATION_JSON)
-        .with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isCreated());
+    mockMvc.perform(
+        post(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(
+                objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isCreated());
   }
 
   @Test
@@ -148,10 +146,9 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
     rq.setStatus("PASSED");
     mockMvc.perform(
-            put(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(
-                objectMapper.writeValueAsBytes(
-                    rq)).contentType(APPLICATION_JSON).with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+        put(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(
+                objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
@@ -160,10 +157,9 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setLaunchUuid(UUID.randomUUID().toString());
     rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
     mockMvc.perform(
-            put(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(
-                objectMapper.writeValueAsBytes(
-                    rq)).contentType(APPLICATION_JSON).with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+        put(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(
+                objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
@@ -175,11 +171,10 @@ class TestItemControllerTest extends BaseMvcTest {
     Issue issue = new Issue();
     issue.setIssueType("pb001");
     rq.setIssue(issue);
-    mockMvc.perform(put(
-        SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
-            objectMapper.writeValueAsBytes(rq))
-        .contentType(APPLICATION_JSON)
-        .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+    mockMvc.perform(
+        put(SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
+                objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
   }
 
   @Test
@@ -188,18 +183,16 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setLaunchUuid(UUID.randomUUID().toString());
     rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
     rq.setStatus("FAILED");
-    mockMvc.perform(put(
-        SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
-            objectMapper.writeValueAsBytes(rq))
-        .contentType(APPLICATION_JSON)
-        .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+    mockMvc.perform(
+        put(SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
+                objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
   }
 
   @Test
   void getSuggestedItemsAnalyzerNotDeployed() throws Exception {
     mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/suggest/1").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(
+            token(oAuthHelper.getDefaultToken()))).andExpect(
             result -> assertTrue(result.getResolvedException() instanceof ReportPortalException))
         .andExpect(result -> assertEquals(
             "Impossible interact with integration. There are no analyzer services with suggest items support deployed.",
@@ -216,10 +209,9 @@ class TestItemControllerTest extends BaseMvcTest {
 
   @Test
   void getTestItemStringPositive() throws Exception {
-    mockMvc.perform(get(
-            DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+    mockMvc.perform(
+        get(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").with(
+            token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
@@ -232,74 +224,63 @@ class TestItemControllerTest extends BaseMvcTest {
   @Test
   void getTestItemRetryStringPositive() throws Exception {
     mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-retry").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
   void getTestItemUuidPositive() throws Exception {
-    mockMvc.perform(get(
-            DEFAULT_PROJECT_BASE_URL + "/item/uuid/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+    mockMvc.perform(
+        get(DEFAULT_PROJECT_BASE_URL + "/item/uuid/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").with(
+            token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
   void getTestItemsPositive() throws Exception {
     mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item?filter.eq.launchId=1").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
   void getTestItemsBadProvider() throws Exception {
     mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=bad").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isBadRequest());
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isBadRequest());
   }
 
   @Test
   void getTestItemsLaunchProvider() throws Exception {
-    mockMvc.perform(get(
-            DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=launch&launchId=1").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+    mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=launch&launchId=1").with(
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
   void getTestItemsLaunchProviderMissedParam() throws Exception {
     mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=launch").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isBadRequest());
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isBadRequest());
   }
 
   @Test
   void getTestItemsFilterProvider() throws Exception {
-    mockMvc.perform(get(
-            DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=filter&filterId=1&launchesLimit=10").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+    mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
+        + "/item/v2?providerType=filter&filterId=1&launchesLimit=10").with(
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
   void getTestItemsFilterProviderMissedParam() throws Exception {
     mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=filter").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isBadRequest());
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isBadRequest());
   }
 
   @Test
   void getTestItemsWidgetProvider() throws Exception {
     mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=widget").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isBadRequest());
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isBadRequest());
   }
 
   @Test
   void getTestItemBySpecifiedIds() throws Exception {
     mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/items?ids=1,2,3").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
@@ -312,40 +293,35 @@ class TestItemControllerTest extends BaseMvcTest {
   @Test
   void deleteTestItemBySpecifiedIds() throws Exception {
     mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/item?ids=2,3").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
   void getAccumulatedStatisticsByFilter() throws Exception {
-    mockMvc.perform(get(
-            DEFAULT_PROJECT_BASE_URL + "/item/statistics?providerType=launch&launchId=1").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+    mockMvc.perform(
+        get(DEFAULT_PROJECT_BASE_URL + "/item/statistics?providerType=launch&launchId=1").with(
+            token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
   void getItemHistoryByParentIdPositive() throws Exception {
-    mockMvc.perform(get(
-            DEFAULT_PROJECT_BASE_URL + "/item/history?filter.eq.parentId=1&historyDepth=3").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+    mockMvc.perform(
+        get(DEFAULT_PROJECT_BASE_URL + "/item/history?filter.eq.parentId=1&historyDepth=3").with(
+            token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
   void getItemHistoryByLaunchIdPositive() throws Exception {
-    mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL
-            + "/item/history?filter.eq.launchId=1&historyDepth=3").with(
-            token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
+    mockMvc.perform(
+        get(SUPERADMIN_PROJECT_BASE_URL + "/item/history?filter.eq.launchId=1&historyDepth=3").with(
+            token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
   }
 
   @Test
   void getItemHistoryByFilterIdPositive() throws Exception {
     mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
-            + "/item/history?filterId=1&launchesLimit=10&historyDepth=3").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+        + "/item/history?filterId=1&launchesLimit=10&historyDepth=3").with(
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
@@ -354,9 +330,9 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setDescription("updated");
     rq.setAttributes(Sets.newHashSet(new ItemAttributeResource("test", "test")));
     mockMvc.perform(
-        put(DEFAULT_PROJECT_BASE_URL + "/item/1/update").with(token(oAuthHelper.getDefaultToken()))
-            .contentType(APPLICATION_JSON)
-            .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
+            put(DEFAULT_PROJECT_BASE_URL + "/item/1/update").with(token(oAuthHelper.getDefaultToken()))
+                .contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -364,10 +340,8 @@ class TestItemControllerTest extends BaseMvcTest {
     SuggestInfo suggestInfo = new SuggestInfo();
     suggestInfo.setTestItem(1L);
     mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/suggest/choice").with(
-                token(oAuthHelper.getDefaultToken()))
-            .contentType(APPLICATION_JSON)
-            .content(objectMapper.writeValueAsBytes(Lists.newArrayList(suggestInfo))))
-        .andExpect(
+                token(oAuthHelper.getDefaultToken())).contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(Lists.newArrayList(suggestInfo)))).andExpect(
             result -> assertTrue(result.getResolvedException() instanceof ReportPortalException))
         .andExpect(result -> assertEquals(
             "Impossible interact with integration. There are no analyzer services with suggest items support deployed.",
@@ -378,47 +352,41 @@ class TestItemControllerTest extends BaseMvcTest {
   @Test
   void getTickets() throws Exception {
     mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/ticket/ids?launch=1&term=ticket").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
   void getAttributeKeys() throws Exception {
     mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
-            + "/item/attribute/keys?launch=1&filter.cnt.attributeKey=bro").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+        + "/item/attribute/keys?launch=1&filter.cnt.attributeKey=bro").with(
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
   void getAttributeKeysForProject() throws Exception {
     mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
         + "/item/attribute/keys/all?filterId=1&launchesLimit=600&isLatest=false&filter.cnt.attributeKey=bro").with(
-        token(oAuthHelper
-            .getDefaultToken()))).andExpect(status().isOk());
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
   void getAttributeValues() throws Exception {
     mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
-        + "/item/attribute/values?launch=1&filter.cnt.attributeValue=lin").with(token(
-        oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+        + "/item/attribute/values?launch=1&filter.cnt.attributeValue=lin").with(
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
   void getAttributeKeysByProjectId() throws Exception {
-    mockMvc.perform(get(
-        DEFAULT_PROJECT_BASE_URL
-            + "/item/step/attribute/keys?filter.eq.name=test launch&filter.cnt.attributeKey=bro").with(
-        token(
-            oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+    mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
+        + "/item/step/attribute/keys?filter.eq.name=test launch&filter.cnt.attributeKey=bro").with(
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
   @Test
   void getAttributeValuesByKeyAndProjectId() throws Exception {
-    mockMvc.perform(get(
-        DEFAULT_PROJECT_BASE_URL
-            + "/item/step/attribute/values?filter.eq.name=test launch&filter.cnt.attributeValue=lin").with(
+    mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
+        + "/item/step/attribute/values?filter.eq.name=test launch&filter.cnt.attributeValue=lin").with(
         token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
   }
 
@@ -433,9 +401,9 @@ class TestItemControllerTest extends BaseMvcTest {
     issueDefinition.setIssue(issue);
     rq.setIssues(Collections.singletonList(issueDefinition));
     mockMvc.perform(
-        put(DEFAULT_PROJECT_BASE_URL + "/item").with(token(oAuthHelper.getDefaultToken()))
-            .contentType(APPLICATION_JSON)
-            .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
+            put(DEFAULT_PROJECT_BASE_URL + "/item").with(token(oAuthHelper.getDefaultToken()))
+                .contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -449,9 +417,9 @@ class TestItemControllerTest extends BaseMvcTest {
     issueDefinition.setIssue(issue);
     rq.setIssues(Collections.singletonList(issueDefinition));
     mockMvc.perform(
-        put(DEFAULT_PROJECT_BASE_URL + "/item").with(token(oAuthHelper.getDefaultToken()))
-            .contentType(APPLICATION_JSON)
-            .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isBadRequest());
+            put(DEFAULT_PROJECT_BASE_URL + "/item").with(token(oAuthHelper.getDefaultToken()))
+                .contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
+        .andExpect(status().isBadRequest());
   }
 
   @Test
@@ -473,11 +441,10 @@ class TestItemControllerTest extends BaseMvcTest {
 
     rq.setIssue(issue);
 
-    mockMvc.perform(put(
-        SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
-            objectMapper.writeValueAsBytes(rq))
-        .contentType(APPLICATION_JSON)
-        .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
+    mockMvc.perform(
+        put(SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
+                objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
   }
 
   @Test
@@ -499,11 +466,10 @@ class TestItemControllerTest extends BaseMvcTest {
 
     rq.setIssue(issue);
 
-    mockMvc.perform(put(
-        SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
-            objectMapper.writeValueAsBytes(rq))
-        .contentType(APPLICATION_JSON)
-        .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
+    mockMvc.perform(
+        put(SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
+                objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
   }
 
   @Test
@@ -525,11 +491,10 @@ class TestItemControllerTest extends BaseMvcTest {
 
     rq.setIssue(issue);
 
-    mockMvc.perform(put(
-        SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
-            objectMapper.writeValueAsBytes(rq))
-        .contentType(APPLICATION_JSON)
-        .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
+    mockMvc.perform(
+        put(SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
+                objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
   }
 
   @Test
@@ -551,11 +516,10 @@ class TestItemControllerTest extends BaseMvcTest {
 
     rq.setIssue(issue);
 
-    mockMvc.perform(put(
-        SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
-            objectMapper.writeValueAsBytes(rq))
-        .contentType(APPLICATION_JSON)
-        .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
+    mockMvc.perform(
+        put(SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
+                objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
   }
 
   @Test
@@ -572,11 +536,10 @@ class TestItemControllerTest extends BaseMvcTest {
 
     rq.setIssue(issue);
 
-    mockMvc.perform(put(
-        SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
-            objectMapper.writeValueAsBytes(rq))
-        .contentType(APPLICATION_JSON)
-        .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+    mockMvc.perform(
+        put(SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
+                objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
   }
 
   @Test
@@ -599,11 +562,10 @@ class TestItemControllerTest extends BaseMvcTest {
 
     rq.setIssue(issue);
 
-    mockMvc.perform(put(
-        SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
-            objectMapper.writeValueAsBytes(rq))
-        .contentType(APPLICATION_JSON)
-        .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+    mockMvc.perform(
+        put(SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
+                objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
   }
 
   @Test
@@ -617,8 +579,7 @@ class TestItemControllerTest extends BaseMvcTest {
     issue.setUrl("https://example.com/NEWTICKET1");
     rq.setIssues(Collections.singletonList(issue));
     mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/issue/link").with(
-            token(oAuthHelper.getDefaultToken()))
-        .content(objectMapper.writeValueAsBytes(rq))
+            token(oAuthHelper.getDefaultToken())).content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)).andExpect(status().isOk());
   }
 
@@ -633,8 +594,7 @@ class TestItemControllerTest extends BaseMvcTest {
     issue.setUrl("https://example.com/NEWTICKET1");
     rq.setIssues(Collections.singletonList(issue));
     mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/issue/link").with(
-            token(oAuthHelper.getDefaultToken()))
-        .content(objectMapper.writeValueAsBytes(rq))
+            token(oAuthHelper.getDefaultToken())).content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest());
   }
 
@@ -644,8 +604,7 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setTestItemIds(Collections.singletonList(3L));
     rq.setTicketIds(Collections.singletonList("ticket"));
     mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/issue/unlink").with(
-            token(oAuthHelper.getDefaultToken()))
-        .contentType(APPLICATION_JSON)
+            token(oAuthHelper.getDefaultToken())).contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
   }
 
@@ -655,8 +614,7 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setTestItemIds(Collections.singletonList(2L));
     rq.setTicketIds(Collections.singletonList("ticket"));
     mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/issue/unlink").with(
-            token(oAuthHelper.getDefaultToken()))
-        .contentType(APPLICATION_JSON)
+            token(oAuthHelper.getDefaultToken())).contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isBadRequest());
   }
 
@@ -673,8 +631,7 @@ class TestItemControllerTest extends BaseMvcTest {
   @Test
   void getItemsByAdmin() throws Exception {
     mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/item/items?ids=1,2,4").with(
-            token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk())
+            token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(3)));
   }
 
@@ -685,17 +642,18 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setStatus("failed");
 
     mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(
-            token(oAuthHelper.getSuperadminToken()))
-        .contentType(APPLICATION_JSON)
+            token(oAuthHelper.getSuperadminToken())).contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
     Optional<TestItem> updatedItem = testItemRepository.findById(6L);
 
     assertTrue(updatedItem.isPresent());
     assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
-    assertEquals(StatusEnum.FAILED,
+    assertEquals(
+        StatusEnum.FAILED,
         testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
-            .getStatus());
+            .getStatus()
+    );
 
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.FAILED, launch.getStatus());
@@ -710,20 +668,22 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setStatus("skipped");
 
     mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(
-            token(oAuthHelper.getSuperadminToken()))
-        .contentType(APPLICATION_JSON)
+            token(oAuthHelper.getSuperadminToken())).contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
     Optional<TestItem> updatedItem = testItemRepository.findById(6L);
     assertTrue(updatedItem.isPresent());
     assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
-    assertEquals(TestItemIssueGroup.TO_INVESTIGATE,
+    assertEquals(
+        TestItemIssueGroup.TO_INVESTIGATE,
         updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup()
             .getTestItemIssueGroup()
     );
-    assertEquals(StatusEnum.FAILED,
+    assertEquals(
+        StatusEnum.FAILED,
         testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
-            .getStatus());
+            .getStatus()
+    );
 
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.FAILED, launch.getStatus());
@@ -738,17 +698,18 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setStatus("skipped");
 
     mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/9/update").with(
-            token(oAuthHelper.getSuperadminToken()))
-        .contentType(APPLICATION_JSON)
+            token(oAuthHelper.getSuperadminToken())).contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
     Optional<TestItem> updatedItem = testItemRepository.findById(9L);
     assertTrue(updatedItem.isPresent());
     assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
     assertNull(updatedItem.get().getItemResults().getIssue());
-    assertEquals(StatusEnum.FAILED,
+    assertEquals(
+        StatusEnum.FAILED,
         testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
-            .getStatus());
+            .getStatus()
+    );
 
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.FAILED, launch.getStatus());
@@ -772,20 +733,22 @@ class TestItemControllerTest extends BaseMvcTest {
     assertEquals(StatusEnum.IN_PROGRESS, updatedItem.get().getItemResults().getStatus());
 
     mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/uuid_s_2_9").content(
-            objectMapper.writeValueAsBytes(rq))
-        .contentType(APPLICATION_JSON)
+            objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
         .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 
     updatedItem = testItemRepository.findById(11L);
     assertTrue(updatedItem.isPresent());
     assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
-    assertEquals(TestItemIssueGroup.PRODUCT_BUG,
+    assertEquals(
+        TestItemIssueGroup.PRODUCT_BUG,
         updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup()
             .getTestItemIssueGroup()
     );
-    assertEquals(StatusEnum.PASSED,
+    assertEquals(
+        StatusEnum.PASSED,
         testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
-            .getStatus());
+            .getStatus()
+    );
 
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.PASSED, launch.getStatus());
@@ -798,17 +761,18 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setStatus("passed");
 
     mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(
-            token(oAuthHelper.getSuperadminToken()))
-        .contentType(APPLICATION_JSON)
+            token(oAuthHelper.getSuperadminToken())).contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
     Optional<TestItem> updatedItem = testItemRepository.findById(6L);
     assertTrue(updatedItem.isPresent());
     assertEquals(StatusEnum.PASSED, updatedItem.get().getItemResults().getStatus());
     assertNull(updatedItem.get().getItemResults().getIssue());
-    assertEquals(StatusEnum.PASSED,
+    assertEquals(
+        StatusEnum.PASSED,
         testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
-            .getStatus());
+            .getStatus()
+    );
 
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.PASSED, launch.getStatus());
@@ -823,20 +787,22 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setStatus("skipped");
 
     mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(
-            token(oAuthHelper.getSuperadminToken()))
-        .contentType(APPLICATION_JSON)
+            token(oAuthHelper.getSuperadminToken())).contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
     Optional<TestItem> updatedItem = testItemRepository.findById(6L);
     assertTrue(updatedItem.isPresent());
     assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
-    assertEquals(TestItemIssueGroup.AUTOMATION_BUG,
+    assertEquals(
+        TestItemIssueGroup.AUTOMATION_BUG,
         updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup()
             .getTestItemIssueGroup()
     );
-    assertEquals(StatusEnum.FAILED,
+    assertEquals(
+        StatusEnum.FAILED,
         testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
-            .getStatus());
+            .getStatus()
+    );
 
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.FAILED, launch.getStatus());
@@ -851,20 +817,22 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setStatus("failed");
 
     mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(
-            token(oAuthHelper.getSuperadminToken()))
-        .contentType(APPLICATION_JSON)
+            token(oAuthHelper.getSuperadminToken())).contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
     Optional<TestItem> updatedItem = testItemRepository.findById(6L);
     assertTrue(updatedItem.isPresent());
     assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
-    assertEquals(TestItemIssueGroup.TO_INVESTIGATE,
+    assertEquals(
+        TestItemIssueGroup.TO_INVESTIGATE,
         updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup()
             .getTestItemIssueGroup()
     );
-    assertEquals(StatusEnum.FAILED,
+    assertEquals(
+        StatusEnum.FAILED,
         testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
-            .getStatus());
+            .getStatus()
+    );
 
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.FAILED, launch.getStatus());
@@ -879,17 +847,18 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setStatus("passed");
 
     mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(
-            token(oAuthHelper.getSuperadminToken()))
-        .contentType(APPLICATION_JSON)
+            token(oAuthHelper.getSuperadminToken())).contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
     Optional<TestItem> updatedItem = testItemRepository.findById(6L);
     assertTrue(updatedItem.isPresent());
     assertEquals(StatusEnum.PASSED, updatedItem.get().getItemResults().getStatus());
     assertNull(updatedItem.get().getItemResults().getIssue());
-    assertEquals(StatusEnum.PASSED,
+    assertEquals(
+        StatusEnum.PASSED,
         testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
-            .getStatus());
+            .getStatus()
+    );
 
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.PASSED, launch.getStatus());
@@ -904,17 +873,18 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setStatus("passed");
 
     mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(
-            token(oAuthHelper.getSuperadminToken()))
-        .contentType(APPLICATION_JSON)
+            token(oAuthHelper.getSuperadminToken())).contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
     Optional<TestItem> updatedItem = testItemRepository.findById(6L);
     assertTrue(updatedItem.isPresent());
     assertEquals(StatusEnum.PASSED, updatedItem.get().getItemResults().getStatus());
     assertNull(updatedItem.get().getItemResults().getIssue());
-    assertEquals(StatusEnum.PASSED,
+    assertEquals(
+        StatusEnum.PASSED,
         testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
-            .getStatus());
+            .getStatus()
+    );
 
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.PASSED, launch.getStatus());
@@ -929,20 +899,22 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setStatus("skipped");
 
     mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(
-            token(oAuthHelper.getSuperadminToken()))
-        .contentType(APPLICATION_JSON)
+            token(oAuthHelper.getSuperadminToken())).contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
     Optional<TestItem> updatedItem = testItemRepository.findById(6L);
     assertTrue(updatedItem.isPresent());
     assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
-    assertEquals(TestItemIssueGroup.TO_INVESTIGATE,
+    assertEquals(
+        TestItemIssueGroup.TO_INVESTIGATE,
         updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup()
             .getTestItemIssueGroup()
     );
-    assertEquals(StatusEnum.FAILED,
+    assertEquals(
+        StatusEnum.FAILED,
         testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
-            .getStatus());
+            .getStatus()
+    );
 
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.FAILED, launch.getStatus());
@@ -957,20 +929,22 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setStatus("failed");
 
     mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(
-            token(oAuthHelper.getSuperadminToken()))
-        .contentType(APPLICATION_JSON)
+            token(oAuthHelper.getSuperadminToken())).contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
     Optional<TestItem> updatedItem = testItemRepository.findById(6L);
     assertTrue(updatedItem.isPresent());
     assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
-    assertEquals(TestItemIssueGroup.TO_INVESTIGATE,
+    assertEquals(
+        TestItemIssueGroup.TO_INVESTIGATE,
         updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup()
             .getTestItemIssueGroup()
     );
-    assertEquals(StatusEnum.FAILED,
+    assertEquals(
+        StatusEnum.FAILED,
         testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults()
-            .getStatus());
+            .getStatus()
+    );
 
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.FAILED, launch.getStatus());
@@ -984,8 +958,7 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setStatus("failed");
 
     mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/5/update").with(
-            token(oAuthHelper.getSuperadminToken()))
-        .contentType(APPLICATION_JSON)
+            token(oAuthHelper.getSuperadminToken())).contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(request))).andExpect(status().is(400));
   }
 
@@ -1006,23 +979,20 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
     mockMvc.perform(
-        put(DEFAULT_PROJECT_BASE_URL + "/item/info").with(token(oAuthHelper.getDefaultToken()))
-            .contentType(APPLICATION_JSON)
-            .content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+            put(DEFAULT_PROJECT_BASE_URL + "/item/info").with(token(oAuthHelper.getDefaultToken()))
+                .contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(request)))
+        .andExpect(status().isOk());
 
     List<TestItem> items = testItemRepository.findAllById(launchIds);
     items.forEach(it -> testItemRepository.refresh(it));
 
     items.forEach(it -> {
-      assertTrue(it.getAttributes()
-          .stream()
-          .noneMatch(attr -> "testKey".equals(attr.getKey()) && attr.getValue().equals("testValue")
+      assertTrue(it.getAttributes().stream().noneMatch(
+          attr -> "testKey".equals(attr.getKey()) && attr.getValue().equals("testValue")
               && !attr.isSystem()));
-      assertTrue(it.getAttributes()
-          .stream()
-          .anyMatch(
-              attr -> "updatedKey".equals(attr.getKey()) && attr.getValue().equals("updatedValue")
-                  && !attr.isSystem()));
+      assertTrue(it.getAttributes().stream().anyMatch(
+          attr -> "updatedKey".equals(attr.getKey()) && attr.getValue().equals("updatedValue")
+              && !attr.isSystem()));
       assertEquals(comment, it.getDescription());
     });
   }
@@ -1043,19 +1013,17 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
     mockMvc.perform(
-        put(DEFAULT_PROJECT_BASE_URL + "/item/info").with(token(oAuthHelper.getDefaultToken()))
-            .contentType(APPLICATION_JSON)
-            .content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+            put(DEFAULT_PROJECT_BASE_URL + "/item/info").with(token(oAuthHelper.getDefaultToken()))
+                .contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(request)))
+        .andExpect(status().isOk());
 
     List<TestItem> items = testItemRepository.findAllById(launchIds);
     items.forEach(it -> testItemRepository.refresh(it));
 
     items.forEach(it -> {
-      assertTrue(it.getAttributes()
-          .stream()
-          .anyMatch(
-              attr -> "createdKey".equals(attr.getKey()) && attr.getValue().equals("createdValue")
-                  && !attr.isSystem()));
+      assertTrue(it.getAttributes().stream().anyMatch(
+          attr -> "createdKey".equals(attr.getKey()) && attr.getValue().equals("createdValue")
+              && !attr.isSystem()));
       assertTrue(
           it.getDescription().length() > comment.length() && it.getDescription().contains(comment));
     });
@@ -1077,17 +1045,16 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
     mockMvc.perform(
-        put(DEFAULT_PROJECT_BASE_URL + "/item/info").with(token(oAuthHelper.getDefaultToken()))
-            .contentType(APPLICATION_JSON)
-            .content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+            put(DEFAULT_PROJECT_BASE_URL + "/item/info").with(token(oAuthHelper.getDefaultToken()))
+                .contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(request)))
+        .andExpect(status().isOk());
 
     List<TestItem> items = testItemRepository.findAllById(launchIds);
     items.forEach(it -> testItemRepository.refresh(it));
 
     items.forEach(it -> {
-      assertTrue(it.getAttributes()
-          .stream()
-          .noneMatch(attr -> "testKey".equals(attr.getKey()) && attr.getValue().equals("testValue")
+      assertTrue(it.getAttributes().stream().noneMatch(
+          attr -> "testKey".equals(attr.getKey()) && attr.getValue().equals("testValue")
               && !attr.isSystem()));
       assertEquals(comment, it.getDescription());
     });

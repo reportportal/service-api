@@ -244,8 +244,8 @@ public class LaunchNotificationRunner
             }).collect(Collectors.toSet());
 
     if (LogicalOperator.AND.equals(logicalOperator)) {
-      return itemAttributes.stream().allMatch(attr -> itemAttributesResource.stream()
-          .anyMatch(resourceAttr -> areAttributesMatched(attr, resourceAttr)));
+      return itemAttributesResource.stream().allMatch(resourceAttr -> itemAttributes.stream()
+          .anyMatch(attr -> areAttributesMatched(attr, resourceAttr)));
     }
 
     return itemAttributes.stream().anyMatch(attr -> itemAttributesResource.stream()

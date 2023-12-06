@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.model.launch;
 import com.epam.ta.reportportal.ws.annotations.In;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import javax.validation.constraints.NotNull;
 
@@ -31,25 +31,25 @@ public class AnalyzeLaunchRQ {
 
 	@NotNull
 	@JsonProperty(value = "launchId", required = true)
-	@ApiModelProperty
+	@Schema
 	private Long launchId;
 
 	@NotNull
 	@JsonProperty(value = "analyzerMode", required = true)
 	@In(allowedValues = { "all", "launch_name", "current_launch", "previous_launch", "current_and_the_same_name" })
-	@ApiModelProperty(allowableValues = "ALL, LAUNCH_NAME, CURRENT_LAUNCH, PREVIOUS_LAUNCH, CURRENT_AND_THE_SAME_NAME")
+	@Schema(allowableValues = "ALL, LAUNCH_NAME, CURRENT_LAUNCH, PREVIOUS_LAUNCH, CURRENT_AND_THE_SAME_NAME")
 	private String analyzerHistoryMode;
 
 	@NotNull
 	@JsonProperty(value = "analyzerTypeName", required = true)
 	@In(allowedValues = { "autoAnalyzer", "patternAnalyzer" })
-	@ApiModelProperty(allowableValues = "autoAnalyzer, patternAnalyzer")
+	@Schema(allowableValues = "autoAnalyzer, patternAnalyzer")
 	private String analyzerTypeName;
 
 	@NotNull
 	@JsonProperty(value = "analyzeItemsMode", required = true)
 	@In(allowedValues = { "to_investigate", "auto_analyzed", "manually_analyzed" })
-	@ApiModelProperty(allowableValues = "TO_INVESTIGATE, AUTO_ANALYZED, MANUALLY_ANALYZED")
+	@Schema(allowableValues = "TO_INVESTIGATE, AUTO_ANALYZED, MANUALLY_ANALYZED")
 	private List<String> analyzeItemsModes;
 
 	public Long getLaunchId() {

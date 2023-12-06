@@ -21,7 +21,8 @@ import static com.epam.ta.reportportal.ws.model.ValidationConstraints.PROJECT_NA
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -36,7 +37,7 @@ public class DeleteProjectRQ {
 	@JsonProperty(value = "projectName", required = true)
 	@Pattern(regexp = PROJECT_NAME_REGEXP)
 	@Size(min = ValidationConstraints.MIN_NAME_LENGTH, max = ValidationConstraints.MAX_NAME_LENGTH)
-	@ApiModelProperty(required = true)
+	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String projectName;
 
 	public String getProjectName() {

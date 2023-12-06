@@ -104,7 +104,7 @@ dependencies {
 
 
     // Optional for spring-boot-starter-amqp
-    implementation "com.rabbitmq:http-client:5.2.0"
+    implementation "com.rabbitmq:http-client:2.1.0.RELEASE"
 
     implementation 'com.sun.mail:javax.mail:1.6.2'
     implementation 'net.sf.jasperreports:jasperreports:6.20.6'

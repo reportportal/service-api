@@ -33,8 +33,9 @@ import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -58,6 +59,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v2/{projectName}/launch")
+@Tag(name = "launch-async-controller", description = "Activity Controller")
 public class LaunchAsyncController {
 
   private final ProjectExtractor projectExtractor;
@@ -80,9 +82,9 @@ public class LaunchAsyncController {
   @PostMapping
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(CREATED)
-  @ApiOperation("Starts launch for specified project")
+  @Operation(summary = "Starts launch for specified project")
   public StartLaunchRS startLaunch(@PathVariable String projectName,
-      @ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
+      @Parameter(description = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return startLaunchHandler.startLaunch(user,
         projectExtractor.extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
@@ -92,7 +94,7 @@ public class LaunchAsyncController {
   @PutMapping(value = "/{launchId}/finish")
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(OK)
-  @ApiOperation("Finish launch for specified project")
+  @Operation(summary = "Finish launch for specified project")
   public FinishLaunchRS finishLaunch(@PathVariable String projectName,
       @PathVariable String launchId,
       @RequestBody @Validated FinishExecutionRQ finishLaunchRQ,
@@ -112,9 +114,9 @@ public class LaunchAsyncController {
   @PostMapping("/merge")
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(OK)
-  @ApiOperation("Merge set of specified launches in common one")
+  @Operation(summary = "Merge set of specified launches in common one")
   public LaunchResource mergeLaunches(@PathVariable String projectName,
-      @ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
+      @Parameter(description = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return mergeLaunchesHandler.mergeLaunches(
         projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user,

@@ -61,8 +61,10 @@ import com.epam.ta.reportportal.ws.resolver.ActiveRole;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.ResponseView;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
@@ -90,6 +92,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/users")
+@Tag(name = "user-controller", description = "User Controller")
 public class UserController {
 
   private final CreateUserHandler createUserMessageHandler;
@@ -121,7 +124,7 @@ public class UserController {
   @PostMapping
   @ResponseStatus(CREATED)
   @PreAuthorize(ADMIN_ONLY)
-  @ApiOperation(value = "Create specified user", notes = "Allowable only for users with administrator role")
+  @Operation(summary =  "Create specified user", description = "Allowable only for users with administrator role")
   public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq,
       @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
     return createUserMessageHandler.createUserByAdmin(rq, currentUser, composeBaseUrl(request));
@@ -131,7 +134,7 @@ public class UserController {
   @PostMapping(value = "/bid")
   @ResponseStatus(CREATED)
   @PreAuthorize("(hasPermission(#createUserRQ.getDefaultProject(), 'projectManagerPermission')) || hasRole('ADMINISTRATOR')")
-  @ApiOperation("Register invitation for user who will be created")
+  @Operation(summary = "Register invitation for user who will be created")
   public CreateUserBidRS createUserBid(@RequestBody @Validated CreateUserRQ createUserRQ,
       @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
     return createUserMessageHandler.createUserBid(createUserRQ, currentUser,
@@ -141,7 +144,7 @@ public class UserController {
 
   @PostMapping(value = "/registration")
   @ResponseStatus(CREATED)
-  @ApiOperation("Activate invitation and create user in system")
+  @Operation(summary = "Activate invitation and create user in system")
   public CreateUserRS createUser(@RequestBody @Validated CreateUserRQConfirm request,
       @RequestParam(value = "uuid") String uuid) {
     return createUserMessageHandler.createUser(request, uuid);
@@ -154,7 +157,7 @@ public class UserController {
   }
 
   @DeleteMapping(value = "/{id}")
-  @ApiOperation(value = "Delete specified user")
+  @Operation(summary =  "Delete specified user")
   public OperationCompletionRS deleteUser(@PathVariable(value = "id") Long userId,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
     return deleteUserHandler.deleteUser(userId, currentUser);
@@ -163,7 +166,7 @@ public class UserController {
   @DeleteMapping
   @PreAuthorize(ADMIN_ONLY)
   @ResponseStatus(OK)
-  @ApiOperation("Delete specified users by ids")
+  @Operation(summary = "Delete specified users by ids")
   public DeleteBulkRS deleteUsers(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return deleteUserHandler.deleteUsers(deleteBulkRQ.getIds(), user);
@@ -172,7 +175,7 @@ public class UserController {
   @Transactional
   @PutMapping(value = "/{login}")
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
-  @ApiOperation(value = "Edit specified user", notes = "Only for administrators and profile's owner")
+  @Operation(summary =  "Edit specified user", description = "Only for administrators and profile's owner")
   public OperationCompletionRS editUser(@PathVariable String login,
       @RequestBody @Validated EditUserRQ editUserRQ, @ActiveRole UserRole role,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
@@ -183,7 +186,7 @@ public class UserController {
   @GetMapping(value = "/{login}")
   @ResponseView(ModelViews.FullUserView.class)
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
-  @ApiOperation(value = "Return information about specified user", notes = "Only for administrators and profile's owner")
+  @Operation(summary =  "Return information about specified user", description = "Only for administrators and profile's owner")
   public UserResource getUser(@PathVariable String login,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
     return getUserHandler.getUser(EntityUtils.normalizeId(login), currentUser);
@@ -191,7 +194,7 @@ public class UserController {
 
   @Transactional(readOnly = true)
   @GetMapping(value = {"", "/"})
-  @ApiOperation("Return information about current logged-in user")
+  @Operation(summary = "Return information about current logged-in user")
   public UserResource getMyself(@AuthenticationPrincipal ReportPortalUser currentUser) {
     return getUserHandler.getUser(currentUser);
   }
@@ -200,7 +203,7 @@ public class UserController {
   @GetMapping(value = "/all")
   @ResponseView(ModelViews.FullUserView.class)
   @PreAuthorize(ADMIN_ONLY)
-  @ApiOperation(value = "Return information about all users", notes = "Allowable only for users with administrator role")
+  @Operation(summary =  "Return information about all users", description = "Allowable only for users with administrator role")
   public Iterable<UserResource> getUsers(@FilterFor(User.class) Filter filter,
       @SortFor(User.class) Pageable pageable, @FilterFor(User.class) Queryable queryable,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
@@ -220,7 +223,7 @@ public class UserController {
   @Transactional
   @PostMapping(value = "/password/restore")
   @ResponseStatus(OK)
-  @ApiOperation("Create a restore password request")
+  @Operation(summary = "Create a restore password request")
   public OperationCompletionRS restorePassword(@RequestBody @Validated RestorePasswordRQ rq,
       HttpServletRequest request) {
     return createUserMessageHandler.createRestorePasswordBid(rq, composeBaseUrl(request));
@@ -229,7 +232,7 @@ public class UserController {
   @Transactional
   @PostMapping(value = "/password/reset")
   @ResponseStatus(OK)
-  @ApiOperation("Reset password")
+  @Operation(summary = "Reset password")
   public OperationCompletionRS resetPassword(@RequestBody @Validated ResetPasswordRQ rq) {
     return createUserMessageHandler.resetPassword(rq);
   }
@@ -237,7 +240,7 @@ public class UserController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/password/reset/{uuid}")
   @ResponseStatus(OK)
-  @ApiOperation("Check if a restore password bid exists")
+  @Operation(summary = "Check if a restore password bid exists")
   public YesNoRS isRestorePasswordBidExist(@PathVariable String uuid) {
     return createUserMessageHandler.isResetPasswordBidExist(uuid);
   }
@@ -245,7 +248,7 @@ public class UserController {
   @Transactional
   @PostMapping(value = "/password/change")
   @ResponseStatus(OK)
-  @ApiOperation("Change own password")
+  @Operation(summary = "Change own password")
   public OperationCompletionRS changePassword(
       @RequestBody @Validated ChangePasswordRQ changePasswordRQ,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
@@ -272,8 +275,8 @@ public class UserController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/export")
   @PreAuthorize(ADMIN_ONLY)
-  @ApiOperation(value = "Exports information about all users", notes = "Allowable only for users with administrator role")
-  public void export(@ApiParam(allowableValues = "csv")
+  @Operation(summary =  "Exports information about all users", description = "Allowable only for users with administrator role")
+  public void export(@Parameter(schema = @Schema(allowableValues = "csv"))
   @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
       @FilterFor(User.class) Filter filter, @FilterFor(User.class) Queryable queryable,
       @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletResponse response) {
@@ -300,7 +303,7 @@ public class UserController {
 
   @PostMapping(value = "/{userId}/api-keys")
   @ResponseStatus(CREATED)
-  @ApiOperation("Create new Api Key for current user")
+  @Operation(summary = "Create new Api Key for current user")
   public ApiKeyRS createApiKey(@RequestBody @Validated ApiKeyRQ apiKeyRQ,
       @AuthenticationPrincipal ReportPortalUser currentUser, @PathVariable Long userId) {
     return apiKeyHandler.createApiKey(apiKeyRQ.getName(), currentUser.getUserId());
@@ -308,14 +311,14 @@ public class UserController {
 
   @DeleteMapping(value = "/{userId}/api-keys/{keyId}")
   @ResponseStatus(OK)
-  @ApiOperation("Delete specified Api Key")
+  @Operation(summary = "Delete specified Api Key")
   public OperationCompletionRS deleteApiKey(@PathVariable Long keyId, @PathVariable Long userId) {
     return apiKeyHandler.deleteApiKey(keyId);
   }
 
   @GetMapping(value = "/{userId}/api-keys")
   @ResponseStatus(OK)
-  @ApiOperation("Get List of users Api Keys")
+  @Operation(summary = "Get List of users Api Keys")
   public ApiKeysRS getUsersApiKeys(@AuthenticationPrincipal ReportPortalUser currentUser,
       @PathVariable Long userId) {
     return apiKeyHandler.getAllUsersApiKeys(currentUser.getUserId());

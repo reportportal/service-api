@@ -32,7 +32,8 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Map;
 import javax.validation.Valid;
@@ -56,6 +57,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping(value = "/v1/integration")
+@Tag(name = "integration-controller", description = "Integration Controller")
 public class IntegrationController {
 
   private final ProjectExtractor projectExtractor;
@@ -80,7 +82,7 @@ public class IntegrationController {
   @Transactional(readOnly = true)
   @GetMapping("/global/all")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Get available global integrations")
+  @Operation(summary =  "Get available global integrations")
   public List<IntegrationResource> getGlobalIntegrations(
       @AuthenticationPrincipal ReportPortalUser reportPortalUser) {
     return getIntegrationHandler.getGlobalIntegrations();
@@ -89,7 +91,7 @@ public class IntegrationController {
   @Transactional(readOnly = true)
   @GetMapping("/global/all/{pluginName}")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Get available global integrations for plugin")
+  @Operation(summary =  "Get available global integrations for plugin")
   public List<IntegrationResource> getGlobalIntegrations(
       @AuthenticationPrincipal ReportPortalUser reportPortalUser,
       @PathVariable String pluginName) {
@@ -100,7 +102,7 @@ public class IntegrationController {
   @GetMapping("/project/{projectName}/all")
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ASSIGNED_TO_PROJECT)
-  @ApiOperation("Get available project integrations")
+  @Operation(summary =  "Get available project integrations")
   public List<IntegrationResource> getProjectIntegrations(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser reportPortalUser) {
     return getIntegrationHandler.getProjectIntegrations(normalizeId(projectName));
@@ -110,7 +112,7 @@ public class IntegrationController {
   @GetMapping("/project/{projectName}/all/{pluginName}")
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ASSIGNED_TO_PROJECT)
-  @ApiOperation("Get available project integrations for plugin")
+  @Operation(summary =  "Get available project integrations for plugin")
   public List<IntegrationResource> getProjectIntegrations(
       @AuthenticationPrincipal ReportPortalUser reportPortalUser,
       @PathVariable String projectName, @PathVariable String pluginName) {
@@ -120,7 +122,7 @@ public class IntegrationController {
   @Transactional
   @PostMapping(value = "/{pluginName}")
   @ResponseStatus(HttpStatus.CREATED)
-  @ApiOperation("Create global Report Portal integration instance")
+  @Operation(summary =  "Create global Report Portal integration instance")
   @PreAuthorize(ADMIN_ONLY)
   public EntryCreatedRS createGlobalIntegration(@RequestBody @Valid IntegrationRQ createRequest,
       @PathVariable String pluginName,
@@ -131,7 +133,7 @@ public class IntegrationController {
   @Transactional
   @PostMapping(value = "/{projectName}/{pluginName}")
   @ResponseStatus(HttpStatus.CREATED)
-  @ApiOperation("Create project Report Portal integration instance")
+  @Operation(summary =  "Create project Report Portal integration instance")
   @PreAuthorize(PROJECT_MANAGER)
   public EntryCreatedRS createProjectIntegration(@RequestBody @Valid IntegrationRQ createRequest,
       @PathVariable String pluginName,
@@ -145,7 +147,7 @@ public class IntegrationController {
   @GetMapping(value = "{projectName}/{integrationId}/connection/test")
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ASSIGNED_TO_PROJECT)
-  @ApiOperation("Test connection to the integration through the project config")
+  @Operation(summary =  "Test connection to the integration through the project config")
   public boolean testIntegrationConnection(@PathVariable Long integrationId,
       @PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -156,7 +158,7 @@ public class IntegrationController {
   @GetMapping(value = "/{integrationId}/connection/test")
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ADMIN_ONLY)
-  @ApiOperation("Test connection to the global integration")
+  @Operation(summary =  "Test connection to the global integration")
   public boolean testIntegrationConnection(@PathVariable Long integrationId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getIntegrationHandler.testConnection(integrationId);
@@ -165,7 +167,7 @@ public class IntegrationController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/{integrationId}")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Get global Report Portal integration instance")
+  @Operation(summary =  "Get global Report Portal integration instance")
   @PreAuthorize(ADMIN_ONLY)
   public IntegrationResource getGlobalIntegration(@PathVariable Long integrationId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -175,7 +177,7 @@ public class IntegrationController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/{projectName}/{integrationId}")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Get integration instance")
+  @Operation(summary =  "Get integration instance")
   @PreAuthorize(ASSIGNED_TO_PROJECT)
   public IntegrationResource getProjectIntegration(@PathVariable String projectName,
       @PathVariable Long integrationId,
@@ -186,7 +188,7 @@ public class IntegrationController {
   @Transactional
   @PutMapping(value = "/{integrationId}")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Update global Report Portal integration instance")
+  @Operation(summary =  "Update global Report Portal integration instance")
   @PreAuthorize(ADMIN_ONLY)
   public OperationCompletionRS updateGlobalIntegration(@PathVariable Long integrationId,
       @RequestBody @Valid IntegrationRQ updateRequest,
@@ -198,7 +200,7 @@ public class IntegrationController {
   @Transactional
   @PutMapping(value = "/{projectName}/{integrationId}")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Update project integration instance")
+  @Operation(summary =  "Update project integration instance")
   @PreAuthorize(PROJECT_MANAGER)
   public OperationCompletionRS updateProjectIntegration(@PathVariable Long integrationId,
       @RequestBody @Valid IntegrationRQ updateRequest,
@@ -211,7 +213,7 @@ public class IntegrationController {
   @Transactional
   @DeleteMapping(value = "/{integrationId}")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Delete global integration instance")
+  @Operation(summary =  "Delete global integration instance")
   @PreAuthorize(ADMIN_ONLY)
   public OperationCompletionRS deleteGlobalIntegration(@PathVariable Long integrationId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -221,7 +223,7 @@ public class IntegrationController {
   @Transactional
   @DeleteMapping(value = "/all/{type}")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Delete all global integrations by type")
+  @Operation(summary =  "Delete all global integrations by type")
   @PreAuthorize(ADMIN_ONLY)
   public OperationCompletionRS deleteAllIntegrations(@PathVariable String type,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -231,7 +233,7 @@ public class IntegrationController {
   @Transactional
   @DeleteMapping(value = "/{projectName}/{integrationId}")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Delete project integration instance")
+  @Operation(summary =  "Delete project integration instance")
   @PreAuthorize(PROJECT_MANAGER)
   public OperationCompletionRS deleteProjectIntegration(@PathVariable String projectName,
       @PathVariable Long integrationId,
@@ -243,7 +245,7 @@ public class IntegrationController {
   @Transactional
   @DeleteMapping(value = "/{projectName}/all/{type}")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Delete all integrations assigned to specified project")
+  @Operation(summary =  "Delete all integrations assigned to specified project")
   @PreAuthorize(PROJECT_MANAGER)
   public OperationCompletionRS deleteAllProjectIntegrations(@PathVariable String type,
       @PathVariable String projectName,
@@ -257,7 +259,7 @@ public class IntegrationController {
       APPLICATION_JSON_VALUE})
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ASSIGNED_TO_PROJECT)
-  @ApiOperation("Execute command to the integration instance")
+  @Operation(summary =  "Execute command to the integration instance")
   public Object executeIntegrationCommand(@PathVariable String projectName,
       @PathVariable("integrationId") Long integrationId,
       @PathVariable("command") String command, @RequestBody Map<String, Object> executionParams,

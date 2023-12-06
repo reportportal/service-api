@@ -36,7 +36,8 @@ import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -59,6 +60,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 @RequestMapping("/v1/{projectName}/dashboard")
+@Tag(name = "dashboard-controller", description = "Dashboard Controller")
 public class DashboardController {
 
   private final ProjectExtractor projectExtractor;
@@ -82,7 +84,7 @@ public class DashboardController {
   @Transactional
   @PostMapping
   @ResponseStatus(CREATED)
-  @ApiOperation("Create dashboard for specified project")
+  @Operation(summary =  "Create dashboard for specified project")
   public EntryCreatedRS createDashboard(@PathVariable String projectName,
       @RequestBody @Validated CreateDashboardRQ createRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -93,7 +95,7 @@ public class DashboardController {
 	@Transactional(readOnly = true)
 	@GetMapping
 	@ResponseStatus(OK)
-	@ApiOperation("Get all permitted dashboard resources for specified project")
+	@Operation(summary =  "Get all permitted dashboard resources for specified project")
 	public Iterable<DashboardResource> getAllDashboards(@PathVariable String projectName, @SortFor(Dashboard.class) Pageable pageable,
 			@FilterFor(Dashboard.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
 		return getDashboardHandler.getDashboards(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
@@ -102,7 +104,7 @@ public class DashboardController {
 	@Transactional
 	@PutMapping("/{dashboardId}/add")
 	@ResponseStatus(OK)
-	@ApiOperation("Add widget to specified dashboard")
+	@Operation(summary =  "Add widget to specified dashboard")
 	public OperationCompletionRS addWidget(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@RequestBody @Validated AddWidgetRq addWidgetRq, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateDashboardHandler.addWidget(dashboardId, projectExtractor.extractProjectDetails(user, projectName), addWidgetRq, user);
@@ -111,7 +113,7 @@ public class DashboardController {
 	@Transactional
 	@DeleteMapping("/{dashboardId}/{widgetId}")
 	@ResponseStatus(OK)
-	@ApiOperation("Remove widget from specified dashboard")
+	@Operation(summary =  "Remove widget from specified dashboard")
 	public OperationCompletionRS removeWidget(@PathVariable String projectName, @PathVariable Long dashboardId, @PathVariable Long widgetId,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return updateDashboardHandler.removeWidget(widgetId, dashboardId, projectExtractor.extractProjectDetails(user, projectName), user);
@@ -120,7 +122,7 @@ public class DashboardController {
 	@Transactional
 	@PutMapping(value = "/{dashboardId}")
 	@ResponseStatus(OK)
-	@ApiOperation("Update specified dashboard for specified project")
+	@Operation(summary =  "Update specified dashboard for specified project")
 	public OperationCompletionRS updateDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@RequestBody @Validated UpdateDashboardRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateDashboardHandler.updateDashboard(
@@ -134,7 +136,7 @@ public class DashboardController {
 	@Transactional
 	@DeleteMapping(value = "/{dashboardId}")
 	@ResponseStatus(OK)
-	@ApiOperation("Delete specified dashboard by ID for specified project")
+	@Operation(summary = "Delete specified dashboard by ID for specified project")
 	public OperationCompletionRS deleteDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return deleteDashboardHandler.deleteDashboard(dashboardId, projectExtractor.extractProjectDetails(user, projectName), user);
@@ -143,7 +145,7 @@ public class DashboardController {
   @Transactional
   @GetMapping(value = "/{dashboardId}")
   @ResponseStatus(OK)
-  @ApiOperation("Get specified dashboard by ID for specified project")
+  @Operation(summary = "Get specified dashboard by ID for specified project")
   public DashboardResource getDashboard(@PathVariable String projectName,
       @PathVariable Long dashboardId,
       @AuthenticationPrincipal ReportPortalUser user) {

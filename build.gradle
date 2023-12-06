@@ -16,7 +16,7 @@
 
 plugins {
     id "io.spring.dependency-management" version "1.1.4"
-    id 'org.springframework.boot' version '2.5.15'
+    id 'org.springframework.boot' version '2.7.17'
     id 'java'
     id "org.owasp.dependencycheck" version "8.2.1"
 }
@@ -54,11 +54,11 @@ ext['hibernate-validator.version'] = '6.2.5.Final'
 ext['log4j2.version'] = '2.21.1'
 ext['log4j-to-slf4j.version'] = '2.21.1'
 //https://nvd.nist.gov/vuln/detail/cve-2022-22965
-ext['spring-boot.version'] = '2.5.15'
+ext['spring-boot.version'] = '2.7.17'
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.10.0' : 'com.github.reportportal:commons-bom:6aa55fc0')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.10.0' : 'com.github.reportportal:commons-bom:f1d61db')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:12.9.0')
     }
 }
@@ -75,7 +75,7 @@ dependencies {
         implementation 'com.github.reportportal:commons-events:e337f8b7be'
         implementation 'com.github.reportportal:commons-dao:126ee2e'
         implementation 'com.github.reportportal:commons-rules:01ec4d17'
-        implementation 'com.github.reportportal:commons-model:6a49944'
+        implementation 'com.github.reportportal:commons-model:94c46aa'
         implementation 'com.github.reportportal:commons:07566b8e'
         implementation 'com.github.reportportal:commons-fonts:d6e62dd'
         implementation 'com.github.reportportal:plugin-api:55bf2f26'
@@ -92,7 +92,7 @@ dependencies {
 
     implementation 'com.opencsv:opencsv:5.8'
 
-    // Fix CVE-2021-41079, CVE-2022-23181, CVE-2021-33037, CVE-2021-30640, CVE-2022-42252
+    // Tomcat
     implementation 'org.apache.tomcat.embed:tomcat-embed-core:9.0.82'
     implementation 'org.apache.tomcat.embed:tomcat-embed-el:9.0.82'
     implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:9.0.82'
@@ -112,7 +112,8 @@ dependencies {
     implementation 'com.lowagie:itext:2.1.7.js7'
     // JasperReport's export to XLS uses Apache POI
     implementation 'org.apache.poi:poi:5.2.3'
-    implementation 'io.springfox:springfox-swagger2:2.9.2'
+//    implementation 'io.springfox:springfox-swagger2:2.9.2'
+    implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
     implementation 'com.google.code.gson:gson:2.8.9'
 
 
@@ -142,7 +143,7 @@ dependencies {
     implementation 'org.hibernate:hibernate-core:5.6.15.Final'
 
     // Metrics
-    implementation 'io.micrometer:micrometer-registry-prometheus:1.8.13'
+    implementation 'io.micrometer:micrometer-registry-prometheus:1.11.6'
 
     // add lombok support
     compileOnly "org.projectlombok:lombok:${lombokVersion}"

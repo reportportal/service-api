@@ -64,8 +64,10 @@ import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.Principal;
@@ -99,6 +101,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/project")
+@Tag(name = "project-controller", description = "Project Controller")
 public class ProjectController {
 
   private final ProjectExtractor projectExtractor;
@@ -137,7 +140,7 @@ public class ProjectController {
   @PostMapping
   @ResponseStatus(CREATED)
   @PreAuthorize(ADMIN_ONLY)
-  @ApiOperation("Create new project")
+  @Operation(summary = "Create new project")
   public EntryCreatedRS createProject(@RequestBody @Validated CreateProjectRQ createProjectRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return createProjectHandler.createProject(createProjectRQ, user);
@@ -147,7 +150,7 @@ public class ProjectController {
   @PutMapping("/{projectName}")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
-  @ApiOperation(value = "Update project")
+  @Operation(summary =  "Update project")
   public OperationCompletionRS updateProject(@PathVariable String projectName,
       @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -158,7 +161,7 @@ public class ProjectController {
   @PutMapping("/{projectName}/notification")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
-  @ApiOperation("Update project notifications configuration")
+  @Operation(summary = "Update project notifications configuration")
   public OperationCompletionRS updateProjectNotificationConfig(@PathVariable String projectName,
       @RequestBody @Validated ProjectNotificationConfigDTO updateProjectNotificationConfigRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -169,7 +172,7 @@ public class ProjectController {
   @DeleteMapping
   @ResponseStatus(OK)
   @PreAuthorize(ADMIN_ONLY)
-  @ApiOperation(value = "Delete multiple projects", notes = "Could be deleted only by users with administrator role")
+  @Operation(summary =  "Delete multiple projects", description = "Could be deleted only by users with administrator role")
   public DeleteBulkRS deleteProject(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return deleteProjectHandler.bulkDeleteProjects(deleteBulkRQ.getIds(), user);
@@ -178,7 +181,7 @@ public class ProjectController {
   @DeleteMapping("/{projectId}")
   @ResponseStatus(OK)
   @PreAuthorize(ADMIN_ONLY)
-  @ApiOperation(value = "Delete project", notes = "Could be deleted only by users with administrator role")
+  @Operation(summary =  "Delete project", description = "Could be deleted only by users with administrator role")
   public OperationCompletionRS deleteProject(@PathVariable Long projectId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return deleteProjectHandler.deleteProject(projectId, user);
@@ -187,7 +190,7 @@ public class ProjectController {
   @DeleteMapping("/{projectName}/index")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
-  @ApiOperation("Delete project index from ML")
+  @Operation(summary = "Delete project index from ML")
   public OperationCompletionRS deleteProjectIndex(@PathVariable String projectName,
       Principal principal) {
     return deleteProjectHandler.deleteProjectIndex(normalizeId(projectName), principal.getName());
@@ -197,7 +200,7 @@ public class ProjectController {
   @PutMapping("/{projectName}/index")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
-  @ApiOperation(value = "Starts reindex all project data in ML")
+  @Operation(summary =  "Starts reindex all project data in ML")
   public OperationCompletionRS indexProjectData(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateProjectHandler.indexProjectData(normalizeId(projectName), user);
@@ -206,7 +209,7 @@ public class ProjectController {
   @Transactional(readOnly = true)
   @GetMapping("/{projectName}/users")
   @PreAuthorize(NOT_CUSTOMER)
-  @ApiOperation("Get users assigned on current project")
+  @Operation(summary = "Get users assigned on current project")
   public Iterable<UserResource> getProjectUsers(@PathVariable String projectName,
       @FilterFor(User.class) Filter filter,
       @SortFor(User.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
@@ -216,7 +219,7 @@ public class ProjectController {
   @Transactional(readOnly = true)
   @GetMapping("/{projectName}")
   @PreAuthorize(ASSIGNED_TO_PROJECT)
-  @ApiOperation(value = "Get information about project", notes = "Only for users that are assigned to the project")
+  @Operation(summary = "Get information about project", description = "Only for users that are assigned to the project")
   public ProjectResource getProject(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getProjectHandler.getResource(normalizeId(projectName), user);
@@ -226,7 +229,7 @@ public class ProjectController {
   @PutMapping("/{projectName}/unassign")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
-  @ApiOperation("Un assign users")
+  @Operation(summary = "Un assign users")
   public OperationCompletionRS unassignProjectUsers(@PathVariable String projectName,
       @RequestBody @Validated UnassignUsersRQ unassignUsersRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -237,7 +240,7 @@ public class ProjectController {
   @PutMapping("/{projectName}/assign")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
-  @ApiOperation("Assign users")
+  @Operation(summary = "Assign users")
   public OperationCompletionRS assignProjectUsers(@PathVariable String projectName,
       @RequestBody @Validated AssignUsersRQ assignUsersRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -248,7 +251,7 @@ public class ProjectController {
   @GetMapping("/{projectName}/assignable")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
-  @ApiOperation(value = "Load users which can be assigned to specified project", notes = "Only for users with project manager permissions")
+  @Operation(summary =  "Load users which can be assigned to specified project", description = "Only for users with project manager permissions")
   public Iterable<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter,
       @SortFor(User.class) Pageable pageable,
       @PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
@@ -260,7 +263,7 @@ public class ProjectController {
   @GetMapping("/{projectName}/usernames")
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(NOT_CUSTOMER)
-  @ApiOperation(value = "Load project users by filter", notes = "Only for users that are members of the project")
+  @Operation(summary =  "Load project users by filter", description = "Only for users that are members of the project")
   public List<String> getProjectUsers(@PathVariable String projectName,
       @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + "users")
       String value,
@@ -306,7 +309,7 @@ public class ProjectController {
   @GetMapping("/{projectName}/preference/{login}")
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
-  @ApiOperation(value = "Load user preferences", notes = "Only for users that allowed to edit other users")
+  @Operation(summary =  "Load user preferences", description = "Only for users that allowed to edit other users")
   public PreferenceResource getUserPreference(@PathVariable String projectName,
       @PathVariable String login,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -331,9 +334,9 @@ public class ProjectController {
   @PreAuthorize(ADMIN_ONLY)
   @GetMapping(value = "/export")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation(value = "Exports information about all projects", notes = "Allowable only for users with administrator role")
+  @Operation(summary =  "Exports information about all projects", description = "Allowable only for users with administrator role")
   public void exportProjects(
-      @ApiParam(allowableValues = "csv")
+      @Parameter(schema = @Schema(allowableValues = "csv"))
       @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
       @FilterFor(ProjectInfo.class) Filter filter,
       @FilterFor(ProjectInfo.class) Queryable predefinedFilter,

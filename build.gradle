@@ -65,91 +65,91 @@ dependencyManagement {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao'
-        compile 'com.epam.reportportal:commons-rules'
-        compile 'com.epam.reportportal:commons-model'
-        compile 'com.epam.reportportal:commons'
-        compile 'com.epam.reportportal:commons-fonts'
-        compile 'com.epam.reportportal:plugin-api'
+        implementation 'com.epam.reportportal:commons-dao'
+        implementation 'com.epam.reportportal:commons-rules'
+        implementation 'com.epam.reportportal:commons-model'
+        implementation 'com.epam.reportportal:commons'
+        implementation 'com.epam.reportportal:commons-fonts'
+        implementation 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-events:e337f8b7be'
-        compile 'com.github.reportportal:commons-dao:126ee2e'
-        compile 'com.github.reportportal:commons-rules:01ec4d17'
-        compile 'com.github.reportportal:commons-model:6a49944'
-        compile 'com.github.reportportal:commons:07566b8e'
-        compile 'com.github.reportportal:commons-fonts:d6e62dd'
-        compile 'com.github.reportportal:plugin-api:55bf2f26'
+        implementation 'com.github.reportportal:commons-events:e337f8b7be'
+        implementation 'com.github.reportportal:commons-dao:126ee2e'
+        implementation 'com.github.reportportal:commons-rules:01ec4d17'
+        implementation 'com.github.reportportal:commons-model:6a49944'
+        implementation 'com.github.reportportal:commons:07566b8e'
+        implementation 'com.github.reportportal:commons-fonts:d6e62dd'
+        implementation 'com.github.reportportal:plugin-api:55bf2f26'
     }
 
-    compile 'org.springframework.boot:spring-boot-starter-aop'
-    compile 'org.springframework.boot:spring-boot-starter-web'
-    compile 'org.springframework.boot:spring-boot-starter-quartz'
-    compile 'org.springframework.boot:spring-boot-starter-freemarker'
-    compile 'org.springframework.boot:spring-boot-starter-actuator'
-    compile 'org.springframework.boot:spring-boot-starter-amqp'
-    compile('org.springframework.boot:spring-boot-starter-batch')
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-quartz'
+    implementation 'org.springframework.boot:spring-boot-starter-freemarker'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+    implementation('org.springframework.boot:spring-boot-starter-batch')
 
 
-    compile group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
+    implementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
 
     // Fix CVE-2021-41079, CVE-2022-23181, CVE-2021-33037, CVE-2021-30640, CVE-2022-42252
-    compile 'org.apache.tomcat.embed:tomcat-embed-core:9.0.68'
-    compile 'org.apache.tomcat.embed:tomcat-embed-el:9.0.68'
-    compile 'org.apache.tomcat.embed:tomcat-embed-websocket:9.0.68'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-core:9.0.68'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-el:9.0.68'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:9.0.68'
     //
 
     //https://nvd.nist.gov/vuln/detail/CVE-2020-5411
-    compile('org.springframework.batch:spring-batch-core:4.2.3.RELEASE')
-    compile('org.springframework.batch:spring-batch-infrastructure:4.2.3.RELEASE')
+    implementation('org.springframework.batch:spring-batch-core:4.2.3.RELEASE')
+    implementation('org.springframework.batch:spring-batch-infrastructure:4.2.3.RELEASE')
 
 
     // Optional for spring-boot-starter-amqp
-    compile "com.rabbitmq:http-client:2.1.0.RELEASE"
+    implementation "com.rabbitmq:http-client:2.1.0.RELEASE"
 
-    compile 'com.sun.mail:javax.mail:1.6.2'
-    compile 'net.sf.jasperreports:jasperreports:6.12.2'
-    compile 'com.lowagie:itext:2.1.7.js7'
+    implementation 'com.sun.mail:javax.mail:1.6.2'
+    implementation 'net.sf.jasperreports:jasperreports:6.12.2'
+    implementation 'com.lowagie:itext:2.1.7.js7'
     // JasperReport's export to XLS uses Apache POI
-    compile 'org.apache.poi:poi:4.1.1'
-    compile 'io.springfox:springfox-swagger2'
+    implementation 'org.apache.poi:poi:4.1.1'
+    implementation 'io.springfox:springfox-swagger2'
 
     ///// Security
     //https://nvd.nist.gov/vuln/detail/CVE-2020-5407 AND https://nvd.nist.gov/vuln/detail/CVE-2020-5408
-    compile 'org.springframework.security:spring-security-core:5.5.8'
-    compile 'org.springframework.security:spring-security-config:5.5.8'
-    compile 'org.springframework.security:spring-security-web:5.5.8'
+    implementation 'org.springframework.security:spring-security-core:5.5.8'
+    implementation 'org.springframework.security:spring-security-config:5.5.8'
+    implementation 'org.springframework.security:spring-security-web:5.5.8'
     //
 
     // Fix CVE-2022-22969
-    compile 'org.springframework.security.oauth:spring-security-oauth2:2.5.2.RELEASE'
-    compile 'org.springframework.security:spring-security-jwt:1.0.11.RELEASE'
-    compile 'org.springframework.security:spring-security-acl'
-    compile 'com.github.ben-manes.caffeine:caffeine:2.8.0'
+    implementation 'org.springframework.security.oauth:spring-security-oauth2:2.5.2.RELEASE'
+    implementation 'org.springframework.security:spring-security-jwt:1.0.11.RELEASE'
+    implementation 'org.springframework.security:spring-security-acl'
+    implementation 'com.github.ben-manes.caffeine:caffeine:2.8.0'
 
     // Fix CVE-2022-22965, CVE-2022-22970
-    compile 'org.springframework:spring-beans:5.3.20'
+    implementation 'org.springframework:spring-beans:5.3.20'
     // Fix CVE-2021-22060, CVE-2021-22096
-    compile 'org.springframework:spring-core:5.3.20'
+    implementation 'org.springframework:spring-core:5.3.20'
     // Fix CVE-2022-45685, CVE-2022-40150, CVE-2022-40149
-    compile 'org.codehaus.jettison:jettison:1.5.2'
+    implementation 'org.codehaus.jettison:jettison:1.5.2'
     // Fix CVE-2020-15522
-    compile 'org.bouncycastle:bcprov-jdk15on:1.69'
-    compile 'org.apache.commons:commons-compress:1.21'
-    compile 'org.yaml:snakeyaml:1.32'
-    compile 'org.hibernate:hibernate-core:5.4.24.Final'
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.69'
+    implementation 'org.apache.commons:commons-compress:1.21'
+    implementation 'org.yaml:snakeyaml:1.32'
+    implementation 'org.hibernate:hibernate-core:5.4.24.Final'
 
     // Metrics
-    compile 'io.micrometer:micrometer-registry-prometheus:1.7.10'
+    implementation 'io.micrometer:micrometer-registry-prometheus:1.7.10'
 
     // add lombok support
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testImplementation "org.projectlombok:lombok:${lombokVersion}"
     testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
     //  Tests
-    testCompile 'org.springframework.boot:spring-boot-starter-test'
-    testCompile 'org.mockito:mockito-core:5.7.0'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.mockito:mockito-core:5.7.0'
     testImplementation 'net.bytebuddy:byte-buddy:1.14.9'
     testImplementation 'org.flywaydb.flyway-test-extensions:flyway-spring-test:7.0.0'
 }

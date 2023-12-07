@@ -90,7 +90,8 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 
   @Override
   public List<Long> indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate) {
-    return rabbitMqManagementClient.getAnalyzerExchangesInfo()
+    LOGGER.info("Start defect update indexes for items:" + itemsForIndexUpdate);
+    List<Long> collect = rabbitMqManagementClient.getAnalyzerExchangesInfo()
         .stream()
         .filter(DOES_SUPPORT_INDEX)
         .flatMap(
@@ -101,6 +102,8 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
                 }
             )).orElse(Collections.emptyList()).stream())
         .collect(toList());
+    LOGGER.info("End defect update indexes for items:" + itemsForIndexUpdate);
+    return collect;
   }
 
   @Override
@@ -120,6 +123,7 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 
   @Override
   public void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove) {
+    LOGGER.info("Start remove indexes for items:" + itemsForIndexRemove);
     rabbitMqManagementClient.getAnalyzerExchangesInfo()
         .stream()
         .filter(DOES_SUPPORT_INDEX)
@@ -127,10 +131,12 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
             ITEM_REMOVE_ROUTE,
             new IndexItemsRemove(projectId, itemsForIndexRemove)
         ));
+    LOGGER.info("End of remove indexes for items:" + itemsForIndexRemove);
   }
 
   @Override
   public void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove) {
+    LOGGER.info("Start remove indexes for launches:" + launchesForIndexRemove);
     rabbitMqManagementClient.getAnalyzerExchangesInfo()
         .stream()
         .filter(DOES_SUPPORT_INDEX)
@@ -138,6 +144,7 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
             LAUNCH_REMOVE_ROUTE,
             new IndexLaunchRemove(projectId, launchesForIndexRemove)
         ));
+    LOGGER.info("End remove indexes for launches:" + launchesForIndexRemove);
   }
 
   @Override

@@ -532,7 +532,7 @@ class ProjectControllerTest extends BaseMvcTest {
 		arguments.put("analyzer_index", true);
 		arguments.put("analyzer", "test_analyzer");
 		exchangeInfo.setArguments(arguments);
-		when(rabbitClient.getExchanges(any(String.class))).thenReturn(Collections.singletonList(exchangeInfo));
+		when(rabbitClient.getExchanges(any())).thenReturn(Collections.singletonList(exchangeInfo));
 
 		mockMvc.perform(put("/v1/project/default_personal/index").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 
@@ -547,7 +547,7 @@ class ProjectControllerTest extends BaseMvcTest {
 		arguments.put("analyzer_index", true);
 		arguments.put("analyzer", "test_analyzer");
 		exchangeInfo.setArguments(arguments);
-		when(rabbitClient.getExchanges(any(String.class))).thenReturn(Collections.singletonList(exchangeInfo));
+		when(rabbitClient.getExchanges(any())).thenReturn(Collections.singletonList(exchangeInfo));
 
 		mockMvc.perform(delete("/v1/project/default_personal/index").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 

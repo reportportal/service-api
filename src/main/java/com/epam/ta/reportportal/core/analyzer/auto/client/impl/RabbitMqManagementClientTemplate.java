@@ -43,7 +43,7 @@ public class RabbitMqManagementClientTemplate implements RabbitMqManagementClien
     this.virtualHost = virtualHost;
     try {
       rabbitClient.createVhost(virtualHost);
-    } catch (Exception e) {
+    } catch (JsonProcessingException e) {
       throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
           "Unable to create RabbitMq virtual host");
     }

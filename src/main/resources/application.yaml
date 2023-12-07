@@ -88,9 +88,9 @@ rp:
             max: 100
             queue: 5000
           log-index:
-            core: 5
-            max: 10
-            queue: 500
+            core: 10
+            max: 100
+            queue: 5000
           log-cluster:
             core: 5
             max: 10

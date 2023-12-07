@@ -143,10 +143,10 @@ public class LogIndexerService implements LogIndexer {
         CompletableFuture.supplyAsync(() -> indexerServiceClient.cleanIndex(index, ids));
   }
 
-  @Async(value = "logIndexTaskExecutor")
   @Override
   public void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig,
       List<TestItem> testItems) {
+    CompletableFuture.runAsync(() -> {
     if (CollectionUtils.isEmpty(testItems)) {
       return;
     }
@@ -163,6 +163,7 @@ public class LogIndexerService implements LogIndexer {
     List<IndexLaunch> indexLaunchList = launchPreparerService.prepare(analyzerConfig, missedItems);
 
     indexerServiceClient.index(indexLaunchList);
+    } , taskExecutor);
   }
 
   @Override
@@ -170,16 +171,18 @@ public class LogIndexerService implements LogIndexer {
     return indexerServiceClient.indexItemsRemove(projectId, itemsForIndexRemove);
   }
 
-  @Async(value = "logIndexTaskExecutor")
   @Override
   public void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove) {
-    indexerServiceClient.indexItemsRemoveAsync(projectId, itemsForIndexRemove);
+    CompletableFuture.runAsync(() -> {
+      indexerServiceClient.indexItemsRemoveAsync(projectId, itemsForIndexRemove);
+    }, taskExecutor);
   }
 
-  @Async(value = "logIndexTaskExecutor")
   @Override
   public void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove) {
-    indexerServiceClient.indexLaunchesRemove(projectId, launchesForIndexRemove);
+    CompletableFuture.runAsync(() -> {
+      indexerServiceClient.indexLaunchesRemove(projectId, launchesForIndexRemove);
+    }, taskExecutor);
   }
 
 }

@@ -143,7 +143,7 @@ public class LogIndexerService implements LogIndexer {
         CompletableFuture.supplyAsync(() -> indexerServiceClient.cleanIndex(index, ids));
   }
 
-  @Async
+  @Async(value = "logIndexTaskExecutor")
   @Override
   public void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig,
       List<TestItem> testItems) {
@@ -170,13 +170,13 @@ public class LogIndexerService implements LogIndexer {
     return indexerServiceClient.indexItemsRemove(projectId, itemsForIndexRemove);
   }
 
-  @Async
+  @Async(value = "logIndexTaskExecutor")
   @Override
   public void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove) {
     indexerServiceClient.indexItemsRemoveAsync(projectId, itemsForIndexRemove);
   }
 
-  @Async
+  @Async(value = "logIndexTaskExecutor")
   @Override
   public void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove) {
     indexerServiceClient.indexLaunchesRemove(projectId, launchesForIndexRemove);

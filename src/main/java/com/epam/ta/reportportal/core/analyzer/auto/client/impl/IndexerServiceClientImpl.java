@@ -71,7 +71,9 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 
   @Override
   public Long index(List<IndexLaunch> rq) {
-    return rabbitMqManagementClient.getAnalyzerExchangesInfo().stream().filter(DOES_SUPPORT_INDEX)
+    LOGGER.info("Start indexes for items:" + rq);
+    long sum = rabbitMqManagementClient.getAnalyzerExchangesInfo().stream()
+        .filter(DOES_SUPPORT_INDEX)
         .map(exchange -> {
           rabbitTemplate.convertAndSend(exchange.getName(), NAMESPACE_FINDER_ROUTE, rq);
           return rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
@@ -86,6 +88,8 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
           }
           return 0;
         }).sum();
+    LOGGER.info("END indexes for items:" + rq);
+    return sum;
   }
 
   @Override

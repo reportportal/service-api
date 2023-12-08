@@ -151,31 +151,34 @@ public class LogIndexerService implements LogIndexer {
   @Override
   public void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig,
       List<TestItem> testItems) {
-    LOGGER.info("Start indexDefectsUpdate");
-    if (taskExecutor instanceof ThreadPoolTaskExecutor threadPoolTaskExecutor) {
+    CompletableFuture.runAsync(() -> {
+      LOGGER.info("Start indexDefectsUpdate");
+      if (taskUpdateExecutor instanceof ThreadPoolTaskExecutor threadPoolTaskExecutor) {
 
-      int queueSize = threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size();
-      LOGGER.info("logIndexUpdateTaskExecutor queueSize: " + queueSize);
-    } else {
-      System.out.println("TaskExecutor not instance ThreadPoolTaskExecutor");
-    }
-    if (CollectionUtils.isEmpty(testItems)) {
-      return;
-    }
+        int queueSize = threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size();
+        LOGGER.info("logIndexUpdateTaskExecutor queueSize: " + queueSize);
+      } else {
+        System.out.println("TaskExecutor not instance ThreadPoolTaskExecutor");
+      }
+      if (CollectionUtils.isEmpty(testItems)) {
+        return;
+      }
 
-    Map<Long, String> itemsForIndexUpdate = testItems.stream()
-        .collect(Collectors.toMap(TestItem::getItemId,
-            it -> it.getItemResults().getIssue().getIssueType().getLocator()));
+      Map<Long, String> itemsForIndexUpdate = testItems.stream()
+          .collect(Collectors.toMap(TestItem::getItemId,
+              it -> it.getItemResults().getIssue().getIssueType().getLocator()));
 
-    List<Long> missedItemIds = indexerServiceClient.indexDefectsUpdate(projectId,
-        itemsForIndexUpdate);
-    List<TestItem> missedItems = testItems.stream()
-        .filter(it -> missedItemIds.contains(it.getItemId())).collect(Collectors.toList());
+      List<Long> missedItemIds = indexerServiceClient.indexDefectsUpdate(projectId,
+          itemsForIndexUpdate);
+      List<TestItem> missedItems = testItems.stream()
+          .filter(it -> missedItemIds.contains(it.getItemId())).collect(Collectors.toList());
 
-    List<IndexLaunch> indexLaunchList = launchPreparerService.prepare(analyzerConfig, missedItems);
+      List<IndexLaunch> indexLaunchList = launchPreparerService.prepare(analyzerConfig,
+          missedItems);
 
-    indexerServiceClient.index(indexLaunchList);
-    LOGGER.info("End indexDefectsUpdate");
+      indexerServiceClient.index(indexLaunchList);
+      LOGGER.info("End indexDefectsUpdate");
+    }, taskUpdateExecutor);
   }
 
   @Override
@@ -188,7 +191,7 @@ public class LogIndexerService implements LogIndexer {
   public void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove) {
     CompletableFuture.supplyAsync(() -> {
       LOGGER.info("Start indexItemsRemoveAsync");
-      if (taskExecutor instanceof ThreadPoolTaskExecutor threadPoolTaskExecutor) {
+      if (taskUpdateExecutor instanceof ThreadPoolTaskExecutor threadPoolTaskExecutor) {
 
         int queueSize = threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size();
         LOGGER.info("logIndexUpdateTaskExecutor queueSize: " + queueSize);
@@ -207,7 +210,7 @@ public class LogIndexerService implements LogIndexer {
   public void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove) {
     CompletableFuture.supplyAsync(() -> {
       LOGGER.info("Start indexLaunchesRemove");
-      if (taskExecutor instanceof ThreadPoolTaskExecutor threadPoolTaskExecutor) {
+      if (taskUpdateExecutor instanceof ThreadPoolTaskExecutor threadPoolTaskExecutor) {
 
         int queueSize = threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size();
         LOGGER.info("logIndexUpdateTaskExecutor queueSize: " + queueSize);

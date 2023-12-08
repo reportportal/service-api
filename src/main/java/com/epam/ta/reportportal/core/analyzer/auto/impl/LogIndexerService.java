@@ -178,7 +178,9 @@ public class LogIndexerService implements LogIndexer {
       LOGGER.info("itemsForIndexUpdate:" + itemsForIndexUpdate);
       LOGGER.info("missedItemIds:" + missedItemIds);
       LOGGER.info("Start indexerServiceClient.index for:" + indexLaunchList);
-      indexerServiceClient.index(indexLaunchList);
+      if (!CollectionUtils.isEmpty(indexLaunchList)) {
+        indexerServiceClient.index(indexLaunchList);
+      }
       LOGGER.info("End indexerServiceClient.index for:" + indexLaunchList);
       LOGGER.info("End indexDefectsUpdate");
   }

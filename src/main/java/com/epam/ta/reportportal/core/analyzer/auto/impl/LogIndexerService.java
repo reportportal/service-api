@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -147,6 +148,14 @@ public class LogIndexerService implements LogIndexer {
   @Override
   public void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig,
       List<TestItem> testItems) {
+    LOGGER.info("Start indexDefectsUpdate");
+    if (taskExecutor instanceof ThreadPoolTaskExecutor threadPoolTaskExecutor) {
+
+      int queueSize = threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size();
+      LOGGER.info("logIndexUpdateTaskExecutor queueSize: " + queueSize);
+    } else {
+      System.out.println("TaskExecutor not instance ThreadPoolTaskExecutor");
+    }
     if (CollectionUtils.isEmpty(testItems)) {
       return;
     }
@@ -163,6 +172,7 @@ public class LogIndexerService implements LogIndexer {
     List<IndexLaunch> indexLaunchList = launchPreparerService.prepare(analyzerConfig, missedItems);
 
     indexerServiceClient.index(indexLaunchList);
+    LOGGER.info("End indexDefectsUpdate");
   }
 
   @Override
@@ -173,13 +183,31 @@ public class LogIndexerService implements LogIndexer {
   @Async("logIndexUpdateTaskExecutor")
   @Override
   public void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove) {
+    LOGGER.info("Start indexItemsRemoveAsync");
+    if (taskExecutor instanceof ThreadPoolTaskExecutor threadPoolTaskExecutor) {
+
+      int queueSize = threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size();
+      LOGGER.info("logIndexUpdateTaskExecutor queueSize: " + queueSize);
+    } else {
+      System.out.println("TaskExecutor not instance ThreadPoolTaskExecutor");
+    }
     indexerServiceClient.indexItemsRemoveAsync(projectId, itemsForIndexRemove);
+    LOGGER.info("End indexItemsRemoveAsync");
   }
 
   @Async("logIndexUpdateTaskExecutor")
   @Override
   public void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove) {
+    LOGGER.info("Start indexLaunchesRemove");
+    if (taskExecutor instanceof ThreadPoolTaskExecutor threadPoolTaskExecutor) {
+
+      int queueSize = threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size();
+      LOGGER.info("logIndexUpdateTaskExecutor queueSize: " + queueSize);
+    } else {
+      System.out.println("TaskExecutor not instance ThreadPoolTaskExecutor");
+    }
     indexerServiceClient.indexLaunchesRemove(projectId, launchesForIndexRemove);
+    LOGGER.info("End indexItemsRemoveAsync");
   }
 
 }

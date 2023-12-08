@@ -82,6 +82,7 @@ class LogIndexerServiceTest {
 
   private LogIndexerService logIndexerService = new LogIndexerService(batchLogIndexer,
       taskExecutor,
+      taskExecutor,
       launchRepository,
       testItemRepository,
       indexerServiceClient,

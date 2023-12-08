@@ -56,6 +56,7 @@ public class LogIndexerService implements LogIndexer {
   private final BatchLogIndexer batchLogIndexer;
 
   private final TaskExecutor taskExecutor;
+  private final TaskExecutor taskUpdateExecutor;
 
   private final LaunchRepository launchRepository;
 
@@ -70,11 +71,13 @@ public class LogIndexerService implements LogIndexer {
   @Autowired
   public LogIndexerService(BatchLogIndexer batchLogIndexer,
       @Qualifier("logIndexTaskExecutor") TaskExecutor taskExecutor,
+      @Qualifier("logIndexUpdateTaskExecutor") TaskExecutor taskUpdateExecutor,
       LaunchRepository launchRepository, TestItemRepository testItemRepository,
       IndexerServiceClient indexerServiceClient,
       LaunchPreparerService launchPreparerService, IndexerStatusCache indexerStatusCache) {
     this.batchLogIndexer = batchLogIndexer;
     this.taskExecutor = taskExecutor;
+    this.taskUpdateExecutor = taskUpdateExecutor;
     this.launchRepository = launchRepository;
     this.testItemRepository = testItemRepository;
     this.indexerServiceClient = indexerServiceClient;
@@ -144,7 +147,7 @@ public class LogIndexerService implements LogIndexer {
         CompletableFuture.supplyAsync(() -> indexerServiceClient.cleanIndex(index, ids));
   }
 
-  @Async("logIndexUpdateTaskExecutor")
+//  @Async("logIndexUpdateTaskExecutor")
   @Override
   public void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig,
       List<TestItem> testItems) {
@@ -180,34 +183,42 @@ public class LogIndexerService implements LogIndexer {
     return indexerServiceClient.indexItemsRemove(projectId, itemsForIndexRemove);
   }
 
-  @Async("logIndexUpdateTaskExecutor")
+//  @Async("logIndexUpdateTaskExecutor")
   @Override
   public void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove) {
-    LOGGER.info("Start indexItemsRemoveAsync");
-    if (taskExecutor instanceof ThreadPoolTaskExecutor threadPoolTaskExecutor) {
+    CompletableFuture.supplyAsync(() -> {
+      LOGGER.info("Start indexItemsRemoveAsync");
+      if (taskExecutor instanceof ThreadPoolTaskExecutor threadPoolTaskExecutor) {
 
-      int queueSize = threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size();
-      LOGGER.info("logIndexUpdateTaskExecutor queueSize: " + queueSize);
-    } else {
-      System.out.println("TaskExecutor not instance ThreadPoolTaskExecutor");
-    }
-    indexerServiceClient.indexItemsRemoveAsync(projectId, itemsForIndexRemove);
-    LOGGER.info("End indexItemsRemoveAsync");
+        int queueSize = threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size();
+        LOGGER.info("logIndexUpdateTaskExecutor queueSize: " + queueSize);
+      } else {
+        System.out.println("TaskExecutor not instance ThreadPoolTaskExecutor");
+      }
+      indexerServiceClient.indexItemsRemoveAsync(projectId, itemsForIndexRemove);
+      LOGGER.info("End indexItemsRemoveAsync");
+      return itemsForIndexRemove.size();
+    }, taskUpdateExecutor);
+
   }
 
-  @Async("logIndexUpdateTaskExecutor")
+//  @Async("logIndexUpdateTaskExecutor")
   @Override
   public void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove) {
-    LOGGER.info("Start indexLaunchesRemove");
-    if (taskExecutor instanceof ThreadPoolTaskExecutor threadPoolTaskExecutor) {
+    CompletableFuture.supplyAsync(() -> {
+      LOGGER.info("Start indexLaunchesRemove");
+      if (taskExecutor instanceof ThreadPoolTaskExecutor threadPoolTaskExecutor) {
 
-      int queueSize = threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size();
-      LOGGER.info("logIndexUpdateTaskExecutor queueSize: " + queueSize);
-    } else {
-      System.out.println("TaskExecutor not instance ThreadPoolTaskExecutor");
-    }
-    indexerServiceClient.indexLaunchesRemove(projectId, launchesForIndexRemove);
-    LOGGER.info("End indexItemsRemoveAsync");
+        int queueSize = threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size();
+        LOGGER.info("logIndexUpdateTaskExecutor queueSize: " + queueSize);
+      } else {
+        System.out.println("TaskExecutor not instance ThreadPoolTaskExecutor");
+      }
+      indexerServiceClient.indexLaunchesRemove(projectId, launchesForIndexRemove);
+      LOGGER.info("End indexItemsRemoveAsync");
+      return 1L;
+    }, taskUpdateExecutor);
+
   }
 
 }

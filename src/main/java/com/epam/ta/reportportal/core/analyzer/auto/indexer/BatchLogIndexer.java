@@ -15,6 +15,7 @@ import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -82,12 +83,24 @@ public class BatchLogIndexer {
 
   private Long indexPartition(List<Long> itemIds, AnalyzerConfig analyzerConfig, Launch launch) {
     LOGGER.info("Indexing started for {} items.", itemIds.size());
-    final Long indexedLogs = launchPreparerService.prepare(launch,
-            testItemRepository.findAllById(itemIds), analyzerConfig)
-        .map(it -> indexerServiceClient.index(Lists.newArrayList(it)))
-        .orElse(0L);
+    Optional<IndexLaunch> prepared = launchPreparerService.prepare(launch,
+        testItemRepository.findAllById(itemIds), analyzerConfig);
+    prepared.ifPresent(it -> indexerServiceClient.index(Lists.newArrayList(it)));
+
+    Long indexedLogs = 0L;
+    if (prepared.isPresent()) {
+      indexedLogs = countLogs(Lists.newArrayList(prepared.get()));
+    }
+
     LOGGER.info("Indexing of {} logs is finished for {} items.", indexedLogs, itemIds.size());
     return indexedLogs;
+  }
+
+  private Long countLogs(List<IndexLaunch> indexLaunch) {
+    return indexLaunch.stream()
+        .flatMap(launch -> launch.getTestItems().stream())
+        .mapToLong(item -> item.getLogs().size())
+        .sum();
   }
 
   private void index(Long projectId, AnalyzerConfig analyzerConfig, List<Long> launchIds,
@@ -108,21 +121,21 @@ public class BatchLogIndexer {
     }
 
     LOGGER.debug("Project {}. Start indexing for {} launches", projectId, preparedLaunches.size());
-    final long indexed = indexByPartition(preparedLaunches);
+    indexByPartition(preparedLaunches);
+    final long indexed = countLogs(preparedLaunches);
     LOGGER.debug("Project {}. Indexed {} logs", projectId, indexed);
     totalIndexed.addAndGet(indexed);
   }
 
-  private long indexByPartition(List<IndexLaunch> preparedLaunches) {
-    return preparedLaunches.stream().map(indexLaunch -> {
+  private void indexByPartition(List<IndexLaunch> preparedLaunches) {
+    preparedLaunches.forEach(indexLaunch -> {
       final Iterable<List<IndexTestItem>> lists = Iterables.partition(indexLaunch.getTestItems(),
           itemsBatchSize);
-      return StreamSupport.stream(lists.spliterator(), false).map(partition -> {
+      StreamSupport.stream(lists.spliterator(), false).forEach(partition -> {
         indexLaunch.setTestItems(partition);
-        final Long indexed = indexerServiceClient.index(Lists.newArrayList(indexLaunch));
-        return indexed;
-      }).mapToLong(Long::longValue).sum();
-    }).mapToLong(Long::longValue).sum();
+        indexerServiceClient.index(Lists.newArrayList(indexLaunch));
+      });
+    });
   }
 
   private List<Long> filterIds(List<Long> launchIds) {

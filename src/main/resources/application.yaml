@@ -91,10 +91,6 @@ rp:
             core: 5
             max: 10
             queue: 500
-          log-index-update:
-            core: 5
-            max: 10
-            queue: 500
           log-cluster:
             core: 5
             max: 10

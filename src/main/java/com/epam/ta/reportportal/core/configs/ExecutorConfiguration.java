@@ -90,20 +90,6 @@ public class ExecutorConfiguration {
     return threadPoolTaskExecutor;
   }
 
-  @Bean(name = "logIndexUpdateTaskExecutor")
-  public TaskExecutor logIndexUpdateTaskExecutor(
-      @Value("${rp.environment.variable.executor.pool.log-index-update.core}") Integer corePoolSize,
-      @Value("${rp.environment.variable.executor.pool.log-index-update.max}") Integer maxPoolSize,
-      @Value("${rp.environment.variable.executor.pool.log-index-update.queue}") Integer queueCapacity) {
-    final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-    threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
-    threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
-    threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
-    threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
-    threadPoolTaskExecutor.setThreadNamePrefix("log-index-update-exec");
-    return threadPoolTaskExecutor;
-  }
-
   @Bean(name = "autoAnalyzeTaskExecutor")
   public TaskExecutor autoAnalyzeTaskExecutor(
       @Value("${rp.environment.variable.executor.pool.auto-analyze.core}") Integer corePoolSize,

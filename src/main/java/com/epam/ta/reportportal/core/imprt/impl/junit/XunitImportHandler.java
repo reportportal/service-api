@@ -79,7 +79,7 @@ public class XunitImportHandler extends DefaultHandler {
 	private ReportPortalUser.ProjectDetails projectDetails;
 	private ReportPortalUser user;
 	private String launchUuid;
-	private boolean skippedIsNotIssue = false;
+	private boolean isSkippedNotIssue = false;
 
 	//need to know item's id to attach System.out/System.err logs
 	private String currentItemUuid;
@@ -266,7 +266,7 @@ public class XunitImportHandler extends DefaultHandler {
 	}
 
 	private void markAsNotIssue(FinishTestItemRQ rq) {
-		if (StatusEnum.SKIPPED.equals(status) && skippedIsNotIssue) {
+		if (StatusEnum.SKIPPED.equals(status) && isSkippedNotIssue) {
 			Issue issue = new Issue();
 			issue.setIssueType(NOT_ISSUE_FLAG.getValue());
 			rq.setIssue(issue);
@@ -285,11 +285,11 @@ public class XunitImportHandler extends DefaultHandler {
 	}
 
 	XunitImportHandler withParameters(ReportPortalUser.ProjectDetails projectDetails, String launchId,
-			ReportPortalUser user, boolean skipped) {
+			ReportPortalUser user, boolean isSkippedNotIssue) {
 		this.projectDetails = projectDetails;
 		this.launchUuid = launchId;
 		this.user = user;
-		this.skippedIsNotIssue = skipped;
+		this.isSkippedNotIssue = isSkippedNotIssue;
 		return this;
 	}
 

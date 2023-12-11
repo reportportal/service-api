@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +43,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -160,9 +160,11 @@ public class LogIndexerService implements LogIndexer {
     List<TestItem> missedItems = testItems.stream()
         .filter(it -> missedItemIds.contains(it.getItemId())).collect(Collectors.toList());
 
-    List<IndexLaunch> indexLaunchList = launchPreparerService.prepare(analyzerConfig, missedItems);
-
-    indexerServiceClient.index(indexLaunchList);
+    if (CollectionUtils.isNotEmpty(missedItems)) {
+      List<IndexLaunch> indexLaunchList = launchPreparerService.prepare(analyzerConfig,
+          missedItems);
+      indexerServiceClient.index(indexLaunchList);
+    }
   }
 
   @Override

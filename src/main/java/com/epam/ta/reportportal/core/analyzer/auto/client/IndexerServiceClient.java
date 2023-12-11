@@ -46,9 +46,8 @@ public interface IndexerServiceClient {
    * Index list of launches
    *
    * @param rq Launches
-   * @return Count of indexed test items
    */
-  Long index(List<IndexLaunch> rq);
+  void index(List<IndexLaunch> rq);
 
   /**
    * Sends a message to the queue with a map of items which must be updated with a new issue type

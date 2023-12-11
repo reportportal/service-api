@@ -50,7 +50,7 @@ import org.springframework.stereotype.Component;
 @Component
 public abstract class AbstractImportStrategy implements ImportStrategy {
 
-  public static final String SKIPPED_ISSUE = "skippedIssue";
+  public static final String SKIPPED_IS_NOT_ISSUE = "skippedIsNotIssue";
   protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractImportStrategy.class);
   private static final Date initialStartTime = new Date(0);
   protected static final ExecutorService service = Executors.newFixedThreadPool(5);
@@ -109,9 +109,11 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
     launchRepository.save(launch);
   }
 
-  protected Boolean getSkippedIsNotIssueAttribute(Set<ItemAttributesRQ> attributes) {
+  protected Boolean isSkippedNotIssue(Set<ItemAttributesRQ> attributes) {
     return ofNullable(attributes).orElse(Collections.emptySet()).stream()
-        .filter(attribute -> SKIPPED_ISSUE.equals(attribute.getKey())).findAny()
+        .filter(
+            attribute -> SKIPPED_IS_NOT_ISSUE.equals(attribute.getKey()) && attribute.isSystem())
+        .findAny()
         .filter(itemAttributesRQ -> Boolean.parseBoolean(itemAttributesRQ.getValue())).isPresent();
   }
 

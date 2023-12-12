@@ -36,7 +36,7 @@ public @interface FilterFor {
   /**
    * Domain Object class queries and parameters will be applied to
    *
-   * @return
+   * @return class of filter
    */
   Class<?> value();
 }

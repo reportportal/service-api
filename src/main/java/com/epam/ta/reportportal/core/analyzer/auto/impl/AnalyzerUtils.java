@@ -74,7 +74,6 @@ public class AnalyzerUtils {
    * analyzer.
    *
    * @param testItem Test item to be created from
-   * @param logs     Test item's logs
    * @return {@link IndexTestItem} object
    */
   public static IndexTestItem fromTestItem(TestItem testItem) {

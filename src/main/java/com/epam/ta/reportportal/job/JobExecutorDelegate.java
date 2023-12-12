@@ -39,7 +39,7 @@ public class JobExecutorDelegate {
   /**
    * Submits self cancelable job
    *
-   * @param selfCancelableJob
+   * @param selfCancelableJob link to job class
    */
   public void submitJob(SelfCancelableJob selfCancelableJob) {
     taskScheduler.schedule(selfCancelableJob, selfCancelableJob);

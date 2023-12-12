@@ -75,6 +75,7 @@ public interface UpdateTestItemHandler {
    * @param itemIds   The {@link List} of the
    *                  {@link com.epam.ta.reportportal.entity.item.TestItemResults#itemId}
    * @param projectId Project id
+   * @param user      {@link ReportPortalUser}
    */
   void resetItemsIssue(List<Long> itemIds, Long projectId, ReportPortalUser user);
 

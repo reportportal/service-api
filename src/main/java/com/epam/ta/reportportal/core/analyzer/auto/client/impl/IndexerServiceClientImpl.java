@@ -70,22 +70,12 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
   }
 
   @Override
-  public Long index(List<IndexLaunch> rq) {
-    return rabbitMqManagementClient.getAnalyzerExchangesInfo().stream().filter(DOES_SUPPORT_INDEX)
-        .map(exchange -> {
+  public void index(List<IndexLaunch> rq) {
+    rabbitMqManagementClient.getAnalyzerExchangesInfo().stream().filter(DOES_SUPPORT_INDEX)
+        .forEach(exchange -> {
           rabbitTemplate.convertAndSend(exchange.getName(), NAMESPACE_FINDER_ROUTE, rq);
-          return rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
-              INDEX_ROUTE,
-              rq,
-              new ParameterizedTypeReference<IndexRs>() {
-              }
-          );
-        }).mapToLong(it -> {
-          if (Objects.nonNull(it)) {
-            return it.getTook();
-          }
-          return 0;
-        }).sum();
+          rabbitTemplate.convertAndSend(exchange.getName(), INDEX_ROUTE, rq);
+        });
   }
 
   @Override

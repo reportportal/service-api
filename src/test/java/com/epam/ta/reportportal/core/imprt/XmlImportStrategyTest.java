@@ -106,7 +106,7 @@ class XmlImportStrategyTest {
   void whenImportLaunch_andIsSkippedIssue_thenProcessXmlFileWithSkippedTrue(@TempDir Path tempDir)
       throws Exception {
     LaunchImportRQ rq = new LaunchImportRQ();
-    rq.setAttributes(Set.of(new ItemAttributesRQ(AbstractImportStrategy.SKIPPED_ISSUE, "true")));
+    rq.setAttributes(Set.of(new ItemAttributesRQ(AbstractImportStrategy.SKIPPED_IS_NOT_ISSUE, "true")));
 
     File xmlFile = createFile(tempDir);
 

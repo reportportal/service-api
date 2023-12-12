@@ -90,7 +90,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Controller implementation for {@link com.epam.ta.reportportal.entity.item.TestItem} entity
- * <p>
  */
 @RestController
 @RequestMapping("/v1/{projectName}/item")

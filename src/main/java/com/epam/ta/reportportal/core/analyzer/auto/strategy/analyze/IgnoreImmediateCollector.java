@@ -31,7 +31,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class IgnoreImmediateCollector implements AnalyzeItemsCollector {
 
-  protected static final String IMMEDIATE_AUTO_ANALYSIS = "immediateAA";
+  protected static final String IMMEDIATE_AUTO_ANALYSIS = "immediateAutoAnalysis";
 
   private TestItemRepository testItemRepository;
 

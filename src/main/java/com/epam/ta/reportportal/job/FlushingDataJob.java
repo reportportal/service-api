@@ -99,7 +99,7 @@ public class FlushingDataJob implements Job {
   @Value("${datastore.bucketPostfix}")
   private String bucketPostfix;
 
-  @Value("${datastore.defaultBucketName")
+  @Value("${datastore.defaultBucketName}")
   private String defaultBucketName;
 
   @Override
@@ -130,11 +130,7 @@ public class FlushingDataJob implements Job {
    * Get exclusive lock. Kill all running transactions. Truncate tables
    */
   private void truncateTables() {
-    jdbcTemplate.execute("BEGIN; " + "SELECT PG_ADVISORY_XACT_LOCK(1);"
-        + "SELECT PG_TERMINATE_BACKEND(pid) FROM pg_stat_activity WHERE datname = 'reportportal'\n"
-        + "AND pid <> PG_BACKEND_PID()\n"
-        + "AND state IN "
-        + "('idle', 'idle in transaction', 'idle in transaction (aborted)', 'disabled'); "
+    jdbcTemplate.execute("BEGIN; "
         + "TRUNCATE TABLE launch RESTART IDENTITY CASCADE;"
         + "TRUNCATE TABLE activity RESTART IDENTITY CASCADE;"
         + "TRUNCATE TABLE owned_entity RESTART IDENTITY CASCADE;"
@@ -152,7 +148,7 @@ public class FlushingDataJob implements Job {
   private void createDefaultUser() {
     final CreateUserRQFull request = new CreateUserRQFull();
     request.setLogin("default");
-    request.setPassword(passwordEncoder.encode("1q2w3e"));
+    request.setPassword("1q2w3e");
     request.setEmail("defaultemail@domain.com");
     User user = new UserBuilder().addCreateUserFullRQ(request)
         .addUserRole(UserRole.USER)

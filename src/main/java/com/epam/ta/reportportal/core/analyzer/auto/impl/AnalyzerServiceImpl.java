@@ -28,7 +28,9 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.AnalyzeMode;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
@@ -75,6 +77,8 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
   private final TestItemRepository testItemRepository;
 
+  private final LaunchRepository launchRepository;
+
   private final MessageBus messageBus;
 
   private final Integer itemsBatchSize;
@@ -85,7 +89,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
       AnalyzerStatusCache analyzerStatusCache, LaunchPreparerService launchPreparerService,
       AnalyzerServiceClient analyzerServicesClient, IssueTypeHandler issueTypeHandler,
       TestItemRepository testItemRepository,
-      MessageBus messageBus) {
+      MessageBus messageBus, LaunchRepository launchRepository) {
     this.itemsBatchSize = itemsBatchSize;
     this.analyzerStatusCache = analyzerStatusCache;
     this.launchPreparerService = launchPreparerService;
@@ -93,6 +97,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     this.issueTypeHandler = issueTypeHandler;
     this.testItemRepository = testItemRepository;
     this.messageBus = messageBus;
+    this.launchRepository = launchRepository;
   }
 
   @Override
@@ -104,8 +109,9 @@ public class AnalyzerServiceImpl implements AnalyzerService {
   public void runAnalyzers(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig) {
     try {
       analyzerStatusCache.analyzeStarted(AUTO_ANALYZER_KEY, launch.getId(), launch.getProjectId());
+      Optional<Long> previousLaunchId = findPreviousLaunchId(launch, analyzerConfig);
       Iterables.partition(testItemIds, itemsBatchSize)
-          .forEach(partition -> analyzeItemsPartition(launch, partition, analyzerConfig));
+          .forEach(partition -> analyzeItemsPartition(launch, partition, analyzerConfig, previousLaunchId));
     } catch (Exception e) {
       LOGGER.error(e.getMessage(), e);
     } finally {
@@ -121,13 +127,14 @@ public class AnalyzerServiceImpl implements AnalyzerService {
    * @param analyzerConfig Analyzer config
    */
   private void analyzeItemsPartition(Launch launch, List<Long> testItemIds,
-      AnalyzerConfig analyzerConfig) {
+      AnalyzerConfig analyzerConfig, Optional<Long> previousLaunchId) {
     LOGGER.info("Start analysis of '{}' items for launch with id '{}'", testItemIds.size(),
         launch.getId());
     List<TestItem> toAnalyze = testItemRepository.findAllById(testItemIds);
     Optional<IndexLaunch> rqLaunch = launchPreparerService.prepare(launch, toAnalyze,
         analyzerConfig);
     rqLaunch.ifPresent(rq -> {
+      previousLaunchId.ifPresent(rq::setPreviousLaunchId);
       Map<String, List<AnalyzedItemRs>> analyzedMap = analyzerServicesClient.analyze(rq);
       if (!MapUtils.isEmpty(analyzedMap)) {
         analyzedMap.forEach(
@@ -220,4 +227,16 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     return AnalyzerUtils.TO_RELEVANT_ITEM_INFO.apply(relevantItem);
   }
 
+  /**
+   *
+   * @param launch Analyzed launch
+   * @param analyzerConfig Current analyzer config
+   * @return Id of previous launch. Required only for PREVIOUS_LAUNCH option.
+   */
+  private Optional<Long> findPreviousLaunchId(Launch launch, AnalyzerConfig analyzerConfig) {
+    if (analyzerConfig.getAnalyzerMode().equals(AnalyzeMode.PREVIOUS_LAUNCH.getValue())) {
+      return launchRepository.findPreviousLaunchId(launch);
+    }
+    return Optional.empty();
+  }
 }

@@ -32,6 +32,7 @@ public interface CreateIntegrationHandler {
    *
    * @param pluginName    Plugin name
    * @param createRequest {@link IntegrationRQ}
+   * @param user          {@link ReportPortalUser}
    * @return {@link EntryCreatedRS}
    */
   EntryCreatedRS createGlobalIntegration(IntegrationRQ createRequest, String pluginName,

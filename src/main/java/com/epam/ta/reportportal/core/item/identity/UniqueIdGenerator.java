@@ -32,6 +32,7 @@ public interface UniqueIdGenerator {
    * Generates the unique identifier for test item
    *
    * @param testItem  source for id
+   * @param launch    {@link Launch}
    * @param parentIds all {@link TestItem} ancestors' ids
    * @return unique id
    */

@@ -84,9 +84,10 @@ public class ProjectInfoWidgetDataConverter {
   /**
    * <b>Percentage Of Investigation</b> project info widget content
    *
-   * @param initial
-   * @param interval
-   * @return
+   * @param initial   A list of {@link Launch} objects to calculate investigation percentages
+   * @param interval  An {@link InfoInterval} representing the grouping interval (e.g., daily, weekly)
+   * @return A {@link Map} with keys representing interval group names and values containing
+   *         {@link List} of {@link ChartObject} instances with investigated and to-investigate percentage information
    */
   public Map<String, List<ChartObject>> getInvestigatedProjectInfo(List<Launch> initial,
       InfoInterval interval) {
@@ -137,8 +138,9 @@ public class ProjectInfoWidgetDataConverter {
    * <b>Test-cases statistics in unique launches</b> project info widget
    * content data-source
    *
-   * @param initial
-   * @return
+   * @param initial A list of {@link Launch} objects to calculate test-case statistics
+   * @return A {@link Map} with keys representing launch names and values containing
+   *         {@link List} of {@link ChartObject} instances with min, max, and average statistics
    */
   public Map<String, List<ChartObject>> getTestCasesStatisticsProjectInfo(List<Launch> initial) {
     DecimalFormat formatter = new DecimalFormat("#####.##");
@@ -187,9 +189,10 @@ public class ProjectInfoWidgetDataConverter {
   /**
    * <b>Quantity of Launches</b> project info widget content
    *
-   * @param initial
-   * @param interval
-   * @return
+   * @param initial A list of {@link Launch} objects to calculate the quantity of launches
+   * @param interval An {@link InfoInterval} representing the grouping interval (e.g., daily, weekly)
+   * @return A {@link Map} with keys representing interval group names and values containing
+   *         {@link List} of {@link ChartObject} instances with launch quantity information
    */
   public Map<String, List<ChartObject>> getLaunchesQuantity(List<Launch> initial,
       InfoInterval interval) {
@@ -229,9 +232,10 @@ public class ProjectInfoWidgetDataConverter {
   /**
    * <b>Launch statistics line chart</b> project info widget content
    *
-   * @param initial
-   * @param interval
-   * @return
+   * @param initial A list of {@link Launch} objects to calculate the issues
+   * @param interval An {@link InfoInterval} representing the grouping interval (e.g., daily, weekly)
+   * @return A {@link Map} with keys representing interval group names and values containing
+   *         {@link List} of {@link ChartObject} instances with issue count information
    */
   public Map<String, List<ChartObject>> getLaunchesIssues(List<Launch> initial,
       InfoInterval interval) {
@@ -273,9 +277,10 @@ public class ProjectInfoWidgetDataConverter {
   /**
    * Utility method for grouping input list of {@link Launch} by {@link ProjectInfoGroup} criteria
    *
-   * @param initial
-   * @param criteria
-   * @return
+   * @param initial  A list of {@link Launch} objects to be grouped
+   * @param criteria The {@link ProjectInfoGroup} criteria that determines the grouping key
+   * @return A map where the keys represent the grouping parameters (e.g., launch names or formatted dates)
+   *         and the values are lists of {@link Launch} objects grouped under that key
    */
   private static Map<String, List<Launch>> groupBy(List<Launch> initial,
       ProjectInfoGroup criteria) {

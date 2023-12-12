@@ -29,8 +29,8 @@ public interface DemoDataFacade {
   /**
    * Generates demo launches
    *
-   * @param user
-   * @param projectDetails
+   * @param user            {@link ReportPortalUser}
+   * @param projectDetails  {@link ReportPortalUser.ProjectDetails}
    * @return {@link List} of generated launch ids
    */
   List<Long> generateDemoLaunches(ReportPortalUser user,

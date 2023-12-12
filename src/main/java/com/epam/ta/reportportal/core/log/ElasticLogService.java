@@ -71,7 +71,7 @@ public class ElasticLogService implements LogService {
    * Used only for generation demo data, that send all per message to avoid some object/collection
    * wrapping during reporting.
    *
-   * @param logFullList
+   * @param logFullList list of {@link LogFull}
    */
   public void saveLogMessageList(List<LogFull> logFullList, Long launchId) {
     if (CollectionUtils.isEmpty(logFullList)) {

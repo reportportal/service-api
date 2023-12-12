@@ -42,6 +42,7 @@ public interface GetJasperReportHandler<T> {
    * Finds report format and checks whether it's valid
    *
    * @param format ReportFormat
+   * @return {@link ReportFormat}
    */
   ReportFormat getReportFormat(String format);
 

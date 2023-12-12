@@ -33,6 +33,7 @@ public interface AnalyzerServiceAsync {
    * @param launch         - Initial launch for history
    * @param testItemIds    - Prepared ids of test item for analyzing
    * @param analyzerConfig - Analyze mode
+   * @return {@link CompletableFuture}
    */
   CompletableFuture<Void> analyze(Launch launch, List<Long> testItemIds,
       AnalyzerConfig analyzerConfig);

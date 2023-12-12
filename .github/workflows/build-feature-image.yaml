@@ -1,17 +1,16 @@
-name: Build develop Docker image
+name: Build feature Docker image
 
 on:
-  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
     branches:
-      - develop
-    paths-ignore:
-      - '.github/**'
-      - README.md
+      - 'develop'
 
 jobs:
   variables-setup:
     name: Setting variables for docker build
     runs-on: ubuntu-latest
+    if: (!startsWith(github.head_ref, 'rc/') || !startsWith(github.head_ref, 'hotfix/') || !startsWith(github.head_ref, 'master') || !startsWith(github.head_ref, 'main'))
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -19,17 +18,20 @@ jobs:
       - name: Create variables
         id: vars
         run: |
+          echo "tag=$(echo ${{ github.head_ref }}-${{ github.run_number }} | tr '/' '-')" >> $GITHUB_OUTPUT
           echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
     outputs:
+      tag: ${{ steps.vars.outputs.tag }}
       date: ${{ steps.vars.outputs.date }}
 
   call-docker-build:
-    name: Call develop Docker build
+    name: Call feature Docker build
     needs: variables-setup
     uses: reportportal/.github/.github/workflows/build-docker-image.yaml@main
     with:
       aws-region: ${{ vars.AWS_REGION }}
-      image-tag: 'develop-${{ github.run_number }}'
-      version: 'develop-${{ github.run_number }}'
+      image-tag: ${{ needs.variables-setup.outputs.tag }}
+      version: ${{ needs.variables-setup.outputs.tag }}
+      branch: ${{ github.head_ref }}
       date: ${{ needs.variables-setup.outputs.date }}
     secrets: inherit

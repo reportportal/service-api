@@ -35,10 +35,13 @@ import org.apache.commons.collections.CollectionUtils;
  */
 public final class IntegrationFieldsConverter {
 
-  private IntegrationFieldsConverter() {
-    //static only
-  }
-
+  public static final Function<AllowedValue, DefectFieldAllowedValue> VALUE_TO_DB = value -> {
+    Preconditions.checkNotNull(value);
+    DefectFieldAllowedValue allowedValue = new DefectFieldAllowedValue();
+    allowedValue.setValueId(value.getValueId());
+    allowedValue.setValueName(value.getValueName());
+    return allowedValue;
+  };
   public static final Function<PostFormField, DefectFormField> FIELD_TO_DB = field -> {
     Preconditions.checkNotNull(field);
     DefectFormField defectFormField = new DefectFormField();
@@ -55,7 +58,13 @@ public final class IntegrationFieldsConverter {
             .collect(Collectors.toSet())).orElseGet(Sets::newHashSet));
     return defectFormField;
   };
-
+  public static final Function<DefectFieldAllowedValue, AllowedValue> VALUE_TO_MODEL = defectFieldAllowedValue -> {
+    Preconditions.checkNotNull(defectFieldAllowedValue);
+    AllowedValue allowedValue = new AllowedValue();
+    allowedValue.setValueId(defectFieldAllowedValue.getValueId());
+    allowedValue.setValueName(defectFieldAllowedValue.getValueName());
+    return allowedValue;
+  };
   public static final Function<DefectFormField, PostFormField> FIELD_TO_MODEL = defectFormField -> {
     Preconditions.checkNotNull(defectFormField);
     PostFormField postFormField = new PostFormField();
@@ -69,19 +78,7 @@ public final class IntegrationFieldsConverter {
     return postFormField;
   };
 
-  public static final Function<AllowedValue, DefectFieldAllowedValue> VALUE_TO_DB = value -> {
-    Preconditions.checkNotNull(value);
-    DefectFieldAllowedValue allowedValue = new DefectFieldAllowedValue();
-    allowedValue.setValueId(value.getValueId());
-    allowedValue.setValueName(value.getValueName());
-    return allowedValue;
-  };
-
-  public static final Function<DefectFieldAllowedValue, AllowedValue> VALUE_TO_MODEL = defectFieldAllowedValue -> {
-    Preconditions.checkNotNull(defectFieldAllowedValue);
-    AllowedValue allowedValue = new AllowedValue();
-    allowedValue.setValueId(defectFieldAllowedValue.getValueId());
-    allowedValue.setValueName(defectFieldAllowedValue.getValueName());
-    return allowedValue;
-  };
+  private IntegrationFieldsConverter() {
+    //static only
+  }
 }

@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -67,6 +68,8 @@ class AnalyzerServiceServiceTest {
 
   private TestItemRepository testItemRepository = mock(TestItemRepository.class);
 
+  private LaunchRepository launchRepository = mock(LaunchRepository.class);
+
   private MessageBus messageBus = mock(MessageBus.class);
 
   private LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
@@ -78,7 +81,8 @@ class AnalyzerServiceServiceTest {
       analyzerServiceClient,
       issueTypeHandler,
       testItemRepository,
-      messageBus
+      messageBus,
+      launchRepository
   );
 
   @Test

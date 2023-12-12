@@ -33,6 +33,7 @@ public interface DeleteProjectHandler {
    * Delete specified project.
    *
    * @param projectId Project id
+   * @param user      {@link ReportPortalUser}
    * @return Result of operation
    * @throws ReportPortalException if project not found
    */
@@ -42,6 +43,7 @@ public interface DeleteProjectHandler {
    * Delete specified project.
    *
    * @param ids projects ids
+   * @param user      {@link ReportPortalUser}
    * @return Bulk result of operation
    * @throws ReportPortalException if project not found
    */
@@ -52,6 +54,7 @@ public interface DeleteProjectHandler {
    *
    * @param projectName Project name
    * @param username    User name
+   * @return {@link OperationCompletionRS} info about operation completion
    */
   OperationCompletionRS deleteProjectIndex(String projectName, String username);
 

@@ -56,8 +56,9 @@ public interface CreateUserHandler {
   /**
    * Create user bid (send invitation)
    *
-   * @param request  Create Request
-   * @param username Username/User that creates the request
+   * @param request    Create Request
+   * @param username   Username/User that creates the request
+   * @param userRegURL User registration url
    * @return Operation result
    */
   CreateUserBidRS createUserBid(CreateUserRQ request, ReportPortalUser username, String userRegURL);
@@ -74,7 +75,7 @@ public interface CreateUserHandler {
   /**
    * Reset password
    *
-   * @param rq
+   * @param rq request for reset password
    * @return Operation result
    */
   OperationCompletionRS resetPassword(ResetPasswordRQ rq);

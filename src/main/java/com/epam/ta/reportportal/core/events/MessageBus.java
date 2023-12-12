@@ -26,8 +26,9 @@ public interface MessageBus {
   /**
    * Sends event by the given route and exchange
    *
-   * @param route Route
-   * @param o     Payload
+   * @param exchange Exchange name
+   * @param route    Route
+   * @param o        Payload
    */
   void publish(String exchange, String route, Object o);
 

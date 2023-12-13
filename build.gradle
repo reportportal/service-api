@@ -75,7 +75,7 @@ dependencies {
         implementation 'com.github.reportportal:commons-events:e337f8b7be'
         implementation 'com.github.reportportal:commons-dao:126ee2e'
         implementation 'com.github.reportportal:commons-rules:01ec4d17'
-        implementation 'com.github.reportportal:commons-model:f19d01e'
+        implementation 'com.github.reportportal:commons-model:3251388'
         implementation 'com.github.reportportal:commons:07566b8e'
         implementation 'com.github.reportportal:commons-fonts:d6e62dd'
         implementation 'com.github.reportportal:plugin-api:55bf2f26'

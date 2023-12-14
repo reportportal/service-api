@@ -107,7 +107,8 @@ dependencies {
     implementation "com.rabbitmq:http-client:5.2.0"
 
     implementation 'com.sun.mail:javax.mail:1.6.2'
-    implementation 'net.sf.jasperreports:jasperreports:6.20.6'
+    // check authentication error response format for versions higher than 6.18.1
+    implementation 'net.sf.jasperreports:jasperreports:6.18.1'
     implementation 'xerces:xercesImpl:2.12.2'
     implementation 'com.lowagie:itext:2.1.7.js7'
     // JasperReport's export to XLS uses Apache POI

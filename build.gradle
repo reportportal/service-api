@@ -65,6 +65,7 @@ dependencyManagement {
 
 dependencies {
     if (releaseMode) {
+        implementation 'com.epam.reportportal:commons-events:5.10.0'
         implementation 'com.epam.reportportal:commons-dao'
         implementation 'com.epam.reportportal:commons-rules'
         implementation 'com.epam.reportportal:commons-model'

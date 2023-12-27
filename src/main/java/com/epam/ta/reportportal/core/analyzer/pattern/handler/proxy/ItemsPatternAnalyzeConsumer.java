@@ -20,8 +20,11 @@ import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCac
 import static com.epam.ta.reportportal.core.analyzer.config.PatternAnalysisRabbitConfiguration.PATTERN_ANALYSIS_REGEX;
 import static com.epam.ta.reportportal.core.analyzer.config.PatternAnalysisRabbitConfiguration.PATTERN_ANALYSIS_STRING;
 
+import com.epam.ta.reportportal.auth.UserRoleHierarchy;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.pattern.handler.impl.ItemsPatternAnalyzerImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +35,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ItemsPatternAnalyzeConsumer {
+
+  private static final Logger logger = LoggerFactory.getLogger(ItemsPatternAnalyzeConsumer.class);
 
   private final ItemsPatternAnalyzerImpl itemsPatternsAnalyzer;
 
@@ -46,6 +51,7 @@ public class ItemsPatternAnalyzeConsumer {
   @RabbitListener(queues = {PATTERN_ANALYSIS_REGEX,
       PATTERN_ANALYSIS_STRING}, containerFactory = "patternAnalysisContainerFactory")
   public void handleEvent(ItemsPatternAnalyzeDto event) {
+    logger.info("Event: " + event);
     if (event.isLastItem()) {
       analyzerStatusCache.analyzeFinished(PATTERN_ANALYZER_KEY, event.getLaunchId());
     } else {

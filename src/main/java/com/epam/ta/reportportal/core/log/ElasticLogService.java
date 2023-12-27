@@ -233,10 +233,7 @@ public class ElasticLogService implements LogService {
   @Override
   public List<Long> selectTestItemIdsByRegexLogMessage(Collection<Long> itemIds, Integer logLevel,
       String pattern) {
-    Long projectId = getProjectId(itemIds);
-    List<Long> logIdsPg = testItemRepository.selectLogIdsWithLogLevelCondition(itemIds, logLevel);
-
-    return elasticSearchClient.searchTestItemIdsByLogIdsAndRegexp(projectId, logIdsPg, pattern);
+    return testItemRepository.selectIdsByRegexLogMessage(itemIds, logLevel, pattern);
   }
 
   @Override

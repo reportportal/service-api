@@ -212,6 +212,7 @@ public class XunitImportHandlerTest {
     Attributes attributes = mock(Attributes.class);
     when(attributes.getValue(XunitReportTag.ATTR_NAME.getValue())).thenReturn(ATTR_NAME);
     when(attributes.getValue(XunitReportTag.START_TIME.getValue())).thenReturn(TIMESTAMP);
+    when(attributes.getValue(XunitReportTag.TIMESTAMP.getValue())).thenReturn(TIMESTAMP);
     when(attributes.getValue(XunitReportTag.ATTR_TIME.getValue())).thenReturn(DURATION);
 
     LocalDateTime startItemTime =

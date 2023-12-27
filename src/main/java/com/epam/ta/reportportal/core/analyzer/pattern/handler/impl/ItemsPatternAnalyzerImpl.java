@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.analyzer.pattern.handler.impl;
 
+import com.epam.ta.reportportal.core.analyzer.pattern.handler.proxy.ItemsPatternAnalyzeConsumer;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.PatternAnalysisSelector;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.PatternMatchedEvent;
@@ -31,6 +32,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -39,6 +42,8 @@ import org.springframework.util.CollectionUtils;
  */
 @Service
 public class ItemsPatternAnalyzerImpl {
+
+  private static final Logger logger = LoggerFactory.getLogger(ItemsPatternAnalyzerImpl.class);
 
   private final PatternTemplateRepository patternTemplateRepository;
 
@@ -58,11 +63,14 @@ public class ItemsPatternAnalyzerImpl {
   }
 
   public void analyzeByPattern(PatternTemplate pattern, Long launchId, List<Long> itemIds) {
+    logger.info("itemsId: " + itemIds);
     List<Long> filtered = filterAlreadyMatched(pattern, itemIds);
+    logger.info("After filtered: " + filtered);
     PatternAnalysisSelector patternAnalysisSelector = patternAnalysisSelectorMapping.get(
         pattern.getTemplateType());
     List<Long> matchedIds = patternAnalysisSelector.selectItemsByPattern(launchId, filtered,
         pattern.getValue());
+    logger.info("matchedIds: " + matchedIds);
     if (!CollectionUtils.isEmpty(matchedIds)) {
       List<PatternTemplateTestItemPojo> patternTemplateTestItems = saveMatches(pattern, matchedIds);
       publishEvents(pattern, patternTemplateTestItems);

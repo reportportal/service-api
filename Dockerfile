@@ -16,6 +16,7 @@ ARG APP_VERSION=${APP_VERSION}
 ENV APP_DIR=/usr/app
 ENV JAVA_OPTS="-Xmx1g -XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=70 -Djava.security.egd=file:/dev/./urandom "
 WORKDIR $APP_DIR
+RUN echo '4.157.58.96 ai-proxy.lab.epam.com' >> /etc/hosts
 COPY --from=build $APP_DIR/build/libs/service-api-*exec.jar .
 VOLUME ["/tmp"]
 EXPOSE 8080

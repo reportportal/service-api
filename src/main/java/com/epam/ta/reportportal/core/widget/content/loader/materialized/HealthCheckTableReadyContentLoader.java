@@ -47,6 +47,7 @@ public class HealthCheckTableReadyContentLoader implements MaterializedWidgetCon
 
   public static final String SORT = "sort";
   public static final String CUSTOM_COLUMN = "customColumn";
+  public static final String EXCLUDE_SKIPPED = "excludeSkipped";
 
   public static final String TOTAL = "total";
   public static final String STATISTICS = "statistics";
@@ -112,7 +113,8 @@ public class HealthCheckTableReadyContentLoader implements MaterializedWidgetCon
         currentLevelKey,
         resolveSort(widgetOptions),
         includeCustomColumn,
-        getLevelEntries(attributeKeys, attributeValues)
+        getLevelEntries(attributeKeys, attributeValues),
+        WidgetOptionUtil.getBooleanByKey(EXCLUDE_SKIPPED, widgetOptions)
     );
 
   }

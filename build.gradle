@@ -78,7 +78,7 @@ dependencies {
         implementation 'com.github.reportportal:commons-model:3251388'
         implementation 'com.github.reportportal:commons:07566b8e'
         implementation 'com.github.reportportal:commons-fonts:d6e62dd'
-        implementation 'com.github.reportportal:plugin-api:55bf2f26'
+        implementation 'com.github.reportportal:plugin-api:204bcef90c'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'

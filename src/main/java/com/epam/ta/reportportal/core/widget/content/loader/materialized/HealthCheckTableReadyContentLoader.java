@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.widget.content.loader.materialized;
 
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTES;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTE_KEYS;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.EXCLUDE_SKIPPED;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_PASSED;
@@ -47,8 +48,6 @@ public class HealthCheckTableReadyContentLoader implements MaterializedWidgetCon
 
   public static final String SORT = "sort";
   public static final String CUSTOM_COLUMN = "customColumn";
-  public static final String EXCLUDE_SKIPPED = "excludeSkipped";
-
   public static final String TOTAL = "total";
   public static final String STATISTICS = "statistics";
   public static final String PASSING_RATE = "passingRate";

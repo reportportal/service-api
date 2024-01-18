@@ -39,6 +39,8 @@ public final class ContentLoaderConstants {
   public static final String TIMELINE = "timeline";
   public static final String ATTRIBUTE_KEYS = "attributeKeys";
   public static final String MIN_PASSING_RATE = "minPassingRate";
+  public static final String EXCLUDE_SKIPPED = "excludeSkipped";
+
 
   private ContentLoaderConstants() {
     //static only

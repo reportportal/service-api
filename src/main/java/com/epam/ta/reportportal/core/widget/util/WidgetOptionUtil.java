@@ -75,6 +75,16 @@ public final class WidgetOptionUtil {
         .orElse(false);
   }
 
+  public static boolean isBooleanPresent(String key, WidgetOptions widgetOptions) {
+    return ofNullable(widgetOptions)
+        .map(wo -> MapUtils.isNotEmpty(wo.getOptions()) &&
+            ofNullable(wo.getOptions().get(key))
+                .map(String::valueOf)
+                .map(BooleanUtils::toBooleanObject)
+                .isPresent())
+        .orElse(false);
+  }
+
   public static Optional<Integer> getIntegerByKey(String key, WidgetOptions widgetOptions) {
     return ofNullable(widgetOptions).flatMap(
         wo -> ofNullable(wo.getOptions()).map(options -> options.get(key))).map(value -> {

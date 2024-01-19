@@ -74,7 +74,7 @@ dependencies {
     } else {
         implementation 'com.github.reportportal:commons-events:e337f8b7be'
         implementation 'com.github.reportportal:commons-dao:0a2a4276f9'
-        implementation 'com.github.reportportal:commons-rules:0a2a4276f9'
+        implementation 'com.github.reportportal:commons-rules:42d4dd5634'
         implementation 'com.github.reportportal:commons-model:3251388'
         implementation 'com.github.reportportal:commons:07566b8e'
         implementation 'com.github.reportportal:commons-fonts:d6e62dd'

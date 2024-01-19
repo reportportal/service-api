@@ -79,8 +79,10 @@ public class ComponentHealthCheckContentValidator implements MultilevelValidator
             "Minimum passing rate option was not specified"
         ));
 
-    BusinessRule.expect(WidgetOptionUtil.getMapByKey(EXCLUDE_SKIPPED, widgetOptions), Objects::nonNull)
-        .verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Exclude skipped tests option was not specified");
+    BusinessRule.expect(WidgetOptionUtil.isBooleanPresent(EXCLUDE_SKIPPED, widgetOptions),
+            isPresent -> isPresent)
+        .verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
+            "Exclude skipped tests option was not specified");
 
     BusinessRule.expect(passingRate, v -> v >= 0 && v <= 100)
         .verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,

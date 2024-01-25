@@ -107,7 +107,7 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 
     final LogFull logFull = logFullBuilder.get();
     final Log log = LOG_FULL_TO_LOG.apply(logFull);
-    CompletableFuture.supplyAsync(() -> logRepository.saveAndFlush(log))
+    CompletableFuture.supplyAsync(() -> logRepository.saveAndFlush(log), taskExecutor)
         .thenAcceptAsync(savedLog -> {
           logFull.setId(savedLog.getId());
           logService.saveLogMessage(logFull, launch.getId());

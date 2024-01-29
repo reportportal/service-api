@@ -37,26 +37,26 @@ import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ApiKeyRQ;
-import com.epam.ta.reportportal.ws.model.ApiKeyRS;
-import com.epam.ta.reportportal.ws.model.ApiKeysRS;
-import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
-import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
+import com.epam.ta.reportportal.model.ApiKeyRQ;
+import com.epam.ta.reportportal.model.ApiKeyRS;
+import com.epam.ta.reportportal.model.ApiKeysRS;
+import com.epam.ta.reportportal.model.DeleteBulkRQ;
+import com.epam.ta.reportportal.model.DeleteBulkRS;
+import com.epam.ta.reportportal.model.ModelViews;
+import com.epam.ta.reportportal.model.YesNoRS;
+import com.epam.ta.reportportal.model.user.ChangePasswordRQ;
+import com.epam.ta.reportportal.model.user.CreateUserBidRS;
+import com.epam.ta.reportportal.model.user.CreateUserRQ;
+import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
+import com.epam.ta.reportportal.model.user.CreateUserRQFull;
+import com.epam.ta.reportportal.model.user.CreateUserRS;
+import com.epam.ta.reportportal.model.user.EditUserRQ;
+import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
+import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
+import com.epam.ta.reportportal.model.user.UserBidRS;
+import com.epam.ta.reportportal.model.user.UserResource;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.ModelViews;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.YesNoRS;
-import com.epam.ta.reportportal.ws.model.user.ChangePasswordRQ;
-import com.epam.ta.reportportal.ws.model.user.CreateUserBidRS;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQ;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRS;
-import com.epam.ta.reportportal.ws.model.user.EditUserRQ;
-import com.epam.ta.reportportal.ws.model.user.ResetPasswordRQ;
-import com.epam.ta.reportportal.ws.model.user.RestorePasswordRQ;
-import com.epam.ta.reportportal.ws.model.user.UserBidRS;
-import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.resolver.ActiveRole;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.ResponseView;
@@ -190,7 +190,7 @@ public class UserController {
   }
 
   @Transactional(readOnly = true)
-  @GetMapping(value = {"", "/"})
+  @GetMapping(value = { "", "/" })
   @ApiOperation("Return information about current logged-in user")
   public UserResource getMyself(@AuthenticationPrincipal ReportPortalUser currentUser) {
     return getUserHandler.getUser(currentUser);

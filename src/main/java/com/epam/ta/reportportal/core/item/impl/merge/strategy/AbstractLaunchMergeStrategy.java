@@ -41,10 +41,10 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.collect.Sets;
@@ -69,9 +69,8 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
   private final TestItemUniqueIdGenerator identifierGenerator;
 
   protected AbstractLaunchMergeStrategy(LaunchRepository launchRepository,
-      TestItemRepository testItemRepository,
-      LogRepository logRepository, AttachmentRepository attachmentRepository,
-      TestItemUniqueIdGenerator identifierGenerator) {
+      TestItemRepository testItemRepository, LogRepository logRepository,
+      AttachmentRepository attachmentRepository, TestItemUniqueIdGenerator identifierGenerator) {
     this.launchRepository = launchRepository;
     this.testItemRepository = testItemRepository;
     this.logRepository = logRepository;
@@ -80,13 +79,13 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
   }
 
   protected Launch createNewLaunch(ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user, MergeLaunchesRQ rq,
-      List<Launch> launchesList) {
-    Launch newLaunch = createResultedLaunch(projectDetails.getProjectId(), user.getUserId(), rq,
-        launchesList);
+      ReportPortalUser user, MergeLaunchesRQ rq, List<Launch> launchesList) {
+    Launch newLaunch =
+        createResultedLaunch(projectDetails.getProjectId(), user.getUserId(), rq, launchesList);
     boolean isNameChanged = !newLaunch.getName().equals(launchesList.get(0).getName());
     updateChildrenOfLaunches(newLaunch, rq.getLaunches(), rq.isExtendSuitesDescription(),
-        isNameChanged);
+        isNameChanged
+    );
 
     return newLaunch;
   }
@@ -102,38 +101,28 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
    */
   private Launch createResultedLaunch(Long projectId, Long userId, MergeLaunchesRQ mergeLaunchesRQ,
       List<Launch> launches) {
-    Date startTime = ofNullable(mergeLaunchesRQ.getStartTime()).orElse(
-        EntityUtils.TO_DATE.apply(launches.stream()
-            .min(Comparator.comparing(Launch::getStartTime))
-            .orElseThrow(
+    Date startTime = ofNullable(mergeLaunchesRQ.getStartTime()).orElse(EntityUtils.TO_DATE.apply(
+        launches.stream().min(Comparator.comparing(Launch::getStartTime)).orElseThrow(
                 () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Invalid launches"))
             .getStartTime()));
-    Date endTime = ofNullable(mergeLaunchesRQ.getEndTime()).orElse(
-        EntityUtils.TO_DATE.apply(launches.stream()
-            .max(Comparator.comparing(Launch::getEndTime))
-            .orElseThrow(
+    Date endTime = ofNullable(mergeLaunchesRQ.getEndTime()).orElse(EntityUtils.TO_DATE.apply(
+        launches.stream().max(Comparator.comparing(Launch::getEndTime)).orElseThrow(
                 () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Invalid launches"))
             .getEndTime()));
     expect(endTime, time -> !time.before(startTime)).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
-        TO_LOCAL_DATE_TIME.apply(endTime),
-        startTime,
-        projectId
+        TO_LOCAL_DATE_TIME.apply(endTime), startTime, projectId
     );
 
     StartLaunchRQ startRQ = new StartLaunchRQ();
     startRQ.setMode(ofNullable(mergeLaunchesRQ.getMode()).orElse(Mode.DEFAULT));
-    startRQ.setDescription(ofNullable(mergeLaunchesRQ.getDescription()).orElse(launches.stream()
-        .map(Launch::getDescription)
-        .collect(joining("\n\n"))));
+    startRQ.setDescription(ofNullable(mergeLaunchesRQ.getDescription()).orElse(
+        launches.stream().map(Launch::getDescription).collect(joining("\n\n"))));
     startRQ.setName(ofNullable(mergeLaunchesRQ.getName()).orElse(
         "Merged: " + launches.stream().map(Launch::getName).distinct().collect(joining(", "))));
     startRQ.setStartTime(startTime);
-    Launch launch = new LaunchBuilder().addStartRQ(startRQ)
-        .addProject(projectId)
-        .addStatus(IN_PROGRESS.name())
-        .addUserId(userId)
-        .addEndTime(endTime)
-        .get();
+    Launch launch =
+        new LaunchBuilder().addStartRQ(startRQ).addProject(projectId).addStatus(IN_PROGRESS.name())
+            .addUserId(userId).addEndTime(endTime).get();
     launch.setHasRetries(launches.stream().anyMatch(Launch::isHasRetries));
 
     launchRepository.save(launch);
@@ -157,22 +146,17 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
     Set<ItemAttribute> mergedAttributes = Sets.newHashSet();
 
     if (attributesFromRq == null) {
-      mergedAttributes.addAll(launchesToMerge.stream()
-          .map(Launch::getAttributes)
-          .flatMap(Collection::stream)
-          .peek(it -> it.setLaunch(resultedLaunch))
-          .collect(Collectors.toSet()));
+      mergedAttributes.addAll(
+          launchesToMerge.stream().map(Launch::getAttributes).flatMap(Collection::stream)
+              .peek(it -> it.setLaunch(resultedLaunch)).collect(Collectors.toSet()));
     } else {
-      mergedAttributes.addAll(launchesToMerge.stream()
-          .map(Launch::getAttributes)
-          .flatMap(Collection::stream)
-          .filter(ItemAttribute::isSystem)
-          .peek(it -> it.setLaunch(resultedLaunch))
-          .collect(Collectors.toSet()));
-      mergedAttributes.addAll(attributesFromRq.stream()
-          .map(FROM_RESOURCE)
-          .peek(attr -> attr.setLaunch(resultedLaunch))
-          .collect(Collectors.toSet()));
+      mergedAttributes.addAll(
+          launchesToMerge.stream().map(Launch::getAttributes).flatMap(Collection::stream)
+              .filter(ItemAttribute::isSystem).peek(it -> it.setLaunch(resultedLaunch))
+              .collect(Collectors.toSet()));
+      mergedAttributes.addAll(
+          attributesFromRq.stream().map(FROM_RESOURCE).peek(attr -> attr.setLaunch(resultedLaunch))
+              .collect(Collectors.toSet()));
     }
     resultedLaunch.setAttributes(mergedAttributes);
   }
@@ -190,7 +174,8 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
     List<TestItem> testItems = launches.stream().peek(id -> {
       logRepository.updateLaunchIdByLaunchId(id, newLaunch.getId());
       attachmentRepository.updateLaunchIdByProjectIdAndLaunchId(newLaunch.getProjectId(), id,
-          newLaunch.getId());
+          newLaunch.getId()
+      );
     }).flatMap(id -> {
       Launch launch = launchRepository.findById(id)
           .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, id));
@@ -199,15 +184,16 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
         if (isNameChanged && identifierGenerator.validate(testItem.getUniqueId())) {
           testItem.setUniqueId(
               identifierGenerator.generate(testItem, IdentityUtil.getParentIds(testItem),
-                  newLaunch));
+                  newLaunch
+              ));
         }
         if (testItem.getType().sameLevel(TestItemTypeEnum.SUITE)) {
           // Add launch reference description for top level items
           Supplier<String> newDescription = Suppliers.formattedSupplier(
               ((null != testItem.getDescription()) ? testItem.getDescription() : "") + (
-                  extendDescription ?
-                      "\r\n@launch '{} #{}'" :
-                      ""), launch.getName(), launch.getNumber());
+                  extendDescription ? "\r\n@launch '{} #{}'" : ""), launch.getName(),
+              launch.getNumber()
+          );
           testItem.setDescription(newDescription.get());
         }
       });

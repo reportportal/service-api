@@ -20,8 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateType;
-import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
-import com.epam.ta.reportportal.ws.model.project.config.pattern.PatternTemplateResource;
+import com.epam.ta.reportportal.model.activity.PatternTemplateActivityResource;
+import com.epam.ta.reportportal.model.project.config.pattern.PatternTemplateResource;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -48,8 +48,8 @@ class PatternTemplateConverterTest {
 
     PatternTemplate patternTemplate = get();
 
-    PatternTemplateActivityResource resource = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(
-        patternTemplate);
+    PatternTemplateActivityResource resource =
+        PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate);
 
     assertEquals(patternTemplate.getId(), resource.getId());
     assertEquals(patternTemplate.getProjectId(), resource.getProjectId());

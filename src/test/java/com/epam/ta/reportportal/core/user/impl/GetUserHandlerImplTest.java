@@ -31,8 +31,8 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.YesNoRS;
-import com.epam.ta.reportportal.ws.model.user.UserBidRS;
+import com.epam.ta.reportportal.model.YesNoRS;
+import com.epam.ta.reportportal.model.user.UserBidRS;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,7 +59,8 @@ class GetUserHandlerImplTest {
   void getNotExistedUserByUsername() {
     when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
 
-    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+    final ReportPortalException exception = assertThrows(
+        ReportPortalException.class,
         () -> handler.getUser("not_exist", getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L))
     );
     assertEquals("User 'not_exist' not found.", exception.getMessage());
@@ -69,7 +70,8 @@ class GetUserHandlerImplTest {
   void getNotExistedUserByLoggedInUser() {
     when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
 
-    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+    final ReportPortalException exception = assertThrows(
+        ReportPortalException.class,
         () -> handler.getUser(getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L))
     );
     assertEquals("User 'not_exist' not found.", exception.getMessage());

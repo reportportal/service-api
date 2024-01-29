@@ -27,8 +27,8 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import java.util.Set;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +44,7 @@ public class LaunchPatternAnalysisStrategy extends AbstractLaunchAnalysisStrateg
 
   @Autowired
   public LaunchPatternAnalysisStrategy(ProjectRepository projectRepository,
-      LaunchRepository launchRepository,
-      LaunchPatternAnalyzer launchPatternAnalyzer) {
+      LaunchRepository launchRepository, LaunchPatternAnalyzer launchPatternAnalyzer) {
     super(projectRepository, launchRepository);
     this.launchPatternAnalyzer = launchPatternAnalyzer;
   }
@@ -53,13 +52,13 @@ public class LaunchPatternAnalysisStrategy extends AbstractLaunchAnalysisStrateg
   public void analyze(AnalyzeLaunchRQ analyzeRQ, ReportPortalUser.ProjectDetails projectDetails,
       ReportPortalUser user) {
 
-    Set<AnalyzeItemsMode> analyzeItemsModes = analyzeRQ.getAnalyzeItemsModes()
-        .stream()
-        .map(AnalyzeItemsMode::fromString)
-        .collect(toSet());
+    Set<AnalyzeItemsMode> analyzeItemsModes =
+        analyzeRQ.getAnalyzeItemsModes().stream().map(AnalyzeItemsMode::fromString)
+            .collect(toSet());
 
     expect(analyzeItemsModes, CollectionUtils::isNotEmpty).verify(ErrorType.PATTERN_ANALYSIS_ERROR,
-        "No analyze item mode specified.");
+        "No analyze item mode specified."
+    );
 
     Launch launch = launchRepository.findById(analyzeRQ.getLaunchId())
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, analyzeRQ.getLaunchId()));

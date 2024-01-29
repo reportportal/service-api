@@ -20,7 +20,7 @@ import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
+import com.epam.ta.reportportal.model.integration.IntegrationTypeResource;
 import java.util.function.Function;
 
 /**
@@ -28,17 +28,18 @@ import java.util.function.Function;
  */
 public final class IntegrationTypeConverter {
 
-  public static final Function<IntegrationType, IntegrationTypeResource> TO_RESOURCE = integrationType -> {
-    IntegrationTypeResource resource = new IntegrationTypeResource();
-    resource.setId(integrationType.getId());
-    resource.setName(integrationType.getName());
-    resource.setEnabled(integrationType.isEnabled());
-    resource.setCreationDate(EntityUtils.TO_DATE.apply(integrationType.getCreationDate()));
-    resource.setGroupType(integrationType.getIntegrationGroup().name());
-    ofNullable(integrationType.getDetails()).ifPresent(
-        it -> resource.setDetails(integrationType.getDetails().getDetails()));
-    return resource;
-  };
+  public static final Function<IntegrationType, IntegrationTypeResource> TO_RESOURCE =
+      integrationType -> {
+        IntegrationTypeResource resource = new IntegrationTypeResource();
+        resource.setId(integrationType.getId());
+        resource.setName(integrationType.getName());
+        resource.setEnabled(integrationType.isEnabled());
+        resource.setCreationDate(EntityUtils.TO_DATE.apply(integrationType.getCreationDate()));
+        resource.setGroupType(integrationType.getIntegrationGroup().name());
+        ofNullable(integrationType.getDetails()).ifPresent(
+            it -> resource.setDetails(integrationType.getDetails().getDetails()));
+        return resource;
+      };
 
   private IntegrationTypeConverter() {
     //static only

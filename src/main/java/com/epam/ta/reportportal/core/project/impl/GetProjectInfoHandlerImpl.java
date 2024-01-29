@@ -62,13 +62,13 @@ import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.project.email.ProjectInfoWidget;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.project.LaunchesPerUser;
+import com.epam.ta.reportportal.model.project.ProjectInfoResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectSettingsConverter;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
-import com.epam.ta.reportportal.ws.model.project.LaunchesPerUser;
-import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
 import com.google.common.collect.Lists;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
@@ -96,201 +96,196 @@ import org.springframework.stereotype.Service;
 @Service
 public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 
-	private static final Double WEEKS_IN_MONTH = 4.4;
-	private static final int LIMIT = 150;
-	private static final Predicate<ActivityAction> ACTIVITIES_PROJECT_FILTER = it -> it == UPDATE_DEFECT || it == DELETE_DEFECT
-			|| it == LINK_ISSUE || it == LINK_ISSUE_AA || it == UNLINK_ISSUE || it == UPDATE_ITEM;
-	private final ProjectRepository projectRepository;
+  private static final Double WEEKS_IN_MONTH = 4.4;
+  private static final int LIMIT = 150;
+  private static final Predicate<ActivityAction> ACTIVITIES_PROJECT_FILTER =
+      it -> it == UPDATE_DEFECT || it == DELETE_DEFECT || it == LINK_ISSUE || it == LINK_ISSUE_AA
+          || it == UNLINK_ISSUE || it == UPDATE_ITEM;
+  private final ProjectRepository projectRepository;
 
-	private final LaunchRepository launchRepository;
+  private final LaunchRepository launchRepository;
 
-	private final ActivityRepository activityRepository;
+  private final ActivityRepository activityRepository;
 
-	private final ProjectInfoWidgetDataConverter dataConverter;
+  private final ProjectInfoWidgetDataConverter dataConverter;
 
-	private final LaunchConverter launchConverter;
+  private final LaunchConverter launchConverter;
 
-	private final UserRepository userRepository;
+  private final UserRepository userRepository;
 
-	private final TicketRepository ticketRepository;
+  private final TicketRepository ticketRepository;
 
-	private final DecimalFormat formatter = new DecimalFormat("###.##");
+  private final DecimalFormat formatter = new DecimalFormat("###.##");
 
-	@Autowired
-	public GetProjectInfoHandlerImpl(ProjectRepository projectRepository, LaunchRepository launchRepository,
-			ActivityRepository activityRepository, ProjectInfoWidgetDataConverter dataConverter, LaunchConverter launchConverter,
-			UserRepository userRepository, TicketRepository ticketRepository) {
-		this.projectRepository = projectRepository;
-		this.launchRepository = launchRepository;
-		this.activityRepository = activityRepository;
-		this.dataConverter = dataConverter;
-		this.launchConverter = launchConverter;
-		this.userRepository = userRepository;
-		this.ticketRepository = ticketRepository;
-	}
+  @Autowired
+  public GetProjectInfoHandlerImpl(ProjectRepository projectRepository,
+      LaunchRepository launchRepository, ActivityRepository activityRepository,
+      ProjectInfoWidgetDataConverter dataConverter, LaunchConverter launchConverter,
+      UserRepository userRepository, TicketRepository ticketRepository) {
+    this.projectRepository = projectRepository;
+    this.launchRepository = launchRepository;
+    this.activityRepository = activityRepository;
+    this.dataConverter = dataConverter;
+    this.launchConverter = launchConverter;
+    this.userRepository = userRepository;
+    this.ticketRepository = ticketRepository;
+  }
 
-	/**
-	 * Utility method for calculation of start interval date
-	 *
-	 * @param interval Back interval
-	 * @return Now minus interval
-	 */
-	private static LocalDateTime getStartIntervalDate(InfoInterval interval) {
-		return LocalDateTime.now(Clock.systemUTC()).minusMonths(interval.getCount());
-	}
+  /**
+   * Utility method for calculation of start interval date
+   *
+   * @param interval Back interval
+   * @return Now minus interval
+   */
+  private static LocalDateTime getStartIntervalDate(InfoInterval interval) {
+    return LocalDateTime.now(Clock.systemUTC()).minusMonths(interval.getCount());
+  }
 
-	/**
-	 * Filter that gets project info from selected date.
-	 *
-	 * @param project      Project
-	 * @param infoInterval Date interval
-	 * @return {@link Filter}
-	 */
-	private static Filter projectInfoFilter(Project project, InfoInterval infoInterval) {
-		return Filter.builder()
-				.withTarget(ProjectInfo.class)
-				.withCondition(new FilterCondition(EQUALS, false, project.getName(), CRITERIA_PROJECT_NAME))
-				.withCondition(new FilterCondition(GREATER_THAN_OR_EQUALS,
-						false,
-						String.valueOf(getStartIntervalDate(infoInterval).toInstant(ZoneOffset.UTC).toEpochMilli()),
-						CRITERIA_PROJECT_CREATION_DATE
-				))
-				.build();
-	}
+  /**
+   * Filter that gets project info from selected date.
+   *
+   * @param project      Project
+   * @param infoInterval Date interval
+   * @return {@link Filter}
+   */
+  private static Filter projectInfoFilter(Project project, InfoInterval infoInterval) {
+    return Filter.builder().withTarget(ProjectInfo.class)
+        .withCondition(new FilterCondition(EQUALS, false, project.getName(), CRITERIA_PROJECT_NAME))
+        .withCondition(new FilterCondition(GREATER_THAN_OR_EQUALS, false, String.valueOf(
+            getStartIntervalDate(infoInterval).toInstant(ZoneOffset.UTC).toEpochMilli()),
+            CRITERIA_PROJECT_CREATION_DATE
+        )).build();
+  }
 
-	@Override
-	public Iterable<ProjectInfoResource> getAllProjectsInfo(Queryable filter, Pageable pageable) {
-		return PagedResourcesAssembler.pageConverter(ProjectSettingsConverter.TO_PROJECT_INFO_RESOURCE)
-				.apply(projectRepository.findProjectInfoByFilter(filter, pageable));
-	}
+  @Override
+  public Iterable<ProjectInfoResource> getAllProjectsInfo(Queryable filter, Pageable pageable) {
+    return PagedResourcesAssembler.pageConverter(ProjectSettingsConverter.TO_PROJECT_INFO_RESOURCE)
+        .apply(projectRepository.findProjectInfoByFilter(filter, pageable));
+  }
 
-	@Override
-	public ProjectInfoResource getProjectInfo(String projectName, String interval) {
+  @Override
+  public ProjectInfoResource getProjectInfo(String projectName, String interval) {
 
-		Project project = projectRepository.findByName(normalizeId(projectName))
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+    Project project = projectRepository.findByName(normalizeId(projectName))
+        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 
-		InfoInterval infoInterval = InfoInterval.findByInterval(interval)
-				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, interval));
+    InfoInterval infoInterval = InfoInterval.findByInterval(interval)
+        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, interval));
 
-		Filter filter = Filter.builder()
-				.withTarget(ProjectInfo.class)
-				.withCondition(FilterCondition.builder().eq(CRITERIA_PROJECT_NAME, project.getName()).build())
-				.build();
+    Filter filter = Filter.builder().withTarget(ProjectInfo.class).withCondition(
+        FilterCondition.builder().eq(CRITERIA_PROJECT_NAME, project.getName()).build()).build();
 
-		Page<ProjectInfo> result = projectRepository.findProjectInfoByFilter(filter, Pageable.unpaged());
-		ProjectInfoResource projectInfoResource = ProjectSettingsConverter.TO_PROJECT_INFO_RESOURCE.apply(result.get()
-				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName)));
+    Page<ProjectInfo> result =
+        projectRepository.findProjectInfoByFilter(filter, Pageable.unpaged());
+    ProjectInfoResource projectInfoResource =
+        ProjectSettingsConverter.TO_PROJECT_INFO_RESOURCE.apply(result.get().findFirst()
+            .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName)));
 
-		LocalDateTime startIntervalDate = getStartIntervalDate(infoInterval);
+    LocalDateTime startIntervalDate = getStartIntervalDate(infoInterval);
 
-		Map<String, Integer> countPerUser = launchRepository.countLaunchesGroupedByOwner(project.getId(),
-				LaunchModeEnum.DEFAULT.toString(),
-				startIntervalDate
-		);
+    Map<String, Integer> countPerUser =
+        launchRepository.countLaunchesGroupedByOwner(project.getId(),
+            LaunchModeEnum.DEFAULT.toString(), startIntervalDate
+        );
 
-		projectInfoResource.setUniqueTickets(ticketRepository.findUniqueCountByProjectBefore(project.getId(), startIntervalDate));
+    projectInfoResource.setUniqueTickets(
+        ticketRepository.findUniqueCountByProjectBefore(project.getId(), startIntervalDate));
 
-		projectInfoResource.setLaunchesPerUser(countPerUser.entrySet()
-				.stream()
-				.map(e -> new LaunchesPerUser(e.getKey(), e.getValue()))
-				.collect(Collectors.toList()));
+    projectInfoResource.setLaunchesPerUser(
+        countPerUser.entrySet().stream().map(e -> new LaunchesPerUser(e.getKey(), e.getValue()))
+            .collect(Collectors.toList()));
 
-		if (projectInfoResource.getLaunchesQuantity() != 0) {
-			formatter.setRoundingMode(RoundingMode.HALF_UP);
-			double value = projectInfoResource.getLaunchesQuantity() / (infoInterval.getCount() * WEEKS_IN_MONTH);
-			projectInfoResource.setLaunchesPerWeek(formatter.format(value));
-		} else {
-			projectInfoResource.setLaunchesPerWeek(formatter.format(0));
-		}
-		return projectInfoResource;
-	}
+    if (projectInfoResource.getLaunchesQuantity() != 0) {
+      formatter.setRoundingMode(RoundingMode.HALF_UP);
+      double value =
+          projectInfoResource.getLaunchesQuantity() / (infoInterval.getCount() * WEEKS_IN_MONTH);
+      projectInfoResource.setLaunchesPerWeek(formatter.format(value));
+    } else {
+      projectInfoResource.setLaunchesPerWeek(formatter.format(0));
+    }
+    return projectInfoResource;
+  }
 
-	@Override
-	public Map<String, ?> getProjectInfoWidgetContent(String projectName, String interval, String widgetCode) {
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+  @Override
+  public Map<String, ?> getProjectInfoWidgetContent(String projectName, String interval,
+      String widgetCode) {
+    Project project = projectRepository.findByName(projectName)
+        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 
-		InfoInterval infoInterval = InfoInterval.findByInterval(interval)
-				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, interval));
+    InfoInterval infoInterval = InfoInterval.findByInterval(interval)
+        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, interval));
 
-		ProjectInfoWidget widgetType = ProjectInfoWidget.findByCode(widgetCode)
-				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, widgetCode));
+    ProjectInfoWidget widgetType = ProjectInfoWidget.findByCode(widgetCode)
+        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, widgetCode));
 
-		List<Launch> launches = launchRepository.findByProjectIdAndStartTimeGreaterThanAndMode(project.getId(),
-				getStartIntervalDate(infoInterval),
-				LaunchModeEnum.DEFAULT
-		);
+    List<Launch> launches =
+        launchRepository.findByProjectIdAndStartTimeGreaterThanAndMode(project.getId(),
+            getStartIntervalDate(infoInterval), LaunchModeEnum.DEFAULT
+        );
 
-		Map<String, ?> result;
+    Map<String, ?> result;
 
-		switch (widgetType) {
-			case INVESTIGATED:
-				result = dataConverter.getInvestigatedProjectInfo(launches, infoInterval);
-				break;
-			case CASES_STATISTIC:
-				result = dataConverter.getTestCasesStatisticsProjectInfo(launches);
-				break;
-			case LAUNCHES_QUANTITY:
-				result = dataConverter.getLaunchesQuantity(launches, infoInterval);
-				break;
-			case ISSUES_CHART:
-				result = dataConverter.getLaunchesIssues(launches, infoInterval);
-				break;
-			case ACTIVITIES:
-				result = getActivities(project, infoInterval);
-				break;
-			case LAST_LAUNCH:
-				result = getLastLaunchStatistics(project.getId());
-				break;
-			default:
-				// empty result
-				result = Collections.emptyMap();
-		}
+    switch (widgetType) {
+      case INVESTIGATED:
+        result = dataConverter.getInvestigatedProjectInfo(launches, infoInterval);
+        break;
+      case CASES_STATISTIC:
+        result = dataConverter.getTestCasesStatisticsProjectInfo(launches);
+        break;
+      case LAUNCHES_QUANTITY:
+        result = dataConverter.getLaunchesQuantity(launches, infoInterval);
+        break;
+      case ISSUES_CHART:
+        result = dataConverter.getLaunchesIssues(launches, infoInterval);
+        break;
+      case ACTIVITIES:
+        result = getActivities(project, infoInterval);
+        break;
+      case LAST_LAUNCH:
+        result = getLastLaunchStatistics(project.getId());
+        break;
+      default:
+        // empty result
+        result = Collections.emptyMap();
+    }
 
-		return result;
-	}
+    return result;
+  }
 
-	private Map<String, ?> getLastLaunchStatistics(Long projectId) {
-		Optional<Launch> launchOptional = launchRepository.findLastRun(projectId, Mode.DEFAULT.name());
-		return launchOptional.isPresent() ?
-				Collections.singletonMap(RESULT, launchConverter.TO_RESOURCE.apply(launchOptional.get())) :
-				Collections.emptyMap();
-	}
+  private Map<String, ?> getLastLaunchStatistics(Long projectId) {
+    Optional<Launch> launchOptional = launchRepository.findLastRun(projectId, Mode.DEFAULT.name());
+    return launchOptional.isPresent() ?
+        Collections.singletonMap(RESULT, launchConverter.TO_RESOURCE.apply(launchOptional.get())) :
+        Collections.emptyMap();
+  }
 
-	private Map<String, List<ActivityResource>> getActivities(Project project,
-			InfoInterval infoInterval) {
-		String value = Arrays.stream(ActivityAction.values())
-				.filter(not(ACTIVITIES_PROJECT_FILTER))
-				.map(ActivityAction::getValue)
-				.collect(joining(","));
-		Filter filter = new Filter(Activity.class,
-				Lists.newArrayList(new FilterCondition(IN, false, value, CRITERIA_EVENT_NAME),
-						new FilterCondition(EQUALS, false, String.valueOf(project.getId()),
-								CRITERIA_PROJECT_ID),
-						new FilterCondition(GREATER_THAN_OR_EQUALS,
-								false,
-								String.valueOf(Timestamp.valueOf(getStartIntervalDate(infoInterval)).getTime()),
-								CRITERIA_CREATED_AT
-						)
-				));
-		List<Activity> activities = activityRepository.findByFilter(filter,
-				PageRequest.of(0, LIMIT, Sort.by(Sort.Direction.DESC, CRITERIA_CREATED_AT))
-		).getContent();
+  private Map<String, List<ActivityResource>> getActivities(Project project,
+      InfoInterval infoInterval) {
+    String value = Arrays.stream(ActivityAction.values()).filter(not(ACTIVITIES_PROJECT_FILTER))
+        .map(ActivityAction::getValue).collect(joining(","));
+    Filter filter = new Filter(Activity.class,
+        Lists.newArrayList(new FilterCondition(IN, false, value, CRITERIA_EVENT_NAME),
+            new FilterCondition(EQUALS, false, String.valueOf(project.getId()),
+                CRITERIA_PROJECT_ID
+            ), new FilterCondition(GREATER_THAN_OR_EQUALS, false,
+                String.valueOf(Timestamp.valueOf(getStartIntervalDate(infoInterval)).getTime()),
+                CRITERIA_CREATED_AT
+            )
+        )
+    );
+    List<Activity> activities = activityRepository.findByFilter(filter,
+        PageRequest.of(0, LIMIT, Sort.by(Sort.Direction.DESC, CRITERIA_CREATED_AT))
+    ).getContent();
 
-		Map<Long, String> userIdLoginMapping = userRepository.findAllById(activities.stream()
-				.filter(a -> a.getSubjectId() != null && a.getSubjectType() == EventSubject.USER)
-				.map(Activity::getSubjectId)
-				.collect(Collectors.toSet())).stream().collect(toMap(User::getId, User::getLogin));
+    Map<Long, String> userIdLoginMapping = userRepository.findAllById(activities.stream()
+            .filter(a -> a.getSubjectId() != null && a.getSubjectType() == EventSubject.USER)
+            .map(Activity::getSubjectId).collect(Collectors.toSet())).stream()
+        .collect(toMap(User::getId, User::getLogin));
 
-		return Collections.singletonMap(RESULT,
-				activities.stream()
-						.map(a -> ofNullable(a.getSubjectId()).map(
-										userId -> TO_RESOURCE_WITH_USER.apply(a, userIdLoginMapping.get(userId)))
-								.orElseGet(() -> TO_RESOURCE.apply(a)))
-						.peek(resource -> resource.setProjectName(project.getName()))
-						.collect(toList())
-		);
-	}
+    return Collections.singletonMap(RESULT, activities.stream().map(
+            a -> ofNullable(a.getSubjectId()).map(
+                    userId -> TO_RESOURCE_WITH_USER.apply(a, userIdLoginMapping.get(userId)))
+                .orElseGet(() -> TO_RESOURCE.apply(a)))
+        .peek(resource -> resource.setProjectName(project.getName())).collect(toList()));
+  }
 }

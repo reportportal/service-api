@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
 import com.epam.ta.reportportal.entity.enums.LogicalOperator;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
-import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
+import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -60,8 +60,8 @@ class GetProjectNotificationsHandlerImplTest {
     when(senderCaseRepository.findAllByProjectId(DEFAULT_PROJECT_ID)).thenReturn(
         List.of(senderCase1, senderCase2));
 
-    List<SenderCaseDTO> result = getProjectNotificationsHandler.getProjectNotifications(
-        DEFAULT_PROJECT_ID);
+    List<SenderCaseDTO> result =
+        getProjectNotificationsHandler.getProjectNotifications(DEFAULT_PROJECT_ID);
     assertEquals(2, result.size());
   }
 }

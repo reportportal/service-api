@@ -46,10 +46,10 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.collections.CollectionUtils;
@@ -80,9 +80,8 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
 
   @Autowired
   public MergeLaunchHandlerImpl(LaunchRepository launchRepository,
-      TestItemRepository testItemRepository,
-      ProjectRepository projectRepository, LaunchMergeFactory launchMergeFactory,
-      LaunchConverter launchConverter,
+      TestItemRepository testItemRepository, ProjectRepository projectRepository,
+      LaunchMergeFactory launchMergeFactory, LaunchConverter launchConverter,
       LaunchPreparerService launchPreparerService, LogIndexer logIndexer) {
     this.launchRepository = launchRepository;
     this.testItemRepository = testItemRepository;
@@ -96,16 +95,13 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
   @Override
   public LaunchResource mergeLaunches(ReportPortalUser.ProjectDetails projectDetails,
       ReportPortalUser user, MergeLaunchesRQ rq) {
-    Project project = projectRepository.findById(projectDetails.getProjectId())
-        .orElseThrow(
-            () -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectName()));
+    Project project = projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
+        () -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectName()));
 
     Set<Long> launchesIds = rq.getLaunches();
 
     expect(CollectionUtils.isNotEmpty(launchesIds), equalTo(true)).verify(
-        ErrorType.BAD_REQUEST_ERROR,
-        "At least one launch id should be  specified for merging"
-    );
+        ErrorType.BAD_REQUEST_ERROR, "At least one launch id should be  specified for merging");
 
     expect(launchesIds.size() > 0, equalTo(true)).verify(ErrorType.BAD_REQUEST_ERROR,
         "At least 1 launch id should be provided for merging"
@@ -147,9 +143,9 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
      * ADMINISTRATOR and PROJECT_MANAGER+ users have permission to merge not-only-own
      * launches
      */
-    boolean isUserValidate = !(user.getUserRole().equals(ADMINISTRATOR)
-        || projectDetails.getProjectRole()
-        .sameOrHigherThan(ProjectRole.PROJECT_MANAGER));
+    boolean isUserValidate =
+        !(user.getUserRole().equals(ADMINISTRATOR) || projectDetails.getProjectRole()
+            .sameOrHigherThan(ProjectRole.PROJECT_MANAGER));
 
     launches.forEach(launch -> {
       expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launch);
@@ -157,16 +153,16 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
       expect(launch.getStatus(), not(Preconditions.statusIn(IN_PROGRESS))).verify(
           LAUNCH_IS_NOT_FINISHED,
           Suppliers.formattedSupplier("Cannot merge launch '{}' with status '{}'", launch.getId(),
-              launch.getStatus())
+              launch.getStatus()
+          )
       );
 
       expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
-          FORBIDDEN_OPERATION,
-          "Impossible to merge launches from different projects."
-      );
+          FORBIDDEN_OPERATION, "Impossible to merge launches from different projects.");
 
       if (isUserValidate) {
-        expect(launch.getUserId(), equalTo(user.getUserId())).verify(ACCESS_DENIED,
+        expect(launch.getUserId(), equalTo(user.getUserId())).verify(
+            ACCESS_DENIED,
             "You are not an owner of launches or have less than PROJECT_MANAGER project role."
         );
       }

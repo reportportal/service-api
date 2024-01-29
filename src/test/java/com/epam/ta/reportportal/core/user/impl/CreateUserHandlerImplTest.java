@@ -31,7 +31,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.events.activity.ChangeUserTypeEvent;
 import com.epam.ta.reportportal.core.events.activity.CreateInvitationLinkEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
@@ -45,10 +44,10 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.user.CreateUserRQ;
+import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
+import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQ;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -89,8 +88,8 @@ class CreateUserHandlerImplTest {
   @Test
   void createByNotExistedAdmin() {
 
-    final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR,
-        ProjectRole.PROJECT_MANAGER, 1L);
+    final ReportPortalUser rpUser =
+        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
     when(userRepository.findRawById(rpUser.getUserId())).thenReturn(Optional.empty());
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -101,8 +100,8 @@ class CreateUserHandlerImplTest {
 
   @Test
   void createByNotAdmin() {
-    final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR,
-        ProjectRole.PROJECT_MANAGER, 1L);
+    final ReportPortalUser rpUser =
+        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
     User user = new User();
     user.setRole(UserRole.USER);
     when(userRepository.findRawById(1L)).thenReturn(Optional.of(user));
@@ -118,8 +117,8 @@ class CreateUserHandlerImplTest {
 
   @Test
   void createByAdminUserAlreadyExists() {
-    final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR,
-        ProjectRole.PROJECT_MANAGER, 1L);
+    final ReportPortalUser rpUser =
+        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
     User creator = new User();
     creator.setRole(UserRole.ADMINISTRATOR);
 
@@ -132,13 +131,14 @@ class CreateUserHandlerImplTest {
         () -> handler.createUserByAdmin(request, rpUser, "url")
     );
     assertEquals("User with 'login='new_user'' already exists. You couldn't create the duplicate.",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
   void createByAdminWithIncorrectName() {
-    final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR,
-        ProjectRole.PROJECT_MANAGER, 1L);
+    final ReportPortalUser rpUser =
+        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
     User creator = new User();
     creator.setRole(UserRole.ADMINISTRATOR);
     doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
@@ -150,13 +150,14 @@ class CreateUserHandlerImplTest {
         () -> handler.createUserByAdmin(request, rpUser, "url")
     );
     assertEquals("Incorrect Request. Username '#$$/' consists only of special characters",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
   void createByAdminWithIncorrectEmail() {
-    final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR,
-        ProjectRole.PROJECT_MANAGER, 1L);
+    final ReportPortalUser rpUser =
+        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
     User creator = new User();
     creator.setRole(UserRole.ADMINISTRATOR);
     doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
@@ -170,13 +171,14 @@ class CreateUserHandlerImplTest {
     );
     assertEquals(
         "Error in handled Request. Please, check specified parameters: 'email='incorrect@email''",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
   void createByAdminWithExistedEmail() {
-    final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR,
-        ProjectRole.PROJECT_MANAGER, 1L);
+    final ReportPortalUser rpUser =
+        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
     User creator = new User();
     creator.setRole(UserRole.ADMINISTRATOR);
     doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
@@ -191,13 +193,14 @@ class CreateUserHandlerImplTest {
     );
     assertEquals(
         "User with 'email='correct@domain.com'' already exists. You couldn't create the duplicate.",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
   void createByAdminWithExistedEmailUppercase() {
-    final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR,
-        ProjectRole.PROJECT_MANAGER, 1L);
+    final ReportPortalUser rpUser =
+        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
     User creator = new User();
     creator.setRole(UserRole.ADMINISTRATOR);
     doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
@@ -212,13 +215,14 @@ class CreateUserHandlerImplTest {
     );
     assertEquals(
         "User with 'email='CORRECT@domain.com'' already exists. You couldn't create the duplicate.",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
   void createUserBid() {
-    final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.MEMBER,
-        1L);
+    final ReportPortalUser rpUser =
+        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.MEMBER, 1L);
     final String projectName = "test_project";
     final String email = "email@mail.com";
     final String role = ProjectRole.MEMBER.name();
@@ -242,8 +246,8 @@ class CreateUserHandlerImplTest {
 
     handler.createUserBid(request, rpUser, "emailUrl");
 
-    final ArgumentCaptor<UserCreationBid> bidCaptor = ArgumentCaptor.forClass(
-        UserCreationBid.class);
+    final ArgumentCaptor<UserCreationBid> bidCaptor =
+        ArgumentCaptor.forClass(UserCreationBid.class);
     verify(userCreationBidRepository, times(1)).save(bidCaptor.capture());
 
     final UserCreationBid bid = bidCaptor.getValue();
@@ -270,7 +274,8 @@ class CreateUserHandlerImplTest {
         () -> handler.createUserBid(request, rpUser, "emailUrl")
     );
     assertEquals("Project 'not_exists' not found. Did you use correct project name?",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
@@ -283,7 +288,8 @@ class CreateUserHandlerImplTest {
     );
     assertEquals(
         "Incorrect Request. Impossible to register user. UUID expired or already registered.",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
@@ -296,10 +302,11 @@ class CreateUserHandlerImplTest {
 
     final CreateUserRQConfirm request = new CreateUserRQConfirm();
     request.setLogin("test");
-    final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.createUser(request, "uuid"));
+    final ReportPortalException exception =
+        assertThrows(ReportPortalException.class, () -> handler.createUser(request, "uuid"));
     assertEquals("User with 'login='test'' already exists. You couldn't create the duplicate.",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
@@ -312,10 +319,11 @@ class CreateUserHandlerImplTest {
 
     final CreateUserRQConfirm request = new CreateUserRQConfirm();
     request.setLogin("##$%/");
-    final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.createUser(request, "uuid"));
+    final ReportPortalException exception =
+        assertThrows(ReportPortalException.class, () -> handler.createUser(request, "uuid"));
     assertEquals("Incorrect Request. Username '##$%/' consists only of special characters",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
@@ -329,11 +337,12 @@ class CreateUserHandlerImplTest {
     final CreateUserRQConfirm request = new CreateUserRQConfirm();
     request.setLogin("test");
     request.setEmail("incorrect@domain");
-    final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.createUser(request, "uuid"));
+    final ReportPortalException exception =
+        assertThrows(ReportPortalException.class, () -> handler.createUser(request, "uuid"));
     assertEquals(
         "Error in handled Request. Please, check specified parameters: 'email='incorrect@domain''",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
@@ -348,10 +357,11 @@ class CreateUserHandlerImplTest {
     final CreateUserRQConfirm request = new CreateUserRQConfirm();
     request.setLogin("test");
     request.setEmail("email@domain.com");
-    final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.createUser(request, "uuid"));
+    final ReportPortalException exception =
+        assertThrows(ReportPortalException.class, () -> handler.createUser(request, "uuid"));
     assertEquals(
         "User with 'email='email@domain.com'' already exists. You couldn't create the duplicate.",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 }

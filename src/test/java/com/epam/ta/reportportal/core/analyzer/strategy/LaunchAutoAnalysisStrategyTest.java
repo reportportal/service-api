@@ -33,7 +33,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
+import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.Optional;
@@ -52,13 +52,10 @@ class LaunchAutoAnalysisStrategyTest {
 
   private final ProjectRepository projectRepository = mock(ProjectRepository.class);
   private final LaunchRepository launchRepository = mock(LaunchRepository.class);
-  private final LaunchAutoAnalysisStarter autoAnalysisStarter = mock(
-      LaunchAutoAnalysisStarter.class);
-  private final LaunchAutoAnalysisStrategy launchAutoAnalysisStrategy = new LaunchAutoAnalysisStrategy(
-      projectRepository,
-      launchRepository,
-      autoAnalysisStarter
-  );
+  private final LaunchAutoAnalysisStarter autoAnalysisStarter =
+      mock(LaunchAutoAnalysisStarter.class);
+  private final LaunchAutoAnalysisStrategy launchAutoAnalysisStrategy =
+      new LaunchAutoAnalysisStrategy(projectRepository, launchRepository, autoAnalysisStarter);
 
   @Test
   void analyzeTest() {
@@ -73,8 +70,8 @@ class LaunchAutoAnalysisStrategyTest {
     when(project.getProjectAttributes()).thenReturn(Sets.newHashSet());
     ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
 
-    ReportPortalUser.ProjectDetails projectDetails = new ReportPortalUser.ProjectDetails(1L, "name",
-        ProjectRole.PROJECT_MANAGER);
+    ReportPortalUser.ProjectDetails projectDetails =
+        new ReportPortalUser.ProjectDetails(1L, "name", ProjectRole.PROJECT_MANAGER);
     AnalyzeLaunchRQ analyzeLaunchRQ = new AnalyzeLaunchRQ();
     analyzeLaunchRQ.setLaunchId(1L);
     analyzeLaunchRQ.setAnalyzerHistoryMode("ALL");
@@ -82,8 +79,8 @@ class LaunchAutoAnalysisStrategyTest {
     analyzeLaunchRQ.setAnalyzerTypeName("patternAnalyzer");
     launchAutoAnalysisStrategy.analyze(analyzeLaunchRQ, projectDetails, user);
 
-    final ArgumentCaptor<StartLaunchAutoAnalysisConfig> configArgumentCaptor = ArgumentCaptor.forClass(
-        StartLaunchAutoAnalysisConfig.class);
+    final ArgumentCaptor<StartLaunchAutoAnalysisConfig> configArgumentCaptor =
+        ArgumentCaptor.forClass(StartLaunchAutoAnalysisConfig.class);
     verify(autoAnalysisStarter, times(1)).start(configArgumentCaptor.capture());
 
     final StartLaunchAutoAnalysisConfig config = configArgumentCaptor.getValue();

@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQ;
+import com.epam.ta.reportportal.model.user.CreateUserRQ;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;

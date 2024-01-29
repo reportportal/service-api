@@ -16,26 +16,25 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import static com.epam.ta.reportportal.ws.converter.converters.ProjectSettingsConverter.TO_SUBTYPE_RESOURCE;
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.core.analyzer.auto.indexer.IndexerStatusCache;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
-import com.epam.ta.reportportal.ws.model.project.ProjectResource;
-import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeResource;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
-import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
+import com.epam.ta.reportportal.model.project.ProjectConfiguration;
+import com.epam.ta.reportportal.model.project.ProjectResource;
+import com.epam.ta.reportportal.model.project.config.IssueSubTypeResource;
+import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.ws.converter.converters.ProjectSettingsConverter.TO_SUBTYPE_RESOURCE;
-import static java.util.Optional.ofNullable;
+import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Pavel Bortnik
@@ -43,69 +42,68 @@ import static java.util.Optional.ofNullable;
 @Service
 public final class ProjectConverter {
 
-	private final static String INDEXING_RUN = "analyzer.indexingRunning";
+  private final static String INDEXING_RUN = "analyzer.indexingRunning";
 
-	@Autowired
-	private IndexerStatusCache indexerStatusCache;
+  @Autowired
+  private IndexerStatusCache indexerStatusCache;
 
-	public Function<Project, ProjectResource> TO_PROJECT_RESOURCE = project -> {
-		if (project == null) {
-			return null;
-		}
+  public Function<Project, ProjectResource> TO_PROJECT_RESOURCE = project -> {
+    if (project == null) {
+      return null;
+    }
 
-		ProjectResource projectResource = new ProjectResource();
-		projectResource.setProjectId(project.getId());
-		projectResource.setProjectName(project.getName());
-		projectResource.setEntryType(project.getProjectType().name());
-		projectResource.setCreationDate(project.getCreationDate());
-		projectResource.setAllocatedStorage(project.getAllocatedStorage());
-		projectResource.setUsers(project.getUsers().stream().map(user -> {
-			ProjectResource.ProjectUser projectUser = new ProjectResource.ProjectUser();
-			projectUser.setLogin(user.getUser().getLogin());
-			projectUser.setProjectRole(user.getProjectRole().toString());
-			return projectUser;
-		}).collect(Collectors.toList()));
+    ProjectResource projectResource = new ProjectResource();
+    projectResource.setProjectId(project.getId());
+    projectResource.setProjectName(project.getName());
+    projectResource.setEntryType(project.getProjectType().name());
+    projectResource.setCreationDate(project.getCreationDate());
+    projectResource.setAllocatedStorage(project.getAllocatedStorage());
+    projectResource.setUsers(project.getUsers().stream().map(user -> {
+      ProjectResource.ProjectUser projectUser = new ProjectResource.ProjectUser();
+      projectUser.setLogin(user.getUser().getLogin());
+      projectUser.setProjectRole(user.getProjectRole().toString());
+      return projectUser;
+    }).collect(Collectors.toList()));
 
-		Map<String, List<IssueSubTypeResource>> subTypes = project.getProjectIssueTypes()
-				.stream()
-				.map(ProjectIssueType::getIssueType)
-				.collect(Collectors.groupingBy(
-						it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
-						Collectors.mapping(TO_SUBTYPE_RESOURCE, Collectors.toList())
-				));
+    Map<String, List<IssueSubTypeResource>> subTypes =
+        project.getProjectIssueTypes().stream().map(ProjectIssueType::getIssueType)
+            .collect(Collectors.groupingBy(
+                it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
+                Collectors.mapping(TO_SUBTYPE_RESOURCE, Collectors.toList())
+            ));
 
-		ProjectConfiguration projectConfiguration = new ProjectConfiguration();
+    ProjectConfiguration projectConfiguration = new ProjectConfiguration();
 
-		Map<String, String> attributes = ProjectUtils.getConfigParameters(project.getProjectAttributes());
+    Map<String, String> attributes =
+        ProjectUtils.getConfigParameters(project.getProjectAttributes());
 
-		attributes.put(
-				INDEXING_RUN,
-				String.valueOf(ofNullable(indexerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false))
-		);
+    attributes.put(
+        INDEXING_RUN, String.valueOf(
+            ofNullable(indexerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(
+                false)));
 
-		projectConfiguration.setProjectAttributes(attributes);
+    projectConfiguration.setProjectAttributes(attributes);
 
-		projectConfiguration.setPatterns(project.getPatternTemplates()
-				.stream()
-				.map(PatternTemplateConverter.TO_RESOURCE)
-				.collect(Collectors.toList()));
+    projectConfiguration.setPatterns(
+        project.getPatternTemplates().stream().map(PatternTemplateConverter.TO_RESOURCE)
+            .collect(Collectors.toList()));
 
-		projectResource.setIntegrations(project.getIntegrations()
-				.stream()
-				.map(IntegrationConverter.TO_INTEGRATION_RESOURCE)
-				.collect(Collectors.toList()));
+    projectResource.setIntegrations(
+        project.getIntegrations().stream().map(IntegrationConverter.TO_INTEGRATION_RESOURCE)
+            .collect(Collectors.toList()));
 
-		ProjectNotificationConfigDTO notificationConfig = new ProjectNotificationConfigDTO();
-		notificationConfig.setEnabled(BooleanUtils.toBoolean(attributes.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute())));
+    ProjectNotificationConfigDTO notificationConfig = new ProjectNotificationConfigDTO();
+    notificationConfig.setEnabled(BooleanUtils.toBoolean(
+        attributes.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute())));
 
-		ofNullable(project.getSenderCases()).ifPresent(senderCases -> notificationConfig.setSenderCases(NotificationConfigConverter.TO_RESOURCE
-				.apply(senderCases)));
-		projectConfiguration.setProjectConfig(notificationConfig);
+    ofNullable(project.getSenderCases()).ifPresent(senderCases -> notificationConfig.setSenderCases(
+        NotificationConfigConverter.TO_RESOURCE.apply(senderCases)));
+    projectConfiguration.setProjectConfig(notificationConfig);
 
-		projectConfiguration.setSubTypes(subTypes);
+    projectConfiguration.setSubTypes(subTypes);
 
-		projectResource.setConfiguration(projectConfiguration);
-		return projectResource;
-	};
+    projectResource.setConfiguration(projectConfiguration);
+    return projectResource;
+  };
 
 }

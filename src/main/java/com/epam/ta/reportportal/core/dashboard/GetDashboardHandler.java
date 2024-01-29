@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.dashboard;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
+import com.epam.ta.reportportal.model.dashboard.DashboardResource;
 import org.springframework.data.domain.Pageable;
 
 /**

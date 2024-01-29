@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.pattern.service;
 
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
-import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
+import com.epam.ta.reportportal.model.project.config.pattern.CreatePatternTemplateRQ;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>

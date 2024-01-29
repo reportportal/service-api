@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.entity.filter.FilterSort;
@@ -23,97 +26,91 @@ import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.filter.Order;
+import com.epam.ta.reportportal.model.filter.UpdateUserFilterRQ;
+import com.epam.ta.reportportal.model.filter.UserFilterCondition;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.filter.Order;
-import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
-import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
-import org.springframework.data.domain.Sort;
-
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
-
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
+import org.springframework.data.domain.Sort;
 
 /**
  * @author Pavel Bortnik
  */
 public class UserFilterBuilder implements Supplier<UserFilter> {
 
-	private UserFilter userFilter;
+  private UserFilter userFilter;
 
-	public UserFilterBuilder() {
-		userFilter = new UserFilter();
-	}
+  public UserFilterBuilder() {
+    userFilter = new UserFilter();
+  }
 
-	public UserFilterBuilder(UserFilter userFilter) {
-		this.userFilter = userFilter;
-	}
+  public UserFilterBuilder(UserFilter userFilter) {
+    this.userFilter = userFilter;
+  }
 
-	public UserFilterBuilder addFilterRq(UpdateUserFilterRQ rq) {
-		userFilter.setDescription(rq.getDescription());
-		ofNullable(rq.getName()).ifPresent(it -> userFilter.setName(it));
-		ofNullable(rq.getObjectType()).ifPresent(it -> userFilter.setTargetClass(ObjectType.getObjectTypeByName(rq.getObjectType())));
-		addFilterConditions(rq.getConditions());
-		addSelectionParameters(rq.getOrders());
-		return this;
-	}
+  public UserFilterBuilder addFilterRq(UpdateUserFilterRQ rq) {
+    userFilter.setDescription(rq.getDescription());
+    ofNullable(rq.getName()).ifPresent(it -> userFilter.setName(it));
+    ofNullable(rq.getObjectType()).ifPresent(
+        it -> userFilter.setTargetClass(ObjectType.getObjectTypeByName(rq.getObjectType())));
+    addFilterConditions(rq.getConditions());
+    addSelectionParameters(rq.getOrders());
+    return this;
+  }
 
-	/**
-	 * Convert provided conditions into db and add them to filter object
-	 *
-	 * @param conditions Conditions from rq
-	 * @return UserFilterBuilder
-	 */
-	public UserFilterBuilder addFilterConditions(Set<UserFilterCondition> conditions) {
-		userFilter.getFilterCondition().clear();
-		ofNullable(conditions).ifPresent(c -> userFilter.getFilterCondition()
-				.addAll(c.stream()
-						.map(entity -> FilterCondition.builder()
-								.withSearchCriteria(entity.getFilteringField())
-								.withValue(entity.getValue())
-								.withNegative(Condition.isNegative(entity.getCondition()))
-								.withCondition(Condition.findByMarker(entity.getCondition())
-										.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, entity.getCondition())))
-								.build())
-						.collect(toList())));
+  /**
+   * Convert provided conditions into db and add them to filter object
+   *
+   * @param conditions Conditions from rq
+   * @return UserFilterBuilder
+   */
+  public UserFilterBuilder addFilterConditions(Set<UserFilterCondition> conditions) {
+    userFilter.getFilterCondition().clear();
+    ofNullable(conditions).ifPresent(c -> userFilter.getFilterCondition().addAll(c.stream().map(
+        entity -> FilterCondition.builder().withSearchCriteria(entity.getFilteringField())
+            .withValue(entity.getValue()).withNegative(Condition.isNegative(entity.getCondition()))
+            .withCondition(Condition.findByMarker(entity.getCondition()).orElseThrow(
+                () -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+                    entity.getCondition()
+                ))).build()).collect(toList())));
 
-		return this;
-	}
+    return this;
+  }
 
-	/**
-	 * Convert provided selection into db and add them in correct order
-	 * to filter object
-	 *
-	 * @param orders Filter sorting conditions
-	 * @return UserFilterBuilder
-	 */
-	public UserFilterBuilder addSelectionParameters(List<Order> orders) {
-		userFilter.getFilterSorts().clear();
-		ofNullable(orders).ifPresent(o -> o.forEach(order -> {
-			FilterSort filterSort = new FilterSort();
-			filterSort.setField(order.getSortingColumnName());
-			filterSort.setDirection(order.getIsAsc() ? Sort.Direction.ASC : Sort.Direction.DESC);
-			userFilter.getFilterSorts().add(filterSort);
-		}));
-		return this;
-	}
+  /**
+   * Convert provided selection into db and add them in correct order
+   * to filter object
+   *
+   * @param orders Filter sorting conditions
+   * @return UserFilterBuilder
+   */
+  public UserFilterBuilder addSelectionParameters(List<Order> orders) {
+    userFilter.getFilterSorts().clear();
+    ofNullable(orders).ifPresent(o -> o.forEach(order -> {
+      FilterSort filterSort = new FilterSort();
+      filterSort.setField(order.getSortingColumnName());
+      filterSort.setDirection(order.getIsAsc() ? Sort.Direction.ASC : Sort.Direction.DESC);
+      userFilter.getFilterSorts().add(filterSort);
+    }));
+    return this;
+  }
 
-	public UserFilterBuilder addProject(Long projectId) {
-		Project project = new Project();
-		project.setId(projectId);
-		userFilter.setProject(project);
-		return this;
-	}
+  public UserFilterBuilder addProject(Long projectId) {
+    Project project = new Project();
+    project.setId(projectId);
+    userFilter.setProject(project);
+    return this;
+  }
 
-	public UserFilterBuilder addOwner(String owner) {
-		userFilter.setOwner(owner);
-		return this;
-	}
+  public UserFilterBuilder addOwner(String owner) {
+    userFilter.setOwner(owner);
+    return this;
+  }
 
-	@Override
-	public UserFilter get() {
-		return userFilter;
-	}
+  @Override
+  public UserFilter get() {
+    return userFilter;
+  }
 }

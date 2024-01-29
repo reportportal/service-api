@@ -27,11 +27,11 @@ import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.DeleteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
+import com.epam.ta.reportportal.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.integration.IntegrationRQ;
+import com.epam.ta.reportportal.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import java.util.Map;
@@ -91,8 +91,7 @@ public class IntegrationController {
   @ResponseStatus(HttpStatus.OK)
   @ApiOperation("Get available global integrations for plugin")
   public List<IntegrationResource> getGlobalIntegrations(
-      @AuthenticationPrincipal ReportPortalUser reportPortalUser,
-      @PathVariable String pluginName) {
+      @AuthenticationPrincipal ReportPortalUser reportPortalUser, @PathVariable String pluginName) {
     return getIntegrationHandler.getGlobalIntegrations(pluginName);
   }
 
@@ -112,8 +111,8 @@ public class IntegrationController {
   @PreAuthorize(ASSIGNED_TO_PROJECT)
   @ApiOperation("Get available project integrations for plugin")
   public List<IntegrationResource> getProjectIntegrations(
-      @AuthenticationPrincipal ReportPortalUser reportPortalUser,
-      @PathVariable String projectName, @PathVariable String pluginName) {
+      @AuthenticationPrincipal ReportPortalUser reportPortalUser, @PathVariable String projectName,
+      @PathVariable String pluginName) {
     return getIntegrationHandler.getProjectIntegrations(pluginName, normalizeId(projectName));
   }
 
@@ -123,8 +122,7 @@ public class IntegrationController {
   @ApiOperation("Create global Report Portal integration instance")
   @PreAuthorize(ADMIN_ONLY)
   public EntryCreatedRS createGlobalIntegration(@RequestBody @Valid IntegrationRQ createRequest,
-      @PathVariable String pluginName,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable String pluginName, @AuthenticationPrincipal ReportPortalUser user) {
     return createIntegrationHandler.createGlobalIntegration(createRequest, pluginName, user);
   }
 
@@ -134,10 +132,11 @@ public class IntegrationController {
   @ApiOperation("Create project Report Portal integration instance")
   @PreAuthorize(PROJECT_MANAGER)
   public EntryCreatedRS createProjectIntegration(@RequestBody @Valid IntegrationRQ createRequest,
-      @PathVariable String pluginName,
-      @PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable String pluginName, @PathVariable String projectName,
+      @AuthenticationPrincipal ReportPortalUser user) {
     return createIntegrationHandler.createProjectIntegration(normalizeId(projectName),
-        createRequest, pluginName, user);
+        createRequest, pluginName, user
+    );
 
   }
 
@@ -147,8 +146,7 @@ public class IntegrationController {
   @PreAuthorize(ASSIGNED_TO_PROJECT)
   @ApiOperation("Test connection to the integration through the project config")
   public boolean testIntegrationConnection(@PathVariable Long integrationId,
-      @PathVariable String projectName,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
     return getIntegrationHandler.testConnection(integrationId, normalizeId(projectName));
   }
 
@@ -178,8 +176,7 @@ public class IntegrationController {
   @ApiOperation("Get integration instance")
   @PreAuthorize(ASSIGNED_TO_PROJECT)
   public IntegrationResource getProjectIntegration(@PathVariable String projectName,
-      @PathVariable Long integrationId,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
     return getIntegrationHandler.getProjectIntegrationById(integrationId, normalizeId(projectName));
   }
 
@@ -201,10 +198,11 @@ public class IntegrationController {
   @ApiOperation("Update project integration instance")
   @PreAuthorize(PROJECT_MANAGER)
   public OperationCompletionRS updateProjectIntegration(@PathVariable Long integrationId,
-      @RequestBody @Valid IntegrationRQ updateRequest,
-      @PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestBody @Valid IntegrationRQ updateRequest, @PathVariable String projectName,
+      @AuthenticationPrincipal ReportPortalUser user) {
     return createIntegrationHandler.updateProjectIntegration(integrationId,
-        normalizeId(projectName), updateRequest, user);
+        normalizeId(projectName), updateRequest, user
+    );
 
   }
 
@@ -234,10 +232,10 @@ public class IntegrationController {
   @ApiOperation("Delete project integration instance")
   @PreAuthorize(PROJECT_MANAGER)
   public OperationCompletionRS deleteProjectIntegration(@PathVariable String projectName,
-      @PathVariable Long integrationId,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteIntegrationHandler.deleteProjectIntegration(integrationId,
-        normalizeId(projectName), user);
+        normalizeId(projectName), user
+    );
   }
 
   @Transactional
@@ -246,26 +244,24 @@ public class IntegrationController {
   @ApiOperation("Delete all integrations assigned to specified project")
   @PreAuthorize(PROJECT_MANAGER)
   public OperationCompletionRS deleteAllProjectIntegrations(@PathVariable String type,
-      @PathVariable String projectName,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteIntegrationHandler.deleteProjectIntegrationsByType(type, normalizeId(projectName),
-        user);
+        user
+    );
   }
 
   @Transactional
   @PutMapping(value = "{projectName}/{integrationId}/{command}", consumes = {
-      APPLICATION_JSON_VALUE})
+      APPLICATION_JSON_VALUE })
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ASSIGNED_TO_PROJECT)
   @ApiOperation("Execute command to the integration instance")
   public Object executeIntegrationCommand(@PathVariable String projectName,
-      @PathVariable("integrationId") Long integrationId,
-      @PathVariable("command") String command, @RequestBody Map<String, Object> executionParams,
+      @PathVariable("integrationId") Long integrationId, @PathVariable("command") String command,
+      @RequestBody Map<String, Object> executionParams,
       @AuthenticationPrincipal ReportPortalUser user) {
     return executeIntegrationHandler.executeCommand(
-        projectExtractor.extractProjectDetails(user, projectName),
-        integrationId,
-        command,
+        projectExtractor.extractProjectDetails(user, projectName), integrationId, command,
         executionParams
     );
   }

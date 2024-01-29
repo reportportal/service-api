@@ -25,9 +25,9 @@ import com.epam.ta.reportportal.dao.TicketRepository;
 import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
+import com.epam.ta.reportportal.model.item.UnlinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.converter.converters.TicketConverter;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
-import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRQ;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -90,11 +90,10 @@ public class ExternalTicketHandlerImpl implements ExternalTicketHandler {
     if (CollectionUtils.isEmpty(externalIssues)) {
       return Collections.emptyList();
     }
-    List<Ticket> existedTickets = ticketRepository.findByTicketIdIn(externalIssues.stream()
-        .map(Issue.ExternalSystemIssue::getTicketId)
-        .collect(toList()));
-    List<String> existedTicketsIds = existedTickets.stream().map(Ticket::getTicketId)
-        .collect(toList());
+    List<Ticket> existedTickets = ticketRepository.findByTicketIdIn(
+        externalIssues.stream().map(Issue.ExternalSystemIssue::getTicketId).collect(toList()));
+    List<String> existedTicketsIds =
+        existedTickets.stream().map(Ticket::getTicketId).collect(toList());
     externalIssues.removeIf(it -> existedTicketsIds.contains(it.getTicketId()));
     return existedTickets;
   }
@@ -126,9 +125,8 @@ public class ExternalTicketHandlerImpl implements ExternalTicketHandler {
       }
       ticket.setSubmitter(username);
       ticket.setSubmitDate(ofNullable(it.getSubmitDate()).map(
-          millis -> LocalDateTime.ofInstant(Instant.ofEpochMilli(millis),
-              ZoneOffset.UTC
-          )).orElse(LocalDateTime.now()));
+              millis -> LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneOffset.UTC))
+          .orElse(LocalDateTime.now()));
       return ticket;
     }).collect(toSet());
   }

@@ -22,8 +22,8 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.log.impl.PagedLogResource;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
-import com.epam.ta.reportportal.ws.model.log.GetLogsUnderRq;
-import com.epam.ta.reportportal.ws.model.log.LogResource;
+import com.epam.ta.reportportal.model.log.GetLogsUnderRq;
+import com.epam.ta.reportportal.model.log.LogResource;
 import java.util.List;
 import java.util.Map;
 import org.springframework.data.domain.Pageable;
@@ -38,10 +38,10 @@ public interface GetLogHandler {
   /**
    * Returns logs for specified filter
    *
-   * @param filterable      - filter definition
-   * @param pageable        - pageable definition
-   * @param path            - logs path
-   * @param projectDetails  - project details
+   * @param filterable     - filter definition
+   * @param pageable       - pageable definition
+   * @param path           - logs path
+   * @param projectDetails - project details
    * @return mapping with {@link TestItem#getItemId()} as key and its list of {@link LogResource} as value
    */
   Iterable<LogResource> getLogs(String path, ReportPortalUser.ProjectDetails projectDetails,
@@ -88,11 +88,10 @@ public interface GetLogHandler {
    * @param queryable      {@link Queryable}
    * @param pageable       {@link Pageable}
    * @return The {@link Iterable} of {@link LogResource} and
-   * {@link com.epam.ta.reportportal.ws.model.NestedStepResource} entities
+   * {@link com.epam.ta.reportportal.model.NestedStepResource} entities
    */
   Iterable<?> getNestedItems(Long parentId, ReportPortalUser.ProjectDetails projectDetails,
-      Map<String, String> params,
-      Queryable queryable, Pageable pageable);
+      Map<String, String> params, Queryable queryable, Pageable pageable);
 
   List<PagedLogResource> getLogsWithLocation(Long parentId,
       ReportPortalUser.ProjectDetails projectDetails, Map<String, String> params,

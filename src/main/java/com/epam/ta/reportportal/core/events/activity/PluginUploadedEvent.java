@@ -8,7 +8,7 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
-import com.epam.ta.reportportal.ws.model.activity.PluginActivityResource;
+import com.epam.ta.reportportal.model.activity.PluginActivityResource;
 
 public class PluginUploadedEvent extends AbstractEvent implements ActivityEvent {
 
@@ -17,7 +17,8 @@ public class PluginUploadedEvent extends AbstractEvent implements ActivityEvent 
   public PluginUploadedEvent() {
   }
 
-  public PluginUploadedEvent(PluginActivityResource pluginActivityResource, Long userId, String userLogin) {
+  public PluginUploadedEvent(PluginActivityResource pluginActivityResource, Long userId,
+      String userLogin) {
     super(userId, userLogin);
     this.pluginActivityResource = pluginActivityResource;
   }
@@ -33,9 +34,9 @@ public class PluginUploadedEvent extends AbstractEvent implements ActivityEvent 
   @Override
   public Activity toActivity() {
     return new ActivityBuilder().addCreatedNow().addAction(EventAction.CREATE)
-        .addEventName(ActivityAction.CREATE_PLUGIN.getValue()).addObjectId(pluginActivityResource.getId())
-        .addObjectName(pluginActivityResource.getName()).addObjectType(EventObject.PLUGIN)
-        .addSubjectId(getUserId()).addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER)
-        .addPriority(EventPriority.CRITICAL).get();
+        .addEventName(ActivityAction.CREATE_PLUGIN.getValue())
+        .addObjectId(pluginActivityResource.getId()).addObjectName(pluginActivityResource.getName())
+        .addObjectType(EventObject.PLUGIN).addSubjectId(getUserId()).addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER).addPriority(EventPriority.CRITICAL).get();
   }
 }

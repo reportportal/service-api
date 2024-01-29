@@ -16,35 +16,43 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.DeletePluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.GetPluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
+import com.epam.ta.reportportal.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.integration.IntegrationTypeResource;
+import com.epam.ta.reportportal.model.integration.UpdatePluginStateRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
-import com.epam.ta.reportportal.ws.model.integration.UpdatePluginStateRQ;
 import io.swagger.annotations.ApiOperation;
+import java.util.List;
+import java.util.Map;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.util.List;
-import java.util.Map;
-
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -53,74 +61,78 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RequestMapping(value = "/v1/plugin")
 public class PluginController {
 
-	private final CreatePluginHandler createPluginHandler;
-	private final UpdatePluginHandler updatePluginHandler;
-	private final GetPluginHandler getPluginHandler;
-	private final DeletePluginHandler deletePluginHandler;
-	private final ExecuteIntegrationHandler executeIntegrationHandler;
-	private final ProjectExtractor projectExtractor;
+  private final CreatePluginHandler createPluginHandler;
+  private final UpdatePluginHandler updatePluginHandler;
+  private final GetPluginHandler getPluginHandler;
+  private final DeletePluginHandler deletePluginHandler;
+  private final ExecuteIntegrationHandler executeIntegrationHandler;
+  private final ProjectExtractor projectExtractor;
 
-	@Autowired
-	public PluginController(CreatePluginHandler createPluginHandler, UpdatePluginHandler updatePluginHandler,
-			GetPluginHandler getPluginHandler, DeletePluginHandler deletePluginHandler, ExecuteIntegrationHandler executeIntegrationHandler,
-			ProjectExtractor projectExtractor) {
-		this.createPluginHandler = createPluginHandler;
-		this.updatePluginHandler = updatePluginHandler;
-		this.getPluginHandler = getPluginHandler;
-		this.deletePluginHandler = deletePluginHandler;
-		this.executeIntegrationHandler = executeIntegrationHandler;
-		this.projectExtractor = projectExtractor;
-	}
+  @Autowired
+  public PluginController(CreatePluginHandler createPluginHandler,
+      UpdatePluginHandler updatePluginHandler, GetPluginHandler getPluginHandler,
+      DeletePluginHandler deletePluginHandler, ExecuteIntegrationHandler executeIntegrationHandler,
+      ProjectExtractor projectExtractor) {
+    this.createPluginHandler = createPluginHandler;
+    this.updatePluginHandler = updatePluginHandler;
+    this.getPluginHandler = getPluginHandler;
+    this.deletePluginHandler = deletePluginHandler;
+    this.executeIntegrationHandler = executeIntegrationHandler;
+    this.projectExtractor = projectExtractor;
+  }
 
-	@Transactional
-	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	@ResponseStatus(HttpStatus.CREATED)
-	@ApiOperation("Upload new Report Portal plugin")
-	@PreAuthorize(ADMIN_ONLY)
-	public EntryCreatedRS uploadPlugin(@NotNull @RequestParam("file") MultipartFile pluginFile,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return createPluginHandler.uploadPlugin(pluginFile, user);
-	}
+  @Transactional
+  @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @ResponseStatus(HttpStatus.CREATED)
+  @ApiOperation("Upload new Report Portal plugin")
+  @PreAuthorize(ADMIN_ONLY)
+  public EntryCreatedRS uploadPlugin(@NotNull @RequestParam("file") MultipartFile pluginFile,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return createPluginHandler.uploadPlugin(pluginFile, user);
+  }
 
-	@Transactional
-	@PutMapping(value = "/{pluginId}")
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Update Report Portal plugin state")
-	@PreAuthorize(ADMIN_ONLY)
-	public OperationCompletionRS updatePluginState(@PathVariable(value = "pluginId") Long id,
-			@RequestBody @Valid UpdatePluginStateRQ updatePluginStateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updatePluginHandler.updatePluginState(id, updatePluginStateRQ, user);
-	}
+  @Transactional
+  @PutMapping(value = "/{pluginId}")
+  @ResponseStatus(HttpStatus.OK)
+  @ApiOperation("Update Report Portal plugin state")
+  @PreAuthorize(ADMIN_ONLY)
+  public OperationCompletionRS updatePluginState(@PathVariable(value = "pluginId") Long id,
+      @RequestBody @Valid UpdatePluginStateRQ updatePluginStateRQ,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return updatePluginHandler.updatePluginState(id, updatePluginStateRQ, user);
+  }
 
-	@Transactional(readOnly = true)
-	@GetMapping
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Get all available plugins")
-	public List<IntegrationTypeResource> getPlugins(@AuthenticationPrincipal ReportPortalUser user) {
-		return getPluginHandler.getPlugins();
-	}
+  @Transactional(readOnly = true)
+  @GetMapping
+  @ResponseStatus(HttpStatus.OK)
+  @ApiOperation("Get all available plugins")
+  public List<IntegrationTypeResource> getPlugins(@AuthenticationPrincipal ReportPortalUser user) {
+    return getPluginHandler.getPlugins();
+  }
 
-	@Transactional
-	@DeleteMapping(value = "/{pluginId}")
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Delete plugin by id")
-	@PreAuthorize(ADMIN_ONLY)
-	public OperationCompletionRS deletePlugin(@PathVariable(value = "pluginId") Long id, @AuthenticationPrincipal ReportPortalUser user) {
-		return deletePluginHandler.deleteById(id, user);
-	}
+  @Transactional
+  @DeleteMapping(value = "/{pluginId}")
+  @ResponseStatus(HttpStatus.OK)
+  @ApiOperation("Delete plugin by id")
+  @PreAuthorize(ADMIN_ONLY)
+  public OperationCompletionRS deletePlugin(@PathVariable(value = "pluginId") Long id,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return deletePluginHandler.deleteById(id, user);
+  }
 
-	@Transactional
-	@PutMapping(value = "{projectName}/{pluginName}/common/{command}", consumes = { APPLICATION_JSON_VALUE })
-	@ResponseStatus(HttpStatus.OK)
-	@PreAuthorize(ASSIGNED_TO_PROJECT)
-	@ApiOperation("Execute command to the plugin instance")
-	public Object executePluginCommand(@PathVariable String projectName, @PathVariable("pluginName") String pluginName,
-			@PathVariable("command") String command, @RequestBody Map<String, Object> executionParams,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return executeIntegrationHandler.executeCommand(projectExtractor.extractProjectDetails(user, projectName),
-				pluginName,
-				command,
-				executionParams
-		);
-	}
+  @Transactional
+  @PutMapping(value = "{projectName}/{pluginName}/common/{command}", consumes = {
+      APPLICATION_JSON_VALUE })
+  @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize(ASSIGNED_TO_PROJECT)
+  @ApiOperation("Execute command to the plugin instance")
+  public Object executePluginCommand(@PathVariable String projectName,
+      @PathVariable("pluginName") String pluginName, @PathVariable("command") String command,
+      @RequestBody Map<String, Object> executionParams,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return executeIntegrationHandler.executeCommand(
+        projectExtractor.extractProjectDetails(user, projectName), pluginName, command,
+        executionParams
+    );
+  }
 }

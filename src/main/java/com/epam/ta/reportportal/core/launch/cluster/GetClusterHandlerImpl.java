@@ -61,8 +61,8 @@ public class GetClusterHandlerImpl implements GetClusterHandler {
   public Iterable<ClusterInfoResource> getResources(Launch launch, Pageable pageable) {
 
     final Pageable pageableWithSort = applySort(pageable);
-    final Page<Cluster> clusters = clusterRepository.findAllByLaunchId(launch.getId(),
-        pageableWithSort);
+    final Page<Cluster> clusters =
+        clusterRepository.findAllByLaunchId(launch.getId(), pageableWithSort);
 
     return getClusterResources(clusters, launch.getId());
   }
@@ -73,8 +73,8 @@ public class GetClusterHandlerImpl implements GetClusterHandler {
   }
 
   private Iterable<ClusterInfoResource> getClusterResources(Page<Cluster> clusters, Long launchId) {
-    final com.epam.ta.reportportal.ws.model.Page<ClusterInfoResource> clustersPage = PagedResourcesAssembler.pageConverter(
-        TO_CLUSTER_INFO).apply(clusters);
+    final com.epam.ta.reportportal.model.Page<ClusterInfoResource> clustersPage =
+        PagedResourcesAssembler.pageConverter(TO_CLUSTER_INFO).apply(clusters);
     eventPublisher.publishEvent(new GetClusterResourcesEvent(clustersPage.getContent(), launchId));
     return clustersPage;
   }

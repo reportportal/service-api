@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.events.activity;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.CONTENT_FIELDS;
@@ -30,15 +31,16 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
+import com.epam.ta.reportportal.model.activity.WidgetActivityResource;
 import java.util.Optional;
 import java.util.Set;
 
 /**
  * @author Andrei Varabyeu
  */
-public class WidgetUpdatedEvent extends AroundEvent<WidgetActivityResource> implements
-    ActivityEvent {
+
+public class WidgetUpdatedEvent extends AroundEvent<WidgetActivityResource>
+    implements ActivityEvent {
 
   private String widgetOptionsBefore;
   private String widgetOptionsAfter;
@@ -47,8 +49,7 @@ public class WidgetUpdatedEvent extends AroundEvent<WidgetActivityResource> impl
   }
 
   public WidgetUpdatedEvent(WidgetActivityResource before, WidgetActivityResource after,
-      String widgetOptionsBefore,
-      String widgetOptionsAfter, Long userId, String userLogin) {
+      String widgetOptionsBefore, String widgetOptionsAfter, Long userId, String userLogin) {
     super(userId, userLogin, before, after);
     this.widgetOptionsBefore = widgetOptionsBefore;
     this.widgetOptionsAfter = widgetOptionsAfter;
@@ -72,19 +73,12 @@ public class WidgetUpdatedEvent extends AroundEvent<WidgetActivityResource> impl
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow()
-        .addAction(EventAction.UPDATE)
-        .addEventName(ActivityAction.UPDATE_WIDGET.getValue())
-        .addPriority(EventPriority.LOW)
-        .addObjectId(getAfter().getId())
-        .addObjectName(getAfter().getName())
-        .addObjectType(EventObject.WIDGET)
-        .addProjectId(getAfter().getProjectId())
-        .addSubjectId(getUserId())
-        .addSubjectName(getUserLogin())
-        .addSubjectType(EventSubject.USER)
-        .addHistoryField(processName(getBefore().getName(), getAfter().getName()))
-        .addHistoryField(
+    return new ActivityBuilder().addCreatedNow().addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_WIDGET.getValue()).addPriority(EventPriority.LOW)
+        .addObjectId(getAfter().getId()).addObjectName(getAfter().getName())
+        .addObjectType(EventObject.WIDGET).addProjectId(getAfter().getProjectId())
+        .addSubjectId(getUserId()).addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER)
+        .addHistoryField(processName(getBefore().getName(), getAfter().getName())).addHistoryField(
             processDescription(getBefore().getDescription(), getAfter().getDescription()))
         .addHistoryField(processItemsCount(getBefore().getItemsCount(), getAfter().getItemsCount()))
         .addHistoryField(

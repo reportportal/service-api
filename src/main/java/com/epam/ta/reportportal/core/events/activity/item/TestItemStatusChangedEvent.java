@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
-import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
+import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>

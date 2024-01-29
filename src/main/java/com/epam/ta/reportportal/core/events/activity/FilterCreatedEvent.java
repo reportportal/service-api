@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
-import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
+import com.epam.ta.reportportal.model.activity.UserFilterActivityResource;
 
 /**
  * @author pavel_bortnik
@@ -52,18 +52,11 @@ public class FilterCreatedEvent extends AbstractEvent implements ActivityEvent {
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder()
-        .addCreatedNow()
-        .addAction(EventAction.CREATE)
-        .addEventName(ActivityAction.CREATE_FILTER.getValue())
-        .addPriority(EventPriority.LOW)
+    return new ActivityBuilder().addCreatedNow().addAction(EventAction.CREATE)
+        .addEventName(ActivityAction.CREATE_FILTER.getValue()).addPriority(EventPriority.LOW)
         .addObjectId(userFilterActivityResource.getId())
-        .addObjectName(userFilterActivityResource.getName())
-        .addObjectType(EventObject.FILTER)
-        .addProjectId(userFilterActivityResource.getProjectId())
-        .addSubjectId(getUserId())
-        .addSubjectName(getUserLogin())
-        .addSubjectType(EventSubject.USER)
-        .get();
+        .addObjectName(userFilterActivityResource.getName()).addObjectType(EventObject.FILTER)
+        .addProjectId(userFilterActivityResource.getProjectId()).addSubjectId(getUserId())
+        .addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER).get();
   }
 }

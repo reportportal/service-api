@@ -99,7 +99,7 @@ public class BatchLogIndexer {
   private Long countLogs(List<IndexLaunch> indexLaunch) {
     return indexLaunch.stream()
         .flatMap(launch -> launch.getTestItems().stream())
-        .mapToLong(item -> item.getLogs().size())
+        .mapToLong(item -> item.getLogs() != null ? item.getLogs().size() : 0)
         .sum();
   }
 

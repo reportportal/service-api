@@ -33,11 +33,11 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.activity.IntegrationActivityResource;
+import com.epam.ta.reportportal.model.integration.IntegrationRQ;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
 import java.util.Map;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -65,11 +65,10 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
   private final IntegrationService basicIntegrationService;
 
   @Autowired
-  public CreateIntegrationHandlerImpl(
-      @Qualifier("integrationServiceMapping") Map<String, IntegrationService> integrationServiceMapping,
+  public CreateIntegrationHandlerImpl(@Qualifier("integrationServiceMapping")
+  Map<String, IntegrationService> integrationServiceMapping,
       IntegrationRepository integrationRepository, ProjectRepository projectRepository,
-      ApplicationEventPublisher eventPublisher,
-      IntegrationTypeRepository integrationTypeRepository,
+      ApplicationEventPublisher eventPublisher, IntegrationTypeRepository integrationTypeRepository,
       @Qualifier("basicIntegrationServiceImpl") IntegrationService integrationService) {
     this.integrationServiceMapping = integrationServiceMapping;
     this.integrationRepository = integrationRepository;
@@ -84,17 +83,18 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
       ReportPortalUser user) {
     IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
-    IntegrationService integrationService = integrationServiceMapping.getOrDefault(
-        integrationType.getName(),
-        this.basicIntegrationService
-    );
+    IntegrationService integrationService =
+        integrationServiceMapping.getOrDefault(integrationType.getName(),
+            this.basicIntegrationService
+        );
 
-    String integrationName = ofNullable(createRequest.getName()).map(String::toLowerCase)
-        .map(name -> {
+    String integrationName =
+        ofNullable(createRequest.getName()).map(String::toLowerCase).map(name -> {
           validateGlobalIntegrationName(name, integrationType);
           return name;
         }).orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_INTEGRATION_NAME,
-            "Integration name should be not null"));
+            "Integration name should be not null"
+        ));
     createRequest.setName(integrationName);
 
     Integration integration = integrationService.createIntegration(createRequest, integrationType);
@@ -109,8 +109,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
   @Override
   public EntryCreatedRS createProjectIntegration(String projectName, IntegrationRQ createRequest,
-      String pluginName,
-      ReportPortalUser user) {
+      String pluginName, ReportPortalUser user) {
 
     Project project = projectRepository.findByName(projectName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
@@ -118,17 +117,18 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
     IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
 
-    IntegrationService integrationService = integrationServiceMapping.getOrDefault(
-        integrationType.getName(),
-        this.basicIntegrationService
-    );
+    IntegrationService integrationService =
+        integrationServiceMapping.getOrDefault(integrationType.getName(),
+            this.basicIntegrationService
+        );
 
-    String integrationName = ofNullable(createRequest.getName()).map(String::toLowerCase)
-        .map(name -> {
+    String integrationName =
+        ofNullable(createRequest.getName()).map(String::toLowerCase).map(name -> {
           validateProjectIntegrationName(name, integrationType, project);
           return name;
         }).orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_INTEGRATION_NAME,
-            "Integration name should be not null"));
+            "Integration name should be not null"
+        ));
     createRequest.setName(integrationName);
 
     Integration integration = integrationService.createIntegration(createRequest, integrationType);
@@ -158,13 +158,13 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
       updateRequest.setName(name);
     });
 
-    IntegrationService integrationService = integrationServiceMapping.getOrDefault(
-        integration.getType().getName(),
-        this.basicIntegrationService
-    );
+    IntegrationService integrationService =
+        integrationServiceMapping.getOrDefault(integration.getType().getName(),
+            this.basicIntegrationService
+        );
 
-    Integration updatedIntegration = integrationService.updateIntegration(integration,
-        updateRequest);
+    Integration updatedIntegration =
+        integrationService.updateIntegration(integration, updateRequest);
     integrationService.checkConnection(integration);
     integrationRepository.save(updatedIntegration);
 
@@ -193,12 +193,12 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
       updateRequest.setName(name);
     });
 
-    IntegrationService integrationService = integrationServiceMapping.getOrDefault(
-        integration.getType().getName(),
-        this.basicIntegrationService
-    );
-    Integration updatedIntegration = integrationService.updateIntegration(integration,
-        updateRequest);
+    IntegrationService integrationService =
+        integrationServiceMapping.getOrDefault(integration.getType().getName(),
+            this.basicIntegrationService
+        );
+    Integration updatedIntegration =
+        integrationService.updateIntegration(integration, updateRequest);
     updatedIntegration.setProject(project);
     integrationService.checkConnection(integration);
 
@@ -215,17 +215,14 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
     BusinessRule.expect(integrationName, StringUtils::isNotBlank)
         .verify(ErrorType.INCORRECT_INTEGRATION_NAME, "Integration name should be not empty");
     BusinessRule.expect(
-            integrationRepository.existsByNameAndTypeIdAndProjectIdIsNull(integrationName,
-                integrationType.getId()),
-            BooleanUtils::isFalse
+        integrationRepository.existsByNameAndTypeIdAndProjectIdIsNull(integrationName,
+            integrationType.getId()
+        ), BooleanUtils::isFalse).verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
+        Suppliers.formattedSupplier(
+            "Global integration of type = '{}' with name = '{}' already exists",
+            integrationType.getName(), integrationName
         )
-        .verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
-            Suppliers.formattedSupplier(
-                "Global integration of type = '{}' with name = '{}' already exists",
-                integrationType.getName(),
-                integrationName
-            )
-        );
+    );
   }
 
   private void validateProjectIntegrationName(String integrationName,
@@ -233,34 +230,28 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
     BusinessRule.expect(integrationName, StringUtils::isNotBlank)
         .verify(ErrorType.INCORRECT_INTEGRATION_NAME, "Integration name should be not empty");
     BusinessRule.expect(integrationRepository.existsByNameAndTypeIdAndProjectId(integrationName,
-            integrationType.getId(),
-            project.getId()
-        ), BooleanUtils::isFalse)
-        .verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
-            Suppliers.formattedSupplier(
-                "Project integration of type = '{}' with name = '{}' already exists on project = '{}'",
-                integrationType.getName(),
-                integrationName,
-                project.getName()
-            )
-        );
+        integrationType.getId(), project.getId()
+    ), BooleanUtils::isFalse).verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
+        Suppliers.formattedSupplier(
+            "Project integration of type = '{}' with name = '{}' already exists on project = '{}'",
+            integrationType.getName(), integrationName, project.getName()
+        )
+    );
   }
 
   private void publishUpdateActivity(ReportPortalUser user,
-      IntegrationActivityResource beforeUpdate,
-      Integration updatedIntegration) {
-    eventPublisher.publishEvent(new IntegrationUpdatedEvent(user.getUserId(),
-        user.getUsername(),
-        beforeUpdate,
-        TO_ACTIVITY_RESOURCE.apply(updatedIntegration)
-    ));
+      IntegrationActivityResource beforeUpdate, Integration updatedIntegration) {
+    eventPublisher.publishEvent(
+        new IntegrationUpdatedEvent(user.getUserId(), user.getUsername(), beforeUpdate,
+            TO_ACTIVITY_RESOURCE.apply(updatedIntegration)
+        ));
   }
 
   private void publishCreationActivity(Integration integration, ReportPortalUser user) {
-    eventPublisher.publishEvent(new IntegrationCreatedEvent(TO_ACTIVITY_RESOURCE.apply(integration),
-        user.getUserId(),
-        user.getUsername()
-    ));
+    eventPublisher.publishEvent(
+        new IntegrationCreatedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId(),
+            user.getUsername()
+        ));
   }
 
 }

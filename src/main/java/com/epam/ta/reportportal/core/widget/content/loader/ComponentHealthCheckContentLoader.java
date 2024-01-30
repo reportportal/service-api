@@ -24,6 +24,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteri
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_STATUS;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_TYPE;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTE_KEYS;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.EXCLUDE_SKIPPED;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LATEST_OPTION;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
@@ -105,7 +106,8 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
         latestMode,
         limit,
         testItemFilter,
-        currentLevelKey
+        currentLevelKey,
+        WidgetOptionUtil.getBooleanByKey(EXCLUDE_SKIPPED, widgetOptions)
     );
 
     return CollectionUtils.isNotEmpty(content) ? Collections.singletonMap(RESULT, content)

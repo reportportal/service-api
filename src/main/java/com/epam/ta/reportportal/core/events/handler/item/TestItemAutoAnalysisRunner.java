@@ -61,15 +61,14 @@ public class TestItemAutoAnalysisRunner implements
     if (analyzerService.hasAnalyzers() && isNeedToRunAA(testItemFinishedEvent.getTestItem())) {
       final AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(projectConfig);
       TestItem testItem = testItemFinishedEvent.getTestItem();
-      Launch launch = getLaunchHandler.get(testItem.getLaunchId());
+      Launch launch = testItemFinishedEvent.getLaunch();
       analyzerService.runAnalyzers(launch, List.of(testItem.getItemId()), analyzerConfig);
-      logIndex(testItem, testItemFinishedEvent.getProjectId(), analyzerConfig);
+      logIndex(testItem, launch, testItemFinishedEvent.getProjectId(), analyzerConfig);
     }
   }
 
-  private void logIndex(TestItem testItem, Long projectId, AnalyzerConfig config) {
-    logIndexer.indexItemsLogs(projectId, testItem.getLaunchId(), List.of(testItem.getItemId()),
-        config);
+  private void logIndex(TestItem testItem, Launch launch, Long projectId, AnalyzerConfig config) {
+    logIndexer.indexItemLog(projectId, launch, testItem, config);
   }
 
   private boolean isNeedToRunAA(TestItem testItem) {

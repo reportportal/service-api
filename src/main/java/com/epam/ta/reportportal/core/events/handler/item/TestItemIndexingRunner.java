@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.events.activity.item.TestItemFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import java.util.List;
 import java.util.Map;
@@ -34,28 +35,22 @@ import org.springframework.stereotype.Component;
 public class TestItemIndexingRunner implements
     ConfigurableEventHandler<TestItemFinishedEvent, Map<String, String>> {
 
-  private final AnalyzerService analyzerService;
-
   private final LogIndexer logIndexer;
 
-  private final GetLaunchHandler getLaunchHandler;
-
-  public TestItemIndexingRunner(AnalyzerService analyzerService, LogIndexer logIndexer,
-      GetLaunchHandler getLaunchHandler) {
-    this.analyzerService = analyzerService;
+  public TestItemIndexingRunner(LogIndexer logIndexer) {
     this.logIndexer = logIndexer;
-    this.getLaunchHandler = getLaunchHandler;
   }
 
   @Override
-  public void handle(TestItemFinishedEvent testItemFinishedEvent, Map<String, String> projectConfig) {
+  public void handle(TestItemFinishedEvent testItemFinishedEvent,
+      Map<String, String> projectConfig) {
     final AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(projectConfig);
     TestItem testItem = testItemFinishedEvent.getTestItem();
-    logIndex(testItem, testItemFinishedEvent.getProjectId(), analyzerConfig);
+    Launch launch = testItemFinishedEvent.getLaunch();
+    logIndex(testItem, launch, testItemFinishedEvent.getProjectId(), analyzerConfig);
   }
 
-  private void logIndex(TestItem testItem, Long projectId, AnalyzerConfig config) {
-    logIndexer.indexItemsLogs(projectId, testItem.getLaunchId(), List.of(testItem.getItemId()),
-        config);
+  private void logIndex(TestItem testItem, Launch launch, Long projectId, AnalyzerConfig config) {
+    logIndexer.indexItemLog(projectId, launch, testItem, config);
   }
 }

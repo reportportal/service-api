@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
@@ -129,6 +130,17 @@ public class LogIndexerService implements LogIndexer {
     } finally {
       indexerStatusCache.indexingFinished(projectId);
     }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public void indexItemLog(Long projectId, Launch launch, TestItem item,
+      AnalyzerConfig analyzerConfig) {
+    indexerStatusCache.indexingStarted(projectId);
+    Optional<IndexLaunch> indexLaunch = launchPreparerService.prepare(launch, List.of(item),
+        analyzerConfig);
+    indexLaunch.ifPresent(il -> indexerServiceClient.index(List.of(il)));
+    indexerStatusCache.indexingFinished(projectId);
   }
 
   @Override

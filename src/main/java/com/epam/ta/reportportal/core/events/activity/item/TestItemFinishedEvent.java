@@ -17,6 +17,7 @@ package com.epam.ta.reportportal.core.events.activity.item;
 
 import com.epam.ta.reportportal.core.events.ProjectIdAwareEvent;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -25,11 +26,14 @@ public class TestItemFinishedEvent implements ProjectIdAwareEvent {
 
   private final TestItem testItem;
 
+  private final Launch launch;
+
   private final Long projectId;
 
-  public TestItemFinishedEvent(TestItem testItem, Long projectId) {
+  public TestItemFinishedEvent(TestItem testItem, Launch launch, Long projectId) {
     this.testItem = testItem;
     this.projectId = projectId;
+    this.launch = launch;
   }
 
   public TestItem getTestItem() {
@@ -39,5 +43,9 @@ public class TestItemFinishedEvent implements ProjectIdAwareEvent {
   @Override
   public Long getProjectId() {
     return projectId;
+  }
+
+  public Launch getLaunch() {
+    return launch;
   }
 }

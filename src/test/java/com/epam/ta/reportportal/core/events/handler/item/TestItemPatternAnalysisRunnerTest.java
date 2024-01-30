@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.core.analyzer.pattern.handler.proxy.ItemsPattern
 import com.epam.ta.reportportal.core.events.activity.item.TestItemFinishedEvent;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.Collections;
@@ -43,7 +44,8 @@ public class TestItemPatternAnalysisRunnerTest {
   @Test
   void shouldNotInvokePatternAnalyzer() {
     TestItem testItem = new TestItem();
-    TestItemFinishedEvent event = new TestItemFinishedEvent(testItem, 1L);
+    Launch launch = new Launch();
+    TestItemFinishedEvent event = new TestItemFinishedEvent(testItem, launch, 1L);
     runner.handle(event, Collections.emptyMap());
     verifyNoInteractions(itemsPatternAnalyzer);
   }
@@ -55,7 +57,8 @@ public class TestItemPatternAnalysisRunnerTest {
     testItem.setLaunchId(1L);
     testItem.setAttributes(
         Sets.newHashSet(new ItemAttribute(IMMEDIATE_PATTERN_ANALYSIS, "false", true)));
-    TestItemFinishedEvent event = new TestItemFinishedEvent(testItem, 1L);
+    Launch launch = new Launch();
+    TestItemFinishedEvent event = new TestItemFinishedEvent(testItem, launch, 1L);
     runner.handle(event, Collections.emptyMap());
     verifyNoInteractions(itemsPatternAnalyzer);
   }
@@ -67,7 +70,8 @@ public class TestItemPatternAnalysisRunnerTest {
     testItem.setLaunchId(1L);
     testItem.setAttributes(
         Sets.newHashSet(new ItemAttribute(IMMEDIATE_PATTERN_ANALYSIS, "true", true)));
-    TestItemFinishedEvent event = new TestItemFinishedEvent(testItem, 1L);
+    Launch launch = new Launch();
+    TestItemFinishedEvent event = new TestItemFinishedEvent(testItem, launch, 1L);
     runner.handle(event, Collections.emptyMap());
 
     verify(itemsPatternAnalyzer, times(1)).analyze(1L, 1L, Lists.newArrayList(1L));

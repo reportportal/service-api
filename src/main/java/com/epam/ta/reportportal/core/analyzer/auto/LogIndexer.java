@@ -46,6 +46,8 @@ public interface LogIndexer {
   Long indexItemsLogs(Long projectId, Long launchId, List<Long> itemIds,
       AnalyzerConfig analyzerConfig);
 
+  void indexItemLog(Long projectId, Launch launch, TestItem item, AnalyzerConfig analyzerConfig);
+
   /**
    * Delete index of specified project
    *

@@ -192,7 +192,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
               ));
     }
     eventPublisher.publishEvent(
-        new TestItemFinishedEvent(itemForUpdate, projectDetails.getProjectId()));
+        new TestItemFinishedEvent(itemForUpdate, launch, projectDetails.getProjectId()));
 
     return new OperationCompletionRS(
         "TestItem with ID = '" + testItemId + "' successfully finished.");

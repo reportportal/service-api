@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
 import com.epam.ta.reportportal.core.events.activity.item.TestItemFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.item.TestItemAutoAnalysisRunner;
+import com.epam.ta.reportportal.core.events.handler.item.TestItemIndexingRunner;
 import com.epam.ta.reportportal.core.events.handler.item.TestItemPatternAnalysisRunner;
 import com.epam.ta.reportportal.core.events.handler.item.TestItemIndexRunner;
 import com.epam.ta.reportportal.core.events.handler.item.TestItemUniqueErrorAnalysisRunner;
@@ -71,9 +72,10 @@ public class EventSubscriberConfig {
   public ProjectConfigDelegatingSubscriber<TestItemFinishedEvent> testItemFinishedDelegatingSubscriber(
       ProjectConfigProvider projectConfigProvider,
       TestItemPatternAnalysisRunner testItemPatternAnalysisRunner,
-      TestItemAutoAnalysisRunner testItemAutoAnalysisRunner) {
+      TestItemAutoAnalysisRunner testItemAutoAnalysisRunner,
+      TestItemIndexingRunner testItemIndexingRunner) {
     return new ProjectConfigDelegatingSubscriber<>(projectConfigProvider,
-        List.of(testItemPatternAnalysisRunner, testItemAutoAnalysisRunner)
+        List.of(testItemPatternAnalysisRunner, testItemIndexingRunner, testItemAutoAnalysisRunner)
     );
   }
 

@@ -65,7 +65,7 @@ public class LaunchAutoAnalysisConfig {
 
   @Bean
   public LaunchAutoAnalysisStarter autoAnalysisStarter() {
-    return new ExistingAnalyzerStarter(analyzerService, indexingAutoAnalysisStarter());
+    return new ExistingAnalyzerStarter(analyzerService, autoAnalysisEnabledStarter());
   }
 
   @Bean

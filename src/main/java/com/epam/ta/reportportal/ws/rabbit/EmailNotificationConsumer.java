@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.ws.rabbit;
 
+import com.epam.ta.reportportal.model.notification.EmailNotificationRQ;
 import com.epam.ta.reportportal.util.email.strategy.EmailNotificationStrategy;
 import com.epam.ta.reportportal.util.email.strategy.EmailTemplate;
-import com.epam.ta.reportportal.ws.model.notification.EmailNotificationRQ;
 import java.util.Map;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;

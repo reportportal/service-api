@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
-import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
+import com.epam.ta.reportportal.model.activity.WidgetActivityResource;
 
 /**
  * @author pavel_bortnik
@@ -52,18 +52,11 @@ public class WidgetCreatedEvent extends AbstractEvent implements ActivityEvent {
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder()
-        .addCreatedNow()
-        .addAction(EventAction.CREATE)
-        .addEventName(ActivityAction.CREATE_WIDGET.getValue())
-        .addPriority(EventPriority.LOW)
-        .addObjectId(widgetActivityResource.getId())
-        .addObjectName(widgetActivityResource.getName())
-        .addObjectType(EventObject.WIDGET)
-        .addProjectId(widgetActivityResource.getProjectId())
-        .addSubjectId(getUserId())
-        .addSubjectName(getUserLogin())
-        .addSubjectType(EventSubject.USER)
+    return new ActivityBuilder().addCreatedNow().addAction(EventAction.CREATE)
+        .addEventName(ActivityAction.CREATE_WIDGET.getValue()).addPriority(EventPriority.LOW)
+        .addObjectId(widgetActivityResource.getId()).addObjectName(widgetActivityResource.getName())
+        .addObjectType(EventObject.WIDGET).addProjectId(widgetActivityResource.getProjectId())
+        .addSubjectId(getUserId()).addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER)
         .get();
   }
 

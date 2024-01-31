@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.preference;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
+import com.epam.ta.reportportal.model.preference.PreferenceResource;
 
 /**
  * Get user preference handler

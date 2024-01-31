@@ -25,9 +25,9 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
+import com.epam.ta.reportportal.model.activity.IntegrationActivityResource;
+import com.epam.ta.reportportal.model.integration.IntegrationResource;
+import com.epam.ta.reportportal.model.integration.IntegrationTypeResource;
 import com.google.common.collect.Sets;
 import java.sql.Date;
 import java.time.LocalDateTime;
@@ -43,35 +43,39 @@ class IntegrationConverterTest {
   @Test
   void toResource() {
     final Integration integration = getIntegration();
-    final IntegrationResource resource = IntegrationConverter.TO_INTEGRATION_RESOURCE.apply(
-        integration);
+    final IntegrationResource resource =
+        IntegrationConverter.TO_INTEGRATION_RESOURCE.apply(integration);
 
     assertEquals(resource.getCreationDate(),
-        Date.from(integration.getCreationDate().atZone(ZoneId.of("UTC")).toInstant()));
+        Date.from(integration.getCreationDate().atZone(ZoneId.of("UTC")).toInstant())
+    );
     assertEquals(resource.getEnabled(), integration.isEnabled());
     assertEquals(resource.getId(), integration.getId());
     assertEquals(resource.getProjectId(), integration.getProject().getId());
 
     assertThat(resource.getIntegrationParams()).containsOnlyKeys("param1", "param2", "nullParam",
-        null);
+        null
+    );
     assertThat(resource.getIntegrationParams()).doesNotContainKey("accessToken");
     assertThat(resource.getIntegrationParams()).containsValues("qwerty", "asdfgh", "value", null);
 
     final IntegrationTypeResource integrationTypeResource = resource.getIntegrationType();
 
     assertEquals(integrationTypeResource.getAuthFlow().name(),
-        integration.getType().getAuthFlow().name());
+        integration.getType().getAuthFlow().name()
+    );
     assertEquals(integrationTypeResource.getId(), integration.getType().getId());
     assertEquals(integrationTypeResource.getName(), integration.getType().getName());
     assertEquals(integrationTypeResource.getGroupType(),
-        integration.getType().getIntegrationGroup().name());
+        integration.getType().getIntegrationGroup().name()
+    );
   }
 
   @Test
   void toActivityResource() {
     final Integration integration = getIntegration();
-    final IntegrationActivityResource resource = IntegrationConverter.TO_ACTIVITY_RESOURCE.apply(
-        integration);
+    final IntegrationActivityResource resource =
+        IntegrationConverter.TO_ACTIVITY_RESOURCE.apply(integration);
 
     assertEquals(resource.getId(), integration.getId());
     assertEquals(resource.getProjectId(), integration.getProject().getId());

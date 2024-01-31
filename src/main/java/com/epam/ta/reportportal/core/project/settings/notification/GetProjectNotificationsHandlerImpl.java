@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.project.settings.notification;
 
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
+import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
-import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,6 @@ public class GetProjectNotificationsHandlerImpl implements GetProjectNotificatio
   @Override
   public List<SenderCaseDTO> getProjectNotifications(Long projectId) {
     return senderCaseRepository.findAllByProjectId(projectId).stream()
-        .map(NotificationConfigConverter.TO_CASE_RESOURCE)
-        .collect(Collectors.toList());
+        .map(NotificationConfigConverter.TO_CASE_RESOURCE).collect(Collectors.toList());
   }
 }

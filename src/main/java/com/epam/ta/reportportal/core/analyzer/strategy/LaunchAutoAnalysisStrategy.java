@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.entity.AnalyzeMode;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
+import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -49,8 +49,7 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
 
   @Autowired
   public LaunchAutoAnalysisStrategy(ProjectRepository projectRepository,
-      LaunchRepository launchRepository,
-      LaunchAutoAnalysisStarter manualAnalysisStarter) {
+      LaunchRepository launchRepository, LaunchAutoAnalysisStarter manualAnalysisStarter) {
     super(projectRepository, launchRepository);
     this.manualAnalysisStarter = manualAnalysisStarter;
   }
@@ -71,27 +70,20 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, analyzeRQ.getLaunchId()));
     validateLaunch(launch, projectDetails);
 
-    Project project = projectRepository.findById(projectDetails.getProjectId())
-        .orElseThrow(
-            () -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+    Project project = projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
+        () -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
     AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
     analyzerConfig.setAnalyzerMode(analyzeMode.getValue());
 
-    final StartLaunchAutoAnalysisConfig autoAnalysisConfig = StartLaunchAutoAnalysisConfig.of(
-        launch.getId(),
-        analyzerConfig,
-        analyzeItemsModes,
-        user
-    );
+    final StartLaunchAutoAnalysisConfig autoAnalysisConfig =
+        StartLaunchAutoAnalysisConfig.of(launch.getId(), analyzerConfig, analyzeItemsModes, user);
 
     manualAnalysisStarter.start(autoAnalysisConfig);
   }
 
   private LinkedHashSet<AnalyzeItemsMode> getAnalyzeItemsModes(AnalyzeLaunchRQ analyzeRQ) {
-    return analyzeRQ.getAnalyzeItemsModes()
-        .stream()
-        .map(AnalyzeItemsMode::fromString)
+    return analyzeRQ.getAnalyzeItemsModes().stream().map(AnalyzeItemsMode::fromString)
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 

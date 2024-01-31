@@ -45,22 +45,22 @@ import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.DeleteBulkRQ;
+import com.epam.ta.reportportal.model.DeleteBulkRS;
+import com.epam.ta.reportportal.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.preference.PreferenceResource;
+import com.epam.ta.reportportal.model.project.AssignUsersRQ;
+import com.epam.ta.reportportal.model.project.CreateProjectRQ;
+import com.epam.ta.reportportal.model.project.ProjectInfoResource;
+import com.epam.ta.reportportal.model.project.ProjectResource;
+import com.epam.ta.reportportal.model.project.UnassignUsersRQ;
+import com.epam.ta.reportportal.model.project.UpdateProjectRQ;
+import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO;
+import com.epam.ta.reportportal.model.user.SearchUserResource;
+import com.epam.ta.reportportal.model.user.UserResource;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
-import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
-import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
-import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
-import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
-import com.epam.ta.reportportal.ws.model.project.ProjectResource;
-import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
-import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
-import com.epam.ta.reportportal.ws.model.user.SearchUserResource;
-import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
@@ -114,13 +114,11 @@ public class ProjectController {
 
   @Autowired
   public ProjectController(ProjectExtractor projectExtractor, GetProjectHandler getProjectHandler,
-      GetProjectInfoHandler projectInfoHandler,
-      CreateProjectHandler createProjectHandler, UpdateProjectHandler updateProjectHandler,
-      DeleteProjectHandler deleteProjectHandler,
+      GetProjectInfoHandler projectInfoHandler, CreateProjectHandler createProjectHandler,
+      UpdateProjectHandler updateProjectHandler, DeleteProjectHandler deleteProjectHandler,
       GetUserHandler getUserHandler, GetPreferenceHandler getPreference,
-      UpdatePreferenceHandler updatePreference,
-      @Qualifier("projectJasperReportHandler")
-      GetJasperReportHandler<ProjectInfo> jasperReportHandler) {
+      UpdatePreferenceHandler updatePreference, @Qualifier("projectJasperReportHandler")
+  GetJasperReportHandler<ProjectInfo> jasperReportHandler) {
     this.projectExtractor = projectExtractor;
     this.getProjectHandler = getProjectHandler;
     this.projectInfoHandler = projectInfoHandler;
@@ -163,7 +161,8 @@ public class ProjectController {
       @RequestBody @Validated ProjectNotificationConfigDTO updateProjectNotificationConfigRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateProjectHandler.updateProjectNotificationConfig(normalizeId(projectName), user,
-        updateProjectNotificationConfigRQ);
+        updateProjectNotificationConfigRQ
+    );
   }
 
   @DeleteMapping
@@ -208,8 +207,8 @@ public class ProjectController {
   @PreAuthorize(NOT_CUSTOMER)
   @ApiOperation("Get users assigned on current project")
   public Iterable<UserResource> getProjectUsers(@PathVariable String projectName,
-      @FilterFor(User.class) Filter filter,
-      @SortFor(User.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+      @FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
+      @AuthenticationPrincipal ReportPortalUser user) {
     return getProjectHandler.getProjectUsers(normalizeId(projectName), filter, pageable);
   }
 
@@ -250,10 +249,11 @@ public class ProjectController {
   @PreAuthorize(PROJECT_MANAGER)
   @ApiOperation(value = "Load users which can be assigned to specified project", notes = "Only for users with project manager permissions")
   public Iterable<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter,
-      @SortFor(User.class) Pageable pageable,
-      @PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
+      @SortFor(User.class) Pageable pageable, @PathVariable String projectName,
+      @AuthenticationPrincipal ReportPortalUser user) {
     return getUserHandler.getUsers(filter, pageable,
-        projectExtractor.extractProjectDetails(user, projectName));
+        projectExtractor.extractProjectDetails(user, projectName)
+    );
   }
 
   @Transactional(readOnly = true)
@@ -263,10 +263,10 @@ public class ProjectController {
   @ApiOperation(value = "Load project users by filter", notes = "Only for users that are members of the project")
   public List<String> getProjectUsers(@PathVariable String projectName,
       @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + "users")
-      String value,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      String value, @AuthenticationPrincipal ReportPortalUser user) {
     return getProjectHandler.getUserNames(projectExtractor.extractProjectDetails(user, projectName),
-        normalizeId(value));
+        normalizeId(value)
+    );
   }
 
   @Transactional(readOnly = true)
@@ -274,10 +274,11 @@ public class ProjectController {
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
   public Iterable<SearchUserResource> searchForUser(@PathVariable String projectName,
-      @RequestParam(value = "term") String term,
-      Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestParam(value = "term") String term, Pageable pageable,
+      @AuthenticationPrincipal ReportPortalUser user) {
     return getProjectHandler.getUserNames(term,
-        projectExtractor.extractProjectDetails(user, projectName), pageable);
+        projectExtractor.extractProjectDetails(user, projectName), pageable
+    );
   }
 
   @Transactional
@@ -285,10 +286,11 @@ public class ProjectController {
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
   public OperationCompletionRS addUserPreference(@PathVariable String projectName,
-      @PathVariable String login,
-      @PathVariable Long filterId, @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable String login, @PathVariable Long filterId,
+      @AuthenticationPrincipal ReportPortalUser user) {
     return updatePreference.addPreference(projectExtractor.extractProjectDetails(user, projectName),
-        user, filterId);
+        user, filterId
+    );
   }
 
   @Transactional
@@ -296,8 +298,8 @@ public class ProjectController {
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
   public OperationCompletionRS removeUserPreference(@PathVariable String projectName,
-      @PathVariable String login,
-      @PathVariable Long filterId, @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable String login, @PathVariable Long filterId,
+      @AuthenticationPrincipal ReportPortalUser user) {
     return updatePreference.removePreference(
         projectExtractor.extractProjectDetails(user, projectName), user, filterId);
   }
@@ -308,10 +310,10 @@ public class ProjectController {
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
   @ApiOperation(value = "Load user preferences", notes = "Only for users that allowed to edit other users")
   public PreferenceResource getUserPreference(@PathVariable String projectName,
-      @PathVariable String login,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable String login, @AuthenticationPrincipal ReportPortalUser user) {
     return getPreference.getPreference(projectExtractor.extractProjectDetails(user, projectName),
-        user);
+        user
+    );
   }
 
   @Transactional(readOnly = true)
@@ -332,9 +334,8 @@ public class ProjectController {
   @GetMapping(value = "/export")
   @ResponseStatus(HttpStatus.OK)
   @ApiOperation(value = "Exports information about all projects", notes = "Allowable only for users with administrator role")
-  public void exportProjects(
-      @ApiParam(allowableValues = "csv")
-      @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
+  public void exportProjects(@ApiParam(allowableValues = "csv")
+  @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
       @FilterFor(ProjectInfo.class) Filter filter,
       @FilterFor(ProjectInfo.class) Queryable predefinedFilter,
       @AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
@@ -344,15 +345,18 @@ public class ProjectController {
 
     response.setHeader(CONTENT_DISPOSITION,
         String.format("attachment; filename=\"RP_PROJECTS_%s_Report.%s\"", format.name(),
-            format.getValue())
+            format.getValue()
+        )
     );
 
     try (OutputStream outputStream = response.getOutputStream()) {
       getProjectHandler.exportProjects(format,
-          new CompositeFilter(Operator.AND, filter, predefinedFilter), outputStream);
+          new CompositeFilter(Operator.AND, filter, predefinedFilter), outputStream
+      );
     } catch (IOException e) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "Unable to write data to the response.");
+          "Unable to write data to the response."
+      );
     }
 
   }
@@ -373,8 +377,7 @@ public class ProjectController {
   @ResponseStatus(HttpStatus.OK)
   public Map<String, ?> getProjectWidget(@PathVariable String projectName,
       @RequestParam(value = "interval", required = false, defaultValue = "3M") String interval,
-      @PathVariable String widgetCode,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable String widgetCode, @AuthenticationPrincipal ReportPortalUser user) {
     return projectInfoHandler.getProjectInfoWidgetContent(projectName, interval, widgetCode);
   }
 

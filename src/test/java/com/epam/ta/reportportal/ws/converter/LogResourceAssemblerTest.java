@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.LogFull;
-import com.epam.ta.reportportal.ws.model.log.LogResource;
+import com.epam.ta.reportportal.model.log.LogResource;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;

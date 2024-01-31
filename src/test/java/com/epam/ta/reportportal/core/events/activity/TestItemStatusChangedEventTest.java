@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
+import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 import com.google.common.collect.Lists;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -75,11 +75,10 @@ class TestItemStatusChangedEventTest {
 
     final String beforeStatus = "PASSED";
     final String afterStatus = "FAILED";
-    final Activity actual = new TestItemStatusChangedEvent(getTestItem(beforeStatus),
-        getTestItem(afterStatus),
-        1L,
-        "user"
-    ).toActivity();
+    final Activity actual =
+        new TestItemStatusChangedEvent(getTestItem(beforeStatus), getTestItem(afterStatus), 1L,
+            "user"
+        ).toActivity();
     final Activity expected = getExpectedActivity();
     expected.getDetails().setHistory(getExpectedHistory(Pair.of(beforeStatus, afterStatus)));
     checkActivity(expected, actual);

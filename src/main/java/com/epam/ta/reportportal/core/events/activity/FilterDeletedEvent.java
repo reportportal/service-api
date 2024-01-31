@@ -24,13 +24,13 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
-import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
+import com.epam.ta.reportportal.model.activity.UserFilterActivityResource;
 
 /**
  * @author pavel_bortnik
  */
-public class FilterDeletedEvent extends BeforeEvent<UserFilterActivityResource> implements
-    ActivityEvent {
+public class FilterDeletedEvent extends BeforeEvent<UserFilterActivityResource>
+    implements ActivityEvent {
 
   public FilterDeletedEvent() {
   }
@@ -41,18 +41,11 @@ public class FilterDeletedEvent extends BeforeEvent<UserFilterActivityResource> 
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder()
-        .addCreatedNow()
-        .addAction(EventAction.DELETE)
-        .addEventName(ActivityAction.DELETE_FILTER.getValue())
-        .addPriority(EventPriority.LOW)
-        .addObjectId(getBefore().getId())
-        .addObjectName(getBefore().getName())
-        .addObjectType(EventObject.FILTER)
-        .addProjectId(getBefore().getProjectId())
-        .addSubjectId(getUserId())
-        .addSubjectName(getUserLogin())
-        .addSubjectType(EventSubject.USER)
+    return new ActivityBuilder().addCreatedNow().addAction(EventAction.DELETE)
+        .addEventName(ActivityAction.DELETE_FILTER.getValue()).addPriority(EventPriority.LOW)
+        .addObjectId(getBefore().getId()).addObjectName(getBefore().getName())
+        .addObjectType(EventObject.FILTER).addProjectId(getBefore().getProjectId())
+        .addSubjectId(getUserId()).addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER)
         .get();
   }
 }

@@ -13,10 +13,10 @@ import com.epam.ta.reportportal.core.widget.content.loader.materialized.HealthCh
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.content.healthcheck.HealthCheckTableContent;
+import com.epam.ta.reportportal.model.widget.ContentParameters;
+import com.epam.ta.reportportal.model.widget.SortEntry;
+import com.epam.ta.reportportal.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
-import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
-import com.epam.ta.reportportal.ws.model.widget.SortEntry;
-import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -33,14 +33,12 @@ import org.springframework.util.MultiValueMap;
  */
 public class HealthCheckTableReadyContentResolverTest {
 
-  private final WidgetContentRepository widgetContentRepository = mock(
-      WidgetContentRepository.class);
+  private final WidgetContentRepository widgetContentRepository =
+      mock(WidgetContentRepository.class);
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  private final HealthCheckTableReadyContentLoader contentResolver = new HealthCheckTableReadyContentLoader(
-      widgetContentRepository,
-      objectMapper
-  );
+  private final HealthCheckTableReadyContentLoader contentResolver =
+      new HealthCheckTableReadyContentLoader(widgetContentRepository, objectMapper);
 
   @Test
   void getContentTest() {
@@ -62,10 +60,8 @@ public class HealthCheckTableReadyContentResolverTest {
 
     SortEntry sortEntry = new SortEntry();
     sortEntry.setSortingColumn("passingRate");
-    Widget widget = new WidgetBuilder().addWidgetRq(widgetRQ)
-        .addOption("viewName", "name")
-        .addOption("sort", sortEntry)
-        .addOption(ATTRIBUTE_KEYS, Lists.newArrayList("k1", "k2"))
+    Widget widget = new WidgetBuilder().addWidgetRq(widgetRQ).addOption("viewName", "name")
+        .addOption("sort", sortEntry).addOption(ATTRIBUTE_KEYS, Lists.newArrayList("k1", "k2"))
         .get();
 
     HealthCheckTableContent content = new HealthCheckTableContent();

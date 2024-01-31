@@ -19,8 +19,8 @@ package com.epam.ta.reportportal.core.project;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
+import com.epam.ta.reportportal.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.project.CreateProjectRQ;
 
 /**
  * Create {@link Project} request handler

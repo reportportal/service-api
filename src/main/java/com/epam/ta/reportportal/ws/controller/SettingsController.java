@@ -20,8 +20,8 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandler;
+import com.epam.ta.reportportal.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
 import io.swagger.annotations.ApiOperation;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +54,7 @@ public class SettingsController {
   }
 
   @Transactional
-  @RequestMapping(value = "/analytics", method = {RequestMethod.PUT, RequestMethod.POST})
+  @RequestMapping(value = "/analytics", method = { RequestMethod.PUT, RequestMethod.POST })
   @ResponseStatus(HttpStatus.OK)
   @ApiOperation(value = "Update analytics settings")
   public OperationCompletionRS saveAnalyticsSettings(

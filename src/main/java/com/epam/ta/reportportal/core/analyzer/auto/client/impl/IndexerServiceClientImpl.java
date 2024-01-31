@@ -26,15 +26,13 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClie
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.IndexDefectsUpdate;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.IndexItemsRemove;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.IndexLaunchRemove;
-import com.epam.ta.reportportal.ws.model.analyzer.CleanIndexRq;
+import com.epam.ta.reportportal.model.analyzer.CleanIndexRq;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexRs;
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,91 +78,68 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 
   @Override
   public List<Long> indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate) {
-    return rabbitMqManagementClient.getAnalyzerExchangesInfo()
-        .stream()
-        .filter(DOES_SUPPORT_INDEX)
-        .flatMap(
-            exchange -> ofNullable(rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
-                DEFECT_UPDATE_ROUTE,
+    return rabbitMqManagementClient.getAnalyzerExchangesInfo().stream().filter(DOES_SUPPORT_INDEX)
+        .flatMap(exchange -> ofNullable(
+            rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(), DEFECT_UPDATE_ROUTE,
                 new IndexDefectsUpdate(projectId, itemsForIndexUpdate),
                 new ParameterizedTypeReference<List<Long>>() {
                 }
-            )).orElse(Collections.emptyList()).stream())
-        .collect(toList());
+            )).orElse(Collections.emptyList()).stream()).collect(toList());
   }
 
   @Override
   public Integer indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove) {
-    return rabbitMqManagementClient.getAnalyzerExchangesInfo()
-        .stream()
-        .filter(DOES_SUPPORT_INDEX)
-        .map(exchange -> ofNullable(rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
-            ITEM_REMOVE_ROUTE,
-            new IndexItemsRemove(projectId, itemsForIndexRemove),
-            new ParameterizedTypeReference<Integer>() {
-            }
-        )).orElse(0))
-        .mapToInt(Integer::intValue)
-        .sum();
+    return rabbitMqManagementClient.getAnalyzerExchangesInfo().stream().filter(DOES_SUPPORT_INDEX)
+        .map(exchange -> ofNullable(
+            rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(), ITEM_REMOVE_ROUTE,
+                new IndexItemsRemove(projectId, itemsForIndexRemove),
+                new ParameterizedTypeReference<Integer>() {
+                }
+            )).orElse(0)).mapToInt(Integer::intValue).sum();
   }
 
   @Override
   public void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove) {
-    rabbitMqManagementClient.getAnalyzerExchangesInfo()
-        .stream()
-        .filter(DOES_SUPPORT_INDEX)
-        .forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(),
-            ITEM_REMOVE_ROUTE,
+    rabbitMqManagementClient.getAnalyzerExchangesInfo().stream().filter(DOES_SUPPORT_INDEX).forEach(
+        exchange -> rabbitTemplate.convertAndSend(exchange.getName(), ITEM_REMOVE_ROUTE,
             new IndexItemsRemove(projectId, itemsForIndexRemove)
         ));
   }
 
   @Override
   public void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove) {
-    rabbitMqManagementClient.getAnalyzerExchangesInfo()
-        .stream()
-        .filter(DOES_SUPPORT_INDEX)
-        .forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(),
-            LAUNCH_REMOVE_ROUTE,
+    rabbitMqManagementClient.getAnalyzerExchangesInfo().stream().filter(DOES_SUPPORT_INDEX).forEach(
+        exchange -> rabbitTemplate.convertAndSend(exchange.getName(), LAUNCH_REMOVE_ROUTE,
             new IndexLaunchRemove(projectId, launchesForIndexRemove)
         ));
   }
 
   @Override
   public Long cleanIndex(Long index, List<Long> ids) {
-    Map<Integer, Long> priorityToCleanedLogsCountMapping = rabbitMqManagementClient.getAnalyzerExchangesInfo()
-        .stream()
-        .collect(Collectors.toMap(EXCHANGE_PRIORITY::applyAsInt,
-            exchange -> rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
-                CLEAN_ROUTE,
-                new CleanIndexRq(index, ids),
-                new ParameterizedTypeReference<>() {
-                }
-            )
-        ));
-    return priorityToCleanedLogsCountMapping.entrySet()
-        .stream()
-        .min(Map.Entry.comparingByKey())
-        .orElseGet(() -> new AbstractMap.SimpleEntry<>(0, 0L))
-        .getValue();
+    Map<Integer, Long> priorityToCleanedLogsCountMapping =
+        rabbitMqManagementClient.getAnalyzerExchangesInfo().stream().collect(
+            Collectors.toMap(EXCHANGE_PRIORITY::applyAsInt,
+                exchange -> rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
+                    CLEAN_ROUTE, new CleanIndexRq(index, ids), new ParameterizedTypeReference<>() {
+                    }
+                )
+            ));
+    return priorityToCleanedLogsCountMapping.entrySet().stream().min(Map.Entry.comparingByKey())
+        .orElseGet(() -> new AbstractMap.SimpleEntry<>(0, 0L)).getValue();
   }
 
   @Override
   public void deleteIndex(Long index) {
-    rabbitMqManagementClient.getAnalyzerExchangesInfo()
-        .stream()
-        .map(exchange -> rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
-            DELETE_ROUTE,
-            index,
-            new ParameterizedTypeReference<Integer>() {
+    rabbitMqManagementClient.getAnalyzerExchangesInfo().stream().map(
+        exchange -> rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(), DELETE_ROUTE,
+            index, new ParameterizedTypeReference<Integer>() {
             }
-        ))
-        .forEach(it -> {
-          if (DELETE_INDEX_SUCCESS_CODE.equals(it)) {
-            LOGGER.info("Successfully deleted index '{}'", index);
-          } else {
-            LOGGER.error("Error deleting index '{}'", index);
-          }
-        });
+        )).forEach(it -> {
+      if (DELETE_INDEX_SUCCESS_CODE.equals(it)) {
+        LOGGER.info("Successfully deleted index '{}'", index);
+      } else {
+        LOGGER.error("Error deleting index '{}'", index);
+      }
+    });
   }
 }

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.builder.ActivityBuilder;
@@ -23,13 +24,13 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
-import com.epam.ta.reportportal.ws.model.activity.IssueTypeActivityResource;
+import com.epam.ta.reportportal.model.activity.IssueTypeActivityResource;
 
 /**
  * @author Andrei Varabyeu
  */
-public class DefectTypeDeletedEvent extends BeforeEvent<IssueTypeActivityResource> implements
-    ActivityEvent {
+public class DefectTypeDeletedEvent extends BeforeEvent<IssueTypeActivityResource>
+    implements ActivityEvent {
 
   private Long projectId;
 
@@ -52,18 +53,10 @@ public class DefectTypeDeletedEvent extends BeforeEvent<IssueTypeActivityResourc
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder()
-        .addCreatedNow()
-        .addAction(EventAction.DELETE)
-        .addEventName(ActivityAction.DELETE_DEFECT.getValue())
-        .addPriority(EventPriority.MEDIUM)
-        .addObjectId(getBefore().getId())
-        .addObjectName(getBefore().getLongName())
-        .addObjectType(EventObject.DEFECT_TYPE)
-        .addProjectId(projectId)
-        .addSubjectId(getUserId())
-        .addSubjectName(getUserLogin())
-        .addSubjectType(EventSubject.USER)
-        .get();
+    return new ActivityBuilder().addCreatedNow().addAction(EventAction.DELETE)
+        .addEventName(ActivityAction.DELETE_DEFECT.getValue()).addPriority(EventPriority.MEDIUM)
+        .addObjectId(getBefore().getId()).addObjectName(getBefore().getLongName())
+        .addObjectType(EventObject.DEFECT_TYPE).addProjectId(projectId).addSubjectId(getUserId())
+        .addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER).get();
   }
 }

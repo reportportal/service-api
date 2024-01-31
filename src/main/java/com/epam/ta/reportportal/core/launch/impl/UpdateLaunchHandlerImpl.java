@@ -50,16 +50,16 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.BulkRQ;
+import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
+import com.epam.ta.reportportal.model.launch.UpdateLaunchRQ;
+import com.epam.ta.reportportal.model.launch.cluster.CreateClustersRQ;
 import com.epam.ta.reportportal.util.ItemInfoUtils;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
 import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
-import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.cluster.CreateClustersRQ;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -93,11 +93,11 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
   @Autowired
   public UpdateLaunchHandlerImpl(GetProjectHandler getProjectHandler,
-      GetLaunchHandler getLaunchHandler,
-      LaunchAccessValidator launchAccessValidator, LaunchRepository launchRepository,
-      LogIndexer logIndexer,
+      GetLaunchHandler getLaunchHandler, LaunchAccessValidator launchAccessValidator,
+      LaunchRepository launchRepository, LogIndexer logIndexer,
       Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping,
-      @Qualifier("uniqueErrorAnalysisStarterAsync") UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter) {
+      @Qualifier("uniqueErrorAnalysisStarterAsync")
+      UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter) {
     this.getProjectHandler = getProjectHandler;
     this.getLaunchHandler = getLaunchHandler;
     this.launchAccessValidator = launchAccessValidator;
@@ -109,8 +109,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
   @Override
   public OperationCompletionRS updateLaunch(Long launchId,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-      UpdateLaunchRQ rq) {
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, UpdateLaunchRQ rq) {
     Project project = getProjectHandler.get(projectDetails);
     Launch launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
@@ -118,10 +117,8 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
     LaunchModeEnum previousMode = launch.getMode();
 
-    launch = new LaunchBuilder(launch).addMode(rq.getMode())
-        .addDescription(rq.getDescription())
-        .overwriteAttributes(rq.getAttributes())
-        .get();
+    launch = new LaunchBuilder(launch).addMode(rq.getMode()).addDescription(rq.getDescription())
+        .overwriteAttributes(rq.getAttributes()).get();
     launchRepository.save(launch);
 
     if (!previousMode.equals(launch.getMode())) {
@@ -133,19 +130,15 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
   @Override
   public List<OperationCompletionRS> updateLaunch(BulkRQ<Long, UpdateLaunchRQ> rq,
-      ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user) {
-    return rq.getEntities()
-        .entrySet()
-        .stream()
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+    return rq.getEntities().entrySet().stream()
         .map(entry -> updateLaunch(entry.getKey(), projectDetails, user, entry.getValue()))
         .collect(toList());
   }
 
   @Override
   public OperationCompletionRS startLaunchAnalyzer(AnalyzeLaunchRQ analyzeRQ,
-      ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user) {
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
     AnalyzerType analyzerType = AnalyzerType.fromString(analyzeRQ.getAnalyzerTypeName());
     launchAnalysisStrategyMapping.get(analyzerType).analyze(analyzeRQ, projectDetails, user);
     return new OperationCompletionRS(
@@ -156,38 +149,37 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
   @Override
   @Transactional
   public OperationCompletionRS createClusters(CreateClustersRQ createClustersRQ,
-      ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user) {
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 
     final Launch launch = getLaunchHandler.get(createClustersRQ.getLaunchId());
     launchAccessValidator.validate(launch, projectDetails, user);
     //TODO should be put inside *Validator after validators refactoring
     expect(launch.getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(INCORRECT_REQUEST,
-        "Cannot analyze launch in progress.");
+        "Cannot analyze launch in progress."
+    );
 
     final Project project = getProjectHandler.get(launch.getProjectId());
 
-    final Map<String, String> configParameters = getConfigParameters(
-        project.getProjectAttributes());
+    final Map<String, String> configParameters =
+        getConfigParameters(project.getProjectAttributes());
     configParameters.put(ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getAttribute(),
         String.valueOf(createClustersRQ.isRemoveNumbers())
     );
     uniqueErrorAnalysisStarter.start(ClusterEntityContext.of(launch.getId(), launch.getProjectId()),
-        configParameters);
+        configParameters
+    );
 
     return new OperationCompletionRS(
         Suppliers.formattedSupplier("Clusters generation for launch with ID='{}' started.",
-                launch.getId())
-            .get());
+            launch.getId()
+        ).get());
   }
 
   @Override
   public OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq,
       ReportPortalUser.ProjectDetails projectDetails) {
     expect(getProjectHandler.exists(projectDetails.getProjectId()), Predicate.isEqual(true)).verify(
-        PROJECT_NOT_FOUND,
-        projectDetails.getProjectId()
-    );
+        PROJECT_NOT_FOUND, projectDetails.getProjectId());
 
     List<Launch> launches = launchRepository.findAllById(bulkUpdateRq.getIds());
     launches.forEach(
@@ -198,8 +190,8 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
       switch (it.getAction()) {
         case DELETE: {
           launches.forEach(launch -> {
-            ItemAttribute toDelete = ItemInfoUtils.findAttributeByResource(launch.getAttributes(),
-                it.getFrom());
+            ItemAttribute toDelete =
+                ItemInfoUtils.findAttributeByResource(launch.getAttributes(), it.getFrom());
             launch.getAttributes().remove(toDelete);
           });
           break;
@@ -212,8 +204,8 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
           launches.stream()
               .filter(launch -> ItemInfoUtils.containsAttribute(launch.getAttributes(), it.getTo()))
               .forEach(launch -> {
-                ItemAttribute itemAttribute = ItemAttributeConverter.FROM_RESOURCE.apply(
-                    it.getTo());
+                ItemAttribute itemAttribute =
+                    ItemAttributeConverter.FROM_RESOURCE.apply(it.getTo());
                 itemAttribute.setLaunch(launch);
                 launch.getAttributes().add(itemAttribute);
               });

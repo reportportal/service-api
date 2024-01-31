@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
+import com.epam.ta.reportportal.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import java.util.List;
@@ -37,8 +37,7 @@ public interface StopLaunchHandler {
    * @return OperationCompletionRS
    */
   OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ,
-      ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user);
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
   /**
    * Bulk stop launches operation.
@@ -49,6 +48,5 @@ public interface StopLaunchHandler {
    * @return OperationCompletionsRS
    */
   List<OperationCompletionRS> stopLaunch(BulkRQ<Long, FinishExecutionRQ> bulkRQ,
-      ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user);
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 }

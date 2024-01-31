@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.dashboard;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
+import com.epam.ta.reportportal.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.dashboard.CreateDashboardRQ;
 
 /**
  * @author Pavel Bortnik

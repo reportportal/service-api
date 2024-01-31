@@ -21,8 +21,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.ta.reportportal.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,8 +48,8 @@ class SettingsControllerTest extends BaseMvcTest {
     resource.setType("server.analytics.all");
     resource.setEnabled(true);
     mockMvc.perform(put("/v1/settings/analytics").with(token(oAuthHelper.getSuperadminToken()))
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsBytes(resource))).andExpect(status().isOk());
+            .contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsBytes(resource)))
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -58,7 +58,7 @@ class SettingsControllerTest extends BaseMvcTest {
     resource.setEnabled(true);
     resource.setType("");
     mockMvc.perform(put("/v1/settings/analytics").with(token(oAuthHelper.getSuperadminToken()))
-        .contentType(APPLICATION_JSON)
-        .content(objectMapper.writeValueAsBytes(resource))).andExpect(status().isBadRequest());
+            .contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(resource)))
+        .andExpect(status().isBadRequest());
   }
 }

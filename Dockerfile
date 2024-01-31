@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM gradle:8.4.0-jdk21 AS build
+FROM --platform=$BUILDPLATFORM gradle:8.5.0-jdk21 AS build
 ARG RELEASE_MODE
 ARG APP_VERSION
 WORKDIR /usr/app

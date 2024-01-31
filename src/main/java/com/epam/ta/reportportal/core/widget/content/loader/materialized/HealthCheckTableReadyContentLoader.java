@@ -140,7 +140,7 @@ public class HealthCheckTableReadyContentLoader implements MaterializedWidgetCon
     double passingRate =
         100.0 * totalStatistics.getOrDefault(EXECUTIONS_PASSED, 0) / totalStatistics.getOrDefault(
             EXECUTIONS_TOTAL, 1);
-    return new BigDecimal(passingRate).setScale(2, RoundingMode.HALF_UP).doubleValue();
+    return BigDecimal.valueOf(passingRate).setScale(2, RoundingMode.HALF_UP).doubleValue();
   }
 
 }

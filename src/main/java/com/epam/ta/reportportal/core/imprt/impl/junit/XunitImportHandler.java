@@ -115,6 +115,7 @@ public class XunitImportHandler extends DefaultHandler {
       case TESTSUITE:
         if (itemUuids.isEmpty()) {
           startRootItem(attributes.getValue(XunitReportTag.ATTR_NAME.getValue()),
+              attributes.getValue(XunitReportTag.START_TIME.getValue()),
               attributes.getValue(XunitReportTag.TIMESTAMP.getValue()),
               attributes.getValue(XunitReportTag.ATTR_TIME.getValue())
           );
@@ -186,9 +187,14 @@ public class XunitImportHandler extends DefaultHandler {
     }
   }
 
-  private void startRootItem(String name, String timestamp, String duration) {
+  private void startRootItem(String name, String startTime, String timestamp, String duration) {
     if (null != timestamp) {
       startItemTime = parseTimeStamp(timestamp);
+      if (startSuiteTime.isAfter(startItemTime)) {
+        startSuiteTime = LocalDateTime.of(startItemTime.toLocalDate(), startItemTime.toLocalTime());
+      }
+    } else if (null != startTime) {
+      startItemTime = parseTimeStamp(startTime);
       if (startSuiteTime.isAfter(startItemTime)) {
         startSuiteTime = LocalDateTime.of(startItemTime.toLocalDate(), startItemTime.toLocalTime());
       }

@@ -26,14 +26,19 @@ import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
@@ -41,6 +46,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class TestItemPreparerServiceImpl implements TestItemPreparerService {
+
+  private final Logger LOGGER = LoggerFactory.getLogger(this.getClass().getName());
 
   private final TestItemRepository testItemRepository;
   private final LogService logService;
@@ -85,6 +92,24 @@ public class TestItemPreparerServiceImpl implements TestItemPreparerService {
   }
 
   private Map<Long, List<IndexLog>> getLogsMapping(Long launchId, List<Long> itemIds) {
+    if (itemIds.size() == 1) {
+      LOGGER.info("Prepare single index");
+      List<Log> logs = logService.findByTestItemId(itemIds.get(0));
+      Map<Long, List<IndexLog>> result = new HashMap<>();
+      List<IndexLog> indexlogs = new ArrayList<>();
+      for (Log log: logs) {
+        IndexLog indexLog = new IndexLog();
+        indexLog.setLogId(log.getId());
+        indexLog.setLogLevel(log.getLogLevel());
+        indexLog.setMessage(log.getLogMessage());
+        indexLog.setLogTime(log.getLogTime());
+        indexLog.setClusterId(log.getClusterId());
+        indexlogs.add(indexLog);
+      }
+      result.put(itemIds.get(0), indexlogs);
+      return result;
+    }
+
     return logService.findAllIndexUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId,
         itemIds, LogLevel.ERROR.toInt());
   }

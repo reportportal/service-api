@@ -99,6 +99,7 @@ public class XunitImportHandlerTest {
     Attributes attributes = mock(Attributes.class);
     when(attributes.getValue(XunitReportTag.ATTR_NAME.getValue())).thenReturn(ATTR_NAME);
     when(attributes.getValue(XunitReportTag.TIMESTAMP.getValue())).thenReturn(TIMESTAMP);
+    when(attributes.getValue(XunitReportTag.START_TIME.getValue())).thenReturn(TIMESTAMP);
 
     LocalDateTime startSuiteTime =
         LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(suiteTimestamp)),
@@ -136,6 +137,7 @@ public class XunitImportHandlerTest {
     Attributes attributes = mock(Attributes.class);
     when(attributes.getValue(XunitReportTag.ATTR_NAME.getValue())).thenReturn(ATTR_NAME);
     when(attributes.getValue(XunitReportTag.TIMESTAMP.getValue())).thenReturn(ISO_DATE);
+    when(attributes.getValue(XunitReportTag.START_TIME.getValue())).thenReturn(ISO_DATE);
 
     DateTimeFormatter formatter =
         new DateTimeFormatterBuilder().appendOptional(DateTimeFormatter.RFC_1123_DATE_TIME)

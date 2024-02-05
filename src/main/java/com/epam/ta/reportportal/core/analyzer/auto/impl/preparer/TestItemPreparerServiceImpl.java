@@ -30,7 +30,6 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -95,17 +94,18 @@ public class TestItemPreparerServiceImpl implements TestItemPreparerService {
   private Map<Long, List<IndexLog>> getLogsMapping(Long launchId, List<Long> itemIds) {
     if (itemIds.size() == 1) {
       LOGGER.info("Prepare single index");
+      List<Log> logs = logService.findByTestItemId(itemIds.get(0));
       Map<Long, List<IndexLog>> result = new HashMap<>();
       List<IndexLog> indexlogs = new ArrayList<>();
-
+      for (Log log: logs) {
         IndexLog indexLog = new IndexLog();
-        indexLog.setLogId(1L);
-        indexLog.setLogLevel(2);
-        indexLog.setMessage("ERROR");
-        indexLog.setLogTime(LocalDateTime.now());
-        indexLog.setClusterId(1L);
+        indexLog.setLogId(log.getId());
+        indexLog.setLogLevel(log.getLogLevel());
+        indexLog.setMessage(log.getLogMessage());
+        indexLog.setLogTime(log.getLogTime());
+        indexLog.setClusterId(log.getClusterId());
         indexlogs.add(indexLog);
-
+      }
       result.put(itemIds.get(0), indexlogs);
       return result;
     }

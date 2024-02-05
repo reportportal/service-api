@@ -73,8 +73,8 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
   public void index(List<IndexLaunch> rq) {
     rabbitMqManagementClient.getAnalyzerExchangesInfo().stream().filter(DOES_SUPPORT_INDEX)
         .forEach(exchange -> {
-          rabbitTemplate.convertAndSend(exchange.getName(), NAMESPACE_FINDER_ROUTE, rq);
-          rabbitTemplate.convertAndSend(exchange.getName(), INDEX_ROUTE, rq);
+//          rabbitTemplate.convertAndSend(exchange.getName(), NAMESPACE_FINDER_ROUTE, rq);
+//          rabbitTemplate.convertAndSend(exchange.getName(), INDEX_ROUTE, rq);
         });
   }
 

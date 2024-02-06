@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -89,7 +89,7 @@ class TestItemBuilderTest {
     final String description = "description";
     rq.setDescription(description);
     final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
-    rq.setStartTime(TO_DATE.apply(now));
+    rq.setStartTime(FROM_UTC_TO_LOCAL_DATE_TIME.apply(now));
     final String name = "name";
     rq.setName(name);
 

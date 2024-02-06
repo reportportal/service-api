@@ -16,10 +16,10 @@
 
 package com.epam.ta.reportportal.core.imprt.impl.junit;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toMillis;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
@@ -253,7 +253,7 @@ public class XunitImportHandler extends DefaultHandler {
       startItemTime = startSuiteTime;
     }
 
-    rq.setStartTime(EntityUtils.TO_DATE.apply(startItemTime));
+    rq.setStartTime(FROM_UTC_TO_LOCAL_DATE_TIME.apply(startItemTime));
 
     String id =
         startTestItemHandler.startChildItem(user, projectDetails, rq, itemUuids.peek()).getId();
@@ -265,8 +265,8 @@ public class XunitImportHandler extends DefaultHandler {
   private void finishRootItem() {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     markAsNotIssue(rq);
-    rq.setEndTime(
-        EntityUtils.TO_DATE.apply(startSuiteTime.plus(currentSuiteDuration, ChronoUnit.MILLIS)));
+    rq.setEndTime(FROM_UTC_TO_LOCAL_DATE_TIME
+        .apply(startSuiteTime.plus(currentSuiteDuration, ChronoUnit.MILLIS)));
     finishTestItemHandler.finishTestItem(user, projectDetails, itemUuids.poll(), rq);
     status = null;
   }
@@ -276,7 +276,7 @@ public class XunitImportHandler extends DefaultHandler {
     markAsNotIssue(rq);
     LocalDateTime endTime = startItemTime.plus(currentDuration, ChronoUnit.MILLIS);
     commonDuration += currentDuration;
-    rq.setEndTime(EntityUtils.TO_DATE.apply(endTime));
+    rq.setEndTime(FROM_UTC_TO_LOCAL_DATE_TIME.apply(endTime));
     rq.setStatus(Optional.ofNullable(status).orElse(StatusEnum.PASSED).name());
     currentItemUuid = itemUuids.poll();
     finishTestItemHandler.finishTestItem(user, projectDetails, currentItemUuid, rq);
@@ -295,7 +295,7 @@ public class XunitImportHandler extends DefaultHandler {
     if (null != message && message.length() != 0) {
       SaveLogRQ saveLogRQ = new SaveLogRQ();
       saveLogRQ.setLevel(logLevel.name());
-      saveLogRQ.setLogTime(EntityUtils.TO_DATE.apply(startItemTime));
+      saveLogRQ.setLogTime(FROM_UTC_TO_LOCAL_DATE_TIME.apply(startItemTime));
       saveLogRQ.setMessage(message.toString().trim());
       saveLogRQ.setItemUuid(currentItemUuid);
       createLogHandler.createLog(saveLogRQ, null, projectDetails);
@@ -314,7 +314,7 @@ public class XunitImportHandler extends DefaultHandler {
   private StartTestItemRQ buildStartTestRq(String name) {
     StartTestItemRQ rq = new StartTestItemRQ();
     rq.setLaunchUuid(launchUuid);
-    rq.setStartTime(EntityUtils.TO_DATE.apply(startItemTime));
+    rq.setStartTime(FROM_UTC_TO_LOCAL_DATE_TIME.apply(startItemTime));
     rq.setType(TestItemTypeEnum.TEST.name());
     rq.setName(Strings.isNullOrEmpty(name) ? "no_name" : name);
     return rq;

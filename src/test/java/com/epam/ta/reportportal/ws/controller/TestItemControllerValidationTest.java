@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.FIELD_NAME_IS_BLANK_MESSAGE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.FIELD_NAME_IS_NULL_MESSAGE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.INCORRECT_REQUEST_MESSAGE;
@@ -28,18 +29,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.ErrorRS;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.model.issue.DefineIssueRQ;
-import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.model.item.UnlinkExternalIssueRQ;
+import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.epam.ta.reportportal.ws.model.ErrorRS;
+import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -390,7 +389,7 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
     startTestItemRQ.setType("SUITE");
     startTestItemRQ.setUniqueId(UUID.randomUUID().toString());
     startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+        FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now()));
     return startTestItemRQ;
   }
 }

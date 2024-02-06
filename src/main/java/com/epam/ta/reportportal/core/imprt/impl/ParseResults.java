@@ -15,10 +15,10 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 
 public class ParseResults {
 
@@ -53,7 +53,7 @@ public class ParseResults {
     this.duration += duration;
   }
 
-  public Date getEndTime() {
-    return EntityUtils.TO_DATE.apply(startTime.plus(duration, ChronoUnit.MILLIS));
+  public LocalDateTime getEndTime() {
+    return FROM_UTC_TO_LOCAL_DATE_TIME.apply(startTime.plus(duration, ChronoUnit.MILLIS));
   }
 }

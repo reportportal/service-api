@@ -16,7 +16,8 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
+
 import com.epam.ta.reportportal.entity.user.ApiKey;
 import com.epam.ta.reportportal.model.ApiKeyRS;
 import java.util.function.Function;
@@ -37,9 +38,10 @@ public class ApiKeyConverter {
     resource.setId(apiKey.getId());
     resource.setName(apiKey.getName());
     resource.setUserId(apiKey.getUserId());
-    resource.setCreatedAt(EntityUtils.TO_DATE.apply(apiKey.getCreatedAt()));
+    resource.setCreatedAt(FROM_UTC_TO_LOCAL_DATE_TIME.apply(apiKey.getCreatedAt()));
     if (apiKey.getLastUsedAt() != null) {
-      resource.setLastUsedAt(EntityUtils.TO_DATE.apply(apiKey.getLastUsedAt().atStartOfDay()));
+      resource.setLastUsedAt(FROM_UTC_TO_LOCAL_DATE_TIME
+          .apply(apiKey.getLastUsedAt().atStartOfDay()));
     }
     return resource;
   };

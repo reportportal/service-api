@@ -41,7 +41,7 @@ public class LogFullBuilder implements Supplier<LogFull> {
   public LogFullBuilder addSaveLogRq(SaveLogRQ createLogRQ) {
     logFull.setLogLevel(LogLevel.toCustomLogLevel(createLogRQ.getLevel()));
     logFull.setLogMessage(ofNullable(createLogRQ.getMessage()).orElse("NULL"));
-    logFull.setLogTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(createLogRQ.getLogTime()));
+    logFull.setLogTime(EntityUtils.TO_UTC_LOCAL_DATE_TIME.apply(createLogRQ.getLogTime()));
     logFull.setUuid(ofNullable(createLogRQ.getUuid()).orElse(UUID.randomUUID().toString()));
     return this;
   }

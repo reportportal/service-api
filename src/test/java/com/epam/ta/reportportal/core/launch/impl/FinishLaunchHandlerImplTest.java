@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,8 +44,6 @@ import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,8 +84,7 @@ class FinishLaunchHandlerImplTest {
   @Test
   void finishLaunch() {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-    finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    finishExecutionRQ.setEndTime(FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now()));
 
     ReportPortalUser rpUser =
         getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
@@ -107,8 +105,7 @@ class FinishLaunchHandlerImplTest {
   @Test
   void finishLaunchWithLink() {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-    finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    finishExecutionRQ.setEndTime(FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now()));
 
     ReportPortalUser rpUser =
         getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
@@ -131,7 +128,7 @@ class FinishLaunchHandlerImplTest {
   void stopLaunch() {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
     finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+        FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now()));
 
     ReportPortalUser rpUser =
         getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
@@ -150,7 +147,7 @@ class FinishLaunchHandlerImplTest {
   void bulkStopLaunch() {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
     finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+        FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now()));
 
     Map<Long, FinishExecutionRQ> entities = new HashMap<>();
     entities.put(1L, finishExecutionRQ);
@@ -174,7 +171,7 @@ class FinishLaunchHandlerImplTest {
   void finishWithIncorrectStatus() {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
     finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+        FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now()));
 
     final ReportPortalUser rpUser =
         getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
@@ -191,7 +188,7 @@ class FinishLaunchHandlerImplTest {
   void finishWithIncorrectEndTime() {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
     finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().minusHours(5).atZone(ZoneId.of("UTC")).toInstant()));
+        FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now().minusHours(5)));
 
     final ReportPortalUser rpUser =
         getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
@@ -208,7 +205,7 @@ class FinishLaunchHandlerImplTest {
   void finishNotOwnLaunch() {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
     finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+        FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now()));
 
     final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
     rpUser.setUserId(2L);

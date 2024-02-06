@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -40,7 +40,7 @@ class LogFullBuilderTest {
     createLogRQ.setLevel("ERROR");
     final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
 
-    createLogRQ.setLogTime(TO_DATE.apply(now));
+    createLogRQ.setLogTime(FROM_UTC_TO_LOCAL_DATE_TIME.apply(now));
     TestItem item = new TestItem();
     item.setItemId(1L);
     item.setUniqueId("uuid");

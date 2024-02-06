@@ -29,15 +29,16 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.ta.reportportal.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.ErrorRS;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
-import com.epam.ta.reportportal.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.HashSet;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
@@ -53,10 +54,7 @@ public class LaunchControllerValidationTest extends BaseMvcTest {
   private static final String FIELD_NAME_SIZE_MESSAGE = String.format(
       FIELD_NAME_SIZE_MESSAGE_WITH_FORMAT, 1, 256);
 
-  private static final String LONG_NAME_VALUE =
-      "tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
-          + "tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
-          + "ttttttttttttttttttttttttttttttttttttttttttttt";
+  private static final String LONG_NAME_VALUE = RandomStringUtils.random(257);
 
   @Autowired
   private ObjectMapper objectMapper;
@@ -147,7 +145,7 @@ public class LaunchControllerValidationTest extends BaseMvcTest {
   private StartLaunchRQ prepareLaunch() {
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
     startLaunchRQ.setDescription("some description");
-    startLaunchRQ.setStartTime(new Date());
+    startLaunchRQ.setStartTime(LocalDateTime.now());
     startLaunchRQ.setMode(DEFAULT);
     startLaunchRQ.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
     return startLaunchRQ;
@@ -245,8 +243,8 @@ public class LaunchControllerValidationTest extends BaseMvcTest {
 
     mergeLaunchesRQ.setLaunches(set);
     mergeLaunchesRQ.setMergeStrategyType("BASIC");
-    mergeLaunchesRQ.setStartTime(new Date());
-    mergeLaunchesRQ.setEndTime(new Date());
+    mergeLaunchesRQ.setStartTime(LocalDateTime.now());
+    mergeLaunchesRQ.setEndTime(LocalDateTime.now());
 
     return mergeLaunchesRQ;
   }

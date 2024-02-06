@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
 import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.entity.activity.Activity;
@@ -36,7 +36,7 @@ public final class ActivityConverter {
   public static final Function<Activity, ActivityResource> TO_RESOURCE = activity -> {
     ActivityResource resource = new ActivityResource();
     resource.setId(activity.getId());
-    resource.setLastModified(TO_DATE.apply(activity.getCreatedAt()));
+    resource.setLastModified(FROM_UTC_TO_LOCAL_DATE_TIME.apply(activity.getCreatedAt()));
     resource.setObjectType(activity.getObjectType().toString());
     resource.setActionType(activity.getEventName());
     resource.setProjectId(activity.getProjectId());

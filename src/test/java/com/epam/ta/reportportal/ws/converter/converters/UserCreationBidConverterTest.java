@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -23,8 +24,6 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.model.user.CreateUserRQ;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,7 +40,7 @@ class UserCreationBidConverterTest {
     request.setRole(role);
     final Project project = new Project();
     project.setName("projectName");
-    final Date creationDate = Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant());
+    final LocalDateTime creationDate = FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now());
     project.setCreationDate(creationDate);
 
     final UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(request, project);

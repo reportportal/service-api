@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -39,8 +40,6 @@ import com.epam.ta.reportportal.model.TestItemResource;
 import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 import com.google.common.collect.Sets;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
@@ -104,12 +103,9 @@ class TestItemConverterTest {
     assertEquals(resource.getPath(), item.getPath());
     assertEquals(resource.getStatus(), item.getItemResults().getStatus().name());
     assertEquals(resource.getType(), item.getType().name());
-    assertEquals(resource.getStartTime(),
-        Date.from(item.getStartTime().atZone(ZoneId.of("UTC")).toInstant())
-    );
+    assertEquals(resource.getStartTime(), FROM_UTC_TO_LOCAL_DATE_TIME.apply(item.getStartTime()));
     assertEquals(resource.getEndTime(),
-        Date.from(item.getItemResults().getEndTime().atZone(ZoneId.of("UTC")).toInstant())
-    );
+        FROM_UTC_TO_LOCAL_DATE_TIME.apply(item.getItemResults().getEndTime()));
     assertEquals(resource.getUniqueId(), item.getUniqueId());
     assertThat(resource.getAttributes().stream().map(ItemAttributeConverter.FROM_RESOURCE)
         .collect(Collectors.toSet())).containsExactlyElementsOf(item.getAttributes());
@@ -145,12 +141,9 @@ class TestItemConverterTest {
     assertEquals(resource.getPath(), item.getPath());
     assertEquals(resource.getStatus(), item.getItemResults().getStatus().name());
     assertEquals(resource.getType(), item.getType().name());
-    assertEquals(resource.getStartTime(),
-        Date.from(item.getStartTime().atZone(ZoneId.of("UTC")).toInstant())
-    );
+    assertEquals(resource.getStartTime(),FROM_UTC_TO_LOCAL_DATE_TIME.apply(item.getStartTime()));
     assertEquals(resource.getEndTime(),
-        Date.from(item.getItemResults().getEndTime().atZone(ZoneId.of("UTC")).toInstant())
-    );
+        FROM_UTC_TO_LOCAL_DATE_TIME.apply(item.getItemResults().getEndTime()));
     assertEquals(resource.getUniqueId(), item.getUniqueId());
     assertThat(resource.getAttributes().stream().map(ItemAttributeConverter.FROM_RESOURCE)
         .collect(Collectors.toSet())).containsExactlyElementsOf(item.getAttributes());

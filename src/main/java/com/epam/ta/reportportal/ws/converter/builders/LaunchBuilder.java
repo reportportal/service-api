@@ -16,10 +16,10 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_UTC_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
 import static java.util.Optional.ofNullable;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.base.Preconditions;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -56,7 +56,7 @@ public class LaunchBuilder implements Supplier<Launch> {
 
   public LaunchBuilder addStartRQ(StartLaunchRQ request) {
     Preconditions.checkNotNull(request, ErrorType.BAD_REQUEST_ERROR);
-    launch.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(request.getStartTime()));
+    launch.setStartTime(TO_UTC_LOCAL_DATE_TIME.apply(request.getStartTime()));
     launch.setName(request.getName().trim());
     launch.setStatus(StatusEnum.IN_PROGRESS);
     launch.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
@@ -128,8 +128,8 @@ public class LaunchBuilder implements Supplier<Launch> {
     return this;
   }
 
-  public LaunchBuilder addEndTime(Date date) {
-    launch.setEndTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(date));
+  public LaunchBuilder addEndTime(LocalDateTime dateTime) {
+    launch.setEndTime(TO_UTC_LOCAL_DATE_TIME.apply(dateTime));
     return this;
   }
 

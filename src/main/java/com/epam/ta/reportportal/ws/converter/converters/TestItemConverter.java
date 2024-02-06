@@ -16,10 +16,10 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.item.NestedStep;
 import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -60,7 +60,7 @@ public final class TestItemConverter {
         .filter(it -> !it.isSystem())
         .map(it -> new ItemAttributeResource(it.getKey(), it.getValue()))
         .collect(toSet()));
-    resource.setEndTime(EntityUtils.TO_DATE.apply(item.getItemResults().getEndTime()));
+    resource.setEndTime(FROM_UTC_TO_LOCAL_DATE_TIME.apply(item.getItemResults().getEndTime()));
     resource.setItemId(item.getItemId());
     if (null != item.getParameters()) {
       resource.setParameters(item.getParameters().stream().map(ParametersConverter.TO_RESOURCE)
@@ -72,7 +72,7 @@ public final class TestItemConverter {
       }
     });
     resource.setName(item.getName());
-    resource.setStartTime(EntityUtils.TO_DATE.apply(item.getStartTime()));
+    resource.setStartTime(FROM_UTC_TO_LOCAL_DATE_TIME.apply(item.getStartTime()));
     resource.setStatus(
         item.getItemResults().getStatus() != null ? item.getItemResults().getStatus().toString()
             : null);
@@ -117,8 +117,8 @@ public final class TestItemConverter {
     resource.setId(item.getId());
     resource.setName(item.getName());
     resource.setUuid(item.getUuid());
-    resource.setStartTime(EntityUtils.TO_DATE.apply(item.getStartTime()));
-    resource.setEndTime(EntityUtils.TO_DATE.apply(item.getEndTime()));
+    resource.setStartTime(FROM_UTC_TO_LOCAL_DATE_TIME.apply(item.getStartTime()));
+    resource.setEndTime(FROM_UTC_TO_LOCAL_DATE_TIME.apply(item.getEndTime()));
     resource.setStatus(item.getStatus() != null ? item.getStatus().toString() : null);
     resource.setType(item.getType() != null ? item.getType().name() : null);
     resource.setHasContent(item.isHasContent());

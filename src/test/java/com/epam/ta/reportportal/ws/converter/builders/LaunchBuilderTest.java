@@ -16,7 +16,8 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_UTC_LOCAL_DATE_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -31,7 +32,6 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.collect.Sets;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -42,8 +42,7 @@ class LaunchBuilderTest {
   @Test
   void launchBuilder() {
     final String description = "description";
-    final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
-    final Date date = TO_DATE.apply(now);
+    final LocalDateTime now = LocalDateTime.now();
     final Long projectId = 1L;
     final ItemAttributeResource attributeResource = new ItemAttributeResource("key", "value");
     final Long userId = 2L;
@@ -51,7 +50,7 @@ class LaunchBuilderTest {
     final Mode mode = Mode.DEFAULT;
 
     final Launch launch = new LaunchBuilder().addDescription(description)
-        .addEndTime(date)
+        .addEndTime(now)
         .addProject(projectId)
         .addAttribute(attributeResource)
         .addUserId(userId)
@@ -60,7 +59,7 @@ class LaunchBuilderTest {
         .get();
 
     assertEquals(description, launch.getDescription());
-    assertEquals(now, launch.getEndTime());
+    assertEquals(now, FROM_UTC_TO_LOCAL_DATE_TIME.apply(launch.getEndTime()));
     assertEquals(projectId, launch.getProjectId());
     assertTrue(launch.getAttributes().contains(new ItemAttribute("key", "value", false)));
     assertEquals(userId, launch.getUserId());
@@ -79,7 +78,7 @@ class LaunchBuilderTest {
     final String name = "name";
     request.setName(name);
     final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
-    request.setStartTime(TO_DATE.apply(now));
+    request.setStartTime(now);
     request.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
 
     final Launch launch = new LaunchBuilder().addStartRQ(request)
@@ -88,7 +87,7 @@ class LaunchBuilderTest {
     assertEquals(name, launch.getName());
     assertEquals(uuid, launch.getUuid());
     assertEquals(description, launch.getDescription());
-    assertEquals(now, launch.getStartTime());
+    assertEquals(TO_UTC_LOCAL_DATE_TIME.apply(now), launch.getStartTime());
     assertTrue(launch.getAttributes().contains(new ItemAttribute("key", "value", false)));
     assertEquals(LaunchModeEnum.DEFAULT, launch.getMode());
   }

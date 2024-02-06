@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -28,9 +29,7 @@ import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Collections;
-import java.util.Date;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -84,8 +83,7 @@ class ActivityConverterTest {
   }
 
   private void validate(Activity db, ActivityResource resource) {
-    assertEquals(Date.from(db.getCreatedAt().atZone(ZoneId.of("UTC")).toInstant()),
-        resource.getLastModified());
+    assertEquals(FROM_UTC_TO_LOCAL_DATE_TIME.apply(db.getCreatedAt()), resource.getLastModified());
     assertEquals(db.getId(), resource.getId());
     assertEquals(db.getObjectType(),
         EventObject.valueOf(resource.getObjectType()));

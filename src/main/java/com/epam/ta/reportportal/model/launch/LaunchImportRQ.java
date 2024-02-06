@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Set;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
@@ -54,7 +54,7 @@ public class LaunchImportRQ {
   @JsonProperty
   @JsonAlias({ "startTime", "start_time" })
   @ApiModelProperty
-  private Date startTime;
+  private LocalDateTime startTime;
 
   @JsonProperty("mode")
   private Mode mode;

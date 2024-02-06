@@ -16,10 +16,10 @@
 
 package com.epam.ta.reportportal.job;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
+
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
-import java.sql.Date;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -44,7 +44,7 @@ public class CleanExpiredCreationBidsJob implements Job {
   @Transactional
   public void execute(JobExecutionContext context) throws JobExecutionException {
     int deletedCount = repository.expireBidsOlderThan(
-        Date.from(LocalDateTime.now().minusDays(1).toInstant(ZoneOffset.UTC)));
+        FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now().minusDays(1)));
     LOGGER.info("Cleaning expired user creation bids finished. Deleted {} bids", deletedCount);
   }
 }

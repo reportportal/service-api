@@ -14,7 +14,7 @@ public class StartTimeConditionValidator implements ParentItemValidator, Ordered
 
   @Override
   public void validate(StartTestItemRQ rq, TestItem parent) {
-    expect(rq.getStartTime(), Preconditions.sameTimeOrLater(parent.getStartTime())).verify(
+    expect(rq.getStartTime(), Preconditions.sameLocalDateTimeOrLater(parent.getStartTime())).verify(
         CHILD_START_TIME_EARLIER_THAN_PARENT,
         rq.getStartTime(),
         parent.getStartTime(),

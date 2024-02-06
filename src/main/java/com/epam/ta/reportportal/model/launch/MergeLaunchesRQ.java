@@ -21,19 +21,20 @@ import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_PARAME
 import com.epam.ta.reportportal.ws.annotations.NotBlankWithSize;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Set;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import lombok.Data;
 
 @JsonInclude(Include.NON_NULL)
+@Data
 public class MergeLaunchesRQ {
 
 	@NotBlankWithSize(min = ValidationConstraints.MIN_LAUNCH_NAME_LENGTH, max = ValidationConstraints.MAX_NAME_LENGTH)
@@ -51,7 +52,7 @@ public class MergeLaunchesRQ {
 
 	@JsonProperty(value = "startTime")
 	@ApiModelProperty
-	private Date startTime;
+	private LocalDateTime startTime;
 
 	@JsonProperty("mode")
 	private com.epam.ta.reportportal.ws.model.launch.Mode mode;
@@ -63,7 +64,7 @@ public class MergeLaunchesRQ {
 
 	@JsonProperty(value = "endTime")
 	@ApiModelProperty
-	private Date endTime;
+	private LocalDateTime endTime;
 
 	@NotNull
 	@JsonProperty("mergeType")
@@ -73,136 +74,4 @@ public class MergeLaunchesRQ {
 	@JsonProperty(value = "extendSuitesDescription", required = true)
 	private boolean extendSuitesDescription;
 
-	public String getName() {
-		return name;
-	}
-
-	public void setName(@NotNull String name) {
-		this.name = name;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public Set<ItemAttributeResource> getAttributes() {
-		return attributes;
-	}
-
-	public void setAttributes(Set<ItemAttributeResource> attributes) {
-		this.attributes = attributes;
-	}
-
-	public Date getStartTime() {
-		return startTime;
-	}
-
-	public void setStartTime(Date startTime) {
-		this.startTime = startTime;
-	}
-
-	public com.epam.ta.reportportal.ws.model.launch.Mode getMode() {
-		return mode;
-	}
-
-	public void setMode(Mode mode) {
-		this.mode = mode;
-	}
-
-	@NotNull
-	public Set<Long> getLaunches() {
-		return launches;
-	}
-
-	public void setLaunches(@NotNull Set<Long> launches) {
-		this.launches = launches;
-	}
-
-	public Date getEndTime() {
-		return endTime;
-	}
-
-	public void setEndTime(Date endTime) {
-		this.endTime = endTime;
-	}
-
-	@NotNull
-	public String getMergeStrategyType() {
-		return mergeStrategyType;
-	}
-
-	public void setMergeStrategyType(@NotNull String mergeStrategyType) {
-		this.mergeStrategyType = mergeStrategyType;
-	}
-
-	public boolean isExtendSuitesDescription() {
-		return extendSuitesDescription;
-	}
-
-	public void setExtendSuitesDescription(boolean extendSuitesDescription) {
-		this.extendSuitesDescription = extendSuitesDescription;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-
-		MergeLaunchesRQ that = (MergeLaunchesRQ) o;
-
-		if (extendSuitesDescription != that.extendSuitesDescription) {
-			return false;
-		}
-		if (!name.equals(that.name)) {
-			return false;
-		}
-		if (description != null ? !description.equals(that.description) : that.description != null) {
-			return false;
-		}
-		if (attributes != null ? !attributes.equals(that.attributes) : that.attributes != null) {
-			return false;
-		}
-		if (startTime != null ? !startTime.equals(that.startTime) : that.startTime != null) {
-			return false;
-		}
-		if (mode != that.mode) {
-			return false;
-		}
-		if (!launches.equals(that.launches)) {
-			return false;
-		}
-		if (endTime != null ? !endTime.equals(that.endTime) : that.endTime != null) {
-			return false;
-		}
-		return mergeStrategyType.equals(that.mergeStrategyType);
-	}
-
-	@Override
-	public int hashCode() {
-		int result = name.hashCode();
-		result = 31 * result + (description != null ? description.hashCode() : 0);
-		result = 31 * result + (attributes != null ? attributes.hashCode() : 0);
-		result = 31 * result + (startTime != null ? startTime.hashCode() : 0);
-		result = 31 * result + (mode != null ? mode.hashCode() : 0);
-		result = 31 * result + launches.hashCode();
-		result = 31 * result + (endTime != null ? endTime.hashCode() : 0);
-		result = 31 * result + mergeStrategyType.hashCode();
-		result = 31 * result + (extendSuitesDescription ? 1 : 0);
-		return result;
-	}
-
-	@Override
-	public String toString() {
-		return "MergeLaunchesRQ{" + "name='" + name + '\'' + ", description='" + description + '\'' + ", attributes=" + attributes
-				+ ", startTime=" + startTime + ", mode=" + mode + ", launches=" + launches + ", endTime=" + endTime
-				+ ", mergeStrategyType='" + mergeStrategyType + '\'' + ", extendSuitesDescription=" + extendSuitesDescription + '}';
-	}
 }

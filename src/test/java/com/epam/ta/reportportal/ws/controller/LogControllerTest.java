@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -24,13 +25,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.log.SearchLogRq;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
-import com.epam.ta.reportportal.model.log.SearchLogRq;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +52,7 @@ class LogControllerTest extends BaseMvcTest {
     rq.setItemUuid("f3960757-1a06-405e-9eb7-607c34683154");
     rq.setLevel("ERROR");
     rq.setMessage("log message");
-    rq.setLogTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setLogTime(FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now()));
     mockMvc.perform(
         post(DEFAULT_PROJECT_BASE_URL + "/log").with(token(oAuthHelper.getDefaultToken()))
             .contentType(MediaType.APPLICATION_JSON)

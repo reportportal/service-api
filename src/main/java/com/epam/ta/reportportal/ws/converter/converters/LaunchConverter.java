@@ -16,11 +16,11 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
@@ -77,10 +77,10 @@ public class LaunchConverter {
     resource.setDescription(db.getDescription());
     resource.setStatus(db.getStatus() == null ? null : db.getStatus().toString());
     resource.setStartTime(
-        db.getStartTime() == null ? null : EntityUtils.TO_DATE.apply(db.getStartTime()));
+        db.getStartTime() == null ? null : FROM_UTC_TO_LOCAL_DATE_TIME.apply(db.getStartTime()));
     resource.setEndTime(
-        db.getEndTime() == null ? null : EntityUtils.TO_DATE.apply(db.getEndTime()));
-    ofNullable(db.getLastModified()).map(EntityUtils.TO_DATE).ifPresent(resource::setLastModified);
+        db.getEndTime() == null ? null : FROM_UTC_TO_LOCAL_DATE_TIME.apply(db.getEndTime()));
+    ofNullable(db.getLastModified()).map(FROM_UTC_TO_LOCAL_DATE_TIME).ifPresent(resource::setLastModified);
     ofNullable(db.getAttributes()).ifPresent(attributes -> updateAttributes(resource, attributes));
     ofNullable(resource.getAttributes()).ifPresentOrElse(a -> {
     }, () -> resource.setAttributes(Collections.emptySet()));

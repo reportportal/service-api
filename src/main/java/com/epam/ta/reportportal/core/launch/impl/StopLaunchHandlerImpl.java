@@ -35,7 +35,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -76,7 +76,7 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
             ofNullable(finishLaunchRQ.getDescription()).orElse(
                 ofNullable(launch.getDescription()).orElse("")).concat(LAUNCH_STOP_DESCRIPTION))
         .addStatus(ofNullable(finishLaunchRQ.getStatus()).orElse(STOPPED.name()))
-        .addEndTime(ofNullable(finishLaunchRQ.getEndTime()).orElse(new Date()))
+        .addEndTime(ofNullable(finishLaunchRQ.getEndTime()).orElse(LocalDateTime.now()))
         .addAttributes(finishLaunchRQ.getAttributes())
         .addAttribute(new ItemAttributeResource("status", "stopped")).get();
 

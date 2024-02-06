@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
@@ -55,10 +56,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -86,7 +86,7 @@ class LaunchControllerTest extends BaseMvcTest {
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
     startLaunchRQ.setDescription("some description");
     startLaunchRQ.setName(name);
-    startLaunchRQ.setStartTime(new Date());
+    startLaunchRQ.setStartTime(LocalDateTime.now());
     startLaunchRQ.setMode(DEFAULT);
     startLaunchRQ.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
 
@@ -167,8 +167,8 @@ class LaunchControllerTest extends BaseMvcTest {
     rq.setLaunches(set);
     rq.setName("Merged");
     rq.setMergeStrategyType("BASIC");
-    rq.setStartTime(new Date());
-    rq.setEndTime(new Date());
+    rq.setStartTime(LocalDateTime.now().truncatedTo(ChronoUnit.MICROS));
+    rq.setEndTime(LocalDateTime.now().truncatedTo(ChronoUnit.MICROS));
     mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/launch/merge").contentType(APPLICATION_JSON)
             .with(token(oAuthHelper.getDefaultToken())).content(objectMapper.writeValueAsBytes(rq)))
         .andExpect(status().is(200));
@@ -198,7 +198,7 @@ class LaunchControllerTest extends BaseMvcTest {
   void finishLaunch() throws Exception {
     final FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
     finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+        FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now()));
     finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
     mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL
         + "/launch/befef834-b2ef-4acf-aea3-b5a5b15fd93c/finish").contentType(APPLICATION_JSON)
@@ -210,7 +210,7 @@ class LaunchControllerTest extends BaseMvcTest {
   void forceFinishLaunch() throws Exception {
     final FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
     finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+        FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now()));
     finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
     mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/3/stop").contentType(APPLICATION_JSON)
         .with(token(oAuthHelper.getDefaultToken()))
@@ -224,7 +224,7 @@ class LaunchControllerTest extends BaseMvcTest {
       FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
       finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
       finishExecutionRQ.setEndTime(
-          Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+          FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now()));
       return finishExecutionRQ;
     })));
     mockMvc.perform(

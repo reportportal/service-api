@@ -224,7 +224,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
     if (!UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
       expect(projectDetails.getProjectId(), equalTo(launch.getProjectId())).verify(ACCESS_DENIED);
     }
-    expect(rq.getStartTime(), Preconditions.sameTimeOrLater(launch.getStartTime())).verify(
+    expect(rq.getStartTime(), Preconditions.sameLocalDateTimeOrLater(launch.getStartTime())).verify(
         CHILD_START_TIME_EARLIER_THAN_PARENT,
         rq.getStartTime(),
         launch.getStartTime(),

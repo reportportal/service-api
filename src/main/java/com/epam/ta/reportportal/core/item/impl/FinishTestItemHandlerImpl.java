@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_UTC_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
@@ -221,7 +221,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
       testItemResults =
           processChildItemResult(testItem, finishTestItemRQ, user, projectDetails, launch);
     }
-    testItemResults.setEndTime(TO_LOCAL_DATE_TIME.apply(finishTestItemRQ.getEndTime()));
+    testItemResults.setEndTime(TO_UTC_LOCAL_DATE_TIME.apply(finishTestItemRQ.getEndTime()));
     return testItemResults;
   }
 
@@ -315,7 +315,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
         changeStatusHandler.changeLaunchStatus(launch);
         if (testItem.isHasRetries()) {
           retryHandler.finishRetries(testItem.getItemId(), JStatusEnum.valueOf(actualStatus.name()),
-              TO_LOCAL_DATE_TIME.apply(finishTestItemRQ.getEndTime())
+              TO_UTC_LOCAL_DATE_TIME.apply(finishTestItemRQ.getEndTime())
           );
         }
       });

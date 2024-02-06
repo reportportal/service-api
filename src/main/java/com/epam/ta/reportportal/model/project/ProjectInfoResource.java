@@ -19,10 +19,12 @@ package com.epam.ta.reportportal.model.project;
 import com.epam.ta.reportportal.model.ModelViews;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Project info resource representation for responses<br>
@@ -34,6 +36,8 @@ import javax.validation.constraints.NotNull;
  * @author Dzmitry_Kavalets
  * @author Andrei_Ramanchuk
  */
+@Getter
+@Setter
 public class ProjectInfoResource {
 
   @NotNull
@@ -66,11 +70,11 @@ public class ProjectInfoResource {
 
   @NotNull
   @JsonProperty(value = "lastRun")
-  private Date lastRun;
+  private LocalDateTime lastRun;
 
   @NotNull
   @JsonProperty(value = "creationDate")
-  private Date creationDate;
+  private LocalDateTime creationDate;
 
   @JsonProperty(value = "entryType")
   private String entryType;
@@ -78,94 +82,4 @@ public class ProjectInfoResource {
   @JsonProperty(value = "organization")
   private String organization;
 
-  public ProjectInfoResource() {
-  }
-
-  public Long getProjectId() {
-    return projectId;
-  }
-
-  public void setProjectId(Long projectId) {
-    this.projectId = projectId;
-  }
-
-  public String getProjectName() {
-    return projectName;
-  }
-
-  public void setProjectName(String projectName) {
-    this.projectName = projectName;
-  }
-
-  public Integer getUsersQuantity() {
-    return usersQuantity;
-  }
-
-  public void setUsersQuantity(Integer usersQuantity) {
-    this.usersQuantity = usersQuantity;
-  }
-
-  public Integer getLaunchesQuantity() {
-    return launchesQuantity;
-  }
-
-  public void setLaunchesQuantity(Integer launchesQuantity) {
-    this.launchesQuantity = launchesQuantity;
-  }
-
-  public void setLaunchesPerUser(List<LaunchesPerUser> value) {
-    this.launchesPerUser = value;
-  }
-
-  public List<LaunchesPerUser> getLaunchesPerUser() {
-    return launchesPerUser;
-  }
-
-  public void setUniqueTickets(Integer value) {
-    this.uniqueTickets = value;
-  }
-
-  public Integer getUniqueTickets() {
-    return uniqueTickets;
-  }
-
-  public void setLaunchesPerWeek(String value) {
-    this.launchesPerWeek = value;
-  }
-
-  public String getLaunchesPerWeek() {
-    return launchesPerWeek;
-  }
-
-  public Date getLastRun() {
-    return lastRun;
-  }
-
-  public void setLastRun(Date lastRun) {
-    this.lastRun = lastRun;
-  }
-
-  public Date getCreationDate() {
-    return creationDate;
-  }
-
-  public void setCreationDate(Date creationDate) {
-    this.creationDate = creationDate;
-  }
-
-  public String getEntryType() {
-    return entryType;
-  }
-
-  public void setEntryType(String entryType) {
-    this.entryType = entryType;
-  }
-
-  public String getOrganization() {
-    return organization;
-  }
-
-  public void setOrganization(String organization) {
-    this.organization = organization;
-  }
 }

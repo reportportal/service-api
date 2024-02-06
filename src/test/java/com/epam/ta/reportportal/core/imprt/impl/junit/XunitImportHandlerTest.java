@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.imprt.impl.junit;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -7,7 +8,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
@@ -125,7 +125,7 @@ public class XunitImportHandlerTest {
         eq(user), eq(projectDetails), startTestItemRQArgumentCaptor.capture());
     StartTestItemRQ startTestItemRQ = startTestItemRQArgumentCaptor.getValue();
     assertEquals(startTestItemRQ.getLaunchUuid(), LAUNCH_ID);
-    assertEquals(startTestItemRQ.getStartTime(), EntityUtils.TO_DATE.apply(startItemTime));
+    assertEquals(startTestItemRQ.getStartTime(), FROM_UTC_TO_LOCAL_DATE_TIME.apply(startItemTime));
     assertEquals(startTestItemRQ.getType(), TestItemTypeEnum.TEST.name());
     assertEquals(startTestItemRQ.getName(), ATTR_NAME);
 
@@ -165,7 +165,7 @@ public class XunitImportHandlerTest {
         eq(user), eq(projectDetails), startTestItemRQArgumentCaptor.capture());
     StartTestItemRQ startTestItemRQ = startTestItemRQArgumentCaptor.getValue();
     assertEquals(startTestItemRQ.getLaunchUuid(), LAUNCH_ID);
-    assertEquals(startTestItemRQ.getStartTime(), EntityUtils.TO_DATE.apply(startItemTime));
+    assertEquals(startTestItemRQ.getStartTime(), FROM_UTC_TO_LOCAL_DATE_TIME.apply(startItemTime));
     assertEquals(startTestItemRQ.getType(), TestItemTypeEnum.TEST.name());
     assertEquals(startTestItemRQ.getName(), ATTR_NAME);
 
@@ -201,7 +201,7 @@ public class XunitImportHandlerTest {
         eq(user), eq(projectDetails), startTestItemRQArgumentCaptor.capture(), eq(parentId));
     StartTestItemRQ startTestItemRQ = startTestItemRQArgumentCaptor.getValue();
     assertEquals(startTestItemRQ.getLaunchUuid(), LAUNCH_ID);
-    assertEquals(startTestItemRQ.getStartTime(), EntityUtils.TO_DATE.apply(startItemTime));
+    assertEquals(startTestItemRQ.getStartTime(), FROM_UTC_TO_LOCAL_DATE_TIME.apply(startItemTime));
     assertEquals(startTestItemRQ.getType(), TestItemTypeEnum.TEST.name());
     assertEquals(startTestItemRQ.getName(), ATTR_NAME);
 
@@ -241,7 +241,7 @@ public class XunitImportHandlerTest {
         eq(user), eq(projectDetails), startTestItemRQArgumentCaptor.capture(), eq(parentId));
     StartTestItemRQ startTestItemRQ = startTestItemRQArgumentCaptor.getValue();
     assertEquals(startTestItemRQ.getLaunchUuid(), LAUNCH_ID);
-    assertEquals(startTestItemRQ.getStartTime(), EntityUtils.TO_DATE.apply(startItemTime));
+    assertEquals(startTestItemRQ.getStartTime(), FROM_UTC_TO_LOCAL_DATE_TIME.apply(startItemTime));
     assertEquals(startTestItemRQ.getType(), TestItemTypeEnum.STEP.name());
     assertEquals(startTestItemRQ.getName(), ATTR_NAME);
 

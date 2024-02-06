@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.util;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_UTC_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
@@ -62,9 +62,9 @@ public class LaunchValidator {
     );
 
     expect(finishExecutionRQ.getEndTime(),
-        Preconditions.sameTimeOrLater(launch.getStartTime())).verify(
+        Preconditions.sameLocalDateTimeOrLater(launch.getStartTime())).verify(
         FINISH_TIME_EARLIER_THAN_START_TIME,
-        TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()),
+        TO_UTC_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()),
         launch.getStartTime(),
         launch.getId()
     );

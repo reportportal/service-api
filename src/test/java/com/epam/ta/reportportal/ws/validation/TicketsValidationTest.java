@@ -7,8 +7,8 @@ import com.epam.ta.reportportal.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.collect.Lists;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import javax.validation.ConstraintViolation;
@@ -44,8 +44,8 @@ public class TicketsValidationTest {
 
     Set<ConstraintViolation<FinishTestItemRQ>> validate = validator.validate(finishTestItem);
 
-    assertEquals(validate.size(), 4);
-    validate.forEach(it -> assertEquals(it.getMessage(), "must not be blank"));
+    assertEquals(4, validate.size());
+    validate.forEach(it -> assertEquals("must not be blank", it.getMessage()));
   }
 
   @Test
@@ -121,7 +121,7 @@ public class TicketsValidationTest {
   private FinishTestItemRQ getFinishTestItem() {
     FinishTestItemRQ finishTestItemRQ = new FinishTestItemRQ();
     finishTestItemRQ.setStatus("PASSED");
-    finishTestItemRQ.setEndTime(new Date());
+    finishTestItemRQ.setEndTime(LocalDateTime.now());
     return finishTestItemRQ;
   }
 

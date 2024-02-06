@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.commons.EntityUtils.FROM_UTC_TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -40,9 +41,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -99,7 +98,7 @@ class StartTestItemHandlerImplTest {
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
     startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+        FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now()));
 
     final Launch launch = getLaunch(2L, StatusEnum.IN_PROGRESS);
     launch.setStartTime(LocalDateTime.now().minusHours(1));
@@ -136,7 +135,7 @@ class StartTestItemHandlerImplTest {
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
     startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+        FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now()));
 
     final Launch launch = getLaunch(1L, StatusEnum.IN_PROGRESS);
     launch.setStartTime(LocalDateTime.now().plusHours(1));
@@ -173,7 +172,7 @@ class StartTestItemHandlerImplTest {
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
     startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+        FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now()));
 
     TestItem item = new TestItem();
     item.setStartTime(LocalDateTime.now().plusHours(1));
@@ -195,7 +194,7 @@ class StartTestItemHandlerImplTest {
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
     startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+        FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now()));
 
     TestItem item = new TestItem();
     item.setItemId(1L);
@@ -228,7 +227,7 @@ class StartTestItemHandlerImplTest {
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
     startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+        FROM_UTC_TO_LOCAL_DATE_TIME.apply(LocalDateTime.now()));
     startTestItemRQ.setLaunchUuid("1");
 
     when(launchRepository.findByUuid("1")).thenReturn(Optional.empty());

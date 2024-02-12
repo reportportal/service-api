@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.dao.organization.OrganizationRepository;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -53,7 +53,7 @@ class CreateProjectHandlerImplTest {
   private UserRepository userRepository;
 
   @Mock
-  OrganizationRepository organizationRepository;
+  OrganizationRepositoryCustom organizationRepositoryCustom;
 
   @InjectMocks
   private CreateProjectHandlerImpl handler;
@@ -68,7 +68,7 @@ class CreateProjectHandlerImplTest {
     createProjectRQ.setOrganizationId(TEST_ORG_ID);
     createProjectRQ.setEntryType("wrongType");
 
-    when(organizationRepository.findById(TEST_ORG_ID)).thenReturn(Optional.of(TEST_ORG));
+    when(organizationRepositoryCustom.findById(TEST_ORG_ID)).thenReturn(Optional.of(TEST_ORG));
     when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(
         Optional.empty());
 
@@ -91,7 +91,7 @@ class CreateProjectHandlerImplTest {
     createProjectRQ.setOrganizationId(TEST_ORG_ID);
     createProjectRQ.setEntryType("internal");
 
-    when(organizationRepository.findById(TEST_ORG_ID)).thenReturn(Optional.of(TEST_ORG));
+    when(organizationRepositoryCustom.findById(TEST_ORG_ID)).thenReturn(Optional.of(TEST_ORG));
     when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.empty());
     when(userRepository.findRawById(rpUser.getUserId())).thenReturn(Optional.empty());
 

@@ -17,8 +17,9 @@
 package com.epam.ta.reportportal.core.organization;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.model.OrganizationResource;
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 /**
  * @author Andrei Piankouski
@@ -35,9 +36,11 @@ public interface GetOrganizationHandler {
   OrganizationResource getResource(Long organizationId, ReportPortalUser user);
 
   /**
-   * Get List of all Organizations
+   * Get Organizations by query parameters
    *
-   * @return The {@link List} of the {@link OrganizationResource}
+   * @param filter   Queryable filter to apply on organizations
+   * @param pageable Pagination information for the results
+   * @return An {@link Iterable} of {@link OrganizationResource} containing information about all projects
    */
-  List<OrganizationResource> getAllOrganization();
+  Iterable<OrganizationResource> getOrganizations(Queryable filter, Pageable pageable);
 }

@@ -72,7 +72,7 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         implementation 'com.github.reportportal:commons-events:e337f8b7be'
-        implementation 'com.github.reportportal:commons-dao:ade8559'
+        implementation 'com.github.reportportal:commons-dao:90ff7e0'
         implementation 'com.github.reportportal:commons-rules:42d4dd5634'
         implementation 'com.github.reportportal:commons-model:23adba8'
         implementation 'com.github.reportportal:commons:07566b8e'
@@ -188,7 +188,7 @@ jar.enabled(true)
 jar.archiveClassifier.set('')
 
 test {
-    dependsOn(copyTestDatabaseScripts)
+   // dependsOn(copyTestDatabaseScripts)
     useJUnitPlatform()
     maxParallelForks = 1
     testLogging {

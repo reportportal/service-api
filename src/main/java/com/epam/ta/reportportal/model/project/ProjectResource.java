@@ -68,9 +68,6 @@ public class ProjectResource {
   @JsonProperty(value = "organizationId")
   private Long organizationId;
 
-  @JsonProperty(value = "organizationSlug")
-  private String organizationSlug;
-
   @JsonProperty(value = "allocatedStorage")
   private Long allocatedStorage;
 

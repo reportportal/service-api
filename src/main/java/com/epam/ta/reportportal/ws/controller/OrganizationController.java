@@ -17,11 +17,18 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
+import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.model.OrganizationResource;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
+import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
-import java.util.List;
+import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,8 +61,14 @@ public class OrganizationController {
   @Transactional
   @GetMapping("/list")
   @ApiOperation(value = "Get list of all organizations")
-  public List<OrganizationResource> getAllOrganizations(
-      @AuthenticationPrincipal ReportPortalUser user) {
-    return getOrganizationHandler.getAllOrganization();
+  public Iterable<OrganizationResource> getAllOrganizations(
+      @AuthenticationPrincipal ReportPortalUser user,
+      @FilterFor(Organization.class) Filter filter,
+      @FilterFor(Organization.class) Queryable predefinedFilter,
+      @SortFor(Organization.class) Pageable pageable
+  ) {
+    return getOrganizationHandler.getOrganizations(
+        new CompositeFilter(Operator.AND, filter, predefinedFilter),
+        pageable);
   }
 }

@@ -39,7 +39,7 @@ import org.springframework.stereotype.Service;
 
 @Primary
 @Service
-@ConditionalOnProperty(prefix = "rp.elasticsearch", name = "host")
+@ConditionalOnProperty(prefix = "rp.searchengine", name = "host")
 public class ElasticLogService implements LogService {
 
   private final AmqpTemplate amqpTemplate;

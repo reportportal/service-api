@@ -169,10 +169,10 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public LaunchResource getLaunchByProjectName(String projectName, Pageable pageable, Filter filter,
+  public LaunchResource getLaunchByProjectName(String projectKey, Pageable pageable, Filter filter,
       String username) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 
     Page<Launch> launches =
         launchRepository.findByFilter(ProjectFilter.of(filter, project.getId()), pageable);

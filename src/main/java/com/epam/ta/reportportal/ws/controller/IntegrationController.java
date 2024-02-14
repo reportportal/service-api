@@ -96,24 +96,24 @@ public class IntegrationController {
   }
 
   @Transactional(readOnly = true)
-  @GetMapping("/project/{projectName}/all")
+  @GetMapping("/project/{projectKey}/all")
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ASSIGNED_TO_PROJECT)
   @ApiOperation("Get available project integrations")
-  public List<IntegrationResource> getProjectIntegrations(@PathVariable String projectName,
+  public List<IntegrationResource> getProjectIntegrations(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser reportPortalUser) {
-    return getIntegrationHandler.getProjectIntegrations(normalizeId(projectName));
+    return getIntegrationHandler.getProjectIntegrations(normalizeId(projectKey));
   }
 
   @Transactional(readOnly = true)
-  @GetMapping("/project/{projectName}/all/{pluginName}")
+  @GetMapping("/project/{projectKey}/all/{pluginName}")
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ASSIGNED_TO_PROJECT)
   @ApiOperation("Get available project integrations for plugin")
   public List<IntegrationResource> getProjectIntegrations(
-      @AuthenticationPrincipal ReportPortalUser reportPortalUser, @PathVariable String projectName,
+      @AuthenticationPrincipal ReportPortalUser reportPortalUser, @PathVariable String projectKey,
       @PathVariable String pluginName) {
-    return getIntegrationHandler.getProjectIntegrations(pluginName, normalizeId(projectName));
+    return getIntegrationHandler.getProjectIntegrations(pluginName, normalizeId(projectKey));
   }
 
   @Transactional
@@ -127,27 +127,27 @@ public class IntegrationController {
   }
 
   @Transactional
-  @PostMapping(value = "/{projectName}/{pluginName}")
+  @PostMapping(value = "/{projectKey}/{pluginName}")
   @ResponseStatus(HttpStatus.CREATED)
   @ApiOperation("Create project Report Portal integration instance")
   @PreAuthorize(PROJECT_MANAGER)
   public EntryCreatedRS createProjectIntegration(@RequestBody @Valid IntegrationRQ createRequest,
-      @PathVariable String pluginName, @PathVariable String projectName,
+      @PathVariable String pluginName, @PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return createIntegrationHandler.createProjectIntegration(normalizeId(projectName),
+    return createIntegrationHandler.createProjectIntegration(normalizeId(projectKey),
         createRequest, pluginName, user
     );
 
   }
 
   @Transactional(readOnly = true)
-  @GetMapping(value = "{projectName}/{integrationId}/connection/test")
+  @GetMapping(value = "{projectKey}/{integrationId}/connection/test")
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ASSIGNED_TO_PROJECT)
   @ApiOperation("Test connection to the integration through the project config")
   public boolean testIntegrationConnection(@PathVariable Long integrationId,
-      @PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-    return getIntegrationHandler.testConnection(integrationId, normalizeId(projectName));
+      @PathVariable String projectKey, @AuthenticationPrincipal ReportPortalUser user) {
+    return getIntegrationHandler.testConnection(integrationId, normalizeId(projectKey));
   }
 
   @Transactional(readOnly = true)
@@ -171,13 +171,13 @@ public class IntegrationController {
   }
 
   @Transactional(readOnly = true)
-  @GetMapping(value = "/{projectName}/{integrationId}")
+  @GetMapping(value = "/{projectKey}/{integrationId}")
   @ResponseStatus(HttpStatus.OK)
   @ApiOperation("Get integration instance")
   @PreAuthorize(ASSIGNED_TO_PROJECT)
-  public IntegrationResource getProjectIntegration(@PathVariable String projectName,
+  public IntegrationResource getProjectIntegration(@PathVariable String projectKey,
       @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
-    return getIntegrationHandler.getProjectIntegrationById(integrationId, normalizeId(projectName));
+    return getIntegrationHandler.getProjectIntegrationById(integrationId, normalizeId(projectKey));
   }
 
   @Transactional
@@ -193,15 +193,15 @@ public class IntegrationController {
   }
 
   @Transactional
-  @PutMapping(value = "/{projectName}/{integrationId}")
+  @PutMapping(value = "/{projectKey}/{integrationId}")
   @ResponseStatus(HttpStatus.OK)
   @ApiOperation("Update project integration instance")
   @PreAuthorize(PROJECT_MANAGER)
   public OperationCompletionRS updateProjectIntegration(@PathVariable Long integrationId,
-      @RequestBody @Valid IntegrationRQ updateRequest, @PathVariable String projectName,
+      @RequestBody @Valid IntegrationRQ updateRequest, @PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user) {
     return createIntegrationHandler.updateProjectIntegration(integrationId,
-        normalizeId(projectName), updateRequest, user
+        normalizeId(projectKey), updateRequest, user
     );
 
   }
@@ -227,41 +227,41 @@ public class IntegrationController {
   }
 
   @Transactional
-  @DeleteMapping(value = "/{projectName}/{integrationId}")
+  @DeleteMapping(value = "/{projectKey}/{integrationId}")
   @ResponseStatus(HttpStatus.OK)
   @ApiOperation("Delete project integration instance")
   @PreAuthorize(PROJECT_MANAGER)
-  public OperationCompletionRS deleteProjectIntegration(@PathVariable String projectName,
+  public OperationCompletionRS deleteProjectIntegration(@PathVariable String projectKey,
       @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteIntegrationHandler.deleteProjectIntegration(integrationId,
-        normalizeId(projectName), user
+        normalizeId(projectKey), user
     );
   }
 
   @Transactional
-  @DeleteMapping(value = "/{projectName}/all/{type}")
+  @DeleteMapping(value = "/{projectKey}/all/{type}")
   @ResponseStatus(HttpStatus.OK)
   @ApiOperation("Delete all integrations assigned to specified project")
   @PreAuthorize(PROJECT_MANAGER)
   public OperationCompletionRS deleteAllProjectIntegrations(@PathVariable String type,
-      @PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-    return deleteIntegrationHandler.deleteProjectIntegrationsByType(type, normalizeId(projectName),
+      @PathVariable String projectKey, @AuthenticationPrincipal ReportPortalUser user) {
+    return deleteIntegrationHandler.deleteProjectIntegrationsByType(type, normalizeId(projectKey),
         user
     );
   }
 
   @Transactional
-  @PutMapping(value = "{projectName}/{integrationId}/{command}", consumes = {
+  @PutMapping(value = "{projectKey}/{integrationId}/{command}", consumes = {
       APPLICATION_JSON_VALUE })
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ASSIGNED_TO_PROJECT)
   @ApiOperation("Execute command to the integration instance")
-  public Object executeIntegrationCommand(@PathVariable String projectName,
+  public Object executeIntegrationCommand(@PathVariable String projectKey,
       @PathVariable("integrationId") Long integrationId, @PathVariable("command") String command,
       @RequestBody Map<String, Object> executionParams,
       @AuthenticationPrincipal ReportPortalUser user) {
     return executeIntegrationHandler.executeCommand(
-        projectExtractor.extractProjectDetails(user, projectName), integrationId, command,
+        projectExtractor.extractProjectDetails(user, projectKey), integrationId, command,
         executionParams
     );
   }

@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -95,7 +96,7 @@ class FinishTestItemHandlerImplTest {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
     when(repository.findByUuid("1")).thenReturn(Optional.empty());
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+        () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, TEST_PROJECT_KEY), "1",
             new FinishTestItemRQ()
         )
     );
@@ -115,7 +116,7 @@ class FinishTestItemHandlerImplTest {
     when(repository.findByUuid("1")).thenReturn(Optional.of(item));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+        () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, TEST_PROJECT_KEY), "1",
             new FinishTestItemRQ()
         )
     );
@@ -144,7 +145,7 @@ class FinishTestItemHandlerImplTest {
     when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+        () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, TEST_PROJECT_KEY), "1",
             new FinishTestItemRQ()
         )
     );
@@ -171,7 +172,7 @@ class FinishTestItemHandlerImplTest {
     when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+        () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, TEST_PROJECT_KEY), "1",
             new FinishTestItemRQ()
         )
     );
@@ -219,7 +220,7 @@ class FinishTestItemHandlerImplTest {
     finishExecutionRQ.setEndTime(new Date());
 
     OperationCompletionRS operationCompletionRS =
-        handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+        handler.finishTestItem(rpUser, extractProjectDetails(rpUser, TEST_PROJECT_KEY), "1",
             finishExecutionRQ
         );
 

@@ -16,7 +16,8 @@
 
 package com.epam.ta.reportportal.core.integration.impl;
 
-import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -65,14 +66,15 @@ class GetIntegrationHandlerTest {
     Project project = new Project();
     project.setId(projectId);
     project.setName(TEST_PROJECT_NAME);
+    project.setKey(TEST_PROJECT_KEY);
 
-    when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(project));
+    when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.of(project));
 
     when(integrationRepository.findByIdAndProjectId(emailIntegrationId, projectId)).thenReturn(
         Optional.of(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId, projectId)));
 
     IntegrationResource integrationResource =
-        getIntegrationHandler.getProjectIntegrationById(emailIntegrationId, TEST_PROJECT_NAME);
+        getIntegrationHandler.getProjectIntegrationById(emailIntegrationId, TEST_PROJECT_KEY);
 
     assertNotNull(integrationResource);
     assertEquals(emailIntegrationId, (long) integrationResource.getId());

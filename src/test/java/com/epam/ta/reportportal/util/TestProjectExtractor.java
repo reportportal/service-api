@@ -10,8 +10,8 @@ import java.util.Optional;
 public class TestProjectExtractor {
 
   public static ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user,
-      String projectName) {
-    final String normalizedProjectName = normalizeId(projectName);
+      String projectKey) {
+    final String normalizedProjectName = normalizeId(projectKey);
     return Optional.ofNullable(user.getProjectDetails().get(normalizedProjectName))
         .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
             "Please check the list of your available projects."

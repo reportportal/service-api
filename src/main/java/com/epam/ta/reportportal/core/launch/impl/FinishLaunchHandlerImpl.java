@@ -107,7 +107,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
     FinishLaunchRS response = new FinishLaunchRS();
     response.setId(launch.getUuid());
     response.setNumber(launch.getNumber());
-    response.setLink(generateLaunchLink(baseUrl, projectDetails.getProjectName(),
+    response.setLink(generateLaunchLink(baseUrl, projectDetails.getProjectKey(),
         String.valueOf(launch.getId())
     ));
     return response;

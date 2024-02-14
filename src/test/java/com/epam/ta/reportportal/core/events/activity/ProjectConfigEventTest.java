@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
 
 import com.epam.ta.reportportal.entity.activity.Activity;
@@ -89,7 +90,7 @@ class ProjectConfigEventTest {
   private static ProjectAttributesActivityResource getProjectAttributes(
       Map<String, String> config) {
     ProjectAttributesActivityResource resource = new ProjectAttributesActivityResource();
-    resource.setProjectName("test_project");
+    resource.setProjectName(TEST_PROJECT_KEY);
     resource.setProjectId(3L);
     resource.setConfig(config);
     return resource;
@@ -130,7 +131,7 @@ class ProjectConfigEventTest {
     expected.getDetails()
         .setHistory(getProjectConfigHistory(KEEP_LOGS, KEEP_SCREENSHOTS, INTERRUPT_JOB_TIME));
     expected.setEventName("updateProject");
-    expected.setObjectName("test_project");
+    expected.setObjectName(TEST_PROJECT_KEY);
     checkActivity(expected, actual);
   }
 

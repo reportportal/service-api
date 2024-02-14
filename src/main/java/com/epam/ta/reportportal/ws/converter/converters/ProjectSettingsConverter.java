@@ -52,7 +52,7 @@ public final class ProjectSettingsConverter {
         resource.setCreationDate(EntityUtils.TO_DATE.apply(project.getCreationDate()));
         resource.setLastRun(ofNullable(project.getLastRun()).map(EntityUtils.TO_DATE).orElse(null));
         resource.setEntryType(project.getProjectType());
-        resource.setOrganization(project.getOrganization());
+        resource.setOrganization(project.getOrganizationSlug());
         return resource;
       };
 

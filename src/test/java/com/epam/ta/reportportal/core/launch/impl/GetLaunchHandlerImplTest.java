@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_STATUS;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
@@ -102,7 +103,7 @@ class GetLaunchHandlerImplTest {
         getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getLaunch("1", extractProjectDetails(rpUser, "test_project"))
+        () -> handler.getLaunch("1", extractProjectDetails(rpUser, TEST_PROJECT_KEY))
     );
     assertEquals("You do not have enough permissions.", exception.getMessage());
   }
@@ -114,7 +115,7 @@ class GetLaunchHandlerImplTest {
         getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEBUG));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getLaunch("1", extractProjectDetails(rpUser, "test_project"))
+        () -> handler.getLaunch("1", extractProjectDetails(rpUser, TEST_PROJECT_KEY))
     );
     assertEquals("You do not have enough permissions.", exception.getMessage());
   }
@@ -124,7 +125,7 @@ class GetLaunchHandlerImplTest {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
     assertThrows(ReportPortalException.class,
-        () -> handler.getLaunchNames(extractProjectDetails(rpUser, "test_project"),
+        () -> handler.getLaunchNames(extractProjectDetails(rpUser, TEST_PROJECT_KEY),
             RandomStringUtils.random(257)
         )
     );
@@ -138,19 +139,19 @@ class GetLaunchHandlerImplTest {
     when(launchRepository.findById(Long.parseLong(launchId))).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getLaunch(launchId, extractProjectDetails(user, "test_project"))
+        () -> handler.getLaunch(launchId, extractProjectDetails(user, TEST_PROJECT_KEY))
     );
     assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
   }
 
   @Test
   void getLaunchByNotExistProjectName() {
-    String projectName = "not_exist";
+    String projectKey = "not_exist";
 
-    when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
+    when(projectRepository.findByKey(projectKey)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getLaunchByProjectName(projectName, PageRequest.of(0, 10), getDefaultFilter(),
+        () -> handler.getLaunchByProjectName(projectKey, PageRequest.of(0, 10), getDefaultFilter(),
             "user"
         )
     );
@@ -161,13 +162,13 @@ class GetLaunchHandlerImplTest {
 
   @Test
   void getLaunchByProjectNameNotFound() {
-    String projectName = "not_exist";
+    String projectKey = "not_exist";
 
-    when(projectRepository.findByName(projectName)).thenReturn(Optional.of(new Project()));
+    when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(new Project()));
     when(launchRepository.findByFilter(any(), any())).thenReturn(null);
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getLaunchByProjectName(projectName, PageRequest.of(0, 10), getDefaultFilter(),
+        () -> handler.getLaunchByProjectName(projectKey, PageRequest.of(0, 10), getDefaultFilter(),
             "user"
         )
     );
@@ -183,7 +184,7 @@ class GetLaunchHandlerImplTest {
     when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getProjectLaunches(extractProjectDetails(user, "test_project"),
+        () -> handler.getProjectLaunches(extractProjectDetails(user, TEST_PROJECT_KEY),
             getDefaultFilter(), PageRequest.of(0, 10), "user"
         )
     );
@@ -201,7 +202,7 @@ class GetLaunchHandlerImplTest {
     when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getLatestLaunches(extractProjectDetails(user, "test_project"),
+        () -> handler.getLatestLaunches(extractProjectDetails(user, TEST_PROJECT_KEY),
             getDefaultFilter(), PageRequest.of(0, 10)
         )
     );
@@ -217,7 +218,7 @@ class GetLaunchHandlerImplTest {
         getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getOwners(extractProjectDetails(user, "test_project"), "qw",
+        () -> handler.getOwners(extractProjectDetails(user, TEST_PROJECT_KEY), "qw",
             LaunchModeEnum.DEFAULT.name()
         )
     );
@@ -234,7 +235,7 @@ class GetLaunchHandlerImplTest {
         getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getOwners(extractProjectDetails(user, "test_project"), "qwe", "incorrectMode")
+        () -> handler.getOwners(extractProjectDetails(user, TEST_PROJECT_KEY), "qwe", "incorrectMode")
     );
     assertEquals("Incorrect filtering parameters. Mode - incorrectMode doesn't exist.",
         exception.getMessage()
@@ -282,7 +283,7 @@ class GetLaunchHandlerImplTest {
     when(launchRepository.findById(Long.parseLong(launchId))).thenReturn(Optional.of(launch));
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getLaunch(launchId, extractProjectDetails(user, "test_project"))
+        () -> handler.getLaunch(launchId, extractProjectDetails(user, TEST_PROJECT_KEY))
     );
     assertEquals("You do not have enough permissions.", exception.getMessage());
   }
@@ -306,7 +307,7 @@ class GetLaunchHandlerImplTest {
     when(getClusterHandler.getResources(launch, pageable)).thenReturn(expected);
 
     final Iterable<ClusterInfoResource> result =
-        handler.getClusters(launchId, extractProjectDetails(user, "test_project"), pageable);
+        handler.getClusters(launchId, extractProjectDetails(user, TEST_PROJECT_KEY), pageable);
 
     final Page<ClusterInfoResource> castedResult = (Page<ClusterInfoResource>) result;
 

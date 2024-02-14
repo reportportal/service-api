@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -59,7 +60,7 @@ class LaunchAccessValidatorImplTest {
     when(launchRepository.findById(1L)).thenReturn(Optional.empty());
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> launchAccessValidator.validate(1L, extractProjectDetails(rpUser, "test_project"),
+        () -> launchAccessValidator.validate(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY),
             rpUser)
     );
     assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
@@ -77,7 +78,7 @@ class LaunchAccessValidatorImplTest {
     when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
 
     final Executable executable = () -> launchAccessValidator.validate(1L,
-        extractProjectDetails(rpUser, "test_project"), rpUser);
+        extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser);
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
     assertEquals(
@@ -98,7 +99,7 @@ class LaunchAccessValidatorImplTest {
     when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> launchAccessValidator.validate(1L, extractProjectDetails(operator, "test_project"),
+        () -> launchAccessValidator.validate(1L, extractProjectDetails(operator, TEST_PROJECT_KEY),
             operator)
     );
     assertEquals("You do not have enough permissions.", exception.getMessage());

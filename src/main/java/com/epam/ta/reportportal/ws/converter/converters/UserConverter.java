@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.MoreCollectors;
+import com.epam.ta.reportportal.entity.organization.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserType;
@@ -29,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import org.apache.commons.collections.CollectionUtils;
 
 /**
  * Converts user from database to resource
@@ -50,21 +53,39 @@ public final class UserConverter {
     resource.setFullName(user.getFullName());
     resource.setAccountType(user.getUserType().toString());
     resource.setUserRole(user.getRole().toString());
-    resource.setIsLoaded(UserType.UPSA != user.getUserType());
+    resource.setLoaded(UserType.UPSA != user.getUserType());
     resource.setMetadata(user.getMetadata().getMetadata());
 
-    if (null != user.getProjects()) {
+    if (CollectionUtils.isNotEmpty(user.getProjects())) {
       List<ProjectUser> projects = Lists.newArrayList(user.getProjects());
       projects.sort(Comparator.comparing(compare -> compare.getProject().getName()));
       Map<String, UserResource.AssignedProject> userProjects = user.getProjects().stream()
-          .collect(MoreCollectors.toLinkedMap(p -> p.getProject().getName(), p -> {
+          .collect(MoreCollectors.toLinkedMap(p -> p.getProject().getKey(), p -> {
             UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
             assignedProject.setEntryType(p.getProject().getProjectType().name());
             assignedProject.setProjectRole(p.getProjectRole().toString());
+            assignedProject.setProjectKey(p.getProject().getKey());
+            assignedProject.setProjectKey(p.getProject().getOrganization().getSlug());
             return assignedProject;
           }));
       resource.setAssignedProjects(userProjects);
     }
+
+    if (CollectionUtils.isNotEmpty(user.getOrganizationUser())) {
+      List<OrganizationUser> orgUsers = Lists.newArrayList(user.getOrganizationUser());
+      Map<String, UserResource.AssignedOrganization> userOrganization = orgUsers
+          .stream()
+          .collect(Collectors.toMap(orgUser -> orgUser.getOrganization().getSlug(),
+              orgUser -> {
+                UserResource.AssignedOrganization assignedOrganization = new UserResource.AssignedOrganization();
+                assignedOrganization.setOrganizationSlug(orgUser.getOrganization().getSlug());
+                assignedOrganization.setOrganizationName(orgUser.getOrganization().getName());
+                assignedOrganization.setOrganizationRole(orgUser.getOrganizationRole().name());
+                return assignedOrganization;
+              }));
+      resource.setAssignedOrganizations(userOrganization);
+    }
+
     return resource;
   };
 

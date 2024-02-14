@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
@@ -82,7 +83,7 @@ class UpdateUserFilterHandlerTest {
 
     UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(SAME_NAME);
 
-    ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, "test_project");
+    ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, TEST_PROJECT_KEY);
     when(userFilterRepository.findByIdAndProjectId(1L, projectDetails.getProjectId())).thenReturn(
         Optional.of(userFilter));
 
@@ -110,7 +111,7 @@ class UpdateUserFilterHandlerTest {
 
     UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(ANOTHER_NAME);
 
-    ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, "test_project");
+    ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, TEST_PROJECT_KEY);
     when(userFilterRepository.findByIdAndProjectId(1L, projectDetails.getProjectId())).thenReturn(
         Optional.of(userFilter));
 
@@ -142,7 +143,7 @@ class UpdateUserFilterHandlerTest {
 
     UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(ANOTHER_NAME);
 
-    ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, "test_project");
+    ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, TEST_PROJECT_KEY);
     when(userFilterRepository.findByIdAndProjectId(1L, projectDetails.getProjectId())).thenReturn(
         Optional.of(userFilter));
 

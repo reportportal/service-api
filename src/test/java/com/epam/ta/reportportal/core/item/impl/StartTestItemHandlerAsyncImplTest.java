@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -54,7 +55,7 @@ class StartTestItemHandlerAsyncImplTest {
     ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
         1L);
 
-    startTestItemHandlerAsync.startRootItem(user, user.getProjectDetails().get("test_project"),
+    startTestItemHandlerAsync.startRootItem(user, user.getProjectDetails().get(TEST_PROJECT_KEY),
         request);
     verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
     verify(reportingQueueService).getReportingQueueKey(any());
@@ -66,7 +67,7 @@ class StartTestItemHandlerAsyncImplTest {
     ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
         1L);
 
-    startTestItemHandlerAsync.startChildItem(user, user.getProjectDetails().get("test_project"),
+    startTestItemHandlerAsync.startChildItem(user, user.getProjectDetails().get(TEST_PROJECT_KEY),
         request, "123");
     verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
     verify(reportingQueueService).getReportingQueueKey(any());

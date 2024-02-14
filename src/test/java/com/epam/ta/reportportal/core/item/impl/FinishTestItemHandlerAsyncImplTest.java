@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -59,7 +60,7 @@ class FinishTestItemHandlerAsyncImplTest {
     ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
         1L);
 
-    finishTestItemHandlerAsync.finishTestItem(user, user.getProjectDetails().get("test_project"),
+    finishTestItemHandlerAsync.finishTestItem(user, user.getProjectDetails().get(TEST_PROJECT_KEY),
         "123", request);
     verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
     verify(reportingQueueService).getReportingQueueKey(any());
@@ -74,7 +75,7 @@ class FinishTestItemHandlerAsyncImplTest {
     ReportPortalException exception = assertThrows(
         ReportPortalException.class,
         () -> finishTestItemHandlerAsync.finishTestItem(user,
-            user.getProjectDetails().get("test_project"), "123", request)
+            user.getProjectDetails().get(TEST_PROJECT_KEY), "123", request)
     );
     assertEquals(
         "Error in handled Request. Please, check specified parameters: 'Launch UUID should not be null or empty.'",

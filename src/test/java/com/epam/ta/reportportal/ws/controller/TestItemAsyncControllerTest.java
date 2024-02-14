@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -73,15 +74,15 @@ class TestItemAsyncControllerTest {
 
     when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
         anyString())).thenReturn(user.getProjectDetails()
-        .get("test_project"));
+        .get(TEST_PROJECT_KEY));
 
-    testItemAsyncController.startRootItem("test_project", user, startTestItemRQ);
+    testItemAsyncController.startRootItem(TEST_PROJECT_KEY, user, startTestItemRQ);
     verify(startTestItemHandler).startRootItem(userArgumentCaptor.capture(),
         projectDetailsArgumentCaptor.capture(),
         requestArgumentCaptor.capture()
     );
     assertEquals(user, userArgumentCaptor.getValue());
-    assertEquals(user.getProjectDetails().get("test_project"),
+    assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY),
         projectDetailsArgumentCaptor.getValue());
     assertEquals(startTestItemRQ, requestArgumentCaptor.getValue());
   }
@@ -104,16 +105,16 @@ class TestItemAsyncControllerTest {
 
     when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
         anyString())).thenReturn(user.getProjectDetails()
-        .get("test_project"));
+        .get(TEST_PROJECT_KEY));
 
-    testItemAsyncController.startChildItem("test_project", user, parentItem, startTestItemRQ);
+    testItemAsyncController.startChildItem(TEST_PROJECT_KEY, user, parentItem, startTestItemRQ);
     verify(startTestItemHandler).startChildItem(userArgumentCaptor.capture(),
         projectDetailsArgumentCaptor.capture(),
         requestArgumentCaptor.capture(),
         parentArgumentCaptor.capture()
     );
     assertEquals(user, userArgumentCaptor.getValue());
-    assertEquals(user.getProjectDetails().get("test_project"),
+    assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY),
         projectDetailsArgumentCaptor.getValue());
     assertEquals(startTestItemRQ, requestArgumentCaptor.getValue());
   }
@@ -137,16 +138,16 @@ class TestItemAsyncControllerTest {
 
     when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
         anyString())).thenReturn(user.getProjectDetails()
-        .get("test_project"));
+        .get(TEST_PROJECT_KEY));
 
-    testItemAsyncController.finishTestItem("test_project", user, testItemId, finishTestItemRQ);
+    testItemAsyncController.finishTestItem(TEST_PROJECT_KEY, user, testItemId, finishTestItemRQ);
     verify(finishTestItemHandler).finishTestItem(userArgumentCaptor.capture(),
         projectDetailsArgumentCaptor.capture(),
         testItemCaptor.capture(),
         requestArgumentCaptor.capture()
     );
     assertEquals(user, userArgumentCaptor.getValue());
-    assertEquals(user.getProjectDetails().get("test_project"),
+    assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY),
         projectDetailsArgumentCaptor.getValue());
     assertEquals(finishTestItemRQ, requestArgumentCaptor.getValue());
   }

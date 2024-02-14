@@ -74,11 +74,11 @@ public class TestItemAsyncController {
   @ResponseStatus(CREATED)
   @ApiOperation("Start a root test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
-  public EntryCreatedAsyncRS startRootItem(@PathVariable String projectName,
+  public EntryCreatedAsyncRS startRootItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
     return startTestItemHandler.startRootItem(user,
-        projectExtractor.extractProjectDetails(user, projectName), startTestItemRQ);
+        projectExtractor.extractProjectDetails(user, projectKey), startTestItemRQ);
   }
 
   @HttpLogging
@@ -86,11 +86,11 @@ public class TestItemAsyncController {
   @ResponseStatus(CREATED)
   @ApiOperation("Start a child test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
-  public EntryCreatedAsyncRS startChildItem(@PathVariable String projectName,
+  public EntryCreatedAsyncRS startChildItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @PathVariable String parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
     return startTestItemHandler.startChildItem(user,
-        projectExtractor.extractProjectDetails(user, projectName), startTestItemRQ, parentItem);
+        projectExtractor.extractProjectDetails(user, projectKey), startTestItemRQ, parentItem);
   }
 
   @HttpLogging
@@ -98,11 +98,11 @@ public class TestItemAsyncController {
   @ResponseStatus(OK)
   @ApiOperation("Finish test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
-  public OperationCompletionRS finishTestItem(@PathVariable String projectName,
+  public OperationCompletionRS finishTestItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @PathVariable String testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
     return finishTestItemHandler.finishTestItem(user,
-        projectExtractor.extractProjectDetails(user, projectName), testItemId, finishExecutionRQ);
+        projectExtractor.extractProjectDetails(user, projectKey), testItemId, finishExecutionRQ);
   }
 
 }

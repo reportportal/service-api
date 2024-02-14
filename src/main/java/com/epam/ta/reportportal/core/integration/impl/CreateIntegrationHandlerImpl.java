@@ -108,11 +108,11 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
   }
 
   @Override
-  public EntryCreatedRS createProjectIntegration(String projectName, IntegrationRQ createRequest,
+  public EntryCreatedRS createProjectIntegration(String projectKey, IntegrationRQ createRequest,
       String pluginName, ReportPortalUser user) {
 
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 
     IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
@@ -175,11 +175,11 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
   }
 
   @Override
-  public OperationCompletionRS updateProjectIntegration(Long id, String projectName,
+  public OperationCompletionRS updateProjectIntegration(Long id, String projectKey,
       IntegrationRQ updateRequest, ReportPortalUser user) {
 
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 
     final Integration integration = integrationRepository.findByIdAndProjectId(id, project.getId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));

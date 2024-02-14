@@ -72,9 +72,9 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         implementation 'com.github.reportportal:commons-events:e337f8b7be'
-        implementation 'com.github.reportportal:commons-dao:458b67ab61'
+        implementation 'com.github.reportportal:commons-dao:49dfacf'
         implementation 'com.github.reportportal:commons-rules:42d4dd5634'
-        implementation 'com.github.reportportal:commons-model:c800793'
+        implementation 'com.github.reportportal:commons-model:62f4803'
         implementation 'com.github.reportportal:commons:07566b8e'
         implementation 'com.github.reportportal:commons-fonts:d6e62dd'
         implementation 'com.github.reportportal:plugin-api:0ccfed880c'
@@ -90,6 +90,8 @@ dependencies {
 
 
     implementation 'com.opencsv:opencsv:5.8'
+    implementation 'com.github.slugify:slugify:3.0.6'
+
 
     // Fix CVE-2021-41079, CVE-2022-23181, CVE-2021-33037, CVE-2021-30640, CVE-2022-42252
     implementation 'org.apache.tomcat.embed:tomcat-embed-core:9.0.82'

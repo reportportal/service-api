@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -75,16 +76,16 @@ class LogAsyncControllerTest {
 
     when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
         anyString())).thenReturn(user.getProjectDetails()
-        .get("test_project"));
+        .get(TEST_PROJECT_KEY));
 
-    logAsyncController.createLog("test_project", saveLogRQ, user);
+    logAsyncController.createLog(TEST_PROJECT_KEY, saveLogRQ, user);
     verify(createLogHandler).createLog(requestArgumentCaptor.capture(),
         fileArgumentCaptor.capture(), projectDetailsArgumentCaptor.capture());
     verify(validator).validate(requestArgumentCaptor.capture());
 
     requestArgumentCaptor.getAllValues().forEach(rq -> assertEquals(saveLogRQ, rq));
     assertEquals(null, fileArgumentCaptor.getValue());
-    assertEquals(user.getProjectDetails().get("test_project"),
+    assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY),
         projectDetailsArgumentCaptor.getValue());
   }
 
@@ -102,16 +103,16 @@ class LogAsyncControllerTest {
 
     when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
         anyString())).thenReturn(user.getProjectDetails()
-        .get("test_project"));
+        .get(TEST_PROJECT_KEY));
 
-    logAsyncController.createLogEntry("test_project", saveLogRQ, user);
+    logAsyncController.createLogEntry(TEST_PROJECT_KEY, saveLogRQ, user);
     verify(createLogHandler).createLog(requestArgumentCaptor.capture(),
         fileArgumentCaptor.capture(), projectDetailsArgumentCaptor.capture());
     verify(validator).validate(requestArgumentCaptor.capture());
 
     requestArgumentCaptor.getAllValues().forEach(rq -> assertEquals(saveLogRQ, rq));
     assertEquals(null, fileArgumentCaptor.getValue());
-    assertEquals(user.getProjectDetails().get("test_project"),
+    assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY),
         projectDetailsArgumentCaptor.getValue());
   }
 
@@ -130,9 +131,9 @@ class LogAsyncControllerTest {
 
     when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
         anyString())).thenReturn(user.getProjectDetails()
-        .get("test_project"));
+        .get(TEST_PROJECT_KEY));
 
-    logAsyncController.createLog("test_project", saveLogRQs, httpServletRequest, user);
+    logAsyncController.createLog(TEST_PROJECT_KEY, saveLogRQs, httpServletRequest, user);
     verify(validator, times(4)).validate(requestArgumentCaptor.capture());
     verify(createLogHandler, times(2)).createLog(requestArgumentCaptor.capture(),
         fileArgumentCaptor.capture(), projectDetailsArgumentCaptor.capture());
@@ -144,6 +145,6 @@ class LogAsyncControllerTest {
     requestArgumentCaptor.getAllValues().forEach(arg -> assertEquals(saveLogRQ, arg));
     fileArgumentCaptor.getAllValues().forEach(arg -> assertEquals(null, arg));
     projectDetailsArgumentCaptor.getAllValues()
-        .forEach(arg -> assertEquals(user.getProjectDetails().get("test_project"), arg));
+        .forEach(arg -> assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY), arg));
   }
 }

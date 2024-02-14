@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
@@ -91,7 +92,7 @@ class UpdateLaunchHandlerImplTest {
     when(launchRepository.findById(1L)).thenReturn(
         getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser,
+        () -> handler.updateLaunch(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser,
             new UpdateLaunchRQ()
         )
     );
@@ -110,7 +111,7 @@ class UpdateLaunchHandlerImplTest {
     updateLaunchRQ.setMode(Mode.DEBUG);
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser,
+        () -> handler.updateLaunch(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser,
             updateLaunchRQ
         )
     );
@@ -130,7 +131,7 @@ class UpdateLaunchHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.createClusters(createClustersRQ,
-            extractProjectDetails(rpUser, "test_project"), rpUser
+            extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser
         )
     );
     assertEquals("Incorrect Request. Cannot analyze launch in progress.", exception.getMessage());
@@ -157,7 +158,7 @@ class UpdateLaunchHandlerImplTest {
         ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getDefaultValue());
     createClustersRQ.setRemoveNumbers(!defaultRemoveNumbers);
 
-    handler.createClusters(createClustersRQ, extractProjectDetails(rpUser, "test_project"), rpUser);
+    handler.createClusters(createClustersRQ, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser);
 
     verify(launchAccessValidator, times(1)).validate(any(Launch.class),
         any(ReportPortalUser.ProjectDetails.class), eq(rpUser)

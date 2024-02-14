@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.impl.history;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -55,7 +56,7 @@ class TestItemsHistoryHandlerImplTest {
         ProjectRole.MEMBER, 1L);
 
     assertThrows(ReportPortalException.class,
-        () -> handler.getItemsHistory(extractProjectDetails(rpUser, "test_project"),
+        () -> handler.getItemsHistory(extractProjectDetails(rpUser, TEST_PROJECT_KEY),
             Filter.builder()
                 .withTarget(TestItem.class)
                 .withCondition(FilterCondition.builder().eq(CRITERIA_ID, "1").build())
@@ -73,7 +74,7 @@ class TestItemsHistoryHandlerImplTest {
         ProjectRole.MEMBER, 1L);
 
     assertThrows(ReportPortalException.class,
-        () -> handler.getItemsHistory(extractProjectDetails(rpUser, "test_project"),
+        () -> handler.getItemsHistory(extractProjectDetails(rpUser, TEST_PROJECT_KEY),
             Filter.builder()
                 .withTarget(TestItem.class)
                 .withCondition(FilterCondition.builder().eq(CRITERIA_ID, "1").build())

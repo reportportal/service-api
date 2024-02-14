@@ -47,7 +47,7 @@ abstract class BaseProjectPermission implements Permission {
    * subclass
    */
   @Override
-  public boolean isAllowed(Authentication authentication, Object projectName) {
+  public boolean isAllowed(Authentication authentication, Object projectKey) {
     if (!authentication.isAuthenticated()) {
       return false;
     }
@@ -56,14 +56,14 @@ abstract class BaseProjectPermission implements Permission {
     ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
-    final String resolvedProjectName = String.valueOf(projectName);
+    final String resolvedProjectKey = String.valueOf(projectKey);
     final ReportPortalUser.ProjectDetails projectDetails = projectExtractor.findProjectDetails(
-            rpUser, resolvedProjectName)
+            rpUser, resolvedProjectKey)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED));
-    fillProjectDetails(rpUser, resolvedProjectName, projectDetails);
+    fillProjectDetails(rpUser, resolvedProjectKey, projectDetails);
 
     ProjectRole role = projectDetails.getProjectRole();
-    return checkAllowed(rpUser, projectName.toString(), role);
+    return checkAllowed(rpUser, projectKey.toString(), role);
   }
 
   private void fillProjectDetails(ReportPortalUser rpUser, String resolvedProjectName,

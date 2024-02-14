@@ -28,8 +28,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
  */
 public class ReportPortalUserUtil {
 
-  public static final String TEST_PROJECT_NAME = "test_project";
-
   private ReportPortalUserUtil() {
     //static only
   }
@@ -43,8 +41,9 @@ public class ReportPortalUserUtil {
         .withUserId(1L)
         .withEmail("test@email.com")
         .withUserRole(userRole)
-        .withProjectDetails(Maps.newHashMap("test_project",
-            new ReportPortalUser.ProjectDetails(projectId, TEST_PROJECT_NAME, projectRole)
+        .withProjectDetails(Maps.newHashMap("o-slug-project-name",
+            new ReportPortalUser.ProjectDetails(projectId, "project Name", projectRole,
+                "o-slug-project-name")
         ))
         .build();
   }

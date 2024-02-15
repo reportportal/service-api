@@ -55,6 +55,8 @@ public final class ProjectConverter {
     ProjectResource projectResource = new ProjectResource();
     projectResource.setProjectId(project.getId());
     projectResource.setProjectName(project.getName());
+    projectResource.setProjectKey(project.getKey());
+    projectResource.setProjectSlug(project.getSlug());
     projectResource.setOrganization(project.getOrganization().getName());
     projectResource.setOrganizationSlug(project.getOrganization().getSlug());
     projectResource.setOrganizationId(project.getOrganization().getId());

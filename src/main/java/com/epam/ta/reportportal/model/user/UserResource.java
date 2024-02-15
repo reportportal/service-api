@@ -80,6 +80,8 @@ public class UserResource {
     private String projectRole;
     private String entryType;
     private String projectKey;
+    private String projectSlug;
+    private Long organizationId;
 
   }
 
@@ -88,9 +90,10 @@ public class UserResource {
   @ToString
   public static class AssignedOrganization {
 
+    private Long organizationId;
     private String organizationRole;
-    private String organizationName;
     private String organizationSlug;
+    private String organizationName;
 
   }
 

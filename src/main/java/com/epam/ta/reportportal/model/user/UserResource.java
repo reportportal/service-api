@@ -69,7 +69,7 @@ public class UserResource {
   @JsonProperty(value = "assignedProjects")
   private Map<String, AssignedProject> assignedProjects = new HashMap<>();
 
-  @JsonProperty(value = "assignedOrganization")
+  @JsonProperty(value = "assignedOrganizations")
   private Map<String, AssignedOrganization> assignedOrganizations = new HashMap<>();
 
   @Getter

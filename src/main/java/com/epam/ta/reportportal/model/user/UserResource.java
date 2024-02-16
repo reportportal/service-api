@@ -92,7 +92,6 @@ public class UserResource {
 
     private Long organizationId;
     private String organizationRole;
-    private String organizationSlug;
     private String organizationName;
 
   }

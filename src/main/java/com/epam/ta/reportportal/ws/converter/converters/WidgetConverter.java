@@ -20,12 +20,12 @@ import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidgetId;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import com.epam.ta.reportportal.ws.model.Position;
-import com.epam.ta.reportportal.ws.model.Size;
-import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
-import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
-import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
-import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
+import com.epam.ta.reportportal.model.Position;
+import com.epam.ta.reportportal.model.Size;
+import com.epam.ta.reportportal.model.activity.WidgetActivityResource;
+import com.epam.ta.reportportal.model.dashboard.DashboardResource;
+import com.epam.ta.reportportal.model.widget.ContentParameters;
+import com.epam.ta.reportportal.model.widget.WidgetResource;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 

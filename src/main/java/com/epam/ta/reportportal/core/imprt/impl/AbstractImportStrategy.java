@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.imprt.impl;
 
 import static java.util.Optional.ofNullable;
@@ -24,10 +25,10 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
-import com.epam.ta.reportportal.ws.model.launch.LaunchImportRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.collect.Sets;
@@ -90,16 +91,14 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
     startLaunchRQ.setStartTime(ofNullable(rq.getStartTime()).orElse(initialStartTime));
     startLaunchRQ.setName(ofNullable(rq.getName()).orElse(launchName));
-    ofNullable(rq.getDescription())
-        .ifPresent(startLaunchRQ::setDescription);
+    ofNullable(rq.getDescription()).ifPresent(startLaunchRQ::setDescription);
     startLaunchRQ.setMode(ofNullable(rq.getMode()).orElse(Mode.DEFAULT));
     startLaunchRQ.setAttributes(ofNullable(rq.getAttributes()).orElse(Sets.newHashSet()));
     return startLaunchHandler.startLaunch(user, projectDetails, startLaunchRQ).getId();
   }
 
   protected void finishLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user,
-      ParseResults results, String baseUrl) {
+      ReportPortalUser user, ParseResults results, String baseUrl) {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
     finishExecutionRQ.setEndTime(results.getEndTime());
     finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectDetails, user, baseUrl);
@@ -110,11 +109,10 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
   }
 
   protected Boolean isSkippedNotIssue(Set<ItemAttributesRQ> attributes) {
-    return ofNullable(attributes).orElse(Collections.emptySet()).stream()
-        .filter(
+    return ofNullable(attributes).orElse(Collections.emptySet()).stream().filter(
             attribute -> SKIPPED_IS_NOT_ISSUE.equals(attribute.getKey()) && attribute.isSystem())
-        .findAny()
-        .filter(itemAttributesRQ -> Boolean.parseBoolean(itemAttributesRQ.getValue())).isPresent();
+        .findAny().filter(itemAttributesRQ -> Boolean.parseBoolean(itemAttributesRQ.getValue()))
+        .isPresent();
   }
 
   /**

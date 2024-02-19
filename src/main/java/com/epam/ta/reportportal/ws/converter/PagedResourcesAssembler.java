@@ -17,7 +17,7 @@
 
 package com.epam.ta.reportportal.ws.converter;
 
-import com.epam.ta.reportportal.ws.model.PagedResponse;
+import com.epam.ta.reportportal.model.PagedResponse;
 import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.function.Function;
@@ -35,16 +35,16 @@ import org.springframework.data.domain.PageImpl;
  */
 public abstract class PagedResourcesAssembler<T, R> extends ResourceAssembler<T, R> {
 
-  public static <T> Function<Page<T>, com.epam.ta.reportportal.ws.model.Page<T>> pageConverter() {
-    return page -> new com.epam.ta.reportportal.ws.model.Page<>(page.getContent(),
-        new com.epam.ta.reportportal.ws.model.Page.PageMetadata(page.getSize(),
+  public static <T> Function<Page<T>, com.epam.ta.reportportal.model.Page<T>> pageConverter() {
+    return page -> new com.epam.ta.reportportal.model.Page<>(page.getContent(),
+        new com.epam.ta.reportportal.model.Page.PageMetadata(page.getSize(),
             page.getNumber() + 1L, page.getTotalElements(),
             page.getTotalPages()
         )
     );
   }
 
-  public static <T, R> Function<Page<T>, com.epam.ta.reportportal.ws.model.Page<R>> pageConverter(
+  public static <T, R> Function<Page<T>, com.epam.ta.reportportal.model.Page<R>> pageConverter(
       Function<T, R> modelConverter) {
     return page -> PagedResourcesAssembler.<R>pageConverter().apply(page.map(modelConverter));
   }
@@ -67,7 +67,7 @@ public abstract class PagedResourcesAssembler<T, R> extends ResourceAssembler<T,
         .apply(page.map(modelConverter));
   }
 
-  public static <T, R> Function<Page<T>, com.epam.ta.reportportal.ws.model.Page<R>> pageMultiConverter(
+  public static <T, R> Function<Page<T>, com.epam.ta.reportportal.model.Page<R>> pageMultiConverter(
       Function<List<T>, List<R>> modelConverter) {
     return page -> PagedResourcesAssembler.<R>pageConverter()
         .apply(new PageImpl<>(modelConverter.apply(page.getContent()),
@@ -77,18 +77,18 @@ public abstract class PagedResourcesAssembler<T, R> extends ResourceAssembler<T,
   }
 
   /**
-   * Creates {@link com.epam.ta.reportportal.ws.model.Page} from {@link Page} DB query result
+   * Creates {@link com.epam.ta.reportportal.model.Page} from {@link Page} DB query result
    *
    * @param content Page to be processed
    * @return Transformed Page
    * @deprecated in favor of using converters based on JDK8 Functions
    */
   @Deprecated
-  public com.epam.ta.reportportal.ws.model.Page<R> toPagedResources(Page<T> content) {
+  public com.epam.ta.reportportal.model.Page<R> toPagedResources(Page<T> content) {
     Preconditions.checkNotNull(content, "Content should be null");
 
-    return new com.epam.ta.reportportal.ws.model.Page<>(toResources(content),
-        new com.epam.ta.reportportal.ws.model.Page.PageMetadata(content.getSize(),
+    return new com.epam.ta.reportportal.model.Page<>(toResources(content),
+        new com.epam.ta.reportportal.model.Page.PageMetadata(content.getSize(),
             content.getNumber() + 1L,
             content.getTotalElements(), content.getTotalPages()
         )

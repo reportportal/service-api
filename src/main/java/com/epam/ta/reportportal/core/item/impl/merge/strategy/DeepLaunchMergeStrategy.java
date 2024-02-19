@@ -23,7 +23,7 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
+import com.epam.ta.reportportal.model.launch.MergeLaunchesRQ;
 import java.util.List;
 
 /**
@@ -35,13 +35,13 @@ public class DeepLaunchMergeStrategy extends AbstractLaunchMergeStrategy {
       TestItemRepository testItemRepository, LogRepository logRepository,
       AttachmentRepository attachmentRepository, TestItemUniqueIdGenerator identifierGenerator) {
     super(launchRepository, testItemRepository, logRepository, attachmentRepository,
-        identifierGenerator);
+        identifierGenerator
+    );
   }
 
   @Override
   public Launch mergeLaunches(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-      MergeLaunchesRQ rq,
-      List<Launch> launchesList) {
+      MergeLaunchesRQ rq, List<Launch> launchesList) {
 
     Launch newLaunch = createNewLaunch(projectDetails, user, rq, launchesList);
     launchRepository.mergeLaunchTestItems(newLaunch.getId());

@@ -17,12 +17,12 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.model.issue.DefineIssueRQ;
+import com.epam.ta.reportportal.model.item.ExternalIssueRQ;
+import com.epam.ta.reportportal.model.item.UpdateTestItemRQ;
 import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
-import com.epam.ta.reportportal.ws.model.item.ExternalIssueRQ;
-import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import java.util.List;
 
 /**
@@ -53,8 +53,7 @@ public interface UpdateTestItemHandler {
    * @return OperationCompletionRS
    */
   OperationCompletionRS updateTestItem(ReportPortalUser.ProjectDetails projectDetails, Long itemId,
-      UpdateTestItemRQ rq,
-      ReportPortalUser user);
+      UpdateTestItemRQ rq, ReportPortalUser user);
 
   /**
    * Add or remove external system issue link directly to the
@@ -66,8 +65,7 @@ public interface UpdateTestItemHandler {
    * @return {@link List} of the {@link OperationCompletionRS}
    */
   List<OperationCompletionRS> processExternalIssues(ExternalIssueRQ request,
-      ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user);
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
   /**
    * Resets items issue to default state

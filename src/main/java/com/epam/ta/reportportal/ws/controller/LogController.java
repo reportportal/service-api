@@ -38,6 +38,10 @@ import com.epam.ta.reportportal.core.log.DeleteLogHandler;
 import com.epam.ta.reportportal.core.log.GetLogHandler;
 import com.epam.ta.reportportal.core.log.impl.PagedLogResource;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.model.log.GetLogsUnderRq;
+import com.epam.ta.reportportal.model.log.LogResource;
+import com.epam.ta.reportportal.model.log.SearchLogRq;
+import com.epam.ta.reportportal.model.log.SearchLogRs;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.BatchElementCreatedRS;
 import com.epam.ta.reportportal.ws.model.BatchSaveOperatingRS;
@@ -45,11 +49,7 @@ import com.epam.ta.reportportal.ws.model.Constants;
 import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.log.GetLogsUnderRq;
-import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
-import com.epam.ta.reportportal.ws.model.log.SearchLogRq;
-import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.collect.ImmutableMap;
@@ -102,8 +102,7 @@ public class LogController {
   @Autowired
   public LogController(ProjectExtractor projectExtractor,
       @Autowired CreateLogHandler createLogHandler, DeleteLogHandler deleteLogHandler,
-      GetLogHandler getLogHandler,
-      SearchLogService searchLogService, Validator validator) {
+      GetLogHandler getLogHandler, SearchLogService searchLogService, Validator validator) {
     this.projectExtractor = projectExtractor;
     this.createLogHandler = createLogHandler;
     this.deleteLogHandler = deleteLogHandler;
@@ -119,32 +118,32 @@ public class LogController {
    */
   /* Report client API */
   @Deprecated
-  @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
+  @PostMapping(consumes = { MediaType.APPLICATION_JSON_VALUE })
   @ResponseStatus(CREATED)
   @ApiIgnore
   @PreAuthorize(ALLOWED_TO_REPORT)
   public EntryCreatedAsyncRS createLog(@PathVariable String projectName,
-      @RequestBody SaveLogRQ createLogRQ,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestBody SaveLogRQ createLogRQ, @AuthenticationPrincipal ReportPortalUser user) {
     validateSaveRQ(validator, createLogRQ);
     return createLogHandler.createLog(createLogRQ, null,
-        projectExtractor.extractProjectDetails(user, projectName));
+        projectExtractor.extractProjectDetails(user, projectName)
+    );
   }
 
   /* Report client API */
-  @PostMapping(value = "/entry", consumes = {MediaType.APPLICATION_JSON_VALUE})
+  @PostMapping(value = "/entry", consumes = { MediaType.APPLICATION_JSON_VALUE })
   @ResponseStatus(CREATED)
   @ApiOperation("Create log")
   @PreAuthorize(ALLOWED_TO_REPORT)
   public EntryCreatedAsyncRS createLogEntry(@PathVariable String projectName,
-      @RequestBody SaveLogRQ createLogRQ,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestBody SaveLogRQ createLogRQ, @AuthenticationPrincipal ReportPortalUser user) {
     validateSaveRQ(validator, createLogRQ);
     return createLogHandler.createLog(createLogRQ, null,
-        projectExtractor.extractProjectDetails(user, projectName));
+        projectExtractor.extractProjectDetails(user, projectName)
+    );
   }
 
-  @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
   @ApiOperation("Create log (batching operation)")
   // Specific handler should be added for springfox in case of similar POST
   // request mappings
@@ -152,8 +151,7 @@ public class LogController {
   @PreAuthorize(ALLOWED_TO_REPORT)
   public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectName,
       @RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs,
-      HttpServletRequest request,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      HttpServletRequest request, @AuthenticationPrincipal ReportPortalUser user) {
 
     /*
      * Since this is multipart request we can retrieve list of uploaded
@@ -180,7 +178,8 @@ public class LogController {
           BusinessRule.expect(data, Predicates.notNull())
               .verify(ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
                   Suppliers.formattedSupplier("There is no request part or file with name {}",
-                      filename)
+                      filename
+                  )
               );
           /*
            * If provided content type is null or this is octet
@@ -189,12 +188,14 @@ public class LogController {
            */
           //noinspection ConstantConditions
           responseItem = createLogHandler.createLog(createLogRq, data,
-              projectExtractor.extractProjectDetails(user, projectName));
+              projectExtractor.extractProjectDetails(user, projectName)
+          );
         }
         response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
       } catch (Exception e) {
         response.addResponse(new BatchElementCreatedRS(ExceptionUtils.getStackTrace(e),
-            ExceptionUtils.getMessage(e)));
+            ExceptionUtils.getMessage(e)
+        ));
       }
     }
     return new ResponseEntity<>(response, CREATED);
@@ -209,20 +210,21 @@ public class LogController {
   public OperationCompletionRS deleteLog(@PathVariable String projectName, @PathVariable Long logId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return deleteLogHandler.deleteLog(logId,
-        projectExtractor.extractProjectDetails(user, projectName), user);
+        projectExtractor.extractProjectDetails(user, projectName), user
+    );
   }
 
   @RequestMapping(method = RequestMethod.GET)
   @ApiOperation("Get logs by filter")
   @Transactional(readOnly = true)
   public Iterable<LogResource> getLogs(@PathVariable String projectName,
-      @RequestParam(value = DEFAULT_FILTER_PREFIX + UNDR
-          + CRITERIA_PATH, required = false) String underPath,
-      @FilterFor(Log.class) Filter filter,
-      @SortDefault({"logTime"}) @SortFor(Log.class) Pageable pageable,
+      @RequestParam(value = DEFAULT_FILTER_PREFIX + UNDR + CRITERIA_PATH, required = false)
+      String underPath, @FilterFor(Log.class) Filter filter,
+      @SortDefault({ "logTime" }) @SortFor(Log.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getLogs(underPath,
-        projectExtractor.extractProjectDetails(user, projectName), filter, pageable);
+        projectExtractor.extractProjectDetails(user, projectName), filter, pageable
+    );
   }
 
   @PostMapping(value = "/under")
@@ -231,19 +233,20 @@ public class LogController {
   public Map<Long, List<LogResource>> getLogsUnder(@PathVariable String projectName,
       @RequestBody GetLogsUnderRq logsUnderRq, @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getLogs(logsUnderRq,
-        projectExtractor.extractProjectDetails(user, projectName));
+        projectExtractor.extractProjectDetails(user, projectName)
+    );
   }
 
   @GetMapping(value = "/{logId}/page")
   @ApiOperation("Get logs by filter")
   @Transactional(readOnly = true)
   public Map<String, Serializable> getPageNumber(@PathVariable String projectName,
-      @PathVariable Long logId,
-      @FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable Long logId, @FilterFor(Log.class) Filter filter,
+      @SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
     return ImmutableMap.<String, Serializable>builder().put("number",
         getLogHandler.getPageNumber(logId,
-            projectExtractor.extractProjectDetails(user, projectName), filter, pageable)
+            projectExtractor.extractProjectDetails(user, projectName), filter, pageable
+        )
     ).build();
   }
 
@@ -253,7 +256,8 @@ public class LogController {
   public LogResource getLog(@PathVariable String projectName, @PathVariable String logId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getLog(logId, projectExtractor.extractProjectDetails(user, projectName),
-        user);
+        user
+    );
   }
 
   /**
@@ -267,7 +271,8 @@ public class LogController {
   public LogResource getLogByUuid(@PathVariable String projectName, @PathVariable String logId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getLog(logId, projectExtractor.extractProjectDetails(user, projectName),
-        user);
+        user
+    );
   }
 
   @GetMapping(value = "/nested/{parentId}")
@@ -275,10 +280,11 @@ public class LogController {
   @Transactional(readOnly = true)
   public Iterable<?> getNestedItems(@PathVariable String projectName, @PathVariable Long parentId,
       @ApiParam(required = false) @RequestParam Map<String, String> params,
-      @FilterFor(Log.class) Filter filter,
-      @SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+      @FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable,
+      @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getNestedItems(parentId,
-        projectExtractor.extractProjectDetails(user, projectName), params, filter, pageable);
+        projectExtractor.extractProjectDetails(user, projectName), params, filter, pageable
+    );
   }
 
   @GetMapping(value = "/locations/{parentId}")
@@ -289,7 +295,8 @@ public class LogController {
       @FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getLogsWithLocation(parentId,
-        projectExtractor.extractProjectDetails(user, projectName), params, filter, pageable);
+        projectExtractor.extractProjectDetails(user, projectName), params, filter, pageable
+    );
   }
 
   @PostMapping("search/{itemId}")
@@ -299,7 +306,8 @@ public class LogController {
       @RequestBody SearchLogRq request, @PathVariable Long itemId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return searchLogService.search(itemId, request,
-        projectExtractor.extractProjectDetails(user, projectName));
+        projectExtractor.extractProjectDetails(user, projectName)
+    );
   }
 
 }

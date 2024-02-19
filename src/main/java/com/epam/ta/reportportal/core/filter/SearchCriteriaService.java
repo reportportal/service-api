@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.filter;
 
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType;
-import com.epam.ta.reportportal.ws.model.SearchCriteriaRQ;
+import com.epam.ta.reportportal.model.SearchCriteriaRQ;
 
 /**
  * Service for converting SearchCriteria to Filter.
@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.ws.model.SearchCriteriaRQ;
  */
 public interface SearchCriteriaService {
 
-  Queryable createFilterBySearchCriteria(SearchCriteriaRQ searchCriteriaRQ,
-      Class<?> target, PredefinedFilterType predefinedFilterType);
+  Queryable createFilterBySearchCriteria(SearchCriteriaRQ searchCriteriaRQ, Class<?> target,
+      PredefinedFilterType predefinedFilterType);
 
 }

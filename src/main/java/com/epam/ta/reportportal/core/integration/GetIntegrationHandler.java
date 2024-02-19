@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.integration;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
+import com.epam.ta.reportportal.model.integration.IntegrationResource;
 import java.util.List;
 import java.util.Optional;
 

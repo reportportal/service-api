@@ -1,5 +1,5 @@
 rp:
-  elasticsearchLogmessage:
+  searchengine:
     host: elasticsearch
     port: 9200
     username:

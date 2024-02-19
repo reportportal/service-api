@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.core.admin;
 
+import com.epam.ta.reportportal.model.settings.AnalyticsResource;
+import com.epam.ta.reportportal.model.settings.ServerSettingsResource;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
-import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import java.util.Map;
 
 /**

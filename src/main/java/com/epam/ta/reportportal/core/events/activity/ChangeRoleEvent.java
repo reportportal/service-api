@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
-import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
+import com.epam.ta.reportportal.model.activity.UserActivityResource;
 
 public class ChangeRoleEvent extends AbstractEvent implements ActivityEvent {
 
@@ -54,20 +54,12 @@ public class ChangeRoleEvent extends AbstractEvent implements ActivityEvent {
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder()
-        .addCreatedNow()
-        .addAction(EventAction.CHANGE_ROLE)
-        .addEventName(CHANGE_ROLE.getValue())
-        .addPriority(EventPriority.HIGH)
-        .addObjectId(userActivityResource.getId())
-        .addObjectName(userActivityResource.getFullName())
-        .addObjectType(EventObject.USER)
-        .addProjectId(userActivityResource.getDefaultProjectId())
-        .addSubjectId(getUserId())
-        .addSubjectName(getUserLogin())
-        .addSubjectType(EventSubject.USER)
-        .addHistoryField("projectRole", oldRole, newRole)
-        .get();
+    return new ActivityBuilder().addCreatedNow().addAction(EventAction.CHANGE_ROLE)
+        .addEventName(CHANGE_ROLE.getValue()).addPriority(EventPriority.HIGH)
+        .addObjectId(userActivityResource.getId()).addObjectName(userActivityResource.getFullName())
+        .addObjectType(EventObject.USER).addProjectId(userActivityResource.getDefaultProjectId())
+        .addSubjectId(getUserId()).addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER)
+        .addHistoryField("projectRole", oldRole, newRole).get();
   }
 
 }

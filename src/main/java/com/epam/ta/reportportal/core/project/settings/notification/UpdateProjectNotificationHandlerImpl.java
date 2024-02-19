@@ -28,13 +28,13 @@ import com.epam.ta.reportportal.core.project.validator.notification.ProjectNotif
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
+import com.epam.ta.reportportal.model.project.ProjectResource;
+import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO;
+import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.project.ProjectResource;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
-import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
 
@@ -50,8 +50,7 @@ public class UpdateProjectNotificationHandlerImpl implements UpdateProjectNotifi
   private final ProjectNotificationValidator projectNotificationValidator;
 
   public UpdateProjectNotificationHandlerImpl(SenderCaseRepository senderCaseRepository,
-      MessageBus messageBus,
-      ProjectConverter projectConverter,
+      MessageBus messageBus, ProjectConverter projectConverter,
       ProjectNotificationValidator projectNotificationValidator) {
     this.senderCaseRepository = senderCaseRepository;
     this.messageBus = messageBus;
@@ -63,29 +62,27 @@ public class UpdateProjectNotificationHandlerImpl implements UpdateProjectNotifi
   public OperationCompletionRS updateNotification(Project project,
       SenderCaseDTO updateNotificationRQ, ReportPortalUser user) {
     expect(updateNotificationRQ.getId(), Objects::nonNull).verify(ErrorType.BAD_REQUEST_ERROR,
-        "Please specify notification Id");
+        "Please specify notification Id"
+    );
     expect(senderCaseRepository.findById(updateNotificationRQ.getId()),
         (notification) -> notification.map(
-            ntf -> Objects.equals(ntf.getProject().getId(), project.getId())).orElse(false))
-        .verify(ErrorType.BAD_REQUEST_ERROR,
-            Suppliers.formattedSupplier(
-                "Notification '{}' not found. Did you use correct Notification ID?",
-                updateNotificationRQ.getId()).get()
-        );
+            ntf -> Objects.equals(ntf.getProject().getId(), project.getId())).orElse(false)
+    ).verify(ErrorType.BAD_REQUEST_ERROR, Suppliers.formattedSupplier(
+        "Notification '{}' not found. Did you use correct Notification ID?",
+        updateNotificationRQ.getId()
+    ).get());
     projectNotificationValidator.validateUpdateRQ(project, updateNotificationRQ);
     SenderCase notification = NotificationConfigConverter.TO_CASE_MODEL.apply(updateNotificationRQ);
     notification.setProject(project);
     senderCaseRepository.save(notification);
 
     ProjectResource projectResource = projectConverter.TO_PROJECT_RESOURCE.apply(project);
-    ProjectNotificationConfigDTO projectNotificationConfigDTO = projectResource.getConfiguration()
-        .getProjectConfig();
+    ProjectNotificationConfigDTO projectNotificationConfigDTO =
+        projectResource.getConfiguration().getProjectConfig();
     projectNotificationConfigDTO.getSenderCases().add(updateNotificationRQ);
 
     messageBus.publishActivity(new NotificationsConfigUpdatedEvent(projectResource,
-        projectResource.getConfiguration().getProjectConfig(),
-        user.getUserId(),
-        user.getUsername()
+        projectResource.getConfiguration().getProjectConfig(), user.getUserId(), user.getUsername()
     ));
 
     return new OperationCompletionRS("Notification rule was updated successfully.");

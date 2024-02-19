@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
-import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
-import com.epam.ta.reportportal.ws.model.project.config.pattern.PatternTemplateResource;
+import com.epam.ta.reportportal.model.activity.PatternTemplateActivityResource;
+import com.epam.ta.reportportal.model.project.config.pattern.PatternTemplateResource;
 import java.util.function.Function;
 
 /**
@@ -30,18 +30,20 @@ public class PatternTemplateConverter {
     //static only
   }
 
-  public static final Function<PatternTemplate, PatternTemplateResource> TO_RESOURCE = patternTemplate -> {
-    PatternTemplateResource resource = new PatternTemplateResource();
-    resource.setId(patternTemplate.getId());
-    resource.setType(patternTemplate.getTemplateType().name());
-    resource.setName(patternTemplate.getName());
-    resource.setValue(patternTemplate.getValue());
-    resource.setEnabled(patternTemplate.isEnabled());
+  public static final Function<PatternTemplate, PatternTemplateResource> TO_RESOURCE =
+      patternTemplate -> {
+        PatternTemplateResource resource = new PatternTemplateResource();
+        resource.setId(patternTemplate.getId());
+        resource.setType(patternTemplate.getTemplateType().name());
+        resource.setName(patternTemplate.getName());
+        resource.setValue(patternTemplate.getValue());
+        resource.setEnabled(patternTemplate.isEnabled());
 
-    return resource;
-  };
+        return resource;
+      };
 
-  public static final Function<PatternTemplate, PatternTemplateActivityResource> TO_ACTIVITY_RESOURCE = patternTemplate -> {
+  public static final Function<PatternTemplate, PatternTemplateActivityResource>
+      TO_ACTIVITY_RESOURCE = patternTemplate -> {
     PatternTemplateActivityResource resource = new PatternTemplateActivityResource();
     resource.setId(patternTemplate.getId());
     resource.setName(patternTemplate.getName());

@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.user.RestorePasswordBid;
-import com.epam.ta.reportportal.ws.model.user.RestorePasswordRQ;
+import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
 import com.google.common.base.Preconditions;
 import java.util.UUID;
 import java.util.function.Function;

@@ -30,8 +30,8 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
-import com.epam.ta.reportportal.ws.model.analyzer.RelevantItemInfo;
+import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
+import com.epam.ta.reportportal.model.analyzer.RelevantItemInfo;
 import java.util.Optional;
 
 /**

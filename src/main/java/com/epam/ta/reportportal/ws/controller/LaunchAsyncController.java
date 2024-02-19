@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
@@ -26,11 +27,11 @@ import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.MergeLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.core.logging.HttpLogging;
+import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
+import com.epam.ta.reportportal.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import io.swagger.annotations.ApiOperation;
@@ -82,10 +83,11 @@ public class LaunchAsyncController {
   @ResponseStatus(CREATED)
   @ApiOperation("Starts launch for specified project")
   public StartLaunchRS startLaunch(@PathVariable String projectName,
-      @ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated
+      StartLaunchRQ startLaunchRQ, @AuthenticationPrincipal ReportPortalUser user) {
     return startLaunchHandler.startLaunch(user,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
+        projectExtractor.extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ
+    );
   }
 
   @HttpLogging
@@ -94,15 +96,10 @@ public class LaunchAsyncController {
   @ResponseStatus(OK)
   @ApiOperation("Finish launch for specified project")
   public FinishLaunchRS finishLaunch(@PathVariable String projectName,
-      @PathVariable String launchId,
-      @RequestBody @Validated FinishExecutionRQ finishLaunchRQ,
-      @AuthenticationPrincipal ReportPortalUser user,
-      HttpServletRequest request) {
-    return finishLaunchHandler.finishLaunch(
-        launchId,
-        finishLaunchRQ,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectName)),
-        user,
+      @PathVariable String launchId, @RequestBody @Validated FinishExecutionRQ finishLaunchRQ,
+      @AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request) {
+    return finishLaunchHandler.finishLaunch(launchId, finishLaunchRQ,
+        projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user,
         composeBaseUrl(request)
     );
   }
@@ -114,11 +111,12 @@ public class LaunchAsyncController {
   @ResponseStatus(OK)
   @ApiOperation("Merge set of specified launches in common one")
   public LaunchResource mergeLaunches(@PathVariable String projectName,
-      @ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated
+      MergeLaunchesRQ mergeLaunchesRQ, @AuthenticationPrincipal ReportPortalUser user) {
     return mergeLaunchesHandler.mergeLaunches(
         projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user,
-        mergeLaunchesRQ);
+        mergeLaunchesRQ
+    );
   }
 
 }

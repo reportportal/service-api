@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
-import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
+import com.epam.ta.reportportal.model.DeleteBulkRQ;
+import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 /**

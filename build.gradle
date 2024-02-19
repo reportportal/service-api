@@ -18,13 +18,12 @@ plugins {
     id "io.spring.dependency-management" version "1.1.4"
     id 'org.springframework.boot' version '2.5.15'
     id 'java'
-    id "org.owasp.dependencycheck" version "8.2.1"
+    id "org.owasp.dependencycheck" version "9.0.9"
 }
 
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
-apply from: "$scriptsUrl/build-docker.gradle"
 apply from: "$scriptsUrl/build-commons.gradle"
 apply from: "$scriptsUrl/build-info.gradle"
 apply from: "$scriptsUrl/release-service.gradle"
@@ -58,7 +57,7 @@ ext['spring-boot.version'] = '2.5.15'
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.10.0' : 'com.github.reportportal:commons-bom:6aa55fc0')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.10.0' : 'com.epam.reportportal:commons-bom:5.10.0')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:12.9.0')
     }
 }
@@ -73,12 +72,12 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         implementation 'com.github.reportportal:commons-events:e337f8b7be'
-        implementation 'com.github.reportportal:commons-dao:516ace3'
-        implementation 'com.github.reportportal:commons-rules:01ec4d17'
-        implementation 'com.github.reportportal:commons-model:3251388'
+        implementation 'com.github.reportportal:commons-dao:b299f80'
+        implementation 'com.github.reportportal:commons-rules:42d4dd5634'
+        implementation 'com.github.reportportal:commons-model:c800793'
         implementation 'com.github.reportportal:commons:07566b8e'
         implementation 'com.github.reportportal:commons-fonts:d6e62dd'
-        implementation 'com.github.reportportal:plugin-api:55bf2f26'
+        implementation 'com.github.reportportal:plugin-api:0ccfed880c'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
@@ -180,7 +179,8 @@ dependencyCheck {
 }
 
 bootJar {
-    project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('exec')
+    project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('' +
+            'exec')
 }
 jar.enabled(true)
 jar.archiveClassifier.set('')

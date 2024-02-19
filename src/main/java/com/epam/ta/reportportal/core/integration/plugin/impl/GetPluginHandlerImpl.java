@@ -18,8 +18,8 @@ package com.epam.ta.reportportal.core.integration.plugin.impl;
 
 import com.epam.ta.reportportal.core.integration.plugin.GetPluginHandler;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.model.integration.IntegrationTypeResource;
 import com.epam.ta.reportportal.ws.converter.converters.IntegrationTypeConverter;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,17 +42,13 @@ public class GetPluginHandlerImpl implements GetPluginHandler {
 
   @Override
   public List<IntegrationTypeResource> getPlugins() {
-    return integrationTypeRepository.findAllByOrderByCreationDate()
-        .stream()
-        .map(IntegrationTypeConverter.TO_RESOURCE)
-        .collect(Collectors.toList());
+    return integrationTypeRepository.findAllByOrderByCreationDate().stream()
+        .map(IntegrationTypeConverter.TO_RESOURCE).collect(Collectors.toList());
   }
 
   @Override
   public List<IntegrationTypeResource> getPublicPlugins() {
-    return integrationTypeRepository.findAllByAccessType(ACCESS_TYPE_PUBLIC_NAME)
-        .stream()
-        .map(IntegrationTypeConverter.TO_RESOURCE)
-        .collect(Collectors.toList());
+    return integrationTypeRepository.findAllByAccessType(ACCESS_TYPE_PUBLIC_NAME).stream()
+        .map(IntegrationTypeConverter.TO_RESOURCE).collect(Collectors.toList());
   }
 }

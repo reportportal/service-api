@@ -29,10 +29,10 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.util.FeatureFlagHandler;
 import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jclouds.blobstore.BlobStore;
@@ -46,7 +46,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -107,12 +106,10 @@ public class FlushingDataJob implements Job {
   public void execute(JobExecutionContext context) {
     LOGGER.info("Flushing demo instance data is starting...");
     truncateTables();
-    projectRepository.findAllProjectNames()
-        .stream()
-        .filter(it -> !it.equalsIgnoreCase(SUPERADMIN_PERSONAL))
-        .collect(Collectors.toList())
+    projectRepository.findAllProjectNames().stream()
+        .filter(it -> !it.equalsIgnoreCase(SUPERADMIN_PERSONAL)).collect(Collectors.toList())
         .forEach(name -> projectRepository.findByName(name).ifPresent(this::deleteProject));
-    if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)){
+    if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
       try {
         blobStore.deleteContainer(defaultBucketName);
       } catch (Exception e) {
@@ -130,8 +127,7 @@ public class FlushingDataJob implements Job {
    * Get exclusive lock. Kill all running transactions. Truncate tables
    */
   private void truncateTables() {
-    jdbcTemplate.execute("BEGIN; "
-        + "TRUNCATE TABLE launch RESTART IDENTITY CASCADE;"
+    jdbcTemplate.execute("BEGIN; " + "TRUNCATE TABLE launch RESTART IDENTITY CASCADE;"
         + "TRUNCATE TABLE activity RESTART IDENTITY CASCADE;"
         + "TRUNCATE TABLE owned_entity RESTART IDENTITY CASCADE;"
         + "TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;"
@@ -150,10 +146,8 @@ public class FlushingDataJob implements Job {
     request.setLogin("default");
     request.setPassword("1q2w3e");
     request.setEmail("defaultemail@domain.com");
-    User user = new UserBuilder().addCreateUserFullRQ(request)
-        .addUserRole(UserRole.USER)
-        .addPassword(passwordEncoder.encode(request.getPassword()))
-        .get();
+    User user = new UserBuilder().addCreateUserFullRQ(request).addUserRole(UserRole.USER)
+        .addPassword(passwordEncoder.encode(request.getPassword())).get();
     projectRepository.save(personalProjectService.generatePersonalProject(user));
     userRepository.save(user);
     LOGGER.info("Default user has been successfully created.");
@@ -167,15 +161,13 @@ public class FlushingDataJob implements Job {
   }
 
   private void deleteProject(Project project) {
-    Set<Long> defaultIssueTypeIds = issueTypeRepository.getDefaultIssueTypes()
-        .stream()
-        .map(IssueType::getId)
-        .collect(Collectors.toSet());
-    Set<IssueType> issueTypesToRemove = project.getProjectIssueTypes()
-        .stream()
-        .map(ProjectIssueType::getIssueType)
-        .filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
-        .collect(Collectors.toSet());
+    Set<Long> defaultIssueTypeIds =
+        issueTypeRepository.getDefaultIssueTypes().stream().map(IssueType::getId)
+            .collect(Collectors.toSet());
+    Set<IssueType> issueTypesToRemove =
+        project.getProjectIssueTypes().stream().map(ProjectIssueType::getIssueType)
+            .filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
+            .collect(Collectors.toSet());
     projectRepository.delete(project);
     analyzerServiceClient.removeSuggest(project.getId());
     issueTypeRepository.deleteAll(issueTypesToRemove);

@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
+import com.epam.ta.reportportal.model.dashboard.CreateDashboardRQ;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -55,12 +55,13 @@ class CreateDashboardHandlerImplTest {
 
     when(dashboardRepository.existsByNameAndOwnerAndProjectId("exist", "owner", 1L)).thenReturn(
         true);
-    final ReportPortalException exception = assertThrows(
-        ReportPortalException.class,
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.createDashboard(extractProjectDetails(rpUser, "test_project"),
-            createDashboardRQ, rpUser)
+            createDashboardRQ, rpUser
+        )
     );
     assertEquals("Resource 'exist' already exists. You couldn't create the duplicate.",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 }

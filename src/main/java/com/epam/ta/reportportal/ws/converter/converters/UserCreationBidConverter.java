@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQ;
+import com.epam.ta.reportportal.model.user.CreateUserRQ;
 import com.google.common.base.Preconditions;
 import java.util.UUID;
 import java.util.function.BiFunction;
@@ -35,13 +35,14 @@ public final class UserCreationBidConverter {
     //static only
   }
 
-  public static final BiFunction<CreateUserRQ, Project, UserCreationBid> TO_USER = (request, project) -> {
-    Preconditions.checkNotNull(request);
-    UserCreationBid user = new UserCreationBid();
-    user.setUuid(UUID.randomUUID().toString());
-    user.setEmail(EntityUtils.normalizeId(request.getEmail().trim()));
-    user.setProjectName(project.getName());
-    user.setRole(request.getRole());
-    return user;
-  };
+  public static final BiFunction<CreateUserRQ, Project, UserCreationBid> TO_USER =
+      (request, project) -> {
+        Preconditions.checkNotNull(request);
+        UserCreationBid user = new UserCreationBid();
+        user.setUuid(UUID.randomUUID().toString());
+        user.setEmail(EntityUtils.normalizeId(request.getEmail().trim()));
+        user.setProjectName(project.getName());
+        user.setRole(request.getRole());
+        return user;
+      };
 }

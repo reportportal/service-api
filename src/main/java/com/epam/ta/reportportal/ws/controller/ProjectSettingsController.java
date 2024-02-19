@@ -33,15 +33,15 @@ import com.epam.ta.reportportal.core.project.settings.notification.CreateProject
 import com.epam.ta.reportportal.core.project.settings.notification.DeleteProjectNotificationHandler;
 import com.epam.ta.reportportal.core.project.settings.notification.GetProjectNotificationsHandler;
 import com.epam.ta.reportportal.core.project.settings.notification.UpdateProjectNotificationHandler;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.project.config.CreateIssueSubTypeRQ;
+import com.epam.ta.reportportal.model.project.config.IssueSubTypeCreatedRS;
+import com.epam.ta.reportportal.model.project.config.ProjectSettingsResource;
+import com.epam.ta.reportportal.model.project.config.UpdateIssueSubTypeRQ;
+import com.epam.ta.reportportal.model.project.config.pattern.CreatePatternTemplateRQ;
+import com.epam.ta.reportportal.model.project.config.pattern.UpdatePatternTemplateRQ;
+import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
-import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeCreatedRS;
-import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
-import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
-import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
-import com.epam.ta.reportportal.ws.model.project.config.pattern.UpdatePatternTemplateRQ;
-import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,9 +90,8 @@ public class ProjectSettingsController {
 
   @Autowired
   public ProjectSettingsController(CreateProjectSettingsHandler createHandler,
-      UpdateProjectSettingsHandler updateHandler,
-      DeleteProjectSettingsHandler deleteHandler, GetProjectSettingsHandler getHandler,
-      GetProjectHandler getProjectHandler,
+      UpdateProjectSettingsHandler updateHandler, DeleteProjectSettingsHandler deleteHandler,
+      GetProjectSettingsHandler getHandler, GetProjectHandler getProjectHandler,
       GetProjectNotificationsHandler getProjectNotificationsHandler,
       CreateProjectNotificationHandler createProjectNotificationHandler,
       UpdateProjectNotificationHandler updateProjectNotificationHandler,
@@ -133,8 +132,7 @@ public class ProjectSettingsController {
   @PreAuthorize(PROJECT_MANAGER)
   @ApiOperation("Delete custom project specific issue sub-type")
   public OperationCompletionRS deleteProjectIssueSubType(@PathVariable String projectName,
-      @PathVariable Long id,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable Long id, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteHandler.deleteProjectIssueSubType(normalizeId(projectName), user, id);
   }
 
@@ -155,7 +153,8 @@ public class ProjectSettingsController {
       @RequestBody @Validated CreatePatternTemplateRQ createPatternTemplateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return createHandler.createPatternTemplate(normalizeId(projectName), createPatternTemplateRQ,
-        user);
+        user
+    );
   }
 
   @PutMapping("/pattern/{id}")
@@ -167,7 +166,8 @@ public class ProjectSettingsController {
       @RequestBody @Validated UpdatePatternTemplateRQ updatePatternTemplateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateHandler.updatePatternTemplate(id, normalizeId(projectName),
-        updatePatternTemplateRQ, user);
+        updatePatternTemplateRQ, user
+    );
   }
 
   @DeleteMapping("/pattern/{id}")
@@ -175,8 +175,7 @@ public class ProjectSettingsController {
   @PreAuthorize(PROJECT_MANAGER)
   @ApiOperation("Delete pattern template for items' log messages pattern analysis")
   public OperationCompletionRS deletePatternTemplate(@PathVariable String projectName,
-      @PathVariable Long id,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable Long id, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteHandler.deletePatternTemplate(normalizeId(projectName), user, id);
   }
 
@@ -199,10 +198,7 @@ public class ProjectSettingsController {
       @RequestBody @Validated SenderCaseDTO createNotificationRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return createProjectNotificationHandler.createNotification(
-        getProjectHandler.get(normalizeId(projectName)),
-        createNotificationRQ,
-        user
-    );
+        getProjectHandler.get(normalizeId(projectName)), createNotificationRQ, user);
   }
 
   @Transactional
@@ -214,10 +210,7 @@ public class ProjectSettingsController {
       @RequestBody @Validated SenderCaseDTO updateNotificationRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateProjectNotificationHandler.updateNotification(
-        getProjectHandler.get(normalizeId(projectName)),
-        updateNotificationRQ,
-        user
-    );
+        getProjectHandler.get(normalizeId(projectName)), updateNotificationRQ, user);
   }
 
   @Transactional
@@ -226,8 +219,7 @@ public class ProjectSettingsController {
   @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
   @ApiOperation(value = "Deletes notification for specified project", notes = "Only for users with PROJECT_MANAGER or ADMIN roles")
   public OperationCompletionRS deleteNotification(@PathVariable String projectName,
-      @PathVariable Long notificationId,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable Long notificationId, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteNotificationHandler.deleteNotification(
         getProjectHandler.get(normalizeId(projectName)), notificationId, user);
   }

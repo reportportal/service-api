@@ -25,13 +25,13 @@ import com.epam.ta.reportportal.core.project.validator.notification.ProjectNotif
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
+import com.epam.ta.reportportal.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.project.ProjectResource;
+import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO;
+import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.project.ProjectResource;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
-import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 
@@ -47,8 +47,7 @@ public class CreateProjectNotificationHandlerImpl implements CreateProjectNotifi
   private final ProjectNotificationValidator projectNotificationValidator;
 
   public CreateProjectNotificationHandlerImpl(SenderCaseRepository senderCaseRepository,
-      MessageBus messageBus,
-      ProjectConverter projectConverter,
+      MessageBus messageBus, ProjectConverter projectConverter,
       ProjectNotificationValidator projectNotificationValidator) {
     this.senderCaseRepository = senderCaseRepository;
     this.messageBus = messageBus;
@@ -60,9 +59,9 @@ public class CreateProjectNotificationHandlerImpl implements CreateProjectNotifi
   public EntryCreatedRS createNotification(Project project, SenderCaseDTO createNotificationRQ,
       ReportPortalUser user) {
     expect(senderCaseRepository.findByProjectIdAndRuleNameIgnoreCase(project.getId(),
-            createNotificationRQ.getRuleName()),
-        Optional::isEmpty)
-        .verify(ErrorType.RESOURCE_ALREADY_EXISTS, createNotificationRQ.getRuleName());
+        createNotificationRQ.getRuleName()
+    ), Optional::isEmpty).verify(
+        ErrorType.RESOURCE_ALREADY_EXISTS, createNotificationRQ.getRuleName());
 
     projectNotificationValidator.validateCreateRQ(project, createNotificationRQ);
 
@@ -72,14 +71,12 @@ public class CreateProjectNotificationHandlerImpl implements CreateProjectNotifi
     senderCaseRepository.save(senderCase);
 
     ProjectResource projectResource = projectConverter.TO_PROJECT_RESOURCE.apply(project);
-    ProjectNotificationConfigDTO projectNotificationConfigDTO = projectResource.getConfiguration()
-        .getProjectConfig();
+    ProjectNotificationConfigDTO projectNotificationConfigDTO =
+        projectResource.getConfiguration().getProjectConfig();
     projectNotificationConfigDTO.getSenderCases().add(createNotificationRQ);
 
     messageBus.publishActivity(new NotificationsConfigUpdatedEvent(projectResource,
-        projectResource.getConfiguration().getProjectConfig(),
-        user.getUserId(),
-        user.getUsername()
+        projectResource.getConfiguration().getProjectConfig(), user.getUserId(), user.getUsername()
     ));
 
     return new EntryCreatedRS(senderCase.getId());

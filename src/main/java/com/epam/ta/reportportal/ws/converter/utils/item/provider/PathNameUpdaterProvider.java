@@ -18,11 +18,11 @@ package com.epam.ta.reportportal.ws.converter.utils.item.provider;
 
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.PathName;
+import com.epam.ta.reportportal.model.TestItemResource;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterProvider;
 import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemUpdaterContent;
 import com.epam.ta.reportportal.ws.converter.utils.item.updater.PathNameUpdater;
-import com.epam.ta.reportportal.ws.model.TestItemResource;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,8 +31,8 @@ import org.springframework.stereotype.Service;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class PathNameUpdaterProvider implements
-    ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource> {
+public class PathNameUpdaterProvider
+    implements ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource> {
 
   private final TestItemRepository testItemRepository;
 
@@ -43,8 +43,8 @@ public class PathNameUpdaterProvider implements
 
   @Override
   public ResourceUpdater<TestItemResource> retrieve(TestItemUpdaterContent updaterContent) {
-    Map<Long, PathName> pathNamesMapping = testItemRepository.selectPathNames(
-        updaterContent.getTestItems());
+    Map<Long, PathName> pathNamesMapping =
+        testItemRepository.selectPathNames(updaterContent.getTestItems());
 
     return PathNameUpdater.of(pathNamesMapping);
   }

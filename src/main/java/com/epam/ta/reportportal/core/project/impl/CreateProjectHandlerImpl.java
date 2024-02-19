@@ -40,10 +40,10 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.project.CreateProjectRQ;
 import com.epam.ta.reportportal.util.PersonalProjectService;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
@@ -98,18 +98,20 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
     );
 
     expect(projectName,
-        com.epam.ta.reportportal.util.Predicates.SPECIAL_CHARS_ONLY.negate()).verify(
-        ErrorType.INCORRECT_REQUEST,
+        com.epam.ta.reportportal.util.Predicates.SPECIAL_CHARS_ONLY.negate()
+    ).verify(ErrorType.INCORRECT_REQUEST,
         Suppliers.formattedSupplier("Project name '{}' consists only of special characters",
-            projectName)
+            projectName
+        )
     );
 
     Optional<Project> existProject = projectRepository.findByName(projectName);
     expect(existProject, not(isPresent())).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectName);
 
-    ProjectType projectType = ProjectType.findByName(createProjectRQ.getEntryType())
-        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-            createProjectRQ.getEntryType()));
+    ProjectType projectType = ProjectType.findByName(createProjectRQ.getEntryType()).orElseThrow(
+        () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            createProjectRQ.getEntryType()
+        ));
     expect(projectType, equalTo(ProjectType.INTERNAL)).verify(ErrorType.BAD_REQUEST_ERROR,
         "Only internal projects can be created via API"
     );

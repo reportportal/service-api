@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.project.settings.notification;
 
-import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
+import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
 import java.util.List;
 
 /**

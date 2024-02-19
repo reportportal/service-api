@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
-import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
+import com.epam.ta.reportportal.model.activity.UserActivityResource;
 
 public class AssignUserEvent extends AbstractEvent implements ActivityEvent {
 
@@ -51,19 +51,13 @@ public class AssignUserEvent extends AbstractEvent implements ActivityEvent {
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder()
-        .addCreatedNow()
-        .addAction(EventAction.ASSIGN)
-        .addEventName(ASSIGN_USER.getValue())
-        .addPriority(EventPriority.HIGH)
-        .addObjectId(userActivityResource.getId())
-        .addObjectName(userActivityResource.getFullName())
-        .addObjectType(EventObject.USER)
-        .addProjectId(userActivityResource.getDefaultProjectId())
+    return new ActivityBuilder().addCreatedNow().addAction(EventAction.ASSIGN)
+        .addEventName(ASSIGN_USER.getValue()).addPriority(EventPriority.HIGH)
+        .addObjectId(userActivityResource.getId()).addObjectName(userActivityResource.getFullName())
+        .addObjectType(EventObject.USER).addProjectId(userActivityResource.getDefaultProjectId())
         .addSubjectId(isSystemEvent ? null : getUserId())
         .addSubjectName(isSystemEvent ? RP_SUBJECT_NAME : getUserLogin())
-        .addSubjectType(isSystemEvent ? EventSubject.APPLICATION : EventSubject.USER)
-        .get();
+        .addSubjectType(isSystemEvent ? EventSubject.APPLICATION : EventSubject.USER).get();
   }
 
 }

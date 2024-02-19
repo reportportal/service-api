@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
-import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
+import com.epam.ta.reportportal.model.activity.ProjectAttributesActivityResource;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 
@@ -34,8 +34,8 @@ class ProjectActivityConverterTest {
   @Test
   void toActivityResource() {
     final Project project = getProject();
-    final ProjectAttributesActivityResource resource = ProjectActivityConverter.TO_ACTIVITY_RESOURCE.apply(
-        project);
+    final ProjectAttributesActivityResource resource =
+        ProjectActivityConverter.TO_ACTIVITY_RESOURCE.apply(project);
 
     assertEquals(resource.getProjectId(), project.getId());
     assertEquals(resource.getProjectName(), project.getName());
@@ -51,8 +51,8 @@ class ProjectActivityConverterTest {
     final Attribute attribute = new Attribute();
     attribute.setId(2L);
     attribute.setName("attr.lol");
-    final ProjectAttribute projectAttribute = new ProjectAttribute().withProject(project)
-        .withValue("value").withAttribute(attribute);
+    final ProjectAttribute projectAttribute =
+        new ProjectAttribute().withProject(project).withValue("value").withAttribute(attribute);
     project.setProjectAttributes(Sets.newHashSet(projectAttribute));
     return project;
   }

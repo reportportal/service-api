@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
-import com.epam.ta.reportportal.ws.model.TestItemResource;
-import com.epam.ta.reportportal.ws.model.log.LogResource;
+import com.epam.ta.reportportal.model.TestItemResource;
+import com.epam.ta.reportportal.model.log.LogResource;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Set;
 

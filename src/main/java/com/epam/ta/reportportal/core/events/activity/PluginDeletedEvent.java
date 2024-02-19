@@ -8,7 +8,7 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
-import com.epam.ta.reportportal.ws.model.activity.PluginActivityResource;
+import com.epam.ta.reportportal.model.activity.PluginActivityResource;
 
 public class PluginDeletedEvent extends BeforeEvent<PluginActivityResource>
     implements ActivityEvent {

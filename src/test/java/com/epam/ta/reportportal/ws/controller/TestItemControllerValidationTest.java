@@ -31,11 +31,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.ErrorRS;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
+import com.epam.ta.reportportal.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
-import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
-import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
-import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRQ;
+import com.epam.ta.reportportal.model.issue.IssueDefinition;
+import com.epam.ta.reportportal.model.item.LinkExternalIssueRQ;
+import com.epam.ta.reportportal.model.item.UnlinkExternalIssueRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.time.ZoneId;

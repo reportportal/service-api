@@ -81,6 +81,7 @@ public class UserResource {
     private String entryType;
     private String projectKey;
     private String projectSlug;
+    private String projectName;
     private Long organizationId;
 
   }

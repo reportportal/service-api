@@ -31,7 +31,8 @@ import com.epam.ta.reportportal.model.integration.IntegrationTypeResource;
 import com.epam.ta.reportportal.model.integration.UpdatePluginStateRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Map;
 import javax.validation.Valid;
@@ -59,6 +60,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @RestController
 @RequestMapping(value = "/v1/plugin")
+@Tag(name = "plugin-controller", description = "Plugin Controller")
 public class PluginController {
 
   private final CreatePluginHandler createPluginHandler;
@@ -84,7 +86,7 @@ public class PluginController {
   @Transactional
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @ResponseStatus(HttpStatus.CREATED)
-  @ApiOperation("Upload new Report Portal plugin")
+  @Operation(summary = "Upload new Report Portal plugin")
   @PreAuthorize(ADMIN_ONLY)
   public EntryCreatedRS uploadPlugin(@NotNull @RequestParam("file") MultipartFile pluginFile,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -94,7 +96,7 @@ public class PluginController {
   @Transactional
   @PutMapping(value = "/{pluginId}")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Update Report Portal plugin state")
+  @Operation(summary = "Update Report Portal plugin state")
   @PreAuthorize(ADMIN_ONLY)
   public OperationCompletionRS updatePluginState(@PathVariable(value = "pluginId") Long id,
       @RequestBody @Valid UpdatePluginStateRQ updatePluginStateRQ,
@@ -105,7 +107,7 @@ public class PluginController {
   @Transactional(readOnly = true)
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Get all available plugins")
+  @Operation(summary = "Get all available plugins")
   public List<IntegrationTypeResource> getPlugins(@AuthenticationPrincipal ReportPortalUser user) {
     return getPluginHandler.getPlugins();
   }
@@ -113,7 +115,7 @@ public class PluginController {
   @Transactional
   @DeleteMapping(value = "/{pluginId}")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Delete plugin by id")
+  @Operation(summary = "Delete plugin by id")
   @PreAuthorize(ADMIN_ONLY)
   public OperationCompletionRS deletePlugin(@PathVariable(value = "pluginId") Long id,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -125,7 +127,7 @@ public class PluginController {
       APPLICATION_JSON_VALUE })
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ASSIGNED_TO_PROJECT)
-  @ApiOperation("Execute command to the plugin instance")
+  @Operation(summary = "Execute command to the plugin instance")
   public Object executePluginCommand(@PathVariable String projectName,
       @PathVariable("pluginName") String pluginName, @PathVariable("command") String command,
       @RequestBody Map<String, Object> executionParams,

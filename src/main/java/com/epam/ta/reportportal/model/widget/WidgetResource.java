@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.model.filter.UserFilterResource;
 import com.epam.ta.reportportal.ws.model.OwnedResource;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.Map;
 import javax.validation.Valid;
@@ -44,7 +44,7 @@ public class WidgetResource extends OwnedResource {
 
   @NotNull
   @JsonProperty(value = "widgetType", required = true)
-  @ApiModelProperty(required = true, allowableValues =
+  @Schema(required = true, allowableValues =
       "oldLineChart, investigatedTrend, launchStatistics, statisticTrend,"
           + " casesTrend, notPassed, overallStatistics, uniqueBugTable, bugTrend, activityStream, launchesComparisonChart,"
           + " launchesDurationChart, launchesTable, topTestCases, flakyTestCases, passingRateSummary, passingRatePerLaunch,"

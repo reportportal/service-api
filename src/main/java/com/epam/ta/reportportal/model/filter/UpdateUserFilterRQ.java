@@ -28,7 +28,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,13 +48,13 @@ public class UpdateUserFilterRQ extends BaseEntityRQ {
 
   @NotBlankWithSize(min = MIN_NAME_LENGTH, max = MAX_USER_FILTER_NAME_LENGTH)
   @JsonProperty(value = "name", required = true)
-  @ApiModelProperty(required = true)
+  @Schema(requiredMode = RequiredMode.REQUIRED)
   private String name;
 
   @NotBlank
   @JsonProperty(value = "type", required = true)
   @In(allowedValues = { "launch", "testItem", "log" })
-  @ApiModelProperty(required = true, allowableValues = "launch, testitem, log")
+  @Schema(required = true, allowableValues = "launch, testitem, log")
   private String objectType;
 
   @Valid
@@ -61,14 +62,14 @@ public class UpdateUserFilterRQ extends BaseEntityRQ {
   @Size(min = MIN_COLLECTION_SIZE, max = MAX_NUMBER_OF_FILTER_ENTITIES)
   @JsonProperty(value = "conditions", required = true)
   @JsonDeserialize(as = LinkedHashSet.class)
-  @ApiModelProperty(required = true)
+  @Schema(requiredMode = RequiredMode.REQUIRED)
   private Set<UserFilterCondition> conditions;
 
   @Valid
   @NotNull
   @Size(min = MIN_COLLECTION_SIZE)
   @JsonProperty(value = "orders", required = true)
-  @ApiModelProperty(required = true)
+  @Schema(requiredMode = RequiredMode.REQUIRED)
   private List<Order> orders;
 
   public String getName() {

@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
@@ -58,7 +58,7 @@ public class SenderCaseDTO implements Serializable {
 	@NotBlank
 	@JsonProperty(value = "sendCase")
 	@In(allowedValues = { "always", "failed", "toInvestigate", "more10", "more20", "more50" })
-	@ApiModelProperty(allowableValues = "ALWAYS, FAILED, MORE_10, MORE_20, MORE_50")
+	@Schema(allowableValues = "ALWAYS, FAILED, MORE_10, MORE_20, MORE_50")
 	private String sendCase;
 
 	@NotBlankStringCollection
@@ -75,7 +75,7 @@ public class SenderCaseDTO implements Serializable {
 	@NotBlank
 	@JsonProperty(value = "attributesOperator")
 	@In(allowedValues = { "and", "or" })
-	@ApiModelProperty(allowableValues = "AND, OR")
+	@Schema(allowableValues = "AND, OR")
 	private String attributesOperator;
 
 	public SenderCaseDTO() {

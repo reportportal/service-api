@@ -59,44 +59,4 @@ public class LaunchImportRQ {
   @JsonProperty("mode")
   private Mode mode;
 
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public Set<ItemAttributesRQ> getAttributes() {
-    return attributes;
-  }
-
-  public void setAttributes(
-      Set<ItemAttributesRQ> attributes) {
-    this.attributes = attributes;
-  }
-
-  public Date getStartTime() {
-    return startTime;
-  }
-
-  public void setStartTime(Date startTime) {
-    this.startTime = startTime;
-  }
-
-  public Mode getMode() {
-    return mode;
-  }
-
-  public void setMode(Mode mode) {
-    this.mode = mode;
-  }
 }

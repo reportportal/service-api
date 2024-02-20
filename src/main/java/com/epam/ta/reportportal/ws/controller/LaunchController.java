@@ -60,10 +60,12 @@ import com.epam.ta.reportportal.ws.model.launch.cluster.ClusterInfoResource;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.net.HttpHeaders;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -105,6 +107,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @RestController
 @RequestMapping("/v1/{projectName}/launch")
+@Tag(name = "launch-controller", description = "Launch Controller")
 public class LaunchController {
 
   private final ProjectExtractor projectExtractor;
@@ -142,9 +145,9 @@ public class LaunchController {
   @PostMapping
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(CREATED)
-  @ApiOperation("Starts launch for specified project")
+  @Operation(summary = "Starts launch for specified project")
   public StartLaunchRS startLaunch(@PathVariable String projectName,
-      @ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated
+      @Parameter(description = "Start launch request body", required = true) @RequestBody @Validated
       @Valid StartLaunchRQ startLaunchRQ, @AuthenticationPrincipal ReportPortalUser user) {
     return startLaunchHandler.startLaunch(user,
         projectExtractor.extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ
@@ -154,7 +157,7 @@ public class LaunchController {
   @PutMapping(value = "/{launchId}/finish")
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(OK)
-  @ApiOperation("Finish launch for specified project")
+  @Operation(summary = "Finish launch for specified project")
   public FinishLaunchRS finishLaunch(@PathVariable String projectName,
       @PathVariable String launchId, @RequestBody @Validated FinishExecutionRQ finishLaunchRQ,
       @AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request) {
@@ -170,7 +173,7 @@ public class LaunchController {
   @PutMapping("/{launchId}/stop")
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(OK)
-  @ApiOperation("Force finish launch for specified project")
+  @Operation(summary = "Force finish launch for specified project")
   public OperationCompletionRS forceFinishLaunch(@PathVariable String projectName,
       @PathVariable Long launchId, @RequestBody @Validated FinishExecutionRQ finishExecutionRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -183,7 +186,7 @@ public class LaunchController {
   @PutMapping("/stop")
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(OK)
-  @ApiOperation("Force finish launch")
+  @Operation(summary = "Force finish launch")
   public List<OperationCompletionRS> bulkForceFinish(@PathVariable String projectName,
       @RequestBody @Validated BulkRQ<Long, FinishExecutionRQ> rq,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -196,7 +199,7 @@ public class LaunchController {
   @PutMapping("/{launchId}/update")
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(OK)
-  @ApiOperation("Updates launch for specified project")
+  @Operation(summary = "Updates launch for specified project")
   public OperationCompletionRS updateLaunch(@PathVariable String projectName,
       @PathVariable Long launchId, @RequestBody @Validated UpdateLaunchRQ updateLaunchRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -209,7 +212,7 @@ public class LaunchController {
   @PutMapping("/update")
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(OK)
-  @ApiOperation("Updates launches for specified project")
+  @Operation(summary = "Updates launches for specified project")
   public List<OperationCompletionRS> updateLaunches(@PathVariable String projectName,
       @RequestBody @Validated BulkRQ<Long, UpdateLaunchRQ> rq,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -222,7 +225,7 @@ public class LaunchController {
   @DeleteMapping("/{launchId}")
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(OK)
-  @ApiOperation("Delete specified launch by ID")
+  @Operation(summary = "Delete specified launch by ID")
   public OperationCompletionRS deleteLaunch(@PathVariable String projectName,
       @PathVariable Long launchId, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteLaunchMessageHandler.deleteLaunch(launchId,
@@ -233,7 +236,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping("/{launchId}")
   @ResponseStatus(OK)
-  @ApiOperation("Get specified launch by ID")
+  @Operation(summary = "Get specified launch by ID")
   public LaunchResource getLaunch(@PathVariable String projectName, @PathVariable String launchId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLaunch(launchId,
@@ -244,7 +247,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping("/uuid/{launchId}")
   @ResponseStatus(OK)
-  @ApiOperation("Get specified launch by UUID")
+  @Operation(summary = "Get specified launch by UUID")
   public LaunchResource getLaunchByUuid(@PathVariable String projectName,
       @PathVariable String launchId, @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLaunch(launchId,
@@ -255,7 +258,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping
   @ResponseStatus(OK)
-  @ApiOperation("Get list of project launches by filter")
+  @Operation(summary = "Get list of project launches by filter")
   public Iterable<LaunchResource> getProjectLaunches(@PathVariable String projectName,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -268,7 +271,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/latest")
   @ResponseStatus(OK)
-  @ApiOperation("Get list of latest project launches by filter")
+  @Operation(summary = "Get list of latest project launches by filter")
   public Iterable<LaunchResource> getLatestLaunches(@PathVariable String projectName,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -279,7 +282,7 @@ public class LaunchController {
   @GetMapping(value = "/mode")
   @ResponseBody
   @ResponseStatus(OK)
-  @ApiOperation("Get launches of specified project from DEBUG mode")
+  @Operation(summary = "Get launches of specified project from DEBUG mode")
   public Iterable<LaunchResource> getDebugLaunches(@PathVariable String projectName,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -290,7 +293,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/attribute/keys")
   @ResponseStatus(OK)
-  @ApiOperation("Get all unique attribute keys of project launches")
+  @Operation(summary = "Get all unique attribute keys of project launches")
   public List<String> getAttributeKeys(@PathVariable String projectName,
       @RequestParam(value = "filter." + "cnt." + "attributeKey") String value,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -301,7 +304,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/attribute/values")
   @ResponseStatus(OK)
-  @ApiOperation("Get all unique attribute values of project launches")
+  @Operation(summary = "Get all unique attribute values of project launches")
   public List<String> getAttributeValues(@PathVariable String projectName,
       @RequestParam(value = "filter." + "eq." + "attributeKey", required = false) String key,
       @RequestParam(value = "filter." + "cnt." + "attributeValue") String value,
@@ -312,7 +315,7 @@ public class LaunchController {
 
   @GetMapping(value = "/cluster/{launchId}")
   @ResponseStatus(OK)
-  @ApiOperation("Get all index clusters of the launch")
+  @Operation(summary = "Get all index clusters of the launch")
   public Iterable<ClusterInfoResource> getClusters(@PathVariable String projectName,
       @PathVariable String launchId, Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -325,7 +328,7 @@ public class LaunchController {
   @PutMapping(value = "/info")
   @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
   @ResponseStatus(OK)
-  @ApiOperation("Bulk update attributes and description")
+  @Operation(summary = "Bulk update attributes and description")
   public OperationCompletionRS bulkUpdate(@PathVariable String projectName,
       @RequestBody @Validated BulkInfoUpdateRQ bulkInfoUpdateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -337,7 +340,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/owners")
   @ResponseStatus(OK)
-  @ApiOperation("Get all unique owners of project launches")
+  @Operation(summary = "Get all unique owners of project launches")
   public List<String> getAllOwners(@PathVariable String projectName,
       @RequestParam(value = "filter." + "cnt." + "user") String value,
       @RequestParam(value = "mode", required = false, defaultValue = "DEFAULT") String mode,
@@ -349,7 +352,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/names")
   @ResponseStatus(OK)
-  @ApiOperation("Get launch names of project")
+  @Operation(summary = "Get launch names of project")
   public List<String> getAllLaunchNames(@PathVariable String projectName,
       @RequestParam(value = "filter." + "cnt." + "name", required = false, defaultValue = "")
       String value, @AuthenticationPrincipal ReportPortalUser user) {
@@ -360,7 +363,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/compare")
   @ResponseStatus(OK)
-  @ApiOperation("Compare launches")
+  @Operation(summary = "Compare launches")
   public Map<String, List<ChartStatisticsContent>> compareLaunches(@PathVariable String projectName,
       @RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLaunchesComparisonInfo(
@@ -371,9 +374,9 @@ public class LaunchController {
   @PostMapping("/merge")
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(OK)
-  @ApiOperation("Merge set of specified launches in common one")
+  @Operation(summary = "Merge set of specified launches in common one")
   public LaunchResource mergeLaunches(@PathVariable String projectName,
-      @ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated
+      @Parameter(description = "Merge launches request body", required = true) @RequestBody @Validated
       MergeLaunchesRQ mergeLaunchesRQ, @AuthenticationPrincipal ReportPortalUser user) {
     return mergeLaunchesHandler.mergeLaunches(
         projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user,
@@ -384,7 +387,7 @@ public class LaunchController {
   @Transactional
   @PostMapping(value = "/analyze")
   @ResponseStatus(OK)
-  @ApiOperation("Start launch auto-analyzer on demand")
+  @Operation(summary = "Start launch auto-analyzer on demand")
   public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName,
       @RequestBody @Validated AnalyzeLaunchRQ analyzeLaunchRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -395,7 +398,7 @@ public class LaunchController {
 
   @PostMapping(value = "/cluster")
   @ResponseStatus(OK)
-  @ApiOperation("Create launch clusters")
+  @Operation(summary = "Create launch clusters")
   public OperationCompletionRS createClusters(@PathVariable String projectName,
       @RequestBody @Validated CreateClustersRQ createClustersRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -418,9 +421,9 @@ public class LaunchController {
   @GetMapping(value = "/{launchId}/report")
   @ResponseStatus(OK)
   @PreAuthorize(ASSIGNED_TO_PROJECT)
-  @ApiOperation(value = "Export specified launch", notes = "Only following formats are supported: pdf (by default), xls, html.")
+  @Operation(summary =  "Export specified launch", description = "Only following formats are supported: pdf (by default), xls, html.")
   public void getLaunchReport(@PathVariable String projectName, @PathVariable Long launchId,
-      @ApiParam(allowableValues = "pdf, xls, html")
+      @Parameter(schema = @Schema(allowableValues = {"pdf", "xls", "html"}))
       @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
       @AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
 
@@ -446,7 +449,7 @@ public class LaunchController {
   @DeleteMapping
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(OK)
-  @ApiOperation("Delete specified launches by ids")
+  @Operation(summary = "Delete specified launches by ids")
   public DeleteBulkRS deleteLaunches(@PathVariable String projectName,
       @RequestBody @Valid DeleteBulkRQ deleteBulkRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -455,10 +458,12 @@ public class LaunchController {
     );
   }
 
-  @ApiImplicitParams(@ApiImplicitParam(name = "launchImportRq", dataType = "LaunchImportRQ", paramType = "body"))
+  @Parameters(
+      @Parameter(name = "launchImportRq", content = @Content(schema = @Schema(implementation = LaunchImportRQ.class)))
+  )
   @PostMapping(value = "/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
   @ResponseStatus(OK)
-  @ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip and xml.")
+  @Operation(summary =  "Import junit xml report", description = "Only following formats are supported: zip and xml.")
   public OperationCompletionRS importLaunch(@PathVariable String projectName,
       @RequestParam("file") MultipartFile file, @AuthenticationPrincipal ReportPortalUser user,
       HttpServletRequest request,

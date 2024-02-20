@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.model.log;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import javax.validation.constraints.NotNull;
 import lombok.Getter;
@@ -56,7 +56,7 @@ public class LogResource {
   private String thumbnail;
 
   @JsonProperty(value = "level")
-  @ApiModelProperty(allowableValues = "error, warn, info, debug, trace, fatal, unknown")
+  @Schema(allowableValues = "error, warn, info, debug, trace, fatal, unknown")
   private String level;
 
   @JsonProperty(value = "itemId")

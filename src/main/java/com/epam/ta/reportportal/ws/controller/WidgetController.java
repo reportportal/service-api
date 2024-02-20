@@ -35,7 +35,8 @@ import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Map;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +62,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 @RequestMapping("/v1/{projectName}/widget")
+@Tag(name = "widget-controller", description = "Widget Controller")
 public class WidgetController {
 
   private final ProjectExtractor projectExtractor;
@@ -81,7 +83,7 @@ public class WidgetController {
   @Transactional
   @PostMapping
   @ResponseStatus(CREATED)
-  @ApiOperation("Create a new widget")
+  @Operation(summary = "Create a new widget")
   public EntryCreatedRS createWidget(@RequestBody @Validated WidgetRQ createWidget,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable String projectName) {
     return createWidgetHandler.createWidget(
@@ -91,7 +93,7 @@ public class WidgetController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/{widgetId}")
   @ResponseStatus(OK)
-  @ApiOperation("Get widget by ID")
+  @Operation(summary = "Get widget by ID")
   public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getWidgetHandler.getWidget(
@@ -101,7 +103,7 @@ public class WidgetController {
   @Transactional(readOnly = true)
   @GetMapping(value = "multilevel/{widgetId}")
   @ResponseStatus(OK)
-  @ApiOperation("Get multilevel widget by ID")
+  @Operation(summary = "Get multilevel widget by ID")
   public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
       @RequestParam(required = false, name = "attributes") String[] attributes,
       @RequestParam MultiValueMap<String, String> params,
@@ -115,7 +117,7 @@ public class WidgetController {
   @Transactional(readOnly = true)
   @PostMapping(value = "/preview")
   @ResponseStatus(OK)
-  @ApiOperation("Get widget preview")
+  @Operation(summary = "Get widget preview")
   public Map<String, ?> getWidgetPreview(@PathVariable String projectName,
       @RequestBody @Validated WidgetPreviewRQ previewRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -126,7 +128,7 @@ public class WidgetController {
   @Transactional
   @PutMapping(value = "/{widgetId}")
   @ResponseStatus(OK)
-  @ApiOperation("Update specified widget")
+  @Operation(summary = "Update specified widget")
   public OperationCompletionRS updateWidget(@PathVariable String projectName,
       @PathVariable Long widgetId, @RequestBody @Validated WidgetRQ updateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -137,7 +139,7 @@ public class WidgetController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/names/all")
   @ResponseStatus(OK)
-  @ApiOperation("Load all widget names which belong to a user")
+  @Operation(summary = "Load all widget names which belong to a user")
   public Iterable<Object> getWidgetNames(@PathVariable String projectName,
       @SortFor(Widget.class) Pageable pageable, @FilterFor(Widget.class) Filter filter,
       @AuthenticationPrincipal ReportPortalUser user) {

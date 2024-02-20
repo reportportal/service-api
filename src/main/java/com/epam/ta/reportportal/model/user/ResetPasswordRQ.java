@@ -19,7 +19,8 @@ package com.epam.ta.reportportal.model.user;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
@@ -32,12 +33,12 @@ public class ResetPasswordRQ {
 	@NotBlank
 	@Size(min = ValidationConstraints.MIN_PASSWORD_LENGTH, max = ValidationConstraints.MAX_PASSWORD_LENGTH)
 	@JsonProperty(value = "password")
-	@ApiModelProperty(required = true)
+	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String password;
 
 	@NotBlank
 	@JsonProperty(value = "uuid")
-	@ApiModelProperty(required = true)
+	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String uuid;
 
 	public String getPassword() {

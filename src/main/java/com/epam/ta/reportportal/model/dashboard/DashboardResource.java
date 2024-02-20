@@ -22,7 +22,8 @@ import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import java.util.List;
 import java.util.Map;
 import javax.validation.constraints.NotBlank;
@@ -40,13 +41,13 @@ public class DashboardResource extends OwnedResource {
 
 	@NotNull
 	@JsonProperty(value = "id", required = true)
-	@ApiModelProperty(required = true)
+	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private Long dashboardId;
 
 	@NotBlank
 	@Size(min = ValidationConstraints.MIN_NAME_LENGTH, max = ValidationConstraints.MAX_DASHBOARD_NAME_LENGTH)
 	@JsonProperty(value = "name", required = true)
-	@ApiModelProperty(required = true)
+	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String name;
 
 	@JsonProperty(value = "widgets")

@@ -67,6 +67,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -167,9 +168,9 @@ public class UserController {
   @PreAuthorize(ADMIN_ONLY)
   @ResponseStatus(OK)
   @Operation(summary = "Delete specified users by ids")
-  public DeleteBulkRS deleteUsers(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ,
+  public DeleteBulkRS deleteUsers(@RequestParam(value = "ids") List<Long> ids,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return deleteUserHandler.deleteUsers(deleteBulkRQ.getIds(), user);
+    return deleteUserHandler.deleteUsers(ids, user);
   }
 
   @Transactional

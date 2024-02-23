@@ -73,6 +73,7 @@ import java.io.OutputStream;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import org.jooq.Operator;
@@ -172,9 +173,9 @@ public class ProjectController {
   @ResponseStatus(OK)
   @PreAuthorize(ADMIN_ONLY)
   @Operation(summary =  "Delete multiple projects", description = "Could be deleted only by users with administrator role")
-  public DeleteBulkRS deleteProject(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ,
+  public DeleteBulkRS deleteProject(@RequestParam(value = "ids") List<Long> ids,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return deleteProjectHandler.bulkDeleteProjects(deleteBulkRQ.getIds(), user);
+    return deleteProjectHandler.bulkDeleteProjects(ids, user);
   }
 
   @DeleteMapping("/{projectId}")

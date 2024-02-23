@@ -451,9 +451,9 @@ public class LaunchController {
   @ResponseStatus(OK)
   @Operation(summary = "Delete specified launches by ids")
   public DeleteBulkRS deleteLaunches(@PathVariable String projectName,
-      @RequestBody @Valid DeleteBulkRQ deleteBulkRQ,
+      @RequestParam(value = "ids") List<Long> ids,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return deleteLaunchMessageHandler.deleteLaunches(deleteBulkRQ,
+    return deleteLaunchMessageHandler.deleteLaunches(ids,
         projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user
     );
   }

@@ -318,7 +318,6 @@ class ProjectControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-  @Disabled("fix null")
 	void getProjectUsersPositive() throws Exception {
 		mockMvc.perform(get("/v1/project/test_project/users").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
@@ -358,7 +357,6 @@ class ProjectControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-  @Disabled("fix null")
 	void getUsersForAssignPositive() throws Exception {
 		mockMvc.perform(get("/v1/project/test_project/assignable").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());

@@ -270,7 +270,6 @@ class UserControllerTest extends BaseMvcTest {
   }
 
   @Test
-  @Disabled("fix null")
   void getUsersPositive() throws Exception {
     mockMvc.perform(get("/v1/user/all").with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
@@ -372,7 +371,6 @@ class UserControllerTest extends BaseMvcTest {
   }
 
   @Test
-  @Disabled("fix null")
   void findUsers() throws Exception {
     MvcResult mvcResult = mockMvc.perform(
             get("/v1/user/search?term=e").with(token(oAuthHelper.getSuperadminToken())))

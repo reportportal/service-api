@@ -44,15 +44,15 @@ public class ProjectExtractor {
    * Extracts project details for specified user by specified project name
    *
    * @param user        User
-   * @param projectName Project name
+   * @param projectKey Project name
    * @return Project Details
    */
   public ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user,
-      String projectName) {
-    final String normalizedProjectName = normalizeId(projectName);
+      String projectKey) {
+    final String normalizedProjectName = normalizeId(projectKey);
 
     if (user.getUserRole().equals(ADMINISTRATOR)) {
-      return extractProjectDetailsAdmin(user, projectName);
+      return extractProjectDetailsAdmin(user, projectKey);
     }
     return user.getProjectDetails().computeIfAbsent(normalizedProjectName,
         k -> findProjectDetails(user, normalizedProjectName).orElseThrow(
@@ -66,12 +66,12 @@ public class ProjectExtractor {
    * Find project details for specified user by specified project name
    *
    * @param user        User
-   * @param projectName Project name
+   * @param projectKey Project unique key
    * @return {@link Optional} with Project Details
    */
   public Optional<ReportPortalUser.ProjectDetails> findProjectDetails(ReportPortalUser user,
-      String projectName) {
-    return projectUserRepository.findDetailsByUserIdAndProjectName(user.getUserId(), projectName);
+      String projectKey) {
+    return projectUserRepository.findDetailsByUserIdAndProjectKey(user.getUserId(), projectKey);
   }
 
   /**
@@ -79,24 +79,24 @@ public class ProjectExtractor {
    * - he is added as a PROJECT_MANAGER to the project
    *
    * @param user        User
-   * @param projectName Project name
+   * @param projectKey Project unique key
    * @return Project Details
    */
   public ReportPortalUser.ProjectDetails extractProjectDetailsAdmin(ReportPortalUser user,
-      String projectName) {
+      String projectKey) {
 
     //dirty hack to allow everything for user with 'admin' authority
     if (user.getUserRole().getAuthority().equals(ADMINISTRATOR.getAuthority())) {
-      ReportPortalUser.ProjectDetails projectDetails = projectUserRepository.findAdminDetailsProjectName(
-              normalizeId(projectName))
-          .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+      ReportPortalUser.ProjectDetails projectDetails = projectUserRepository.findAdminDetailsProjectKey(
+              normalizeId(projectKey))
+          .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
       user.getProjectDetails().put(
-          normalizeId(projectName),
+          normalizeId(projectKey),
           projectDetails
       );
     }
 
-    return Optional.ofNullable(user.getProjectDetails().get(normalizeId(projectName))).orElseThrow(
+    return Optional.ofNullable(user.getProjectDetails().get(normalizeId(projectKey))).orElseThrow(
         () -> new ReportPortalException(ErrorType.ACCESS_DENIED,
             "Please check the list of your available projects."
         ));

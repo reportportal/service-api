@@ -142,25 +142,25 @@ public class ProjectController {
   }
 
   @Transactional
-  @PutMapping("/{projectName}")
+  @PutMapping("/{projectKey}")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
   @ApiOperation(value = "Update project")
-  public OperationCompletionRS updateProject(@PathVariable String projectName,
+  public OperationCompletionRS updateProject(@PathVariable String projectKey,
       @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return updateProjectHandler.updateProject(normalizeId(projectName), updateProjectRQ, user);
+    return updateProjectHandler.updateProject(normalizeId(projectKey), updateProjectRQ, user);
   }
 
   @Transactional
-  @PutMapping("/{projectName}/notification")
+  @PutMapping("/{projectKey}/notification")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
   @ApiOperation("Update project notifications configuration")
-  public OperationCompletionRS updateProjectNotificationConfig(@PathVariable String projectName,
+  public OperationCompletionRS updateProjectNotificationConfig(@PathVariable String projectKey,
       @RequestBody @Validated ProjectNotificationConfigDTO updateProjectNotificationConfigRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return updateProjectHandler.updateProjectNotificationConfig(normalizeId(projectName), user,
+    return updateProjectHandler.updateProjectNotificationConfig(normalizeId(projectKey), user,
         updateProjectNotificationConfigRQ
     );
   }
@@ -183,135 +183,135 @@ public class ProjectController {
     return deleteProjectHandler.deleteProject(projectId, user);
   }
 
-  @DeleteMapping("/{projectName}/index")
+  @DeleteMapping("/{projectKey}/index")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
   @ApiOperation("Delete project index from ML")
-  public OperationCompletionRS deleteProjectIndex(@PathVariable String projectName,
+  public OperationCompletionRS deleteProjectIndex(@PathVariable String projectKey,
       Principal principal) {
-    return deleteProjectHandler.deleteProjectIndex(normalizeId(projectName), principal.getName());
+    return deleteProjectHandler.deleteProjectIndex(normalizeId(projectKey), principal.getName());
   }
 
   @Transactional
-  @PutMapping("/{projectName}/index")
+  @PutMapping("/{projectKey}/index")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
   @ApiOperation(value = "Starts reindex all project data in ML")
-  public OperationCompletionRS indexProjectData(@PathVariable String projectName,
+  public OperationCompletionRS indexProjectData(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return updateProjectHandler.indexProjectData(normalizeId(projectName), user);
+    return updateProjectHandler.indexProjectData(normalizeId(projectKey), user);
   }
 
   @Transactional(readOnly = true)
-  @GetMapping("/{projectName}/users")
+  @GetMapping("/{projectKey}/users")
   @PreAuthorize(NOT_CUSTOMER)
   @ApiOperation("Get users assigned on current project")
-  public Iterable<UserResource> getProjectUsers(@PathVariable String projectName,
+  public Iterable<UserResource> getProjectUsers(@PathVariable String projectKey,
       @FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return getProjectHandler.getProjectUsers(normalizeId(projectName), filter, pageable);
+    return getProjectHandler.getProjectUsers(normalizeId(projectKey), filter, pageable);
   }
 
   @Transactional(readOnly = true)
-  @GetMapping("/{projectName}")
+  @GetMapping("/{projectKey}")
   @PreAuthorize(ASSIGNED_TO_PROJECT)
   @ApiOperation(value = "Get information about project", notes = "Only for users that are assigned to the project")
-  public ProjectResource getProject(@PathVariable String projectName,
+  public ProjectResource getProject(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return getProjectHandler.getResource(normalizeId(projectName), user);
+    return getProjectHandler.getResource(normalizeId(projectKey), user);
   }
 
   @Transactional
-  @PutMapping("/{projectName}/unassign")
+  @PutMapping("/{projectKey}/unassign")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
   @ApiOperation("Un assign users")
-  public OperationCompletionRS unassignProjectUsers(@PathVariable String projectName,
+  public OperationCompletionRS unassignProjectUsers(@PathVariable String projectKey,
       @RequestBody @Validated UnassignUsersRQ unassignUsersRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return updateProjectHandler.unassignUsers(normalizeId(projectName), unassignUsersRQ, user);
+    return updateProjectHandler.unassignUsers(normalizeId(projectKey), unassignUsersRQ, user);
   }
 
   @Transactional
-  @PutMapping("/{projectName}/assign")
+  @PutMapping("/{projectKey}/assign")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
   @ApiOperation("Assign users")
-  public OperationCompletionRS assignProjectUsers(@PathVariable String projectName,
+  public OperationCompletionRS assignProjectUsers(@PathVariable String projectKey,
       @RequestBody @Validated AssignUsersRQ assignUsersRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return updateProjectHandler.assignUsers(projectName, assignUsersRQ, user);
+    return updateProjectHandler.assignUsers(projectKey, assignUsersRQ, user);
   }
 
   @Transactional(readOnly = true)
-  @GetMapping("/{projectName}/assignable")
+  @GetMapping("/{projectKey}/assignable")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
   @ApiOperation(value = "Load users which can be assigned to specified project", notes = "Only for users with project manager permissions")
   public Iterable<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter,
-      @SortFor(User.class) Pageable pageable, @PathVariable String projectName,
+      @SortFor(User.class) Pageable pageable, @PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getUserHandler.getUsers(filter, pageable,
-        projectExtractor.extractProjectDetails(user, projectName)
+        projectExtractor.extractProjectDetails(user, projectKey)
     );
   }
 
   @Transactional(readOnly = true)
-  @GetMapping("/{projectName}/usernames")
+  @GetMapping("/{projectKey}/usernames")
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(NOT_CUSTOMER)
   @ApiOperation(value = "Load project users by filter", notes = "Only for users that are members of the project")
-  public List<String> getProjectUsers(@PathVariable String projectName,
+  public List<String> getProjectUsers(@PathVariable String projectKey,
       @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + "users")
       String value, @AuthenticationPrincipal ReportPortalUser user) {
-    return getProjectHandler.getUserNames(projectExtractor.extractProjectDetails(user, projectName),
+    return getProjectHandler.getUserNames(projectExtractor.extractProjectDetails(user, projectKey),
         normalizeId(value)
     );
   }
 
   @Transactional(readOnly = true)
-  @GetMapping("/{projectName}/usernames/search")
+  @GetMapping("/{projectKey}/usernames/search")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
-  public Iterable<SearchUserResource> searchForUser(@PathVariable String projectName,
+  public Iterable<SearchUserResource> searchForUser(@PathVariable String projectKey,
       @RequestParam(value = "term") String term, Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getProjectHandler.getUserNames(term,
-        projectExtractor.extractProjectDetails(user, projectName), pageable
+        projectExtractor.extractProjectDetails(user, projectKey), pageable
     );
   }
 
   @Transactional
-  @PutMapping("/{projectName}/preference/{login}/{filterId}")
+  @PutMapping("/{projectKey}/preference/{login}/{filterId}")
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
-  public OperationCompletionRS addUserPreference(@PathVariable String projectName,
+  public OperationCompletionRS addUserPreference(@PathVariable String projectKey,
       @PathVariable String login, @PathVariable Long filterId,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return updatePreference.addPreference(projectExtractor.extractProjectDetails(user, projectName),
+    return updatePreference.addPreference(projectExtractor.extractProjectDetails(user, projectKey),
         user, filterId
     );
   }
 
   @Transactional
-  @DeleteMapping("/{projectName}/preference/{login}/{filterId}")
+  @DeleteMapping("/{projectKey}/preference/{login}/{filterId}")
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
-  public OperationCompletionRS removeUserPreference(@PathVariable String projectName,
+  public OperationCompletionRS removeUserPreference(@PathVariable String projectKey,
       @PathVariable String login, @PathVariable Long filterId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updatePreference.removePreference(
-        projectExtractor.extractProjectDetails(user, projectName), user, filterId);
+        projectExtractor.extractProjectDetails(user, projectKey), user, filterId);
   }
 
   @Transactional(readOnly = true)
-  @GetMapping("/{projectName}/preference/{login}")
+  @GetMapping("/{projectKey}/preference/{login}")
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
   @ApiOperation(value = "Load user preferences", notes = "Only for users that allowed to edit other users")
-  public PreferenceResource getUserPreference(@PathVariable String projectName,
+  public PreferenceResource getUserPreference(@PathVariable String projectKey,
       @PathVariable String login, @AuthenticationPrincipal ReportPortalUser user) {
-    return getPreference.getPreference(projectExtractor.extractProjectDetails(user, projectName),
+    return getPreference.getPreference(projectExtractor.extractProjectDetails(user, projectKey),
         user
     );
   }
@@ -363,22 +363,22 @@ public class ProjectController {
 
   @Transactional(readOnly = true)
   @PreAuthorize(ASSIGNED_TO_PROJECT)
-  @GetMapping("/list/{projectName}")
+  @GetMapping("/list/{projectKey}")
   @ResponseStatus(HttpStatus.OK)
-  public ProjectInfoResource getProjectInfo(@PathVariable String projectName,
+  public ProjectInfoResource getProjectInfo(@PathVariable String projectKey,
       @RequestParam(value = "interval", required = false, defaultValue = "3M") String interval,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return projectInfoHandler.getProjectInfo(projectName, interval);
+    return projectInfoHandler.getProjectInfo(projectKey, interval);
   }
 
   @Transactional(readOnly = true)
   @PreAuthorize(ASSIGNED_TO_PROJECT)
-  @GetMapping("/{projectName}/widget/{widgetCode}")
+  @GetMapping("/{projectKey}/widget/{widgetCode}")
   @ResponseStatus(HttpStatus.OK)
-  public Map<String, ?> getProjectWidget(@PathVariable String projectName,
+  public Map<String, ?> getProjectWidget(@PathVariable String projectKey,
       @RequestParam(value = "interval", required = false, defaultValue = "3M") String interval,
       @PathVariable String widgetCode, @AuthenticationPrincipal ReportPortalUser user) {
-    return projectInfoHandler.getProjectInfoWidgetContent(projectName, interval, widgetCode);
+    return projectInfoHandler.getProjectInfoWidgetContent(projectKey, interval, widgetCode);
   }
 
   @Transactional(readOnly = true)

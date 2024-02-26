@@ -66,7 +66,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Andrei_Ramanchuk
  */
 @RestController
-@RequestMapping("/v1/{projectName}/settings")
+@RequestMapping("/v1/{projectKey}/settings")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class ProjectSettingsController {
 
@@ -111,48 +111,48 @@ public class ProjectSettingsController {
   @ResponseStatus(CREATED)
   @PreAuthorize(PROJECT_MANAGER)
   @ApiOperation("Creation of custom project specific issue sub-type")
-  public IssueSubTypeCreatedRS createProjectIssueSubType(@PathVariable String projectName,
+  public IssueSubTypeCreatedRS createProjectIssueSubType(@PathVariable String projectKey,
       @RequestBody @Validated CreateIssueSubTypeRQ request,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return createHandler.createProjectIssueSubType(normalizeId(projectName), user, request);
+    return createHandler.createProjectIssueSubType(normalizeId(projectKey), user, request);
   }
 
   @PutMapping("/sub-type")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
   @ApiOperation("Update of custom project specific issue sub-type")
-  public OperationCompletionRS updateProjectIssueSubType(@PathVariable String projectName,
+  public OperationCompletionRS updateProjectIssueSubType(@PathVariable String projectKey,
       @RequestBody @Validated UpdateIssueSubTypeRQ request,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return updateHandler.updateProjectIssueSubType(normalizeId(projectName), user, request);
+    return updateHandler.updateProjectIssueSubType(normalizeId(projectKey), user, request);
   }
 
   @DeleteMapping("/sub-type/{id}")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
   @ApiOperation("Delete custom project specific issue sub-type")
-  public OperationCompletionRS deleteProjectIssueSubType(@PathVariable String projectName,
+  public OperationCompletionRS deleteProjectIssueSubType(@PathVariable String projectKey,
       @PathVariable Long id, @AuthenticationPrincipal ReportPortalUser user) {
-    return deleteHandler.deleteProjectIssueSubType(normalizeId(projectName), user, id);
+    return deleteHandler.deleteProjectIssueSubType(normalizeId(projectKey), user, id);
   }
 
   @GetMapping
   @ResponseStatus(OK)
   @PreAuthorize(ASSIGNED_TO_PROJECT)
   @ApiOperation(value = "Get project specific issue sub-types", notes = "Only for users that are assigned to the project")
-  public ProjectSettingsResource getProjectSettings(@PathVariable String projectName,
+  public ProjectSettingsResource getProjectSettings(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return getHandler.getProjectSettings(normalizeId(projectName));
+    return getHandler.getProjectSettings(normalizeId(projectKey));
   }
 
   @PostMapping("/pattern")
   @ResponseStatus(CREATED)
   @PreAuthorize(PROJECT_MANAGER)
   @ApiOperation("Create pattern template for items' log messages pattern analysis")
-  public EntryCreatedRS createPatternTemplate(@PathVariable String projectName,
+  public EntryCreatedRS createPatternTemplate(@PathVariable String projectKey,
       @RequestBody @Validated CreatePatternTemplateRQ createPatternTemplateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return createHandler.createPatternTemplate(normalizeId(projectName), createPatternTemplateRQ,
+    return createHandler.createPatternTemplate(normalizeId(projectKey), createPatternTemplateRQ,
         user
     );
   }
@@ -161,11 +161,11 @@ public class ProjectSettingsController {
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
   @ApiOperation("Update pattern template for items' log messages pattern analysis")
-  public OperationCompletionRS updatePatternTemplate(@PathVariable String projectName,
+  public OperationCompletionRS updatePatternTemplate(@PathVariable String projectKey,
       @PathVariable Long id,
       @RequestBody @Validated UpdatePatternTemplateRQ updatePatternTemplateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return updateHandler.updatePatternTemplate(id, normalizeId(projectName),
+    return updateHandler.updatePatternTemplate(id, normalizeId(projectKey),
         updatePatternTemplateRQ, user
     );
   }
@@ -174,9 +174,9 @@ public class ProjectSettingsController {
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
   @ApiOperation("Delete pattern template for items' log messages pattern analysis")
-  public OperationCompletionRS deletePatternTemplate(@PathVariable String projectName,
+  public OperationCompletionRS deletePatternTemplate(@PathVariable String projectKey,
       @PathVariable Long id, @AuthenticationPrincipal ReportPortalUser user) {
-    return deleteHandler.deletePatternTemplate(normalizeId(projectName), user, id);
+    return deleteHandler.deletePatternTemplate(normalizeId(projectKey), user, id);
   }
 
   @Transactional(readOnly = true)
@@ -184,9 +184,9 @@ public class ProjectSettingsController {
   @ResponseStatus(OK)
   @PreAuthorize(ASSIGNED_TO_PROJECT)
   @ApiOperation(value = "Returns notifications config of specified project", notes = "Only for users assigned to specified project")
-  public List<SenderCaseDTO> getNotifications(@PathVariable String projectName) {
+  public List<SenderCaseDTO> getNotifications(@PathVariable String projectKey) {
     return getProjectNotificationsHandler.getProjectNotifications(
-        getProjectHandler.get(normalizeId(projectName)).getId());
+        getProjectHandler.get(normalizeId(projectKey)).getId());
   }
 
   @Transactional
@@ -194,11 +194,11 @@ public class ProjectSettingsController {
   @ResponseStatus(CREATED)
   @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
   @ApiOperation(value = "Creates notification for specified project", notes = "Only for users with PROJECT_MANAGER or ADMIN roles")
-  public EntryCreatedRS createNotification(@PathVariable String projectName,
+  public EntryCreatedRS createNotification(@PathVariable String projectKey,
       @RequestBody @Validated SenderCaseDTO createNotificationRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return createProjectNotificationHandler.createNotification(
-        getProjectHandler.get(normalizeId(projectName)), createNotificationRQ, user);
+        getProjectHandler.get(normalizeId(projectKey)), createNotificationRQ, user);
   }
 
   @Transactional
@@ -206,11 +206,11 @@ public class ProjectSettingsController {
   @ResponseStatus(CREATED)
   @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
   @ApiOperation(value = "Updates notification for specified project", notes = "Only for users with PROJECT_MANAGER or ADMIN roles")
-  public OperationCompletionRS updateNotification(@PathVariable String projectName,
+  public OperationCompletionRS updateNotification(@PathVariable String projectKey,
       @RequestBody @Validated SenderCaseDTO updateNotificationRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateProjectNotificationHandler.updateNotification(
-        getProjectHandler.get(normalizeId(projectName)), updateNotificationRQ, user);
+        getProjectHandler.get(normalizeId(projectKey)), updateNotificationRQ, user);
   }
 
   @Transactional
@@ -218,9 +218,9 @@ public class ProjectSettingsController {
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
   @ApiOperation(value = "Deletes notification for specified project", notes = "Only for users with PROJECT_MANAGER or ADMIN roles")
-  public OperationCompletionRS deleteNotification(@PathVariable String projectName,
+  public OperationCompletionRS deleteNotification(@PathVariable String projectKey,
       @PathVariable Long notificationId, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteNotificationHandler.deleteNotification(
-        getProjectHandler.get(normalizeId(projectName)), notificationId, user);
+        getProjectHandler.get(normalizeId(projectKey)), notificationId, user);
   }
 }

@@ -32,7 +32,9 @@ import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepository;
 import com.epam.ta.reportportal.entity.enums.ProjectType;
+import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -43,6 +45,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.project.CreateProjectRQ;
 import com.epam.ta.reportportal.util.PersonalProjectService;
+import com.epam.ta.reportportal.util.SlugifyUtils;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import java.util.Date;
 import java.util.Optional;
@@ -73,13 +76,14 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
   private final ApplicationEventPublisher applicationEventPublisher;
 
   private final ProjectUserRepository projectUserRepository;
+  private final OrganizationRepository organizationRepository;
 
   @Autowired
   public CreateProjectHandlerImpl(PersonalProjectService personalProjectService,
       ProjectRepository projectRepository, UserRepository userRepository,
       AttributeRepository attributeRepository, IssueTypeRepository issueTypeRepository,
       ApplicationEventPublisher applicationEventPublisher,
-      ProjectUserRepository projectUserRepository) {
+      ProjectUserRepository projectUserRepository, OrganizationRepository organizationRepository) {
     this.personalProjectService = personalProjectService;
     this.projectRepository = projectRepository;
     this.userRepository = userRepository;
@@ -87,11 +91,13 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
     this.issueTypeRepository = issueTypeRepository;
     this.applicationEventPublisher = applicationEventPublisher;
     this.projectUserRepository = projectUserRepository;
+    this.organizationRepository = organizationRepository;
   }
 
   @Override
   public EntryCreatedRS createProject(CreateProjectRQ createProjectRQ, ReportPortalUser user) {
     String projectName = createProjectRQ.getProjectName().toLowerCase().trim();
+    Long orgId = createProjectRQ.getOrganizationId();
 
     expect(projectName, not(equalTo(RESERVED_PROJECT_NAME))).verify(ErrorType.INCORRECT_REQUEST,
         Suppliers.formattedSupplier("Project with name '{}' is reserved by system", projectName)
@@ -105,7 +111,12 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
         )
     );
 
-    Optional<Project> existProject = projectRepository.findByName(projectName);
+    Organization organization = organizationRepository.findById(orgId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
+    var projectSlug = SlugifyUtils.slugify(projectName);
+    var projectKey = generateProjectKey(organization, projectSlug);
+
+    Optional<Project> existProject = projectRepository.findByKey(projectKey);
     expect(existProject, not(isPresent())).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectName);
 
     ProjectType projectType = ProjectType.findByName(createProjectRQ.getEntryType()).orElseThrow(
@@ -120,6 +131,10 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUsername()));
 
     Project project = new Project();
+
+    project.setOrganization(organization);
+    project.setKey(projectKey);
+    project.setSlug(projectSlug);
     project.setName(projectName);
     project.setCreationDate(new Date());
 
@@ -160,5 +175,9 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
     projectRepository.save(personalProject);
     publishProjectCreatedEvent(null, RP_SUBJECT_NAME, personalProject);
     return personalProject;
+  }
+
+  private String generateProjectKey(Organization organization, String projectSlug) {
+    return organization.getSlug() + "-" + projectSlug;
   }
 }

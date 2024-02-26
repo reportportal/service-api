@@ -16,6 +16,10 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_ORG;
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_ORG_ID;
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_NAME;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -24,6 +28,7 @@ import static org.mockito.Mockito.when;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -47,6 +52,9 @@ class CreateProjectHandlerImplTest {
   @Mock
   private UserRepository userRepository;
 
+  @Mock
+  OrganizationRepository organizationRepository;
+
   @InjectMocks
   private CreateProjectHandlerImpl handler;
 
@@ -56,11 +64,12 @@ class CreateProjectHandlerImplTest {
         getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
     CreateProjectRQ createProjectRQ = new CreateProjectRQ();
-    String projectName = "projectName";
-    createProjectRQ.setProjectName(projectName);
+    createProjectRQ.setProjectName(TEST_PROJECT_NAME);
+    createProjectRQ.setOrganizationId(TEST_ORG_ID);
     createProjectRQ.setEntryType("wrongType");
 
-    when(projectRepository.findByName(projectName.toLowerCase().trim())).thenReturn(
+    when(organizationRepository.findById(TEST_ORG_ID)).thenReturn(Optional.of(TEST_ORG));
+    when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(
         Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -78,12 +87,12 @@ class CreateProjectHandlerImplTest {
         getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
     CreateProjectRQ createProjectRQ = new CreateProjectRQ();
-    String projectName = "projectName";
-    createProjectRQ.setProjectName(projectName);
+    createProjectRQ.setProjectName(TEST_PROJECT_NAME);
+    createProjectRQ.setOrganizationId(TEST_ORG_ID);
     createProjectRQ.setEntryType("internal");
 
-    when(projectRepository.findByName(projectName.toLowerCase().trim())).thenReturn(
-        Optional.empty());
+    when(organizationRepository.findById(TEST_ORG_ID)).thenReturn(Optional.of(TEST_ORG));
+    when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.empty());
     when(userRepository.findRawById(rpUser.getUserId())).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,

@@ -99,13 +99,13 @@ public class ActivityEventController {
     return activityEventHandler.getActivityEventsHistory(filter, pageable);
   }
 
-  @GetMapping("/{projectName}/subjectName")
+  @GetMapping("/{projectKey}/subjectName")
   @PreAuthorize(ADMIN_ONLY)
   @ApiOperation(value = "Load project activities subjectNames by filter", notes = "Only for current project")
-  public List<String> getProjectSubjectName(@PathVariable String projectName,
+  public List<String> getProjectSubjectName(@PathVariable String projectKey,
       @RequestParam(FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + "subjectName")
       String value, @AuthenticationPrincipal ReportPortalUser user) {
     return activityEventHandler.getSubjectNames(
-        projectExtractor.extractProjectDetails(user, projectName), value);
+        projectExtractor.extractProjectDetails(user, projectKey), value);
   }
 }

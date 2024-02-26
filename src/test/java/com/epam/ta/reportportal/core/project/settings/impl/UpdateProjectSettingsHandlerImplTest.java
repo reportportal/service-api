@@ -16,7 +16,8 @@
 
 package com.epam.ta.reportportal.core.project.settings.impl;
 
-import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
+
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -58,7 +59,7 @@ class UpdateProjectSettingsHandlerImplTest {
     updateIssueSubTypeRQ.setIds(Collections.emptyList());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateProjectIssueSubType("test_project", user, updateIssueSubTypeRQ)
+        () -> handler.updateProjectIssueSubType(TEST_PROJECT_KEY, user, updateIssueSubTypeRQ)
     );
     assertEquals("Forbidden operation. Please specify at least one item data for update.",
         exception.getMessage()
@@ -74,12 +75,12 @@ class UpdateProjectSettingsHandlerImplTest {
     UpdateIssueSubTypeRQ updateIssueSubTypeRQ = new UpdateIssueSubTypeRQ();
     updateIssueSubTypeRQ.setIds(Collections.singletonList(new UpdateOneIssueSubTypeRQ()));
 
-    when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
+    when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateProjectIssueSubType(TEST_PROJECT_NAME, user, updateIssueSubTypeRQ)
+        () -> handler.updateProjectIssueSubType(TEST_PROJECT_KEY, user, updateIssueSubTypeRQ)
     );
-    assertEquals("Project 'test_project' not found. Did you use correct project name?",
+    assertEquals("Project 'o-slug-project-name' not found. Did you use correct project name?",
         exception.getMessage()
     );
   }
@@ -95,10 +96,10 @@ class UpdateProjectSettingsHandlerImplTest {
     oneIssueSubTypeRQ.setTypeRef("wrongType");
     updateIssueSubTypeRQ.setIds(Collections.singletonList(oneIssueSubTypeRQ));
 
-    when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
+    when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.of(new Project()));
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateProjectIssueSubType(TEST_PROJECT_NAME, user, updateIssueSubTypeRQ)
+        () -> handler.updateProjectIssueSubType(TEST_PROJECT_KEY, user, updateIssueSubTypeRQ)
     );
     assertEquals("Issue Type 'wrongType' not found.", exception.getMessage());
   }
@@ -115,10 +116,10 @@ class UpdateProjectSettingsHandlerImplTest {
     oneIssueSubTypeRQ.setLocator("locator");
     updateIssueSubTypeRQ.setIds(Collections.singletonList(oneIssueSubTypeRQ));
 
-    when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
+    when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.of(new Project()));
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateProjectIssueSubType(TEST_PROJECT_NAME, user, updateIssueSubTypeRQ)
+        () -> handler.updateProjectIssueSubType(TEST_PROJECT_KEY, user, updateIssueSubTypeRQ)
     );
     assertEquals("Issue Type 'locator' not found.", exception.getMessage());
   }

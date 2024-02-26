@@ -164,10 +164,10 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
   }
 
   @Override
-  public ProjectInfoResource getProjectInfo(String projectName, String interval) {
+  public ProjectInfoResource getProjectInfo(String projectKey, String interval) {
 
-    Project project = projectRepository.findByName(normalizeId(projectName))
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+    Project project = projectRepository.findByKey(normalizeId(projectKey))
+        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
 
     InfoInterval infoInterval = InfoInterval.findByInterval(interval)
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, interval));
@@ -179,7 +179,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
         projectRepository.findProjectInfoByFilter(filter, Pageable.unpaged());
     ProjectInfoResource projectInfoResource =
         ProjectSettingsConverter.TO_PROJECT_INFO_RESOURCE.apply(result.get().findFirst()
-            .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName)));
+            .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey)));
 
     LocalDateTime startIntervalDate = getStartIntervalDate(infoInterval);
 
@@ -207,10 +207,10 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
   }
 
   @Override
-  public Map<String, ?> getProjectInfoWidgetContent(String projectName, String interval,
+  public Map<String, ?> getProjectInfoWidgetContent(String projectKey, String interval,
       String widgetCode) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
 
     InfoInterval infoInterval = InfoInterval.findByInterval(interval)
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, interval));

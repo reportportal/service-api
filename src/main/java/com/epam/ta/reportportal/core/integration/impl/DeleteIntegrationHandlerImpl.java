@@ -16,6 +16,10 @@
 
 package com.epam.ta.reportportal.core.integration.impl;
 
+import static com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter.TO_ACTIVITY_RESOURCE;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.activity.IntegrationDeletedEvent;
@@ -29,16 +33,11 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import java.util.Collections;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-
-import java.util.Collections;
-import java.util.List;
-
-import static com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 
 /**
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
@@ -96,10 +95,10 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
   }
 
   @Override
-  public OperationCompletionRS deleteProjectIntegration(Long integrationId, String projectName,
+  public OperationCompletionRS deleteProjectIntegration(Long integrationId, String projectKey,
       ReportPortalUser user) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
     Integration integration = integrationRepository.findByIdAndProjectId(integrationId,
             project.getId())
         .orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
@@ -115,10 +114,10 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
   }
 
   @Override
-  public OperationCompletionRS deleteProjectIntegrationsByType(String type, String projectName,
+  public OperationCompletionRS deleteProjectIntegrationsByType(String type, String projectKey,
       ReportPortalUser user) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
     IntegrationType integrationType = integrationTypeRepository.findByName(type)
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, type));
     List<Integration> integrations = integrationRepository.findAllByProjectIdAndInIntegrationTypeIds(

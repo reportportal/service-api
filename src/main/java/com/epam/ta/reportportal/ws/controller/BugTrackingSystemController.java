@@ -67,30 +67,30 @@ public class BugTrackingSystemController {
   }
 
   @Transactional(readOnly = true)
-  @GetMapping(value = "/{projectName}/{integrationId}/fields-set")
+  @GetMapping(value = "/{projectKey}/{integrationId}/fields-set")
   @ResponseStatus(HttpStatus.OK)
   @ApiOperation("Get list of fields required for posting ticket in concrete integration")
   @PreAuthorize(PROJECT_MANAGER)
   public List<PostFormField> getSetOfIntegrationSystemFields(
       @RequestParam(value = "issueType") String issuetype,
-      @PathVariable String projectName, @PathVariable Long integrationId,
+      @PathVariable String projectKey, @PathVariable Long integrationId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getTicketHandler.getSubmitTicketFields(issuetype,
         integrationId,
-        projectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectName))
+        projectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectKey))
     );
   }
 
   @Transactional(readOnly = true)
-  @GetMapping(value = "/{projectName}/{integrationId}/issue_types")
+  @GetMapping(value = "/{projectKey}/{integrationId}/issue_types")
   @ResponseStatus(HttpStatus.OK)
   @ApiOperation("Get list of allowable issue types for bug tracking system")
   @PreAuthorize(PROJECT_MANAGER)
-  public List<String> getAllowableIssueTypes(@PathVariable String projectName,
+  public List<String> getAllowableIssueTypes(@PathVariable String projectKey,
       @PathVariable Long integrationId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getTicketHandler.getAllowableIssueTypes(integrationId,
-        projectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
+        projectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectKey)));
   }
 
   @Transactional(readOnly = true)
@@ -115,29 +115,29 @@ public class BugTrackingSystemController {
   }
 
   @Transactional
-  @PostMapping(value = "/{projectName}/{integrationId}/ticket")
+  @PostMapping(value = "/{projectKey}/{integrationId}/ticket")
   @ResponseStatus(HttpStatus.CREATED)
   @ApiOperation("Post ticket to the bts integration")
   public Ticket createIssue(@Validated @RequestBody PostTicketRQ ticketRQ,
-      @PathVariable String projectName,
+      @PathVariable String projectKey,
       @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
     return createTicketHandler.createIssue(ticketRQ,
         integrationId,
-        projectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
+        projectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectKey)),
         user
     );
   }
 
   @Transactional(readOnly = true)
-  @GetMapping(value = "/{projectName}/ticket/{ticketId}")
+  @GetMapping(value = "/{projectKey}/ticket/{ticketId}")
   @ResponseStatus(HttpStatus.OK)
   @ApiOperation("Get ticket from the bts integration")
-  public Ticket getTicket(@PathVariable String ticketId, @PathVariable String projectName,
+  public Ticket getTicket(@PathVariable String ticketId, @PathVariable String projectKey,
       @RequestParam(value = "btsUrl") String btsUrl,
       @RequestParam(value = "btsProject") String btsProject,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getTicketHandler.getTicket(ticketId, btsUrl, btsProject,
-        projectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
+        projectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectKey)));
   }
 
 }

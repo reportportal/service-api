@@ -71,7 +71,7 @@ class LaunchAutoAnalysisStrategyTest {
     ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
 
     ReportPortalUser.ProjectDetails projectDetails =
-        new ReportPortalUser.ProjectDetails(1L, "name", ProjectRole.PROJECT_MANAGER);
+        new ReportPortalUser.ProjectDetails(1L, "name", ProjectRole.PROJECT_MANAGER, "project-key");
     AnalyzeLaunchRQ analyzeLaunchRQ = new AnalyzeLaunchRQ();
     analyzeLaunchRQ.setLaunchId(1L);
     analyzeLaunchRQ.setAnalyzerHistoryMode("ALL");

@@ -16,10 +16,21 @@
 
 package com.epam.ta.reportportal.core.integration.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_NAME;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.ReportPortalUserUtil;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.integration.DeleteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
@@ -30,15 +41,9 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
-import org.junit.jupiter.api.Test;
-
 import java.util.Optional;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
-
-import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -114,6 +119,7 @@ public class DeleteIntegrationHandlerTest {
 		Project project = new Project();
 		project.setId(projectId);
 		project.setName(TEST_PROJECT_NAME);
+		project.setKey(TEST_PROJECT_KEY);
 
 		final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
 				UserRole.ADMINISTRATOR,
@@ -121,7 +127,7 @@ public class DeleteIntegrationHandlerTest {
 				projectId
 		);
 
-		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(project));
+		when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.of(project));
 
 		when(integrationRepository.findByIdAndProjectId(emailIntegrationId,
 				projectId
@@ -130,7 +136,7 @@ public class DeleteIntegrationHandlerTest {
 		doNothing().when(integrationRepository).deleteById(emailIntegrationId);
 
 		OperationCompletionRS operationCompletionRS = deleteIntegrationHandler.deleteProjectIntegration(emailIntegrationId,
-				TEST_PROJECT_NAME,
+        TEST_PROJECT_KEY,
 				user
 		);
 
@@ -149,6 +155,7 @@ public class DeleteIntegrationHandlerTest {
 		Project project = new Project();
 		project.setId(projectId);
 		project.setName(TEST_PROJECT_NAME);
+		project.setKey(TEST_PROJECT_KEY);
 
 		final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
 				UserRole.ADMINISTRATOR,
@@ -156,7 +163,7 @@ public class DeleteIntegrationHandlerTest {
 				projectId
 		);
 
-		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(project));
+		when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.of(project));
 
 		when(integrationRepository.findAllByProjectIdOrderByCreationDateDesc(projectId)).thenReturn(Lists.newArrayList(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId,
 				projectId
@@ -165,14 +172,14 @@ public class DeleteIntegrationHandlerTest {
 		when(integrationTypeRepository.findByName(anyString())).thenReturn(Optional.ofNullable(IntegrationTestUtil.getEmailIntegrationType()));
 
 		OperationCompletionRS operationCompletionRS = deleteIntegrationHandler.deleteProjectIntegrationsByType("EMAIL",
-				TEST_PROJECT_NAME,
+        TEST_PROJECT_KEY,
 				user
 		);
 		verify(integrationRepository, times(1)).deleteAllByProjectIdAndIntegrationTypeId(anyLong(), anyLong());
 
 		assertNotNull(operationCompletionRS);
 		assertEquals(
-				"All integrations with type ='EMAIL' for project with name ='test_project' have been successfully deleted",
+				"All integrations with type ='EMAIL' for project with name ='project Name' have been successfully deleted",
 				operationCompletionRS.getResultMessage()
 		);
 

@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -93,7 +94,7 @@ class DeleteTestItemHandlerImplTest {
     when(testItemRepository.findById(1L)).thenReturn(Optional.empty());
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+        () -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser)
     );
     assertEquals("Test Item '1' not found. Did you use correct Test Item ID?",
         exception.getMessage());
@@ -116,7 +117,7 @@ class DeleteTestItemHandlerImplTest {
     )));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+        () -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser)
     );
     assertEquals(
         "Unable to perform operation for non-finished test item. Unable to delete test item ['1'] in progress state",
@@ -138,7 +139,7 @@ class DeleteTestItemHandlerImplTest {
         Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.IN_PROGRESS, 1L, "test")));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+        () -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser)
     );
     assertEquals(
         "Unable to perform operation for non-finished launch. Unable to delete test item ['1'] under launch ['null'] with 'In progress' state",
@@ -160,7 +161,7 @@ class DeleteTestItemHandlerImplTest {
         Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.FAILED, 2L, "test")));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+        () -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser)
     );
     assertEquals("Forbidden operation. Deleting testItem '1' is not under specified project '1'",
         exception.getMessage());
@@ -181,7 +182,7 @@ class DeleteTestItemHandlerImplTest {
     when(launchRepository.findById(any(Long.class))).thenReturn(Optional.of(launch));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+        () -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser)
     );
     assertEquals("You do not have enough permissions. You are not a launch owner.",
         exception.getMessage());
@@ -212,7 +213,7 @@ class DeleteTestItemHandlerImplTest {
     when(testItemRepository.hasChildren(parent.getItemId(), parent.getPath())).thenReturn(false);
     when(launchRepository.hasRetries(any())).thenReturn(false);
     when(attachmentRepository.moveForDeletionByItems(any(Collection.class))).thenReturn(1);
-    handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
+    handler.deleteTestItem(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser);
 
     verify(itemContentRemover, times(1)).remove(anyLong());
     assertFalse(parent.isHasChildren());
@@ -232,7 +233,7 @@ class DeleteTestItemHandlerImplTest {
     when(launchRepository.findById(any(Long.class))).thenReturn(Optional.of(launch));
 
     OperationCompletionRS response = handler.deleteTestItem(1L,
-        extractProjectDetails(rpUser, "test_project"), rpUser);
+        extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser);
 
     verify(itemContentRemover, times(1)).remove(anyLong());
     assertEquals("Test Item with ID = '1' has been successfully deleted.",

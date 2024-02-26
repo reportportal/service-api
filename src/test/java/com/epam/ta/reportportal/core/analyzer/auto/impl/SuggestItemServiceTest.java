@@ -67,7 +67,9 @@ class SuggestItemServiceTest {
   @Test
   void suggestItems() {
     final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.MEMBER, 1L);
-    final Project project = new Project(1L, "default");
+    final Project project = new Project();
+    project.setId(1L);
+    project.setKey("default");
 
     TestItem testItem = new TestItem();
     testItem.setItemId(1L);
@@ -109,7 +111,9 @@ class SuggestItemServiceTest {
   @Test
   void suggestRemovedItems() {
     final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.MEMBER, 1L);
-    final Project project = new Project(1L, "default");
+    final Project project = new Project();
+    project.setId(1L);
+    project.setKey("default");
 
     TestItem testItem = new TestItem();
     testItem.setItemId(1L);
@@ -185,7 +189,9 @@ class SuggestItemServiceTest {
   @Test
   void suggestClusterItems() {
     final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.MEMBER, 1L);
-    final Project project = new Project(1L, "default");
+    final Project project = new Project();
+    project.setId(1L);
+    project.setKey("default");
 
     final Cluster cluster = new Cluster();
     cluster.setId(1L);

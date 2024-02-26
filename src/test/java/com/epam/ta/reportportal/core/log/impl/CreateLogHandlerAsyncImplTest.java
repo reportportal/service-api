@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -80,13 +81,13 @@ class CreateLogHandlerAsyncImplTest {
     when(saveLogBinaryDataTask.withProjectId(any())).thenReturn(saveLogBinaryDataTask);
 
     createLogHandlerAsync.createLog(request, multipartFile,
-        user.getProjectDetails().get("test_project"));
+        user.getProjectDetails().get(TEST_PROJECT_KEY));
 
     verify(provider).get();
     verify(saveLogBinaryDataTask).withRequest(request);
     verify(saveLogBinaryDataTask).withFile(multipartFile);
     verify(saveLogBinaryDataTask).withProjectId(
-        user.getProjectDetails().get("test_project").getProjectId());
+        user.getProjectDetails().get(TEST_PROJECT_KEY).getProjectId());
   }
 
   @Test

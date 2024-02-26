@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -89,7 +90,7 @@ class StartLaunchHandlerImplTest {
     }).thenReturn(launch);
 
     final StartLaunchRS startLaunchRS = startLaunchHandlerImpl.startLaunch(rpUser,
-        extractProjectDetails(rpUser, "test_project"),
+        extractProjectDetails(rpUser, TEST_PROJECT_KEY),
         startLaunchRQ
     );
 
@@ -108,7 +109,7 @@ class StartLaunchHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> startLaunchHandlerImpl.startLaunch(rpUser,
-            extractProjectDetails(rpUser, "test_project"), startLaunchRQ)
+            extractProjectDetails(rpUser, TEST_PROJECT_KEY), startLaunchRQ)
     );
     assertEquals("Forbidden operation.", exception.getMessage());
   }

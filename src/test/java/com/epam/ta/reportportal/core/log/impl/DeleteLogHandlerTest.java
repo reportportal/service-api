@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -88,7 +89,7 @@ class DeleteLogHandlerTest {
     when(projectRepository.existsById(projectId)).thenReturn(false);
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.deleteLog(1L, extractProjectDetails(user, "test_project"), user)
+        () -> handler.deleteLog(1L, extractProjectDetails(user, TEST_PROJECT_KEY), user)
     );
     assertEquals("Project '1' not found. Did you use correct project name?",
         exception.getMessage());
@@ -105,7 +106,7 @@ class DeleteLogHandlerTest {
     when(logRepository.findById(logId)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user)
+        () -> handler.deleteLog(logId, extractProjectDetails(user, TEST_PROJECT_KEY), user)
     );
     assertEquals("Log '2' not found. Did you use correct Log ID?", exception.getMessage());
   }
@@ -136,7 +137,7 @@ class DeleteLogHandlerTest {
     when(logRepository.findById(logId)).thenReturn(Optional.of(log));
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user)
+        () -> handler.deleteLog(logId, extractProjectDetails(user, TEST_PROJECT_KEY), user)
     );
     assertEquals("You do not have enough permissions.", exception.getMessage());
   }
@@ -172,7 +173,7 @@ class DeleteLogHandlerTest {
     when(projectRepository.existsById(projectId)).thenReturn(true);
     when(logRepository.findById(logId)).thenReturn(Optional.of(log));
 
-    handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user);
+    handler.deleteLog(logId, extractProjectDetails(user, TEST_PROJECT_KEY), user);
 
     verify(logRepository, times(1)).delete(log);
     verify(logIndexer, times(1)).cleanIndex(projectId, Collections.singletonList(logId));
@@ -210,7 +211,7 @@ class DeleteLogHandlerTest {
     doThrow(IllegalArgumentException.class).when(logRepository).delete(log);
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user)
+        () -> handler.deleteLog(logId, extractProjectDetails(user, TEST_PROJECT_KEY), user)
     );
     assertEquals("Error while Log instance deleting.", exception.getMessage());
   }

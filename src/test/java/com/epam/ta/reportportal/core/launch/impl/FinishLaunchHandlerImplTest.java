@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
@@ -95,7 +96,7 @@ class FinishLaunchHandlerImplTest {
         getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
     FinishLaunchRS response =
-        handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"),
+        handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, TEST_PROJECT_KEY),
             rpUser, null
         );
 
@@ -117,14 +118,14 @@ class FinishLaunchHandlerImplTest {
         getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
     final FinishLaunchRS finishLaunchRS =
-        handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"),
+        handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, TEST_PROJECT_KEY),
             rpUser, "http://example.com"
         );
 
     verify(finishHierarchyHandler, times(1)).finishDescendants(any(), any(), any(), any(), any());
 
     assertNotNull(finishLaunchRS);
-    assertEquals("http://example.com/ui/#test_project/launches/all/1", finishLaunchRS.getLink());
+    assertEquals("http://example.com/ui/#o-slug-project-name/launches/all/1", finishLaunchRS.getLink());
   }
 
   @Test
@@ -140,7 +141,7 @@ class FinishLaunchHandlerImplTest {
         getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
     final OperationCompletionRS response = stopLaunchHandler.stopLaunch(1L, finishExecutionRQ,
-        extractProjectDetails(rpUser, "test_project"), rpUser
+        extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser
     );
     assertNotNull(response);
     assertEquals("Launch with ID = '1' successfully stopped.", response.getResultMessage());
@@ -165,7 +166,7 @@ class FinishLaunchHandlerImplTest {
         getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
     final List<OperationCompletionRS> response =
-        stopLaunchHandler.stopLaunch(bulkRq, extractProjectDetails(rpUser, "test_project"), rpUser);
+        stopLaunchHandler.stopLaunch(bulkRq, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser);
     assertNotNull(response);
     assertEquals(1, response.size());
   }
@@ -183,7 +184,7 @@ class FinishLaunchHandlerImplTest {
         getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
 
     assertThrows(ReportPortalException.class, () -> handler.finishLaunch("1", finishExecutionRQ,
-        extractProjectDetails(rpUser, "test_project"), rpUser, null
+        extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser, null
     ));
   }
 
@@ -200,7 +201,7 @@ class FinishLaunchHandlerImplTest {
         getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
     assertThrows(ReportPortalException.class, () -> handler.finishLaunch("1", finishExecutionRQ,
-        extractProjectDetails(rpUser, "test_project"), rpUser, null
+        extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser, null
     ));
   }
 
@@ -218,7 +219,7 @@ class FinishLaunchHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.finishLaunch("1", finishExecutionRQ,
-            extractProjectDetails(rpUser, "test_project"), rpUser, null
+            extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser, null
         )
     );
     assertEquals("You do not have enough permissions. You are not launch owner.",

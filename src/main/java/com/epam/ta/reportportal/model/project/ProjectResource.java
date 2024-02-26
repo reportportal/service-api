@@ -21,12 +21,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 import java.util.List;
 import javax.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Project resource representation for responses
  *
  * @author Pavel Bortnik
  */
+
+@Getter
+@Setter
 public class ProjectResource {
 
   @NotNull
@@ -36,6 +42,12 @@ public class ProjectResource {
   @NotNull
   @JsonProperty(value = "projectName", required = true)
   private String projectName;
+
+  @JsonProperty(value = "projectKey")
+  private String projectKey;
+
+  @JsonProperty(value = "projectSlug")
+  private String projectSlug;
 
   @JsonProperty(value = "entryType", required = true)
   private String entryType;
@@ -53,6 +65,12 @@ public class ProjectResource {
   @JsonProperty(value = "organization")
   private String organization;
 
+  @JsonProperty(value = "organizationId")
+  private Long organizationId;
+
+  @JsonProperty(value = "organizationSlug")
+  private String organizationSlug;
+
   @JsonProperty(value = "allocatedStorage")
   private Long allocatedStorage;
 
@@ -60,79 +78,9 @@ public class ProjectResource {
   @JsonProperty(value = "creationDate")
   private Date creationDate;
 
-  public Date getCreationDate() {
-    return creationDate;
-  }
-
-  public void setCreationDate(Date creationDate) {
-    this.creationDate = creationDate;
-  }
-
-  public Long getProjectId() {
-    return projectId;
-  }
-
-  public void setProjectId(Long projectId) {
-    this.projectId = projectId;
-  }
-
-  public String getProjectName() {
-    return projectName;
-  }
-
-  public void setProjectName(String projectName) {
-    this.projectName = projectName;
-  }
-
-  public String getEntryType() {
-    return entryType;
-  }
-
-  public void setEntryType(String entryType) {
-    this.entryType = entryType;
-  }
-
-  public void setConfiguration(
-      ProjectConfiguration configuration) {
-    this.configuration = configuration;
-  }
-
-  public ProjectConfiguration getConfiguration() {
-    return configuration;
-  }
-
-  public List<IntegrationResource> getIntegrations() {
-    return integrations;
-  }
-
-  public void setIntegrations(List<IntegrationResource> integrations) {
-    this.integrations = integrations;
-  }
-
-  public List<ProjectUser> getUsers() {
-    return users;
-  }
-
-  public void setUsers(List<ProjectUser> users) {
-    this.users = users;
-  }
-
-  public String getOrganization() {
-    return organization;
-  }
-
-  public void setOrganization(String organization) {
-    this.organization = organization;
-  }
-
-  public Long getAllocatedStorage() {
-    return allocatedStorage;
-  }
-
-  public void setAllocatedStorage(Long allocatedStorage) {
-    this.allocatedStorage = allocatedStorage;
-  }
-
+  @Getter
+  @Setter
+  @ToString
   public static class ProjectUser {
 
     @JsonProperty(value = "login")
@@ -141,25 +89,5 @@ public class ProjectResource {
     @JsonProperty(value = "projectRole")
     private String projectRole;
 
-    public String getLogin() {
-      return login;
-    }
-
-    public void setLogin(String login) {
-      this.login = login;
-    }
-
-    public void setProjectRole(String value) {
-      this.projectRole = value;
-    }
-
-    public String getProjectRole() {
-      return projectRole;
-    }
-
-    @Override
-    public String toString() {
-      return "ProjectUser{" + "projectRole='" + projectRole + '\'' + '}';
-    }
   }
 }

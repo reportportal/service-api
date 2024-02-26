@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.hierarchy.impl;
 
-import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.item.impl.status.ToSkippedStatusChangingStrategy.SKIPPED_ISSUE_KEY;
 import static org.mockito.ArgumentMatchers.any;
@@ -101,7 +101,7 @@ class FinishLaunchHierarchyHandlerTest {
         StatusEnum.PASSED,
         endTime,
         rpUser,
-        rpUser.getProjectDetails().get(TEST_PROJECT_NAME)
+        rpUser.getProjectDetails().get(TEST_PROJECT_KEY)
     );
 
     verify(changeStatusHandler, times(2)).changeParentStatus(any(TestItem.class), any(), any());
@@ -148,7 +148,7 @@ class FinishLaunchHierarchyHandlerTest {
         StatusEnum.SKIPPED,
         endTime,
         rpUser,
-        rpUser.getProjectDetails().get(TEST_PROJECT_NAME)
+        rpUser.getProjectDetails().get(TEST_PROJECT_KEY)
     );
 
     verify(changeStatusHandler, times(2)).changeParentStatus(any(TestItem.class), any(), any());

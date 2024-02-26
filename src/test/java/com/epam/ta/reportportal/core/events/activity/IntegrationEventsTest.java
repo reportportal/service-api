@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
 
@@ -85,7 +86,7 @@ class IntegrationEventsTest {
     integration.setName("name");
     integration.setProjectId(3L);
     integration.setTypeName("type");
-    integration.setProjectName("test_project");
+    integration.setProjectName(TEST_PROJECT_KEY);
     return integration;
   }
 

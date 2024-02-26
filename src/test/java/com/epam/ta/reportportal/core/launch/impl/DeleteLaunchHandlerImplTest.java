@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
@@ -60,7 +61,7 @@ class DeleteLaunchHandlerImplTest {
         getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.deleteLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+        () -> handler.deleteLaunch(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser)
     );
     assertEquals("You do not have enough permissions. You are not launch owner.",
         exception.getMessage());
@@ -73,7 +74,7 @@ class DeleteLaunchHandlerImplTest {
         getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.deleteLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+        () -> handler.deleteLaunch(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser)
     );
     assertEquals("Forbidden operation. Target launch '1' not under specified project '2'",
         exception.getMessage());
@@ -87,7 +88,7 @@ class DeleteLaunchHandlerImplTest {
         getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
     assertThrows(ReportPortalException.class,
-        () -> handler.deleteLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser));
+        () -> handler.deleteLaunch(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser));
   }
 
 }

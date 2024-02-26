@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -88,7 +89,7 @@ class StartTestItemHandlerImplTest {
     rq.setLaunchUuid("1");
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), rq)
+        () -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rq)
     );
     assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
   }
@@ -106,7 +107,7 @@ class StartTestItemHandlerImplTest {
     when(launchRepository.findByUuid("1")).thenReturn(Optional.of(launch));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"),
+        () -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, TEST_PROJECT_KEY),
             startTestItemRQ)
     );
     assertEquals("You do not have enough permissions.", exception.getMessage());
@@ -123,7 +124,7 @@ class StartTestItemHandlerImplTest {
         Optional.of(getLaunch(1L, StatusEnum.PASSED)));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"),
+        () -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, TEST_PROJECT_KEY),
             startTestItemRQ)
     );
     assertEquals("Start test item is not allowed. Launch '1' is not in progress",
@@ -143,7 +144,7 @@ class StartTestItemHandlerImplTest {
     when(launchRepository.findByUuid("1")).thenReturn(Optional.of(launch));
 
     assertThrows(ReportPortalException.class,
-        () -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"),
+        () -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, TEST_PROJECT_KEY),
             startTestItemRQ)
     );
   }
@@ -160,7 +161,7 @@ class StartTestItemHandlerImplTest {
     when(testItemRepository.findByUuid("1")).thenReturn(Optional.empty());
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), rq, "1")
+        () -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rq, "1")
     );
     assertEquals("Test Item '1' not found. Did you use correct Test Item ID?",
         exception.getMessage());
@@ -184,7 +185,7 @@ class StartTestItemHandlerImplTest {
         .validate(any(StartTestItemRQ.class), any(TestItem.class));
 
     assertThrows(ReportPortalException.class,
-        () -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"),
+        () -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, TEST_PROJECT_KEY),
             startTestItemRQ, "1")
     );
   }
@@ -214,7 +215,7 @@ class StartTestItemHandlerImplTest {
     )).when(validator).validate(any(StartTestItemRQ.class), any(TestItem.class));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"),
+        () -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, TEST_PROJECT_KEY),
             startTestItemRQ, "1")
     );
     assertEquals("Error in handled Request. Please, check specified parameters: "
@@ -234,7 +235,7 @@ class StartTestItemHandlerImplTest {
     when(launchRepository.findByUuid("1")).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"),
+        () -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, TEST_PROJECT_KEY),
             startTestItemRQ, "1")
     );
 

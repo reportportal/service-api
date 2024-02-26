@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -84,14 +85,14 @@ class LaunchAsyncControllerTest {
 
     when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
         anyString()
-    )).thenReturn(user.getProjectDetails().get("test_project"));
+    )).thenReturn(user.getProjectDetails().get(TEST_PROJECT_KEY));
 
-    launchAsyncController.startLaunch("test_project", startLaunchRQ, user);
+    launchAsyncController.startLaunch(TEST_PROJECT_KEY, startLaunchRQ, user);
     verify(startLaunchHandler).startLaunch(userArgumentCaptor.capture(),
         projectDetailsArgumentCaptor.capture(), requestArgumentCaptor.capture()
     );
     assertEquals(user, userArgumentCaptor.getValue());
-    assertEquals(user.getProjectDetails().get("test_project"),
+    assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY),
         projectDetailsArgumentCaptor.getValue()
     );
     assertEquals(startLaunchRQ, requestArgumentCaptor.getValue());
@@ -117,11 +118,11 @@ class LaunchAsyncControllerTest {
 
     when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
         anyString()
-    )).thenReturn(user.getProjectDetails().get("test_project"));
+    )).thenReturn(user.getProjectDetails().get(TEST_PROJECT_KEY));
 
     when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080"));
     when(httpServletRequest.getHeaderNames()).thenReturn(new Enumerator<>(Lists.newArrayList()));
-    launchAsyncController.finishLaunch("test_project", launchId, finishExecutionRQ, user,
+    launchAsyncController.finishLaunch(TEST_PROJECT_KEY, launchId, finishExecutionRQ, user,
         httpServletRequest
     );
     verify(finishLaunchHandler).finishLaunch(launchIdArgumentCaptor.capture(),
@@ -129,7 +130,7 @@ class LaunchAsyncControllerTest {
         userArgumentCaptor.capture(), urlArgumentCaptor.capture()
     );
     assertEquals(user, userArgumentCaptor.getValue());
-    assertEquals(user.getProjectDetails().get("test_project"),
+    assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY),
         projectDetailsArgumentCaptor.getValue()
     );
     assertEquals(finishExecutionRQ, requestArgumentCaptor.getValue());
@@ -151,14 +152,14 @@ class LaunchAsyncControllerTest {
 
     when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
         anyString()
-    )).thenReturn(user.getProjectDetails().get("test_project"));
+    )).thenReturn(user.getProjectDetails().get(TEST_PROJECT_KEY));
 
-    launchAsyncController.mergeLaunches("test_project", mergeLaunchesRQ, user);
+    launchAsyncController.mergeLaunches(TEST_PROJECT_KEY, mergeLaunchesRQ, user);
     verify(mergeLaunchHandler).mergeLaunches(projectDetailsArgumentCaptor.capture(),
         userArgumentCaptor.capture(), requestArgumentCaptor.capture()
     );
     assertEquals(user, userArgumentCaptor.getValue());
-    assertEquals(user.getProjectDetails().get("test_project"),
+    assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY),
         projectDetailsArgumentCaptor.getValue()
     );
     assertEquals(mergeLaunchesRQ, requestArgumentCaptor.getValue());

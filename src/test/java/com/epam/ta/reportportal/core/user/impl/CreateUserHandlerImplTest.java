@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.BID_TYPE;
 import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
@@ -223,7 +224,7 @@ class CreateUserHandlerImplTest {
   void createUserBid() {
     final ReportPortalUser rpUser =
         getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.MEMBER, 1L);
-    final String projectName = "test_project";
+    final String projectName = TEST_PROJECT_KEY;
     final String email = "email@mail.com";
     final String role = ProjectRole.MEMBER.name();
 
@@ -329,7 +330,7 @@ class CreateUserHandlerImplTest {
   @Test
   void createUserWithIncorrectEmail() {
     final UserCreationBid bid = new UserCreationBid();
-    bid.setProjectName("test_project");
+    bid.setProjectName(TEST_PROJECT_KEY);
     when(userCreationBidRepository.findByUuidAndType("uuid", INTERNAL_BID_TYPE)).thenReturn(
         Optional.of(bid));
     when(userRepository.findByLogin("test")).thenReturn(Optional.empty());
@@ -348,7 +349,7 @@ class CreateUserHandlerImplTest {
   @Test
   void createUserWithExistedEmail() {
     final UserCreationBid bid = new UserCreationBid();
-    bid.setProjectName("test_project");
+    bid.setProjectName(TEST_PROJECT_KEY);
     when(userCreationBidRepository.findByUuidAndType("uuid", INTERNAL_BID_TYPE)).thenReturn(
         Optional.of(bid));
     when(userRepository.findByLogin("test")).thenReturn(Optional.empty());

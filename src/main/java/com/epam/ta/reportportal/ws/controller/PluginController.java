@@ -121,17 +121,18 @@ public class PluginController {
   }
 
   @Transactional
-  @PutMapping(value = "{projectName}/{pluginName}/common/{command}", consumes = {
-      APPLICATION_JSON_VALUE })
+  @PutMapping(
+      value = "{projectKey}/{pluginName}/common/{command}",
+      consumes = {APPLICATION_JSON_VALUE})
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(ASSIGNED_TO_PROJECT)
   @ApiOperation("Execute command to the plugin instance")
-  public Object executePluginCommand(@PathVariable String projectName,
+  public Object executePluginCommand(@PathVariable String projectKey,
       @PathVariable("pluginName") String pluginName, @PathVariable("command") String command,
       @RequestBody Map<String, Object> executionParams,
       @AuthenticationPrincipal ReportPortalUser user) {
     return executeIntegrationHandler.executeCommand(
-        projectExtractor.extractProjectDetails(user, projectName), pluginName, command,
+        projectExtractor.extractProjectDetails(user, projectKey), pluginName, command,
         executionParams
     );
   }

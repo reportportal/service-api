@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_ROLE;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
@@ -58,18 +59,18 @@ class GetProjectHandlerImplTest {
   void getUsersOnNotExistProject() {
     long projectId = 1L;
 
-    String projectName = "test_project";
-    when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
+    String projectKey = TEST_PROJECT_KEY;
+    when(projectRepository.findByKey(projectKey)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class, () -> {
-      handler.getProjectUsers(projectName, Filter.builder().withTarget(User.class).withCondition(
+      handler.getProjectUsers(projectKey, Filter.builder().withTarget(User.class).withCondition(
               FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build()).build(),
           PageRequest.of(0, 10)
       );
     });
 
     assertEquals(
-        "Project 'test_project' not found. Did you use correct project name?",
+        "Project 'o-slug-project-name' not found. Did you use correct project name?",
         exception.getMessage()
     );
   }
@@ -78,11 +79,11 @@ class GetProjectHandlerImplTest {
   void getEmptyUserList() {
     long projectId = 1L;
 
-    String projectName = "test_project";
-    when(projectRepository.findByName(projectName)).thenReturn(Optional.of(new Project()));
+    String projectKey = TEST_PROJECT_KEY;
+    when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(new Project()));
 
     Iterable<UserResource> users =
-        handler.getProjectUsers(projectName, Filter.builder().withTarget(User.class).withCondition(
+        handler.getProjectUsers(projectKey, Filter.builder().withTarget(User.class).withCondition(
                 FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build()).build(),
             PageRequest.of(0, 10)
         );
@@ -92,18 +93,18 @@ class GetProjectHandlerImplTest {
 
   @Test
   void getNotExistProject() {
-    String projectName = "not_exist";
+    String projectKey = "not_exist";
     long projectId = 1L;
     ReportPortalUser user =
         getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-    when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
+    when(projectRepository.findByKey(projectKey)).thenReturn(Optional.empty());
 
     ReportPortalException exception =
-        assertThrows(ReportPortalException.class, () -> handler.getResource(projectName, user));
+        assertThrows(ReportPortalException.class, () -> handler.getResource(projectKey, user));
 
     assertEquals(
-        "Project '" + projectName + "' not found. Did you use correct project name?",
+        "Project '" + projectKey + "' not found. Did you use correct project name?",
         exception.getMessage()
     );
   }
@@ -115,7 +116,7 @@ class GetProjectHandlerImplTest {
         getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getUserNames(extractProjectDetails(user, "test_project"), "")
+        () -> handler.getUserNames(extractProjectDetails(user, TEST_PROJECT_KEY), "")
     );
 
     assertEquals(
@@ -128,8 +129,7 @@ class GetProjectHandlerImplTest {
   void getUserNamesNegative() {
     ReportPortalException exception = assertThrows(
         ReportPortalException.class, () -> handler.getUserNames("",
-            new ReportPortalUser.ProjectDetails(1L, "superadmin_personal",
-                ProjectRole.PROJECT_MANAGER
+            new ReportPortalUser.ProjectDetails(1L, "superadmin_personal", ProjectRole.PROJECT_MANAGER, "project-key"
             ), PageRequest.of(0, 10)
         ));
     assertEquals(

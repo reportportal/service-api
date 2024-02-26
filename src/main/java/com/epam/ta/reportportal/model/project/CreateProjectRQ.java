@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.model.project;
 
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.PROJECT_NAME_REGEXP;
+import static com.epam.ta.reportportal.ws.model.ValidationConstraints.PROJECT_SLUG_REGEXP;
 
 import com.epam.ta.reportportal.ws.annotations.In;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
@@ -27,6 +28,8 @@ import io.swagger.annotations.ApiModelProperty;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Create project request initial model
@@ -35,6 +38,8 @@ import javax.validation.constraints.Size;
  * @author Andrei_Ramanchuk
  */
 @JsonInclude(Include.NON_NULL)
+@Getter
+@Setter
 public class CreateProjectRQ {
 
 	@NotBlank
@@ -50,28 +55,13 @@ public class CreateProjectRQ {
 	@ApiModelProperty(required = true, allowableValues = "INTERNAL")
 	private String entryType;
 
-	public String getProjectName() {
-		return projectName;
-	}
+  @JsonProperty(value = "organizationId")
+  private Long organizationId;
 
-	public void setProjectName(String projectName) {
-		this.projectName = projectName;
-	}
+  @Pattern(regexp = PROJECT_SLUG_REGEXP)
+  @Size(min = ValidationConstraints.MIN_NAME_LENGTH, max = ValidationConstraints.MAX_NAME_LENGTH)
+  @JsonProperty(value = "projectSlug", required = true)
+  @ApiModelProperty(required = true)
+  private String projectSlug;
 
-	public String getEntryType() {
-		return entryType;
-	}
-
-	public void setEntryType(String value) {
-		this.entryType = value;
-	}
-
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder("CreateProjectRQ{");
-		sb.append("projectName='").append(projectName).append('\'');
-		sb.append(", entryType='").append(entryType).append('\'');
-		sb.append('}');
-		return sb.toString();
-	}
 }

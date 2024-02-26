@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.item.impl.UpdateTestItemHandlerImpl.INITIAL_STATUS_ATTRIBUTE_KEY;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
@@ -88,7 +89,7 @@ class UpdateTestItemHandlerImplTest {
         getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
     when(itemRepository.findById(1L)).thenReturn(Optional.empty());
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L,
+        () -> handler.updateTestItem(extractProjectDetails(rpUser, TEST_PROJECT_KEY), 1L,
             new UpdateTestItemRQ(), rpUser
         )
     );
@@ -109,7 +110,7 @@ class UpdateTestItemHandlerImplTest {
         new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L,
+        () -> handler.updateTestItem(extractProjectDetails(rpUser, TEST_PROJECT_KEY), 1L,
             new UpdateTestItemRQ(), rpUser
         )
     );
@@ -133,7 +134,7 @@ class UpdateTestItemHandlerImplTest {
     when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L,
+        () -> handler.updateTestItem(extractProjectDetails(rpUser, TEST_PROJECT_KEY), 1L,
             new UpdateTestItemRQ(), rpUser
         )
     );
@@ -158,7 +159,7 @@ class UpdateTestItemHandlerImplTest {
     when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L,
+        () -> handler.updateTestItem(extractProjectDetails(rpUser, TEST_PROJECT_KEY), 1L,
             new UpdateTestItemRQ(), rpUser
         )
     );
@@ -174,7 +175,7 @@ class UpdateTestItemHandlerImplTest {
     when(projectRepository.findById(1L)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.defineTestItemsIssues(extractProjectDetails(rpUser, "test_project"),
+        () -> handler.defineTestItemsIssues(extractProjectDetails(rpUser, TEST_PROJECT_KEY),
             new DefineIssueRQ(), rpUser
         )
     );
@@ -208,7 +209,7 @@ class UpdateTestItemHandlerImplTest {
     when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateTestItem(extractProjectDetails(user, "test_project"), itemId, rq, user)
+        () -> handler.updateTestItem(extractProjectDetails(user, TEST_PROJECT_KEY), itemId, rq, user)
     );
     assertEquals("Incorrect Request. Unable to change status on test item with children",
         exception.getMessage()
@@ -241,7 +242,7 @@ class UpdateTestItemHandlerImplTest {
     when(statusChangingStrategyMapping.get(StatusEnum.PASSED)).thenReturn(statusChangingStrategy);
     doNothing().when(statusChangingStrategy).changeStatus(item, StatusEnum.PASSED, user, true);
 
-    handler.updateTestItem(extractProjectDetails(user, "test_project"), itemId, rq, user);
+    handler.updateTestItem(extractProjectDetails(user, TEST_PROJECT_KEY), itemId, rq, user);
     assertTrue(item.getAttributes().stream().anyMatch(
         attribute -> INITIAL_STATUS_ATTRIBUTE_KEY.equalsIgnoreCase(attribute.getKey())
             && StatusEnum.FAILED.getExecutionCounterField().equalsIgnoreCase("failed")));
@@ -275,7 +276,7 @@ class UpdateTestItemHandlerImplTest {
     when(statusChangingStrategyMapping.get(StatusEnum.PASSED)).thenReturn(statusChangingStrategy);
     doNothing().when(statusChangingStrategy).changeStatus(item, StatusEnum.PASSED, user, true);
 
-    handler.updateTestItem(extractProjectDetails(user, "test_project"), itemId, rq, user);
+    handler.updateTestItem(extractProjectDetails(user, TEST_PROJECT_KEY), itemId, rq, user);
     assertTrue(item.getAttributes().stream().anyMatch(
         attribute -> INITIAL_STATUS_ATTRIBUTE_KEY.equalsIgnoreCase(attribute.getKey())
             && StatusEnum.PASSED.getExecutionCounterField().equalsIgnoreCase("passed")));
@@ -306,7 +307,7 @@ class UpdateTestItemHandlerImplTest {
     when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
 
     OperationCompletionRS response =
-        handler.updateTestItem(extractProjectDetails(user, "test_project"), itemId, rq, user);
+        handler.updateTestItem(extractProjectDetails(user, TEST_PROJECT_KEY), itemId, rq, user);
 
     assertEquals("TestItem with ID = '1' successfully updated.", response.getResultMessage());
     assertEquals(rq.getDescription(), item.getDescription());

@@ -40,7 +40,8 @@ public interface GetOrganizationHandler {
    *
    * @param filter   Queryable filter to apply on organizations
    * @param pageable Pagination information for the results
-   * @return An {@link Iterable} of {@link OrganizationResource} containing information about all projects
+   * @return An {@link Iterable} of {@link OrganizationResource} containing information about all
+   * projects
    */
   Iterable<OrganizationResource> getOrganizations(Queryable filter, Pageable pageable);
 }

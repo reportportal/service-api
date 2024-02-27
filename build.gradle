@@ -188,7 +188,7 @@ jar.enabled(true)
 jar.archiveClassifier.set('')
 
 test {
-   // dependsOn(copyTestDatabaseScripts)
+    dependsOn(copyTestDatabaseScripts)
     useJUnitPlatform()
     maxParallelForks = 1
     testLogging {

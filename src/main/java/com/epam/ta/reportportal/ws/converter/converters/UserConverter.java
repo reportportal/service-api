@@ -82,6 +82,7 @@ public final class UserConverter {
                 UserResource.AssignedOrganization assignedOrganization = new UserResource.AssignedOrganization();
                 assignedOrganization.setOrganizationId(orgUser.getOrganization().getId());
                 assignedOrganization.setOrganizationName(orgUser.getOrganization().getName());
+                assignedOrganization.setOrganizationSlug(orgUser.getOrganization().getSlug());
                 assignedOrganization.setOrganizationRole(orgUser.getOrganizationRole().name());
                 return assignedOrganization;
               }));

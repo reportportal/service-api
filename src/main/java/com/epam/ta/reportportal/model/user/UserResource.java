@@ -92,6 +92,7 @@ public class UserResource {
   public static class AssignedOrganization {
 
     private Long organizationId;
+    private String organizationSlug;
     private String organizationRole;
     private String organizationName;
 

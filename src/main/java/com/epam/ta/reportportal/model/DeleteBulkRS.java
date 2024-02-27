@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.model;
 
-import com.epam.ta.reportportal.ws.model.ErrorRS;
+import com.epam.ta.reportportal.ws.reporting.ErrorRS;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 

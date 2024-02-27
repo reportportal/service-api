@@ -20,11 +20,11 @@ import static java.util.stream.Collectors.groupingBy;
 
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.model.TestItemResource;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterProvider;
 import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemUpdaterContent;
 import com.epam.ta.reportportal.ws.converter.utils.item.updater.RetriesUpdater;
+import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;

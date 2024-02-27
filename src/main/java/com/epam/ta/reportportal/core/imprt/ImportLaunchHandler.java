@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.imprt;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import org.springframework.web.multipart.MultipartFile;
 
 /**

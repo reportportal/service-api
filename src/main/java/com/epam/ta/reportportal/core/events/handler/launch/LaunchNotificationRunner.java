@@ -43,8 +43,8 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Map;
 import java.util.Objects;
@@ -109,8 +109,6 @@ public class LaunchNotificationRunner
   /**
    * Try to send email when it is needed
    *
-   * @param launch       Launch to be used
-   * @param project      Project
    * @param emailService Mail Service
    */
   private void sendEmail(LaunchFinishedEvent launchFinishedEvent, EmailService emailService) {

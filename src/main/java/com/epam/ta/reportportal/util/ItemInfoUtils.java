@@ -17,13 +17,13 @@
 package com.epam.ta.reportportal.util;
 
 import static com.epam.ta.reportportal.util.Predicates.ITEM_ATTRIBUTE_EQUIVALENCE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_REQUEST;
 
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
-import com.epam.ta.reportportal.ws.model.attribute.UpdateItemAttributeRQ;
+import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.UpdateItemAttributeRQ;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
@@ -33,8 +33,7 @@ import org.apache.commons.collections.CollectionUtils;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  * <p>
- * Util class. Contains methods for updating
- * {@link com.epam.ta.reportportal.entity.launch.Launch}/{@link
+ * Util class. Contains methods for updating {@link com.epam.ta.reportportal.entity.launch.Launch}/{@link
  * com.epam.ta.reportportal.entity.item.TestItem} attributes and description.
  */
 public class ItemInfoUtils {

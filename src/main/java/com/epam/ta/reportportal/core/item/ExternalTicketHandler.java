@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.item;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.model.item.UnlinkExternalIssueRQ;
-import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.epam.ta.reportportal.ws.reporting.Issue;
 import java.util.List;
 import java.util.Set;
 

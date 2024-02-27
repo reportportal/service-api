@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.reporting.LaunchResource;
 import java.util.Collection;
 
 /**

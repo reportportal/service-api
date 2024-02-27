@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 import com.epam.ta.reportportal.entity.ServerSettings;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;

@@ -21,7 +21,7 @@ import com.epam.ta.reportportal.model.CollectionsRQ;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.filter.BulkUpdateFilterRQ;
 import com.epam.ta.reportportal.model.filter.UpdateUserFilterRQ;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.List;
 
 /**

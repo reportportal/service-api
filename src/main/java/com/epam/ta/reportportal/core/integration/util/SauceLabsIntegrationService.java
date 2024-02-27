@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.integration.util;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.integration.util.property.SauceLabsProperties.ACCESS_TOKEN;
 import static com.epam.ta.reportportal.core.integration.util.property.SauceLabsProperties.USERNAME;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.BAD_REQUEST_ERROR;
 
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;

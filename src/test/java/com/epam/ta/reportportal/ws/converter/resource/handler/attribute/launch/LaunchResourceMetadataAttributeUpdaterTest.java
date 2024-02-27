@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.converter.resource.handler.attribute.launch;
 import static com.epam.ta.reportportal.core.launch.cluster.pipeline.SaveLastRunAttributePartProvider.RP_CLUSTER_LAST_RUN_KEY;
 
 import com.epam.ta.reportportal.entity.ItemAttribute;
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.reporting.LaunchResource;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

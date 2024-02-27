@@ -20,8 +20,8 @@ import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_NAME_L
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_PARAMETERS_LENGTH;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_LAUNCH_NAME_LENGTH;
 
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
+import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;

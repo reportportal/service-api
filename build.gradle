@@ -72,12 +72,13 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         implementation 'com.github.reportportal:commons-events:e337f8b7be'
-        implementation 'com.github.reportportal:commons-dao:af24606f16'
-        implementation 'com.github.reportportal:commons-rules:42d4dd5634'
-        implementation 'com.github.reportportal:commons-model:541f2a4'
+        implementation 'com.github.reportportal:commons-dao:d0894a1'
+        implementation 'com.github.reportportal:commons-rules:1f6bfed'
+        implementation 'com.github.reportportal:commons-model:f466951'
+        implementation 'com.github.reportportal:commons-reporting:12c31b1'
         implementation 'com.github.reportportal:commons:07566b8e'
         implementation 'com.github.reportportal:commons-fonts:d6e62dd'
-        implementation 'com.github.reportportal:plugin-api:0ccfed880c'
+        implementation 'com.github.reportportal:plugin-api:cc3c5c8'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
@@ -114,6 +115,8 @@ dependencies {
     implementation 'org.apache.poi:poi:5.2.3'
     implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
     implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'com.google.api-client:google-api-client:2.3.0'
+    implementation 'joda-time:joda-time:2.12.7'
 
 
     ///// Security

@@ -20,7 +20,7 @@ import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
 import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.ZIP_EXTENSION;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_REQUEST;
 import static org.apache.commons.io.FileUtils.ONE_MB;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -34,8 +34,8 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.LaunchImportCompletionRS;
 import com.epam.ta.reportportal.model.LaunchImportData;
 import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
@@ -90,7 +90,7 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
   }
 
   private void validate(MultipartFile file) {
-    expect(file.getOriginalFilename(), notNull()).verify(ErrorType.INCORRECT_REQUEST,
+    expect(file.getOriginalFilename(), notNull()).verify(INCORRECT_REQUEST,
         "File name should be not empty."
     );
 

@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -51,7 +51,7 @@ public class WidgetRQ extends BaseEntityRQ {
       "topTestCases", "flakyTestCases", "passingRateSummary", "passingRatePerLaunch",
       "productStatus", "mostTimeConsuming", "cumulative", "topPatternTemplates",
       "componentHealthCheck", "componentHealthCheckTable" })
-  @ApiModelProperty(required = true, allowableValues =
+  @Schema(required = true, allowableValues =
       "oldLineChart, investigatedTrend, launchStatistics, statisticTrend,"
           + " casesTrend, notPassed, overallStatistics, uniqueBugTable, bugTrend, activityStream, launchesComparisonChart,"
           + " launchesDurationChart, launchesTable, topTestCases, flakyTestCases, passingRateSummary, passingRatePerLaunch,"

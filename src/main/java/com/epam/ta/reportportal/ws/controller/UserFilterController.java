@@ -35,7 +35,8 @@ import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +65,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 @RequestMapping("/v1/{projectName}/filter")
+@Tag(name = "user-filter-controller", description = "User Filter Controller")
 public class UserFilterController {
 
   private final ProjectExtractor projectExtractor;
@@ -84,7 +86,7 @@ public class UserFilterController {
   @Transactional
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  @ApiOperation("Create user filter")
+  @Operation(summary = "Create user filter")
   public EntryCreatedRS createFilter(@PathVariable String projectName,
       @RequestBody @Validated UpdateUserFilterRQ createFilterRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -94,7 +96,7 @@ public class UserFilterController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/{filterId}")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Get specified user filter by id")
+  @Operation(summary = "Get specified user filter by id")
   public UserFilterResource getFilter(@PathVariable String projectName, @PathVariable Long filterId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getFilterHandler.getUserFilter(
@@ -104,7 +106,7 @@ public class UserFilterController {
   @Transactional(readOnly = true)
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Get filters")
+  @Operation(summary = "Get filters")
   public Iterable<UserFilterResource> getAllFilters(@PathVariable String projectName,
       @SortFor(UserFilter.class) Pageable pageable, @FilterFor(UserFilter.class) Filter filter,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -114,7 +116,7 @@ public class UserFilterController {
   @Transactional
   @DeleteMapping(value = "/{filterId}")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Delete specified user filter by id")
+  @Operation(summary = "Delete specified user filter by id")
   public OperationCompletionRS deleteFilter(@PathVariable String projectName,
       @PathVariable Long filterId, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteFilterHandler.deleteFilter(
@@ -124,7 +126,7 @@ public class UserFilterController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/names")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Get available filter names")
+  @Operation(summary = "Get available filter names")
   public Iterable<OwnedEntityResource> getAllFiltersNames(@PathVariable String projectName,
       @SortFor(UserFilter.class) Pageable pageable, @FilterFor(UserFilter.class) Filter filter,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -135,7 +137,7 @@ public class UserFilterController {
   @Transactional
   @PutMapping(value = "/{filterId}")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Update specified user filter")
+  @Operation(summary = "Update specified user filter")
   public OperationCompletionRS updateUserFilter(@PathVariable String projectName,
       @PathVariable Long filterId, @RequestBody @Validated UpdateUserFilterRQ updateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -147,7 +149,7 @@ public class UserFilterController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/filters")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Get list of specified user filters")
+  @Operation(summary = "Get list of specified user filters")
   public List<UserFilterResource> getUserFilters(@PathVariable String projectName,
       @RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
     List<UserFilter> filters = getFilterHandler.getFiltersById(ids,
@@ -160,7 +162,7 @@ public class UserFilterController {
   @Transactional
   @RequestMapping(method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Update list of user filters")
+  @Operation(summary = "Update list of user filters")
   public List<OperationCompletionRS> updateUserFilters(@PathVariable String projectName,
       @RequestBody @Validated CollectionsRQ<BulkUpdateFilterRQ> updateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {

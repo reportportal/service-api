@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Andrei Piankouski
  */
 @RestController
-@RequestMapping("/organization")
+@RequestMapping("/v1/organization")
 public class OrganizationController {
 
   private final GetOrganizationHandler getOrganizationHandler;

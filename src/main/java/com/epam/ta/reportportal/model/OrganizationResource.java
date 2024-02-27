@@ -17,8 +17,10 @@ package com.epam.ta.reportportal.model;
  */
 
 
+import com.epam.ta.reportportal.entity.enums.OrganizationType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
 import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,15 +38,23 @@ import lombok.ToString;
 public class OrganizationResource {
 
   @NotNull
-  @JsonProperty(value = "organizationId", required = true)
-  private Long organizationId;
+  @JsonProperty(value = "id", required = true)
+  private Long id;
 
   @NotNull
-  @JsonProperty(value = "organizationName", required = true)
-  private String organizationName;
+  @JsonProperty(value = "name", required = true)
+  private String name;
 
   @NotNull
-  @JsonProperty(value = "organizationSlug", required = true)
-  private String organizationSlug;
+  @JsonProperty(value = "slug", required = true)
+  private String slug;
+
+  @NotNull
+  @JsonProperty(value = "type", required = true)
+  private OrganizationType type;
+
+  @NotNull
+  @JsonProperty(value = "creationDate", required = true)
+  private Date creationDate;
 
 }

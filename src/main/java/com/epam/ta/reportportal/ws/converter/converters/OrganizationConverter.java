@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
+
 import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.model.OrganizationResource;
 import java.util.function.Function;
@@ -30,13 +32,15 @@ public class OrganizationConverter {
   }
 
 
-  public static final Function<Organization, OrganizationResource> TO_ORGANIZATION_RESOURCE = org -> {
+  public static final Function<Organization, OrganizationResource> TO_ORGANIZATION_RESOURCE =
+      org -> {
+        OrganizationResource orgResource = new OrganizationResource();
+        orgResource.setId(org.getId());
+        orgResource.setName(org.getName());
+        orgResource.setSlug(org.getSlug());
+        orgResource.setType(org.getOrganizationType());
+        orgResource.setCreationDate(TO_DATE.apply(org.getCreationDate()));
 
-    OrganizationResource orgResource = new OrganizationResource();
-    orgResource.setOrganizationId(org.getId());
-    orgResource.setOrganizationName(org.getName());
-    orgResource.setOrganizationSlug(org.getSlug());
-
-    return orgResource;
-  };
+        return orgResource;
+      };
 }

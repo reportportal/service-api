@@ -21,8 +21,8 @@ import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguratio
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.util.ReportingQueueService;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.ItemCreatedRS;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
 import com.epam.ta.reportportal.ws.rabbit.RequestType;
 import java.util.Map;

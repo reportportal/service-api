@@ -41,7 +41,7 @@ import com.epam.ta.reportportal.model.project.config.UpdateIssueSubTypeRQ;
 import com.epam.ta.reportportal.model.project.config.pattern.CreatePatternTemplateRQ;
 import com.epam.ta.reportportal.model.project.config.pattern.UpdatePatternTemplateRQ;
 import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;

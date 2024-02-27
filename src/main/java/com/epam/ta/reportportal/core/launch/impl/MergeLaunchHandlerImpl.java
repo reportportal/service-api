@@ -22,34 +22,32 @@ import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.ta.reportportal.entity.user.UserRole.ADMINISTRATOR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
-import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_IS_NOT_FINISHED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.UNSUPPORTED_MERGE_STRATEGY_TYPE;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.ACCESS_DENIED;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.LAUNCH_IS_NOT_FINISHED;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.UNSUPPORTED_MERGE_STRATEGY_TYPE;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
-import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.LaunchMergeFactory;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.MergeStrategyType;
 import com.epam.ta.reportportal.core.launch.MergeLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.LaunchResource;
+import com.epam.ta.reportportal.ws.reporting.MergeLaunchesRQ;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.collections.CollectionUtils;
@@ -66,29 +64,23 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
 
   private final LaunchRepository launchRepository;
 
-  private final TestItemRepository testItemRepository;
-
   private final ProjectRepository projectRepository;
 
   private final LaunchMergeFactory launchMergeFactory;
 
   private final LaunchConverter launchConverter;
 
-  private final LaunchPreparerService launchPreparerService;
-
   private final LogIndexer logIndexer;
 
   @Autowired
   public MergeLaunchHandlerImpl(LaunchRepository launchRepository,
-      TestItemRepository testItemRepository, ProjectRepository projectRepository,
+      ProjectRepository projectRepository,
       LaunchMergeFactory launchMergeFactory, LaunchConverter launchConverter,
-      LaunchPreparerService launchPreparerService, LogIndexer logIndexer) {
+      LogIndexer logIndexer) {
     this.launchRepository = launchRepository;
-    this.testItemRepository = testItemRepository;
     this.projectRepository = projectRepository;
     this.launchMergeFactory = launchMergeFactory;
     this.launchConverter = launchConverter;
-    this.launchPreparerService = launchPreparerService;
     this.logIndexer = logIndexer;
   }
 

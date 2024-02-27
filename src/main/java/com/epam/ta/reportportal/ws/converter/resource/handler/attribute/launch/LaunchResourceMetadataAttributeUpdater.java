@@ -16,17 +16,16 @@
 
 package com.epam.ta.reportportal.ws.converter.resource.handler.attribute.launch;
 
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ResourceAttributeHandler;
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.reporting.LaunchResource;
 import com.google.common.collect.Maps;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>

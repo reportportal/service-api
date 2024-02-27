@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
-import com.epam.ta.reportportal.model.TestItemResource;
 import com.epam.ta.reportportal.model.log.LogResource;
+import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Set;
 

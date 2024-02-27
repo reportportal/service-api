@@ -37,12 +37,10 @@ import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConst
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_PASSED;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_SKIPPED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_FILTER_PARAMETERS;
-import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_LAUNCH_NAME_LENGTH;
-import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
-import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.ACCESS_DENIED;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_FILTER_PARAMETERS;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.LAUNCH_NOT_FOUND;
 import static java.util.Collections.singletonMap;
 import static java.util.Optional.ofNullable;
 
@@ -77,10 +75,10 @@ import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.cluster.ClusterInfoResource;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.LaunchResource;
+import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import java.io.OutputStream;
@@ -196,7 +194,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
             projectDetails.getProjectId()
         ));
 
-    filter = addLaunchCommonCriteria(DEFAULT, filter);
+    filter = addLaunchCommonCriteria(Mode.DEFAULT, filter);
     Page<Launch> launches =
         launchRepository.findByFilter(ProjectFilter.of(filter, project.getId()), pageable);
     return getLaunchResources(launches);
@@ -210,7 +208,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   public Iterable<LaunchResource> getDebugLaunches(ReportPortalUser.ProjectDetails projectDetails,
       Filter filter, Pageable pageable) {
     validateModeConditions(filter);
-    filter = addLaunchCommonCriteria(DEBUG, filter);
+    filter = addLaunchCommonCriteria(Mode.DEBUG, filter);
     Page<Launch> launches =
         launchRepository.findByFilter(ProjectFilter.of(filter, projectDetails.getProjectId()),
             pageable
@@ -245,7 +243,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
             projectDetails.getProjectId()
         ));
 
-    filter = addLaunchCommonCriteria(DEFAULT, filter);
+    filter = addLaunchCommonCriteria(Mode.DEFAULT, filter);
 
     Page<Launch> launches =
         launchRepository.findAllLatestByFilter(ProjectFilter.of(filter, project.getId()), pageable);

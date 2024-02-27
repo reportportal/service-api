@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.extension.CommonPluginCommand;

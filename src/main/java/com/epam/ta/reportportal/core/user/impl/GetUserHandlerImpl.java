@@ -48,7 +48,7 @@ import com.epam.ta.reportportal.model.user.UserResource;
 import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import com.google.common.base.Preconditions;
 import java.io.OutputStream;
 import java.util.List;

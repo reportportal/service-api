@@ -18,9 +18,9 @@ package com.epam.ta.reportportal.core.launch.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.epam.ta.reportportal.model.launch.MergeLaunchesRQ;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.MergeLaunchesRQ;
+import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;

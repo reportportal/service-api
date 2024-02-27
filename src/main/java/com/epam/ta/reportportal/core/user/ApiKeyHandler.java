@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.user;
 import com.epam.ta.reportportal.model.ApiKeyRQ;
 import com.epam.ta.reportportal.model.ApiKeyRS;
 import com.epam.ta.reportportal.model.ApiKeysRS;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 
 /**
  * Api keys handler.

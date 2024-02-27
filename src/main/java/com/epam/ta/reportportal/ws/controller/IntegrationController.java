@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.integration.IntegrationRQ;
 import com.epam.ta.reportportal.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;

@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.filter.predefined;
 
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 
 /**
  * @author Andrei Varabyeu

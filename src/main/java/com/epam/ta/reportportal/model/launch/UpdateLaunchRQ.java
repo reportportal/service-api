@@ -18,8 +18,8 @@ package com.epam.ta.reportportal.model.launch;
 
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_PARAMETERS_LENGTH;
 
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -38,7 +38,7 @@ public class UpdateLaunchRQ {
 
 	@JsonProperty("mode")
 	@Schema(allowableValues = "DEFAULT, DEBUG")
-	private com.epam.ta.reportportal.ws.model.launch.Mode mode;
+	private Mode mode;
 
 	@JsonProperty("description")
 	private String description;
@@ -64,7 +64,7 @@ public class UpdateLaunchRQ {
 		this.attributes = attributes;
 	}
 
-	public com.epam.ta.reportportal.ws.model.launch.Mode getMode() {
+	public Mode getMode() {
 		return mode;
 	}
 

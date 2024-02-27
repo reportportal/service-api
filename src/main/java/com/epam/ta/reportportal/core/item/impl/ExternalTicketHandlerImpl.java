@@ -113,7 +113,8 @@ public class ExternalTicketHandlerImpl implements ExternalTicketHandler {
     }
     return externalIssues.stream().map(it -> {
       Ticket ticket;
-      Optional<Ticket> ticketOptional = ticketRepository.findByTicketId(it.getTicketId());
+      Optional<Ticket> ticketOptional =
+          ticketRepository.findByTicketIdAndBtsProject(it.getTicketId(), it.getBtsProject());
       if (ticketOptional.isPresent()) {
         ticket = ticketOptional.get();
         ticket.setUrl(it.getUrl());

@@ -46,8 +46,8 @@ class OrganizationConverterTest {
 
     final OrganizationResource organizationResource = OrganizationConverter.TO_ORGANIZATION_RESOURCE.apply(org);
 
-    assertEquals(organizationResource.getOrganizationId(), org.getId());
-    assertEquals(organizationResource.getOrganizationName(), org.getName());
-    assertEquals(organizationResource.getOrganizationSlug(), org.getSlug());
+    assertEquals(organizationResource.getId(), org.getId());
+    assertEquals(organizationResource.getName(), org.getName());
+    assertEquals(organizationResource.getSlug(), org.getSlug());
   }
 }

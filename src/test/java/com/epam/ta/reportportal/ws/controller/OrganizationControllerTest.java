@@ -25,17 +25,17 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Andrei Piankouski
  */
-public class OrganizationControllerTest extends BaseMvcTest {
+class OrganizationControllerTest extends BaseMvcTest {
 
   @Test
   void getOrganization() throws Exception {
-    mockMvc.perform(get("/organization/1").with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(get("/v1/organization/1").with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
   }
 
   @Test
   void getAllOrganizations() throws Exception {
-    mockMvc.perform(get("/organization/list").with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(get("/v1/organization/list").with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
   }
 }

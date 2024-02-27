@@ -32,7 +32,7 @@ import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.dao.organization.OrganizationRepository;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.enums.ProjectType;
 import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -76,14 +76,15 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
   private final ApplicationEventPublisher applicationEventPublisher;
 
   private final ProjectUserRepository projectUserRepository;
-  private final OrganizationRepository organizationRepository;
+  private final OrganizationRepositoryCustom organizationRepositoryCustom;
 
   @Autowired
   public CreateProjectHandlerImpl(PersonalProjectService personalProjectService,
       ProjectRepository projectRepository, UserRepository userRepository,
       AttributeRepository attributeRepository, IssueTypeRepository issueTypeRepository,
       ApplicationEventPublisher applicationEventPublisher,
-      ProjectUserRepository projectUserRepository, OrganizationRepository organizationRepository) {
+      ProjectUserRepository projectUserRepository,
+      OrganizationRepositoryCustom organizationRepositoryCustom) {
     this.personalProjectService = personalProjectService;
     this.projectRepository = projectRepository;
     this.userRepository = userRepository;
@@ -91,7 +92,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
     this.issueTypeRepository = issueTypeRepository;
     this.applicationEventPublisher = applicationEventPublisher;
     this.projectUserRepository = projectUserRepository;
-    this.organizationRepository = organizationRepository;
+    this.organizationRepositoryCustom = organizationRepositoryCustom;
   }
 
   @Override
@@ -111,7 +112,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
         )
     );
 
-    Organization organization = organizationRepository.findById(orgId)
+    Organization organization = organizationRepositoryCustom.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
     var projectSlug = SlugifyUtils.slugify(projectName);
     var projectKey = generateProjectKey(organization, projectSlug);
@@ -132,7 +133,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 
     Project project = new Project();
 
-    project.setOrganization(organization);
+    project.setOrganizationId(organization.getId());
     project.setKey(projectKey);
     project.setSlug(projectSlug);
     project.setName(projectName);

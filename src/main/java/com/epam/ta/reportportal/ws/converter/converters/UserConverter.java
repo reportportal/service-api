@@ -67,7 +67,7 @@ public final class UserConverter {
             assignedProject.setProjectKey(p.getProject().getKey());
             assignedProject.setProjectName(p.getProject().getName());
             assignedProject.setProjectSlug(p.getProject().getSlug());
-            assignedProject.setOrganizationId(p.getProject().getOrganization().getId());
+            assignedProject.setOrganizationId(p.getProject().getOrganizationId());
             return assignedProject;
           }));
       resource.setAssignedProjects(userProjects);
@@ -82,6 +82,7 @@ public final class UserConverter {
                 UserResource.AssignedOrganization assignedOrganization = new UserResource.AssignedOrganization();
                 assignedOrganization.setOrganizationId(orgUser.getOrganization().getId());
                 assignedOrganization.setOrganizationName(orgUser.getOrganization().getName());
+                assignedOrganization.setOrganizationSlug(orgUser.getOrganization().getSlug());
                 assignedOrganization.setOrganizationRole(orgUser.getOrganizationRole().name());
                 return assignedOrganization;
               }));

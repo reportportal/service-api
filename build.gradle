@@ -72,10 +72,10 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         implementation 'com.github.reportportal:commons-events:e337f8b7be'
-        implementation 'com.github.reportportal:commons-dao:d0894a1'
+        implementation 'com.github.reportportal:commons-dao:aff8beb'
         implementation 'com.github.reportportal:commons-rules:1f6bfed'
-        implementation 'com.github.reportportal:commons-model:f466951'
-        implementation 'com.github.reportportal:commons-reporting:12c31b1'
+        implementation 'com.github.reportportal:commons-model:38a52fb'
+        implementation 'com.github.reportportal:commons-reporting:5c74bb2'
         implementation 'com.github.reportportal:commons:07566b8e'
         implementation 'com.github.reportportal:commons-fonts:d6e62dd'
         implementation 'com.github.reportportal:plugin-api:cc3c5c8'

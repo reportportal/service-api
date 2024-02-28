@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.model.OrganizationResource;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -52,7 +52,7 @@ public class OrganizationController {
 
   @Transactional
   @GetMapping("/{organizationId}")
-  @ApiOperation(value = "Get information about organization")
+  @Operation(summary = "Get information about organization")
   public OrganizationResource getOrganization(@PathVariable Long organizationId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getOrganizationHandler.getResource(organizationId, user);
@@ -60,7 +60,7 @@ public class OrganizationController {
 
   @Transactional
   @GetMapping("/list")
-  @ApiOperation(value = "Get list of all organizations")
+  @Operation(summary = "Get list of all organizations")
   public Iterable<OrganizationResource> getAllOrganizations(
       @AuthenticationPrincipal ReportPortalUser user,
       @FilterFor(Organization.class) Filter filter,

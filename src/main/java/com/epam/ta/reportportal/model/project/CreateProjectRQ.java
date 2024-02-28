@@ -53,7 +53,7 @@ public class CreateProjectRQ {
 	@NotBlank
 	@JsonProperty(value = "entryType", required = true)
 	@In(allowedValues = "internal")
-	@Schema(required = true, allowableValues = "INTERNAL")
+	@Schema(requiredMode = RequiredMode.REQUIRED, allowableValues = "INTERNAL")
 	private String entryType;
 
   @JsonProperty(value = "organizationId")
@@ -62,7 +62,7 @@ public class CreateProjectRQ {
   @Pattern(regexp = PROJECT_SLUG_REGEXP)
   @Size(min = ValidationConstraints.MIN_NAME_LENGTH, max = ValidationConstraints.MAX_NAME_LENGTH)
   @JsonProperty(value = "projectSlug", required = true)
-  @ApiModelProperty(required = true)
+  @Schema(requiredMode = RequiredMode.REQUIRED)
   private String projectSlug;
 
 }

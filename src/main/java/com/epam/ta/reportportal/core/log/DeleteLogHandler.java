@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.log;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 
 public interface DeleteLogHandler {
 

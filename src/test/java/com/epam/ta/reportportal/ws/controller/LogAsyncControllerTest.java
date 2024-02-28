@@ -30,7 +30,7 @@ import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Validator;
 import org.junit.jupiter.api.Test;

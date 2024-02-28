@@ -29,7 +29,8 @@
  import com.epam.ta.reportportal.ws.model.ActivityResource;
  import com.epam.ta.reportportal.ws.resolver.FilterFor;
  import com.epam.ta.reportportal.ws.resolver.SortFor;
- import io.swagger.annotations.ApiOperation;
+ import io.swagger.v3.oas.annotations.Operation;
+ import io.swagger.v3.oas.annotations.tags.Tag;
  import org.springframework.beans.factory.annotation.Autowired;
  import org.springframework.data.domain.Pageable;
  import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,6 +49,7 @@
  @RequestMapping("/v1/{projectKey}/activity")
  @Transactional(readOnly = true)
  @PreAuthorize(ASSIGNED_TO_PROJECT)
+ @Tag(name = "activity-controller", description = "Activity Controller")
  public class ActivityController {
 
    private final ActivityHandler activityHandler;
@@ -71,7 +73,7 @@
 
    @GetMapping(value = "/item/{itemId}")
    @ResponseStatus(OK)
-   @ApiOperation("Get activities for test item")
+   @Operation(summary =  "Get activities for test item")
    public Iterable<ActivityEventResource> getTestItemActivities(@PathVariable String projectKey,
        @PathVariable Long itemId, @FilterFor(Activity.class) Filter filter,
        @SortFor(Activity.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {

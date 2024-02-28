@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.model.item;
 
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_PARAMETERS_LENGTH;
 
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;

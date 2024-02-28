@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.LogFull;
-import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.Test;

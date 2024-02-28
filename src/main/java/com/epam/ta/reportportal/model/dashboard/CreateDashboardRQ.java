@@ -22,8 +22,8 @@ import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 
 /**
  * Domain object for creating dashboards.
@@ -31,12 +31,12 @@ import io.swagger.annotations.ApiModelProperty;
  * @author Aliaksei_Makayed
  */
 @JsonInclude(Include.NON_NULL)
-@ApiModel
+@Schema
 public class CreateDashboardRQ extends BaseEntityRQ {
 
   @NotBlankWithSize(min = ValidationConstraints.MIN_NAME_LENGTH, max = ValidationConstraints.MAX_DASHBOARD_NAME_LENGTH)
   @JsonProperty(value = "name", required = true)
-  @ApiModelProperty(required = true)
+  @Schema(requiredMode = RequiredMode.REQUIRED)
   private String name;
 
   public String getName() {

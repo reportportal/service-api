@@ -36,7 +36,7 @@ import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.List;

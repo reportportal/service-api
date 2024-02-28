@@ -17,11 +17,11 @@
 package com.epam.ta.reportportal.core.item.validator.parent;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.BAD_REQUEST_ERROR;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Service;
 

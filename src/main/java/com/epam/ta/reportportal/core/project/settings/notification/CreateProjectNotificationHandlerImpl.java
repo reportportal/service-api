@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO
 import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 

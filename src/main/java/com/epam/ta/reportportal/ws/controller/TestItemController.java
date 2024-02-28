@@ -48,22 +48,23 @@ import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
 import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.model.TestItemHistoryElement;
-import com.epam.ta.reportportal.model.TestItemResource;
 import com.epam.ta.reportportal.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.model.item.UnlinkExternalIssueRQ;
 import com.epam.ta.reportportal.model.item.UpdateTestItemRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
-import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
-import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.epam.ta.reportportal.ws.model.issue.Issue;
-import com.epam.ta.reportportal.ws.model.statistics.StatisticsResource;
+import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
+import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
+import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.Issue;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.StatisticsResource;
+import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -94,6 +95,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/{projectKey}/item")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
+@Tag(name = "test-item-controller", description = "Test Item Controller")
 public class TestItemController {
 
   public static final String HISTORY_TYPE_PARAM = "type";
@@ -133,7 +135,7 @@ public class TestItemController {
 
   @PostMapping
   @ResponseStatus(CREATED)
-  @ApiOperation("Start a root test item")
+  @Operation(summary = "Start a root test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
   public EntryCreatedAsyncRS startRootItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
@@ -145,7 +147,7 @@ public class TestItemController {
 
   @PostMapping("/{parentItem}")
   @ResponseStatus(CREATED)
-  @ApiOperation("Start a child test item")
+  @Operation(summary = "Start a child test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
   public EntryCreatedAsyncRS startChildItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable String parentItem,
@@ -157,7 +159,7 @@ public class TestItemController {
 
   @PutMapping("/{testItemId}")
   @ResponseStatus(OK)
-  @ApiOperation("Finish test item")
+  @Operation(summary = "Finish test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
   public OperationCompletionRS finishTestItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable String testItemId,
@@ -173,7 +175,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/{itemId}")
   @ResponseStatus(OK)
-  @ApiOperation("Find test item by ID")
+  @Operation(summary = "Find test item by ID")
   public TestItemResource getTestItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable String itemId) {
     return getTestItemHandler.getTestItem(itemId,
@@ -185,7 +187,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/uuid/{itemId}")
   @ResponseStatus(OK)
-  @ApiOperation("Find test item by UUID")
+  @Operation(summary = "Find test item by UUID")
   public TestItemResource getTestItemByUuid(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable String itemId) {
     return getTestItemHandler.getTestItem(itemId,
@@ -197,7 +199,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/suggest/{itemId}")
   @ResponseStatus(OK)
-  @ApiOperation("Search suggested items in analyzer for provided one")
+  @Operation(summary = "Search suggested items in analyzer for provided one")
   public List<SuggestedItem> getSuggestedItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable Long itemId) {
     return suggestItemService.suggestItems(itemId,
@@ -207,7 +209,7 @@ public class TestItemController {
 
   @GetMapping("/suggest/cluster/{clusterId}")
   @ResponseStatus(OK)
-  @ApiOperation("Search suggested items in analyzer for provided one")
+  @Operation(summary = "Search suggested items in analyzer for provided one")
   public List<SuggestedItem> getSuggestedClusterItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable Long clusterId) {
     return suggestItemService.suggestClusterItems(clusterId,
@@ -218,7 +220,7 @@ public class TestItemController {
   @Transactional
   @PutMapping("/suggest/choice")
   @ResponseStatus(OK)
-  @ApiOperation("Handle user choice from suggested items")
+  @Operation(summary = "Handle user choice from suggested items")
   public OperationCompletionRS handleSuggestChoose(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated List<SuggestInfo> request) {
@@ -230,7 +232,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping
   @ResponseStatus(OK)
-  @ApiOperation("Find test items by specified filter")
+  @Operation(summary = "Find test items by specified filter")
   public Iterable<TestItemResource> getTestItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @Nullable
   @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID, required = false)
@@ -252,7 +254,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/v2")
   @ResponseStatus(OK)
-  @ApiOperation("Find test items by specified filter")
+  @Operation(summary = "Find test items by specified filter")
   public Iterable<TestItemResource> getTestItemsV2(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam Map<String, String> params,
       @FilterFor(TestItem.class) Filter filter,
@@ -271,7 +273,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/statistics")
   @ResponseStatus(OK)
-  @ApiOperation("Find accumulated statistics of items by specified filter")
+  @Operation(summary = "Find accumulated statistics of items by specified filter")
   public StatisticsResource getTestItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @FilterFor(TestItem.class) Filter filter,
       @FilterFor(TestItem.class) Queryable predefinedFilter,
@@ -285,7 +287,7 @@ public class TestItemController {
   @Transactional
   @DeleteMapping("/{itemId}")
   @ResponseStatus(OK)
-  @ApiOperation("Delete test item")
+  @Operation(summary = "Delete test item")
   public OperationCompletionRS deleteTestItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable Long itemId) {
     return deleteTestItemHandler.deleteTestItem(itemId,
@@ -296,7 +298,7 @@ public class TestItemController {
   @Transactional
   @DeleteMapping
   @ResponseStatus(OK)
-  @ApiOperation("Delete test items by specified ids")
+  @Operation(summary = "Delete test items by specified ids")
   public List<OperationCompletionRS> deleteTestItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "ids") Set<Long> ids) {
     return deleteTestItemHandler.deleteTestItems(ids,
@@ -307,7 +309,7 @@ public class TestItemController {
   @Transactional
   @PutMapping
   @ResponseStatus(OK)
-  @ApiOperation("Update issues of specified test items")
+  @Operation(summary = "Update issues of specified test items")
   public List<Issue> defineTestItemIssueType(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated DefineIssueRQ request) {
@@ -318,7 +320,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/history")
   @ResponseStatus(OK)
-  @ApiOperation("Load history of test items")
+  @Operation(summary = "Load history of test items")
   public Iterable<TestItemHistoryElement> getItemsHistory(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @FilterFor(TestItem.class) Filter filter,
       @FilterFor(TestItem.class) Queryable predefinedFilter,
@@ -349,7 +351,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/ticket/ids")
   @ResponseStatus(OK)
-  @ApiOperation("Get tickets that contains a term as a part inside for specified launch")
+  @Operation(summary = "Get tickets that contains a term as a part inside for specified launch")
   public List<String> getTicketIds(@AuthenticationPrincipal ReportPortalUser user,
       @PathVariable String projectKey, @RequestParam(value = "launch") Long id,
       @RequestParam(value = "term") String term) {
@@ -359,7 +361,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/ticket/ids/all")
   @ResponseStatus(OK)
-  @ApiOperation("Get tickets that contains a term as a part inside for specified launch")
+  @Operation(summary = "Get tickets that contains a term as a part inside for specified launch")
   public List<String> getTicketIdsForProject(@AuthenticationPrincipal ReportPortalUser user,
       @PathVariable String projectKey, @RequestParam(value = "term") String term) {
     return getTestItemHandler.getTicketIds(
@@ -370,7 +372,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/attribute/keys")
   @ResponseStatus(OK)
-  @ApiOperation("Get all unique attribute keys of specified launch")
+  @Operation(summary = "Get all unique attribute keys of specified launch")
   public List<String> getAttributeKeys(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "launch") Long id,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_KEY)
@@ -382,7 +384,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/attribute/keys/all")
   @ResponseStatus(OK)
-  @ApiOperation("Get all unique attribute keys of specified launch")
+  @Operation(summary = "Get all unique attribute keys of specified launch")
   public List<String> getAttributeKeysForProject(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_KEY)
@@ -399,7 +401,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/attribute/values")
   @ResponseStatus(OK)
-  @ApiOperation("Get all unique attribute values of specified launch")
+  @Operation(summary = "Get all unique attribute values of specified launch")
   public List<String> getAttributeValues(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "launch") Long id,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ
@@ -412,7 +414,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/step/attribute/keys")
   @ResponseStatus(OK)
-  @ApiOperation("Get all unique attribute keys of step items under specified project")
+  @Operation(summary = "Get all unique attribute keys of step items under specified project")
   public List<String> getAttributeKeys(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_NAME, required = false)
@@ -428,7 +430,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/step/attribute/values")
   @ResponseStatus(OK)
-  @ApiOperation("Get all unique attribute values of step items under specified project")
+  @Operation(summary = "Get all unique attribute values of step items under specified project")
   public List<String> getAttributeValues(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_NAME, required = false)
@@ -446,7 +448,7 @@ public class TestItemController {
   @PutMapping(value = "/info")
   @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
   @ResponseStatus(OK)
-  @ApiOperation("Bulk update attributes and description")
+  @Operation(summary = "Bulk update attributes and description")
   public OperationCompletionRS bulkUpdate(@PathVariable String projectKey,
       @RequestBody @Validated BulkInfoUpdateRQ bulkInfoUpdateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -458,7 +460,7 @@ public class TestItemController {
   @Transactional
   @PutMapping("/{itemId}/update")
   @ResponseStatus(OK)
-  @ApiOperation("Update test item")
+  @Operation(summary = "Update test item")
   public OperationCompletionRS updateTestItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable Long itemId,
       @RequestBody @Validated UpdateTestItemRQ rq) {
@@ -469,7 +471,7 @@ public class TestItemController {
   @Transactional
   @PutMapping("/issue/link")
   @ResponseStatus(OK)
-  @ApiOperation("Attach external issue for specified test items")
+  @Operation(summary = "Attach external issue for specified test items")
   public List<OperationCompletionRS> linkExternalIssues(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated LinkExternalIssueRQ rq) {
@@ -481,7 +483,7 @@ public class TestItemController {
   @Transactional
   @PutMapping("/issue/unlink")
   @ResponseStatus(OK)
-  @ApiOperation("Unlink external issue for specified test items")
+  @Operation(summary = "Unlink external issue for specified test items")
   public List<OperationCompletionRS> unlinkExternalIssues(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated UnlinkExternalIssueRQ rq) {
@@ -493,7 +495,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/items")
   @ResponseStatus(OK)
-  @ApiOperation("Get test items by specified ids")
+  @Operation(summary = "Get test items by specified ids")
   public List<TestItemResource> getTestItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "ids") Long[] ids) {
     return getTestItemHandler.getTestItems(ids,

@@ -39,7 +39,7 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;

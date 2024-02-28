@@ -23,7 +23,8 @@ import com.epam.ta.reportportal.demodata.model.DemoDataRq;
 import com.epam.ta.reportportal.demodata.model.DemoDataRs;
 import com.epam.ta.reportportal.demodata.service.DemoDataService;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -39,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/demo/{projectKey}")
 @PreAuthorize(PROJECT_MANAGER)
+@Tag(name = "demo-data-controller", description = "Demo Data Controller")
 class DemoDataController {
 
 	private final DemoDataService demoDataService;
@@ -51,7 +53,7 @@ class DemoDataController {
 	}
 
 	@PostMapping("/generate")
-	@ApiOperation(value = "generate")
+	@Operation(summary =  "generate")
 	public DemoDataRs generate(@PathVariable String projectKey, @Validated @RequestBody DemoDataRq demoDataRq,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return demoDataService.generate(demoDataRq, projectExtractor.extractProjectDetailsAdmin(user, projectKey), user);

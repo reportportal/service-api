@@ -31,13 +31,20 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
+
+import static com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter.TO_ACTIVITY_RESOURCE;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.INTEGRATION_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.PROJECT_NOT_FOUND;
 
 /**
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>

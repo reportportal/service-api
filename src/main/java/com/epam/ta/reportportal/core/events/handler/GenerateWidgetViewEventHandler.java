@@ -14,7 +14,7 @@ import com.epam.ta.reportportal.core.widget.content.materialized.generator.Mater
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import java.util.Map;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;

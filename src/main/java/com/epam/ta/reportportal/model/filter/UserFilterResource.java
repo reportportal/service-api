@@ -21,7 +21,7 @@ import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_COLLEC
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_NAME_LENGTH;
 
 import com.epam.ta.reportportal.ws.annotations.In;
-import com.epam.ta.reportportal.ws.model.OwnedResource;
+import com.epam.ta.reportportal.ws.reporting.OwnedResource;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;

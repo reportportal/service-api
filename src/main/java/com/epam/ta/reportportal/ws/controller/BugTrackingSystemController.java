@@ -27,7 +27,8 @@ import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -52,6 +53,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/bts")
+@Tag(name = "bug-tracking-system-controller", description = "Bug Tracking System Controller")
 public class BugTrackingSystemController {
 
   private final ProjectExtractor projectExtractor;
@@ -69,7 +71,7 @@ public class BugTrackingSystemController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/{projectKey}/{integrationId}/fields-set")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Get list of fields required for posting ticket in concrete integration")
+  @Operation(summary = "Get list of fields required for posting ticket in concrete integration")
   @PreAuthorize(PROJECT_MANAGER)
   public List<PostFormField> getSetOfIntegrationSystemFields(
       @RequestParam(value = "issueType") String issuetype,
@@ -84,7 +86,7 @@ public class BugTrackingSystemController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/{projectKey}/{integrationId}/issue_types")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Get list of allowable issue types for bug tracking system")
+  @Operation(summary = "Get list of allowable issue types for bug tracking system")
   @PreAuthorize(PROJECT_MANAGER)
   public List<String> getAllowableIssueTypes(@PathVariable String projectKey,
       @PathVariable Long integrationId,
@@ -96,7 +98,7 @@ public class BugTrackingSystemController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/{integrationId}/fields-set")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Get list of fields required for posting ticket")
+  @Operation(summary = "Get list of fields required for posting ticket")
   @PreAuthorize(ADMIN_ONLY)
   public List<PostFormField> getSetOfIntegrationSystemFields(
       @RequestParam(value = "issueType") String issueType,
@@ -107,7 +109,7 @@ public class BugTrackingSystemController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/{integrationId}/issue_types")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Get list of existed issue types in bts")
+  @Operation(summary = "Get list of existed issue types in bts")
   @PreAuthorize(ADMIN_ONLY)
   public List<String> getAllowableIssueTypes(@PathVariable Long integrationId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -117,7 +119,7 @@ public class BugTrackingSystemController {
   @Transactional
   @PostMapping(value = "/{projectKey}/{integrationId}/ticket")
   @ResponseStatus(HttpStatus.CREATED)
-  @ApiOperation("Post ticket to the bts integration")
+  @Operation(summary = "Post ticket to the bts integration")
   public Ticket createIssue(@Validated @RequestBody PostTicketRQ ticketRQ,
       @PathVariable String projectKey,
       @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
@@ -131,7 +133,7 @@ public class BugTrackingSystemController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/{projectKey}/ticket/{ticketId}")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Get ticket from the bts integration")
+  @Operation(summary = "Get ticket from the bts integration")
   public Ticket getTicket(@PathVariable String ticketId, @PathVariable String projectKey,
       @RequestParam(value = "btsUrl") String btsUrl,
       @RequestParam(value = "btsProject") String btsProject,

@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.model.log;
 import com.epam.ta.reportportal.ws.annotations.In;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -31,7 +31,7 @@ public class SearchLogRq {
 	@NotNull
 	@JsonProperty(value = "searchMode", required = true)
 	@In(allowedValues = { "launchName", "currentLaunch", "filer" })
-	@ApiModelProperty(allowableValues = "currentLaunch, launchName, filter")
+	@Schema(allowableValues = "currentLaunch, launchName, filter")
 	private String searchMode;
 
 	private Long filterId;

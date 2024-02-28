@@ -26,9 +26,9 @@ import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.PRODUCT_B
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.SYSTEM_ISSUE;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ISSUE_TYPE_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.ISSUE_TYPE_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.PROJECT_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -52,8 +52,8 @@ import com.epam.ta.reportportal.model.project.config.UpdateIssueSubTypeRQ;
 import com.epam.ta.reportportal.model.project.config.UpdateOneIssueSubTypeRQ;
 import com.epam.ta.reportportal.model.project.config.pattern.UpdatePatternTemplateRQ;
 import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.stream.Collectors;

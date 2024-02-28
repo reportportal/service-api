@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;

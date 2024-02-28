@@ -16,10 +16,10 @@
 
 package com.epam.ta.reportportal.model.item;
 
-import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.epam.ta.reportportal.ws.reporting.Issue;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -38,7 +38,7 @@ public class LinkExternalIssueRQ extends ExternalIssueRQ {
   @Valid
   @Size(max = 300)
   @JsonProperty(value = "issues")
-  @ApiModelProperty(reference = "Issue.ExternalSystemIssue")
+  @Schema(implementation = Issue.ExternalSystemIssue.class)
   private List<Issue.ExternalSystemIssue> issues;
 
   public void setIssues(List<Issue.ExternalSystemIssue> values) {

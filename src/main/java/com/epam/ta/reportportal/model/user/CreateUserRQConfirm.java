@@ -20,7 +20,8 @@ import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -37,25 +38,25 @@ public class CreateUserRQConfirm {
 	@Pattern(regexp = "[a-zA-Z0-9-_.]+")
 	@Size(min = ValidationConstraints.MIN_LOGIN_LENGTH, max = ValidationConstraints.MAX_LOGIN_LENGTH)
 	@JsonProperty(value = "login", required = true)
-	@ApiModelProperty(required = true)
+	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String login;
 
 	@NotBlank
 	@Size(min = ValidationConstraints.MIN_PASSWORD_LENGTH, max = ValidationConstraints.MAX_PASSWORD_LENGTH)
 	@JsonProperty(value = "password", required = true)
-	@ApiModelProperty(required = true)
+	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String password;
 
 	@NotBlank
 	@Pattern(regexp = "[\\pL0-9-_ \\.]+")
 	@Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)
 	@JsonProperty(value = "fullName", required = true)
-	@ApiModelProperty(required = true)
+	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String fullName;
 
 	@NotBlank
 	@JsonProperty(value = "email", required = true)
-	@ApiModelProperty(required = true)
+	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String email;
 
 	public void setLogin(String value) {

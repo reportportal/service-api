@@ -39,7 +39,7 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.model.integration.UpdatePluginStateRQ;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

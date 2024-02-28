@@ -21,8 +21,8 @@ import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguratio
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.util.ReportingQueueService;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
+import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
 import com.epam.ta.reportportal.ws.rabbit.RequestType;
 import java.util.Map;

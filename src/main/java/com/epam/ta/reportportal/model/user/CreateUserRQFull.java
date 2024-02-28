@@ -21,7 +21,8 @@ import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -39,42 +40,42 @@ public class CreateUserRQFull {
 	@Pattern(regexp = "[a-zA-Z0-9-_.]+")
 	@Size(min = ValidationConstraints.MIN_LOGIN_LENGTH, max = ValidationConstraints.MAX_LOGIN_LENGTH)
 	@JsonProperty(value = "login", required = true)
-	@ApiModelProperty(required = true)
+	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String login;
 
 	@NotBlank
 	@Size(min = ValidationConstraints.MIN_PASSWORD_LENGTH, max = ValidationConstraints.MAX_PASSWORD_LENGTH)
 	@JsonProperty(value = "password", required = true)
-	@ApiModelProperty(required = true)
+	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String password;
 
 	@NotBlank
 	@Pattern(regexp = "[\\pL0-9-_ \\.]+")
 	@Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)
 	@JsonProperty(value = "fullName", required = true)
-	@ApiModelProperty(required = true)
+	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String fullName;
 
 	@NotBlank
 	@JsonProperty(value = "email", required = true)
-	@ApiModelProperty(required = true)
+	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String email;
 
 	@NotNull
 	@JsonProperty(value = "accountRole", required = true)
 	@In(allowedValues = { "user", "administrator" })
-	@ApiModelProperty(required = true, allowableValues = "USER, ADMINISTRATOR")
+	@Schema(required = true, allowableValues = "USER, ADMINISTRATOR")
 	private String accountRole;
 
 	@NotNull
 	@JsonProperty(value = "projectRole", required = true)
 	@In(allowedValues = { "operator", "customer", "member", "project_manager" })
-	@ApiModelProperty(required = true, allowableValues = "CUSTOMER, MEMBER, LEAD, PROJECT_MANAGER")
+	@Schema(required = true, allowableValues = "CUSTOMER, MEMBER, LEAD, PROJECT_MANAGER")
 	private String projectRole;
 
 	@NotBlank
 	@JsonProperty(value = "defaultProject", required = true)
-	@ApiModelProperty(required = true)
+	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String defaultProject;
 
 	public void setLogin(String value) {

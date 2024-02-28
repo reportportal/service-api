@@ -40,6 +40,7 @@ import com.epam.ta.reportportal.entity.enums.LogicalOperator;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.model.DeleteBulkRQ;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import com.epam.ta.reportportal.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.model.project.CreateProjectRQ;
 import com.epam.ta.reportportal.model.project.UnassignUsersRQ;

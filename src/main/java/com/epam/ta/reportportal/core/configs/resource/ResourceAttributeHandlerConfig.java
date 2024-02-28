@@ -28,7 +28,7 @@ import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.matcher.
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.matcher.PredicateItemAttributeTypeMatcher;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.resolver.ItemAttributeTypeResolver;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.resolver.ItemAttributeTypeResolverDelegate;
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.reporting.LaunchResource;
 import com.google.common.collect.ImmutableMap;
 import java.util.List;
 import java.util.Map;

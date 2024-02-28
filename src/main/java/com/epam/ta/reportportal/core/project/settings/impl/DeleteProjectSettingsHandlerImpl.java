@@ -51,8 +51,8 @@ import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.activity.PatternTemplateActivityResource;
 import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Sets;
 import java.util.Arrays;
 import java.util.List;
@@ -61,6 +61,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.commons.Predicates.in;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.*;
+import static com.epam.ta.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>

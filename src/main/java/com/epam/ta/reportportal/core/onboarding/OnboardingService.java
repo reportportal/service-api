@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.onboarding;
 import com.epam.ta.reportportal.dao.OnboardingRepository;
 import com.epam.ta.reportportal.entity.onboarding.Onboarding;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

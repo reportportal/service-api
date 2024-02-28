@@ -43,18 +43,20 @@ import com.epam.ta.reportportal.model.log.LogResource;
 import com.epam.ta.reportportal.model.log.SearchLogRq;
 import com.epam.ta.reportportal.model.log.SearchLogRs;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.BatchElementCreatedRS;
-import com.epam.ta.reportportal.ws.model.BatchSaveOperatingRS;
-import com.epam.ta.reportportal.ws.model.Constants;
-import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import com.epam.ta.reportportal.ws.reporting.BatchElementCreatedRS;
+import com.epam.ta.reportportal.ws.reporting.BatchSaveOperatingRS;
+import com.epam.ta.reportportal.ws.reporting.Constants;
+import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.collect.ImmutableMap;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -82,7 +84,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * @author Pavel Bortnik
@@ -90,6 +91,7 @@ import springfox.documentation.annotations.ApiIgnore;
 @RestController
 @RequestMapping("/v1/{projectKey}/log")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
+@Tag(name = "log-controller", description = "Log Controller")
 public class LogController {
 
   private final ProjectExtractor projectExtractor;
@@ -112,15 +114,14 @@ public class LogController {
   }
 
   /**
-   * @deprecated in favour of
-   * {@link LogController#createLogEntry(String, SaveLogRQ, ReportPortalUser)} because of mapping
-   * collisions
+   * @deprecated in favour of {@link LogController#createLogEntry(String, SaveLogRQ,
+   * ReportPortalUser)} because of mapping collisions
    */
   /* Report client API */
   @Deprecated
-  @PostMapping(consumes = { MediaType.APPLICATION_JSON_VALUE })
+  @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
   @ResponseStatus(CREATED)
-  @ApiIgnore
+  @Hidden
   @PreAuthorize(ALLOWED_TO_REPORT)
   public EntryCreatedAsyncRS createLog(@PathVariable String projectKey,
       @RequestBody SaveLogRQ createLogRQ, @AuthenticationPrincipal ReportPortalUser user) {
@@ -131,9 +132,9 @@ public class LogController {
   }
 
   /* Report client API */
-  @PostMapping(value = "/entry", consumes = { MediaType.APPLICATION_JSON_VALUE })
+  @PostMapping(value = "/entry", consumes = {MediaType.APPLICATION_JSON_VALUE})
   @ResponseStatus(CREATED)
-  @ApiOperation("Create log")
+  @Operation(summary = "Create log")
   @PreAuthorize(ALLOWED_TO_REPORT)
   public EntryCreatedAsyncRS createLogEntry(@PathVariable String projectKey,
       @RequestBody SaveLogRQ createLogRQ, @AuthenticationPrincipal ReportPortalUser user) {
@@ -143,8 +144,8 @@ public class LogController {
     );
   }
 
-  @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-  @ApiOperation("Create log (batching operation)")
+  @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  @Operation(summary = "Create log (batching operation)")
   // Specific handler should be added for springfox in case of similar POST
   // request mappings
   //	@Async
@@ -205,7 +206,7 @@ public class LogController {
   /* Frontend API */
 
   @RequestMapping(value = "/{logId}", method = RequestMethod.DELETE)
-  @ApiOperation("Delete log")
+  @Operation(summary = "Delete log")
   @Transactional
   public OperationCompletionRS deleteLog(@PathVariable String projectKey, @PathVariable Long logId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -215,12 +216,12 @@ public class LogController {
   }
 
   @RequestMapping(method = RequestMethod.GET)
-  @ApiOperation("Get logs by filter")
+  @Operation(summary = "Get logs by filter")
   @Transactional(readOnly = true)
   public Iterable<LogResource> getLogs(@PathVariable String projectKey,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + UNDR + CRITERIA_PATH, required = false)
-      String underPath, @FilterFor(Log.class) Filter filter,
-      @SortDefault({ "logTime" }) @SortFor(Log.class) Pageable pageable,
+          String underPath, @FilterFor(Log.class) Filter filter,
+      @SortDefault({"logTime"}) @SortFor(Log.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getLogs(underPath,
         projectExtractor.extractProjectDetails(user, projectKey), filter, pageable
@@ -228,7 +229,7 @@ public class LogController {
   }
 
   @PostMapping(value = "/under")
-  @ApiOperation("Get logs under items")
+  @Operation(summary = "Get logs under items")
   @Transactional(readOnly = true)
   public Map<Long, List<LogResource>> getLogsUnder(@PathVariable String projectKey,
       @RequestBody GetLogsUnderRq logsUnderRq, @AuthenticationPrincipal ReportPortalUser user) {
@@ -238,7 +239,7 @@ public class LogController {
   }
 
   @GetMapping(value = "/{logId}/page")
-  @ApiOperation("Get logs by filter")
+  @Operation(summary = "Get logs by filter")
   @Transactional(readOnly = true)
   public Map<String, Serializable> getPageNumber(@PathVariable String projectKey,
       @PathVariable Long logId, @FilterFor(Log.class) Filter filter,
@@ -251,7 +252,7 @@ public class LogController {
   }
 
   @GetMapping(value = "/{logId}")
-  @ApiOperation("Get log by ID")
+  @Operation(summary = "Get log by ID")
   @Transactional(readOnly = true)
   public LogResource getLog(@PathVariable String projectKey, @PathVariable String logId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -266,7 +267,7 @@ public class LogController {
    */
   @Deprecated(since = "5.8", forRemoval = true)
   @GetMapping(value = "/uuid/{logId}")
-  @ApiOperation("Get log by UUID (Will be removed in version 6.0)")
+  @Operation(summary = "Get log by UUID (Will be removed in version 6.0)")
   @Transactional(readOnly = true)
   public LogResource getLogByUuid(@PathVariable String projectKey, @PathVariable String logId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -276,10 +277,10 @@ public class LogController {
   }
 
   @GetMapping(value = "/nested/{parentId}")
-  @ApiOperation("Get nested steps with logs for the parent Test Item")
+  @Operation(summary = "Get nested steps with logs for the parent Test Item")
   @Transactional(readOnly = true)
   public Iterable<?> getNestedItems(@PathVariable String projectKey, @PathVariable Long parentId,
-      @ApiParam(required = false) @RequestParam Map<String, String> params,
+      @Parameter(required = false) @RequestParam Map<String, String> params,
       @FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getNestedItems(parentId,
@@ -288,7 +289,7 @@ public class LogController {
   }
 
   @GetMapping(value = "/locations/{parentId}")
-  @ApiOperation("Get next or previous log in test item")
+  @Operation(summary = "Get next or previous log in test item")
   @Transactional(readOnly = true)
   public List<PagedLogResource> getErrorPage(@PathVariable String projectKey,
       @PathVariable Long parentId, @RequestParam Map<String, String> params,
@@ -301,7 +302,7 @@ public class LogController {
 
   @PostMapping("search/{itemId}")
   @ResponseStatus(OK)
-  @ApiOperation("Search test items with similar error logs")
+  @Operation(summary = "Search test items with similar error logs")
   public Iterable<SearchLogRs> searchLogs(@PathVariable String projectKey,
       @RequestBody SearchLogRq request, @PathVariable Long itemId,
       @AuthenticationPrincipal ReportPortalUser user) {

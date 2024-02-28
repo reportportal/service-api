@@ -46,7 +46,7 @@ import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.project.CreateProjectRQ;
 import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.util.SlugifyUtils;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;

@@ -19,9 +19,8 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
-
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 

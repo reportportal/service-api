@@ -20,11 +20,11 @@ import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_NAME_L
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_PARAMETERS_LENGTH;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_LAUNCH_NAME_LENGTH;
 
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
+import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 import java.util.Set;
 import javax.validation.Valid;
@@ -38,7 +38,7 @@ import lombok.Data;
 public class LaunchImportRQ {
 
   @JsonProperty(value = "name")
-  @ApiModelProperty
+  @Schema
   @Size(min = MIN_LAUNCH_NAME_LENGTH, max = MAX_NAME_LENGTH)
   protected String name;
 
@@ -53,9 +53,50 @@ public class LaunchImportRQ {
 
   @JsonProperty
   @JsonAlias({ "startTime", "start_time" })
-  @ApiModelProperty
+  @Schema
   private Date startTime;
 
   @JsonProperty("mode")
   private Mode mode;
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public Set<ItemAttributesRQ> getAttributes() {
+    return attributes;
+  }
+
+  public void setAttributes(
+      Set<ItemAttributesRQ> attributes) {
+    this.attributes = attributes;
+  }
+
+  public Date getStartTime() {
+    return startTime;
+  }
+
+  public void setStartTime(Date startTime) {
+    this.startTime = startTime;
+  }
+
+  public Mode getMode() {
+    return mode;
+  }
+
+  public void setMode(Mode mode) {
+    this.mode = mode;
+  }
 }

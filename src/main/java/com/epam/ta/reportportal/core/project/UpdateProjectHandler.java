@@ -23,7 +23,7 @@ import com.epam.ta.reportportal.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 
 /**
  * Update {@link com.epam.ta.reportportal.entity.project.Project} request handler

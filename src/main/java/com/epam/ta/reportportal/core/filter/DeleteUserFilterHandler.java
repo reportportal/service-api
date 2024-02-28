@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.filter;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 
 /**
  * Delete complex filter handler

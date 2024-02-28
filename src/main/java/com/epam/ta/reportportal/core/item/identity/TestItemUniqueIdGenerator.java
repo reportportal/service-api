@@ -21,10 +21,16 @@ import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.google.common.base.Strings;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.CacheStats;
+import com.google.common.cache.LoadingCache;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -41,9 +47,28 @@ import org.springframework.stereotype.Service;
 @Service
 public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 
+  private static final long MAXIMUM_SIZE = 5000;
+
+  private static final long EXPIRATION_SECONDS = 30;
   private static final String TRAIT = "auto:";
 
+  private static long dbQueries = 0;
+
+  private LoadingCache<Long, TestItem> itemsCache;
+
   private TestItemRepository testItemRepository;
+
+  public TestItemUniqueIdGenerator(TestItemRepository testItemRepository) {
+    this.testItemRepository = testItemRepository;
+    itemsCache = CacheBuilder.newBuilder().maximumSize(MAXIMUM_SIZE)
+        .expireAfterWrite(EXPIRATION_SECONDS, TimeUnit.SECONDS)
+        .build(new CacheLoader<>() {
+          @Override
+          public TestItem load(Long id) {
+            return testItemRepository.findById(id).orElse(null);
+          }
+        });
+  }
 
   @Autowired
   public void setTestItemRepository(TestItemRepository testItemRepository) {
@@ -84,10 +109,31 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
   }
 
   private List<String> getPathNames(List<Long> parentIds) {
+    List<TestItem> testItems = getTestItems(parentIds);
     return testItemRepository.findAllById(parentIds)
         .stream()
         .sorted(Comparator.comparingLong(TestItem::getItemId))
         .map(TestItem::getName)
         .collect(Collectors.toList());
+  }
+
+  private List<TestItem> getTestItems(List<Long> parentIds) {
+    List<TestItem> testItems = new ArrayList<>();
+    for(Long id: parentIds) {
+      TestItem testItem = itemsCache.getIfPresent(id);
+      System.out.println("TestItem id " + id);
+      if (testItem == null) {
+        dbQueries++;
+        System.out.println("TestItemUniqueIdGenerator db queries: " + dbQueries);
+        testItem = testItemRepository.getById(id);
+        itemsCache.put(id, testItem);
+        CacheStats stats = itemsCache.stats();
+        System.out.println("Cache status: " + stats.toString());
+      } else {
+        System.out.println("Founded in cache");
+      }
+      testItems.add(testItem);
+    }
+    return testItems;
   }
 }

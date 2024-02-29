@@ -40,7 +40,6 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.ApiKeyRQ;
 import com.epam.ta.reportportal.model.ApiKeyRS;
 import com.epam.ta.reportportal.model.ApiKeysRS;
-import com.epam.ta.reportportal.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.model.ModelViews;
 import com.epam.ta.reportportal.model.YesNoRS;
@@ -67,10 +66,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -167,9 +166,9 @@ public class UserController {
   @PreAuthorize(ADMIN_ONLY)
   @ResponseStatus(OK)
   @Operation(summary = "Delete specified users by ids")
-  public DeleteBulkRS deleteUsers(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ,
+  public DeleteBulkRS deleteUsers(@RequestParam(value = "ids") List<Long> ids,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return deleteUserHandler.deleteUsers(deleteBulkRQ.getIds(), user);
+    return deleteUserHandler.deleteUsers(ids, user);
   }
 
   @Transactional

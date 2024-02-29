@@ -130,7 +130,7 @@ public class DeprecatedUserController extends UserController {
   @Operation(summary = "Delete specified users by ids (DEPRECATED)")
   public DeleteBulkRS deleteUsers(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return super.deleteUsers(deleteBulkRQ, user);
+    return super.deleteUsers(deleteBulkRQ.getIds(), user);
   }
 
   @Transactional

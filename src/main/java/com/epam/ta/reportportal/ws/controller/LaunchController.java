@@ -40,7 +40,6 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.BulkRQ;
-import com.epam.ta.reportportal.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
@@ -451,9 +450,9 @@ public class LaunchController {
   @ResponseStatus(OK)
   @Operation(summary = "Delete specified launches by ids")
   public DeleteBulkRS deleteLaunches(@PathVariable String projectName,
-      @RequestBody @Valid DeleteBulkRQ deleteBulkRQ,
+      @RequestParam(value = "ids") List<Long> ids,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return deleteLaunchMessageHandler.deleteLaunches(deleteBulkRQ,
+    return deleteLaunchMessageHandler.deleteLaunches(ids,
         projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user
     );
   }

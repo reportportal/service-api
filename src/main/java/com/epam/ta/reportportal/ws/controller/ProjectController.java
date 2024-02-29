@@ -45,7 +45,6 @@ import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.preference.PreferenceResource;
@@ -74,7 +73,6 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -172,9 +170,9 @@ public class ProjectController {
   @ResponseStatus(OK)
   @PreAuthorize(ADMIN_ONLY)
   @Operation(summary =  "Delete multiple projects", description = "Could be deleted only by users with administrator role")
-  public DeleteBulkRS deleteProject(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ,
+  public DeleteBulkRS deleteProject(@RequestParam(value = "ids") List<Long> ids,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return deleteProjectHandler.bulkDeleteProjects(deleteBulkRQ.getIds(), user);
+    return deleteProjectHandler.bulkDeleteProjects(ids, user);
   }
 
   @DeleteMapping("/{projectId}")

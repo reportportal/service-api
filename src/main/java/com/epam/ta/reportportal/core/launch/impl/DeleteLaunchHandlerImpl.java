@@ -28,6 +28,7 @@ import static com.epam.ta.reportportal.ws.reporting.ErrorType.LAUNCH_IS_NOT_FINI
 
 import com.epam.reportportal.events.ElementsDeletedEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.ElementsCounterService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -123,14 +124,14 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
     return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully deleted.");
   }
 
-  public DeleteBulkRS deleteLaunches(DeleteBulkRQ deleteBulkRQ,
+  public DeleteBulkRS deleteLaunches(List<Long> ids,
       ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
     List<Long> notFound = Lists.newArrayList();
     List<ReportPortalException> exceptions = Lists.newArrayList();
     Map<Launch, Long> toDelete = Maps.newHashMap();
     List<Long> launchIds = Lists.newArrayList();
 
-    deleteBulkRQ.getIds().forEach(id -> {
+    ids.forEach(id -> {
       Optional<Launch> optionalLaunch = launchRepository.findById(id);
       if (optionalLaunch.isPresent()) {
         Launch launch = optionalLaunch.get();

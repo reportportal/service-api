@@ -45,17 +45,6 @@ public interface DeleteLaunchHandler {
   /**
    * Bulk launches delete.
    *
-   * @param deleteBulkRQ   {@link DeleteBulkRQ}
-   * @param projectDetails Project Details
-   * @param user           User
-   * @return DeleteLaunchesRS
-   */
-  DeleteBulkRS deleteLaunches(DeleteBulkRQ deleteBulkRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
-
-  /**
-   * Bulk launches delete.
-   *
    * @param ids   list of launch ids
    * @param projectDetails Project Details
    * @param user           User

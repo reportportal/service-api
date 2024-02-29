@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.model.OrganizationResource;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/organization")
+@Tag(name = "organizations-controller", description = "Organizations Controller")
 public class OrganizationController {
 
   private final GetOrganizationHandler getOrganizationHandler;

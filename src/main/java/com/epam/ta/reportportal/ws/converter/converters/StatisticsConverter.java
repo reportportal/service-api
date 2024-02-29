@@ -21,7 +21,7 @@ import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConst
 import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.entity.statistics.Statistics;
-import com.epam.ta.reportportal.ws.model.statistics.StatisticsResource;
+import com.epam.ta.reportportal.ws.reporting.StatisticsResource;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;

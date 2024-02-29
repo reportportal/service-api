@@ -19,9 +19,9 @@ package com.epam.ta.reportportal.ws.converter.utils.item.updater;
 import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.model.TestItemResource;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
+import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;

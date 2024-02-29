@@ -2,10 +2,10 @@ package com.epam.ta.reportportal.core.item.validator.parent;
 
 import static com.epam.ta.reportportal.commons.Predicates.isNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_TO_SAVE_CHILD_ITEM_FOR_THE_RETRY;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.UNABLE_TO_SAVE_CHILD_ITEM_FOR_THE_RETRY;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Service;
 

@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.user.impl;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.NOT_FOUND;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.NOT_FOUND;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -30,8 +30,8 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.model.ApiKeyRS;
 import com.epam.ta.reportportal.model.ApiKeysRS;
 import com.epam.ta.reportportal.ws.converter.converters.ApiKeyConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.annotations.VisibleForTesting;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;

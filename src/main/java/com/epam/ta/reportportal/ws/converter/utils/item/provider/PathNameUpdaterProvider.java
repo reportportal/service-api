@@ -18,11 +18,11 @@ package com.epam.ta.reportportal.ws.converter.utils.item.provider;
 
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.PathName;
-import com.epam.ta.reportportal.model.TestItemResource;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterProvider;
 import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemUpdaterContent;
 import com.epam.ta.reportportal.ws.converter.utils.item.updater.PathNameUpdater;
+import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

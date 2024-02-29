@@ -23,7 +23,7 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.model.launch.MergeLaunchesRQ;
+import com.epam.ta.reportportal.ws.reporting.MergeLaunchesRQ;
 import java.util.List;
 
 /**

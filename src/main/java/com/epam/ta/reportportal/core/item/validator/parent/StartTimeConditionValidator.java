@@ -1,11 +1,11 @@
 package com.epam.ta.reportportal.core.item.validator.parent;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.CHILD_START_TIME_EARLIER_THAN_PARENT;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.CHILD_START_TIME_EARLIER_THAN_PARENT;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Service;
 

@@ -21,7 +21,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.collections.MapUtils;

@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.launch;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
+import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 
 /**
  * {@link FinishExecutionRQ} request handler

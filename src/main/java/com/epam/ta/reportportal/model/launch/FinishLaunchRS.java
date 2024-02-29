@@ -15,7 +15,7 @@
  */
 package com.epam.ta.reportportal.model.launch;
 
-import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
+import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 

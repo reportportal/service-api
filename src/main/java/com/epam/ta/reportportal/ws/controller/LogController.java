@@ -43,13 +43,13 @@ import com.epam.ta.reportportal.model.log.LogResource;
 import com.epam.ta.reportportal.model.log.SearchLogRq;
 import com.epam.ta.reportportal.model.log.SearchLogRs;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.BatchElementCreatedRS;
-import com.epam.ta.reportportal.ws.model.BatchSaveOperatingRS;
-import com.epam.ta.reportportal.ws.model.Constants;
-import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import com.epam.ta.reportportal.ws.reporting.BatchElementCreatedRS;
+import com.epam.ta.reportportal.ws.reporting.BatchSaveOperatingRS;
+import com.epam.ta.reportportal.ws.reporting.Constants;
+import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.collect.ImmutableMap;
@@ -114,13 +114,12 @@ public class LogController {
   }
 
   /**
-   * @deprecated in favour of
-   * {@link LogController#createLogEntry(String, SaveLogRQ, ReportPortalUser)} because of mapping
-   * collisions
+   * @deprecated in favour of {@link LogController#createLogEntry(String, SaveLogRQ,
+   * ReportPortalUser)} because of mapping collisions
    */
   /* Report client API */
   @Deprecated
-  @PostMapping(consumes = { MediaType.APPLICATION_JSON_VALUE })
+  @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
   @ResponseStatus(CREATED)
   @Hidden
   @PreAuthorize(ALLOWED_TO_REPORT)
@@ -133,7 +132,7 @@ public class LogController {
   }
 
   /* Report client API */
-  @PostMapping(value = "/entry", consumes = { MediaType.APPLICATION_JSON_VALUE })
+  @PostMapping(value = "/entry", consumes = {MediaType.APPLICATION_JSON_VALUE})
   @ResponseStatus(CREATED)
   @Operation(summary = "Create log")
   @PreAuthorize(ALLOWED_TO_REPORT)
@@ -145,7 +144,7 @@ public class LogController {
     );
   }
 
-  @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+  @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   @Operation(summary = "Create log (batching operation)")
   // Specific handler should be added for springfox in case of similar POST
   // request mappings
@@ -221,8 +220,8 @@ public class LogController {
   @Transactional(readOnly = true)
   public Iterable<LogResource> getLogs(@PathVariable String projectName,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + UNDR + CRITERIA_PATH, required = false)
-      String underPath, @FilterFor(Log.class) Filter filter,
-      @SortDefault({ "logTime" }) @SortFor(Log.class) Pageable pageable,
+          String underPath, @FilterFor(Log.class) Filter filter,
+      @SortDefault({"logTime"}) @SortFor(Log.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getLogs(underPath,
         projectExtractor.extractProjectDetails(user, projectName), filter, pageable

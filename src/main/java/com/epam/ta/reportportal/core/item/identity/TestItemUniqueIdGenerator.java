@@ -49,7 +49,7 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 
   private static final long MAXIMUM_SIZE = 5000;
 
-  private static final long EXPIRATION_SECONDS = 30;
+  private static final long EXPIRATION_SECONDS = 180;
   private static final String TRAIT = "auto:";
 
   private static long dbQueries = 0;

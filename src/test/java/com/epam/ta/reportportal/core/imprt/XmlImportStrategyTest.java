@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Provider;
@@ -106,7 +107,12 @@ class XmlImportStrategyTest {
   void whenImportLaunch_andIsSkippedIssue_thenProcessXmlFileWithSkippedTrue(@TempDir Path tempDir)
       throws Exception {
     LaunchImportRQ rq = new LaunchImportRQ();
-    rq.setAttributes(Set.of(new ItemAttributesRQ(AbstractImportStrategy.SKIPPED_IS_NOT_ISSUE, "true")));
+    ItemAttributesRQ attributesRQ =
+        new ItemAttributesRQ(AbstractImportStrategy.SKIPPED_IS_NOT_ISSUE, "true");
+    attributesRQ.setSystem(true);
+    Set<ItemAttributesRQ> attributes = new HashSet<>();
+    attributes.add(attributesRQ);
+    rq.setAttributes(attributes);
 
     File xmlFile = createFile(tempDir);
 

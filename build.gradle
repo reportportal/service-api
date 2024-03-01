@@ -24,7 +24,7 @@ plugins {
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
-apply from: "$scriptsUrl/build-docker.gradle"
+//apply from: "$scriptsUrl/build-docker.gradle"
 apply from: "$scriptsUrl/build-commons.gradle"
 apply from: "$scriptsUrl/build-info.gradle"
 apply from: "$scriptsUrl/release-service.gradle"

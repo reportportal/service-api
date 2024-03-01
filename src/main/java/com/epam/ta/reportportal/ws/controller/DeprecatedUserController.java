@@ -124,15 +124,6 @@ public class DeprecatedUserController extends UserController {
     return super.deleteUser(userId, currentUser);
   }
 
-  @DeleteMapping
-  @PreAuthorize(ADMIN_ONLY)
-  @ResponseStatus(OK)
-  @Operation(summary = "Delete specified users by ids (DEPRECATED)")
-  public DeleteBulkRS deleteUsers(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ,
-      @AuthenticationPrincipal ReportPortalUser user) {
-    return super.deleteUsers(deleteBulkRQ.getIds(), user);
-  }
-
   @Transactional
   @PutMapping(value = "/{login}")
   @PreAuthorize(ALLOWED_TO_EDIT_USER)

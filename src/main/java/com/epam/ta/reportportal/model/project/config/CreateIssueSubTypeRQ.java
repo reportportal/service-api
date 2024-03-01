@@ -50,7 +50,7 @@ public class CreateIssueSubTypeRQ {
 	@NotBlank
 	@Size(min = ValidationConstraints.MIN_SUBTYPE_SHORT_NAME, max = ValidationConstraints.MAX_SUBTYPE_SHORT_NAME)
 	@JsonProperty(value = "shortName", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED)
+	@Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
 	private String shortName;
 
 	@NotBlank

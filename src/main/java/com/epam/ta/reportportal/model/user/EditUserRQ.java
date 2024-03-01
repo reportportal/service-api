@@ -22,6 +22,8 @@ import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
@@ -46,6 +48,7 @@ public class EditUserRQ {
 	@Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)
 	@Pattern(regexp = "(\\s*[\\pL0-9-_\\.]+\\s*)+")
 	@JsonProperty(value = "fullName")
+	@Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
 	private String fullName;
 
 	public String getEmail() {

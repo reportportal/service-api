@@ -21,8 +21,8 @@ package com.epam.ta.reportportal.core.events.activity;
  */
 public abstract class AbstractEvent {
 
-  private Long userId;
-  private String userLogin;
+  protected Long userId;
+  protected String userLogin;
 
   protected AbstractEvent() {
   }

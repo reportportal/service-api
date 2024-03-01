@@ -16,19 +16,6 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
-import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
-import com.epam.ta.reportportal.entity.enums.AuthType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import org.jasypt.util.text.BasicTextEncryptor;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,60 +23,76 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
+import com.epam.ta.reportportal.entity.enums.AuthType;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import java.util.HashMap;
+import java.util.Map;
+import org.jasypt.util.text.BasicTextEncryptor;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @ExtendWith(MockitoExtension.class)
 class AzureIntegrationServiceTest {
-	private static final String UNSUPPORTED_AUTH_TYPE_NAME = AuthType.NTLM.name();
 
-	@Mock
-	private BasicTextEncryptor encryptor;
+  private static final String UNSUPPORTED_AUTH_TYPE_NAME = AuthType.NTLM.name();
 
-	@InjectMocks
-	private BtsIntegrationService btsIntegrationService;
+  @Mock
+  private BasicTextEncryptor encryptor;
 
-	@Test
-	void testParameters() {
-		when(encryptor.encrypt(any())).thenReturn("encrypted");
-		Map<String, Object> res = btsIntegrationService.retrieveCreateParams("azure", getCorrectRallyIntegrationParams());
-		assertThat(res.keySet(), hasSize(4));
-	}
+  @InjectMocks
+  private BtsIntegrationService btsIntegrationService;
 
-	@Test
-	void testParametersWithoutKey() {
-		Map<String, Object> params = getCorrectRallyIntegrationParams();
-		params.remove(BtsProperties.OAUTH_ACCESS_KEY.getName());
+  @Test
+  void testParameters() {
+    when(encryptor.encrypt(any())).thenReturn("encrypted");
+    Map<String, Object> res = btsIntegrationService.retrieveCreateParams("azure",
+        getCorrectRallyIntegrationParams());
+    assertThat(res.keySet(), hasSize(4));
+  }
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> btsIntegrationService.retrieveCreateParams("azure",params)
-		);
-		assertEquals("Impossible interact with integration. AccessKey value is not specified", exception.getMessage());
-	}
+  @Test
+  void testParametersWithoutKey() {
+    Map<String, Object> params = getCorrectRallyIntegrationParams();
+    params.remove(BtsProperties.OAUTH_ACCESS_KEY.getName());
 
-	@Test
-	void testParametersUnsupportedAuthType() {
-		Map<String, Object> params = getCorrectRallyIntegrationParams();
-		params.put(BtsProperties.AUTH_TYPE.getName(), UNSUPPORTED_AUTH_TYPE_NAME);
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> btsIntegrationService.retrieveCreateParams("azure", params)
+    );
+    assertEquals("Impossible interact with integration. AccessKey value is not specified",
+        exception.getMessage());
+  }
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> btsIntegrationService.retrieveCreateParams("azure", params)
-		);
-		assertEquals(
-				"Impossible interact with integration. Unsupported auth type for integration - " + UNSUPPORTED_AUTH_TYPE_NAME,
-				exception.getMessage()
-		);
-	}
+  @Test
+  void testParametersUnsupportedAuthType() {
+    Map<String, Object> params = getCorrectRallyIntegrationParams();
+    params.put(BtsProperties.AUTH_TYPE.getName(), UNSUPPORTED_AUTH_TYPE_NAME);
 
-	private Map<String, Object> getCorrectRallyIntegrationParams() {
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> btsIntegrationService.retrieveCreateParams("azure", params)
+    );
+    assertEquals(
+        "Impossible interact with integration. Unsupported auth type for integration - "
+            + UNSUPPORTED_AUTH_TYPE_NAME,
+        exception.getMessage()
+    );
+  }
 
-		Map<String, Object> params = new HashMap<>();
-		params.put(BtsProperties.URL.getName(), "azure-url");
-		params.put(BtsProperties.PROJECT.getName(), "azure-project");
-		params.put(BtsProperties.AUTH_TYPE.getName(), AuthType.OAUTH.name());
-		params.put(BtsProperties.OAUTH_ACCESS_KEY.getName(), "KEY");
+  private Map<String, Object> getCorrectRallyIntegrationParams() {
 
-		return params;
-	}
+    Map<String, Object> params = new HashMap<>();
+    params.put(BtsProperties.URL.getName(), "azure-url");
+    params.put(BtsProperties.PROJECT.getName(), "azure-project");
+    params.put(BtsProperties.AUTH_TYPE.getName(), AuthType.OAUTH.name());
+    params.put(BtsProperties.OAUTH_ACCESS_KEY.getName(), "KEY");
+
+    return params;
+  }
 
 }

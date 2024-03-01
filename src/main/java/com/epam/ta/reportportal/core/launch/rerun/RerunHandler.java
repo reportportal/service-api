@@ -22,7 +22,6 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-
 import java.util.Optional;
 
 /**
@@ -30,31 +29,33 @@ import java.util.Optional;
  */
 public interface RerunHandler {
 
-	/**
-	 * Updates launch state and return existed launch to rerun
-	 *
-	 * @param request   Request data
-	 * @param projectId Project ID
-	 * @param user      ReportPortal user
-	 * @return {@link Launch}
-	 */
-	Launch handleLaunch(StartLaunchRQ request, Long projectId, ReportPortalUser user);
+  /**
+   * Updates launch state and return existed launch to rerun
+   *
+   * @param request   Request data
+   * @param projectId Project ID
+   * @param user      ReportPortal user
+   * @return {@link Launch}
+   */
+  Launch handleLaunch(StartLaunchRQ request, Long projectId, ReportPortalUser user);
 
-	/**
-	 * Finds root {@link TestItem} to rerun and creates retries
-	 *
-	 * @param request Request data
-	 * @param launch  {@link Launch}
-	 * @return {@link ItemCreatedRS} if item is rerun, otherwise {@link Optional#empty()}
-	 */
-	Optional<ItemCreatedRS> handleRootItem(StartTestItemRQ request, Launch launch);
+  /**
+   * Finds root {@link TestItem} to rerun and creates retries
+   *
+   * @param request Request data
+   * @param launch  {@link Launch}
+   * @return {@link ItemCreatedRS} if item is rerun, otherwise {@link Optional#empty()}
+   */
+  Optional<ItemCreatedRS> handleRootItem(StartTestItemRQ request, Launch launch);
 
-	/**
-	 * Finds child {@link TestItem} to rerun and creates retries
-	 *
-	 * @param request Request data
-	 * @param launch  {@link Launch}
-	 * @return {@link ItemCreatedRS} if item is rerun, otherwise {@link Optional#empty()}
-	 */
-	Optional<ItemCreatedRS> handleChildItem(StartTestItemRQ request, Launch launch, String parentUuid);
+  /**
+   * Finds child {@link TestItem} to rerun and creates retries
+   *
+   * @param request     Request data
+   * @param launch      {@link Launch}
+   * @param parentUuid  Parent testItem's id
+   * @return {@link ItemCreatedRS} if item is rerun, otherwise {@link Optional#empty()}
+   */
+  Optional<ItemCreatedRS> handleChildItem(StartTestItemRQ request, Launch launch,
+      String parentUuid);
 }

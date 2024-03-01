@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.google.common.base.Preconditions;
@@ -66,15 +67,29 @@ public final class NotificationConfigConverter {
 		resource.setRecipients(Lists.newArrayList(model.getRecipients()));
 		resource.setEnabled(model.isEnabled());
 		resource.setAttributesOperator(model.getAttributesOperator().getOperator());
+		resource.setRuleName(model.getRuleName());
+		resource.setId(model.getId());
 		return resource;
 	};
 
 	public static final Function<ItemAttributeResource, LaunchAttributeRule> TO_ATTRIBUTE_RULE_MODEL = resource -> {
 		LaunchAttributeRule launchAttributeRule = new LaunchAttributeRule();
+		cutAttributeToMaxLength(resource);
 		launchAttributeRule.setKey(resource.getKey());
 		launchAttributeRule.setValue(resource.getValue());
 		return launchAttributeRule;
 	};
+
+	private static void cutAttributeToMaxLength(ItemAttributeResource entity) {
+		String key = entity.getKey();
+		String value = entity.getValue();
+		if (key != null && key.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {
+			entity.setKey(key.trim().substring(0, ValidationConstraints.MAX_ATTRIBUTE_LENGTH));
+		}
+		if (value != null && value.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {
+			entity.setValue(value.trim().substring(0, ValidationConstraints.MAX_ATTRIBUTE_LENGTH));
+		}
+	}
 
 	public final static Function<SenderCaseDTO, SenderCase> TO_CASE_MODEL = resource -> {
 		SenderCase senderCase = new SenderCase();
@@ -93,6 +108,8 @@ public final class NotificationConfigConverter {
 				)));
 		senderCase.setEnabled(resource.isEnabled());
 		senderCase.setAttributesOperator(LogicalOperator.valueOf(resource.getAttributesOperator()));
+		senderCase.setRuleName(resource.getRuleName());
+		senderCase.setId(resource.getId());
 		return senderCase;
 	};
 }

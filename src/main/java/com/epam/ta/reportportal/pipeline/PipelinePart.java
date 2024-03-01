@@ -21,5 +21,5 @@ package com.epam.ta.reportportal.pipeline;
  */
 public interface PipelinePart {
 
-	void handle();
+  void handle();
 }

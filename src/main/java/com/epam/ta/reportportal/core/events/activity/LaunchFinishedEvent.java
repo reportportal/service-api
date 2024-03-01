@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.events.activity;
+
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 
 import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -46,28 +49,32 @@ public class LaunchFinishedEvent extends AbstractEvent implements ActivityEvent,
 
   private String baseUrl;
 
+  private final boolean isSystemEvent;
+
   public LaunchFinishedEvent(Launch launch) {
+    this(launch, null, null, true);
     this.id = launch.getId();
     this.name = launch.getName();
     this.mode = launch.getMode();
     this.projectId = launch.getProjectId();
   }
 
-  public LaunchFinishedEvent(Launch launch, Long userId, String userLogin) {
+  public LaunchFinishedEvent(Launch launch, Long userId, String userLogin, boolean isSystemEvent) {
     super(userId, userLogin);
     this.id = launch.getId();
     this.name = launch.getName();
     this.mode = launch.getMode();
     this.projectId = launch.getProjectId();
+    this.isSystemEvent = isSystemEvent;
   }
 
   public LaunchFinishedEvent(Launch launch, Long userId, String userLogin, String baseUrl) {
-    this(launch, userId, userLogin);
+    this(launch, userId, userLogin, false);
     this.baseUrl = baseUrl;
   }
 
   public LaunchFinishedEvent(Launch launch, ReportPortalUser user, String baseUrl) {
-    this(launch, user.getUserId(), user.getUsername());
+    this(launch, user.getUserId(), user.getUsername(), false);
     this.user = user;
     this.baseUrl = baseUrl;
   }
@@ -132,9 +139,9 @@ public class LaunchFinishedEvent extends AbstractEvent implements ActivityEvent,
         .addObjectName(name)
         .addObjectType(EventObject.LAUNCH)
         .addProjectId(projectId)
-        .addSubjectId(getUserId())
-        .addSubjectName(getUserLogin())
-        .addSubjectType(EventSubject.USER)
+        .addSubjectId(isSystemEvent ? null : getUserId())
+        .addSubjectName(isSystemEvent ? RP_SUBJECT_NAME : getUserLogin())
+        .addSubjectType(isSystemEvent ? EventSubject.APPLICATION : EventSubject.USER)
         .get();
   }
 }

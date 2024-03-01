@@ -16,14 +16,14 @@
 
 package com.epam.ta.reportportal.core.widget.content.remover;
 
+import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
-import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -31,17 +31,17 @@ import static java.util.Optional.ofNullable;
 @Service
 public class MaterializedViewRemover implements WidgetContentRemover {
 
-	private final WidgetContentRepository widgetContentRepository;
+  private final WidgetContentRepository widgetContentRepository;
 
-	@Autowired
-	public MaterializedViewRemover(WidgetContentRepository widgetContentRepository) {
-		this.widgetContentRepository = widgetContentRepository;
-	}
+  @Autowired
+  public MaterializedViewRemover(WidgetContentRepository widgetContentRepository) {
+    this.widgetContentRepository = widgetContentRepository;
+  }
 
-	@Override
-	public void removeContent(Widget widget) {
-		ofNullable(WidgetOptionUtil.getValueByKey(VIEW_NAME,
-				widget.getWidgetOptions()
-		)).ifPresent(widgetContentRepository::removeWidgetView);
-	}
+  @Override
+  public void removeContent(Widget widget) {
+    ofNullable(WidgetOptionUtil.getValueByKey(VIEW_NAME,
+        widget.getWidgetOptions()
+    )).ifPresent(widgetContentRepository::removeWidgetView);
+  }
 }

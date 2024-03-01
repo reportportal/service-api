@@ -28,22 +28,22 @@ import org.springframework.transaction.annotation.Transactional;
  */
 public class IndexingAutoAnalysisStarter implements LaunchAutoAnalysisStarter {
 
-	private final GetLaunchHandler getLaunchHandler;
-	private final LogIndexer logIndexer;
-	private final LaunchAutoAnalysisStarter launchAutoAnalysisStarter;
+  private final GetLaunchHandler getLaunchHandler;
+  private final LogIndexer logIndexer;
+  private final LaunchAutoAnalysisStarter launchAutoAnalysisStarter;
 
-	public IndexingAutoAnalysisStarter(GetLaunchHandler getLaunchHandler, LogIndexer logIndexer,
-			LaunchAutoAnalysisStarter launchAutoAnalysisStarter) {
-		this.getLaunchHandler = getLaunchHandler;
-		this.logIndexer = logIndexer;
-		this.launchAutoAnalysisStarter = launchAutoAnalysisStarter;
-	}
+  public IndexingAutoAnalysisStarter(GetLaunchHandler getLaunchHandler, LogIndexer logIndexer,
+      LaunchAutoAnalysisStarter launchAutoAnalysisStarter) {
+    this.getLaunchHandler = getLaunchHandler;
+    this.logIndexer = logIndexer;
+    this.launchAutoAnalysisStarter = launchAutoAnalysisStarter;
+  }
 
-	@Override
-	@Transactional
-	public void start(StartLaunchAutoAnalysisConfig config) {
-		final Launch launch = getLaunchHandler.get(config.getLaunchId());
-		logIndexer.indexLaunchLogs(launch, config.getAnalyzerConfig());
-		launchAutoAnalysisStarter.start(config);
-	}
+  @Override
+  @Transactional
+  public void start(StartLaunchAutoAnalysisConfig config) {
+    final Launch launch = getLaunchHandler.get(config.getLaunchId());
+    logIndexer.indexLaunchLogs(launch, config.getAnalyzerConfig());
+    launchAutoAnalysisStarter.start(config);
+  }
 }

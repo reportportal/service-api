@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.core.item.impl.status;
 
+import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -24,19 +27,20 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.dao.IssueEntityRepository;
+import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -45,46 +49,47 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 @Service
 public class ToFailedStatusChangingStrategy extends AbstractStatusChangingStrategy {
 
-	@Autowired
-	public ToFailedStatusChangingStrategy(TestItemService testItemService, ProjectRepository projectRepository,
-			LaunchRepository launchRepository, TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
-			MessageBus messageBus, IssueEntityRepository issueEntityRepository, LogRepository logRepository, LogIndexer logIndexer) {
-		super(
-				testItemService,
-				projectRepository,
-				launchRepository,
-				testItemRepository,
-				issueTypeHandler,
-				messageBus,
-				issueEntityRepository,
-				logRepository,
-				logIndexer
-		);
-	}
+  @Autowired
+  public ToFailedStatusChangingStrategy(TestItemService testItemService,
+      ProjectRepository projectRepository, LaunchRepository launchRepository,
+      TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
+      MessageBus messageBus, IssueEntityRepository issueEntityRepository,
+      LogRepository logRepository, LogIndexer logIndexer) {
+    super(testItemService, projectRepository, launchRepository, testItemRepository,
+        issueTypeHandler, messageBus, issueEntityRepository, logRepository, logIndexer
+    );
+  }
 
-	@Override
-	protected void updateStatus(Project project, Launch launch, TestItem testItem, StatusEnum providedStatus, ReportPortalUser user) {
-		BusinessRule.expect(providedStatus, statusIn(StatusEnum.FAILED)).verify(
-				INCORRECT_REQUEST,
-				Suppliers.formattedSupplier("Incorrect status - '{}', only '{}' is allowed", providedStatus, StatusEnum.FAILED).get()
-		);
+  @Override
+  protected void updateStatus(Project project, Launch launch, TestItem testItem,
+      StatusEnum providedStatus, ReportPortalUser user, boolean updateParents) {
+    BusinessRule.expect(providedStatus, statusIn(StatusEnum.FAILED)).verify(INCORRECT_REQUEST,
+        Suppliers.formattedSupplier("Incorrect status - '{}', only '{}' is allowed", providedStatus,
+            StatusEnum.FAILED
+        ).get()
+    );
 
-		testItem.getItemResults().setStatus(providedStatus);
-		if (Objects.isNull(testItem.getRetryOf())) {
-			if (testItem.getItemResults().getIssue() == null && testItem.isHasStats()) {
-				addToInvestigateIssue(testItem, project.getId());
-			}
+    testItem.getItemResults().setStatus(providedStatus);
+    if (Objects.isNull(testItem.getRetryOf())) {
+      if (testItem.getItemResults().getIssue() == null && testItem.isHasStats()) {
+        addToInvestigateIssue(testItem, project.getId());
+      }
 
-			List<Long> itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
-			itemsToReindex.add(testItem.getItemId());
-			logIndexer.indexItemsRemove(project.getId(), itemsToReindex);
-			logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemsToReindex, AnalyzerUtils.getAnalyzerConfig(project));
-		}
-	}
+      List<Long> itemsToReindex = new ArrayList<>();
+      if (updateParents) {
+        itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
+      }
+      itemsToReindex.add(testItem.getItemId());
+      logIndexer.indexItemsRemove(project.getId(), itemsToReindex);
+      logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemsToReindex,
+          AnalyzerUtils.getAnalyzerConfig(project)
+      );
+    }
+  }
 
-	@Override
-	protected StatusEnum evaluateParentItemStatus(TestItem parentItem, TestItem childItem) {
-		return StatusEnum.FAILED;
-	}
+  @Override
+  protected StatusEnum evaluateParentItemStatus(TestItem parentItem, TestItem childItem) {
+    return StatusEnum.FAILED;
+  }
 
 }

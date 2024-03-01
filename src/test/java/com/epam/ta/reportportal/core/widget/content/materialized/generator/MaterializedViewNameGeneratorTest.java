@@ -18,40 +18,39 @@ package com.epam.ta.reportportal.core.widget.content.materialized.generator;
 
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.stream.Stream;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class MaterializedViewNameGeneratorTest {
 
-	private final MaterializedViewNameGenerator generator = new MaterializedViewNameGenerator();
+  private final MaterializedViewNameGenerator generator = new MaterializedViewNameGenerator();
 
-	private static Stream<Arguments> provideData() {
-		return Stream.of(Arguments.of("widget_1_1", getWidget(1L, 1L)),
-				Arguments.of("widget_1_2", getWidget(2L, 1L)),
-				Arguments.of("widget_2_1", getWidget(1L, 2L))
-		);
-	}
+  private static Stream<Arguments> provideData() {
+    return Stream.of(Arguments.of("widget_1_1", getWidget(1L, 1L)),
+        Arguments.of("widget_1_2", getWidget(2L, 1L)),
+        Arguments.of("widget_2_1", getWidget(1L, 2L))
+    );
+  }
 
-	private static Widget getWidget(Long id, Long projectId) {
-		final Widget widget = new Widget();
-		widget.setId(id);
-		final Project project = new Project();
-		project.setId(projectId);
-		widget.setProject(project);
-		return widget;
-	}
+  private static Widget getWidget(Long id, Long projectId) {
+    final Widget widget = new Widget();
+    widget.setId(id);
+    final Project project = new Project();
+    project.setId(projectId);
+    widget.setProject(project);
+    return widget;
+  }
 
-	@ParameterizedTest
-	@MethodSource("provideData")
-	void generate(String expectedName, Widget widget) {
-		Assertions.assertEquals(expectedName, generator.generate(widget));
-	}
+  @ParameterizedTest
+  @MethodSource("provideData")
+  void generate(String expectedName, Widget widget) {
+    Assertions.assertEquals(expectedName, generator.generate(widget));
+  }
 
 }

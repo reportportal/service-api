@@ -37,13 +37,13 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.USER_FILTER_NOT_FOUND;
 @Service
 public class DeleteUserFilterHandlerImpl implements DeleteUserFilterHandler {
 
-	private final UserFilterRepository userFilterRepository;
-	private final MessageBus messageBus;
+  private final UserFilterRepository userFilterRepository;
+  private final MessageBus messageBus;
 
 	@Autowired
 	public DeleteUserFilterHandlerImpl(UserFilterRepository userFilterRepository, MessageBus messageBus) {
-		this.userFilterRepository = userFilterRepository;
-		this.messageBus = messageBus;
+    this.userFilterRepository = userFilterRepository;
+    this.messageBus = messageBus;
 	}
 
 	@Override

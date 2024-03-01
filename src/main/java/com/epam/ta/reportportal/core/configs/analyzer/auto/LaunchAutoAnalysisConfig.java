@@ -37,53 +37,57 @@ import org.springframework.core.task.TaskExecutor;
 @Configuration
 public class LaunchAutoAnalysisConfig {
 
-	private final GetLaunchHandler getLaunchHandler;
+  private final GetLaunchHandler getLaunchHandler;
 
-	private final AnalyzeCollectorFactory analyzeCollectorFactory;
-	private final AnalyzerService analyzerService;
+  private final AnalyzeCollectorFactory analyzeCollectorFactory;
+  private final AnalyzerService analyzerService;
 
-	private final LogIndexer logIndexer;
+  private final LogIndexer logIndexer;
 
-	private final TaskExecutor autoAnalyzeTaskExecutor;
+  private final TaskExecutor autoAnalyzeTaskExecutor;
 
-	@Autowired
-	public LaunchAutoAnalysisConfig(GetLaunchHandler getLaunchHandler, AnalyzeCollectorFactory analyzeCollectorFactory,
-			AnalyzerService analyzerService, LogIndexer logIndexer, TaskExecutor autoAnalyzeTaskExecutor) {
-		this.getLaunchHandler = getLaunchHandler;
-		this.analyzeCollectorFactory = analyzeCollectorFactory;
-		this.analyzerService = analyzerService;
-		this.logIndexer = logIndexer;
-		this.autoAnalyzeTaskExecutor = autoAnalyzeTaskExecutor;
-	}
+  @Autowired
+  public LaunchAutoAnalysisConfig(GetLaunchHandler getLaunchHandler,
+      AnalyzeCollectorFactory analyzeCollectorFactory,
+      AnalyzerService analyzerService, LogIndexer logIndexer,
+      TaskExecutor autoAnalyzeTaskExecutor) {
+    this.getLaunchHandler = getLaunchHandler;
+    this.analyzeCollectorFactory = analyzeCollectorFactory;
+    this.analyzerService = analyzerService;
+    this.logIndexer = logIndexer;
+    this.autoAnalyzeTaskExecutor = autoAnalyzeTaskExecutor;
+  }
 
-	@Bean
-	public LaunchAutoAnalysisStarter manualAnalysisStarter() {
-		return new ExistingAnalyzerStarter(analyzerService, asyncAutoAnalysisStarter());
-	}
+  @Bean
+  public LaunchAutoAnalysisStarter manualAnalysisStarter() {
+    return new ExistingAnalyzerStarter(analyzerService, asyncAutoAnalysisStarter());
+  }
 
-	@Bean
-	public LaunchAutoAnalysisStarter autoAnalysisStarter() {
-		return new ExistingAnalyzerStarter(analyzerService, indexingAutoAnalysisStarter());
-	}
+  @Bean
+  public LaunchAutoAnalysisStarter autoAnalysisStarter() {
+    return new ExistingAnalyzerStarter(analyzerService, indexingAutoAnalysisStarter());
+  }
 
-	@Bean
-	public CollectingAutoAnalysisStarter collectingAutoAnalysisStarter() {
-		return new CollectingAutoAnalysisStarter(getLaunchHandler, analyzeCollectorFactory, analyzerService, logIndexer);
-	}
+  @Bean
+  public CollectingAutoAnalysisStarter collectingAutoAnalysisStarter() {
+    return new CollectingAutoAnalysisStarter(getLaunchHandler, analyzeCollectorFactory,
+        analyzerService, logIndexer);
+  }
 
-	@Bean
-	public AsyncAutoAnalysisStarter asyncAutoAnalysisStarter() {
-		return new AsyncAutoAnalysisStarter(autoAnalyzeTaskExecutor, collectingAutoAnalysisStarter());
-	}
+  @Bean
+  public AsyncAutoAnalysisStarter asyncAutoAnalysisStarter() {
+    return new AsyncAutoAnalysisStarter(autoAnalyzeTaskExecutor, collectingAutoAnalysisStarter());
+  }
 
-	@Bean
-	public AutoAnalysisEnabledStarter autoAnalysisEnabledStarter() {
-		return new AutoAnalysisEnabledStarter(collectingAutoAnalysisStarter());
-	}
+  @Bean
+  public AutoAnalysisEnabledStarter autoAnalysisEnabledStarter() {
+    return new AutoAnalysisEnabledStarter(collectingAutoAnalysisStarter());
+  }
 
-	@Bean
-	public IndexingAutoAnalysisStarter indexingAutoAnalysisStarter() {
-		return new IndexingAutoAnalysisStarter(getLaunchHandler, logIndexer, autoAnalysisEnabledStarter());
-	}
+  @Bean
+  public IndexingAutoAnalysisStarter indexingAutoAnalysisStarter() {
+    return new IndexingAutoAnalysisStarter(getLaunchHandler, logIndexer,
+        autoAnalysisEnabledStarter());
+  }
 
 }

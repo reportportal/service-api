@@ -68,7 +68,7 @@ class LaunchEventsTest {
     launch.setName(name);
     launch.setProjectId(3L);
     launch.setMode(LaunchModeEnum.DEFAULT);
-    final Activity actual = new LaunchFinishedEvent(launch, 1L, "user").toActivity();
+    final Activity actual = new LaunchFinishedEvent(launch, 1L, "user", false).toActivity();
     final Activity expected = getExpectedActivity(EventAction.FINISH, EventPriority.LOW);
     checkActivity(expected, actual);
   }

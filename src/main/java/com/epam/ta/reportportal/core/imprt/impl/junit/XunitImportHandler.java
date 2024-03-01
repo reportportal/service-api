@@ -15,6 +15,9 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl.junit;
 
+import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toMillis;
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
+
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
@@ -28,6 +31,18 @@ import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.google.common.base.Strings;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalQueries;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,19 +52,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
-
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toMillis;
-import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -77,7 +79,7 @@ public class XunitImportHandler extends DefaultHandler {
 	private ReportPortalUser.ProjectDetails projectDetails;
 	private ReportPortalUser user;
 	private String launchUuid;
-	private boolean skippedIsNotIssue = false;
+	private boolean isSkippedNotIssue = false;
 
 	//need to know item's id to attach System.out/System.err logs
 	private String currentItemUuid;
@@ -193,29 +195,37 @@ public class XunitImportHandler extends DefaultHandler {
 		itemUuids.push(id);
 	}
 
-	private LocalDateTime parseTimeStamp(String timestamp) {
-		LocalDateTime localDateTime = null;
-		try {
-			localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(timestamp)), ZoneId.systemDefault());
-		} catch (NumberFormatException ignored) {
-			//ignored
-		}
-		if (null == localDateTime) {
-			DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendOptional(DateTimeFormatter.RFC_1123_DATE_TIME)
-					.appendOptional(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-					.optionalStart()
-					.appendZoneId()
-					.optionalEnd()
-					.optionalStart()
-					.appendLiteral(' ')
-					.parseCaseSensitive()
-					.appendZoneId()
-					.optionalEnd()
-					.toFormatter();
-			localDateTime = LocalDateTime.parse(timestamp, formatter);
-		}
-		return localDateTime;
-	}
+  private LocalDateTime parseTimeStamp(String timestamp) {
+    // try to parse datetime as Long, otherwise parse as timestamp
+    try {
+      return LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(timestamp)), ZoneOffset.UTC);
+    } catch (NumberFormatException ignored) {
+      DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+          .appendOptional(DateTimeFormatter.RFC_1123_DATE_TIME)
+          .appendOptional(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+          .appendOptional(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+          .optionalStart()
+            .appendOffsetId()
+            .appendZoneId()
+          .optionalEnd()
+          .optionalStart()
+            .appendLiteral(' ')
+            .parseCaseSensitive()
+            .appendZoneId()
+          .optionalEnd()
+          .toFormatter();
+
+      TemporalAccessor temporalAccessor = formatter.parse(timestamp);
+      if (isParsedTimeStampHasOffset(temporalAccessor)) {
+        return ZonedDateTime.from(temporalAccessor)
+            .withZoneSameInstant(ZoneOffset.UTC)
+            .toLocalDateTime();
+      } else {
+        return LocalDateTime.from(temporalAccessor);
+      }
+    }
+
+  }
 
 	private void startTestItem(String name) {
 		StartTestItemRQ rq = buildStartTestRq(name);
@@ -256,7 +266,7 @@ public class XunitImportHandler extends DefaultHandler {
 	}
 
 	private void markAsNotIssue(FinishTestItemRQ rq) {
-		if (StatusEnum.SKIPPED.equals(status) && skippedIsNotIssue) {
+		if (StatusEnum.SKIPPED.equals(status) && isSkippedNotIssue) {
 			Issue issue = new Issue();
 			issue.setIssueType(NOT_ISSUE_FLAG.getValue());
 			rq.setIssue(issue);
@@ -275,11 +285,11 @@ public class XunitImportHandler extends DefaultHandler {
 	}
 
 	XunitImportHandler withParameters(ReportPortalUser.ProjectDetails projectDetails, String launchId,
-			ReportPortalUser user, boolean skipped) {
+			ReportPortalUser user, boolean isSkippedNotIssue) {
 		this.projectDetails = projectDetails;
 		this.launchUuid = launchId;
 		this.user = user;
-		this.skippedIsNotIssue = skipped;
+		this.isSkippedNotIssue = isSkippedNotIssue;
 		return this;
 	}
 
@@ -299,4 +309,9 @@ public class XunitImportHandler extends DefaultHandler {
 	long getCommonDuration() {
 		return commonDuration;
 	}
+
+  private boolean isParsedTimeStampHasOffset(TemporalAccessor temporalAccessor) {
+    return temporalAccessor.query(TemporalQueries.offset()) != null;
+  }
+
 }

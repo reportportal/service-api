@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.widget.content.loader.materialized.generator;
 
+import static com.epam.ta.reportportal.core.widget.content.updater.MaterializedWidgetStateUpdater.STATE;
+
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetRepository;
@@ -27,36 +29,36 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.MultiValueMap;
 
-import static com.epam.ta.reportportal.core.widget.content.updater.MaterializedWidgetStateUpdater.STATE;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class FailedViewStateGenerator implements ViewGenerator {
 
-	public static final Logger LOGGER = LoggerFactory.getLogger(FailedViewStateGenerator.class);
+  public static final Logger LOGGER = LoggerFactory.getLogger(FailedViewStateGenerator.class);
 
-	private final ViewGenerator delegate;
-	private final WidgetRepository widgetRepository;
+  private final ViewGenerator delegate;
+  private final WidgetRepository widgetRepository;
 
-	public FailedViewStateGenerator(ViewGenerator delegate, WidgetRepository widgetRepository) {
-		this.delegate = delegate;
-		this.widgetRepository = widgetRepository;
-	}
+  public FailedViewStateGenerator(ViewGenerator delegate, WidgetRepository widgetRepository) {
+    this.delegate = delegate;
+    this.widgetRepository = widgetRepository;
+  }
 
-	@Override
-	public void generate(boolean refresh, String viewName, Widget widget, Filter launchesFilter, Sort launchesSort,
-			MultiValueMap<String, String> params) {
-		try {
-			delegate.generate(refresh, viewName, widget, launchesFilter, launchesSort, params);
-		} catch (Exception exc) {
-			LOGGER.error("Error during view creation: " + exc.getMessage());
-			widgetRepository.save(new WidgetBuilder(widget).addOption(STATE, WidgetState.FAILED.getValue()).get());
-			LOGGER.error("Generation failed. Widget {} - {}. State updated to: {}",
-					widget.getWidgetType(),
-					widget.getId(),
-					WidgetOptionUtil.getValueByKey(STATE, widget.getWidgetOptions())
-			);
-		}
-	}
+  @Override
+  public void generate(boolean refresh, String viewName, Widget widget, Filter launchesFilter,
+      Sort launchesSort,
+      MultiValueMap<String, String> params) {
+    try {
+      delegate.generate(refresh, viewName, widget, launchesFilter, launchesSort, params);
+    } catch (Exception exc) {
+      LOGGER.error("Error during view creation: " + exc.getMessage());
+      widgetRepository.save(
+          new WidgetBuilder(widget).addOption(STATE, WidgetState.FAILED.getValue()).get());
+      LOGGER.error("Generation failed. Widget {} - {}. State updated to: {}",
+          widget.getWidgetType(),
+          widget.getId(),
+          WidgetOptionUtil.getValueByKey(STATE, widget.getWidgetOptions())
+      );
+    }
+  }
 }

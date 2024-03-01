@@ -28,15 +28,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AspectConfig {
 
-    @Bean
-    @ConditionalOnProperty(name = "rp.requestLogging", havingValue = "true")
-    HttpLoggingAspect httpLoggingAspect() {
-        return new HttpLoggingAspect();
-    }
+  @Bean
+  @ConditionalOnProperty(name = "rp.requestLogging", havingValue = "true")
+  HttpLoggingAspect httpLoggingAspect() {
+    return new HttpLoggingAspect();
+  }
 
-    @Bean
-    @ConditionalOnProperty(name = "rp.requestLogging", havingValue = "true")
-    RabbitMessageLoggingAspect rabbitMessageLoggingAspect() {
-        return new RabbitMessageLoggingAspect();
-    }
+  @Bean
+  @ConditionalOnProperty(name = "rp.requestLogging", havingValue = "true")
+  RabbitMessageLoggingAspect rabbitMessageLoggingAspect() {
+    return new RabbitMessageLoggingAspect();
+  }
 }

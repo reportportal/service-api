@@ -27,14 +27,16 @@ import java.util.List;
  * @author Aliaksandr_Kazantsau
  */
 public interface DeleteUserHandler {
-	/**
-	 * Delete User
-	 *
-	 * @param userId      User to be deleted
-	 * @param currentUser User performing the edit operation
-	 * @return Operation result
-	 */
-	OperationCompletionRS deleteUser(Long userId, ReportPortalUser currentUser);
+
+  /**
+   * Delete User, User Personal Project, User Photo. User Dashboard, Widgets, Filters still
+   * available.
+   *
+   * @param userId      User to be deleted
+   * @param currentUser User performing the edit operation
+   * @return Operation result
+   */
+  OperationCompletionRS deleteUser(Long userId, ReportPortalUser currentUser);
 
 	DeleteBulkRS deleteUsers(List<Long> ids, ReportPortalUser currentUser);
 

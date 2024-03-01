@@ -16,9 +16,19 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
+import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -36,6 +46,10 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -43,180 +57,175 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.Map;
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @ExtendWith(MockitoExtension.class)
 class FinishTestItemHandlerImplTest {
 
-	@Mock
-	private TestItemRepository repository;
+  @Mock
+  private TestItemRepository repository;
 
-	@Mock
-	private LaunchRepository launchRepository;
+  @Mock
+  private LaunchRepository launchRepository;
 
-	@Mock
-	private IssueTypeHandler issueTypeHandler;
+  @Mock
+  private IssueTypeHandler issueTypeHandler;
 
-	@Mock
-	private Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
+  @Mock
+  private Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
-	@Mock
-	private StatusChangingStrategy statusChangingStrategy;
+  @Mock
+  private StatusChangingStrategy statusChangingStrategy;
 
-	@Mock
-	private IssueEntityRepository issueEntityRepository;
+  @Mock
+  private IssueEntityRepository issueEntityRepository;
 
-	@Mock
-	private MessageBus messageBus;
+  @Mock
+  private MessageBus messageBus;
 
-	@Mock
-	private ApplicationEventPublisher eventPublisher;
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
 
-	@InjectMocks
-	private FinishTestItemHandlerImpl handler;
+  @InjectMocks
+  private FinishTestItemHandlerImpl handler;
 
-	@Test
-	void finishNotExistedTestItem() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
-		when(repository.findByUuid("1")).thenReturn(Optional.empty());
-		final ReportPortalException exception = assertThrows(
-				ReportPortalException.class,
-				() -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1", new FinishTestItemRQ())
-		);
-		assertEquals("Test Item '1' not found. Did you use correct Test Item ID?", exception.getMessage());
-	}
+  @Test
+  void finishNotExistedTestItem() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    when(repository.findByUuid("1")).thenReturn(Optional.empty());
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+            new FinishTestItemRQ()
+        )
+    );
+    assertEquals("Test Item '1' not found. Did you use correct Test Item ID?",
+        exception.getMessage()
+    );
+  }
 
-	@Test
-	void finishTestItemUnderNotExistedLaunch() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
-		TestItem item = new TestItem();
-		TestItemResults results = new TestItemResults();
-		results.setStatus(StatusEnum.IN_PROGRESS);
-		item.setItemResults(results);
-		item.setItemId(1L);
-		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
+  @Test
+  void finishTestItemUnderNotExistedLaunch() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    TestItem item = new TestItem();
+    TestItemResults results = new TestItemResults();
+    results.setStatus(StatusEnum.IN_PROGRESS);
+    item.setItemResults(results);
+    item.setItemId(1L);
+    when(repository.findByUuid("1")).thenReturn(Optional.of(item));
 
-		final ReportPortalException exception = assertThrows(
-				ReportPortalException.class,
-				() -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1", new FinishTestItemRQ())
-		);
-		assertEquals("Launch '' not found. Did you use correct Launch ID?", exception.getMessage());
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+            new FinishTestItemRQ()
+        )
+    );
+    assertEquals("Launch '' not found. Did you use correct Launch ID?", exception.getMessage());
+  }
 
-	@Test
-	void finishTestItemByNotLaunchOwner() {
-		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
-		TestItem item = new TestItem();
-		Launch launch = new Launch();
-		launch.setId(1L);
-		launch.setProjectId(1L);
-		User user = new User();
-		user.setId(2L);
-		user.setLogin("owner");
-		launch.setUserId(user.getId());
-		item.setItemId(1L);
-		item.setLaunchId(launch.getId());
-		item.setHasChildren(false);
-		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
-		TestItemResults results = new TestItemResults();
-		results.setStatus(StatusEnum.IN_PROGRESS);
-		item.setItemResults(results);
-		item.setItemId(1L);
-		when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
+  @Test
+  void finishTestItemByNotLaunchOwner() {
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+    TestItem item = new TestItem();
+    Launch launch = new Launch();
+    launch.setId(1L);
+    launch.setProjectId(1L);
+    User user = new User();
+    user.setId(2L);
+    user.setLogin("owner");
+    launch.setUserId(user.getId());
+    item.setItemId(1L);
+    item.setLaunchId(launch.getId());
+    item.setHasChildren(false);
+    when(repository.findByUuid("1")).thenReturn(Optional.of(item));
+    TestItemResults results = new TestItemResults();
+    results.setStatus(StatusEnum.IN_PROGRESS);
+    item.setItemResults(results);
+    item.setItemId(1L);
+    when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
 
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+            new FinishTestItemRQ()
+        )
+    );
+    assertEquals("Finish test item is not allowed. You are not a launch owner.",
+        exception.getMessage()
+    );
+  }
 
-		final ReportPortalException exception = assertThrows(
-				ReportPortalException.class,
-				() -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1", new FinishTestItemRQ())
-		);
-		assertEquals("Finish test item is not allowed. You are not a launch owner.", exception.getMessage());
-	}
+  @Test
+  void finishStepItemWithoutProvidedStatus() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    TestItem item = new TestItem();
+    item.setItemId(1L);
+    TestItemResults results = new TestItemResults();
+    results.setStatus(StatusEnum.IN_PROGRESS);
+    item.setItemResults(results);
+    Launch launch = new Launch();
+    launch.setId(1L);
+    launch.setUserId(1L);
+    launch.setProjectId(1L);
+    item.setLaunchId(launch.getId());
+    item.setHasChildren(false);
+    when(repository.findByUuid("1")).thenReturn(Optional.of(item));
+    when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
 
-	@Test
-	void finishStepItemWithoutProvidedStatus() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
-		TestItem item = new TestItem();
-		item.setItemId(1L);
-		TestItemResults results = new TestItemResults();
-		results.setStatus(StatusEnum.IN_PROGRESS);
-		item.setItemResults(results);
-		Launch launch = new Launch();
-		launch.setId(1L);
-		launch.setUserId(1L);
-		launch.setProjectId(1L);
-		item.setLaunchId(launch.getId());
-		item.setHasChildren(false);
-		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
-		when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+            new FinishTestItemRQ()
+        )
+    );
+    assertEquals(
+        "Test item status is ambiguous. There is no status provided from request and there are no descendants to check statistics for test item id '1'",
+        exception.getMessage()
+    );
+  }
 
-		final ReportPortalException exception = assertThrows(
-				ReportPortalException.class,
-				() -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1", new FinishTestItemRQ())
-		);
-		assertEquals(
-				"Test item status is ambiguous. There is no status provided from request and there are no descendants to check statistics for test item id '1'",
-				exception.getMessage()
-		);
-	}
+  @Test
+  void updateFinishedItemTest() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    TestItem item = new TestItem();
+    item.setItemId(1L);
+    TestItemResults results = new TestItemResults();
+    results.setStatus(StatusEnum.PASSED);
+    item.setItemResults(results);
+    Launch launch = new Launch();
+    launch.setId(1L);
+    launch.setUserId(1L);
+    launch.setProjectId(1L);
+    item.setStartTime(LocalDateTime.now().minusSeconds(5L));
+    item.setLaunchId(launch.getId());
+    item.setType(TestItemTypeEnum.STEP);
+    item.setHasStats(true);
+    item.setHasChildren(false);
+    when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
+    when(repository.findByUuid("1")).thenReturn(Optional.of(item));
+    when(repository.findIdByUuidForUpdate(any())).thenReturn(Optional.of(item.getItemId()));
+    when(repository.findById(item.getItemId())).thenReturn(Optional.of(item));
 
-	@Test
-	void updateFinishedItemTest() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
-		TestItem item = new TestItem();
-		item.setItemId(1L);
-		TestItemResults results = new TestItemResults();
-		results.setStatus(StatusEnum.PASSED);
-		item.setItemResults(results);
-		Launch launch = new Launch();
-		launch.setId(1L);
-		launch.setUserId(1L);
-		launch.setProjectId(1L);
-		item.setStartTime(LocalDateTime.now().minusSeconds(5L));
-		item.setLaunchId(launch.getId());
-		item.setType(TestItemTypeEnum.STEP);
-		item.setHasStats(true);
-		item.setHasChildren(false);
-		when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
-		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
-		when(repository.findIdByUuidForUpdate(any())).thenReturn(Optional.of(item.getItemId()));
-		when(repository.findById(item.getItemId())).thenReturn(Optional.of(item));
+    IssueType issueType = new IssueType();
+    issueType.setLocator("123");
+    issueType.setIssueGroup(new IssueGroup());
+    issueType.setLongName("123123");
+    issueType.setHexColor("#1232asd");
+    issueType.setShortName("short");
 
-		IssueType issueType = new IssueType();
-		issueType.setLocator("123");
-		issueType.setIssueGroup(new IssueGroup());
-		issueType.setLongName("123123");
-		issueType.setHexColor("#1232asd");
-		issueType.setShortName("short");
+    when(issueTypeHandler.defineIssueType(any(), any())).thenReturn(issueType);
+    when(statusChangingStrategyMapping.get(any(StatusEnum.class))).thenReturn(
+        statusChangingStrategy);
 
-		when(issueTypeHandler.defineIssueType(any(), any())).thenReturn(issueType);
-		when(statusChangingStrategyMapping.get(any(StatusEnum.class))).thenReturn(statusChangingStrategy);
+    FinishTestItemRQ finishExecutionRQ = new FinishTestItemRQ();
+    finishExecutionRQ.setStatus("FAILED");
+    finishExecutionRQ.setEndTime(new Date());
 
-		FinishTestItemRQ finishExecutionRQ = new FinishTestItemRQ();
-		finishExecutionRQ.setStatus("FAILED");
-		finishExecutionRQ.setEndTime(new Date());
+    OperationCompletionRS operationCompletionRS =
+        handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+            finishExecutionRQ
+        );
 
-		OperationCompletionRS operationCompletionRS = handler.finishTestItem(rpUser,
-				extractProjectDetails(rpUser, "test_project"),
-				"1",
-				finishExecutionRQ
-		);
-
-		verify(statusChangingStrategy, times(1)).changeStatus(any(), any(), any());
-		verify(issueEntityRepository, times(1)).save(any());
-		verify(messageBus, times(1)).publishActivity(any());
-		verify(eventPublisher, times(1)).publishEvent(any(ItemFinishedEvent.class));
-	}
+    verify(statusChangingStrategy, times(1)).changeStatus(any(), any(), any(), eq(false));
+    verify(issueEntityRepository, times(1)).save(any());
+    verify(messageBus, times(1)).publishActivity(any());
+    verify(eventPublisher, times(1)).publishEvent(any(IssueResolvedEvent.class));
+  }
 }

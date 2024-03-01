@@ -24,7 +24,6 @@ import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
-
 import java.util.List;
 
 /**
@@ -32,26 +31,30 @@ import java.util.List;
  */
 public class BasicLaunchMergeStrategy extends AbstractLaunchMergeStrategy {
 
-	private final StatisticsCalculationFactory statisticsCalculationFactory;
+  private final StatisticsCalculationFactory statisticsCalculationFactory;
 
-	public BasicLaunchMergeStrategy(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			LogRepository logRepository, AttachmentRepository attachmentRepository, TestItemUniqueIdGenerator identifierGenerator,
-			StatisticsCalculationFactory statisticsCalculationFactory) {
-		super(launchRepository, testItemRepository, logRepository, attachmentRepository, identifierGenerator);
-		this.statisticsCalculationFactory = statisticsCalculationFactory;
-	}
+  public BasicLaunchMergeStrategy(LaunchRepository launchRepository,
+      TestItemRepository testItemRepository,
+      LogRepository logRepository, AttachmentRepository attachmentRepository,
+      TestItemUniqueIdGenerator identifierGenerator,
+      StatisticsCalculationFactory statisticsCalculationFactory) {
+    super(launchRepository, testItemRepository, logRepository, attachmentRepository,
+        identifierGenerator);
+    this.statisticsCalculationFactory = statisticsCalculationFactory;
+  }
 
-	@Override
-	public Launch mergeLaunches(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, MergeLaunchesRQ rq,
-			List<Launch> launchesList) {
+  @Override
+  public Launch mergeLaunches(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      MergeLaunchesRQ rq,
+      List<Launch> launchesList) {
 
-		Launch newLaunch = createNewLaunch(projectDetails, user, rq, launchesList);
+    Launch newLaunch = createNewLaunch(projectDetails, user, rq, launchesList);
 
-		newLaunch.setStatistics(statisticsCalculationFactory.getStrategy(MergeStrategyType.BASIC)
-				.recalculateLaunchStatistics(newLaunch, launchesList));
+    newLaunch.setStatistics(statisticsCalculationFactory.getStrategy(MergeStrategyType.BASIC)
+        .recalculateLaunchStatistics(newLaunch, launchesList));
 
-		launchRepository.save(newLaunch);
-		return newLaunch;
+    launchRepository.save(newLaunch);
+    return newLaunch;
 
-	}
+  }
 }

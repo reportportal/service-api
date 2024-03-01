@@ -24,10 +24,10 @@ package com.epam.ta.reportportal.exception;
 // TODO add mapping for this exception
 public class HandlerNotDefinedException extends RuntimeException {
 
-	private static final long serialVersionUID = 7447853618838625617L;
+  private static final long serialVersionUID = 7447853618838625617L;
 
-	public HandlerNotDefinedException(String message) {
-		super(message);
-	}
+  public HandlerNotDefinedException(String message) {
+    super(message);
+  }
 
 }

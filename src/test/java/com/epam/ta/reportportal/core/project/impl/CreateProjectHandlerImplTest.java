@@ -16,6 +16,11 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -23,18 +28,12 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -42,45 +41,52 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CreateProjectHandlerImplTest {
 
-	@Mock
-	private ProjectRepository projectRepository;
+  @Mock
+  private ProjectRepository projectRepository;
 
-	@Mock
-	private UserRepository userRepository;
+  @Mock
+  private UserRepository userRepository;
 
-	@InjectMocks
-	private CreateProjectHandlerImpl handler;
+  @InjectMocks
+  private CreateProjectHandlerImpl handler;
 
-	@Test
-	void createProjectWithWrongType() {
-		ReportPortalUser rpUser = getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+  @Test
+  void createProjectWithWrongType() {
+    ReportPortalUser rpUser = getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+        1L);
 
-		CreateProjectRQ createProjectRQ = new CreateProjectRQ();
-		String projectName = "projectName";
-		createProjectRQ.setProjectName(projectName);
-		createProjectRQ.setEntryType("wrongType");
+    CreateProjectRQ createProjectRQ = new CreateProjectRQ();
+    String projectName = "projectName";
+    createProjectRQ.setProjectName(projectName);
+    createProjectRQ.setEntryType("wrongType");
 
-		when(projectRepository.findByName(projectName.toLowerCase().trim())).thenReturn(Optional.empty());
+    when(projectRepository.findByName(projectName.toLowerCase().trim())).thenReturn(
+        Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.createProject(createProjectRQ, rpUser));
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.createProject(createProjectRQ, rpUser));
 
-		assertEquals("Error in handled Request. Please, check specified parameters: 'wrongType'", exception.getMessage());
-	}
+    assertEquals("Error in handled Request. Please, check specified parameters: 'wrongType'",
+        exception.getMessage());
+  }
 
-	@Test
-	void createProjectByNotExistUser() {
-		ReportPortalUser rpUser = getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+  @Test
+  void createProjectByNotExistUser() {
+    ReportPortalUser rpUser = getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+        1L);
 
-		CreateProjectRQ createProjectRQ = new CreateProjectRQ();
-		String projectName = "projectName";
-		createProjectRQ.setProjectName(projectName);
-		createProjectRQ.setEntryType("internal");
+    CreateProjectRQ createProjectRQ = new CreateProjectRQ();
+    String projectName = "projectName";
+    createProjectRQ.setProjectName(projectName);
+    createProjectRQ.setEntryType("internal");
 
-		when(projectRepository.findByName(projectName.toLowerCase().trim())).thenReturn(Optional.empty());
-		when(userRepository.findRawById(rpUser.getUserId())).thenReturn(Optional.empty());
+    when(projectRepository.findByName(projectName.toLowerCase().trim())).thenReturn(
+        Optional.empty());
+    when(userRepository.findRawById(rpUser.getUserId())).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.createProject(createProjectRQ, rpUser));
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.createProject(createProjectRQ, rpUser));
 
-		assertEquals("User 'user' not found.", exception.getMessage());
-	}
+    assertEquals("User 'user' not found.", exception.getMessage());
+  }
 }

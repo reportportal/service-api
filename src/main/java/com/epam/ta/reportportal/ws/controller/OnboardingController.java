@@ -29,15 +29,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/onboarding")
 public class OnboardingController {
 
-    private final OnboardingService onboardingService;
+  private final OnboardingService onboardingService;
 
-    public OnboardingController(OnboardingService onboardingService) {
-        this.onboardingService = onboardingService;
-    }
+  public OnboardingController(OnboardingService onboardingService) {
+    this.onboardingService = onboardingService;
+  }
 
-    /**
-     * Provide unstructured onboarding information. Possible json or string(html, js, etc), or something else.
-     */
+  /**
+   * Provide unstructured onboarding information. Possible json or string(html, js, etc), or
+   * something else.
+   */
     @GetMapping(value = { "" })
     @ApiOperation("Return onboarding information for page if available, -1 otherwise")
     public Object onBoarding(@RequestParam(value = "page", defaultValue = "GENERAL") String page) {

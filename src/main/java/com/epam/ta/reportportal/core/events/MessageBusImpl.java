@@ -17,11 +17,7 @@
 package com.epam.ta.reportportal.core.events;
 
 import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.EXCHANGE_ACTIVITY;
-import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.EXCHANGE_ATTACHMENT;
-import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.EXCHANGE_EVENTS;
-import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.QUEUE_ATTACHMENT_DELETE;
 
-import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import java.util.Objects;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -36,17 +32,12 @@ public class MessageBusImpl implements MessageBus {
 
   @Override
   public void publish(String exchange, String route, Object o) {
-    this.amqpTemplate.convertAndSend(exchange, route, o);
+    amqpTemplate.convertAndSend(exchange, route, o);
   }
 
   @Override
   public void publish(String route, Object o) {
-    this.amqpTemplate.convertSendAndReceive(route, o);
-  }
-
-  @Override
-  public void broadcastEvent(Object o) {
-    this.amqpTemplate.convertAndSend(EXCHANGE_EVENTS, "", o);
+    amqpTemplate.convertAndSend(route, o);
   }
 
   /**
@@ -68,12 +59,5 @@ public class MessageBusImpl implements MessageBus {
         activity.getProjectId(),
         activity.getObjectType(),
         activity.getEventName());
-  }
-
-  @Override
-  public void publishDeleteAttachmentEvent(DeleteAttachmentEvent event) {
-
-    amqpTemplate.convertAndSend(EXCHANGE_ATTACHMENT, QUEUE_ATTACHMENT_DELETE, event);
-
   }
 }

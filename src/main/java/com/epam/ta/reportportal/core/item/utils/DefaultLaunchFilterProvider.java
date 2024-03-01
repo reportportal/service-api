@@ -16,6 +16,12 @@
 
 package com.epam.ta.reportportal.core.item.utils;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
+import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_STATUS;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -33,60 +39,58 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
-import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_STATUS;
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class DefaultLaunchFilterProvider {
 
-	public static Pair<Queryable, Pageable> createDefaultLaunchQueryablePair(ReportPortalUser.ProjectDetails projectDetails,
-			UserFilter userFilter, int launchesLimit) {
-		Queryable launchFilter = createLaunchFilter(projectDetails, userFilter);
-		Pageable launchPageable = createLaunchPageable(userFilter, launchesLimit);
-		return Pair.of(launchFilter, launchPageable);
-	}
+  public static Pair<Queryable, Pageable> createDefaultLaunchQueryablePair(
+      ReportPortalUser.ProjectDetails projectDetails,
+      UserFilter userFilter, int launchesLimit) {
+    Queryable launchFilter = createLaunchFilter(projectDetails, userFilter);
+    Pageable launchPageable = createLaunchPageable(userFilter, launchesLimit);
+    return Pair.of(launchFilter, launchPageable);
+  }
 
-	private static Filter createLaunchFilter(ReportPortalUser.ProjectDetails projectDetails, UserFilter launchFilter) {
+  private static Filter createLaunchFilter(ReportPortalUser.ProjectDetails projectDetails,
+      UserFilter launchFilter) {
 
-		validateLaunchFilterTarget(launchFilter);
+    validateLaunchFilterTarget(launchFilter);
 
-		Filter filter = Filter.builder()
-				.withTarget(launchFilter.getTargetClass().getClassObject())
-				.withCondition(FilterCondition.builder().eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build())
-				.withCondition(FilterCondition.builder()
-						.withCondition(Condition.NOT_EQUALS)
-						.withSearchCriteria(CRITERIA_LAUNCH_STATUS)
-						.withValue(StatusEnum.IN_PROGRESS.name())
-						.build())
-				.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, Mode.DEFAULT.toString()).build())
-				.build();
-		filter.getFilterConditions().addAll(launchFilter.getFilterCondition());
-		return filter;
-	}
+    Filter filter = Filter.builder()
+        .withTarget(launchFilter.getTargetClass().getClassObject())
+        .withCondition(FilterCondition.builder()
+            .eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build())
+        .withCondition(FilterCondition.builder()
+            .withCondition(Condition.NOT_EQUALS)
+            .withSearchCriteria(CRITERIA_LAUNCH_STATUS)
+            .withValue(StatusEnum.IN_PROGRESS.name())
+            .build())
+        .withCondition(
+            FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, Mode.DEFAULT.toString()).build())
+        .build();
+    filter.getFilterConditions().addAll(launchFilter.getFilterCondition());
+    return filter;
+  }
 
-	private static void validateLaunchFilterTarget(UserFilter launchFilter) {
-		BusinessRule.expect(launchFilter, f -> ObjectType.Launch.equals(f.getTargetClass()))
-				.verify(ErrorType.BAD_REQUEST_ERROR,
-						Suppliers.formattedSupplier("Incorrect filter target - '{}'. Allowed: '{}'",
-								launchFilter.getTargetClass(),
-								ObjectType.Launch
-						)
-				);
-	}
+  private static void validateLaunchFilterTarget(UserFilter launchFilter) {
+    BusinessRule.expect(launchFilter, f -> ObjectType.Launch.equals(f.getTargetClass()))
+        .verify(ErrorType.BAD_REQUEST_ERROR,
+            Suppliers.formattedSupplier("Incorrect filter target - '{}'. Allowed: '{}'",
+                launchFilter.getTargetClass(),
+                ObjectType.Launch
+            )
+        );
+  }
 
-	private static Pageable createLaunchPageable(UserFilter launchFilter, int launchesLimit) {
+  private static Pageable createLaunchPageable(UserFilter launchFilter, int launchesLimit) {
 
-		BusinessRule.expect(launchesLimit, limit -> limit > 0)
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Launches limit should be greater than 0");
+    BusinessRule.expect(launchesLimit, limit -> limit > 0)
+        .verify(ErrorType.BAD_REQUEST_ERROR, "Launches limit should be greater than 0");
 
-		Sort sort = ofNullable(launchFilter.getFilterSorts()).map(sorts -> Sort.by(sorts.stream()
-				.map(s -> Sort.Order.by(s.getField()).with(s.getDirection()))
-				.collect(toList()))).orElseGet(Sort::unsorted);
-		return PageRequest.of(0, launchesLimit, sort);
-	}
+    Sort sort = ofNullable(launchFilter.getFilterSorts()).map(sorts -> Sort.by(sorts.stream()
+        .map(s -> Sort.Order.by(s.getField()).with(s.getDirection()))
+        .collect(toList()))).orElseGet(Sort::unsorted);
+    return PageRequest.of(0, launchesLimit, sort);
+  }
 }

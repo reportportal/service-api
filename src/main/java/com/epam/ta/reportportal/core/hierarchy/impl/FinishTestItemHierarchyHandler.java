@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.core.hierarchy.impl;
 
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.core.hierarchy.AbstractFinishHierarchyHandler;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.core.item.impl.retry.RetryHandler;
@@ -26,14 +29,10 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.function.Function;
-
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
-import static java.util.Optional.ofNullable;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -41,38 +40,44 @@ import static java.util.Optional.ofNullable;
 @Service("finishTestItemHierarchyHandler")
 public class FinishTestItemHierarchyHandler extends AbstractFinishHierarchyHandler<TestItem> {
 
-	public FinishTestItemHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository, RetryHandler retryHandler,
-			IssueTypeHandler issueTypeHandler, ChangeStatusHandler changeStatusHandler) {
-		super(launchRepository,
-				testItemRepository,
-				itemAttributeRepository,
-				issueEntityRepository,
-				retryHandler,
-				issueTypeHandler,
-				changeStatusHandler
-		);
-	}
+  public FinishTestItemHierarchyHandler(LaunchRepository launchRepository,
+      TestItemRepository testItemRepository,
+      ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository,
+      RetryHandler retryHandler,
+      IssueTypeHandler issueTypeHandler, ChangeStatusHandler changeStatusHandler) {
+    super(launchRepository,
+        testItemRepository,
+        itemAttributeRepository,
+        issueEntityRepository,
+        retryHandler,
+        issueTypeHandler,
+        changeStatusHandler
+    );
+  }
 
-	@Override
-	protected boolean isIssueRequired(StatusEnum status, TestItem testItem) {
-		return FAILED.equals(status) || ofNullable(testItem.getLaunchId()).map(launchId -> evaluateSkippedAttributeValue(status, launchId))
-				.orElse(false);
-	}
+  @Override
+  protected boolean isIssueRequired(StatusEnum status, TestItem testItem) {
+    return FAILED.equals(status) || ofNullable(testItem.getLaunchId()).map(
+            launchId -> evaluateSkippedAttributeValue(status, launchId))
+        .orElse(false);
+  }
 
-	@Override
-	protected Function<Pageable, List<Long>> getItemIdsFunction(boolean hasChildren, TestItem testItem, StatusEnum status) {
-		return hasChildren ?
-				pageable -> testItemRepository.findIdsByHasChildrenAndParentPathAndStatusOrderedByPathLevel(testItem.getPath(),
-						StatusEnum.IN_PROGRESS,
-						pageable.getPageSize(),
-						pageable.getOffset()
-				) :
-				pageable -> testItemRepository.findIdsByNotHasChildrenAndParentPathAndStatus(testItem.getPath(),
-						status,
-						pageable.getPageSize(),
-						pageable.getOffset()
-				);
-	}
+  @Override
+  protected Function<Pageable, List<Long>> getItemIdsFunction(boolean hasChildren,
+      TestItem testItem, StatusEnum status) {
+    return hasChildren ?
+        pageable -> testItemRepository.findIdsByHasChildrenAndParentPathAndStatusOrderedByPathLevel(
+            testItem.getPath(),
+            StatusEnum.IN_PROGRESS,
+            pageable.getPageSize(),
+            pageable.getOffset()
+        ) :
+        pageable -> testItemRepository.findIdsByNotHasChildrenAndParentPathAndStatus(
+            testItem.getPath(),
+            status,
+            pageable.getPageSize(),
+            pageable.getOffset()
+        );
+  }
 
 }

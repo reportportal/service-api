@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.analyzer.auto.client;
 
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -27,59 +26,62 @@ import java.util.Map;
  */
 public interface IndexerServiceClient {
 
-	/**
-	 * Remove documents with specified ids from index
-	 *
-	 * @param index Index to to be cleaned
-	 * @param ids   Document ids to be deleted from index
-	 * @return Amount of deleted logs
-	 */
-	Long cleanIndex(Long index, List<Long> ids);
+  /**
+   * Remove documents with specified ids from index
+   *
+   * @param index Index to to be cleaned
+   * @param ids   Document ids to be deleted from index
+   * @return Amount of deleted logs
+   */
+  Long cleanIndex(Long index, List<Long> ids);
 
-	/**
-	 * Delete index
-	 *
-	 * @param index Index to be deleted
-	 */
-	void deleteIndex(Long index);
+  /**
+   * Delete index
+   *
+   * @param index Index to be deleted
+   */
+  void deleteIndex(Long index);
 
-	/**
-	 * Index list of launches
-	 *
-	 * @param rq Launches
-	 * @return Count of indexed test items
-	 */
-	Long index(List<IndexLaunch> rq);
+  /**
+   * Index list of launches
+   *
+   * @param rq Launches
+   */
+  void index(List<IndexLaunch> rq);
 
-	/**
-	 * Sends a message to the queue with a map of items which must be updated with a new issue type
-	 *
-	 * @param itemsForIndexUpdate Pair of itemId - issue type
-	 * @return List of missed items in analyzer
-	 */
-	List<Long> indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate);
+  /**
+   * Sends a message to the queue with a map of items which must be updated with a new issue type
+   *
+   * @param projectId Project id
+   * @param itemsForIndexUpdate Pair of itemId - issue type
+   * @return List of missed items in analyzer
+   */
+  List<Long> indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate);
 
-	/**
-	 * Sends a message to the queue with a list of items which must be removed from index
-	 * and receive number of removed objects as a response.
-	 *
-	 * @param itemsForIndexRemove List of item ids
-	 * @return number of removed objects
-	 */
-	Integer indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove);
+  /**
+   * Sends a message to the queue with a list of items which must be removed from index and receive
+   * number of removed objects as a response.
+   *
+   * @param projectId Project id
+   * @param itemsForIndexRemove List of item ids
+   * @return number of removed objects
+   */
+  Integer indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove);
 
-	/**
-	 * Sends a message to the queue with a list of items which must be removed from index
-	 *
-	 * @param itemsForIndexRemove List of item ids
-	 */
-	void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove);
+  /**
+   * Sends a message to the queue with a list of items which must be removed from index
+   *
+   * @param projectId Project id
+   * @param itemsForIndexRemove List of item ids
+   */
+  void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove);
 
-	/**
-	 * Sends a message to the queue with a list of launches which must be removed from index
-	 *
-	 * @param launchesForIndexRemove List of launhces ids
-	 */
-	void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove);
+  /**
+   * Sends a message to the queue with a list of launches which must be removed from index
+   *
+   * @param projectId Project id
+   * @param launchesForIndexRemove List of launhces ids
+   */
+  void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove);
 
 }

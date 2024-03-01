@@ -38,6 +38,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.USER_NOT_FOUND;
 import com.epam.ta.reportportal.auth.authenticator.UserAuthenticator;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.events.activity.CreateInvitationLinkEvent;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.project.CreateProjectHandler;
@@ -47,6 +48,7 @@ import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.dao.RestorePasswordBidRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.Metadata;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -75,6 +77,8 @@ import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRS;
 import com.epam.ta.reportportal.ws.model.user.ResetPasswordRQ;
 import com.epam.ta.reportportal.ws.model.user.RestorePasswordRQ;
+import com.google.common.collect.Maps;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import javax.persistence.PersistenceException;
@@ -95,6 +99,9 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class CreateUserHandlerImpl implements CreateUserHandler {
+
+  public static final String BID_TYPE = "type";
+  public static final String INTERNAL_BID_TYPE = "internal";
 
   private final UserRepository userRepository;
 
@@ -156,7 +163,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
     normalize(request);
 
-    Pair<UserActivityResource, CreateUserRS> pair = saveUser(request, administrator);
+    Pair<UserActivityResource, CreateUserRS> pair = saveUser(request, administrator, false);
 
     emailExecutorService.execute(() -> emailServiceFactory.getDefaultEmailService(true)
         .sendCreateUserConfirmationEmail(request, basicUrl));
@@ -205,7 +212,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   }
 
   private Pair<UserActivityResource, CreateUserRS> saveUser(CreateUserRQFull request,
-      User creator) {
+      User creator, boolean isSystemEvent) {
 
     final Project projectToAssign =
         getProjectHandler.getRaw(normalizeId(request.getDefaultProject()));
@@ -220,7 +227,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
       userRepository.save(user);
       UserActivityResource userActivityResource = getUserActivityResource(user);
       UserCreatedEvent userCreatedEvent = new UserCreatedEvent(userActivityResource,
-          creator.getId(), creator.getLogin());
+          creator.getId(), creator.getLogin(), isSystemEvent);
       eventPublisher.publishEvent(userCreatedEvent);
     } catch (PersistenceException pe) {
       if (pe.getCause() instanceof ConstraintViolationException) {
@@ -234,9 +241,9 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
     userAuthenticator.authenticate(user);
 
-    projectUserHandler.assign(user, projectToAssign, projectRole, creator);
+    projectUserHandler.assign(user, projectToAssign, projectRole, creator, false);
     final Project personalProject = createProjectHandler.createPersonal(user);
-    projectUserHandler.assign(user, personalProject, ProjectRole.PROJECT_MANAGER, creator);
+    projectUserHandler.assign(user, personalProject, ProjectRole.PROJECT_MANAGER, creator, isSystemEvent);
 
     final CreateUserRS response = new CreateUserRS();
     response.setId(user.getId());
@@ -265,7 +272,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   @Override
   @Transactional
   public CreateUserRS createUser(CreateUserRQConfirm request, String uuid) {
-    final UserCreationBid bid = userCreationBidRepository.findById(uuid)
+    final UserCreationBid bid = userCreationBidRepository.findByUuidAndType(uuid, INTERNAL_BID_TYPE)
         .orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST,
             "Impossible to register user. UUID expired or already registered."
         ));
@@ -277,7 +284,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
         "Email from bid not match.");
 
     User invitingUser = bid.getInvitingUser();
-    final Pair<UserActivityResource, CreateUserRS> pair = saveUser(createUserRQFull, invitingUser);
+    final Pair<UserActivityResource, CreateUserRS> pair = saveUser(createUserRQFull, invitingUser, true);
 
     userCreationBidRepository.deleteAllByEmail(createUserRQFull.getEmail());
 
@@ -291,7 +298,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     createUserRQFull.setEmail(request.getEmail());
     createUserRQFull.setFullName(request.getFullName());
     createUserRQFull.setPassword(request.getPassword());
-    createUserRQFull.setDefaultProject(bid.getDefaultProject().getName());
+    createUserRQFull.setDefaultProject(bid.getProjectName());
     createUserRQFull.setAccountRole(UserRole.USER.name());
     createUserRQFull.setProjectRole(bid.getRole());
     return createUserRQFull;
@@ -333,6 +340,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
         () -> new ReportPortalException(ROLE_NOT_FOUND, request.getRole())).name());
 
     UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(request, defaultProject);
+    bid.setMetadata(getUserCreationBidMetadata());
     bid.setInvitingUser(userRepository.getById(loggedInUser.getUserId()));
     try {
       userCreationBidRepository.save(bid);
@@ -346,6 +354,10 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
         .sendCreateUserConfirmationEmail("User registration confirmation",
             new String[] {bid.getEmail()}, emailLink.toString()));
 
+    eventPublisher.publishEvent(
+        new CreateInvitationLinkEvent(loggedInUser.getUserId(), loggedInUser.getUsername(),
+            defaultProject.getId()));
+
     CreateUserBidRS response = new CreateUserBidRS();
     String msg = "Bid for user creation with email '" + request.getEmail()
         + "' is successfully registered. Confirmation info will be send on provided email. "
@@ -355,6 +367,12 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     response.setBid(bid.getUuid());
     response.setBackLink(emailLink.toString());
     return response;
+  }
+
+  private Metadata getUserCreationBidMetadata() {
+    final Map<String, Object> meta = Maps.newHashMapWithExpectedSize(1);
+    meta.put(BID_TYPE, INTERNAL_BID_TYPE);
+    return new Metadata(meta);
   }
 
   @Override

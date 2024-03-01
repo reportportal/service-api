@@ -16,22 +16,26 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandler;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
 import io.swagger.annotations.ApiOperation;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
-
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Andrei_Ramanchuk
@@ -42,27 +46,28 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 @PreAuthorize(ADMIN_ONLY)
 public class SettingsController {
 
-	private final ServerAdminHandler serverHandler;
+  private final ServerAdminHandler serverHandler;
 
-	@Autowired
-	public SettingsController(ServerAdminHandler serverHandler) {
-		this.serverHandler = serverHandler;
-	}
+  @Autowired
+  public SettingsController(ServerAdminHandler serverHandler) {
+    this.serverHandler = serverHandler;
+  }
 
-	@Transactional
-	@RequestMapping(value = "/analytics", method = { RequestMethod.PUT, RequestMethod.POST })
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation(value = "Update analytics settings")
-	public OperationCompletionRS saveAnalyticsSettings(@RequestBody @Validated AnalyticsResource request,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return serverHandler.saveAnalyticsSettings(request);
-	}
+  @Transactional
+  @RequestMapping(value = "/analytics", method = {RequestMethod.PUT, RequestMethod.POST})
+  @ResponseStatus(HttpStatus.OK)
+  @ApiOperation(value = "Update analytics settings")
+  public OperationCompletionRS saveAnalyticsSettings(
+      @RequestBody @Validated AnalyticsResource request,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return serverHandler.saveAnalyticsSettings(request);
+  }
 
-	@Transactional(readOnly = true)
-	@GetMapping
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation(value = "Get server settings")
-	public Map<String, String> getServerSettings(@AuthenticationPrincipal ReportPortalUser user) {
-		return serverHandler.getServerSettings();
-	}
+  @Transactional(readOnly = true)
+  @GetMapping
+  @ResponseStatus(HttpStatus.OK)
+  @ApiOperation(value = "Get server settings")
+  public Map<String, String> getServerSettings(@AuthenticationPrincipal ReportPortalUser user) {
+    return serverHandler.getServerSettings();
+  }
 }

@@ -16,9 +16,14 @@
 
 package com.epam.ta.reportportal.demodata.service;
 
-import org.springframework.core.io.ClassPathResource;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_PDF_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
+import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
+import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
-import static org.springframework.http.MediaType.*;
+import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Pavel_Bortnik

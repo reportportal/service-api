@@ -24,7 +24,6 @@ import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
-
 import java.util.List;
 
 /**
@@ -32,19 +31,22 @@ import java.util.List;
  */
 public class DeepLaunchMergeStrategy extends AbstractLaunchMergeStrategy {
 
-	public DeepLaunchMergeStrategy(LaunchRepository launchRepository, TestItemRepository testItemRepository, LogRepository logRepository,
-			AttachmentRepository attachmentRepository, TestItemUniqueIdGenerator identifierGenerator) {
-		super(launchRepository, testItemRepository, logRepository, attachmentRepository, identifierGenerator);
-	}
+  public DeepLaunchMergeStrategy(LaunchRepository launchRepository,
+      TestItemRepository testItemRepository, LogRepository logRepository,
+      AttachmentRepository attachmentRepository, TestItemUniqueIdGenerator identifierGenerator) {
+    super(launchRepository, testItemRepository, logRepository, attachmentRepository,
+        identifierGenerator);
+  }
 
-	@Override
-	public Launch mergeLaunches(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, MergeLaunchesRQ rq,
-			List<Launch> launchesList) {
+  @Override
+  public Launch mergeLaunches(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      MergeLaunchesRQ rq,
+      List<Launch> launchesList) {
 
-		Launch newLaunch = createNewLaunch(projectDetails, user, rq, launchesList);
-		launchRepository.mergeLaunchTestItems(newLaunch.getId());
-		launchRepository.save(newLaunch);
-		launchRepository.refresh(newLaunch);
-		return newLaunch;
-	}
+    Launch newLaunch = createNewLaunch(projectDetails, user, rq, launchesList);
+    launchRepository.mergeLaunchTestItems(newLaunch.getId());
+    launchRepository.save(newLaunch);
+    launchRepository.refresh(newLaunch);
+    return newLaunch;
+  }
 }

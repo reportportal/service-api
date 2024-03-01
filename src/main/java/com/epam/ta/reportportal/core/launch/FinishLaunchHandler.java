@@ -29,16 +29,18 @@ import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
 
 public interface FinishLaunchHandler {
 
-	/**
-	 * Updates {@link Launch} instance
-	 *
-	 * @param launchId       ID of launch
-	 * @param finishLaunchRQ Request data
-	 * @param projectDetails Project Details
-	 * @param user           User
-	 * @return FinishLaunchRS
-	 */
-	FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, String baseUrl);
+  /**
+   * Updates {@link Launch} instance
+   *
+   * @param launchId       ID of launch
+   * @param finishLaunchRQ Request data
+   * @param projectDetails Project Details
+   * @param user           User
+   * @param baseUrl        Application base url
+   * @return FinishLaunchRS
+   */
+  FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ,
+      ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, String baseUrl);
 
 }

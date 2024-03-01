@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OwnedEntityResource;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
 import com.google.common.collect.Lists;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,18 +46,18 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 
-	private UserFilterRepository filterRepository;
-	private final ProjectExtractor projectExtractor;
+  private UserFilterRepository filterRepository;
+  private final ProjectExtractor projectExtractor;
 
-	@Autowired
-	public GetUserFilterHandlerImpl(ProjectExtractor projectExtractor) {
-		this.projectExtractor = projectExtractor;
-	}
+  @Autowired
+  public GetUserFilterHandlerImpl(ProjectExtractor projectExtractor) {
+    this.projectExtractor = projectExtractor;
+  }
 
-	@Autowired
-	public void setFilterRepository(UserFilterRepository filterRepository) {
-		this.filterRepository = filterRepository;
-	}
+  @Autowired
+  public void setFilterRepository(UserFilterRepository filterRepository) {
+    this.filterRepository = filterRepository;
+  }
 
 	@Override
 	public UserFilterResource getUserFilter(Long id, ReportPortalUser.ProjectDetails projectDetails) {
@@ -68,24 +69,28 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 		return UserFilterConverter.TO_FILTER_RESOURCE.apply(userFilter);
 	}
 
-	@Override
-	public Iterable<UserFilterResource> getUserFilters(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user, projectName);
-		Page<UserFilter> userFilters = filterRepository.findByFilter(ProjectFilter.of(filter, projectDetails.getProjectId()), pageable);
+  @Override
+  public Iterable<UserFilterResource> getUserFilters(String projectName, Pageable pageable, Filter filter,
+      ReportPortalUser user) {
+    ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user,
+        projectName);
+    Page<UserFilter> userFilters = filterRepository.findByFilter(ProjectFilter.of(filter, projectDetails.getProjectId()), pageable);
 		return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_FILTER_RESOURCE).apply(userFilters);
-	}
+  }
 
-	@Override
-	public Iterable<OwnedEntityResource> getFiltersNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+  @Override
+  public Iterable<OwnedEntityResource> getFiltersNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
 			ReportPortalUser user) {
-		final Page<UserFilter> userFilters = filterRepository.findByFilter(ProjectFilter.of(filter, projectDetails.getProjectId()),
-				pageable
-		);
-		return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_OWNED_ENTITY_RESOURCE).apply(userFilters);
-	}
+    final Page<UserFilter> userFilters = filterRepository.findByFilter(
+        ProjectFilter.of(filter, projectDetails.getProjectId()),
+        pageable
+    );
+    return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_OWNED_ENTITY_RESOURCE)
+        .apply(userFilters);
+  }
 
-	@Override
-	public List<UserFilter> getFiltersById(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+  @Override
+  public List<UserFilter> getFiltersById(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		return filterRepository.findAllByIdInAndProjectId(Lists.newArrayList(ids), projectDetails.getProjectId());
 	}
 }

@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.item.ExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
-
 import java.util.List;
 
 /**
@@ -33,46 +32,53 @@ import java.util.List;
  */
 public interface UpdateTestItemHandler {
 
-	/**
-	 * Define TestItem issue (or list of issues)
-	 *
-	 * @param projectDetails Project Details
-	 * @param defineIssue    issues request data
-	 * @param user           user
-	 * @return list of defined issues for specified test items
-	 */
-	List<Issue> defineTestItemsIssues(ReportPortalUser.ProjectDetails projectDetails, DefineIssueRQ defineIssue, ReportPortalUser user);
+  /**
+   * Define TestItem issue (or list of issues)
+   *
+   * @param projectDetails Project Details
+   * @param defineIssue    issues request data
+   * @param user           user
+   * @return list of defined issues for specified test items
+   */
+  List<Issue> defineTestItemsIssues(ReportPortalUser.ProjectDetails projectDetails,
+      DefineIssueRQ defineIssue, ReportPortalUser user);
 
-	/**
-	 * Update specified test item
-	 *
-	 * @param projectDetails Project Details
-	 * @param itemId         test item ID
-	 * @param rq             update test item request data
-	 * @param user           request principal name
-	 * @return OperationCompletionRS
-	 */
-	OperationCompletionRS updateTestItem(ReportPortalUser.ProjectDetails projectDetails, Long itemId, UpdateTestItemRQ rq,
-			ReportPortalUser user);
+  /**
+   * Update specified test item
+   *
+   * @param projectDetails Project Details
+   * @param itemId         test item ID
+   * @param rq             update test item request data
+   * @param user           request principal name
+   * @return OperationCompletionRS
+   */
+  OperationCompletionRS updateTestItem(ReportPortalUser.ProjectDetails projectDetails, Long itemId,
+      UpdateTestItemRQ rq,
+      ReportPortalUser user);
 
-	/**
-	 * Add or remove external system issue link directly to the {@link com.epam.ta.reportportal.entity.item.TestItem}
-	 *
-	 * @param request        {@link ExternalIssueRQ}
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @param user           {@link ReportPortalUser}
-	 * @return {@link List} of the {@link OperationCompletionRS}
-	 */
-	List<OperationCompletionRS> processExternalIssues(ExternalIssueRQ request, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+  /**
+   * Add or remove external system issue link directly to the
+   * {@link com.epam.ta.reportportal.entity.item.TestItem}
+   *
+   * @param request        {@link ExternalIssueRQ}
+   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param user           {@link ReportPortalUser}
+   * @return {@link List} of the {@link OperationCompletionRS}
+   */
+  List<OperationCompletionRS> processExternalIssues(ExternalIssueRQ request,
+      ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user);
 
-	/**
-	 * Resets items issue to default state
-	 *
-	 * @param itemIds   The {@link List} of the {@link com.epam.ta.reportportal.entity.item.TestItemResults#itemId}
-	 * @param projectId Project id
-	 */
-	void resetItemsIssue(List<Long> itemIds, Long projectId, ReportPortalUser user);
+  /**
+   * Resets items issue to default state
+   *
+   * @param itemIds   The {@link List} of the
+   *                  {@link com.epam.ta.reportportal.entity.item.TestItemResults#itemId}
+   * @param projectId Project id
+   * @param user      {@link ReportPortalUser}
+   */
+  void resetItemsIssue(List<Long> itemIds, Long projectId, ReportPortalUser user);
 
-	OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq, ReportPortalUser.ProjectDetails projectDetails);
+  OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq,
+      ReportPortalUser.ProjectDetails projectDetails);
 }

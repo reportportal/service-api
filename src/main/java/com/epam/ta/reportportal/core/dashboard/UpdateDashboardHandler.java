@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.dashboard;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.dashboard.AddWidgetRq;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
@@ -26,40 +27,43 @@ import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
  */
 public interface UpdateDashboardHandler {
 
-	/**
-	 * Update dashboard with specified id
-	 *
-	 * @param projectDetails Project details
-	 * @param rq             Update details
-	 * @param dashboardId    Dashboard id to be updated
-	 * @param user           User
-	 * @return OperationCompletionRS
-	 */
-	OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails, UpdateDashboardRQ rq, Long dashboardId,
-			ReportPortalUser user);
+  /**
+   * Update dashboard with specified id
+   *
+   * @param projectDetails Project details
+   * @param rq             Update details
+   * @param dashboardId    Dashboard id to be updated
+   * @param user           User
+   * @return OperationCompletionRS
+   */
+  OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails,
+      UpdateDashboardRQ rq, Long dashboardId,
+      ReportPortalUser user);
 
-	/**
-	 * Add a new widget to the specified dashboard
-	 *
-	 * @param dashboardId    Dashboard id
-	 * @param projectDetails Project details
-	 * @param rq             Widget details
-	 * @param user           User
-	 * @return OperationCompletionRS
-	 */
-	OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq,
-			ReportPortalUser user);
+  /**
+   * Add a new widget to the specified dashboard
+   *
+   * @param dashboardId    Dashboard id
+   * @param projectDetails Project details
+   * @param rq             Widget details
+   * @param user           User
+   * @return OperationCompletionRS
+   */
+  OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails,
+      AddWidgetRq rq,
+      ReportPortalUser user);
 
-	/**
-	 * Removes a specified widget from the specified dashboard
-	 *
-	 * @param widgetId       Widget id
-	 * @param dashboardId    Dashboard id
-	 * @param projectDetails Project details
-	 * @param user
-	 * @return OperationCompletionRS
-	 */
-	OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+  /**
+   * Removes a specified widget from the specified dashboard
+   *
+   * @param widgetId       Widget id
+   * @param dashboardId    Dashboard id
+   * @param projectDetails Project details
+   * @param user           {@link ReportPortalUser}
+   * @return OperationCompletionRS
+   */
+  OperationCompletionRS removeWidget(Long widgetId, Long dashboardId,
+      ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user);
 
 }

@@ -16,21 +16,20 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import java.util.Collections;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Collections;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -38,31 +37,33 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class IssueTypeHandlerTest {
 
-	@Mock
-	private TestItemRepository testItemRepository;
+  @Mock
+  private TestItemRepository testItemRepository;
 
-	@InjectMocks
-	private IssueTypeHandler issueTypeHandler;
+  @InjectMocks
+  private IssueTypeHandler issueTypeHandler;
 
-	@Test
-	void defineIssueTypeWithNullLocator() {
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> issueTypeHandler.defineIssueType(1L, null));
-		assertEquals("Locator should not be null", exception.getMessage());
-	}
+  @Test
+  void defineIssueTypeWithNullLocator() {
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> issueTypeHandler.defineIssueType(1L, null));
+    assertEquals("Locator should not be null", exception.getMessage());
+  }
 
-	@Test
-	void defineNotExistIssueType() {
-		when(testItemRepository.selectIssueTypeByLocator(2L, "not_exist")).thenReturn(Optional.empty());
-		IssueType issueType = new IssueType();
-		issueType.setLocator("exists");
-		when(testItemRepository.selectIssueLocatorsByProject(2L)).thenReturn(Collections.singletonList(issueType));
+  @Test
+  void defineNotExistIssueType() {
+    when(testItemRepository.selectIssueTypeByLocator(2L, "not_exist")).thenReturn(Optional.empty());
+    IssueType issueType = new IssueType();
+    issueType.setLocator("exists");
+    when(testItemRepository.selectIssueLocatorsByProject(2L)).thenReturn(
+        Collections.singletonList(issueType));
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> issueTypeHandler.defineIssueType(2L, "not_exist")
-		);
-		assertEquals(
-				"Test items issue type cannot be resolved. Invalid test item issue type definition 'not_exist' is requested. Valid issue types' locators are: [exists]",
-				exception.getMessage()
-		);
-	}
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> issueTypeHandler.defineIssueType(2L, "not_exist")
+    );
+    assertEquals(
+        "Test items issue type cannot be resolved. Invalid test item issue type definition 'not_exist' is requested. Valid issue types' locators are: [exists]",
+        exception.getMessage()
+    );
+  }
 }

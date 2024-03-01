@@ -19,42 +19,43 @@ package com.epam.ta.reportportal.core.project;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.enums.InfoInterval;
 import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
+import java.util.Map;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Map;
-
 /**
- * Get {@link com.epam.ta.reportportal.ws.model.project.ProjectInfoResource}
- * request handler
+ * Get {@link com.epam.ta.reportportal.ws.model.project.ProjectInfoResource} request handler
  *
  * @author Dzmitry_Kavalets
  */
 public interface GetProjectInfoHandler {
 
-	/**
-	 * Get all projects info
-	 *
-	 * @return
-	 */
-	Iterable<ProjectInfoResource> getAllProjectsInfo(Queryable filter, Pageable pageable);
+  /**
+   * Get all projects info
+   *
+   * @param filter  Queryable filter to apply on the projects
+   * @param pageable Pagination information for the results
+   * @return An {@link Iterable} of {@link ProjectInfoResource} containing information about all projects
+   */
+  Iterable<ProjectInfoResource> getAllProjectsInfo(Queryable filter, Pageable pageable);
 
-	/**
-	 * Get project info
-	 *
-	 * @param projectName Project name
-	 * @param interval    Interval
-	 * @return Project info resource
-	 */
-	ProjectInfoResource getProjectInfo(String projectName, String interval);
+  /**
+   * Get project info
+   *
+   * @param projectName Project name
+   * @param interval    Interval
+   * @return Project info resource
+   */
+  ProjectInfoResource getProjectInfo(String projectName, String interval);
 
-	/**
-	 * Get widget data content for specified project by specified
-	 * {@link InfoInterval} and {@link com.epam.ta.reportportal.entity.project.email.ProjectInfoWidget}
-	 *
-	 * @param projectName Project name
-	 * @param interval    Interval
-	 * @param widgetCode  Project Info Widget code
-	 * @return
-	 */
-	Map<String, ?> getProjectInfoWidgetContent(String projectName, String interval, String widgetCode);
+  /**
+   * Get widget data content for specified project by specified {@link InfoInterval} and
+   * {@link com.epam.ta.reportportal.entity.project.email.ProjectInfoWidget}
+   *
+   * @param projectName Project name
+   * @param interval    Interval
+   * @param widgetCode  Project Info Widget code
+   * @return Map of widget data content
+   */
+  Map<String, ?> getProjectInfoWidgetContent(String projectName, String interval,
+      String widgetCode);
 }

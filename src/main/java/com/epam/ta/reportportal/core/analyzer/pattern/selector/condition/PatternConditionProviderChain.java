@@ -20,21 +20,21 @@ import com.epam.ta.reportportal.commons.querygen.CompositeFilterCondition;
 import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl.AutoAnalyzedPatternConditionProvider;
+import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl.IgnoreImmediatePatternAnalysisConditionProvider;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl.ManualPatternConditionProvider;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl.ToInvestigatePatternConditionProvider;
 import com.epam.ta.reportportal.dao.IssueGroupRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
 import com.google.common.collect.Sets;
-import org.jooq.Operator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import org.jooq.Operator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -42,28 +42,31 @@ import java.util.stream.Collectors;
 @Component
 public class PatternConditionProviderChain {
 
-	private final Set<PatternConditionProvider> patternConditionProviders;
+  private final Set<PatternConditionProvider> patternConditionProviders;
 
-	@Autowired
-	public PatternConditionProviderChain(IssueGroupRepository issueGroupRepository) {
-		Supplier<IssueGroup> issueGroupSupplier = () -> issueGroupRepository.findByTestItemIssueGroup(TestItemIssueGroup.TO_INVESTIGATE);
-		this.patternConditionProviders = Sets.newHashSet(new AutoAnalyzedPatternConditionProvider(AnalyzeItemsMode.AUTO_ANALYZED),
-				new ManualPatternConditionProvider(AnalyzeItemsMode.MANUALLY_ANALYZED, issueGroupSupplier),
-				new ToInvestigatePatternConditionProvider(AnalyzeItemsMode.TO_INVESTIGATE,
-						issueGroupSupplier
-				)
-		);
-	}
+  @Autowired
+  public PatternConditionProviderChain(IssueGroupRepository issueGroupRepository) {
+    Supplier<IssueGroup> issueGroupSupplier = () -> issueGroupRepository.findByTestItemIssueGroup(
+        TestItemIssueGroup.TO_INVESTIGATE);
+    this.patternConditionProviders = Sets.newHashSet(
+        new AutoAnalyzedPatternConditionProvider(AnalyzeItemsMode.AUTO_ANALYZED),
+        new ManualPatternConditionProvider(AnalyzeItemsMode.MANUALLY_ANALYZED, issueGroupSupplier),
+        new ToInvestigatePatternConditionProvider(AnalyzeItemsMode.TO_INVESTIGATE,
+            issueGroupSupplier
+        ),
+        new IgnoreImmediatePatternAnalysisConditionProvider(AnalyzeItemsMode.IGNORE_IMMEDIATE)
+    );
+  }
 
-	public Optional<ConvertibleCondition> provideCondition(Set<AnalyzeItemsMode> analyzeItemsModes) {
-		List<ConvertibleCondition> convertibleConditions = patternConditionProviders.stream()
-				.map(provider -> provider.provideCondition(analyzeItemsModes))
-				.filter(Optional::isPresent)
-				.map(Optional::get)
-				.collect(Collectors.toList());
+  public Optional<ConvertibleCondition> provideCondition(Set<AnalyzeItemsMode> analyzeItemsModes) {
+    List<ConvertibleCondition> convertibleConditions = patternConditionProviders.stream()
+        .map(provider -> provider.provideCondition(analyzeItemsModes))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(Collectors.toList());
 
-		return convertibleConditions.isEmpty() ?
-				Optional.empty() :
-				Optional.of(new CompositeFilterCondition(convertibleConditions, Operator.AND));
-	}
+    return convertibleConditions.isEmpty() ?
+        Optional.empty() :
+        Optional.of(new CompositeFilterCondition(convertibleConditions, Operator.AND));
+  }
 }

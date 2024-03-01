@@ -23,37 +23,37 @@ import java.util.Objects;
  */
 public class TestCaseIdEntry {
 
-	private String id;
+  private String id;
 
-	private int hash;
+  private int hash;
 
-	public String getId() {
-		return id;
-	}
+  public String getId() {
+    return id;
+  }
 
-	public int getHash() {
-		return hash;
-	}
+  public int getHash() {
+    return hash;
+  }
 
-	TestCaseIdEntry(String id, int hash) {
-		this.id = isCropNeeded(id) ? cropTestCaseId(id) : id;
-		this.hash = hash;
-	}
+  TestCaseIdEntry(String id, int hash) {
+    this.id = isCropNeeded(id) ? cropTestCaseId(id) : id;
+    this.hash = hash;
+  }
 
-	TestCaseIdEntry(int hash) {
-		this.hash = hash;
-	}
+  TestCaseIdEntry(int hash) {
+    this.hash = hash;
+  }
 
-	public static TestCaseIdEntry empty() {
-		return new TestCaseIdEntry(0);
-	}
+  public static TestCaseIdEntry empty() {
+    return new TestCaseIdEntry(0);
+  }
 
-	private static boolean isCropNeeded(String testCaseId) {
-		return Objects.nonNull(testCaseId) && testCaseId.length() > 1024;
-	}
+  private static boolean isCropNeeded(String testCaseId) {
+    return Objects.nonNull(testCaseId) && testCaseId.length() > 1024;
+  }
 
-	private static String cropTestCaseId(String testCaseId) {
-		return testCaseId.substring(0, 1011) + "[" + testCaseId.substring(1011).hashCode() + "]";
-	}
+  private static String cropTestCaseId(String testCaseId) {
+    return testCaseId.substring(0, 1011) + "[" + testCaseId.substring(1011).hashCode() + "]";
+  }
 
 }

@@ -16,6 +16,13 @@
 
 package com.epam.ta.reportportal.core.configs;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ATTRIBUTE_NAME;
+import static com.google.common.base.Predicates.not;
+import static com.google.common.base.Predicates.or;
+import static com.google.common.collect.Lists.newArrayList;
+import static springfox.documentation.builders.RequestHandlerSelectors.basePackage;
+import static springfox.documentation.spi.schema.contexts.ModelContext.inputParam;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -30,6 +37,14 @@ import com.fasterxml.classmate.ResolvedType;
 import com.fasterxml.classmate.TypeResolver;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import java.sql.Timestamp;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import javax.servlet.ServletContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -58,22 +73,6 @@ import springfox.documentation.swagger.web.UiConfiguration;
 import springfox.documentation.swagger.web.UiConfigurationBuilder;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-import javax.servlet.ServletContext;
-import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ATTRIBUTE_NAME;
-import static com.google.common.base.Predicates.not;
-import static com.google.common.base.Predicates.or;
-import static com.google.common.collect.Lists.newArrayList;
-import static springfox.documentation.builders.RequestHandlerSelectors.basePackage;
-import static springfox.documentation.spi.schema.contexts.ModelContext.inputParam;
-
 /**
  * SWAGGER 2.0 UI page configuration for Report Portal application
  *
@@ -87,16 +86,17 @@ import static springfox.documentation.spi.schema.contexts.ModelContext.inputPara
 @ComponentScan(basePackages = "com.epam.ta.reportportal.ws.controller")
 public class Swagger2Configuration {
 
-	private static final Set<String> hiddenParams = ImmutableSet.<String>builder().add(CRITERIA_PROJECT_ATTRIBUTE_NAME).build();
+  private static final Set<String> hiddenParams = ImmutableSet.<String>builder()
+      .add(CRITERIA_PROJECT_ATTRIBUTE_NAME).build();
 
-	@Autowired
-	private ServletContext servletContext;
+  @Autowired
+  private ServletContext servletContext;
 
-	@Value("${spring.application.name}")
-	private String applicationName;
+  @Value("${spring.application.name}")
+  private String applicationName;
 
-	@Value("${info.build.version}")
-	private String buildVersion;
+  @Value("${info.build.version}")
+  private String buildVersion;
 
 	@Bean
 	public Docket docket() {
@@ -112,178 +112,193 @@ public class Swagger2Configuration {
 				Collections.emptyList()
 		);
 
-		// @formatter:off
-        Docket rpDocket = new Docket(DocumentationType.SWAGGER_2)
-                .ignoredParameterTypes(ReportPortalUser.class, Filter.class, Queryable.class, Pageable.class, UserRole.class)
-                .pathProvider(rpPathProvider())
-                .useDefaultResponseMessages(false)
-                /* remove default endpoints from listing */
-                .select().apis(not(or(
-                        basePackage("org.springframework.boot"),
-                        basePackage("org.springframework.cloud"))))
-                .build();
-        //@formatter:on
+    // @formatter:off
+    Docket rpDocket = new Docket(DocumentationType.SWAGGER_2)
+        .ignoredParameterTypes(ReportPortalUser.class, Filter.class, Queryable.class,
+            Pageable.class, UserRole.class)
+        .pathProvider(rpPathProvider())
+        .useDefaultResponseMessages(false)
+        /* remove default endpoints from listing */
+        .select().apis(not(or(
+            basePackage("org.springframework.boot"),
+            basePackage("org.springframework.cloud"))))
+        .build();
+    //@formatter:on
 
-		rpDocket.apiInfo(rpInfo);
-		return rpDocket;
-	}
+    rpDocket.apiInfo(rpInfo);
+    return rpDocket;
+  }
 
-	@Bean
-	public PathProvider rpPathProvider() {
-		return new RelativePathProvider(servletContext) {
-			@Override
-			public String getApplicationBasePath() {
-				return "/" + applicationName + super.getApplicationBasePath();
-			}
-		};
-	}
+  @Bean
+  public PathProvider rpPathProvider() {
+    return new RelativePathProvider(servletContext) {
+      @Override
+      public String getApplicationBasePath() {
+        if (super.getApplicationBasePath().contains(applicationName)) {
+          return super.getApplicationBasePath();
+        }
+        return "/" + applicationName + super.getApplicationBasePath();
+      }
+    };
+  }
 
-	@Bean
-	OperationPageableParameterReader pageableParameterBuilderPlugin(TypeNameExtractor nameExtractor, TypeResolver resolver) {
-		return new OperationPageableParameterReader(nameExtractor, resolver);
-	}
+  @Bean
+  OperationPageableParameterReader pageableParameterBuilderPlugin(TypeNameExtractor nameExtractor,
+      TypeResolver resolver) {
+    return new OperationPageableParameterReader(nameExtractor, resolver);
+  }
 
-	@Bean
-	public UiConfiguration uiConfig() {
-		return UiConfigurationBuilder.builder().build();
-	}
+  @Bean
+  public UiConfiguration uiConfig() {
+    return UiConfigurationBuilder.builder().build();
+  }
 
-	@Component
-	public class OperationPageableParameterReader implements OperationBuilderPlugin {
-		private final TypeNameExtractor nameExtractor;
-		private final TypeResolver resolver;
+  @Component
+  public class OperationPageableParameterReader implements OperationBuilderPlugin {
 
-		private final ResolvedType pageableType;
-		private final ResolvedType filterType;
+    private final TypeNameExtractor nameExtractor;
+    private final TypeResolver resolver;
 
-		@Autowired
-		public OperationPageableParameterReader(TypeNameExtractor nameExtractor, TypeResolver resolver) {
-			this.nameExtractor = nameExtractor;
-			this.resolver = resolver;
-			this.pageableType = resolver.resolve(Pageable.class);
-			this.filterType = resolver.resolve(Filter.class);
-		}
+    private final ResolvedType pageableType;
+    private final ResolvedType filterType;
 
-		@Override
-		public void apply(OperationContext context) {
-			List<ResolvedMethodParameter> methodParameters = context.getParameters();
-			List<Parameter> parameters = newArrayList();
+    @Autowired
+    public OperationPageableParameterReader(TypeNameExtractor nameExtractor,
+        TypeResolver resolver) {
+      this.nameExtractor = nameExtractor;
+      this.resolver = resolver;
+      this.pageableType = resolver.resolve(Pageable.class);
+      this.filterType = resolver.resolve(Filter.class);
+    }
 
-			for (ResolvedMethodParameter methodParameter : methodParameters) {
-				ResolvedType resolvedType = methodParameter.getParameterType();
-				ParameterContext parameterContext = new ParameterContext(
-						methodParameter,
-						new ParameterBuilder(),
-						context.getDocumentationContext(),
-						context.getGenericsNamingStrategy(),
-						context
-				);
-				Function<ResolvedType, ? extends ModelReference> factory = createModelRefFactory(parameterContext);
-				ModelReference stringModel = factory.apply(resolver.resolve(List.class, String.class));
+    @Override
+    public void apply(OperationContext context) {
+      List<ResolvedMethodParameter> methodParameters = context.getParameters();
+      List<Parameter> parameters = newArrayList();
 
-				if (pageableType.equals(resolvedType)) {
+      for (ResolvedMethodParameter methodParameter : methodParameters) {
+        ResolvedType resolvedType = methodParameter.getParameterType();
+        ParameterContext parameterContext = new ParameterContext(
+            methodParameter,
+            new ParameterBuilder(),
+            context.getDocumentationContext(),
+            context.getGenericsNamingStrategy(),
+            context
+        );
+        Function<ResolvedType, ? extends ModelReference> factory = createModelRefFactory(
+            parameterContext);
+        ModelReference stringModel = factory.apply(resolver.resolve(List.class, String.class));
 
-					ModelReference intModel = factory.apply(resolver.resolve(Integer.TYPE));
+        if (pageableType.equals(resolvedType)) {
 
-					parameters.add(new ParameterBuilder().parameterType("query")
-							.name("page.page")
-							.modelRef(intModel)
-							.description("Results page you want to retrieve (0..N)")
-							.build());
-					parameters.add(new ParameterBuilder().parameterType("query")
-							.name("page.size")
-							.modelRef(intModel)
-							.description("Number of records per page")
-							.build());
-					parameters.add(new ParameterBuilder().parameterType("query")
-							.name("page.sort")
-							.modelRef(stringModel)
-							.allowMultiple(true)
-							.description("Sorting criteria in the format: property, (asc|desc). " + "Default sort order is ascending. "
-									+ "Multiple sort criteria are supported.")
-							.build());
-					context.operationBuilder().parameters(parameters);
+          ModelReference intModel = factory.apply(resolver.resolve(Integer.TYPE));
 
-				} else if (filterType.equals(resolvedType)) {
-					FilterFor filterClass = methodParameter.findAnnotation(FilterFor.class).get();
+          parameters.add(new ParameterBuilder().parameterType("query")
+              .name("page.page")
+              .modelRef(intModel)
+              .description("Results page you want to retrieve (0..N)")
+              .build());
+          parameters.add(new ParameterBuilder().parameterType("query")
+              .name("page.size")
+              .modelRef(intModel)
+              .description("Number of records per page")
+              .build());
+          parameters.add(new ParameterBuilder().parameterType("query")
+              .name("page.sort")
+              .modelRef(stringModel)
+              .allowMultiple(true)
+              .description("Sorting criteria in the format: property, (asc|desc). "
+                  + "Default sort order is ascending. "
+                  + "Multiple sort criteria are supported.")
+              .build());
+          context.operationBuilder().parameters(parameters);
 
-					List<Parameter> defaultParams = Lists.newArrayList();
-					if (filterClass.value() == TestItem.class || filterClass.value() == Launch.class) {
-						defaultParams = StatisticsHelper.defaultStatisticsFields()
-								.map(it -> buildParameters(parameterContext, factory, it))
-								.collect(Collectors.toList());
-					}
+        } else if (filterType.equals(resolvedType)) {
+          FilterFor filterClass = methodParameter.findAnnotation(FilterFor.class).get();
 
-					List<CriteriaHolder> criteriaList = FilterTarget.findByClass(filterClass.value()).getCriteriaHolders();
-					List<Parameter> params = criteriaList.stream()
-							.filter(ch -> !hiddenParams.contains(ch.getFilterCriteria()))
-							.map(it -> buildParameters(parameterContext, factory, it))
-							/* if type is not a collection and first letter is not capital (all known to swagger types start from lower case) */
-							.filter(p -> !(null == p.getModelRef().getItemType() && Character.isUpperCase(p.getModelRef()
-									.getType()
-									.toCharArray()[0])))
-							.collect(Collectors.toList());
+          List<Parameter> defaultParams = Lists.newArrayList();
+          if (filterClass.value() == TestItem.class || filterClass.value() == Launch.class) {
+            defaultParams = StatisticsHelper.defaultStatisticsFields()
+                .map(it -> buildParameters(parameterContext, factory, it))
+                .collect(Collectors.toList());
+          }
 
-					params.addAll(defaultParams);
-					context.operationBuilder().parameters(params);
-				}
-			}
-		}
+          List<CriteriaHolder> criteriaList = FilterTarget.findByClass(filterClass.value())
+              .getCriteriaHolders();
+          List<Parameter> params = criteriaList.stream()
+              .filter(ch -> !hiddenParams.contains(ch.getFilterCriteria()))
+              .map(it -> buildParameters(parameterContext, factory, it))
+              /* if type is not a collection and first letter is not capital (all known to swagger types start from lower case) */
+              .filter(p -> !(null == p.getModelRef().getItemType() && Character.isUpperCase(
+                  p.getModelRef()
+                      .getType()
+                      .toCharArray()[0])))
+              .collect(Collectors.toList());
 
-		private Parameter buildParameters(ParameterContext parameterContext, Function<ResolvedType, ? extends ModelReference> factory,
-				CriteriaHolder criteriaHolder) {
-			return parameterContext.parameterBuilder()
-					.parameterType("query")
-					.name("filter.eq." + criteriaHolder.getFilterCriteria())
-					.allowMultiple(true)
-					.modelRef(factory.apply(resolver.resolve(
-							criteriaHolder.getDataType() == Timestamp.class ? Date.class : criteriaHolder.getDataType())))
-					.description("Filters by '" + criteriaHolder.getFilterCriteria() + "'")
-					.build();
-		}
+          params.addAll(defaultParams);
+          context.operationBuilder().parameters(params);
+        }
+      }
+    }
 
-		private Parameter buildParameters(ParameterContext parameterContext, Function<ResolvedType, ? extends ModelReference> factory,
-				String parameter) {
-			return parameterContext.parameterBuilder()
-					.parameterType("query")
-					.name("filter.eq." + parameter)
-					.allowMultiple(true)
-					.modelRef(factory.apply(resolver.resolve(Long.class)))
-					.description("Filters by '" + parameter + "'")
-					.build();
-		}
+    private Parameter buildParameters(ParameterContext parameterContext,
+        Function<ResolvedType, ? extends ModelReference> factory,
+        CriteriaHolder criteriaHolder) {
+      return parameterContext.parameterBuilder()
+          .parameterType("query")
+          .name("filter.eq." + criteriaHolder.getFilterCriteria())
+          .allowMultiple(true)
+          .modelRef(factory.apply(resolver.resolve(
+              criteriaHolder.getDataType() == Timestamp.class ? Date.class
+                  : criteriaHolder.getDataType())))
+          .description("Filters by '" + criteriaHolder.getFilterCriteria() + "'")
+          .build();
+    }
 
-		@Override
-		public boolean supports(DocumentationType delimiter) {
-			return true;
-		}
+    private Parameter buildParameters(ParameterContext parameterContext,
+        Function<ResolvedType, ? extends ModelReference> factory,
+        String parameter) {
+      return parameterContext.parameterBuilder()
+          .parameterType("query")
+          .name("filter.eq." + parameter)
+          .allowMultiple(true)
+          .modelRef(factory.apply(resolver.resolve(Long.class)))
+          .description("Filters by '" + parameter + "'")
+          .build();
+    }
 
-		private Function<ResolvedType, ? extends ModelReference> createModelRefFactory(ParameterContext context) {
-			ModelContext modelContext = inputParam(
-					Docket.DEFAULT_GROUP_NAME,
-					context.resolvedMethodParameter().getParameterType().getErasedType(),
-					context.getDocumentationType(),
-					context.getAlternateTypeProvider(),
-					context.getGenericNamingStrategy(),
-					context.getIgnorableParameterTypes()
-			);
-			return ResolvedTypes.modelRefFactory(modelContext, nameExtractor);
-		}
-	}
+    @Override
+    public boolean supports(DocumentationType delimiter) {
+      return true;
+    }
 
-	@SuppressWarnings("unused")
-	private static class RPPathProvider extends RelativePathProvider {
+    private Function<ResolvedType, ? extends ModelReference> createModelRefFactory(
+        ParameterContext context) {
+      ModelContext modelContext = inputParam(
+          Docket.DEFAULT_GROUP_NAME,
+          context.resolvedMethodParameter().getParameterType().getErasedType(),
+          context.getDocumentationType(),
+          context.getAlternateTypeProvider(),
+          context.getGenericNamingStrategy(),
+          context.getIgnorableParameterTypes()
+      );
+      return ResolvedTypes.modelRefFactory(modelContext, nameExtractor);
+    }
+  }
 
-		private String gatewayPath;
+  @SuppressWarnings("unused")
+  private static class RPPathProvider extends RelativePathProvider {
 
-		RPPathProvider(ServletContext servletContext, String gatewayPath) {
-			super(servletContext);
-			this.gatewayPath = gatewayPath;
-		}
+    private String gatewayPath;
 
-		@Override
-		protected String applicationPath() {
-			return "/" + gatewayPath + super.applicationPath();
-		}
-	}
+    RPPathProvider(ServletContext servletContext, String gatewayPath) {
+      super(servletContext);
+      this.gatewayPath = gatewayPath;
+    }
+
+    @Override
+    protected String applicationPath() {
+      return "/" + gatewayPath + super.applicationPath();
+    }
+  }
 }

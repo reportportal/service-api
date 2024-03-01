@@ -16,11 +16,15 @@
 
 package com.epam.ta.reportportal.ws.resolver;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Annotation to show that method parameter should be resolved as map of
- * parameters for specified class. Should be used in controllers
+ * Annotation to show that method parameter should be resolved as map of parameters for specified
+ * class. Should be used in controllers
  *
  * @author Andrei Varabyeu
  */
@@ -29,10 +33,10 @@ import java.lang.annotation.*;
 @Documented
 public @interface FilterFor {
 
-	/**
-	 * Domain Object class queries and parameters will be applied to
-	 *
-	 * @return
-	 */
-	Class<?> value();
+  /**
+   * Domain Object class queries and parameters will be applied to
+   *
+   * @return class of filter
+   */
+  Class<?> value();
 }

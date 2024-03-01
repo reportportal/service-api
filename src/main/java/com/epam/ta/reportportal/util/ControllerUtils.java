@@ -19,85 +19,94 @@ package com.epam.ta.reportportal.util;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.Path;
 import javax.validation.Validator;
-import java.util.*;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 /**
  * @author Konstantin Antipin
  */
 public class ControllerUtils {
 
-	/**
-	 * Tries to find request part or file with specified name in multipart attachments
-	 * map.
-	 *
-	 * @param filename File name
-	 * @param files    Files map
-	 * @return Found file
-	 */
-	public static MultipartFile findByFileName(String filename, Map<String, MultipartFile> files) {
-		/* Request part name? */
-		if (files.containsKey(filename)) {
-			return files.get(filename);
-		}
-		/* Filename? */
-		for (MultipartFile file : files.values()) {
-			if (filename.equals(file.getOriginalFilename())) {
-				return file;
-			}
-		}
-		return null;
-	}
+  /**
+   * Tries to find request part or file with specified name in multipart attachments map.
+   *
+   * @param filename File name
+   * @param files    Files map
+   * @return Found file
+   */
+  public static MultipartFile findByFileName(String filename, MultiValuedMap<String, MultipartFile> files) {
+    /* Request part name? */
+    if (files.containsKey(filename)) {
+      var multipartFile = files.get(filename).stream()
+          .findFirst()
+          .get();
+      files.get(filename).remove(multipartFile);
+      return multipartFile;
+    }
+    /* Filename? */
+    for (MultipartFile file : files.values()) {
+      if (filename.equals(file.getOriginalFilename())) {
+        return file;
+      }
+    }
+    return null;
+  }
 
-	public static Long safeParseLong(String value) {
-		try {
-			return Long.parseLong(value);
-		} catch (NumberFormatException e) {
-			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "The provided parameter must be a number");
-		}
-	}
-	public static Integer safeParseInt(String value) {
-		try {
-			return Integer.parseInt(value);
-		} catch (NumberFormatException e) {
-			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "The provided parameter must be a number");
-		}
-	}
+  public static Long safeParseLong(String value) {
+    try {
+      return Long.parseLong(value);
+    } catch (NumberFormatException e) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "The provided parameter must be a number");
+    }
+  }
 
-	public static void validateSaveRQ(Validator validator, SaveLogRQ saveLogRQ) {
-		Set<ConstraintViolation<SaveLogRQ>> constraintViolations = validator.validate(saveLogRQ);
-		if (constraintViolations != null && !constraintViolations.isEmpty()) {
-			StringBuilder messageBuilder = new StringBuilder();
-			for (ConstraintViolation<SaveLogRQ> constraintViolation : constraintViolations) {
-				messageBuilder.append("[");
-				messageBuilder.append("Incorrect value in save log request '");
-				messageBuilder.append(constraintViolation.getInvalidValue());
-				messageBuilder.append("' in field '");
-				Iterator<Path.Node> iterator = constraintViolation.getPropertyPath().iterator();
-				messageBuilder.append(iterator.hasNext() ? iterator.next().getName() : "");
-				messageBuilder.append("'.]");
-			}
-			throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, messageBuilder.toString());
-		}
-	}
+  public static Integer safeParseInt(String value) {
+    try {
+      return Integer.parseInt(value);
+    } catch (NumberFormatException e) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "The provided parameter must be a number");
+    }
+  }
 
-	public static Map<String, MultipartFile> getUploadedFiles(HttpServletRequest request) {
-		Map<String, MultipartFile> uploadedFiles = new HashMap<>();
-		if (request instanceof MultipartHttpServletRequest) {
-			MultiValueMap<String, MultipartFile> multiFileMap = (((MultipartHttpServletRequest) request)).getMultiFileMap();
-			for (List<MultipartFile> multipartFiles : multiFileMap.values()) {
-				for (MultipartFile file : multipartFiles) {
-					uploadedFiles.put(file.getOriginalFilename(), file);
-				}
-			}
-		}
-		return uploadedFiles;
-	}
+  public static void validateSaveRQ(Validator validator, SaveLogRQ saveLogRQ) {
+    Set<ConstraintViolation<SaveLogRQ>> constraintViolations = validator.validate(saveLogRQ);
+    if (constraintViolations != null && !constraintViolations.isEmpty()) {
+      StringBuilder messageBuilder = new StringBuilder();
+      for (ConstraintViolation<SaveLogRQ> constraintViolation : constraintViolations) {
+        messageBuilder.append("[");
+        messageBuilder.append("Incorrect value in save log request '");
+        messageBuilder.append(constraintViolation.getInvalidValue());
+        messageBuilder.append("' in field '");
+        Iterator<Path.Node> iterator = constraintViolation.getPropertyPath().iterator();
+        messageBuilder.append(iterator.hasNext() ? iterator.next().getName() : "");
+        messageBuilder.append("'.]");
+      }
+      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, messageBuilder.toString());
+    }
+  }
+
+  public static MultiValuedMap<String, MultipartFile> getUploadedFiles(HttpServletRequest request) {
+    MultiValuedMap<String, MultipartFile> uploadedFiles = new ArrayListValuedHashMap<>();
+    if (request instanceof MultipartHttpServletRequest) {
+      MultiValueMap<String, MultipartFile> multiFileMap = (((MultipartHttpServletRequest) request)).getMultiFileMap();
+      for (List<MultipartFile> multipartFiles : multiFileMap.values()) {
+        for (MultipartFile file : multipartFiles) {
+          uploadedFiles.put(file.getOriginalFilename(), file);
+        }
+      }
+    }
+    return uploadedFiles;
+  }
 }

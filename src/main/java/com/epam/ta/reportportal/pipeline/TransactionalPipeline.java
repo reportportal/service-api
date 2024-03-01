@@ -16,10 +16,9 @@
 
 package com.epam.ta.reportportal.pipeline;
 
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -27,8 +26,8 @@ import java.util.List;
 @Service
 public class TransactionalPipeline {
 
-	@Transactional
-	public void run(List<PipelinePart> parts) {
-		parts.forEach(PipelinePart::handle);
-	}
+  @Transactional
+  public void run(List<PipelinePart> parts) {
+    parts.forEach(PipelinePart::handle);
+  }
 }

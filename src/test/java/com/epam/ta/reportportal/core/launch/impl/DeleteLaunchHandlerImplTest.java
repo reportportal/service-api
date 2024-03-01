@@ -16,6 +16,13 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
+import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -30,58 +37,57 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
-import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @ExtendWith(MockitoExtension.class)
 class DeleteLaunchHandlerImplTest {
 
-	@Mock
-	private LaunchRepository launchRepository;
+  @Mock
+  private LaunchRepository launchRepository;
 
-	@Mock
-	private AttachmentRepository attachmentRepository;
+  @Mock
+  private AttachmentRepository attachmentRepository;
 
-	@InjectMocks
-	private DeleteLaunchHandlerImpl handler;
+  @InjectMocks
+  private DeleteLaunchHandlerImpl handler;
 
-	@Test
-	void deleteNotOwnLaunch() {
-		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
-		rpUser.setUserId(2L);
-		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
+  @Test
+  void deleteNotOwnLaunch() {
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+    rpUser.setUserId(2L);
+    when(launchRepository.findById(1L)).thenReturn(
+        getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.deleteLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
-		);
-		assertEquals("You do not have enough permissions. You are not launch owner.", exception.getMessage());
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.deleteLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+    );
+    assertEquals("You do not have enough permissions. You are not launch owner.",
+        exception.getMessage());
+  }
 
-	@Test
-	void deleteLaunchFromAnotherProject() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 2L);
-		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
+  @Test
+  void deleteLaunchFromAnotherProject() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 2L);
+    when(launchRepository.findById(1L)).thenReturn(
+        getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.deleteLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
-		);
-		assertEquals("Forbidden operation. Target launch '1' not under specified project '2'", exception.getMessage());
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.deleteLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+    );
+    assertEquals("Forbidden operation. Target launch '1' not under specified project '2'",
+        exception.getMessage());
+  }
 
-	@Test
-	void deleteLaunchInProgressStatus() {
+  @Test
+  void deleteLaunchInProgressStatus() {
 
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
-		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    when(launchRepository.findById(1L)).thenReturn(
+        getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		assertThrows(ReportPortalException.class, () -> handler.deleteLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser));
-	}
+    assertThrows(ReportPortalException.class,
+        () -> handler.deleteLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser));
+  }
 
 }

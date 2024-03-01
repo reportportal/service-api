@@ -16,11 +16,25 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
+import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_IS_NOT_FINISHED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_IS_NOT_FINISHED;
+import static java.util.Optional.ofNullable;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.log.DeleteLogHandler;
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -33,19 +47,11 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.stereotype.Service;
-
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
-
-import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
-import static com.epam.ta.reportportal.commons.Predicates.*;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.Optional.ofNullable;
+import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.stereotype.Service;
 
 /**
  * Delete Logs handler. Basic implementation of
@@ -57,80 +63,99 @@ import static java.util.Optional.ofNullable;
 @Service
 public class DeleteLogHandlerImpl implements DeleteLogHandler {
 
-	private final LogRepository logRepository;
+  private final LogRepository logRepository;
 
-	private final AttachmentRepository attachmentRepository;
+  private final AttachmentRepository attachmentRepository;
 
-	private final ProjectRepository projectRepository;
+  private final ProjectRepository projectRepository;
 
-	private final TestItemService testItemService;
+  private final TestItemService testItemService;
 
-	private final LogIndexer logIndexer;
+  private final LogIndexer logIndexer;
 
-	public DeleteLogHandlerImpl(LogRepository logRepository, ProjectRepository projectRepository, TestItemService testItemService,
-			LogIndexer logIndexer, AttachmentRepository attachmentRepository) {
-		this.logRepository = logRepository;
-		this.projectRepository = projectRepository;
-		this.testItemService = testItemService;
-		this.logIndexer = logIndexer;
-		this.attachmentRepository = attachmentRepository;
-	}
+  private final LogService logService;
 
-	@Override
-	public OperationCompletionRS deleteLog(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		BusinessRule.expect(projectRepository.existsById(projectDetails.getProjectId()), BooleanUtils::isTrue)
-				.verify(PROJECT_NOT_FOUND, projectDetails.getProjectId());
+  public DeleteLogHandlerImpl(LogRepository logRepository, ProjectRepository projectRepository,
+      TestItemService testItemService,
+      LogIndexer logIndexer, AttachmentRepository attachmentRepository, LogService logService) {
+    this.logRepository = logRepository;
+    this.projectRepository = projectRepository;
+    this.testItemService = testItemService;
+    this.logIndexer = logIndexer;
+    this.attachmentRepository = attachmentRepository;
+    this.logService = logService;
+  }
 
-		Log log = validate(logId, user, projectDetails);
-		try {
-			logRepository.delete(log);
-			ofNullable(log.getAttachment()).ifPresent(attachment -> attachmentRepository.moveForDeletion(attachment.getId()));
-		} catch (Exception exc) {
-			throw new ReportPortalException("Error while Log instance deleting.", exc);
-		}
+  @Override
+  public OperationCompletionRS deleteLog(Long logId, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user) {
+    BusinessRule.expect(projectRepository.existsById(projectDetails.getProjectId()),
+            BooleanUtils::isTrue)
+        .verify(PROJECT_NOT_FOUND, projectDetails.getProjectId());
 
-		logIndexer.cleanIndex(projectDetails.getProjectId(), Collections.singletonList(logId));
-		return new OperationCompletionRS(formattedSupplier("Log with ID = '{}' successfully deleted.", logId).toString());
-	}
+    Log log = validate(logId, user, projectDetails);
+    try {
+      logService.deleteLogMessage(projectDetails.getProjectId(), log.getId());
+      logRepository.delete(log);
+      ofNullable(log.getAttachment()).ifPresent(
+          attachment -> attachmentRepository.moveForDeletion(attachment.getId()));
+    } catch (Exception exc) {
+      throw new ReportPortalException("Error while Log instance deleting.", exc);
+    }
 
-	/**
-	 * Validate specified log against parent objects and project
-	 *
-	 * @param logId          - validated log ID value
-	 * @param projectDetails Project details
-	 * @return Log
-	 */
-	private Log validate(Long logId, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
+    logIndexer.cleanIndex(projectDetails.getProjectId(), Collections.singletonList(logId));
+    return new OperationCompletionRS(
+        formattedSupplier("Log with ID = '{}' successfully deleted.", logId).toString());
+  }
 
-		Log log = logRepository.findById(logId).orElseThrow(() -> new ReportPortalException(ErrorType.LOG_NOT_FOUND, logId));
+  /**
+   * Validate specified log against parent objects and project
+   *
+   * @param logId          - validated log ID value
+   * @param projectDetails Project details
+   * @return Log
+   */
+  private Log validate(Long logId, ReportPortalUser user,
+      ReportPortalUser.ProjectDetails projectDetails) {
 
-		Optional<TestItem> itemOptional = ofNullable(log.getTestItem());
-		Launch launch = ofNullable(log.getTestItem()).map(testItemService::getEffectiveLaunch).orElseGet(log::getLaunch);
+    Log log = logRepository.findById(logId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.LOG_NOT_FOUND, logId));
 
-		//TODO check if statistics is right in item results
-		if (itemOptional.isPresent()) {
-			expect(itemOptional.get().getItemResults().getStatistics(), notNull()).verify(TEST_ITEM_IS_NOT_FINISHED, formattedSupplier(
-					"Unable to delete log '{}' when test item '{}' in progress state",
-					log.getId(),
-					itemOptional.get().getItemId()
-			));
-		} else {
-			expect(launch.getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
-					formattedSupplier("Unable to delete log '{}' when launch '{}' in progress state", log.getId(), launch.getId())
-			);
-		}
+    Optional<TestItem> itemOptional = ofNullable(log.getTestItem());
+    Launch launch = ofNullable(log.getTestItem()).map(testItemService::getEffectiveLaunch)
+        .orElseGet(log::getLaunch);
 
-		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-				formattedSupplier("Log '{}' not under specified '{}' project", logId, projectDetails.getProjectId())
-		);
+    //TODO check if statistics is right in item results
+    if (itemOptional.isPresent()) {
+      expect(itemOptional.get().getItemResults().getStatistics(), notNull()).verify(
+          TEST_ITEM_IS_NOT_FINISHED, formattedSupplier(
+              "Unable to delete log '{}' when test item '{}' in progress state",
+              log.getId(),
+              itemOptional.get().getItemId()
+          ));
+    } else {
+      expect(launch.getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(
+          LAUNCH_IS_NOT_FINISHED,
+          formattedSupplier("Unable to delete log '{}' when launch '{}' in progress state",
+              log.getId(), launch.getId())
+      );
+    }
 
-		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUserId(), launch.getUserId())) {
-			/*
-			 * Only PROJECT_MANAGER roles could delete logs
-			 */
-			expect(projectDetails.getProjectRole(), equalTo(ProjectRole.PROJECT_MANAGER)).verify(ACCESS_DENIED);
-		}
+    expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
+        FORBIDDEN_OPERATION,
+        formattedSupplier("Log '{}' not under specified '{}' project", logId,
+            projectDetails.getProjectId())
+    );
 
-		return log;
-	}
+    if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUserId(),
+        launch.getUserId())) {
+      /*
+       * Only PROJECT_MANAGER roles could delete logs
+       */
+      expect(projectDetails.getProjectRole(), equalTo(ProjectRole.PROJECT_MANAGER)).verify(
+          ACCESS_DENIED);
+    }
+
+    return log;
+  }
 }

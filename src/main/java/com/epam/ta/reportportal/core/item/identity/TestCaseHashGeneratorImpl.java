@@ -20,12 +20,11 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.google.api.client.util.Lists;
 import com.google.common.base.Strings;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -33,36 +32,38 @@ import java.util.stream.Collectors;
 @Service
 public class TestCaseHashGeneratorImpl implements TestCaseHashGenerator {
 
-	private final TestItemRepository testItemRepository;
+  private final TestItemRepository testItemRepository;
 
-	public TestCaseHashGeneratorImpl(TestItemRepository testItemRepository) {
-		this.testItemRepository = testItemRepository;
-	}
+  public TestCaseHashGeneratorImpl(TestItemRepository testItemRepository) {
+    this.testItemRepository = testItemRepository;
+  }
 
-	@Override
-	public Integer generate(TestItem item, List<Long> parentIds, Long projectId) {
-		return prepare(item, parentIds, projectId).hashCode();
-	}
+  @Override
+  public Integer generate(TestItem item, List<Long> parentIds, Long projectId) {
+    return prepare(item, parentIds, projectId).hashCode();
+  }
 
-	private String prepare(TestItem item, List<Long> parentIds, Long projectId) {
-		List<CharSequence> elements = Lists.newArrayList();
+  private String prepare(TestItem item, List<Long> parentIds, Long projectId) {
+    List<CharSequence> elements = Lists.newArrayList();
 
-		elements.add(projectId.toString());
-		getPathNames(parentIds).stream().filter(StringUtils::isNotEmpty).forEach(elements::add);
-		elements.add(item.getName());
-		item.getParameters()
-				.stream()
-				.map(parameter -> (!Strings.isNullOrEmpty(parameter.getKey()) ? parameter.getKey() + "=" : "") + parameter.getValue())
-				.forEach(elements::add);
+    elements.add(projectId.toString());
+    getPathNames(parentIds).stream().filter(StringUtils::isNotEmpty).forEach(elements::add);
+    elements.add(item.getName());
+    item.getParameters()
+        .stream()
+        .map(parameter ->
+            (!Strings.isNullOrEmpty(parameter.getKey()) ? parameter.getKey() + "=" : "")
+                + parameter.getValue())
+        .forEach(elements::add);
 
-		return String.join(";", elements);
-	}
+    return String.join(";", elements);
+  }
 
-	private List<String> getPathNames(List<Long> parentIds) {
-		return testItemRepository.findAllById(parentIds)
-				.stream()
-				.sorted(Comparator.comparingLong(TestItem::getItemId))
-				.map(TestItem::getName)
-				.collect(Collectors.toList());
-	}
+  private List<String> getPathNames(List<Long> parentIds) {
+    return testItemRepository.findAllById(parentIds)
+        .stream()
+        .sorted(Comparator.comparingLong(TestItem::getItemId))
+        .map(TestItem::getName)
+        .collect(Collectors.toList());
+  }
 }

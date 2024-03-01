@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.http.client.Client;
+import java.net.URI;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
@@ -38,8 +39,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
-import java.net.URI;
-
 /**
  * @author Pavel Bortnik
  */
@@ -48,52 +47,55 @@ import java.net.URI;
 @Conditional(Conditions.NotTestCondition.class)
 public class RabbitMqConfiguration {
 
-	@Autowired
-	private ObjectMapper objectMapper;
+  @Autowired
+  private ObjectMapper objectMapper;
 
-	@Bean
-	public MessageConverter jsonMessageConverter() {
-		return new Jackson2JsonMessageConverter(objectMapper);
-	}
+  @Bean
+  public MessageConverter jsonMessageConverter() {
+    return new Jackson2JsonMessageConverter(objectMapper);
+  }
 
-	@Bean
-	public ConnectionFactory connectionFactory(@Value("${rp.amqp.api-address}") String apiAddress,
-			@Value("${rp.amqp.addresses}") URI addresses, @Value("${rp.amqp.base-vhost}") String virtualHost) {
-		try {
-			Client client = new Client(apiAddress);
-			client.createVhost(virtualHost);
-		} catch (Exception e) {
-			throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
-					"Unable to create RabbitMq virtual host: " + e.getMessage()
-			);
-		}
-		final CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory(addresses);
-		cachingConnectionFactory.setVirtualHost(virtualHost);
-		return cachingConnectionFactory;
-	}
+  @Bean
+  public ConnectionFactory connectionFactory(@Value("${rp.amqp.api-address}") String apiAddress,
+      @Value("${rp.amqp.addresses}") URI addresses,
+      @Value("${rp.amqp.base-vhost}") String virtualHost) {
+    try {
+      Client client = new Client(apiAddress);
+      client.createVhost(virtualHost);
+    } catch (Exception e) {
+      throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
+          "Unable to create RabbitMq virtual host: " + e.getMessage()
+      );
+    }
+    final CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory(
+        addresses);
+    cachingConnectionFactory.setVirtualHost(virtualHost);
+    return cachingConnectionFactory;
+  }
 
-	@Bean
-	public AmqpAdmin amqpAdmin(@Autowired ConnectionFactory connectionFactory) {
-		return new RabbitAdmin(connectionFactory);
-	}
+  @Bean
+  public AmqpAdmin amqpAdmin(@Autowired ConnectionFactory connectionFactory) {
+    return new RabbitAdmin(connectionFactory);
+  }
 
-	@Bean(name = "rabbitTemplate")
-	public RabbitTemplate rabbitTemplate(@Autowired @Qualifier("connectionFactory") ConnectionFactory connectionFactory) {
-		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-		rabbitTemplate.setMessageConverter(jsonMessageConverter());
-		return rabbitTemplate;
-	}
+  @Bean(name = "rabbitTemplate")
+  public RabbitTemplate rabbitTemplate(
+      @Autowired @Qualifier("connectionFactory") ConnectionFactory connectionFactory) {
+    RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+    rabbitTemplate.setMessageConverter(jsonMessageConverter());
+    return rabbitTemplate;
+  }
 
-	@Bean
-	public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
-			@Autowired @Qualifier("connectionFactory") ConnectionFactory connectionFactory) {
-		SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
-		factory.setConnectionFactory(connectionFactory);
-		factory.setDefaultRequeueRejected(false);
-		factory.setErrorHandler(new ConditionalRejectingErrorHandler());
-		factory.setAutoStartup(true);
-		factory.setMessageConverter(jsonMessageConverter());
-		return factory;
-	}
+  @Bean
+  public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
+      @Autowired @Qualifier("connectionFactory") ConnectionFactory connectionFactory) {
+    SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+    factory.setConnectionFactory(connectionFactory);
+    factory.setDefaultRequeueRejected(false);
+    factory.setErrorHandler(new ConditionalRejectingErrorHandler());
+    factory.setAutoStartup(true);
+    factory.setMessageConverter(jsonMessageConverter());
+    return factory;
+  }
 
 }

@@ -17,7 +17,6 @@ package com.epam.ta.reportportal.core.file;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
-
 import java.io.InputStream;
 
 /**
@@ -25,29 +24,34 @@ import java.io.InputStream;
  */
 public interface GetFileHandler {
 
-	/**
-	 * Returns {@link InputStream} for current logged-in user photo
-	 *
-	 * @param loggedInUser Logged-in {@link ReportPortalUser}
-	 * @return {@link InputStream}
-	 */
-	BinaryData getUserPhoto(ReportPortalUser loggedInUser, boolean loadThumbnail);
+  /**
+   * Returns {@link InputStream} for current logged-in user photo
+   *
+   * @param loggedInUser  Logged-in {@link ReportPortalUser}
+   * @param loadThumbnail true if need to load thumbnail
+   * @return {@link InputStream}
+   */
+  BinaryData getUserPhoto(ReportPortalUser loggedInUser, boolean loadThumbnail);
 
-	/**
-	 * Returns {@link InputStream} for photo of the {@link com.epam.ta.reportportal.entity.user.User} with specified username
-	 *
-	 * @param username     Username of user which photo to get
-	 * @param loggedInUser Logged-in {@link ReportPortalUser}
-	 * @return {@link InputStream}
-	 */
-	BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, String projectName,
-			boolean loadThumbnail);
+  /**
+   * Returns {@link InputStream} for photo of the {@link com.epam.ta.reportportal.entity.user.User}
+   * with specified username
+   *
+   * @param username       Username of user which photo to get
+   * @param loggedInUser   Logged-in {@link ReportPortalUser}
+   * @param projectName    Project name
+   * @param loadThumbnail  true if need to load thumbnail
+   * @return {@link InputStream}
+   */
+  BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, String projectName,
+      boolean loadThumbnail);
 
-	/**
-	 * Returns {@link InputStream} for the file with the specified id
-	 *
-	 * @param fileId Id of the file to get
-	 * @return {@link InputStream}
-	 */
-	BinaryData loadFileById(Long fileId, ReportPortalUser.ProjectDetails projectDetails);
+  /**
+   * Returns {@link BinaryData} for the file with the specified id
+   *
+   * @param fileId Id of the file to get
+   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @return {@link BinaryData} file data
+   */
+  BinaryData loadFileById(Long fileId, ReportPortalUser.ProjectDetails projectDetails);
 }

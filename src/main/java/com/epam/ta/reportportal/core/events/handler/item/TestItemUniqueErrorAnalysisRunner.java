@@ -16,57 +16,54 @@
 
 package com.epam.ta.reportportal.core.events.handler.item;
 
+import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
+import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getUniqueErrorConfig;
+
+import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
-import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
 import com.epam.ta.reportportal.core.launch.cluster.ClusterGenerator;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.epam.ta.reportportal.ws.model.project.UniqueErrorConfig;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Map;
-
-import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
-import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getUniqueErrorConfig;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class TestItemUniqueErrorAnalysisRunner implements ConfigurableEventHandler<ItemFinishedEvent, Map<String, String>> {
+public class TestItemUniqueErrorAnalysisRunner implements
+    ConfigurableEventHandler<IssueResolvedEvent, Map<String, String>> {
 
-	private final ClusterGenerator clusterGenerator;
-	private final ApplicationEventPublisher eventPublisher;
+  private final ClusterGenerator clusterGenerator;
 
-	public TestItemUniqueErrorAnalysisRunner(@Qualifier("uniqueErrorGenerator") ClusterGenerator clusterGenerator,
-			ApplicationEventPublisher eventPublisher) {
-		this.clusterGenerator = clusterGenerator;
-		this.eventPublisher = eventPublisher;
-	}
+  public TestItemUniqueErrorAnalysisRunner(
+      @Qualifier("uniqueErrorGenerator") ClusterGenerator clusterGenerator) {
+    this.clusterGenerator = clusterGenerator;
+  }
 
-	@Override
-	public void handle(ItemFinishedEvent event, Map<String, String> projectConfig) {
-		final UniqueErrorConfig uniqueErrorConfig = getUniqueErrorConfig(projectConfig);
+  @Override
+  public void handle(IssueResolvedEvent event, Map<String, String> projectConfig) {
+    final UniqueErrorConfig uniqueErrorConfig = getUniqueErrorConfig(projectConfig);
 
-		if (uniqueErrorConfig.isEnabled()) {
-			final GenerateClustersConfig clustersConfig = new GenerateClustersConfig();
-			clustersConfig.setForUpdate(true);
-			clustersConfig.setCleanNumbers(uniqueErrorConfig.isRemoveNumbers());
+    if (uniqueErrorConfig.isEnabled()) {
+      final GenerateClustersConfig clustersConfig = new GenerateClustersConfig();
+      clustersConfig.setForUpdate(true);
+      clustersConfig.setCleanNumbers(uniqueErrorConfig.isRemoveNumbers());
 
-			final AnalyzerConfig analyzerConfig = getAnalyzerConfig(projectConfig);
-			clustersConfig.setAnalyzerConfig(analyzerConfig);
+      final AnalyzerConfig analyzerConfig = getAnalyzerConfig(projectConfig);
+      clustersConfig.setAnalyzerConfig(analyzerConfig);
 
-			final ClusterEntityContext entityContext = ClusterEntityContext.of(event.getLaunchId(),
-					event.getProjectId(),
-					List.of(event.getItemId())
-			);
-			clustersConfig.setEntityContext(entityContext);
+      final ClusterEntityContext entityContext = ClusterEntityContext.of(event.getLaunchId(),
+          event.getProjectId(),
+          List.of(event.getItemId())
+      );
+      clustersConfig.setEntityContext(entityContext);
 
-			clusterGenerator.generate(clustersConfig);
-		}
-	}
+      clusterGenerator.generate(clustersConfig);
+    }
+  }
 }

@@ -12,26 +12,27 @@ import org.springframework.stereotype.Component;
 @Component
 public class ComponentHealthCheckTablePostProcessor implements WidgetPostProcessor {
 
-	private final WidgetValidator componentHealthCheckTableValidator;
-	private final WidgetUpdater materializedWidgetStateUpdater;
+  private final WidgetValidator componentHealthCheckTableValidator;
+  private final WidgetUpdater materializedWidgetStateUpdater;
 
-	@Autowired
-	public ComponentHealthCheckTablePostProcessor(WidgetValidator componentHealthCheckTableValidator,
-			WidgetUpdater materializedWidgetStateUpdater) {
-		this.componentHealthCheckTableValidator = componentHealthCheckTableValidator;
-		this.materializedWidgetStateUpdater = materializedWidgetStateUpdater;
-	}
+  @Autowired
+  public ComponentHealthCheckTablePostProcessor(WidgetValidator componentHealthCheckTableValidator,
+      WidgetUpdater materializedWidgetStateUpdater) {
+    this.componentHealthCheckTableValidator = componentHealthCheckTableValidator;
+    this.materializedWidgetStateUpdater = materializedWidgetStateUpdater;
+  }
 
-	@Override
-	public boolean supports(Widget widget) {
-		return WidgetType.COMPONENT_HEALTH_CHECK_TABLE.getType().equalsIgnoreCase(widget.getWidgetType());
-	}
+  @Override
+  public boolean supports(Widget widget) {
+    return WidgetType.COMPONENT_HEALTH_CHECK_TABLE.getType()
+        .equalsIgnoreCase(widget.getWidgetType());
+  }
 
-	@Override
-	public void postProcess(Widget widget) {
-		if (supports(widget)) {
-			componentHealthCheckTableValidator.validate(widget);
-			materializedWidgetStateUpdater.update(widget);
-		}
-	}
+  @Override
+  public void postProcess(Widget widget) {
+    if (supports(widget)) {
+      componentHealthCheckTableValidator.validate(widget);
+      materializedWidgetStateUpdater.update(widget);
+    }
+  }
 }

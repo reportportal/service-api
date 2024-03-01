@@ -20,4 +20,5 @@ package com.epam.ta.reportportal.core.events;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface Event {
+
 }

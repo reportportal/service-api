@@ -89,7 +89,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/v1/user")
+@RequestMapping("/users")
 public class UserController {
 
   private final CreateUserHandler createUserMessageHandler;

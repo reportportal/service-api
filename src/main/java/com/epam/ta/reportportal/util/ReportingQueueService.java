@@ -16,10 +16,9 @@
 
 package com.epam.ta.reportportal.util;
 
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -27,32 +26,32 @@ import java.util.UUID;
 @Component
 public class ReportingQueueService {
 
-	private static final String UUID_REGEX = "[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}";
+  private static final String UUID_REGEX = "[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}";
 
-	private int queueAmount;
+  private int queueAmount;
 
-	public int getQueueAmount() {
-		return queueAmount;
-	}
+  public int getQueueAmount() {
+    return queueAmount;
+  }
 
-	@Value("${rp.amqp.queues}")
-	public void setQueueAmount(int queueAmount) {
-		this.queueAmount = queueAmount;
-	}
+  @Value("${rp.amqp.queues}")
+  public void setQueueAmount(int queueAmount) {
+    this.queueAmount = queueAmount;
+  }
 
-	/**
-	 * Mapping launchId to reporting queue key.
-	 * Not sure if uniform distribution will be produced, intuitively would be uniform with random UUID input.
-	 * As {@link UUID#hashCode} may return negative int,
-	 * take absolute value by trimming high sign bit of complement representation
-	 *
-	 * @param launchUuid
-	 * @return
-	 */
-	public String getReportingQueueKey(String launchUuid) {
-		int value = launchUuid.matches(UUID_REGEX) ? UUID.fromString(launchUuid).hashCode() : launchUuid.hashCode();
-		value = value & 0x7fffffff;
-		return String.valueOf(value % queueAmount);
-	}
+  /**
+   * Mapping launchId to reporting queue key. Not sure if uniform distribution will be produced,
+   * intuitively would be uniform with random UUID input. As {@link UUID#hashCode} may return
+   * negative int, take absolute value by trimming high sign bit of complement representation
+   *
+   * @param launchUuid
+   * @return
+   */
+  public String getReportingQueueKey(String launchUuid) {
+    int value = launchUuid.matches(UUID_REGEX) ? UUID.fromString(launchUuid).hashCode()
+        : launchUuid.hashCode();
+    value = value & 0x7fffffff;
+    return String.valueOf(value % queueAmount);
+  }
 
 }

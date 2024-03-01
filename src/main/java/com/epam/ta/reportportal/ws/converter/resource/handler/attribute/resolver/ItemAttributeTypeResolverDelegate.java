@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.ws.converter.resource.handler.attribute.resolve
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ItemAttributeType;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.matcher.ItemAttributeTypeMatcher;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -28,14 +27,15 @@ import java.util.Optional;
  */
 public class ItemAttributeTypeResolverDelegate implements ItemAttributeTypeResolver {
 
-	private final List<ItemAttributeTypeMatcher> matchers;
+  private final List<ItemAttributeTypeMatcher> matchers;
 
-	public ItemAttributeTypeResolverDelegate(List<ItemAttributeTypeMatcher> matchers) {
-		this.matchers = matchers;
-	}
+  public ItemAttributeTypeResolverDelegate(List<ItemAttributeTypeMatcher> matchers) {
+    this.matchers = matchers;
+  }
 
-	@Override
-	public Optional<ItemAttributeType> resolve(ItemAttribute attribute) {
-		return matchers.stream().filter(m -> m.matches(attribute)).findFirst().map(ItemAttributeTypeMatcher::getType);
-	}
+  @Override
+  public Optional<ItemAttributeType> resolve(ItemAttribute attribute) {
+    return matchers.stream().filter(m -> m.matches(attribute)).findFirst()
+        .map(ItemAttributeTypeMatcher::getType);
+  }
 }

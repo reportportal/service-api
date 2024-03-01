@@ -26,23 +26,27 @@ import com.epam.ta.reportportal.ws.model.project.config.pattern.UpdatePatternTem
  */
 public interface UpdateProjectSettingsHandler {
 
-	/**
-	 * Update issue sub-type for specified project
-	 *
-	 * @param projectName Project name
-	 * @param rq          Update rq
-	 * @return OperationCompletionRS
-	 */
-	OperationCompletionRS updateProjectIssueSubType(String projectName, ReportPortalUser user, UpdateIssueSubTypeRQ rq);
+  /**
+   * Update issue sub-type for specified project
+   *
+   * @param projectName Project name
+   * @param user        {@link ReportPortalUser}
+   * @param rq          Update rq
+   * @return OperationCompletionRS
+   */
+  OperationCompletionRS updateProjectIssueSubType(String projectName, ReportPortalUser user,
+      UpdateIssueSubTypeRQ rq);
 
-	/**
-	 * Update {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} by ID and project ID
-	 *
-	 * @param projectName             {@link com.epam.ta.reportportal.entity.project.Project#name}
-	 * @param updatePatternTemplateRQ {@link UpdatePatternTemplateRQ}
-	 * @param user                    {@link ReportPortalUser}
-	 * @return {@link OperationCompletionRS}
-	 */
-	OperationCompletionRS updatePatternTemplate(Long id, String projectName, UpdatePatternTemplateRQ updatePatternTemplateRQ,
-			ReportPortalUser user);
+  /**
+   * Update {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} by ID and project ID
+   *
+   * @param projectName             {@link com.epam.ta.reportportal.entity.project.Project#name}
+   * @param updatePatternTemplateRQ {@link UpdatePatternTemplateRQ}
+   * @param user                    {@link ReportPortalUser}
+   * @param id                      id of pattern template
+   * @return {@link OperationCompletionRS}
+   */
+  OperationCompletionRS updatePatternTemplate(Long id, String projectName,
+      UpdatePatternTemplateRQ updatePatternTemplateRQ,
+      ReportPortalUser user);
 }

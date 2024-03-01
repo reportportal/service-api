@@ -16,6 +16,8 @@ import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
+import com.epam.ta.reportportal.ws.model.launch.LaunchImportRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -24,8 +26,8 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Optional;
+import java.util.Set;
 import javax.inject.Provider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,7 +72,7 @@ class XmlImportStrategyTest {
 
   @Test
   void whenImportLaunch_thenProcessXmlFile(@TempDir Path tempDir) throws Exception {
-    HashMap<String, String> params = new HashMap<>();
+    LaunchImportRQ rq = new LaunchImportRQ();
 
     File xmlFile = createFile(tempDir);
 
@@ -91,7 +93,7 @@ class XmlImportStrategyTest {
     when(launchRepository.findByUuid(any())).thenReturn(Optional.of(launch));
     when(xmlParseJobProvider.get()).thenReturn(xunitParseJob);
 
-    xmlImportStrategy.importLaunch(projectDetails, user, xmlFile, BASE_URL, params);
+    xmlImportStrategy.importLaunch(projectDetails, user, xmlFile, BASE_URL, rq);
 
     verify(startLaunchHandler, times(1)).startLaunch(any(), any(), any());
     verify(finishLaunchHandler, times(1)).finishLaunch(any(), any(), any(), any(), any());
@@ -103,8 +105,8 @@ class XmlImportStrategyTest {
   @Test
   void whenImportLaunch_andIsSkippedIssue_thenProcessXmlFileWithSkippedTrue(@TempDir Path tempDir)
       throws Exception {
-    HashMap<String, String> params = new HashMap<>();
-    params.put(AbstractImportStrategy.SKIPPED_IS_NOT_ISSUE, "true");
+    LaunchImportRQ rq = new LaunchImportRQ();
+    rq.setAttributes(Set.of(new ItemAttributesRQ(AbstractImportStrategy.SKIPPED_IS_NOT_ISSUE, "true")));
 
     File xmlFile = createFile(tempDir);
 
@@ -125,7 +127,7 @@ class XmlImportStrategyTest {
     when(launchRepository.findByUuid(any())).thenReturn(Optional.of(launch));
     when(xmlParseJobProvider.get()).thenReturn(xunitParseJob);
 
-    xmlImportStrategy.importLaunch(projectDetails, user, xmlFile, BASE_URL, params);
+    xmlImportStrategy.importLaunch(projectDetails, user, xmlFile, BASE_URL, rq);
 
     verify(startLaunchHandler, times(1)).startLaunch(any(), any(), any());
     verify(finishLaunchHandler, times(1)).finishLaunch(any(), any(), any(), any(), any());

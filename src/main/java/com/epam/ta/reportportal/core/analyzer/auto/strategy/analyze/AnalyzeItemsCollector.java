@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-
 import java.util.List;
 
 /**
@@ -28,15 +27,15 @@ import java.util.List;
 @FunctionalInterface
 public interface AnalyzeItemsCollector {
 
-	/**
-	 * Collects items for concrete project of concrete launch for following analyzing
-	 * according to concrete {@link com.epam.ta.reportportal.entity.AnalyzeMode}
-	 *
-	 * @param projectId Project id
-	 * @param launchId  Launch id
-	 * @param user      User started analysis
-	 * @return List of item ids
-	 */
-	List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user);
+  /**
+   * Collects items for concrete project of concrete launch for following analyzing according to
+   * concrete {@link com.epam.ta.reportportal.entity.AnalyzeMode}
+   *
+   * @param projectId Project id
+   * @param launchId  Launch id
+   * @param user      User started analysis
+   * @return List of item ids
+   */
+  List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user);
 
 }

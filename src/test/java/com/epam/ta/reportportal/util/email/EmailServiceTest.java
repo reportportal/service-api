@@ -16,6 +16,10 @@
 
 package com.epam.ta.reportportal.util.email;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -26,64 +30,60 @@ import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.entity.statistics.StatisticsField;
 import com.google.common.collect.Sets;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Properties;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class EmailServiceTest {
 
-	private TemplateEngine templateEngine = mock(TemplateEngine.class);
+  private TemplateEngine templateEngine = mock(TemplateEngine.class);
 
-	private EmailService emailService = new EmailService(new Properties());
+  private EmailService emailService = new EmailService(new Properties());
 
-	@BeforeEach
-	void setUp() {
-		emailService.setTemplateEngine(templateEngine);
-	}
+  @BeforeEach
+  void setUp() {
+    emailService.setTemplateEngine(templateEngine);
+  }
 
-	@Test
-	void prepareLaunchTest() {
+  @Test
+  void prepareLaunchTest() {
 
-		when(templateEngine.merge(any(String.class), any(Map.class))).thenReturn("EMAIL MESSAGE");
+    when(templateEngine.merge(any(String.class), any(Map.class))).thenReturn("EMAIL MESSAGE");
 
-		ProjectIssueType projectIssueType = new ProjectIssueType();
-		IssueType issueType = new IssueType();
-		issueType.setLocator("pb001");
-		issueType.setLongName("ProductBug");
-		projectIssueType.setIssueType(issueType);
+    ProjectIssueType projectIssueType = new ProjectIssueType();
+    IssueType issueType = new IssueType();
+    issueType.setLocator("pb001");
+    issueType.setLongName("ProductBug");
+    projectIssueType.setIssueType(issueType);
 
-		String url = emailService.mergeFinishLaunchText("url", getLaunch(), Sets.newHashSet(projectIssueType));
+    String url = emailService.mergeFinishLaunchText("url", getLaunch(),
+        Sets.newHashSet(projectIssueType));
 
-		System.out.println(url);
-	}
+    System.out.println(url);
+  }
 
-	private Launch getLaunch() {
-		Launch launch = new Launch();
-		launch.setId(1L);
-		launch.setHasRetries(false);
-		launch.setStatus(StatusEnum.PASSED);
-		launch.setProjectId(1L);
-		launch.setStartTime(LocalDateTime.now());
-		launch.setEndTime(LocalDateTime.now().plusMinutes(5L));
-		launch.setName("Launch name");
-		launch.setMode(LaunchModeEnum.DEFAULT);
-		launch.setNumber(1L);
-		launch.setDescription("description");
-		launch.setAttributes(Sets.newHashSet(new ItemAttribute("key", "value", false)));
-		StatisticsField statisticsField = new StatisticsField("statistics$executions$total");
-		Statistics statistics = new Statistics(statisticsField, 1, 1L);
-		launch.setStatistics(Sets.newHashSet(statistics));
-		return launch;
-	}
+  private Launch getLaunch() {
+    Launch launch = new Launch();
+    launch.setId(1L);
+    launch.setHasRetries(false);
+    launch.setStatus(StatusEnum.PASSED);
+    launch.setProjectId(1L);
+    launch.setStartTime(LocalDateTime.now());
+    launch.setEndTime(LocalDateTime.now().plusMinutes(5L));
+    launch.setName("Launch name");
+    launch.setMode(LaunchModeEnum.DEFAULT);
+    launch.setNumber(1L);
+    launch.setDescription("description");
+    launch.setAttributes(Sets.newHashSet(new ItemAttribute("key", "value", false)));
+    StatisticsField statisticsField = new StatisticsField("statistics$executions$total");
+    Statistics statistics = new Statistics(statisticsField, 1, 1L);
+    launch.setStatistics(Sets.newHashSet(statistics));
+    return launch;
+  }
 
 }

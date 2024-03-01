@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.item.impl.merge.strategy;
 
 import com.epam.ta.reportportal.core.item.merge.LaunchMergeStrategy;
-
 import java.util.Map;
 
 /**
@@ -25,13 +24,13 @@ import java.util.Map;
  */
 public class LaunchMergeFactory {
 
-	private Map<MergeStrategyType, LaunchMergeStrategy> mergeStrategyMapping;
+  private Map<MergeStrategyType, LaunchMergeStrategy> mergeStrategyMapping;
 
-	public LaunchMergeFactory(Map<MergeStrategyType, LaunchMergeStrategy> mergeStrategyMapping) {
-		this.mergeStrategyMapping = mergeStrategyMapping;
-	}
+  public LaunchMergeFactory(Map<MergeStrategyType, LaunchMergeStrategy> mergeStrategyMapping) {
+    this.mergeStrategyMapping = mergeStrategyMapping;
+  }
 
-	public LaunchMergeStrategy getLaunchMergeStrategy(MergeStrategyType type) {
-		return mergeStrategyMapping.get(type);
-	}
+  public LaunchMergeStrategy getLaunchMergeStrategy(MergeStrategyType type) {
+    return mergeStrategyMapping.get(type);
+  }
 }

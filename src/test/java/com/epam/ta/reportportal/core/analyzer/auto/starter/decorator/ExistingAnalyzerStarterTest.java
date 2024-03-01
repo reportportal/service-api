@@ -16,6 +16,14 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.starter.decorator;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
@@ -25,57 +33,56 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import org.junit.jupiter.api.Test;
-
 import java.util.Set;
-
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class ExistingAnalyzerStarterTest {
 
-	private final AnalyzerService analyzerService = mock(AnalyzerService.class);
-	private final LaunchAutoAnalysisStarter delegate = mock(LaunchAutoAnalysisStarter.class);
+  private final AnalyzerService analyzerService = mock(AnalyzerService.class);
+  private final LaunchAutoAnalysisStarter delegate = mock(LaunchAutoAnalysisStarter.class);
 
-	private final ExistingAnalyzerStarter existingAnalyzerStarter = new ExistingAnalyzerStarter(analyzerService, delegate);
+  private final ExistingAnalyzerStarter existingAnalyzerStarter = new ExistingAnalyzerStarter(
+      analyzerService, delegate);
 
-	@Test
-	void shouldRunWhenHasAnalyzers() {
+  @Test
+  void shouldRunWhenHasAnalyzers() {
 
-		final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
-		final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(1L,
-				new AnalyzerConfig(),
-				Set.of(AnalyzeItemsMode.TO_INVESTIGATE),
-				user
-		);
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(1L,
+        new AnalyzerConfig(),
+        Set.of(AnalyzeItemsMode.TO_INVESTIGATE),
+        user
+    );
 
-		when(analyzerService.hasAnalyzers()).thenReturn(Boolean.TRUE);
+    when(analyzerService.hasAnalyzers()).thenReturn(Boolean.TRUE);
 
-		existingAnalyzerStarter.start(config);
+    existingAnalyzerStarter.start(config);
 
-		verify(delegate, times(1)).start(config);
-	}
+    verify(delegate, times(1)).start(config);
+  }
 
-	@Test
-	void shouldThrowReportPortalExceptionWhenNoAnalyzers() {
-		final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
-		final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(1L,
-				new AnalyzerConfig(),
-				Set.of(AnalyzeItemsMode.TO_INVESTIGATE),
-				user
-		);
+  @Test
+  void shouldThrowReportPortalExceptionWhenNoAnalyzers() {
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(1L,
+        new AnalyzerConfig(),
+        Set.of(AnalyzeItemsMode.TO_INVESTIGATE),
+        user
+    );
 
-		when(analyzerService.hasAnalyzers()).thenReturn(Boolean.FALSE);
+    when(analyzerService.hasAnalyzers()).thenReturn(Boolean.FALSE);
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> existingAnalyzerStarter.start(config));
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> existingAnalyzerStarter.start(config));
 
-		assertEquals("Impossible interact with integration. There are no analyzer services are deployed.", exception.getMessage());
+    assertEquals(
+        "Impossible interact with integration. There are no analyzer services are deployed.",
+        exception.getMessage());
 
-		verify(delegate, times(0)).start(config);
-	}
+    verify(delegate, times(0)).start(config);
+  }
 
 }

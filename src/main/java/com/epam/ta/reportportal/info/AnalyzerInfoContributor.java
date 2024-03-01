@@ -19,13 +19,12 @@ package com.epam.ta.reportportal.info;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
 import com.google.common.collect.ImmutableMap;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Shows list of supported analyzers
@@ -35,19 +34,19 @@ import java.util.stream.Collectors;
 @Component
 public class AnalyzerInfoContributor implements ExtensionContributor {
 
-	private final RabbitMqManagementClient managementClient;
+  private final RabbitMqManagementClient managementClient;
 
-	@Autowired
-	public AnalyzerInfoContributor(RabbitMqManagementClient managementClient) {
-		this.managementClient = managementClient;
-	}
+  @Autowired
+  public AnalyzerInfoContributor(RabbitMqManagementClient managementClient) {
+    this.managementClient = managementClient;
+  }
 
-	@Override
-	public Map<String, ?> contribute() {
-		Set<Object> analyzersInfo = managementClient.getAnalyzerExchangesInfo()
-				.stream()
-				.map((Function<ExchangeInfo, Object>) ExchangeInfo::getArguments)
-				.collect(Collectors.toSet());
-		return ImmutableMap.<String, Object>builder().put("analyzers", analyzersInfo).build();
-	}
+  @Override
+  public Map<String, ?> contribute() {
+    Set<Object> analyzersInfo = managementClient.getAnalyzerExchangesInfo()
+        .stream()
+        .map((Function<ExchangeInfo, Object>) ExchangeInfo::getArguments)
+        .collect(Collectors.toSet());
+    return ImmutableMap.<String, Object>builder().put("analyzers", analyzersInfo).build();
+  }
 }

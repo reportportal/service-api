@@ -16,13 +16,16 @@
 
  package com.epam.ta.reportportal.ws.controller;
 
+ import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+ import static org.springframework.http.HttpStatus.OK;
+
  import com.epam.ta.reportportal.commons.EntityUtils;
  import com.epam.ta.reportportal.commons.ReportPortalUser;
  import com.epam.ta.reportportal.commons.querygen.Filter;
- import com.epam.ta.reportportal.commons.querygen.Queryable;
  import com.epam.ta.reportportal.core.activity.ActivityHandler;
  import com.epam.ta.reportportal.entity.activity.Activity;
  import com.epam.ta.reportportal.util.ProjectExtractor;
+ import com.epam.ta.reportportal.ws.model.ActivityEventResource;
  import com.epam.ta.reportportal.ws.model.ActivityResource;
  import com.epam.ta.reportportal.ws.resolver.FilterFor;
  import com.epam.ta.reportportal.ws.resolver.SortFor;
@@ -32,10 +35,11 @@
  import org.springframework.security.access.prepost.PreAuthorize;
  import org.springframework.security.core.annotation.AuthenticationPrincipal;
  import org.springframework.transaction.annotation.Transactional;
- import org.springframework.web.bind.annotation.*;
-
- import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
- import static org.springframework.http.HttpStatus.OK;
+ import org.springframework.web.bind.annotation.PathVariable;
+ import org.springframework.web.bind.annotation.RequestMapping;
+ import org.springframework.web.bind.annotation.RequestMethod;
+ import org.springframework.web.bind.annotation.ResponseStatus;
+ import org.springframework.web.bind.annotation.RestController;
 
  /**
   * @author Ihar_Kahadouski
@@ -70,7 +74,8 @@
 	 @RequestMapping(value = "/item/{itemId}", method = RequestMethod.GET)
 	 @ResponseStatus(OK)
 	 @ApiOperation("Get activities for test item")
-	 public Iterable<ActivityResource> getTestItemActivities(@PathVariable String projectName, @PathVariable Long itemId,
+   public Iterable<ActivityEventResource> getTestItemActivities(@PathVariable String projectName,
+       @PathVariable Long itemId,
 			 @FilterFor(Activity.class) Filter filter, @SortFor(Activity.class) Pageable pageable,
 			 @AuthenticationPrincipal ReportPortalUser user) {
 		 ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetailsAdmin(

@@ -18,6 +18,13 @@ package com.epam.ta.reportportal.auth;
 
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.collect.ImmutableSet;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -25,71 +32,70 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 /**
- * UserRoleHierarchy processor. Actually, hierarchy is pretty simple: role in
- * {@link UserRole} has more
- * rights than the following one. So, Administrator is more privileged than
- * User.
+ * UserRoleHierarchy processor. Actually, hierarchy is pretty simple: role in {@link UserRole} has
+ * more rights than the following one. So, Administrator is more privileged than User.
  *
  * @author Andrei Varabyeu
  */
 public class UserRoleHierarchy implements RoleHierarchy {
 
-	public static final String ROLE_REGISTERED = "ROLE_REGISTERED";
+  public static final String ROLE_REGISTERED = "ROLE_REGISTERED";
 
-	/**
-	 * Special additional role for other microservices
-	 */
-	public static final String ROLE_COMPONENT = "ROLE_COMPONENT";
+  /**
+   * Special additional role for other microservices
+   */
+  public static final String ROLE_COMPONENT = "ROLE_COMPONENT";
 
-	private static final Logger logger = LoggerFactory.getLogger(UserRoleHierarchy.class);
+  private static final Logger logger = LoggerFactory.getLogger(UserRoleHierarchy.class);
 
-	private Map<GrantedAuthority, Set<GrantedAuthority>> authoritiesMap;
+  private Map<GrantedAuthority, Set<GrantedAuthority>> authoritiesMap;
 
-	public UserRoleHierarchy() {
-		authoritiesMap = Arrays.stream(UserRole.values()).collect(Collectors.toMap(this::asAuthority, this::findReachableRoles));
-		/*
-		 * Specify authorities explicitly. It additionally has USER role to allow other services to pass login check
-		 */
-		GrantedAuthority component = new SimpleGrantedAuthority(ROLE_COMPONENT);
-		authoritiesMap.put(component, ImmutableSet.<GrantedAuthority>builder().add(component).build());
-	}
+  public UserRoleHierarchy() {
+    authoritiesMap = Arrays.stream(UserRole.values())
+        .collect(Collectors.toMap(this::asAuthority, this::findReachableRoles));
+    /*
+     * Specify authorities explicitly. It additionally has USER role to allow other services to pass login check
+     */
+    GrantedAuthority component = new SimpleGrantedAuthority(ROLE_COMPONENT);
+    authoritiesMap.put(component, ImmutableSet.<GrantedAuthority>builder().add(component).build());
+  }
 
-	@Override
-	public Collection<? extends GrantedAuthority> getReachableGrantedAuthorities(Collection<? extends GrantedAuthority> authorities) {
+  @Override
+  public Collection<? extends GrantedAuthority> getReachableGrantedAuthorities(
+      Collection<? extends GrantedAuthority> authorities) {
 
-		if ((authorities == null) || (authorities.isEmpty())) {
-			return AuthorityUtils.NO_AUTHORITIES;
-		}
+    if ((authorities == null) || (authorities.isEmpty())) {
+      return AuthorityUtils.NO_AUTHORITIES;
+    }
 
-		List<GrantedAuthority> reachableRoles = authorities.stream()
-				.filter(authority -> authoritiesMap.containsKey(authority))
-				.flatMap(authority -> authoritiesMap.get(authority).stream())
-				.collect(Collectors.toList());
+    List<GrantedAuthority> reachableRoles = authorities.stream()
+        .filter(authority -> authoritiesMap.containsKey(authority))
+        .flatMap(authority -> authoritiesMap.get(authority).stream())
+        .collect(Collectors.toList());
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("getReachableGrantedAuthorities() - From the roles " + authorities + " one can reach " + reachableRoles
-					+ " in zero or more steps.");
-		}
+    if (logger.isDebugEnabled()) {
+      logger.debug(
+          "getReachableGrantedAuthorities() - From the roles " + authorities + " one can reach "
+              + reachableRoles
+              + " in zero or more steps.");
+    }
 
-		return reachableRoles;
-	}
+    return reachableRoles;
+  }
 
-	private Set<GrantedAuthority> findReachableRoles(UserRole authority) {
-		Set<GrantedAuthority> reachableRoles = new HashSet<>();
-		UserRole[] roles = UserRole.values();
-		int startIndex = Arrays.binarySearch(UserRole.values(), authority);
-		for (int i = 0; i <= startIndex; i++) {
-			reachableRoles.add(asAuthority(roles[i]));
-		}
-		return reachableRoles;
-	}
+  private Set<GrantedAuthority> findReachableRoles(UserRole authority) {
+    Set<GrantedAuthority> reachableRoles = new HashSet<>();
+    UserRole[] roles = UserRole.values();
+    int startIndex = Arrays.binarySearch(UserRole.values(), authority);
+    for (int i = 0; i <= startIndex; i++) {
+      reachableRoles.add(asAuthority(roles[i]));
+    }
+    return reachableRoles;
+  }
 
-	private GrantedAuthority asAuthority(UserRole userRole) {
-		return new SimpleGrantedAuthority(userRole.getAuthority());
-	}
+  private GrantedAuthority asAuthority(UserRole userRole) {
+    return new SimpleGrantedAuthority(userRole.getAuthority());
+  }
 
 }

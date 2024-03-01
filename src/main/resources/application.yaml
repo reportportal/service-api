@@ -2,7 +2,7 @@ spring:
   application:
     name: api
     quartz:
-#      org.quartz.jobStore.class: org.quartz.impl.jdbcjobstore.JobStoreTX
+      #      org.quartz.jobStore.class: org.quartz.impl.jdbcjobstore.JobStoreTX
       org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
       org.quartz.jobStore.dataSource: dataSource
       org.quartz.jobStore.tablePrefix: quartz.scheduler_
@@ -70,6 +70,11 @@ rp:
         batch-size: 20
       pattern-analysis:
         batch-size: 100
+        consumers-count: 2
+        prefetch-count: 0
+        single-item: true
+      elements-counter:
+        batch-size: 50
       history:
         old: false
       demo:
@@ -94,10 +99,6 @@ rp:
             core: 10
             max: 30
             queue: 500
-          pattern-analyze:
-            core: 20
-            max: 30
-            queue: 500
           demo-data:
             core: 10
             max: 20
@@ -110,6 +111,10 @@ rp:
             core: 10
             max: 20
             queue: 1000
+          user-email:
+            core: 5
+            max: 20
+            queue: 500
 
   amqp:
     addresses: amqp://${rp.amqp.user}:${rp.amqp.pass}@${rp.amqp.host}:${rp.amqp.port}
@@ -135,6 +140,10 @@ rp:
 
   jwt:
     signing-key:
+
+
+  jobs:
+    baseUrl: http://jobs:8686
 
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
@@ -162,6 +171,7 @@ rp:
     path: ${rp.plugins.rootDir}/resolved
     resources:
       path: ${rp.plugins.rootDir}/resources
+      public: public
     temp:
       path: ${rp.plugins.rootDir}/temp
   binarystore:

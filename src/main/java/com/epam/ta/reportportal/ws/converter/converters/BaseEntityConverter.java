@@ -26,14 +26,14 @@ import java.util.function.Function;
  */
 public final class BaseEntityConverter {
 
-	private BaseEntityConverter() {
-		//static only
-	}
+  private BaseEntityConverter() {
+    //static only
+  }
 
-	public static final Function<? super OwnedEntity, OwnedEntityResource> TO_OWNED_ENTITY = shareable -> {
-		OwnedEntityResource ownedEntity = new OwnedEntityResource();
-		ownedEntity.setId(String.valueOf(shareable.getId()));
-		ownedEntity.setOwner(shareable.getOwner());
-		return ownedEntity;
-	};
+  public static final Function<? super OwnedEntity, OwnedEntityResource> TO_OWNED_ENTITY = shareable -> {
+    OwnedEntityResource ownedEntity = new OwnedEntityResource();
+    ownedEntity.setId(String.valueOf(shareable.getId()));
+    ownedEntity.setOwner(shareable.getOwner());
+    return ownedEntity;
+  };
 }

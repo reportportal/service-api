@@ -15,11 +15,10 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
+import java.util.Arrays;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.ConfigurationCondition;
 import org.springframework.core.type.AnnotatedTypeMetadata;
-
-import java.util.Arrays;
 
 /**
  * Configuration conditions
@@ -28,17 +27,18 @@ import java.util.Arrays;
  */
 public class Conditions {
 
-	public static class NotTestCondition implements ConfigurationCondition {
+  public static class NotTestCondition implements ConfigurationCondition {
 
-		@Override
-		public ConfigurationCondition.ConfigurationPhase getConfigurationPhase() {
-			return ConfigurationCondition.ConfigurationPhase.PARSE_CONFIGURATION;
-		}
+    @Override
+    public ConfigurationCondition.ConfigurationPhase getConfigurationPhase() {
+      return ConfigurationCondition.ConfigurationPhase.PARSE_CONFIGURATION;
+    }
 
-		@Override
-		public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-			return Arrays.stream(context.getEnvironment().getActiveProfiles()).noneMatch(profile -> profile.equals("unittest"));
-		}
-	}
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+      return Arrays.stream(context.getEnvironment().getActiveProfiles())
+          .noneMatch(profile -> profile.equals("unittest"));
+    }
+  }
 
 }

@@ -23,5 +23,5 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
  */
 public interface FilterUpdater {
 
-	void update(Queryable filter);
+  void update(Queryable filter);
 }

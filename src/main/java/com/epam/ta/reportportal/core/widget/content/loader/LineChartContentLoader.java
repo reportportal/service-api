@@ -16,23 +16,6 @@
 
 package com.epam.ta.reportportal.core.widget.content.loader;
 
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
-import com.epam.ta.reportportal.dao.WidgetContentRepository;
-import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.util.Strings;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.TIMELINE;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
@@ -41,34 +24,55 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static java.util.Optional.ofNullable;
 
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
+import com.epam.ta.reportportal.dao.WidgetContentRepository;
+import com.epam.ta.reportportal.entity.widget.WidgetOptions;
+import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
 /**
  * @author Pavel Bortnik
  */
 @Service
-public class LineChartContentLoader extends AbstractStatisticsContentLoader implements LoadContentStrategy {
+public class LineChartContentLoader extends AbstractStatisticsContentLoader implements
+    LoadContentStrategy {
 
-	@Autowired
-	private WidgetContentRepository widgetContentRepository;
+  @Autowired
+  private WidgetContentRepository widgetContentRepository;
 
-	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			int limit) {
+  @Override
+  public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping,
+      WidgetOptions widgetOptions,
+      int limit) {
 
-		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
-		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
+    Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
+    Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		List<ChartStatisticsContent> content = widgetContentRepository.launchStatistics(filter, contentFields, sort, limit);
+    List<ChartStatisticsContent> content = widgetContentRepository.launchStatistics(filter,
+        contentFields, sort, limit);
 
-		String timeLineOption = ofNullable(widgetOptions).map(wo -> WidgetOptionUtil.getValueByKey(TIMELINE, wo)).orElse(Strings.EMPTY);
-		if (StringUtils.isNotBlank(timeLineOption)) {
-			Optional<Period> period = Period.findByName(timeLineOption);
-			if (period.isPresent()) {
-				return CollectionUtils.isEmpty(content) ? emptyMap() : singletonMap(RESULT, groupByDate(content, period.get()));
-			}
+    String timeLineOption = ofNullable(widgetOptions).map(
+        wo -> WidgetOptionUtil.getValueByKey(TIMELINE, wo)).orElse(Strings.EMPTY);
+    if (StringUtils.isNotBlank(timeLineOption)) {
+      Optional<Period> period = Period.findByName(timeLineOption);
+      if (period.isPresent()) {
+        return CollectionUtils.isEmpty(content) ? emptyMap()
+            : singletonMap(RESULT, groupByDate(content, period.get()));
+      }
 
-		}
+    }
 
-		return CollectionUtils.isEmpty(content) ? emptyMap() : singletonMap(RESULT, content);
-	}
+    return CollectionUtils.isEmpty(content) ? emptyMap() : singletonMap(RESULT, content);
+  }
 
 }

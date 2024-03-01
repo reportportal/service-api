@@ -18,17 +18,17 @@ package com.epam.ta.reportportal.core.widget.content;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import org.springframework.data.domain.Sort;
-import org.springframework.util.MultiValueMap;
-
 import java.util.List;
 import java.util.Map;
+import org.springframework.data.domain.Sort;
+import org.springframework.util.MultiValueMap;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface MultilevelLoadContentStrategy {
 
-	Map<String, Object> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions,
-			String[] attributes, MultiValueMap<String, String> params, int limit);
+  Map<String, Object> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap,
+      WidgetOptions widgetOptions,
+      String[] attributes, MultiValueMap<String, String> params, int limit);
 }

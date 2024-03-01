@@ -61,11 +61,6 @@ public final class PredefinedFilters {
     //no instance required
   }
 
-  /**
-   * Костыль requested by UI team. Back-end team doesn't really understand what such a strange query
-   * is supposed to be used for.
-   * TODO Incompatible with free structure tree and BDD-like structure
-   */
   public static final Collection<TestItemTypeEnum> HAS_METHOD_OR_CLASS = Arrays.stream(
       TestItemTypeEnum.values()).filter(it -> {
     String name = it.name();

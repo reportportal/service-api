@@ -27,21 +27,26 @@ import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
  */
 public interface StartTestItemHandler {
 
-	/**
-	 * Start Root item operation
-	 *
-	 * @param projectDetails Project Details
-	 * @param rq             Item details
-	 * @return ItemID and uniqueID of test item
-	 */
-	ItemCreatedRS startRootItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq);
+  /**
+   * Start Root item operation
+   *
+   * @param user           {@link ReportPortalUser}
+   * @param projectDetails Project Details
+   * @param rq             Item details
+   * @return ItemID and uniqueID of test item
+   */
+  ItemCreatedRS startRootItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
+      StartTestItemRQ rq);
 
-	/**
-	 * Start child item operation
-	 *
-	 * @param projectDetails Project Details
-	 * @param rq             Item details
-	 * @return ItemID and uniqueID of test item
-	 */
-	ItemCreatedRS startChildItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq, String parentId);
+  /**
+   * Start child item operation
+   *
+   * @param user           {@link ReportPortalUser}
+   * @param projectDetails Project Details
+   * @param rq             Item details
+   * @param parentId       Id of parrent test item
+   * @return ItemID and uniqueID of test item
+   */
+  ItemCreatedRS startChildItem(ReportPortalUser user,
+      ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq, String parentId);
 }

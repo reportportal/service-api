@@ -1,22 +1,21 @@
 package com.epam.ta.reportportal.demodata.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 
 public class DemoLaunch {
 
-	@JsonProperty(value = "suites")
-	private List<Suite> suites;
+  @JsonProperty(value = "suites")
+  private List<Suite> suites;
 
-	public DemoLaunch() {
-	}
+  public DemoLaunch() {
+  }
 
-	public List<Suite> getSuites() {
-		return suites;
-	}
+  public List<Suite> getSuites() {
+    return suites;
+  }
 
-	public void setSuites(List<Suite> suites) {
-		this.suites = suites;
-	}
+  public void setSuites(List<Suite> suites) {
+    this.suites = suites;
+  }
 }

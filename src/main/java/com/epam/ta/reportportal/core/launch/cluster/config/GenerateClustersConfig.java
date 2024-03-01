@@ -23,45 +23,45 @@ import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
  */
 public class GenerateClustersConfig {
 
-	private ClusterEntityContext entityContext;
+  private ClusterEntityContext entityContext;
 
-	private AnalyzerConfig analyzerConfig;
+  private AnalyzerConfig analyzerConfig;
 
-	private boolean forUpdate;
-	private boolean cleanNumbers;
+  private boolean forUpdate;
+  private boolean cleanNumbers;
 
-	public GenerateClustersConfig() {
-	}
+  public GenerateClustersConfig() {
+  }
 
-	public ClusterEntityContext getEntityContext() {
-		return entityContext;
-	}
+  public ClusterEntityContext getEntityContext() {
+    return entityContext;
+  }
 
-	public void setEntityContext(ClusterEntityContext entityContext) {
-		this.entityContext = entityContext;
-	}
+  public void setEntityContext(ClusterEntityContext entityContext) {
+    this.entityContext = entityContext;
+  }
 
-	public AnalyzerConfig getAnalyzerConfig() {
-		return analyzerConfig;
-	}
+  public AnalyzerConfig getAnalyzerConfig() {
+    return analyzerConfig;
+  }
 
-	public void setAnalyzerConfig(AnalyzerConfig analyzerConfig) {
-		this.analyzerConfig = analyzerConfig;
-	}
+  public void setAnalyzerConfig(AnalyzerConfig analyzerConfig) {
+    this.analyzerConfig = analyzerConfig;
+  }
 
-	public boolean isForUpdate() {
-		return forUpdate;
-	}
+  public boolean isForUpdate() {
+    return forUpdate;
+  }
 
-	public void setForUpdate(boolean forUpdate) {
-		this.forUpdate = forUpdate;
-	}
+  public void setForUpdate(boolean forUpdate) {
+    this.forUpdate = forUpdate;
+  }
 
-	public boolean isCleanNumbers() {
-		return cleanNumbers;
-	}
+  public boolean isCleanNumbers() {
+    return cleanNumbers;
+  }
 
-	public void setCleanNumbers(boolean cleanNumbers) {
-		this.cleanNumbers = cleanNumbers;
-	}
+  public void setCleanNumbers(boolean cleanNumbers) {
+    this.cleanNumbers = cleanNumbers;
+  }
 }

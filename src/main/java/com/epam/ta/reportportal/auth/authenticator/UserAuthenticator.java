@@ -5,5 +5,5 @@ import org.springframework.security.core.Authentication;
 
 public interface UserAuthenticator {
 
-	Authentication authenticate(User user);
+  Authentication authenticate(User user);
 }

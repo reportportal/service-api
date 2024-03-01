@@ -18,9 +18,8 @@ package com.epam.ta.reportportal.core.widget.content;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import org.springframework.data.domain.Sort;
-
 import java.util.Map;
+import org.springframework.data.domain.Sort;
 
 /**
  * Strategy definition interface for building widget specific filters
@@ -29,12 +28,13 @@ import java.util.Map;
  */
 public interface BuildFilterStrategy {
 
-	/**
-	 * Get widget content with predefined filter in accordance with used
-	 * strategy
-	 *
-	 * @return
-	 */
-	Map<Filter, Sort> buildFilter(Widget widget);
+  /**
+   * Get widget content with predefined filter in accordance with used strategy
+   *
+   * @param widget the widget to apply the filters and sorting on
+   * @return Map of filters and sorts where the key is the {@link Filter}
+   * and the value is the corresponding {@link Sort} for the given widget
+   */
+  Map<Filter, Sort> buildFilter(Widget widget);
 
 }

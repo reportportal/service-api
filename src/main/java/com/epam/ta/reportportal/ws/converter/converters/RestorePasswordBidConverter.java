@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.entity.user.RestorePasswordBid;
 import com.epam.ta.reportportal.ws.model.user.RestorePasswordRQ;
 import com.google.common.base.Preconditions;
-
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -30,15 +29,15 @@ import java.util.function.Function;
  */
 public final class RestorePasswordBidConverter {
 
-	private RestorePasswordBidConverter() {
-		//static only
-	}
+  private RestorePasswordBidConverter() {
+    //static only
+  }
 
-	public static final Function<RestorePasswordRQ, RestorePasswordBid> TO_BID = request -> {
-		Preconditions.checkNotNull(request);
-		RestorePasswordBid bid = new RestorePasswordBid();
-		bid.setEmail(request.getEmail());
-		bid.setUuid(UUID.randomUUID().toString());
-		return bid;
-	};
+  public static final Function<RestorePasswordRQ, RestorePasswordBid> TO_BID = request -> {
+    Preconditions.checkNotNull(request);
+    RestorePasswordBid bid = new RestorePasswordBid();
+    bid.setEmail(request.getEmail());
+    bid.setUuid(UUID.randomUUID().toString());
+    return bid;
+  };
 }

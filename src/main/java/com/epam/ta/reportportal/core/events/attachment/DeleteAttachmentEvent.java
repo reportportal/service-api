@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.events.attachment;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
-
 import java.util.List;
 
 /**
@@ -26,39 +25,39 @@ import java.util.List;
  */
 public class DeleteAttachmentEvent {
 
-	@JsonProperty(value = "ids")
-	private List<Long> ids;
+  @JsonProperty(value = "ids")
+  private List<Long> ids;
 
-	@JsonProperty(value = "paths")
-	private List<String> paths;
+  @JsonProperty(value = "paths")
+  private List<String> paths;
 
-	public DeleteAttachmentEvent() {
-		ids = Lists.newArrayList();
-		paths = Lists.newArrayList();
-	}
+  public DeleteAttachmentEvent() {
+    ids = Lists.newArrayList();
+    paths = Lists.newArrayList();
+  }
 
-	public DeleteAttachmentEvent(List<Long> ids) {
-		this.ids = ids;
-	}
+  public DeleteAttachmentEvent(List<Long> ids) {
+    this.ids = ids;
+  }
 
-	public DeleteAttachmentEvent(List<Long> ids, List<String> paths) {
-		this.ids = ids;
-		this.paths = paths;
-	}
+  public DeleteAttachmentEvent(List<Long> ids, List<String> paths) {
+    this.ids = ids;
+    this.paths = paths;
+  }
 
-	public List<Long> getIds() {
-		return ids;
-	}
+  public List<Long> getIds() {
+    return ids;
+  }
 
-	public void setIds(List<Long> ids) {
-		this.ids = ids;
-	}
+  public void setIds(List<Long> ids) {
+    this.ids = ids;
+  }
 
-	public List<String> getPaths() {
-		return paths;
-	}
+  public List<String> getPaths() {
+    return paths;
+  }
 
-	public void setPaths(List<String> paths) {
-		this.paths = paths;
-	}
+  public void setPaths(List<String> paths) {
+    this.paths = paths;
+  }
 }

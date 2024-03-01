@@ -4,5 +4,5 @@ import com.epam.ta.reportportal.entity.widget.Widget;
 
 public interface WidgetValidator {
 
-	void validate(Widget widget);
+  void validate(Widget widget);
 }

@@ -26,31 +26,33 @@ import java.util.Optional;
  */
 public interface PluginBox {
 
-	/**
-	 * @return All available plugins
-	 */
-	List<Plugin> getPlugins();
+  /**
+   * @return All available plugins
+   */
+  List<Plugin> getPlugins();
 
-	/**
-	 * @param type Type of plugin
-	 * @return Optional of plugin by given type
-	 */
-	Optional<Plugin> getPlugin(String type);
+  /**
+   * @param type Type of plugin
+   * @return Optional of plugin by given type
+   */
+  Optional<Plugin> getPlugin(String type);
 
-	/**
-	 * Creates (or takes from cache) instance of given plugin
-	 *
-	 * @param name Plugin name / ID
-	 * @param type Type of plugin
-	 * @return Optional of plugin by given type
-	 */
-	<T> Optional<T> getInstance(String name, Class<T> type);
+  /**
+   * Creates (or takes from cache) instance of given plugin
+   *
+   * @param <T>  The Extension Point class
+   * @param name Plugin name / ID
+   * @param type Type of plugin
+   * @return Optional of plugin by given type
+   */
+  <T> Optional<T> getInstance(String name, Class<T> type);
 
-	/**
-	 * Creates (or takes from cache) instance of given plugin
-	 *
-	 * @param type Type of plugin
-	 * @return Optional of plugin by given type
-	 */
-	<T> Optional<T> getInstance(Class<T> type);
+  /**
+   * Creates (or takes from cache) instance of given plugin
+   *
+   * @param <T>  The Extension Point class
+   * @param type Type of plugin
+   * @return Optional of plugin by given type
+   */
+  <T> Optional<T> getInstance(Class<T> type);
 }

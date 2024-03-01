@@ -16,47 +16,47 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.client.impl;
 
+import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.ANALYZER_KEY;
+import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.EXCHANGE_PRIORITY;
+import static java.util.Comparator.comparingInt;
+
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rabbitmq.http.client.Client;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
-
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.ANALYZER_KEY;
-import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.EXCHANGE_PRIORITY;
-import static java.util.Comparator.comparingInt;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class RabbitMqManagementClientTemplate implements RabbitMqManagementClient {
 
-	private final Client rabbitClient;
+  private final Client rabbitClient;
 
-	private final String virtualHost;
+  private final String virtualHost;
 
-	public RabbitMqManagementClientTemplate(Client rabbitClient, String virtualHost) {
-		this.rabbitClient = rabbitClient;
-		this.virtualHost = virtualHost;
-		try {
-			rabbitClient.createVhost(virtualHost);
-		} catch (JsonProcessingException e) {
-			throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, "Unable to create RabbitMq virtual host");
-		}
-	}
-
-    public List<ExchangeInfo> getAnalyzerExchangesInfo() {
-        List<ExchangeInfo> client = rabbitClient.getExchanges(virtualHost);
-        if (client == null) {
-            throw new ReportPortalException(ErrorType.ANALYZER_NOT_FOUND, virtualHost);
-        }
-        return client.stream()
-                .filter(it -> it.getArguments().get(ANALYZER_KEY) != null)
-                .sorted(comparingInt(EXCHANGE_PRIORITY))
-                .collect(Collectors.toList());
+  public RabbitMqManagementClientTemplate(Client rabbitClient, String virtualHost) {
+    this.rabbitClient = rabbitClient;
+    this.virtualHost = virtualHost;
+    try {
+      rabbitClient.createVhost(virtualHost);
+    } catch (Exception e) {
+      throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
+          "Unable to create RabbitMq virtual host");
     }
+  }
+
+  public List<ExchangeInfo> getAnalyzerExchangesInfo() {
+    List<ExchangeInfo> client = rabbitClient.getExchanges(virtualHost);
+    if (client == null) {
+      throw new ReportPortalException(ErrorType.ANALYZER_NOT_FOUND, virtualHost);
+    }
+    return client.stream()
+        .filter(it -> it.getArguments().get(ANALYZER_KEY) != null)
+        .sorted(comparingInt(EXCHANGE_PRIORITY))
+        .collect(Collectors.toList());
+  }
 }

@@ -31,8 +31,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ResponseView {
-	/**
-	 * View class
-	 */
-	Class<?> value();
+
+  /**
+   * View class
+   */
+  Class<?> value();
 }

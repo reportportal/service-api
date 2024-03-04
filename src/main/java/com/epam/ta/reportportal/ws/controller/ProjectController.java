@@ -226,7 +226,7 @@ public class ProjectController {
   @PutMapping("/{projectKey}/unassign")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
-  @Operation(summary = "Un assign users")
+  @Operation(summary = "Unassign users")
   public OperationCompletionRS unassignProjectUsers(@PathVariable String projectKey,
       @RequestBody @Validated UnassignUsersRQ unassignUsersRQ,
       @AuthenticationPrincipal ReportPortalUser user) {

@@ -64,6 +64,7 @@ import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collections;
 import java.util.List;
@@ -233,6 +234,7 @@ public class TestItemController {
   @GetMapping
   @ResponseStatus(OK)
   @Operation(summary = "Find test items by specified filter")
+  @Schema(implementation = TestItemHistoryElement.class)
   public Iterable<TestItemResource> getTestItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @Nullable
   @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID, required = false)

@@ -64,6 +64,7 @@
 
    @GetMapping(value = "/{activityId}")
    @ResponseStatus(OK)
+   @Operation(summary =  "Get activity by id")
    public ActivityResource getActivity(@PathVariable String projectKey,
        @PathVariable Long activityId, @AuthenticationPrincipal ReportPortalUser user) {
      ReportPortalUser.ProjectDetails projectDetails =

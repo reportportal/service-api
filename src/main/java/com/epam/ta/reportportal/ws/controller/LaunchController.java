@@ -61,8 +61,6 @@ import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.net.HttpHeaders;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
@@ -455,9 +453,6 @@ public class LaunchController {
     );
   }
 
-  @Parameters(
-      @Parameter(name = "launchImportRq", content = @Content(schema = @Schema(implementation = LaunchImportRQ.class)))
-  )
   @PostMapping(value = "/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
   @ResponseStatus(OK)
   @Operation(summary =  "Import junit xml report", description = "Only following formats are supported: zip and xml.")

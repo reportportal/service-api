@@ -38,7 +38,7 @@ public class CreateUserRQConfirm {
 	@Pattern(regexp = "[a-zA-Z0-9-_.]+")
 	@Size(min = ValidationConstraints.MIN_LOGIN_LENGTH, max = ValidationConstraints.MAX_LOGIN_LENGTH)
 	@JsonProperty(value = "login", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED)
+	@Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
 	private String login;
 
 	@NotBlank
@@ -51,7 +51,7 @@ public class CreateUserRQConfirm {
 	@Pattern(regexp = "[\\pL0-9-_ \\.]+")
 	@Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)
 	@JsonProperty(value = "fullName", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED)
+	@Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
 	private String fullName;
 
 	@NotBlank

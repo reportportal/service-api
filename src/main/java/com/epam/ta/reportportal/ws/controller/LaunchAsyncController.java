@@ -60,7 +60,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v2/{projectName}/launch")
-@Tag(name = "launch-async-controller", description = "Activity Controller")
+@Tag(name = "launch-async-controller", description = "Launch Async Controller")
 public class LaunchAsyncController {
 
   private final ProjectExtractor projectExtractor;

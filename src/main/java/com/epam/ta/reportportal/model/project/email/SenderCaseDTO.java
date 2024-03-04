@@ -58,7 +58,7 @@ public class SenderCaseDTO implements Serializable {
 	@NotBlank
 	@JsonProperty(value = "sendCase")
 	@In(allowedValues = { "always", "failed", "toInvestigate", "more10", "more20", "more50" })
-	@Schema(allowableValues = "ALWAYS, FAILED, MORE_10, MORE_20, MORE_50")
+	@Schema(allowableValues = { "always", "failed", "toInvestigate", "more10", "more20", "more50" })
 	private String sendCase;
 
 	@NotBlankStringCollection

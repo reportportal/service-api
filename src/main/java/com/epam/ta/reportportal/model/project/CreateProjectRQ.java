@@ -47,7 +47,7 @@ public class CreateProjectRQ {
 	@Pattern(regexp = PROJECT_NAME_REGEXP)
 	@Size(min = ValidationConstraints.MIN_NAME_LENGTH, max = ValidationConstraints.MAX_NAME_LENGTH)
 	@JsonProperty(value = "projectName", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED)
+	@Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
 	private String projectName;
 
 	@NotBlank

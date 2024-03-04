@@ -67,8 +67,8 @@ public class ProjectJasperReportHandler extends AbstractJasperReportHandler<Proj
 
     params.put(ProjectReportConstants.PROJECT_TYPE, project.getProjectType());
     params.put(ProjectReportConstants.PROJECT_NAME, project.getName());
-    params.put(ProjectReportConstants.ORGANIZATION,
-        ofNullable(project.getOrganizationSlug()).orElse(EMPTY_STRING));
+    params.put(ProjectReportConstants.ORGANIZATION, ofNullable(project.getOrganizationId())
+        .orElse(EMPTY_STRING));
     params.put(ProjectReportConstants.MEMBERS, project.getUsersQuantity());
     params.put(ProjectReportConstants.LAUNCHES, project.getLaunchesQuantity());
 

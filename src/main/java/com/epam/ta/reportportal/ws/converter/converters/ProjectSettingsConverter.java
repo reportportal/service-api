@@ -49,12 +49,12 @@ public final class ProjectSettingsConverter {
         resource.setLaunchesQuantity(project.getLaunchesQuantity());
         resource.setProjectId(project.getId());
         resource.setProjectName(project.getName());
-        resource.setProjectKey(project.getProjectKey());
-        resource.setProjectSlug(project.getProjectSlug());
+        resource.setProjectKey(project.getKey());
+        resource.setProjectSlug(project.getSlug());
         resource.setCreationDate(EntityUtils.TO_DATE.apply(project.getCreationDate()));
         resource.setLastRun(ofNullable(project.getLastRun()).map(EntityUtils.TO_DATE).orElse(null));
         resource.setEntryType(project.getProjectType());
-        resource.setOrganization(project.getOrganizationSlug());
+        resource.setOrganizationId(project.getOrganizationId());
         return resource;
       };
 

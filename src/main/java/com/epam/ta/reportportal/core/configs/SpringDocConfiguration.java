@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 EPAM Systems
+ * Copyright 2024 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,42 @@
 
 package com.epam.ta.reportportal.core.configs;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ATTRIBUTE_NAME;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterTarget;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.util.SchemaFactory;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.media.IntegerSchema;
 import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.media.StringSchema;
+import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import javax.servlet.ServletContext;
@@ -45,6 +63,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.MethodParameter;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 /**
@@ -56,12 +76,13 @@ public class SpringDocConfiguration {
 
   static {
     SpringDocUtils.getConfig().addAnnotationsToIgnore(AuthenticationPrincipal.class);
-    SpringDocUtils.getConfig().addRequestWrapperToIgnore(Filter.class, Queryable.class,
+    SpringDocUtils.getConfig().addRequestWrapperToIgnore(Pageable.class, Queryable.class,
         ReportPortalUser.class, UserRole.class);
-    SpringDocUtils.getConfig().replaceWithClass(org.springframework.data.domain.Pageable.class,
-        org.springdoc.core.converters.models.Pageable.class);
     SpringDocUtils.getConfig().replaceWithClass(Iterable.class, List.class);
   }
+
+  private static final Set<String> hiddenParams = ImmutableSet.<String>builder()
+      .add(CRITERIA_PROJECT_ATTRIBUTE_NAME).build();
 
   @Autowired
   private ServletContext servletContext;
@@ -132,5 +153,84 @@ public class SpringDocConfiguration {
   private String convertMethodNameToTitle(String methodName) {
     StringBuilder title = new StringBuilder(methodName.replaceAll("([A-Z])", " $1"));
     return title.substring(0, 1).toUpperCase(Locale.ROOT) + title.substring(1).trim();
+  }
+
+  @Bean
+  public OperationCustomizer customizeParameters() {
+    return (operation, handlerMethod) -> {
+      for (MethodParameter parameter : handlerMethod.getMethodParameters()) {
+        Class<?> parameterType = parameter.getParameterType();
+
+        if (parameterType == Filter.class) {
+          FilterFor filterClass = parameter.getParameterAnnotation(FilterFor.class);
+
+          List<Parameter> defaultParams = Lists.newArrayList();
+          if (filterClass != null && (filterClass.value() == TestItem.class
+              || filterClass.value() == Launch.class)) {
+            defaultParams = StatisticsHelper.defaultStatisticsFields()
+                .map(this::buildFilterParameters)
+                .collect(Collectors.toList());
+          }
+
+          List<CriteriaHolder> criteriaList = FilterTarget.findByClass(filterClass.value())
+              .getCriteriaHolders();
+          List<Parameter> filterParams = criteriaList.stream()
+              .filter(ch -> !hiddenParams.contains(ch.getFilterCriteria()))
+              .map(this::buildFilterParameters)
+              .collect(Collectors.toList());
+          filterParams.addAll(defaultParams);
+          setParameters(operation, filterParams);
+        } else if (parameterType == Pageable.class) {
+          setParameters(operation, buildPageParameters());
+        }
+      }
+      return operation;
+    };
+  }
+
+  private Parameter buildFilterParameters(String parameter) {
+    return new Parameter()
+        .in(ParameterIn.QUERY.toString())
+        .name("filter.eq." + parameter)
+        .schema(new IntegerSchema())
+        .description("Filters by '" + parameter + "'");
+  }
+
+  private Parameter buildFilterParameters(CriteriaHolder criteriaHolder) {
+    Schema schema = SchemaFactory.createSchemaForType(criteriaHolder.getDataType());
+
+    return new Parameter()
+        .in(ParameterIn.QUERY.toString())
+        .name("filter.eq." + criteriaHolder.getFilterCriteria())
+        .schema(schema)
+        .description("Filters by '" + criteriaHolder.getFilterCriteria() + "'");
+  }
+
+  private List<Parameter> buildPageParameters() {
+    List<Parameter> pageParams = new ArrayList<>();
+    pageParams.add(new Parameter()
+        .in(ParameterIn.QUERY.toString())
+        .name("page.page")
+        .schema(new IntegerSchema())
+        .description("Results page you want to retrieve (0..N)"));
+    pageParams.add(new Parameter()
+        .in(ParameterIn.QUERY.toString())
+        .name("page.size")
+        .schema(new IntegerSchema())
+        .description("Number of records per page"));
+    pageParams.add(new Parameter()
+        .in(ParameterIn.QUERY.toString())
+        .name("page.sort")
+        .schema(new StringSchema())
+        .description("Sorting criteria in the format: property, (asc|desc). "
+            + "Default sort order is ascending. "
+            + "Multiple sort criteria are supported."));
+    return pageParams;
+  }
+
+  private void setParameters(Operation operation, List<Parameter> parameters) {
+    for (Parameter parameter : parameters) {
+      operation.addParametersItem(parameter);
+    }
   }
 }

@@ -32,12 +32,14 @@ import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import javax.servlet.ServletContext;
 import org.springdoc.core.SpringDocUtils;
 import org.springdoc.core.customizers.OpenApiCustomiser;
+import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -58,6 +60,7 @@ public class SpringDocConfiguration {
         ReportPortalUser.class, UserRole.class);
     SpringDocUtils.getConfig().replaceWithClass(org.springframework.data.domain.Pageable.class,
         org.springdoc.core.converters.models.Pageable.class);
+    SpringDocUtils.getConfig().replaceWithClass(Iterable.class, List.class);
   }
 
   @Autowired
@@ -112,5 +115,22 @@ public class SpringDocConfiguration {
           .collect(Collectors.toList());
       openApi.setTags(sortedTags);
     };
+  }
+
+  @Bean
+  public OperationCustomizer apiSummaryCustomizer() {
+    return (operation, handlerMethod) -> {
+      if (operation.getSummary() == null || operation.getSummary().isEmpty()) {
+        String methodName = handlerMethod.getMethod().getName();
+        String summary = convertMethodNameToTitle(methodName);
+        operation.setSummary(summary);
+      }
+      return operation;
+    };
+  }
+
+  private String convertMethodNameToTitle(String methodName) {
+    StringBuilder title = new StringBuilder(methodName.replaceAll("([A-Z])", " $1"));
+    return title.substring(0, 1).toUpperCase(Locale.ROOT) + title.substring(1).trim();
   }
 }

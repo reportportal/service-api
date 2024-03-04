@@ -9,8 +9,6 @@ on:
       - gradle.properties
   push:
     branches:
-      - master
-      - develop
       - feature/orgs
     paths-ignore:
       - '.github/**'
@@ -18,6 +16,6 @@ on:
       - gradle.properties
 
 jobs:
-  call-java-cheks:
+  call-java-checks:
     name: Call Java checks
     uses: reportportal/.github/.github/workflows/java-checks.yaml@main

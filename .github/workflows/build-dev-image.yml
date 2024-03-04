@@ -3,7 +3,6 @@ name: Build develop Docker image
 on:
   push:
     branches:
-      - develop
       - feature/orgs
     paths-ignore:
       - '.github/**'

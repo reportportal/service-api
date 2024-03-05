@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -26,6 +27,7 @@ public class TicketsValidationTest {
 
   @BeforeAll
   public static void init() {
+    Locale.setDefault(Locale.US);
     validator = Validation.buildDefaultValidatorFactory().getValidator();
   }
 

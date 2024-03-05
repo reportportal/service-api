@@ -256,7 +256,8 @@ class LaunchControllerTest extends BaseMvcTest {
     deleteBulkRQ.setIds(ids);
     mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/launch").contentType(APPLICATION_JSON)
         .with(token(oAuthHelper.getDefaultToken()))
-        .content(objectMapper.writeValueAsBytes(deleteBulkRQ))).andExpect(status().is(200));
+        .param("ids" , "1", "2"))
+        .andExpect(status().is(200));
     List<Launch> launches = launchRepository.findAllById(ids);
     assertTrue(launches.isEmpty());
   }

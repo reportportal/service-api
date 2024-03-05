@@ -15,8 +15,8 @@ project.ext {
     ]
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
-    scriptsUrl = commonScriptsUrl + (releaseMode ? '5.10.0' : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.10.0' : 'develop')
+    scriptsUrl = commonScriptsUrl + (releaseMode ? '5.11.0' : 'develop')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.11.0' : 'develop')
     //TODO refactor with archive download
     testScriptsSrc = [
             (migrationsUrl + '/migrations/0_extensions.up.sql')                        : 'V001__extensions.sql',

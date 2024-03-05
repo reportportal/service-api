@@ -56,7 +56,7 @@ public class CreateIssueSubTypeRQ {
 	@NotBlank
 	@Pattern(regexp = HEX_COLOR_REGEXP)
 	@JsonProperty(value = "color", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED)
+	@Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
 	private String color;
 
 	public void setTypeRef(String typeRef) {

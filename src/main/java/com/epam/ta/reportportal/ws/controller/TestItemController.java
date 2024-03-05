@@ -64,6 +64,7 @@ import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collections;
@@ -237,7 +238,7 @@ public class TestItemController {
   @Schema(implementation = TestItemHistoryElement.class)
   public Iterable<TestItemResource> getTestItems(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user, @Nullable
-  @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID, required = false)
+  @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID, required = false)
   Long launchId,
       @Nullable @RequestParam(value = FILTER_ID_REQUEST_PARAM, required = false) Long filterId,
       @RequestParam(value = IS_LATEST_LAUNCHES_REQUEST_PARAM, defaultValue = "false", required = false)
@@ -327,11 +328,11 @@ public class TestItemController {
       @AuthenticationPrincipal ReportPortalUser user, @FilterFor(TestItem.class) Filter filter,
       @FilterFor(TestItem.class) Queryable predefinedFilter,
       @SortFor(TestItem.class) Pageable pageable, @Nullable
-  @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_PARENT_ID, required = false)
+  @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_PARENT_ID, required = false)
   Long parentId, @Nullable
-  @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_ID, required = false)
+  @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_ID, required = false)
   Long itemId, @Nullable
-  @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID, required = false)
+  @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID, required = false)
   Long launchId, @Nullable @RequestParam(value = HISTORY_TYPE_PARAM, required = false) String type,
       @Nullable @RequestParam(value = FILTER_ID_REQUEST_PARAM, required = false) Long filterId,
       @RequestParam(value = IS_LATEST_LAUNCHES_REQUEST_PARAM, defaultValue = "false", required = false)

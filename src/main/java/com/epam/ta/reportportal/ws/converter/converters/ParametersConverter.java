@@ -16,7 +16,7 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.item.Parameter;
-import com.epam.ta.reportportal.ws.model.ParameterResource;
+import com.epam.ta.reportportal.ws.reporting.ParameterResource;
 import java.util.function.Function;
 
 /**

@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.strategy;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
+import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>

@@ -34,7 +34,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
+import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.Optional;
@@ -52,11 +52,8 @@ class LaunchPatternAnalysisStrategyTest {
   private final LaunchRepository launchRepository = mock(LaunchRepository.class);
   private final LaunchPatternAnalyzer launchPatternAnalyzer = mock(LaunchPatternAnalyzer.class);
 
-  private final LaunchPatternAnalysisStrategy launchPatternAnalysisStrategy = new LaunchPatternAnalysisStrategy(
-      projectRepository,
-      launchRepository,
-      launchPatternAnalyzer
-  );
+  private final LaunchPatternAnalysisStrategy launchPatternAnalysisStrategy =
+      new LaunchPatternAnalysisStrategy(projectRepository, launchRepository, launchPatternAnalyzer);
 
   @Test
   void analyzeTest() {
@@ -74,8 +71,8 @@ class LaunchPatternAnalysisStrategyTest {
     when(project.getProjectAttributes()).thenReturn(Sets.newHashSet(projectAttribute));
 
     ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
-    ReportPortalUser.ProjectDetails projectDetails = new ReportPortalUser.ProjectDetails(1L, "name",
-        ProjectRole.PROJECT_MANAGER);
+    ReportPortalUser.ProjectDetails projectDetails =
+        new ReportPortalUser.ProjectDetails(1L, "name", ProjectRole.PROJECT_MANAGER);
     AnalyzeLaunchRQ analyzeLaunchRQ = new AnalyzeLaunchRQ();
     analyzeLaunchRQ.setLaunchId(1L);
     analyzeLaunchRQ.setAnalyzeItemsModes(Lists.newArrayList("TO_INVESTIGATE"));
@@ -83,7 +80,8 @@ class LaunchPatternAnalysisStrategyTest {
     launchPatternAnalysisStrategy.analyze(analyzeLaunchRQ, projectDetails, user);
 
     verify(launchPatternAnalyzer, times(1)).analyzeLaunch(launch,
-        Sets.newHashSet(AnalyzeItemsMode.TO_INVESTIGATE));
+        Sets.newHashSet(AnalyzeItemsMode.TO_INVESTIGATE)
+    );
 
   }
 }

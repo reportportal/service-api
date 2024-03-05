@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
-import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
+import com.epam.ta.reportportal.model.activity.WidgetActivityResource;
 
 /**
  * @author pavel_bortnik

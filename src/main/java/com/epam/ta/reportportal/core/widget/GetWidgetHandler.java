@@ -18,8 +18,8 @@ package com.epam.ta.reportportal.core.widget;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
-import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
+import com.epam.ta.reportportal.model.widget.WidgetPreviewRQ;
+import com.epam.ta.reportportal.model.widget.WidgetResource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.MultiValueMap;
 

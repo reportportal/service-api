@@ -30,13 +30,15 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.core.logging.HttpLogging;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.BatchElementCreatedRS;
-import com.epam.ta.reportportal.ws.model.BatchSaveOperatingRS;
-import com.epam.ta.reportportal.ws.model.Constants;
-import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
-import io.swagger.annotations.ApiOperation;
+import com.epam.ta.reportportal.ws.reporting.BatchElementCreatedRS;
+import com.epam.ta.reportportal.ws.reporting.BatchSaveOperatingRS;
+import com.epam.ta.reportportal.ws.reporting.Constants;
+import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Validator;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -56,7 +58,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * @author Konstantin Antipin
@@ -64,6 +65,7 @@ import springfox.documentation.annotations.ApiIgnore;
 @RestController
 @RequestMapping("/v2/{projectName}/log")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
+@Tag(name = "log-async-controller", description = "Log Async Controller")
 public class LogAsyncController {
 
   private final ProjectExtractor projectExtractor;
@@ -88,7 +90,7 @@ public class LogAsyncController {
   @HttpLogging
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
   @ResponseStatus(CREATED)
-  @ApiIgnore
+  @Hidden
   @PreAuthorize(ALLOWED_TO_REPORT)
   public EntryCreatedAsyncRS createLog(@PathVariable String projectName,
       @RequestBody SaveLogRQ createLogRQ,
@@ -101,7 +103,7 @@ public class LogAsyncController {
   @HttpLogging
   @PostMapping(value = "/entry", consumes = {MediaType.APPLICATION_JSON_VALUE})
   @ResponseStatus(CREATED)
-  @ApiOperation("Create log")
+  @Operation(summary = "Create log")
   @PreAuthorize(ALLOWED_TO_REPORT)
   public EntryCreatedAsyncRS createLogEntry(@PathVariable String projectName,
       @RequestBody SaveLogRQ createLogRQ,
@@ -113,7 +115,7 @@ public class LogAsyncController {
 
   @HttpLogging
   @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-  @ApiOperation("Create log (batching operation)")
+  @Operation(summary = "Create log (batching operation)")
   // Specific handler should be added for springfox in case of similar POST
   // request mappings
   //	@Async

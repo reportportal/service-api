@@ -7,7 +7,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
+import com.epam.ta.reportportal.model.activity.UserActivityResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -28,13 +28,14 @@ public class ProjectUserHandlerImpl implements ProjectUserHandler {
   @Override
   public ProjectUser assign(User user, Project project, ProjectRole projectRole, User creator,
       boolean isSystemEvent) {
-    final ProjectUser projectUser = new ProjectUser().withProjectRole(projectRole)
-        .withUser(user)
-        .withProject(project);
+    final ProjectUser projectUser =
+        new ProjectUser().withProjectRole(projectRole).withUser(user).withProject(project);
     projectUserRepository.save(projectUser);
 
-    AssignUserEvent assignUserEvent = new AssignUserEvent(getUserActivityResource(user, project),
-        creator.getId(), creator.getLogin(), isSystemEvent);
+    AssignUserEvent assignUserEvent =
+        new AssignUserEvent(getUserActivityResource(user, project), creator.getId(),
+            creator.getLogin(), isSystemEvent
+        );
     eventPublisher.publishEvent(assignUserEvent);
 
     return projectUser;

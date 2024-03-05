@@ -21,7 +21,7 @@ import static java.util.stream.Collectors.toList;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.Set;

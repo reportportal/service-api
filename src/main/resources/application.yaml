@@ -42,11 +42,9 @@ logging:
     org.elasticsearch.client.RestClient: error
 
 
-springfox:
-  documentation:
-    swagger:
-      v2:
-        path: /v1/api-docs
+springdoc:
+  api-docs:
+    path: /v1/api-docs
 
 
 #### Custom ReportPortal Properties ######

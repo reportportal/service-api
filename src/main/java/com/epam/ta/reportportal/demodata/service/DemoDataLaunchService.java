@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.demodata.service;
 
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.LAUNCH_NOT_FOUND;
 
 import com.epam.reportportal.extension.event.LaunchFinishedPluginEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -28,9 +28,9 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
+import com.epam.ta.reportportal.ws.reporting.Mode;
+import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.google.common.collect.Sets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;

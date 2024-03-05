@@ -17,10 +17,10 @@
 package com.epam.ta.reportportal.core.project.settings;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
-import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeCreatedRS;
-import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
+import com.epam.ta.reportportal.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.project.config.CreateIssueSubTypeRQ;
+import com.epam.ta.reportportal.model.project.config.IssueSubTypeCreatedRS;
+import com.epam.ta.reportportal.model.project.config.pattern.CreatePatternTemplateRQ;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>

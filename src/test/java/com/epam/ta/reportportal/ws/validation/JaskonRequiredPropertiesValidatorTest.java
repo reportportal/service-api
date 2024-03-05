@@ -21,10 +21,10 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
-import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
-import com.epam.ta.reportportal.ws.model.issue.Issue;
-import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.epam.ta.reportportal.model.issue.IssueDefinition;
+import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.Issue;
+import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.UUID;

@@ -24,8 +24,8 @@ import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.TestItemResource;
-import com.epam.ta.reportportal.ws.model.statistics.StatisticsResource;
+import com.epam.ta.reportportal.ws.reporting.StatisticsResource;
+import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -64,9 +64,8 @@ public interface GetTestItemHandler {
    * @return {@link Iterable} of the {@link TestItemResource}
    */
   Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user, @Nullable Long launchId, @Nullable Long filterId, boolean isLatest,
-      int launchesLimit);
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit);
 
   /**
    * Gets {@link TestItem} instances
@@ -78,8 +77,8 @@ public interface GetTestItemHandler {
    * @return {@link Iterable} of the {@link TestItemResource}
    */
   Iterable<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user, Map<String, String> params);
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      Map<String, String> params);
 
   /**
    * Gets accumulated statistics of items by data provider
@@ -125,8 +124,7 @@ public interface GetTestItemHandler {
    * @return {@link List} of the {@link ItemAttribute#getKey()}
    */
   List<String> getAttributeKeys(Long launchFilterId, boolean isLatest, int launchesLimit,
-      ReportPortalUser.ProjectDetails projectDetails,
-      String keyPart);
+      ReportPortalUser.ProjectDetails projectDetails, String keyPart);
 
   /**
    * Get specified attribute keys

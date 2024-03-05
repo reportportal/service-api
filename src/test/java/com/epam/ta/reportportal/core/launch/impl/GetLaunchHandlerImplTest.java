@@ -44,8 +44,8 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
-import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.launch.cluster.ClusterInfoResource;
 import java.util.List;
 import java.util.Optional;
@@ -96,8 +96,8 @@ class GetLaunchHandlerImplTest {
 
   @Test
   void getLaunchFromOtherProject() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR,
-        ProjectRole.PROJECT_MANAGER, 2L);
+    final ReportPortalUser rpUser =
+        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 2L);
     when(launchRepository.findById(1L)).thenReturn(
         getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT));
 
@@ -125,7 +125,8 @@ class GetLaunchHandlerImplTest {
 
     assertThrows(ReportPortalException.class,
         () -> handler.getLaunchNames(extractProjectDetails(rpUser, "test_project"),
-            RandomStringUtils.random(257))
+            RandomStringUtils.random(257)
+        )
     );
   }
 
@@ -150,10 +151,12 @@ class GetLaunchHandlerImplTest {
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.getLaunchByProjectName(projectName, PageRequest.of(0, 10), getDefaultFilter(),
-            "user")
+            "user"
+        )
     );
     assertEquals("Project 'not_exist' not found. Did you use correct project name?",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
@@ -165,7 +168,8 @@ class GetLaunchHandlerImplTest {
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.getLaunchByProjectName(projectName, PageRequest.of(0, 10), getDefaultFilter(),
-            "user")
+            "user"
+        )
     );
     assertEquals("Launch '' not found. Did you use correct Launch ID?", exception.getMessage());
   }
@@ -173,64 +177,68 @@ class GetLaunchHandlerImplTest {
   @Test
   void getLaunchesByNotExistProject() {
     long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
-        projectId);
+    ReportPortalUser user =
+        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
     when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.getProjectLaunches(extractProjectDetails(user, "test_project"),
-            getDefaultFilter(),
-            PageRequest.of(0, 10),
-            "user"
+            getDefaultFilter(), PageRequest.of(0, 10), "user"
         )
     );
     assertEquals("Project '1' not found. Did you use correct project name?",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
   void getLatestLaunchesOnNotExistProject() {
     long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
-        projectId);
+    ReportPortalUser user =
+        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
     when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.getLatestLaunches(extractProjectDetails(user, "test_project"),
-            getDefaultFilter(), PageRequest.of(0, 10))
+            getDefaultFilter(), PageRequest.of(0, 10)
+        )
     );
     assertEquals("Project '1' not found. Did you use correct project name?",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
   void getOwnersWrongTerm() {
     long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
-        projectId);
+    ReportPortalUser user =
+        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.getOwners(extractProjectDetails(user, "test_project"), "qw",
-            LaunchModeEnum.DEFAULT.name())
+            LaunchModeEnum.DEFAULT.name()
+        )
     );
     assertEquals(
         "Incorrect filtering parameters. Length of the filtering string 'qw' is less than 3 symbols",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
   void getOwnersWrongMode() {
     long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
-        projectId);
+    ReportPortalUser user =
+        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.getOwners(extractProjectDetails(user, "test_project"), "qwe", "incorrectMode")
     );
     assertEquals("Incorrect filtering parameters. Mode - incorrectMode doesn't exist.",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
@@ -292,13 +300,13 @@ class GetLaunchHandlerImplTest {
 
     final Pageable pageable = PageRequest.of(1, 2);
 
-    final Page<ClusterInfoResource> expected = new Page<>(
-        List.of(new ClusterInfoResource(), new ClusterInfoResource()), 2, 1, 10);
+    final Page<ClusterInfoResource> expected =
+        new Page<>(List.of(new ClusterInfoResource(), new ClusterInfoResource()), 2, 1, 10);
 
     when(getClusterHandler.getResources(launch, pageable)).thenReturn(expected);
 
-    final Iterable<ClusterInfoResource> result = handler.getClusters(launchId,
-        extractProjectDetails(user, "test_project"), pageable);
+    final Iterable<ClusterInfoResource> result =
+        handler.getClusters(launchId, extractProjectDetails(user, "test_project"), pageable);
 
     final Page<ClusterInfoResource> castedResult = (Page<ClusterInfoResource>) result;
 
@@ -314,8 +322,7 @@ class GetLaunchHandlerImplTest {
   }
 
   private Filter getDefaultFilter() {
-    return Filter.builder()
-        .withTarget(Launch.class)
+    return Filter.builder().withTarget(Launch.class)
         .withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_STATUS, "PASSED").build())
         .build();
   }

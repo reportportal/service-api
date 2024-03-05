@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.widget.content.loader.materialized;
 
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTES;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTE_KEYS;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.EXCLUDE_SKIPPED;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_PASSED;
@@ -19,8 +20,8 @@ import com.epam.ta.reportportal.entity.widget.content.healthcheck.HealthCheckTab
 import com.epam.ta.reportportal.entity.widget.content.healthcheck.HealthCheckTableGetParams;
 import com.epam.ta.reportportal.entity.widget.content.healthcheck.LevelEntry;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.widget.SortEntry;
+import com.epam.ta.reportportal.model.widget.SortEntry;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -47,7 +48,6 @@ public class HealthCheckTableReadyContentLoader implements MaterializedWidgetCon
 
   public static final String SORT = "sort";
   public static final String CUSTOM_COLUMN = "customColumn";
-
   public static final String TOTAL = "total";
   public static final String STATISTICS = "statistics";
   public static final String PASSING_RATE = "passingRate";
@@ -64,31 +64,25 @@ public class HealthCheckTableReadyContentLoader implements MaterializedWidgetCon
 
   @Override
   public Map<String, Object> loadContent(Widget widget, MultiValueMap<String, String> params) {
-    HealthCheckTableGetParams getParams = getParams(widget.getWidgetOptions(),
-        ofNullable(params.get(ATTRIBUTES)).map(attributes -> attributes.stream()
-            .filter(StringUtils::isNotBlank)
-            .collect(Collectors.toList())).orElseGet(Collections::emptyList)
-    );
-    List<HealthCheckTableContent> content = widgetContentRepository.componentHealthCheckTable(
-        getParams);
+    HealthCheckTableGetParams getParams =
+        getParams(widget.getWidgetOptions(), ofNullable(params.get(ATTRIBUTES)).map(
+            attributes -> attributes.stream().filter(StringUtils::isNotBlank)
+                .collect(Collectors.toList())).orElseGet(Collections::emptyList));
+    List<HealthCheckTableContent> content =
+        widgetContentRepository.componentHealthCheckTable(getParams);
 
     if (CollectionUtils.isEmpty(content)) {
       return emptyMap();
     }
 
-    Map<String, Integer> totalStatistics = content.stream()
-        .map(HealthCheckTableContent::getStatistics)
-        .map(Map::entrySet)
-        .flatMap(Collection::stream)
-        .collect(groupingBy(Map.Entry::getKey, Collectors.summingInt(Map.Entry::getValue)));
+    Map<String, Integer> totalStatistics =
+        content.stream().map(HealthCheckTableContent::getStatistics).map(Map::entrySet)
+            .flatMap(Collection::stream)
+            .collect(groupingBy(Map.Entry::getKey, Collectors.summingInt(Map.Entry::getValue)));
 
     return ImmutableMap.<String, Object>builder().put(RESULT, content)
-        .put(TOTAL,
-            ImmutableMap.<String, Object>builder().put(STATISTICS, totalStatistics)
-                .put(PASSING_RATE, calculatePassingRate(totalStatistics))
-                .build()
-        )
-        .build();
+        .put(TOTAL, ImmutableMap.<String, Object>builder().put(STATISTICS, totalStatistics)
+            .put(PASSING_RATE, calculatePassingRate(totalStatistics)).build()).build();
   }
 
   private HealthCheckTableGetParams getParams(WidgetOptions widgetOptions,
@@ -98,21 +92,18 @@ public class HealthCheckTableReadyContentLoader implements MaterializedWidgetCon
     BusinessRule.expect(attributeKeys, keys -> keys.size() > currentLevel)
         .verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Incorrect level definition");
 
-    String viewName = ofNullable(
-        WidgetOptionUtil.getValueByKey(VIEW_NAME, widgetOptions)).orElseThrow(
-        () -> new ReportPortalException(
-            ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
-            "Widget view name not provided"
-        ));
+    String viewName =
+        ofNullable(WidgetOptionUtil.getValueByKey(VIEW_NAME, widgetOptions)).orElseThrow(
+            () -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
+                "Widget view name not provided"
+            ));
     String currentLevelKey = attributeKeys.get(currentLevel);
-    boolean includeCustomColumn = ofNullable(
-        WidgetOptionUtil.getValueByKey(CUSTOM_COLUMN, widgetOptions)).isPresent();
+    boolean includeCustomColumn =
+        ofNullable(WidgetOptionUtil.getValueByKey(CUSTOM_COLUMN, widgetOptions)).isPresent();
 
-    return HealthCheckTableGetParams.of(viewName,
-        currentLevelKey,
-        resolveSort(widgetOptions),
-        includeCustomColumn,
-        getLevelEntries(attributeKeys, attributeValues)
+    return HealthCheckTableGetParams.of(viewName, currentLevelKey, resolveSort(widgetOptions),
+        includeCustomColumn, getLevelEntries(attributeKeys, attributeValues),
+        WidgetOptionUtil.getBooleanByKey(EXCLUDE_SKIPPED, widgetOptions)
     );
 
   }
@@ -121,16 +112,19 @@ public class HealthCheckTableReadyContentLoader implements MaterializedWidgetCon
     return ofNullable(widgetOptions).flatMap(
         wo -> ofNullable(wo.getOptions()).map(options -> options.get(SORT))).map(s -> {
       try {
-        SortEntry sortEntry = objectMapper.readValue(objectMapper.writeValueAsString(s),
-            SortEntry.class);
+        SortEntry sortEntry =
+            objectMapper.readValue(objectMapper.writeValueAsString(s), SortEntry.class);
         return Sort.by(sortEntry.isAsc() ? Sort.Direction.ASC : Sort.Direction.DESC,
-            sortEntry.getSortingColumn());
+            sortEntry.getSortingColumn()
+        );
       } catch (JsonProcessingException e) {
         throw new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
-            "Sort format error: " + e.getMessage());
+            "Sort format error: " + e.getMessage()
+        );
       }
     }).orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
-        "Sort parameter not provided"));
+        "Sort parameter not provided"
+    ));
   }
 
   private List<LevelEntry> getLevelEntries(List<String> attributeKeys,
@@ -146,7 +140,7 @@ public class HealthCheckTableReadyContentLoader implements MaterializedWidgetCon
     double passingRate =
         100.0 * totalStatistics.getOrDefault(EXECUTIONS_PASSED, 0) / totalStatistics.getOrDefault(
             EXECUTIONS_TOTAL, 1);
-    return new BigDecimal(passingRate).setScale(2, RoundingMode.HALF_UP).doubleValue();
+    return BigDecimal.valueOf(passingRate).setScale(2, RoundingMode.HALF_UP).doubleValue();
   }
 
 }

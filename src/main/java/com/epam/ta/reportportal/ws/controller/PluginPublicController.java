@@ -22,9 +22,10 @@ import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.plugin.GetPluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
+import com.epam.ta.reportportal.model.integration.IntegrationTypeResource;
 import com.epam.ta.reportportal.util.BinaryDataResponseWriter;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
@@ -42,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping(value = "/v1/plugin/public")
+@Tag(name = "plugin-public-controller", description = "Plugin Public Controller")
 public class PluginPublicController {
 
   private final PluginFilesProvider pluginPublicFilesProvider;
@@ -60,17 +62,16 @@ public class PluginPublicController {
 
   @GetMapping(value = "/{pluginName}/file/{name}")
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Get public plugin file without authentication")
+  @Operation(summary = "Get public plugin file without authentication")
   public void getPublicFile(@PathVariable(value = "pluginName") String pluginName,
-      @PathVariable(value = "name") String fileName,
-      HttpServletResponse response) {
+      @PathVariable(value = "name") String fileName, HttpServletResponse response) {
     final BinaryData binaryData = pluginPublicFilesProvider.load(pluginName, fileName);
     binaryDataResponseWriter.write(binaryData, response);
   }
 
-  @PutMapping(value = "/{pluginName}/{command}", consumes = {APPLICATION_JSON_VALUE})
+  @PutMapping(value = "/{pluginName}/{command}", consumes = { APPLICATION_JSON_VALUE })
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Execute public command without authentication")
+  @Operation(summary = "Execute public command without authentication")
   public Object executePublicPluginCommand(@PathVariable("pluginName") String pluginName,
       @PathVariable("command") String command, @RequestBody Map<String, Object> executionParams) {
     return executeIntegrationHandler.executePublicCommand(pluginName, command, executionParams);
@@ -78,7 +79,7 @@ public class PluginPublicController {
 
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation("Get all available public plugins")
+  @Operation(summary = "Get all available public plugins")
   public List<IntegrationTypeResource> getPlugins() {
     return getPluginHandler.getPublicPlugins();
   }

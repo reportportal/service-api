@@ -16,7 +16,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.11.0' : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.11.0' : 'feature/settings')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.11.0' : 'develop')
     //TODO refactor with archive download
     testScriptsSrc = [
             (migrationsUrl + '/migrations/0_extensions.up.sql')                        : 'V001__extensions.sql',
@@ -77,10 +77,11 @@ project.ext {
                     '**/job/FlushingDataJob**',
                     "**/core/analyzer/auto/client/model/**",
                     '**/core/analyzer/auto/impl/SuggestedItem**',
-                    '**/core/item/impl/provider/impl/mock/**'
+                    '**/core/item/impl/provider/impl/mock/**',
+                    '**/model/**'
     ]
 }
 
 wrapper {
-    gradleVersion = '8.4'
+    gradleVersion = '8.5'
 }

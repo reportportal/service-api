@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterProvider;
 import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemUpdaterContent;
 import com.epam.ta.reportportal.ws.converter.utils.item.updater.RetriesUpdater;
-import com.epam.ta.reportportal.ws.model.TestItemResource;
+import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,8 +35,8 @@ import org.springframework.stereotype.Service;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class RetriesUpdaterProvider implements
-    ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource> {
+public class RetriesUpdaterProvider
+    implements ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource> {
 
   private final TestItemRepository testItemRepository;
 
@@ -48,11 +48,9 @@ public class RetriesUpdaterProvider implements
   @Override
   public ResourceUpdater<TestItemResource> retrieve(TestItemUpdaterContent updaterContent) {
     Map<Long, List<TestItem>> retriesMapping = testItemRepository.selectRetries(
-        updaterContent.getTestItems()
-            .stream()
-            .filter(TestItem::isHasRetries)
-            .map(TestItem::getItemId)
-            .collect(Collectors.toList())).stream().collect(groupingBy(TestItem::getRetryOf));
+            updaterContent.getTestItems().stream().filter(TestItem::isHasRetries)
+                .map(TestItem::getItemId).collect(Collectors.toList())).stream()
+        .collect(groupingBy(TestItem::getRetryOf));
     return RetriesUpdater.of(retriesMapping);
   }
 }

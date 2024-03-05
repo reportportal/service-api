@@ -20,7 +20,7 @@ import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsCo
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.FIELD_NAME_IS_NULL_MESSAGE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.INCORRECT_REQUEST_MESSAGE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.WHITESPACES_NAME_VALUE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_REQUEST;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -29,13 +29,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.ErrorRS;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
-import com.epam.ta.reportportal.ws.model.issue.Issue;
-import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
-import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
-import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRQ;
+import com.epam.ta.reportportal.ws.reporting.ErrorRS;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
+import com.epam.ta.reportportal.model.issue.DefineIssueRQ;
+import com.epam.ta.reportportal.ws.reporting.Issue;
+import com.epam.ta.reportportal.model.issue.IssueDefinition;
+import com.epam.ta.reportportal.model.item.LinkExternalIssueRQ;
+import com.epam.ta.reportportal.model.item.UnlinkExternalIssueRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.time.ZoneId;

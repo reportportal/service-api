@@ -18,8 +18,8 @@ package com.epam.ta.reportportal.core.analyzer.strategy;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_REQUEST;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;

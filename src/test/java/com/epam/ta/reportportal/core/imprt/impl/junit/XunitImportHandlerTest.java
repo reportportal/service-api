@@ -14,9 +14,9 @@ import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
-import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.ItemCreatedRS;
+import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -99,6 +99,7 @@ public class XunitImportHandlerTest {
     Attributes attributes = mock(Attributes.class);
     when(attributes.getValue(XunitReportTag.ATTR_NAME.getValue())).thenReturn(ATTR_NAME);
     when(attributes.getValue(XunitReportTag.TIMESTAMP.getValue())).thenReturn(TIMESTAMP);
+    when(attributes.getValue(XunitReportTag.START_TIME.getValue())).thenReturn(TIMESTAMP);
 
     LocalDateTime startSuiteTime =
         LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(suiteTimestamp)),
@@ -136,6 +137,7 @@ public class XunitImportHandlerTest {
     Attributes attributes = mock(Attributes.class);
     when(attributes.getValue(XunitReportTag.ATTR_NAME.getValue())).thenReturn(ATTR_NAME);
     when(attributes.getValue(XunitReportTag.TIMESTAMP.getValue())).thenReturn(ISO_DATE);
+    when(attributes.getValue(XunitReportTag.START_TIME.getValue())).thenReturn(ISO_DATE);
 
     DateTimeFormatter formatter =
         new DateTimeFormatterBuilder().appendOptional(DateTimeFormatter.RFC_1123_DATE_TIME)
@@ -212,6 +214,7 @@ public class XunitImportHandlerTest {
     Attributes attributes = mock(Attributes.class);
     when(attributes.getValue(XunitReportTag.ATTR_NAME.getValue())).thenReturn(ATTR_NAME);
     when(attributes.getValue(XunitReportTag.START_TIME.getValue())).thenReturn(TIMESTAMP);
+    when(attributes.getValue(XunitReportTag.TIMESTAMP.getValue())).thenReturn(TIMESTAMP);
     when(attributes.getValue(XunitReportTag.ATTR_TIME.getValue())).thenReturn(DURATION);
 
     LocalDateTime startItemTime =

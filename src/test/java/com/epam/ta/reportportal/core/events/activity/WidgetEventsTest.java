@@ -30,7 +30,7 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
+import com.epam.ta.reportportal.model.activity.WidgetActivityResource;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.time.LocalDateTime;
@@ -62,82 +62,80 @@ class WidgetEventsTest {
   }
 
   private static List<HistoryField> getExpectedHistory(Pair<String, String> name,
-      Pair<Boolean, Boolean> shared,
-      Pair<String, String> description, Pair<Integer, Integer> itemsCount,
-      Pair<Set<String>, Set<String>> contentFields,
+      Pair<Boolean, Boolean> shared, Pair<String, String> description,
+      Pair<Integer, Integer> itemsCount, Pair<Set<String>, Set<String>> contentFields,
       Pair<String, String> options) {
     return Lists.newArrayList(HistoryField.of(NAME, name.getLeft(), name.getRight()),
         HistoryField.of(DESCRIPTION, description.getLeft(), description.getRight()),
         HistoryField.of(ITEMS_COUNT, itemsCount.getLeft().toString(),
-            itemsCount.getRight().toString()),
-        HistoryField.of(CONTENT_FIELDS, String.join(", ", contentFields.getLeft()),
-            String.join(", ", contentFields.getRight())),
-        HistoryField.of(WIDGET_OPTIONS, options.getLeft(), options.getRight())
+            itemsCount.getRight().toString()
+        ), HistoryField.of(CONTENT_FIELDS, String.join(", ", contentFields.getLeft()),
+            String.join(", ", contentFields.getRight())
+        ), HistoryField.of(WIDGET_OPTIONS, options.getLeft(), options.getRight())
     );
-	}
+  }
 
-	@Test
-	void created() {
+  @Test
+  void created() {
     final String name = "name";
     final boolean shared = true;
     final String description = "description";
 
-    final Activity actual = new WidgetCreatedEvent(
-        getWidget(name, shared, description, 2, getBeforeContentFields()),
-        1L,
-        "user"
-    ).toActivity();
+    final Activity actual =
+        new WidgetCreatedEvent(getWidget(name, shared, description, 2, getBeforeContentFields()),
+            1L, "user"
+        ).toActivity();
     final Activity expected = getExpectedActivity(EventAction.CREATE, name);
     expected.setEventName("createWidget");
     checkActivity(expected, actual);
   }
 
-	private static WidgetActivityResource getWidget(String name, boolean shared, String description, int itemsCount,
-			Set<String> contentFields) {
-		WidgetActivityResource widget = new WidgetActivityResource();
-		widget.setName(name);
-		widget.setId(2L);
-		widget.setDescription(description);
-		widget.setProjectId(3L);
-		widget.setItemsCount(itemsCount);
-		widget.setContentFields(contentFields);
-		return widget;
-	}
+  private static WidgetActivityResource getWidget(String name, boolean shared, String description,
+      int itemsCount, Set<String> contentFields) {
+    WidgetActivityResource widget = new WidgetActivityResource();
+    widget.setName(name);
+    widget.setId(2L);
+    widget.setDescription(description);
+    widget.setProjectId(3L);
+    widget.setItemsCount(itemsCount);
+    widget.setContentFields(contentFields);
+    return widget;
+  }
 
-	private static Set<String> getBeforeContentFields() {
-		return Sets.newHashSet("field1", "field2", "field3");
-	}
+  private static Set<String> getBeforeContentFields() {
+    return Sets.newHashSet("field1", "field2", "field3");
+  }
 
-	private static Set<String> getAfterContentFields() {
-		return Sets.newHashSet("field1", "field4", "field5", "field6");
-	}
+  private static Set<String> getAfterContentFields() {
+    return Sets.newHashSet("field1", "field4", "field5", "field6");
+  }
 
-	private static String getBeforeOptions() {
-		return "{ \"option1\": \"content\", \"option2\": \"enabled\"}";
-	}
+  private static String getBeforeOptions() {
+    return "{ \"option1\": \"content\", \"option2\": \"enabled\"}";
+  }
 
-	private static String getAfterOptions() {
-		return "{\n" + "  \"option1\": \"content\",\n" + "  \"option5\": \"disabled\",\n" + "  \"superOption\": \"superContent\"\n" + "}";
-	}
+  private static String getAfterOptions() {
+    return "{\n" + "  \"option1\": \"content\",\n" + "  \"option5\": \"disabled\",\n"
+        + "  \"superOption\": \"superContent\"\n" + "}";
+  }
 
-	@Test
-	void deleted() {
+  @Test
+  void deleted() {
     final String name = "name";
     final boolean shared = true;
     final String description = "description";
 
-    final Activity actual = new WidgetDeletedEvent(
-        getWidget(name, shared, description, 3, getBeforeContentFields()),
-        1L,
-        "user"
-    ).toActivity();
+    final Activity actual =
+        new WidgetDeletedEvent(getWidget(name, shared, description, 3, getBeforeContentFields()),
+            1L, "user"
+        ).toActivity();
     final Activity expected = getExpectedActivity(EventAction.DELETE, name);
     expected.setEventName("deleteWidget");
     checkActivity(expected, actual);
   }
 
-	@Test
-	void update() {
+  @Test
+  void update() {
     final String oldName = "oldName";
     final boolean oldShared = false;
     final String oldDescription = "oldDescription";
@@ -148,15 +146,12 @@ class WidgetEventsTest {
     final Activity actual = new WidgetUpdatedEvent(
         getWidget(oldName, oldShared, oldDescription, 2, getBeforeContentFields()),
         getWidget(newName, newShared, newDescription, 4, getAfterContentFields()),
-        getBeforeOptions(),
-        getAfterOptions(), 1L, "user"
+        getBeforeOptions(), getAfterOptions(), 1L, "user"
     ).toActivity();
     final Activity expected = getExpectedActivity(EventAction.UPDATE, newName);
-    expected.getDetails()
-        .setHistory(getExpectedHistory(Pair.of(oldName, newName),
-            Pair.of(oldShared, newShared),
-            Pair.of(oldDescription, newDescription),
-            Pair.of(2, 4),
+    expected.getDetails().setHistory(
+        getExpectedHistory(Pair.of(oldName, newName), Pair.of(oldShared, newShared),
+            Pair.of(oldDescription, newDescription), Pair.of(2, 4),
             Pair.of(getBeforeContentFields(), getAfterContentFields()),
             Pair.of(getBeforeOptions(), getAfterOptions())
         ));

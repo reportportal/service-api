@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.model.ActivityEventResource;
+import com.epam.ta.reportportal.model.ActivityEventResource;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -32,20 +32,14 @@ public final class ActivityEventConverter {
   private ActivityEventConverter() {
   }
 
-  public static final Function<Activity, ActivityEventResource> TO_RESOURCE = activity ->
-      ActivityEventResource.builder()
-          .id(activity.getId())
+  public static final Function<Activity, ActivityEventResource> TO_RESOURCE =
+      activity -> ActivityEventResource.builder().id(activity.getId())
           .createdAt(EntityUtils.TO_DATE.apply(activity.getCreatedAt()))
-          .eventName(activity.getEventName())
-          .objectId(activity.getObjectId())
-          .objectName(activity.getObjectName())
-          .objectType(activity.getObjectType().getValue())
-          .projectId(activity.getProjectId())
-          .projectName(activity.getProjectName())
-          .subjectName(activity.getSubjectName())
-          .subjectType(activity.getSubjectType().getValue())
-          .subjectId(Objects.toString(activity.getSubjectId(), null))
-          .details(activity.getDetails())
+          .eventName(activity.getEventName()).objectId(activity.getObjectId())
+          .objectName(activity.getObjectName()).objectType(activity.getObjectType().getValue())
+          .projectId(activity.getProjectId()).projectName(activity.getProjectName())
+          .subjectName(activity.getSubjectName()).subjectType(activity.getSubjectType().getValue())
+          .subjectId(Objects.toString(activity.getSubjectId(), null)).details(activity.getDetails())
           .build();
 
 }

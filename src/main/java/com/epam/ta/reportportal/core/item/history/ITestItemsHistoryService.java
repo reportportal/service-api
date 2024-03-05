@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.item.history;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
+import com.epam.ta.reportportal.model.TestItemHistoryElement;
 import java.util.List;
 
 /**

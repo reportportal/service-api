@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
+import com.epam.ta.reportportal.ws.reporting.ItemCreatedRS;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 
 /**
  * Handler for start launch operation

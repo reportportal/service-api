@@ -58,8 +58,6 @@ public class AttachDefaultPhotoEventHandler {
   public void handleContextRefresh(ContextRefreshedEvent event) {
     userRepository.findByLogin("superadmin")
         .ifPresent(it -> attachPhoto(it, "image/superAdminPhoto.jpg"));
-    userRepository.findByLogin("default")
-        .ifPresent(it -> attachPhoto(it, "image/defaultUserPhoto.jpg"));
   }
 
   private void attachPhoto(User user, String photoPath) {

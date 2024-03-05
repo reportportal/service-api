@@ -21,7 +21,7 @@ import static java.util.Optional.ofNullable;
 import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
-import com.epam.ta.reportportal.ws.model.TestItemResource;
+import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import javax.annotation.Nullable;
 import org.springframework.stereotype.Component;
 

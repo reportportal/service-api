@@ -25,9 +25,10 @@ import com.epam.ta.reportportal.dao.TicketRepository;
 import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
+import com.epam.ta.reportportal.model.item.UnlinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.converter.converters.TicketConverter;
-import com.epam.ta.reportportal.ws.model.issue.Issue;
-import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRQ;
+import com.epam.ta.reportportal.ws.reporting.Issue;
+import com.epam.ta.reportportal.ws.reporting.Issue.ExternalSystemIssue;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -82,19 +83,17 @@ public class ExternalTicketHandlerImpl implements ExternalTicketHandler {
   /**
    * Finds tickets that are existed in db and removes them from request.
    *
-   * @param externalIssues {@link
-   *                       com.epam.ta.reportportal.ws.model.issue.Issue.ExternalSystemIssue}
+   * @param externalIssues {@link com.epam.ta.reportportal.ws.reporting.Issue.ExternalSystemIssue}
    * @return List of existed tickets in db.
    */
-  private List<Ticket> collectExistedTickets(Collection<Issue.ExternalSystemIssue> externalIssues) {
+  private List<Ticket> collectExistedTickets(Collection<ExternalSystemIssue> externalIssues) {
     if (CollectionUtils.isEmpty(externalIssues)) {
       return Collections.emptyList();
     }
-    List<Ticket> existedTickets = ticketRepository.findByTicketIdIn(externalIssues.stream()
-        .map(Issue.ExternalSystemIssue::getTicketId)
-        .collect(toList()));
-    List<String> existedTicketsIds = existedTickets.stream().map(Ticket::getTicketId)
-        .collect(toList());
+    List<Ticket> existedTickets = ticketRepository.findByTicketIdIn(
+        externalIssues.stream().map(Issue.ExternalSystemIssue::getTicketId).collect(toList()));
+    List<String> existedTicketsIds =
+        existedTickets.stream().map(Ticket::getTicketId).collect(toList());
     externalIssues.removeIf(it -> existedTicketsIds.contains(it.getTicketId()));
     return existedTickets;
   }
@@ -102,8 +101,7 @@ public class ExternalTicketHandlerImpl implements ExternalTicketHandler {
   /**
    * TODO document this
    *
-   * @param externalIssues {@link
-   *                       com.epam.ta.reportportal.ws.model.issue.Issue.ExternalSystemIssue}
+   * @param externalIssues {@link com.epam.ta.reportportal.ws.reporting.Issue.ExternalSystemIssue}
    * @param username       {@link com.epam.ta.reportportal.entity.user.User#login}
    * @return {@link Set} of the {@link Ticket}
    */
@@ -114,7 +112,8 @@ public class ExternalTicketHandlerImpl implements ExternalTicketHandler {
     }
     return externalIssues.stream().map(it -> {
       Ticket ticket;
-      Optional<Ticket> ticketOptional = ticketRepository.findByTicketId(it.getTicketId());
+      Optional<Ticket> ticketOptional =
+          ticketRepository.findByTicketIdAndBtsProject(it.getTicketId(), it.getBtsProject());
       if (ticketOptional.isPresent()) {
         ticket = ticketOptional.get();
         ticket.setUrl(it.getUrl());
@@ -126,9 +125,8 @@ public class ExternalTicketHandlerImpl implements ExternalTicketHandler {
       }
       ticket.setSubmitter(username);
       ticket.setSubmitDate(ofNullable(it.getSubmitDate()).map(
-          millis -> LocalDateTime.ofInstant(Instant.ofEpochMilli(millis),
-              ZoneOffset.UTC
-          )).orElse(LocalDateTime.now()));
+              millis -> LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneOffset.UTC))
+          .orElse(LocalDateTime.now()));
       return ticket;
     }).collect(toSet());
   }

@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.epam.ta.reportportal.entity.user.RestorePasswordBid;
-import com.epam.ta.reportportal.ws.model.user.RestorePasswordRQ;
+import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
 import org.junit.jupiter.api.Test;
 
 /**

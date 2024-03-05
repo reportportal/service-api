@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
+import com.epam.ta.reportportal.model.activity.PatternTemplateActivityResource;
 import com.google.common.collect.Lists;
 import java.time.LocalDateTime;
 import java.util.List;

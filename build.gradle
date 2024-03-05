@@ -18,13 +18,12 @@ plugins {
     id "io.spring.dependency-management" version "1.1.4"
     id 'org.springframework.boot' version '2.5.15'
     id 'java'
-    id "org.owasp.dependencycheck" version "8.2.1"
+    id "org.owasp.dependencycheck" version "9.0.9"
 }
 
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
-apply from: "$scriptsUrl/build-docker.gradle"
 apply from: "$scriptsUrl/build-commons.gradle"
 apply from: "$scriptsUrl/build-info.gradle"
 apply from: "$scriptsUrl/release-service.gradle"
@@ -73,13 +72,14 @@ dependencies {
         implementation 'com.epam.reportportal:commons-fonts'
         implementation 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.epam.reportportal:commons-events'
-        implementation 'com.epam.reportportal:commons-dao'
-        implementation 'com.epam.reportportal:commons-rules'
-        implementation 'com.epam.reportportal:commons-model'
-        implementation 'com.epam.reportportal:commons'
-        implementation 'com.epam.reportportal:commons-fonts'
-        implementation 'com.epam.reportportal:plugin-api'
+        implementation 'com.github.reportportal:commons-events:e337f8b7be'
+        implementation 'com.github.reportportal:commons-dao:b2c73ac'
+        implementation 'com.github.reportportal:commons-rules:1f6bfed'
+        implementation 'com.github.reportportal:commons-model:f466951'
+        implementation 'com.github.reportportal:commons-reporting:12c31b1'
+        implementation 'com.github.reportportal:commons:07566b8e'
+        implementation 'com.github.reportportal:commons-fonts:d6e62dd'
+        implementation 'com.github.reportportal:plugin-api:cc3c5c8'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
@@ -113,9 +113,11 @@ dependencies {
     implementation 'xerces:xercesImpl:2.12.2'
     implementation 'com.lowagie:itext:2.1.7.js7'
     // JasperReport's export to XLS uses Apache POI
-    implementation 'org.apache.poi:poi:4.1.2'
-    implementation 'io.springfox:springfox-swagger2:2.9.2'
+    implementation 'org.apache.poi:poi:5.2.3'
+    implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
     implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'com.google.api-client:google-api-client:2.3.0'
+    implementation 'joda-time:joda-time:2.12.7'
 
 
     ///// Security
@@ -181,7 +183,8 @@ dependencyCheck {
 }
 
 bootJar {
-    project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('exec')
+    project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('' +
+            'exec')
 }
 jar.enabled(true)
 jar.archiveClassifier.set('')

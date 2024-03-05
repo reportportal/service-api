@@ -22,9 +22,9 @@ import static java.util.stream.Collectors.toMap;
 
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
+import com.epam.ta.reportportal.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,17 +54,17 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
   @Override
   public OperationCompletionRS saveAnalyticsSettings(AnalyticsResource analyticsResource) {
     String analyticsType = analyticsResource.getType();
-    Map<String, ServerSettings> serverAnalyticsDetails = findServerSettings().entrySet()
-        .stream()
+    Map<String, ServerSettings> serverAnalyticsDetails = findServerSettings().entrySet().stream()
         .filter(entry -> entry.getKey().startsWith(ANALYTICS_CONFIG_PREFIX))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-    String formattedAnalyticsType = analyticsType.startsWith(ANALYTICS_CONFIG_PREFIX) ?
-        analyticsType :
-        ANALYTICS_CONFIG_PREFIX + analyticsType;
+    String formattedAnalyticsType =
+        analyticsType.startsWith(ANALYTICS_CONFIG_PREFIX) ? analyticsType :
+            ANALYTICS_CONFIG_PREFIX + analyticsType;
 
-    ServerSettings analyticsDetails = ofNullable(
-        serverAnalyticsDetails.get(formattedAnalyticsType)).orElseGet(ServerSettings::new);
+    ServerSettings analyticsDetails =
+        ofNullable(serverAnalyticsDetails.get(formattedAnalyticsType)).orElseGet(
+            ServerSettings::new);
     analyticsDetails.setKey(formattedAnalyticsType);
     analyticsDetails.setValue(
         String.valueOf((ofNullable(analyticsResource.getEnabled()).orElse(false))));
@@ -74,8 +74,7 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
   }
 
   private Map<String, ServerSettings> findServerSettings() {
-    return serverSettingsRepository.selectServerSettings()
-        .stream()
+    return serverSettingsRepository.selectServerSettings().stream()
         .collect(toMap(ServerSettings::getKey, s -> s, (prev, curr) -> prev));
   }
 }

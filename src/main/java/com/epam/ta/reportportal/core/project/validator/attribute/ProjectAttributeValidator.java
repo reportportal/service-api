@@ -3,7 +3,7 @@ package com.epam.ta.reportportal.core.project.validator.attribute;
 import static com.epam.ta.reportportal.commons.Predicates.isPresent;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.FOREVER_ALIAS;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 
@@ -11,7 +11,6 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,7 +36,7 @@ public class ProjectAttributeValidator {
 
     ofNullable(newAttributes.get(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute())).ifPresent(
         analyzerMode -> expect(AnalyzeMode.fromString(
-            analyzerMode), isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, analyzerMode));
+            analyzerMode), isPresent()).verify(BAD_REQUEST_ERROR, analyzerMode));
 
     ofNullable(newAttributes.get(
         ProjectAttributeEnum.SEARCH_LOGS_MIN_SHOULD_MATCH.getAttribute())).ifPresent(

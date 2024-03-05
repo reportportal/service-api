@@ -42,10 +42,10 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.model.analyzer.IndexRs;
+import com.epam.ta.reportportal.model.analyzer.IndexRsIndex;
+import com.epam.ta.reportportal.model.analyzer.IndexRsItem;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexRs;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexRsIndex;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexRsItem;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -80,14 +80,10 @@ class LogIndexerServiceTest {
 
   private LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
 
-  private LogIndexerService logIndexerService = new LogIndexerService(batchLogIndexer,
-      taskExecutor,
-      launchRepository,
-      testItemRepository,
-      indexerServiceClient,
-      launchPreparerService,
-      indexerStatusCache
-  );
+  private LogIndexerService logIndexerService =
+      new LogIndexerService(batchLogIndexer, taskExecutor, launchRepository, testItemRepository,
+          indexerServiceClient, launchPreparerService, indexerStatusCache
+      );
 
   @Test
   void testIndexWithZeroCount() {
@@ -104,9 +100,7 @@ class LogIndexerServiceTest {
   void testIndexDefectsUpdate() {
     final Map<Long, String> toUpdate = Maps.newHashMap(1L, "pb001");
     when(indexerServiceClient.indexDefectsUpdate(1L, toUpdate)).thenReturn(Collections.emptyList());
-    logIndexerService.indexDefectsUpdate(
-        1L,
-        new AnalyzerConfig(),
+    logIndexerService.indexDefectsUpdate(1L, new AnalyzerConfig(),
         Lists.newArrayList(createTestItem(1L, TestItemIssueGroup.PRODUCT_BUG))
     );
     verify(indexerServiceClient, times(1)).indexDefectsUpdate(1L, toUpdate);

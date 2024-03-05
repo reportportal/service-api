@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
+import com.epam.ta.reportportal.model.activity.ProjectAttributesActivityResource;
 import java.util.function.Function;
 
 /**
@@ -30,12 +30,13 @@ public final class ProjectActivityConverter {
     //static only
   }
 
-  public static final Function<Project, ProjectAttributesActivityResource> TO_ACTIVITY_RESOURCE = project -> {
-    ProjectAttributesActivityResource resource = new ProjectAttributesActivityResource();
-    resource.setProjectId(project.getId());
-    resource.setProjectName(project.getName());
-    resource.setConfig(ProjectUtils.getConfigParameters(project.getProjectAttributes()));
-    return resource;
-  };
+  public static final Function<Project, ProjectAttributesActivityResource> TO_ACTIVITY_RESOURCE =
+      project -> {
+        ProjectAttributesActivityResource resource = new ProjectAttributesActivityResource();
+        resource.setProjectId(project.getId());
+        resource.setProjectName(project.getName());
+        resource.setConfig(ProjectUtils.getConfigParameters(project.getProjectAttributes()));
+        return resource;
+      };
 
 }

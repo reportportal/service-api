@@ -33,12 +33,12 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.builders.LogFullBuilder;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
-import com.epam.ta.reportportal.ws.model.log.SaveLogRQ.File;
+import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
+import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
+import com.epam.ta.reportportal.ws.reporting.SaveLogRQ.File;
+import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -241,7 +241,8 @@ class AsyncReportingListenerTest {
     when(launch.getId()).thenReturn(ID);
     when(launchRepository.findByUuid(LAUNCH_ID)).thenReturn(Optional.of(launch));
 
-    LogFull logFull = new LogFullBuilder().addSaveLogRq(saveLogRQ).addLaunch(launch).addProjectId(ID).get();
+    LogFull logFull = new LogFullBuilder().addSaveLogRq(saveLogRQ).addLaunch(launch)
+        .addProjectId(ID).get();
     final Log log = LOG_FULL_TO_LOG.apply(logFull);
 
     asyncReportingListener.onMessage(message);
@@ -280,7 +281,8 @@ class AsyncReportingListenerTest {
     TestItem testItem = mock(TestItem.class);
     when(testItemRepository.findByUuid(ITEM_ID)).thenReturn(Optional.of(testItem));
 
-    LogFull logFull = new LogFullBuilder().addSaveLogRq(saveLogRQ).addTestItem(testItem).addProjectId(ID).get();
+    LogFull logFull = new LogFullBuilder().addSaveLogRq(saveLogRQ).addTestItem(testItem)
+        .addProjectId(ID).get();
     final Log log = LOG_FULL_TO_LOG.apply(logFull);
 
     Launch launch = mock(Launch.class);

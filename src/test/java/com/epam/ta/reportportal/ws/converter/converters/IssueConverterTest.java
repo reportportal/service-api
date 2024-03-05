@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
-import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.epam.ta.reportportal.ws.reporting.Issue;
 import org.junit.jupiter.api.Test;
 
 /**

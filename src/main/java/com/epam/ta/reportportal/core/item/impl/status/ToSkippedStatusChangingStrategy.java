@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.item.impl.status;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_REQUEST;
 import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;

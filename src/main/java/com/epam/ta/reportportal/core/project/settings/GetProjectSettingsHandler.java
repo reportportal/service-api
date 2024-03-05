@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.project.settings;
 
-import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
+import com.epam.ta.reportportal.model.project.config.ProjectSettingsResource;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>

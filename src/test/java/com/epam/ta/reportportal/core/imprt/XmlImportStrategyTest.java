@@ -16,9 +16,9 @@ import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
-import com.epam.ta.reportportal.ws.model.launch.LaunchImportRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
+import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
+import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Provider;
@@ -106,7 +107,12 @@ class XmlImportStrategyTest {
   void whenImportLaunch_andIsSkippedIssue_thenProcessXmlFileWithSkippedTrue(@TempDir Path tempDir)
       throws Exception {
     LaunchImportRQ rq = new LaunchImportRQ();
-    rq.setAttributes(Set.of(new ItemAttributesRQ(AbstractImportStrategy.SKIPPED_IS_NOT_ISSUE, "true")));
+    ItemAttributesRQ attributesRQ =
+        new ItemAttributesRQ(AbstractImportStrategy.SKIPPED_IS_NOT_ISSUE, "true");
+    attributesRQ.setSystem(true);
+    Set<ItemAttributesRQ> attributes = new HashSet<>();
+    attributes.add(attributesRQ);
+    rq.setAttributes(attributes);
 
     File xmlFile = createFile(tempDir);
 
@@ -136,7 +142,7 @@ class XmlImportStrategyTest {
     verify(xmlParseJobProvider, times(1)).get();
   }
 
-  private File createFile(Path tempDir) throws Exception{
+  private File createFile(Path tempDir) throws Exception {
     File xmlFile = tempDir.resolve("sample.xml").toFile();
     BufferedWriter writer = new BufferedWriter(new FileWriter(xmlFile));
     writer.write("<testsuite><testcase/></testsuite>");

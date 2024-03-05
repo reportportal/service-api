@@ -16,10 +16,10 @@ import com.epam.ta.reportportal.core.imprt.impl.ImportType;
 import com.epam.ta.reportportal.core.imprt.impl.XmlImportStrategy;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.LaunchImportCompletionRS;
+import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
 import com.epam.ta.reportportal.util.sample.LaunchSampleUtil;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.LaunchImportCompletionRS;
-import com.epam.ta.reportportal.ws.model.launch.LaunchImportRQ;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import java.io.File;
 import java.util.Optional;
 import org.apache.commons.io.FilenameUtils;
@@ -154,9 +154,7 @@ public class ImportLaunchHandlerImplTest {
       when(launchRepository.findByUuid(LAUNCH_ID)).thenReturn(Optional.of(sampleLaunch));
 
       var response = (LaunchImportCompletionRS) importLaunchHandlerImpl.importLaunch(projectDetails,
-          reportPortalUser, FORMAT,
-          multipartFile,
-          BASE_URL, rq
+          reportPortalUser, FORMAT, multipartFile, BASE_URL, rq
       );
 
       assertEquals(sampleLaunch.getUuid(), response.getData().getId());

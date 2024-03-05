@@ -16,7 +16,7 @@
 package com.epam.ta.reportportal.core.integration.util;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.enums.AuthType;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.Optional;

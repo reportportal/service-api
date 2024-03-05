@@ -40,7 +40,7 @@ public class CreateUserRQFull {
 	@Pattern(regexp = "[a-zA-Z0-9-_.]+")
 	@Size(min = ValidationConstraints.MIN_LOGIN_LENGTH, max = ValidationConstraints.MAX_LOGIN_LENGTH)
 	@JsonProperty(value = "login", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED)
+	@Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
 	private String login;
 
 	@NotBlank
@@ -53,7 +53,7 @@ public class CreateUserRQFull {
 	@Pattern(regexp = "[\\pL0-9-_ \\.]+")
 	@Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)
 	@JsonProperty(value = "fullName", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED)
+	@Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
 	private String fullName;
 
 	@NotBlank
@@ -70,7 +70,7 @@ public class CreateUserRQFull {
 	@NotNull
 	@JsonProperty(value = "projectRole", required = true)
 	@In(allowedValues = { "operator", "customer", "member", "project_manager" })
-	@Schema(required = true, allowableValues = "CUSTOMER, MEMBER, LEAD, PROJECT_MANAGER")
+	@Schema(required = true, allowableValues = "CUSTOMER, MEMBER, PROJECT_MANAGER")
 	private String projectRole;
 
 	@NotBlank

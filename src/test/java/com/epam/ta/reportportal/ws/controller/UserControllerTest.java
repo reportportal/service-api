@@ -58,7 +58,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
@@ -201,8 +200,9 @@ class UserControllerTest extends BaseMvcTest {
     deleteBulkRQ.setIds(Lists.newArrayList(2L));
 
     mockMvc.perform(delete("/v1/user").with(token(oAuthHelper.getSuperadminToken()))
-        .contentType(APPLICATION_JSON)
-        .content(objectMapper.writeValueAsBytes(deleteBulkRQ))).andExpect(status().isOk());
+            .contentType(APPLICATION_JSON)
+            .param("ids", "1", "2"))
+        .andExpect(status().isOk());
   }
 
   @Test

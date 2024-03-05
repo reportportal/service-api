@@ -44,6 +44,7 @@ import java.time.temporal.IsoFields;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,6 +66,7 @@ class ProjectInfoWidgetDataConverterTest {
 
   @BeforeEach
   void setUp() {
+    Locale.setDefault(Locale.US);
     converter = new ProjectInfoWidgetDataConverter(
         ImmutableMap.<InfoInterval, ProjectInfoWidgetDataConverter.ProjectInfoGroup>builder()
             .put(InfoInterval.ONE_MONTH, ProjectInfoWidgetDataConverter.ProjectInfoGroup.BY_DAY)
@@ -88,6 +90,7 @@ class ProjectInfoWidgetDataConverterTest {
 
   @Test
   void getInvestigatedProjectInfo() {
+    Locale.setDefault(Locale.US);
     Map<String, List<ChartObject>> investigatedProjectInfo =
         converter.getInvestigatedProjectInfo(getTestData(), InfoInterval.ONE_MONTH);
 

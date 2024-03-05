@@ -313,7 +313,8 @@ class ProjectControllerTest extends BaseMvcTest {
 		bulkRQ.setIds(Lists.newArrayList(2L, 3L));
 		mockMvc.perform(delete("/v1/project").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(bulkRQ))).andExpect(status().isOk());
+            .param("ids" , "2", "3"))
+        .andExpect(status().isOk());
 	}
 
 	@Test

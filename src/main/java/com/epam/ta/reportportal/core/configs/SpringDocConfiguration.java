@@ -47,6 +47,7 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -174,10 +175,10 @@ public class SpringDocConfiguration {
 
           List<CriteriaHolder> criteriaList = FilterTarget.findByClass(filterClass.value())
               .getCriteriaHolders();
-          List<Parameter> filterParams = criteriaList.stream()
+          Set<Parameter> filterParams = criteriaList.stream()
               .filter(ch -> !hiddenParams.contains(ch.getFilterCriteria()))
               .map(this::buildFilterParameters)
-              .collect(Collectors.toList());
+              .collect(Collectors.toSet());
           filterParams.addAll(defaultParams);
           setParameters(operation, filterParams);
         } else if (parameterType == Pageable.class) {
@@ -228,7 +229,7 @@ public class SpringDocConfiguration {
     return pageParams;
   }
 
-  private void setParameters(Operation operation, List<Parameter> parameters) {
+  private void setParameters(Operation operation, Collection<Parameter> parameters) {
     for (Parameter parameter : parameters) {
       operation.addParametersItem(parameter);
     }

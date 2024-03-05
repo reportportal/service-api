@@ -53,12 +53,14 @@ public class UpdateOneIssueSubTypeRQ {
 	@NotBlank
 	@JsonProperty(value = "shortName")
 	@Size(min = ValidationConstraints.MIN_SUBTYPE_SHORT_NAME, max = ValidationConstraints.MAX_SUBTYPE_SHORT_NAME)
+	@Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
 	private String shortName;
 
 	@NotBlank
 	@Pattern(regexp = HEX_COLOR_REGEXP)
 	@JsonProperty(value = "color")
 	@Size(min = ValidationConstraints.MIN_SUBTYPE_LONG_NAME, max = ValidationConstraints.MAX_SUBTYPE_LONG_NAME)
+	@Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
 	private String color;
 
 	public UpdateOneIssueSubTypeRQ() {

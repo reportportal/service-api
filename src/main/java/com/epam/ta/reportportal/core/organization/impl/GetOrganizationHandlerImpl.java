@@ -62,7 +62,8 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
   @Override
   public Iterable<OrganizationInfoResource> getOrganizationsInfo(Queryable filter,
       Pageable pageable) {
-    return PagedResourcesAssembler.pageConverter(OrganizationConverter.TO_ORGANIZATION_INFO_RESOURCE)
+    return PagedResourcesAssembler
+        .pageConverter(OrganizationConverter.TO_ORGANIZATION_INFO_RESOURCE)
         .apply(organizationRepositoryCustom.findOrganizationInfoByFilter(filter, pageable));
   }
 

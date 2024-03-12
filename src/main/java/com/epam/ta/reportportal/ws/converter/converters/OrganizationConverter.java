@@ -44,19 +44,18 @@ public class OrganizationConverter {
         return orgResource;
       };
 
-  public static final Function<OrganizationInfo, OrganizationInfoResource> TO_ORGANIZATION_INFO_RESOURCE =
-      org -> {
-        OrganizationInfoResource orgInfoResource = new OrganizationInfoResource();
-        orgInfoResource.setId(org.getId());
-        orgInfoResource.setName(org.getName());
-        orgInfoResource.setSlug(org.getSlug());
-        orgInfoResource.setType(org.getOrganizationType());
-        orgInfoResource.setCreationDate(org.getCreationDate());
-        orgInfoResource.setLastRun(org.getLastRun());
-        orgInfoResource.setLaunchesQuantity(org.getLaunchesQuantity());
-        orgInfoResource.setProjectsQuantity(org.getProjectsQuantity());
-        orgInfoResource.setUsersQuantity(org.getUsersQuantity());
+  public static final Function<OrganizationInfo, OrganizationInfoResource> TO_ORGANIZATION_INFO_RESOURCE = org -> {
+    OrganizationInfoResource orgInfoResource = new OrganizationInfoResource();
+    orgInfoResource.setId(org.getId());
+    orgInfoResource.setName(org.getName());
+    orgInfoResource.setSlug(org.getSlug());
+    orgInfoResource.setType(org.getOrganizationType());
+    orgInfoResource.setCreationDate(org.getCreationDate());
+    orgInfoResource.setLastRun(org.getLastRun());
+    orgInfoResource.setLaunchesQuantity(org.getLaunchesQuantity());
+    orgInfoResource.setProjectsQuantity(org.getProjectsQuantity());
+    orgInfoResource.setUsersQuantity(org.getUsersQuantity());
 
-        return orgInfoResource;
-      };
+    return orgInfoResource;
+  };
 }

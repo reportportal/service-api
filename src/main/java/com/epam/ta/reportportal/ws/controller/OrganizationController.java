@@ -28,8 +28,8 @@ import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.entity.organization.OrganizationInfo;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.model.organization.OrganizationResource;
 import com.epam.ta.reportportal.model.organization.OrganizationInfoResource;
+import com.epam.ta.reportportal.model.organization.OrganizationResource;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.v3.oas.annotations.Operation;
@@ -69,7 +69,7 @@ public class OrganizationController {
 
   @Transactional
   @GetMapping("/organizations")
-  @Operation(summary = "Get list of all organizations")
+  @Operation(summary = "Get list of organizations associated with the user")
   public Iterable<OrganizationResource> getAllOrganizations(
       @AuthenticationPrincipal ReportPortalUser user,
       @FilterFor(Organization.class) Filter filter,
@@ -86,7 +86,7 @@ public class OrganizationController {
 
   @Transactional
   @GetMapping("/organizations-info")
-  @Operation(summary = "Get list of all organizations")
+  @Operation(summary = "Get list of organizations aggregated info associated with the user")
   public Iterable<OrganizationInfoResource> getOrganizationsInfo(
       @AuthenticationPrincipal ReportPortalUser user,
       @FilterFor(OrganizationInfo.class) Filter filter,
@@ -103,7 +103,7 @@ public class OrganizationController {
   private void modifyFilterWithUserCriteria(Filter filter, ReportPortalUser user) {
     if (UserRole.ADMINISTRATOR != user.getUserRole()) {
       filter.withCondition(
-          new FilterCondition(Condition.EQUALS,false, user.getUsername(), USER));
+          new FilterCondition(Condition.EQUALS, false, user.getUsername(), USER));
     }
   }
 }

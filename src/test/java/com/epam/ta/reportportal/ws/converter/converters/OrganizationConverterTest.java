@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.epam.ta.reportportal.entity.enums.OrganizationType;
 import com.epam.ta.reportportal.entity.organization.Organization;
-import com.epam.ta.reportportal.model.OrganizationResource;
+import com.epam.ta.reportportal.model.organization.OrganizationResource;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 

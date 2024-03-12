@@ -16,13 +16,20 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.USER;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
+import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.entity.organization.Organization;
-import com.epam.ta.reportportal.model.OrganizationResource;
+import com.epam.ta.reportportal.entity.organization.OrganizationInfo;
+import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.model.organization.OrganizationResource;
+import com.epam.ta.reportportal.model.organization.OrganizationInfoResource;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,7 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Andrei Piankouski
  */
 @RestController
-@RequestMapping("/v1/organization")
+@RequestMapping("/v1")
 @Tag(name = "organizations-controller", description = "Organizations Controller")
 public class OrganizationController {
 
@@ -53,7 +60,7 @@ public class OrganizationController {
   }
 
   @Transactional
-  @GetMapping("/{organizationId}")
+  @GetMapping("/organizations/{organizationId}")
   @Operation(summary = "Get information about organization")
   public OrganizationResource getOrganization(@PathVariable Long organizationId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -61,16 +68,42 @@ public class OrganizationController {
   }
 
   @Transactional
-  @GetMapping("/list")
+  @GetMapping("/organizations")
   @Operation(summary = "Get list of all organizations")
   public Iterable<OrganizationResource> getAllOrganizations(
       @AuthenticationPrincipal ReportPortalUser user,
       @FilterFor(Organization.class) Filter filter,
       @FilterFor(Organization.class) Queryable predefinedFilter,
-      @SortFor(Organization.class) Pageable pageable
-  ) {
+      @SortFor(Organization.class) Pageable pageable) {
+
+    modifyFilterWithUserCriteria(filter, user);
+
     return getOrganizationHandler.getOrganizations(
         new CompositeFilter(Operator.AND, filter, predefinedFilter),
         pageable);
+  }
+
+
+  @Transactional
+  @GetMapping("/organizations-info")
+  @Operation(summary = "Get list of all organizations")
+  public Iterable<OrganizationInfoResource> getOrganizationsInfo(
+      @AuthenticationPrincipal ReportPortalUser user,
+      @FilterFor(OrganizationInfo.class) Filter filter,
+      @FilterFor(OrganizationInfo.class) Queryable predefinedFilter,
+      @SortFor(OrganizationInfo.class) Pageable pageable) {
+
+    modifyFilterWithUserCriteria(filter, user);
+
+    return getOrganizationHandler.getOrganizationsInfo(
+        new CompositeFilter(Operator.AND, filter, predefinedFilter),
+        pageable);
+  }
+
+  private void modifyFilterWithUserCriteria(Filter filter, ReportPortalUser user) {
+    if (UserRole.ADMINISTRATOR != user.getUserRole()) {
+      filter.withCondition(
+          new FilterCondition(Condition.EQUALS,false, user.getUsername(), USER));
+    }
   }
 }

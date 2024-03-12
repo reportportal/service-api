@@ -22,7 +22,8 @@ import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.model.OrganizationResource;
+import com.epam.ta.reportportal.model.organization.OrganizationInfoResource;
+import com.epam.ta.reportportal.model.organization.OrganizationResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter;
 import com.epam.ta.reportportal.ws.reporting.ErrorType;
@@ -56,6 +57,13 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
   public Iterable<OrganizationResource> getOrganizations(Queryable filter, Pageable pageable) {
     return PagedResourcesAssembler.pageConverter(OrganizationConverter.TO_ORGANIZATION_RESOURCE)
         .apply(organizationRepositoryCustom.findByFilter(filter, pageable));
+  }
+
+  @Override
+  public Iterable<OrganizationInfoResource> getOrganizationsInfo(Queryable filter,
+      Pageable pageable) {
+    return PagedResourcesAssembler.pageConverter(OrganizationConverter.TO_ORGANIZATION_INFO_RESOURCE)
+        .apply(organizationRepositoryCustom.findOrganizationInfoByFilter(filter, pageable));
   }
 
 }

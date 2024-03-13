@@ -59,7 +59,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Konstantin Antipin
  */
 @RestController
-@RequestMapping("/v2/{projectName}/launch")
+@RequestMapping("/v2/{projectKey}/launch")
 @Tag(name = "launch-async-controller", description = "Launch Async Controller")
 public class LaunchAsyncController {
 

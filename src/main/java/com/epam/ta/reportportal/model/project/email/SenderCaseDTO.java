@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import javax.validation.Valid;
@@ -72,6 +73,12 @@ public class SenderCaseDTO implements Serializable {
 	@JsonProperty(value = "enabled")
 	private boolean enabled;
 
+	@JsonProperty(value = "type")
+	private String type;
+
+	@JsonProperty(value = "ruleDetails")
+	private Map<String, Object> ruleDetails;
+
 	@NotBlank
 	@JsonProperty(value = "attributesOperator")
 	@In(allowedValues = { "and", "or" })
@@ -81,15 +88,19 @@ public class SenderCaseDTO implements Serializable {
 	public SenderCaseDTO() {
 	}
 
-	public SenderCaseDTO(Long id, String ruleName, List<String> recs, String sendMode,
-			List<String> laNames, Set<ItemAttributeResource> attributes, boolean enabled) {
+	public SenderCaseDTO(Long id, String ruleName, List<String> recipients, String sendCase,
+			List<String> launchNames, Set<ItemAttributeResource> attributes, boolean enabled, String type,
+			Map<String, Object> ruleDetails, String attributesOperator) {
 		this.id = id;
 		this.ruleName = ruleName;
-		this.recipients = recs;
-		this.sendCase = sendMode;
-		this.launchNames = laNames;
+		this.recipients = recipients;
+		this.sendCase = sendCase;
+		this.launchNames = launchNames;
 		this.attributes = attributes;
 		this.enabled = enabled;
+		this.type = type;
+		this.ruleDetails = ruleDetails;
+		this.attributesOperator = attributesOperator;
 	}
 
 	/* Getters and setters block */
@@ -157,11 +168,37 @@ public class SenderCaseDTO implements Serializable {
 		this.attributesOperator = attributesOperator;
 	}
 
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public Map<String, Object> getRuleDetails() {
+		return ruleDetails;
+	}
+
+	public void setRuleDetails(Map<String, Object> ruleDetails) {
+		this.ruleDetails = ruleDetails;
+	}
+
 	/* Auto generated methods */
 	@Override
 	public String toString() {
-		return "SenderCaseDTO{" + "recipients=" + recipients + ", sendCase='" + sendCase + '\'' +
-				", launchNames=" + launchNames + ", attributes=" + attributes + ", enabled=" + enabled + ", attributesOperator=" + attributesOperator + '}';
+		return "SenderCaseDTO{" +
+				"id=" + id +
+				", ruleName='" + ruleName + '\'' +
+				", recipients=" + recipients +
+				", sendCase='" + sendCase + '\'' +
+				", launchNames=" + launchNames +
+				", attributes=" + attributes +
+				", enabled=" + enabled +
+				", type='" + type + '\'' +
+				", ruleDetails='" + ruleDetails + '\'' +
+				", attributesOperator='" + attributesOperator + '\'' +
+				'}';
 	}
 
 	@Override
@@ -173,13 +210,18 @@ public class SenderCaseDTO implements Serializable {
 			return false;
 		}
 		SenderCaseDTO that = (SenderCaseDTO) o;
-		return Objects.equals(recipients, that.recipients) && Objects.equals(sendCase, that.sendCase)
-				&& Objects.equals(launchNames, that.launchNames) && Objects.equals(attributes, that.attributes)
-				&& Objects.equals(enabled, that.enabled) && Objects.equals(attributesOperator, that.attributesOperator);
+		return enabled == that.enabled && Objects.equals(id, that.id)
+				&& Objects.equals(ruleName, that.ruleName) && Objects.equals(recipients,
+				that.recipients) && Objects.equals(sendCase, that.sendCase)
+				&& Objects.equals(launchNames, that.launchNames) && Objects.equals(
+				attributes, that.attributes) && Objects.equals(type, that.type)
+				&& Objects.equals(ruleDetails, that.ruleDetails) && Objects.equals(
+				attributesOperator, that.attributesOperator);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(recipients, sendCase, launchNames, attributes, enabled, attributesOperator);
+		return Objects.hash(id, ruleName, recipients, sendCase, launchNames, attributes, enabled, type,
+				ruleDetails, attributesOperator);
 	}
 }

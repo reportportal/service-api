@@ -136,7 +136,8 @@ public class SpringDocConfiguration {
   }
 
   /**
-   * Resolve Iterable schema responses
+   * Resolve Iterable schema responses.
+   *
    * @return ModelConverter
    */
   @Bean

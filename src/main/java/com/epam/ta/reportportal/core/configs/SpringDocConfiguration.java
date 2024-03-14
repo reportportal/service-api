@@ -29,8 +29,13 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.SchemaFactory;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
+import com.fasterxml.jackson.databind.JavaType;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import io.swagger.v3.core.converter.AnnotatedType;
+import io.swagger.v3.core.converter.ModelConverter;
+import io.swagger.v3.core.converter.ModelConverterContext;
+import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -38,6 +43,7 @@ import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.IntegerSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
@@ -49,6 +55,7 @@ import io.swagger.v3.oas.models.tags.Tag;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -79,7 +86,6 @@ public class SpringDocConfiguration {
     SpringDocUtils.getConfig().addAnnotationsToIgnore(AuthenticationPrincipal.class);
     SpringDocUtils.getConfig().addRequestWrapperToIgnore(Pageable.class, Queryable.class,
         ReportPortalUser.class, UserRole.class);
-    SpringDocUtils.getConfig().replaceWithClass(Iterable.class, List.class);
   }
 
   private static final Set<String> hiddenParams = ImmutableSet.<String>builder()
@@ -126,6 +132,37 @@ public class SpringDocConfiguration {
     return openApi -> {
       Map<String, Schema> schemas = openApi.getComponents().getSchemas();
       openApi.getComponents().setSchemas(new TreeMap<>(schemas));
+    };
+  }
+
+  /**
+   * Resolve Iterable schema responses
+   * @return ModelConverter
+   */
+  @Bean
+  public ModelConverter iterableModelConverter() {
+    return new ModelConverter() {
+      @Override
+      public Schema resolve(AnnotatedType annotatedType, ModelConverterContext context,
+          Iterator<ModelConverter> chain) {
+        JavaType javaType = Json.mapper().constructType(annotatedType.getType());
+        if (javaType != null) {
+          if (Iterable.class.equals(javaType.getRawClass())) {
+            annotatedType = new AnnotatedType()
+                .type(javaType.containedType(0))
+                .ctxAnnotations(annotatedType.getCtxAnnotations())
+                .parent(annotatedType.getParent())
+                .schemaProperty(annotatedType.isSchemaProperty())
+                .name(annotatedType.getName())
+                .resolveAsRef(annotatedType.isResolveAsRef())
+                .jsonViewAnnotation(annotatedType.getJsonViewAnnotation())
+                .propertyName(annotatedType.getPropertyName())
+                .skipOverride(true);
+            return new ArraySchema().items(this.resolve(annotatedType, context, chain));
+          }
+        }
+        return (chain.hasNext()) ? chain.next().resolve(annotatedType, context, chain) : null;
+      }
     };
   }
 

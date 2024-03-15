@@ -48,12 +48,23 @@ public class UpdateLaunchRQ {
 	@JsonProperty("attributes")
 	private Set<ItemAttributeResource> attributes;
 
+	@JsonProperty("important")
+	private boolean important;
+
 	public String getDescription() {
 		return description;
 	}
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public boolean isImportant() {
+		return important;
+	}
+
+	public void setImportant(boolean important) {
+		this.important = important;
 	}
 
 	public Set<ItemAttributeResource> getAttributes() {

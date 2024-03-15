@@ -57,10 +57,10 @@ import com.epam.ta.reportportal.model.launch.cluster.CreateClustersRQ;
 import com.epam.ta.reportportal.util.ItemInfoUtils;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
-import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
-import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
+import com.epam.ta.reportportal.ws.reporting.Mode;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
@@ -118,7 +118,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
     LaunchModeEnum previousMode = launch.getMode();
 
     launch = new LaunchBuilder(launch).addMode(rq.getMode()).addDescription(rq.getDescription())
-        .overwriteAttributes(rq.getAttributes()).get();
+        .addImportant(rq.isImportant()).overwriteAttributes(rq.getAttributes()).get();
     launchRepository.save(launch);
 
     if (!previousMode.equals(launch.getMode())) {

@@ -147,20 +147,18 @@ public class SpringDocConfiguration {
       public Schema resolve(AnnotatedType annotatedType, ModelConverterContext context,
           Iterator<ModelConverter> chain) {
         JavaType javaType = Json.mapper().constructType(annotatedType.getType());
-        if (javaType != null) {
-          if (Iterable.class.equals(javaType.getRawClass())) {
-            annotatedType = new AnnotatedType()
-                .type(javaType.containedType(0))
-                .ctxAnnotations(annotatedType.getCtxAnnotations())
-                .parent(annotatedType.getParent())
-                .schemaProperty(annotatedType.isSchemaProperty())
-                .name(annotatedType.getName())
-                .resolveAsRef(annotatedType.isResolveAsRef())
-                .jsonViewAnnotation(annotatedType.getJsonViewAnnotation())
-                .propertyName(annotatedType.getPropertyName())
-                .skipOverride(true);
-            return new ArraySchema().items(this.resolve(annotatedType, context, chain));
-          }
+        if (javaType != null && Iterable.class.equals(javaType.getRawClass())) {
+          annotatedType = new AnnotatedType()
+              .type(javaType.containedType(0))
+              .ctxAnnotations(annotatedType.getCtxAnnotations())
+              .parent(annotatedType.getParent())
+              .schemaProperty(annotatedType.isSchemaProperty())
+              .name(annotatedType.getName())
+              .resolveAsRef(annotatedType.isResolveAsRef())
+              .jsonViewAnnotation(annotatedType.getJsonViewAnnotation())
+              .propertyName(annotatedType.getPropertyName())
+              .skipOverride(true);
+          return new ArraySchema().items(this.resolve(annotatedType, context, chain));
         }
         return (chain.hasNext()) ? chain.next().resolve(annotatedType, context, chain) : null;
       }

@@ -27,10 +27,9 @@ import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
-import java.util.Date;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -51,7 +50,7 @@ class ActivityConverterTest {
     activity.setEventName("startLaunch");
     activity.setAction(EventAction.START);
     activity.setObjectType(EventObject.LAUNCH);
-    activity.setCreatedAt(LocalDateTime.now());
+    activity.setCreatedAt(Instant.now());
     activity.setObjectName("objectName");
     final ActivityDetails details = new ActivityDetails();
     details.setHistory(Collections.singletonList(HistoryField.of("filed", "old", "new")));
@@ -70,7 +69,7 @@ class ActivityConverterTest {
     activity.setAction(EventAction.START);
     activity.setObjectType(EventObject.LAUNCH);
     activity.setPriority(EventPriority.MEDIUM);
-    activity.setCreatedAt(LocalDateTime.now());
+    activity.setCreatedAt(Instant.now());
     activity.setObjectName("objectName");
     final ActivityDetails details = new ActivityDetails();
     details.setHistory(Collections.singletonList(HistoryField.of("filed", "old", "new")));
@@ -84,8 +83,8 @@ class ActivityConverterTest {
   }
 
   private void validate(Activity db, ActivityResource resource) {
-    assertEquals(Date.from(db.getCreatedAt().atZone(ZoneId.of("UTC")).toInstant()),
-        resource.getLastModified());
+    assertEquals(Instant.now().truncatedTo(ChronoUnit.SECONDS),
+        resource.getLastModified().truncatedTo(ChronoUnit.SECONDS));
     assertEquals(db.getId(), resource.getId());
     assertEquals(db.getObjectType(),
         EventObject.valueOf(resource.getObjectType()));

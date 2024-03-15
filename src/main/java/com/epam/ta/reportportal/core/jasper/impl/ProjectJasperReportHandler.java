@@ -74,7 +74,8 @@ public class ProjectJasperReportHandler extends AbstractJasperReportHandler<Proj
 
     ofNullable(project.getLastRun()).ifPresent(
         lastRun -> params.put(ProjectReportConstants.LAST_LAUNCH_DATE,
-            DateTimeFormatter.ISO_ZONED_DATE_TIME.format(ZonedDateTime.of(lastRun, ZoneOffset.UTC))
+            DateTimeFormatter.ISO_ZONED_DATE_TIME
+                .format(ZonedDateTime.ofInstant(lastRun, ZoneOffset.UTC))
         ));
 
     return params;

@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.INSTANT_TO_TIMESTAMP;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.querygen.Condition.EQUALS;
@@ -71,9 +72,9 @@ import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.google.common.collect.Lists;
 import java.math.RoundingMode;
-import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
@@ -137,8 +138,10 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
    * @param interval Back interval
    * @return Now minus interval
    */
-  private static LocalDateTime getStartIntervalDate(InfoInterval interval) {
-    return LocalDateTime.now(Clock.systemUTC()).minusMonths(interval.getCount());
+  private static Instant getStartIntervalDate(InfoInterval interval) {
+    return LocalDateTime.now(Clock.systemUTC())
+        .minusMonths(interval.getCount())
+        .toInstant(ZoneOffset.UTC);
   }
 
   /**
@@ -152,7 +155,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
     return Filter.builder().withTarget(ProjectInfo.class)
         .withCondition(new FilterCondition(EQUALS, false, project.getName(), CRITERIA_PROJECT_NAME))
         .withCondition(new FilterCondition(GREATER_THAN_OR_EQUALS, false, String.valueOf(
-            getStartIntervalDate(infoInterval).toInstant(ZoneOffset.UTC).toEpochMilli()),
+            getStartIntervalDate(infoInterval)),
             CRITERIA_PROJECT_CREATION_DATE
         )).build();
   }
@@ -181,7 +184,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
         ProjectSettingsConverter.TO_PROJECT_INFO_RESOURCE.apply(result.get().findFirst()
             .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName)));
 
-    LocalDateTime startIntervalDate = getStartIntervalDate(infoInterval);
+    Instant startIntervalDate = getStartIntervalDate(infoInterval);
 
     Map<String, Integer> countPerUser =
         launchRepository.countLaunchesGroupedByOwner(project.getId(),
@@ -268,7 +271,8 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
             new FilterCondition(EQUALS, false, String.valueOf(project.getId()),
                 CRITERIA_PROJECT_ID
             ), new FilterCondition(GREATER_THAN_OR_EQUALS, false,
-                String.valueOf(Timestamp.valueOf(getStartIntervalDate(infoInterval)).getTime()),
+                String.valueOf(INSTANT_TO_TIMESTAMP.apply(getStartIntervalDate(infoInterval))
+                    .getTime()),
                 CRITERIA_CREATED_AT
             )
         )

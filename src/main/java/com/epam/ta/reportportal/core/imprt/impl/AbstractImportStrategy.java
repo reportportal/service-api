@@ -32,7 +32,7 @@ import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.google.common.collect.Sets;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -89,7 +89,7 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
   protected String startLaunch(ReportPortalUser.ProjectDetails projectDetails,
       ReportPortalUser user, String launchName, LaunchImportRQ rq) {
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
-    startLaunchRQ.setStartTime(ofNullable(rq.getStartTime()).orElse(initialStartTime));
+    startLaunchRQ.setStartTime(ofNullable(rq.getStartTime()).orElse(Instant.EPOCH.minusSeconds(0)));
     startLaunchRQ.setName(ofNullable(rq.getName()).orElse(launchName));
     ofNullable(rq.getDescription()).ifPresent(startLaunchRQ::setDescription);
     startLaunchRQ.setMode(ofNullable(rq.getMode()).orElse(Mode.DEFAULT));
@@ -137,7 +137,7 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
     if (savedLaunchId != null) {
       Launch launch = launchRepository.findByUuid(savedLaunchId)
           .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
-      launch.setStartTime(LocalDateTime.now());
+      launch.setStartTime(Instant.now());
       launch.setStatus(StatusEnum.INTERRUPTED);
       launchRepository.save(launch);
     }

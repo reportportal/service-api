@@ -16,12 +16,14 @@
 
 package com.epam.ta.reportportal.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
+import java.time.Instant;
 import javax.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Api key representation for response
@@ -29,6 +31,9 @@ import javax.validation.constraints.NotNull;
  * @author Andrei Piankouski
  */
 @JsonInclude(Include.NON_NULL)
+@Getter
+@Setter
+@ToString
 public class ApiKeyRS {
 
   @NotNull
@@ -44,69 +49,13 @@ public class ApiKeyRS {
   private Long userId;
 
   @NotNull
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ")
   @JsonProperty(value = "created_at")
-  private Date createdAt;
+  private Instant createdAt;
 
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   @JsonProperty(value = "last_used_at")
-  private Date lastUsedAt;
+  private Instant lastUsedAt;
 
   @JsonProperty(value = "api_key")
   private String apiKey;
 
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public Long getUserId() {
-    return userId;
-  }
-
-  public void setUserId(Long userId) {
-    this.userId = userId;
-  }
-
-  public Date getCreatedAt() {
-    return createdAt;
-  }
-
-  public void setCreatedAt(Date createdAt) {
-    this.createdAt = createdAt;
-  }
-
-  public String getApiKey() {
-    return apiKey;
-  }
-
-  public void setApiKey(String apiKey) {
-    this.apiKey = apiKey;
-  }
-
-  public Date getLastUsedAt() {
-    return lastUsedAt;
-  }
-
-  public void setLastUsedAt(Date lastUsedAt) {
-    this.lastUsedAt = lastUsedAt;
-  }
-
-  @Override
-  public String toString() {
-    return "ApiKeyRS{" + "id=" + id + ", name='" + name + '\'' + ", userId=" + userId
-        + ", createdAt=" + createdAt + ", lastUsedAt=" + lastUsedAt + ", apiKey='" + apiKey + '\''
-        + '}';
-  }
 }

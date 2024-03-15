@@ -36,8 +36,7 @@ import com.epam.ta.reportportal.model.project.UniqueErrorConfig;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -147,7 +146,7 @@ class AnalyzerUtilsTest {
   private TestItem createTest() {
     TestItem testItem = new TestItem();
     testItem.setItemId(1L);
-    testItem.setStartTime(LocalDateTime.now(ZoneOffset.UTC));
+    testItem.setStartTime(Instant.now());
     testItem.setUniqueId("uniqueId");
     testItem.setItemResults(new TestItemResults());
     return testItem;

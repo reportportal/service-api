@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.LongSummaryStatistics;
@@ -52,7 +53,8 @@ public abstract class AbstractStatisticsContentLoader {
       Period period) {
 
     final LongSummaryStatistics statistics = input.stream()
-        .mapToLong(object -> object.getStartTime().getTime()).summaryStatistics();
+        .mapToLong(object -> object.getStartTime().toEpochMilli())
+        .summaryStatistics();
     final DateTime start = new DateTime(statistics.getMin());
     final DateTime end = new DateTime(statistics.getMax());
     if (input.isEmpty()) {
@@ -81,9 +83,9 @@ public abstract class AbstractStatisticsContentLoader {
   protected Map<String, ChartStatisticsContent> maxByDate(
       List<ChartStatisticsContent> statisticsContents, Period period,
       String contentField) {
-    final Function<ChartStatisticsContent, String> chartObjectToDate = chartObject -> new DateTime(
-        chartObject.getStartTime().getTime())
-        .toString(DATE_PATTERN);
+    final Function<ChartStatisticsContent, String> chartObjectToDate = chartObject ->
+        new DateTime(chartObject.getStartTime().toEpochMilli())
+            .toString(DATE_PATTERN);
     final BinaryOperator<ChartStatisticsContent> chartObjectReducer = (o1, o2) ->
         Integer.parseInt(o1.getValues().get(contentField)) > Integer.parseInt(
             o2.getValues().get(contentField)) ?
@@ -111,11 +113,10 @@ public abstract class AbstractStatisticsContentLoader {
       Map<String, ChartStatisticsContent> chart) {
 
     Map<String, List<ChartStatisticsContent>> groupedStatistics = statisticsContents.stream()
-        .collect(
-            Collectors.groupingBy(c -> new DateTime(c.getStartTime()).toString(groupingPattern),
-                LinkedHashMap::new,
-                Collectors.toList()
-            ));
+        .collect(Collectors.groupingBy(c -> new DateTime(Date.from(c.getStartTime()))
+                .toString(groupingPattern),
+            LinkedHashMap::new,
+            Collectors.toList()));
 
     groupedStatistics.forEach(
         (key, contents) -> chart.keySet().stream().filter(k -> k.startsWith(key)).findFirst()

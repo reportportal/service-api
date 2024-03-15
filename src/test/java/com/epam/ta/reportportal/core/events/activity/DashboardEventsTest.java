@@ -29,7 +29,7 @@ import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.model.activity.DashboardActivityResource;
 import com.google.common.collect.Lists;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ class DashboardEventsTest {
     activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
     activity.setObjectId(2L);
-    activity.setCreatedAt(LocalDateTime.now());
+    activity.setCreatedAt(Instant.now());
     activity.setObjectName(name);
     activity.setDetails(new ActivityDetails());
     return activity;
@@ -63,7 +63,7 @@ class DashboardEventsTest {
     final Activity actual = new DashboardCreatedEvent(getTestDashboard(name, false, "description"),
         1L, "user").toActivity();
     final Activity expected = getExpectedDashboardActivity(EventAction.CREATE, name);
-    checkActivity(actual, expected);
+    checkActivity(expected, actual);
   }
 
 	@Test

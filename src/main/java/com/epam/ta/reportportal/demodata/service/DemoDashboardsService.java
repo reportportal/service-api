@@ -48,7 +48,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -176,7 +176,7 @@ class DemoDashboardsService {
     Dashboard dashboard = new Dashboard();
     dashboard.setName(name);
     dashboard.setProject(project);
-    dashboard.setCreationDate(LocalDateTime.now());
+    dashboard.setCreationDate(Instant.now());
     dashboard.setOwner(user.getUsername());
 
     dashboardRepository.save(dashboard);

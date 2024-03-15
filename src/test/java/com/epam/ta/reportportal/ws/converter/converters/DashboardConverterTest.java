@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.model.activity.DashboardActivityResource;
 import com.epam.ta.reportportal.model.dashboard.DashboardResource;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -74,7 +74,7 @@ class DashboardConverterTest {
     dashboard.setId(1L);
     dashboard.setName("name");
     dashboard.setDescription("description");
-    dashboard.setCreationDate(LocalDateTime.now());
+    dashboard.setCreationDate(Instant.now());
     dashboard.setOwner("owner");
     final Project project = new Project();
     project.setId(2L);

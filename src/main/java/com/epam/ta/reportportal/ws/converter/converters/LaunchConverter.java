@@ -20,7 +20,6 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
@@ -76,11 +75,10 @@ public class LaunchConverter {
     resource.setNumber(db.getNumber());
     resource.setDescription(db.getDescription());
     resource.setStatus(db.getStatus() == null ? null : db.getStatus().toString());
-    resource.setStartTime(
-        db.getStartTime() == null ? null : EntityUtils.TO_DATE.apply(db.getStartTime()));
+    resource.setStartTime(db.getStartTime() == null ? null : db.getStartTime());
     resource.setEndTime(
-        db.getEndTime() == null ? null : EntityUtils.TO_DATE.apply(db.getEndTime()));
-    ofNullable(db.getLastModified()).map(EntityUtils.TO_DATE).ifPresent(resource::setLastModified);
+        db.getEndTime() == null ? null : db.getEndTime());
+    ofNullable(db.getLastModified()).ifPresent(resource::setLastModified);
     ofNullable(db.getAttributes()).ifPresent(attributes -> updateAttributes(resource, attributes));
     ofNullable(resource.getAttributes()).ifPresentOrElse(a -> {
     }, () -> resource.setAttributes(Collections.emptySet()));

@@ -107,6 +107,7 @@ public class RerunHandlerImpl implements RerunHandler {
         .map(attr -> TO_LAUNCH_ATTRIBUTE.apply(attr, launch))
         .collect(Collectors.toSet())).ifPresent(launch::setAttributes);
     ofNullable(request.getUuid()).ifPresent(launch::setUuid);
+    launch.setImportant(request.isImportant());
     launch.setRerun(true);
     return launch;
   }

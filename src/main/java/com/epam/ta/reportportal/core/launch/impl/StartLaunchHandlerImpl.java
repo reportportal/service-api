@@ -74,6 +74,7 @@ class StartLaunchHandlerImpl implements StartLaunchHandler {
               .addAttributes(request.getAttributes())
               .addProject(projectDetails.getProjectId())
               .addUserId(user.getUserId())
+              .addImportant(request.isImportant())
               .get();
           launchRepository.save(launch);
           launchRepository.refresh(launch);

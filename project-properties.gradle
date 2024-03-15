@@ -16,7 +16,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.11.0' : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.11.0' : 'develop')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.11.0' : 'EPMRPP-88632-launch-retention')
     //TODO refactor with archive download
     testScriptsSrc = [
             (migrationsUrl + '/migrations/0_extensions.up.sql')                        : 'V001__extensions.sql',
@@ -67,6 +67,7 @@ project.ext {
             (migrationsUrl + '/migrations/76_user_bid_extension.up.sql')               : 'V076__user_bid_extension.sql',
             (migrationsUrl + '/migrations/77_email_server_documentation_link.up.sql')  : 'V077__email_server_documentation_link.sql',
             (migrationsUrl + '/migrations/78_drop_redundant_index.up.sql')             : 'V078__drop_redundant_index.sql',
+            (migrationsUrl + '/migrations/86_add_important_launch_flag.up.sql')        : 'V086__add_important_launch_flag.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

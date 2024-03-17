@@ -79,7 +79,7 @@ dependencies {
         implementation 'com.github.reportportal:commons-reporting:55bb424'
         implementation 'com.github.reportportal:commons:07566b8e'
         implementation 'com.github.reportportal:commons-fonts:d6e62dd'
-        implementation 'com.github.reportportal:plugin-api:cc3c5c8'
+        implementation 'com.github.reportportal:plugin-api:d16ed2a'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'

@@ -20,11 +20,15 @@ import static java.util.Optional.ofNullable;
 import static net.sf.jasperreports.types.date.FixedDate.DATE_PATTERN;
 
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.LongSummaryStatistics;
@@ -34,7 +38,6 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.collections.MapUtils;
-import org.joda.time.DateTime;
 
 /**
  * @author Andrei_Ramanchuk
@@ -55,8 +58,8 @@ public abstract class AbstractStatisticsContentLoader {
     final LongSummaryStatistics statistics = input.stream()
         .mapToLong(object -> object.getStartTime().toEpochMilli())
         .summaryStatistics();
-    final DateTime start = new DateTime(statistics.getMin());
-    final DateTime end = new DateTime(statistics.getMax());
+    final Instant start = Instant.ofEpochMilli(statistics.getMin());
+    final Instant end = Instant.ofEpochMilli(statistics.getMax());
     if (input.isEmpty()) {
       return Collections.emptyMap();
     }
@@ -84,8 +87,8 @@ public abstract class AbstractStatisticsContentLoader {
       List<ChartStatisticsContent> statisticsContents, Period period,
       String contentField) {
     final Function<ChartStatisticsContent, String> chartObjectToDate = chartObject ->
-        new DateTime(chartObject.getStartTime().toEpochMilli())
-            .toString(DATE_PATTERN);
+        instantToFormattedString(chartObject.getStartTime(), DATE_PATTERN);
+
     final BinaryOperator<ChartStatisticsContent> chartObjectReducer = (o1, o2) ->
         Integer.parseInt(o1.getValues().get(contentField)) > Integer.parseInt(
             o2.getValues().get(contentField)) ?
@@ -113,8 +116,8 @@ public abstract class AbstractStatisticsContentLoader {
       Map<String, ChartStatisticsContent> chart) {
 
     Map<String, List<ChartStatisticsContent>> groupedStatistics = statisticsContents.stream()
-        .collect(Collectors.groupingBy(c -> new DateTime(Date.from(c.getStartTime()))
-                .toString(groupingPattern),
+        .collect(Collectors.groupingBy(c ->
+                instantToFormattedString(c.getStartTime(), groupingPattern),
             LinkedHashMap::new,
             Collectors.toList()));
 
@@ -138,37 +141,45 @@ public abstract class AbstractStatisticsContentLoader {
             }));
   }
 
-  private void proceedDailyChart(Map<String, ChartStatisticsContent> chart, DateTime intermediate,
-      DateTime end,
+  private void proceedDailyChart(Map<String, ChartStatisticsContent> chart, Instant intermediate,
+      Instant end,
       List<ChartStatisticsContent> statisticsContents) {
 
     while (intermediate.isBefore(end)) {
-      chart.put(intermediate.toString(DATE_PATTERN), createChartObject(statisticsContents.get(0)));
-      intermediate = intermediate.plusDays(1);
+      var interDate = instantToFormattedString(intermediate, DATE_PATTERN);
+      chart.put(interDate, createChartObject(statisticsContents.getFirst()));
+      intermediate = intermediate.plus(1, ChronoUnit.DAYS);
     }
+    var endDate = instantToFormattedString(end, DATE_PATTERN);
 
-    chart.put(end.toString(DATE_PATTERN), createChartObject(statisticsContents.get(0)));
+    chart.put(endDate, createChartObject(statisticsContents.getFirst()));
 
   }
 
-  private void proceedMonthlyChart(Map<String, ChartStatisticsContent> chart, DateTime intermediate,
-      DateTime end,
+  private static String instantToFormattedString(Instant date, String pattern) {
+    return date.atOffset(ZoneOffset.UTC).toLocalDateTime()
+        .format(DateTimeFormatter.ofPattern(pattern));
+  }
+
+  private void proceedMonthlyChart(Map<String, ChartStatisticsContent> chart, Instant intermediate,
+      Instant end,
       List<ChartStatisticsContent> statisticsContents) {
     while (intermediate.isBefore(end)) {
-      if (intermediate.getYear() == end.getYear()) {
-        if (intermediate.getMonthOfYear() != end.getMonthOfYear()) {
-          chart.put(intermediate.toString(DATE_PATTERN),
-              createChartObject(statisticsContents.get(0)));
+      if (intermediate.get(ChronoField.YEAR) == end.get(ChronoField.YEAR)) {
+        if (intermediate.get(ChronoField.MONTH_OF_YEAR) != end.get(ChronoField.MONTH_OF_YEAR)) {
+          chart.put(instantToFormattedString(intermediate, DATE_PATTERN),
+              createChartObject(statisticsContents.getFirst()));
         }
       } else {
-        chart.put(intermediate.toString(DATE_PATTERN),
-            createChartObject(statisticsContents.get(0)));
+        chart.put(instantToFormattedString(intermediate, DATE_PATTERN),
+            createChartObject(statisticsContents.getFirst()));
       }
 
-      intermediate = intermediate.plusMonths(1);
+      intermediate = intermediate.plus(1, ChronoUnit.MONTHS);
     }
 
-    chart.put(end.toString(DATE_PATTERN), createChartObject(statisticsContents.get(0)));
+    chart.put(instantToFormattedString(end, DATE_PATTERN),
+        createChartObject(statisticsContents.getFirst()));
 
   }
 

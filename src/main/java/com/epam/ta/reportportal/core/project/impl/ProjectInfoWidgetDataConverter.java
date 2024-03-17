@@ -26,6 +26,7 @@ import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConst
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_TOTAL;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.WEEKS;
+import static java.time.temporal.IsoFields.WEEK_BASED_YEAR;
 
 import com.epam.ta.reportportal.entity.enums.InfoInterval;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -33,11 +34,14 @@ import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.model.widget.ChartObject;
 import com.google.common.collect.Lists;
 import java.text.DecimalFormat;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.IsoFields;
+import java.time.temporal.TemporalAdjusters;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.DoubleSummaryStatistics;
@@ -47,8 +51,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -73,9 +75,11 @@ public class ProjectInfoWidgetDataConverter {
     BY_DAY, BY_WEEK, BY_NAME
   }
 
-  private static DateTimeFormatter formatter =
-      new DateTimeFormatterBuilder().appendValue(IsoFields.WEEK_BASED_YEAR, 4).appendLiteral("-W")
-          .appendValue(IsoFields.WEEK_OF_WEEK_BASED_YEAR, 2).toFormatter();
+  private static DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+          .appendValue(WEEK_BASED_YEAR, 4)
+          .appendLiteral("-W")
+          .appendValue(IsoFields.WEEK_OF_WEEK_BASED_YEAR, 2)
+          .toFormatter();
 
   /**
    * <b>Percentage Of Investigation</b> project info widget content
@@ -205,12 +209,14 @@ public class ProjectInfoWidgetDataConverter {
       values.put(COUNT, String.valueOf(count));
       values.put(INTERVAL, interval.getInterval());
       if (criteria != BY_DAY) {
-        DateTime parse = DateTime.parse(entry.getKey());
-        // TODO remove Yoda time. replace with JDK8
-        values.put(START_PERIOD,
-            parse.withDayOfWeek(DateTimeConstants.MONDAY).toString("yyy-MM-dd")
-        );
-        values.put(END_PERIOD, parse.withDayOfWeek(DateTimeConstants.SUNDAY).toString("yyy-MM-dd"));
+        var numberOfWeek = formatter.parse(entry.getKey())
+            .getLong(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+        var startPeriod = parseByDayOfWeek(entry, numberOfWeek, DayOfWeek.MONDAY);
+
+        values.put(START_PERIOD, startPeriod.format(DateTimeFormatter.ISO_DATE));
+        var endPeriod = parseByDayOfWeek(entry, numberOfWeek, DayOfWeek.SUNDAY);
+
+        values.put(END_PERIOD, endPeriod.format(DateTimeFormatter.ISO_DATE));
       } else {
         values.put(START_PERIOD, entry.getKey());
       }
@@ -311,6 +317,14 @@ public class ProjectInfoWidgetDataConverter {
 
   private static String formattedDate(ProjectInfoGroup criteria, LocalDate localDate) {
     return criteria == BY_DAY ? localDate.toString() : formatter.format(localDate);
+  }
+
+  private static LocalDate parseByDayOfWeek(Entry<String, List<Launch>> entry, long numberOfWeek,
+      DayOfWeek dayOfWeek) {
+    int year = (int) formatter.parse(entry.getKey()).getLong(WEEK_BASED_YEAR);
+    return LocalDate.of(year, 1, 1)
+        .with(TemporalAdjusters.firstInMonth(dayOfWeek))
+        .with(WeekFields.ISO.weekOfWeekBasedYear(), numberOfWeek);
   }
 
 }

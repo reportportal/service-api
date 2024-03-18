@@ -29,6 +29,11 @@ values (3, 3, 'MEMBER');
 insert into project_user(user_id, project_id, project_role)
 values (1, 3, 'PROJECT_MANAGER');
 
+insert into organization_user (user_id, organization_id, organization_role)
+    values (1, 101, (select 'MANAGER'::public."organization_role_enum"));
+insert into organization_user (user_id, organization_id, organization_role)
+    values (3, 101, (select 'MEMBER'::public."organization_role_enum"));
+
 insert into owned_entity(id, owner, project_id)
 values (1, 'superadmin', 3);
 insert into filter(id, name, target, description)

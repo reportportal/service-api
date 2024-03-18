@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.entity.enums.OrganizationType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
+import java.util.Date;
 import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -55,7 +56,7 @@ public class OrganizationInfoResource {
 
   @NotNull
   @JsonProperty(value = "creationDate", required = true)
-  private LocalDateTime creationDate;
+  private Date creationDate;
 
   @JsonProperty(value = "usersQuantity", required = true)
   private int usersQuantity;

@@ -47,4 +47,18 @@ class OrganizationControllerTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
   }
+
+  @Test
+  void getAllOrganizationsInfoFilterByDifferentUser() throws Exception {
+    mockMvc.perform(get("/v1/organizations-info?filter.eq.user=default")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void getAllOrganizationsInfoFilterByAdminUser() throws Exception {
+    mockMvc.perform(get("/v1/organizations-info?filter.eq.user=superadmin")
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk());
+  }
 }

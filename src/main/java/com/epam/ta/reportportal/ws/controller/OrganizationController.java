@@ -100,7 +100,16 @@ public class OrganizationController {
         pageable);
   }
 
+  /**
+   * By security reasons "filter.*.user" should always be replaced with filter by current user.
+   * Only Admin users can retrieve all organizations regardless organization membership
+   */
   private void modifyFilterWithUserCriteria(Filter filter, ReportPortalUser user) {
+    // always remove user filter
+    filter.getFilterConditions()
+        .removeIf(cc -> cc.getAllConditions().stream()
+            .anyMatch(fc -> fc.getSearchCriteria().equalsIgnoreCase(USER)));
+
     if (UserRole.ADMINISTRATOR != user.getUserRole()) {
       filter.withCondition(
           new FilterCondition(Condition.EQUALS, false, user.getUsername(), USER));

@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.reporting.async.exception;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_PARKING_LOT;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import com.google.common.collect.Lists;
 import java.util.List;
 import org.slf4j.Logger;

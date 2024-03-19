@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
 import com.epam.ta.reportportal.reporting.async.message.MessageRetriever;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
+import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.amqp.core.Message;

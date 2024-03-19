@@ -45,6 +45,7 @@ public class MessageRetriever {
     this.objectMapper = objectMapper;
     this.validator = validator;
   }
+
   public <T> Optional<T> retrieveValid(Message income, Class<T> type) {
     String incomeMessage = new String(income.getBody(), StandardCharsets.UTF_8);
     try {

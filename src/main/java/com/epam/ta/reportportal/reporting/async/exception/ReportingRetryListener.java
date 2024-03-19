@@ -40,11 +40,9 @@ public class ReportingRetryListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(
       ReportingRetryListener.class);
-
+  private final RabbitTemplate rabbitTemplate;
   @Value("${reporting.retry.max-count:10}")
   private Integer maxRetryCount;
-
-  private final RabbitTemplate rabbitTemplate;
 
   public ReportingRetryListener(RabbitTemplate rabbitTemplate) {
     this.rabbitTemplate = rabbitTemplate;

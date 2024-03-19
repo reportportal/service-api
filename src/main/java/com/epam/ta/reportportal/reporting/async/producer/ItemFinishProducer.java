@@ -25,8 +25,8 @@ import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
 import com.epam.ta.reportportal.reporting.async.config.RequestType;
-import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Map;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -60,6 +60,7 @@ public class ItemFinishProducer implements FinishTestItemHandler {
           return message;
         }
     );
-    return new OperationCompletionRS(formattedSupplier("Accepted finish request for test item ID = {}", testItemId).get());
+    return new OperationCompletionRS(
+        formattedSupplier("Accepted finish request for test item ID = {}", testItemId).get());
   }
 }

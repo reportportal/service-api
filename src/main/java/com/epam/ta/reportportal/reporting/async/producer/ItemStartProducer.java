@@ -24,8 +24,8 @@ import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
 import com.epam.ta.reportportal.reporting.async.config.RequestType;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
+import com.epam.ta.reportportal.ws.reporting.ItemCreatedRS;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,10 +38,15 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class ItemStartProducer implements StartTestItemHandler {
+
   private final AmqpTemplate amqpTemplate;
 
   public ItemStartProducer(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate) {
     this.amqpTemplate = amqpTemplate;
+  }
+
+  private static void provideItemUuid(StartTestItemRQ request) {
+    request.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
   }
 
   @Override
@@ -89,9 +94,5 @@ public class ItemStartProducer implements StartTestItemHandler {
     ItemCreatedRS response = new ItemCreatedRS();
     response.setId(request.getUuid());
     return response;
-  }
-
-  private static void provideItemUuid(StartTestItemRQ request) {
-    request.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
   }
 }

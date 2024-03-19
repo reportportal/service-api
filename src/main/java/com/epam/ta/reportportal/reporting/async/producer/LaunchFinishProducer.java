@@ -22,10 +22,10 @@ import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyC
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
+import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
 import com.epam.ta.reportportal.reporting.async.config.RequestType;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
+import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import java.util.Map;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -47,16 +47,17 @@ public class LaunchFinishProducer implements FinishLaunchHandler {
   public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ request,
       ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
 
-    amqpTemplate.convertAndSend(REPORTING_EXCHANGE, DEFAULT_CONSISTENT_HASH_ROUTING_KEY, request, message -> {
-      Map<String, Object> headers = message.getMessageProperties().getHeaders();
-      headers.put(MessageHeaders.HASH_ON, launchId);
-      headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_LAUNCH);
-      headers.put(MessageHeaders.USERNAME, user.getUsername());
-      headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
-      headers.put(MessageHeaders.LAUNCH_ID, launchId);
-      headers.put(MessageHeaders.BASE_URL, baseUrl);
-      return message;
-    });
+    amqpTemplate.convertAndSend(REPORTING_EXCHANGE, DEFAULT_CONSISTENT_HASH_ROUTING_KEY, request,
+        message -> {
+          Map<String, Object> headers = message.getMessageProperties().getHeaders();
+          headers.put(MessageHeaders.HASH_ON, launchId);
+          headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_LAUNCH);
+          headers.put(MessageHeaders.USERNAME, user.getUsername());
+          headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
+          headers.put(MessageHeaders.LAUNCH_ID, launchId);
+          headers.put(MessageHeaders.BASE_URL, baseUrl);
+          return message;
+        });
 
     FinishLaunchRS response = new FinishLaunchRS();
     response.setId(launchId);

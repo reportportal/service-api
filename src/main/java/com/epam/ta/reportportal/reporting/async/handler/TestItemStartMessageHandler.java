@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
 import com.epam.ta.reportportal.reporting.async.message.MessageRetriever;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import com.google.common.base.Strings;
 import java.util.Map;
 import java.util.Optional;

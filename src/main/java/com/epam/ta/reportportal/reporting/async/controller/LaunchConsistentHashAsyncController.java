@@ -26,13 +26,13 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.core.logging.HttpLogging;
+import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
+import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -75,9 +75,9 @@ public class LaunchConsistentHashAsyncController {
   @PostMapping
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(CREATED)
-  @ApiOperation("Starts launch for specified project")
+  @Operation(summary = "Starts launch for specified project")
   public StartLaunchRS startLaunch(@PathVariable String projectName,
-      @ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
+      @Parameter(description = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return startLaunchHandler.startLaunch(user,
         projectExtractor.extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
@@ -87,7 +87,7 @@ public class LaunchConsistentHashAsyncController {
   @PutMapping(value = "/{launchId}/finish")
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(OK)
-  @ApiOperation("Finish launch for specified project")
+  @Operation(description = "Finish launch for specified project")
   public FinishLaunchRS finishLaunch(@PathVariable String projectName,
       @PathVariable String launchId,
       @RequestBody @Validated FinishExecutionRQ finishLaunchRQ,

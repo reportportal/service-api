@@ -35,8 +35,8 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
 import com.epam.ta.reportportal.reporting.async.message.MessageRetriever;
 import com.epam.ta.reportportal.ws.converter.builders.LogFullBuilder;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -156,7 +156,8 @@ public class LogMessageHandler implements ReportingMessageHandler {
     logFull.setId(log.getId());
     logService.saveLogMessage(logFull, launch.getId());
 
-    saveAttachment(request.getFile().getName(), metaInfo, logFull.getId(), projectId, launch.getId(),
+    saveAttachment(request.getFile().getName(), metaInfo, logFull.getId(), projectId,
+        launch.getId(),
         null, launch.getUuid(),
         logFull.getUuid());
   }

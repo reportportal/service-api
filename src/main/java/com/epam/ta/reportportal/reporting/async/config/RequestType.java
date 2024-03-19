@@ -20,9 +20,9 @@ package com.epam.ta.reportportal.reporting.async.config;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public enum RequestType {
-    START_LAUNCH,
-    FINISH_LAUNCH,
-    START_TEST,
-    FINISH_TEST,
-    LOG
+  START_LAUNCH,
+  FINISH_LAUNCH,
+  START_TEST,
+  FINISH_TEST,
+  LOG
 }

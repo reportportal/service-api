@@ -17,9 +17,9 @@
 package com.epam.ta.reportportal.core.dashboard;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.dashboard.AddWidgetRq;
-import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
+import com.epam.ta.reportportal.model.dashboard.AddWidgetRq;
+import com.epam.ta.reportportal.model.dashboard.UpdateDashboardRQ;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 
 /**
  * @author Pavel Bortnik
@@ -58,7 +58,7 @@ public interface UpdateDashboardHandler {
    * @param widgetId       Widget id
    * @param dashboardId    Dashboard id
    * @param projectDetails Project details
-   * @param user
+   * @param user           {@link ReportPortalUser}
    * @return OperationCompletionRS
    */
   OperationCompletionRS removeWidget(Long widgetId, Long dashboardId,

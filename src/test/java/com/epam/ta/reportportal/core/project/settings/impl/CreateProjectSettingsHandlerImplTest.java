@@ -32,8 +32,8 @@ import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.project.config.CreateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
-import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -58,8 +58,8 @@ class CreateProjectSettingsHandlerImplTest {
   @Test
   void createSubtypeOnNotExistProject() {
     long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
-        projectId);
+    ReportPortalUser user =
+        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
     when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
 
@@ -68,14 +68,15 @@ class CreateProjectSettingsHandlerImplTest {
     );
 
     assertEquals("Project 'test_project' not found. Did you use correct project name?",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
   void createSubtypeWithWrongGroup() {
     long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
-        projectId);
+    ReportPortalUser user =
+        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
     when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
 
@@ -87,7 +88,8 @@ class CreateProjectSettingsHandlerImplTest {
     );
 
     assertEquals("Error in handled Request. Please, check specified parameters: 'wrongType'",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
@@ -96,8 +98,8 @@ class CreateProjectSettingsHandlerImplTest {
     project.setProjectIssueTypes(getSubTypes());
 
     long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
-        projectId);
+    ReportPortalUser user =
+        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
     when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(project));
 
@@ -109,7 +111,8 @@ class CreateProjectSettingsHandlerImplTest {
     );
 
     assertEquals("Incorrect Request. Sub Issues count is bound of size limit",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   private Set<ProjectIssueType> getSubTypes() {

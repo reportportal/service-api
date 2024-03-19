@@ -17,14 +17,11 @@
 package com.epam.ta.reportportal.core.filter;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.entity.filter.UserFilter;
-import com.epam.ta.reportportal.ws.model.CollectionsRQ;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
-import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
-
-import java.util.Collection;
+import com.epam.ta.reportportal.model.CollectionsRQ;
+import com.epam.ta.reportportal.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.filter.BulkUpdateFilterRQ;
+import com.epam.ta.reportportal.model.filter.UpdateUserFilterRQ;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.List;
 
 /**
@@ -34,37 +31,38 @@ import java.util.List;
  */
 public interface UpdateUserFilterHandler {
 
-	/**
-	 * Creates new filter
-	 *
-	 * @param createFilterRQ
-	 * @param projectName
-	 * @param user
-	 * @return EntryCreatedRS
-	 */
-	EntryCreatedRS createFilter(UpdateUserFilterRQ createFilterRQ, String projectName, ReportPortalUser user);
+  /**
+   * Creates new filter for a specific project and user.
+   *
+   * @param createFilterRQ The request containing the filter creation data
+   * @param projectName    The name of the project where the filter will be created
+   * @param user           The {@link ReportPortalUser} who is creating the filter
+   * @return An {@link EntryCreatedRS} instance containing the created filter's ID
+   */
+  EntryCreatedRS createFilter(UpdateUserFilterRQ createFilterRQ, String projectName,
+      ReportPortalUser user);
 
-	/**
-	 * Update user filter with specified id
-	 *
-	 * @param userFilterId   User filter id
-	 * @param updateRQ       Update filter details
-	 * @param projectDetails Project details
-	 * @param user           User
-	 * @return {@link OperationCompletionRS}
-	 */
-	OperationCompletionRS updateUserFilter(Long userFilterId, UpdateUserFilterRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+  /**
+   * Update user filter with specified id
+   *
+   * @param userFilterId   User filter id
+   * @param updateRQ       Update filter details
+   * @param projectDetails Project details
+   * @param user           User
+   * @return {@link OperationCompletionRS}
+   */
+  OperationCompletionRS updateUserFilter(Long userFilterId, UpdateUserFilterRQ updateRQ,
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
-	/**
-	 * Update user filter
-	 *
-	 * @param updateRQ
-	 * @param projectDetails
-	 * @param user
-	 * @return List of {@link OperationCompletionRS}
-	 */
-	List<OperationCompletionRS> updateUserFilter(CollectionsRQ<BulkUpdateFilterRQ> updateRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+  /**
+   * Update user filter
+   *
+   * @param updateRQ       Request for filter update
+   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param user           {@link ReportPortalUser} filter's owner
+   * @return List of {@link OperationCompletionRS}
+   */
+  List<OperationCompletionRS> updateUserFilter(CollectionsRQ<BulkUpdateFilterRQ> updateRQ,
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 }

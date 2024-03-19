@@ -42,11 +42,9 @@ logging:
     org.elasticsearch.client.RestClient: error
 
 
-springfox:
-  documentation:
-    swagger:
-      v2:
-        path: /v1/api-docs
+springdoc:
+  api-docs:
+    path: /v1/api-docs
 
 
 #### Custom ReportPortal Properties ######
@@ -111,6 +109,10 @@ rp:
             core: 10
             max: 20
             queue: 1000
+          user-email:
+            core: 5
+            max: 20
+            queue: 500
 
   amqp:
     addresses: amqp://${rp.amqp.user}:${rp.amqp.pass}@${rp.amqp.host}:${rp.amqp.port}

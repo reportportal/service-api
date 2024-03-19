@@ -16,7 +16,7 @@
 package com.epam.ta.reportportal.util.email;
 
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.ws.model.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.commons.template.TemplateEngine;
@@ -28,7 +28,7 @@ import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -149,6 +149,7 @@ public class MailServiceFactory {
   /**
    * Build mail service based on default server configs
    *
+   * @param integration  {@link Integration}
    * @return Built email service
    */
   public Optional<EmailService> getDefaultEmailService(Integration integration) {
@@ -160,6 +161,8 @@ public class MailServiceFactory {
   /**
    * Build mail service based on default server configs and check connection
    *
+   * @param integration     {@link Integration}
+   * @param checkConnection true if need to check connection with integration
    * @return Built email service
    */
   @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -179,6 +182,7 @@ public class MailServiceFactory {
   /**
    * Build mail service based on default server configs and check connection
    *
+   * @param checkConnection true if need to check connection with integration
    * @return Built email service
    */
   @Transactional(propagation = Propagation.REQUIRES_NEW)

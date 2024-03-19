@@ -34,6 +34,9 @@ public class ApiKeyUtils {
 
   /**
    * Validate token sign
+   *
+   * @param apiKey   User's Api token
+   * @return true if apiKey valid
    */
   public static boolean validateToken(String apiKey) {
     if (isUUID(apiKey) || (apiKey.length() == 27 && Base64.getUrlDecoder().decode(apiKey.getBytes(

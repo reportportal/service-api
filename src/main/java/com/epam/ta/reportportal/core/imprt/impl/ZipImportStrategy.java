@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.imprt.impl;
 
 import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
@@ -22,8 +23,8 @@ import static java.util.Optional.ofNullable;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.imprt.impl.junit.XunitParseJob;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.launch.LaunchImportRQ;
+import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,8 +43,8 @@ import org.springframework.stereotype.Service;
 public class ZipImportStrategy extends AbstractImportStrategy {
 
   private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
-  private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName()
-      .endsWith(XML_EXTENSION);
+  private static final Predicate<ZipEntry> isXml =
+      zipEntry -> zipEntry.getName().endsWith(XML_EXTENSION);
 
   @Autowired
   private Provider<XunitParseJob> xmlParseJobProvider;
@@ -68,12 +69,14 @@ public class ZipImportStrategy extends AbstractImportStrategy {
     String savedLaunchId = null;
     try (ZipFile zipFile = new ZipFile(zip)) {
       String launchId = startLaunch(projectDetails, user,
-          zip.getName().substring(0, zip.getName().indexOf("." + ZIP_EXTENSION)), rq);
+          zip.getName().substring(0, zip.getName().indexOf("." + ZIP_EXTENSION)), rq
+      );
       savedLaunchId = launchId;
       CompletableFuture[] futures = zipFile.stream().filter(isFile.and(isXml)).map(zipEntry -> {
         XunitParseJob job = xmlParseJobProvider.get()
             .withParameters(projectDetails, launchId, user, getEntryStream(zipFile, zipEntry),
-                getSkippedIsNotIssueAttribute(rq.getAttributes()));
+                isSkippedNotIssue(rq.getAttributes())
+            );
         return CompletableFuture.supplyAsync(job::call, service);
       }).toArray(CompletableFuture[]::new);
       ParseResults parseResults = processResults(futures);

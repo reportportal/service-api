@@ -33,8 +33,8 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
+import com.epam.ta.reportportal.model.integration.IntegrationResource;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -58,8 +58,8 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
   private final GetBugTrackingSystemHandler getBugTrackingSystemHandler;
 
   @Autowired
-  public GetIntegrationHandlerImpl(
-      @Qualifier("integrationServiceMapping") Map<String, IntegrationService> integrationServiceMapping,
+  public GetIntegrationHandlerImpl(@Qualifier("integrationServiceMapping")
+  Map<String, IntegrationService> integrationServiceMapping,
       @Qualifier("basicIntegrationServiceImpl") IntegrationService integrationService,
       IntegrationRepository integrationRepository,
       IntegrationTypeRepository integrationTypeRepository, ProjectRepository projectRepository,
@@ -76,18 +76,16 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
   public IntegrationResource getProjectIntegrationById(Long integrationId, String projectName) {
     Project project = projectRepository.findByName(projectName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
-    Integration integration = integrationRepository.findByIdAndProjectId(integrationId,
-            project.getId())
-        .orElseThrow(
+    Integration integration =
+        integrationRepository.findByIdAndProjectId(integrationId, project.getId()).orElseThrow(
             () -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
     return TO_INTEGRATION_RESOURCE.apply(integration);
   }
 
   @Override
   public IntegrationResource getGlobalIntegrationById(Long integrationId) {
-    Integration integration = integrationRepository.findGlobalById(integrationId)
-        .orElseThrow(
-            () -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
+    Integration integration = integrationRepository.findGlobalById(integrationId).orElseThrow(
+        () -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
     return TO_INTEGRATION_RESOURCE.apply(integration);
   }
 
@@ -95,14 +93,14 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
   public Optional<Integration> getEnabledByProjectIdOrGlobalAndIntegrationGroup(Long projectId,
       IntegrationGroupEnum integrationGroup) {
 
-    List<Long> integrationTypeIds = integrationTypeRepository.findAllByIntegrationGroup(
-            integrationGroup)
-        .stream()
-        .map(IntegrationType::getId)
-        .collect(Collectors.toList());
+    List<Long> integrationTypeIds =
+        integrationTypeRepository.findAllByIntegrationGroup(integrationGroup).stream()
+            .map(IntegrationType::getId).collect(Collectors.toList());
 
-    List<Integration> integrations = integrationRepository.findAllByProjectIdAndInIntegrationTypeIds(
-        projectId, integrationTypeIds);
+    List<Integration> integrations =
+        integrationRepository.findAllByProjectIdAndInIntegrationTypeIds(projectId,
+            integrationTypeIds
+        );
 
     if (!CollectionUtils.isEmpty(integrations)) {
 
@@ -121,22 +119,25 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
   public Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails,
       String url, String btsProject) {
 
-    Project project = projectRepository.findById(projectDetails.getProjectId())
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
-            projectDetails.getProjectName()));
+    Project project = projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
+        () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
+            projectDetails.getProjectName()
+        ));
 
-    Integration integration = getBugTrackingSystemHandler.getEnabledProjectIntegration(
-            projectDetails, url, btsProject)
-        .orElseGet(() -> {
-          Integration globalIntegration = getBugTrackingSystemHandler.getEnabledGlobalIntegration(
-                  url, btsProject)
-              .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, url));
+    Integration integration =
+        getBugTrackingSystemHandler.getEnabledProjectIntegration(projectDetails, url, btsProject)
+            .orElseGet(() -> {
+              Integration globalIntegration =
+                  getBugTrackingSystemHandler.getEnabledGlobalIntegration(url, btsProject)
+                      .orElseThrow(
+                          () -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, url));
 
-          IntegrationValidator.validateProjectLevelIntegrationConstraints(project,
-              globalIntegration);
+              IntegrationValidator.validateProjectLevelIntegrationConstraints(project,
+                  globalIntegration
+              );
 
-          return globalIntegration;
-        });
+              return globalIntegration;
+            });
     validateIntegration(integration);
     return integration;
   }
@@ -145,21 +146,25 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
   public Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails,
       Long integrationId) {
 
-    Project project = projectRepository.findById(projectDetails.getProjectId())
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
-            projectDetails.getProjectName()));
+    Project project = projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
+        () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
+            projectDetails.getProjectName()
+        ));
 
-    Integration integration = getBugTrackingSystemHandler.getEnabledProjectIntegration(
-        projectDetails, integrationId).orElseGet(() -> {
-      Integration globalIntegration = getBugTrackingSystemHandler.getEnabledGlobalIntegration(
-              integrationId)
-          .orElseThrow(
-              () -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
+    Integration integration =
+        getBugTrackingSystemHandler.getEnabledProjectIntegration(projectDetails, integrationId)
+            .orElseGet(() -> {
+              Integration globalIntegration =
+                  getBugTrackingSystemHandler.getEnabledGlobalIntegration(integrationId)
+                      .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND,
+                          integrationId
+                      ));
 
-      IntegrationValidator.validateProjectLevelIntegrationConstraints(project, globalIntegration);
+              IntegrationValidator.validateProjectLevelIntegrationConstraints(
+                  project, globalIntegration);
 
-      return globalIntegration;
-    });
+              return globalIntegration;
+            });
     validateIntegration(integration);
     return integration;
   }
@@ -167,9 +172,8 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
   @Override
   public Integration getEnabledBtsIntegration(Long integrationId) {
 
-    Integration globalIntegration = getBugTrackingSystemHandler.getEnabledGlobalIntegration(
-            integrationId)
-        .orElseThrow(
+    Integration globalIntegration =
+        getBugTrackingSystemHandler.getEnabledGlobalIntegration(integrationId).orElseThrow(
             () -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
 
     return globalIntegration;
@@ -185,10 +189,8 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
   public List<IntegrationResource> getGlobalIntegrations(String pluginName) {
     IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
-    return integrationRepository.findAllGlobalByType(integrationType)
-        .stream()
-        .map(TO_INTEGRATION_RESOURCE)
-        .collect(Collectors.toList());
+    return integrationRepository.findAllGlobalByType(integrationType).stream()
+        .map(TO_INTEGRATION_RESOURCE).collect(Collectors.toList());
   }
 
   @Override
@@ -206,10 +208,8 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
     IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
     return integrationRepository.findAllByProjectIdAndTypeOrderByCreationDateDesc(project.getId(),
-            integrationType)
-        .stream()
-        .map(TO_INTEGRATION_RESOURCE)
-        .collect(Collectors.toList());
+        integrationType
+    ).stream().map(TO_INTEGRATION_RESOURCE).collect(Collectors.toList());
   }
 
   @Override
@@ -217,36 +217,33 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
     Project project = projectRepository.findByName(projectName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
-    Integration integration = integrationRepository.findByIdAndProjectId(integrationId,
-            project.getId())
-        .orElseGet(() -> integrationRepository.findGlobalById(integrationId)
-            .orElseThrow(
+    Integration integration =
+        integrationRepository.findByIdAndProjectId(integrationId, project.getId()).orElseGet(
+            () -> integrationRepository.findGlobalById(integrationId).orElseThrow(
                 () -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId)));
 
-    IntegrationService integrationService = integrationServiceMapping.getOrDefault(
-        integration.getType().getName(),
-        this.basicIntegrationService
-    );
+    IntegrationService integrationService =
+        integrationServiceMapping.getOrDefault(integration.getType().getName(),
+            this.basicIntegrationService
+        );
     return integrationService.checkConnection(integration);
   }
 
   @Override
   public boolean testConnection(Long integrationId) {
-    Integration integration = integrationRepository.findGlobalById(integrationId)
-        .orElseThrow(
-            () -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
+    Integration integration = integrationRepository.findGlobalById(integrationId).orElseThrow(
+        () -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
 
-    IntegrationService integrationService = integrationServiceMapping.getOrDefault(
-        integration.getType().getName(),
-        this.basicIntegrationService
-    );
+    IntegrationService integrationService =
+        integrationServiceMapping.getOrDefault(integration.getType().getName(),
+            this.basicIntegrationService
+        );
     return integrationService.checkConnection(integration);
   }
 
   private Optional<Integration> getGlobalIntegrationByIntegrationTypeIds(
       List<Long> integrationTypeIds) {
-    return integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
-        .stream()
+    return integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds).stream()
         .filter(integration -> integration.getType().isEnabled() && integration.isEnabled())
         .findFirst();
   }
@@ -255,13 +252,14 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
     BusinessRule.expect(integration, i -> integration.getType().isEnabled())
         .verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
             Suppliers.formattedSupplier("'{}' type integrations are disabled by Administrator",
-                    integration.getType().getName())
-                .get()
+                integration.getType().getName()
+            ).get()
         );
     BusinessRule.expect(integration, Integration::isEnabled)
         .verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
             Suppliers.formattedSupplier("Integration with ID = '{}' is disabled",
-                integration.getId()).get()
+                integration.getId()
+            ).get()
         );
   }
 }

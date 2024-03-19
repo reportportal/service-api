@@ -43,10 +43,10 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
-import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
+import com.epam.ta.reportportal.model.issue.DefineIssueRQ;
+import com.epam.ta.reportportal.model.item.UpdateTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Sets;
 import java.util.Map;
 import java.util.Optional;
@@ -84,21 +84,23 @@ class UpdateTestItemHandlerImplTest {
 
   @Test
   void updateNotExistedTestItem() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER,
-        1L);
+    final ReportPortalUser rpUser =
+        getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
     when(itemRepository.findById(1L)).thenReturn(Optional.empty());
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L,
-            new UpdateTestItemRQ(), rpUser)
+            new UpdateTestItemRQ(), rpUser
+        )
     );
     assertEquals("Test Item '1' not found. Did you use correct Test Item ID?",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
   void updateTestItemUnderNotExistedLaunch() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER,
-        1L);
+    final ReportPortalUser rpUser =
+        getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
 
     TestItem testItem = new TestItem();
     testItem.setLaunchId(2L);
@@ -108,7 +110,8 @@ class UpdateTestItemHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L,
-            new UpdateTestItemRQ(), rpUser)
+            new UpdateTestItemRQ(), rpUser
+        )
     );
     assertEquals("Launch '' not found. Did you use correct Launch ID?", exception.getMessage());
   }
@@ -131,10 +134,12 @@ class UpdateTestItemHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L,
-            new UpdateTestItemRQ(), rpUser)
+            new UpdateTestItemRQ(), rpUser
+        )
     );
     assertEquals("You do not have enough permissions. You are not a launch owner.",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
@@ -154,10 +159,12 @@ class UpdateTestItemHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L,
-            new UpdateTestItemRQ(), rpUser)
+            new UpdateTestItemRQ(), rpUser
+        )
     );
     assertEquals("You do not have enough permissions. Launch is not under the specified project.",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
@@ -168,17 +175,19 @@ class UpdateTestItemHandlerImplTest {
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.defineTestItemsIssues(extractProjectDetails(rpUser, "test_project"),
-            new DefineIssueRQ(), rpUser)
+            new DefineIssueRQ(), rpUser
+        )
     );
 
     assertEquals("Project '1' not found. Did you use correct project name?",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
   void changeNotStepItemStatus() {
-    ReportPortalUser user = getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
-        1L);
+    ReportPortalUser user =
+        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
     UpdateTestItemRQ rq = new UpdateTestItemRQ();
     rq.setStatus("FAILED");
@@ -202,13 +211,14 @@ class UpdateTestItemHandlerImplTest {
         () -> handler.updateTestItem(extractProjectDetails(user, "test_project"), itemId, rq, user)
     );
     assertEquals("Incorrect Request. Unable to change status on test item with children",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
   void shouldCreateInitialStatusAttribute() {
-    ReportPortalUser user = getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
-        1L);
+    ReportPortalUser user =
+        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
     UpdateTestItemRQ rq = new UpdateTestItemRQ();
     rq.setStatus("PASSED");
@@ -229,19 +239,18 @@ class UpdateTestItemHandlerImplTest {
     when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
     doNothing().when(messageBus).publishActivity(any());
     when(statusChangingStrategyMapping.get(StatusEnum.PASSED)).thenReturn(statusChangingStrategy);
-    doNothing().when(statusChangingStrategy).changeStatus(item, StatusEnum.PASSED, user);
+    doNothing().when(statusChangingStrategy).changeStatus(item, StatusEnum.PASSED, user, true);
 
     handler.updateTestItem(extractProjectDetails(user, "test_project"), itemId, rq, user);
-    assertTrue(item.getAttributes()
-        .stream()
-        .anyMatch(attribute -> INITIAL_STATUS_ATTRIBUTE_KEY.equalsIgnoreCase(attribute.getKey())
+    assertTrue(item.getAttributes().stream().anyMatch(
+        attribute -> INITIAL_STATUS_ATTRIBUTE_KEY.equalsIgnoreCase(attribute.getKey())
             && StatusEnum.FAILED.getExecutionCounterField().equalsIgnoreCase("failed")));
   }
 
   @Test
   void shouldNotCreateInitialStatusAttribute() {
-    ReportPortalUser user = getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
-        1L);
+    ReportPortalUser user =
+        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
     UpdateTestItemRQ rq = new UpdateTestItemRQ();
     rq.setStatus("PASSED");
@@ -264,19 +273,18 @@ class UpdateTestItemHandlerImplTest {
     when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
     doNothing().when(messageBus).publishActivity(any());
     when(statusChangingStrategyMapping.get(StatusEnum.PASSED)).thenReturn(statusChangingStrategy);
-    doNothing().when(statusChangingStrategy).changeStatus(item, StatusEnum.PASSED, user);
+    doNothing().when(statusChangingStrategy).changeStatus(item, StatusEnum.PASSED, user, true);
 
     handler.updateTestItem(extractProjectDetails(user, "test_project"), itemId, rq, user);
-    assertTrue(item.getAttributes()
-        .stream()
-        .anyMatch(attribute -> INITIAL_STATUS_ATTRIBUTE_KEY.equalsIgnoreCase(attribute.getKey())
+    assertTrue(item.getAttributes().stream().anyMatch(
+        attribute -> INITIAL_STATUS_ATTRIBUTE_KEY.equalsIgnoreCase(attribute.getKey())
             && StatusEnum.PASSED.getExecutionCounterField().equalsIgnoreCase("passed")));
   }
 
   @Test
   void updateItemPositive() {
-    ReportPortalUser user = getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
-        1L);
+    ReportPortalUser user =
+        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
     UpdateTestItemRQ rq = new UpdateTestItemRQ();
     rq.setDescription("new description");
@@ -297,8 +305,8 @@ class UpdateTestItemHandlerImplTest {
     when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
     when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
 
-    OperationCompletionRS response = handler.updateTestItem(
-        extractProjectDetails(user, "test_project"), itemId, rq, user);
+    OperationCompletionRS response =
+        handler.updateTestItem(extractProjectDetails(user, "test_project"), itemId, rq, user);
 
     assertEquals("TestItem with ID = '1' successfully updated.", response.getResultMessage());
     assertEquals(rq.getDescription(), item.getDescription());

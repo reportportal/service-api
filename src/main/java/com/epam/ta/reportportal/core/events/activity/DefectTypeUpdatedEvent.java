@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.builder.ActivityBuilder;
@@ -23,7 +24,7 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
-import com.epam.ta.reportportal.ws.model.activity.IssueTypeActivityResource;
+import com.epam.ta.reportportal.model.activity.IssueTypeActivityResource;
 
 /**
  * @author Andrei Varabyeu
@@ -61,18 +62,11 @@ public class DefectTypeUpdatedEvent extends AbstractEvent implements ActivityEve
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder()
-        .addCreatedNow()
-        .addAction(EventAction.UPDATE)
-        .addEventName(ActivityAction.UPDATE_DEFECT.getValue())
-        .addPriority(EventPriority.LOW)
+    return new ActivityBuilder().addCreatedNow().addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_DEFECT.getValue()).addPriority(EventPriority.LOW)
         .addObjectId(issueTypeActivityResource.getId())
         .addObjectName(issueTypeActivityResource.getLongName())
-        .addObjectType(EventObject.DEFECT_TYPE)
-        .addProjectId(projectId)
-        .addSubjectId(getUserId())
-        .addSubjectName(getUserLogin())
-        .addSubjectType(EventSubject.USER)
-        .get();
+        .addObjectType(EventObject.DEFECT_TYPE).addProjectId(projectId).addSubjectId(getUserId())
+        .addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER).get();
   }
 }

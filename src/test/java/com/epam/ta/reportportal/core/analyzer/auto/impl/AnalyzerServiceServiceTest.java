@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -41,7 +42,7 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.ws.model.analyzer.AnalyzedItemRs;
+import com.epam.ta.reportportal.model.analyzer.AnalyzedItemRs;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
@@ -67,19 +68,18 @@ class AnalyzerServiceServiceTest {
 
   private TestItemRepository testItemRepository = mock(TestItemRepository.class);
 
+  private LaunchRepository launchRepository = mock(LaunchRepository.class);
+
   private MessageBus messageBus = mock(MessageBus.class);
 
   private LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
 
   private AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
 
-  private AnalyzerServiceImpl issuesAnalyzer = new AnalyzerServiceImpl(100, analyzerStatusCache,
-      launchPreparerService,
-      analyzerServiceClient,
-      issueTypeHandler,
-      testItemRepository,
-      messageBus
-  );
+  private AnalyzerServiceImpl issuesAnalyzer =
+      new AnalyzerServiceImpl(100, analyzerStatusCache, launchPreparerService,
+          analyzerServiceClient, issueTypeHandler, testItemRepository, messageBus, launchRepository
+      );
 
   @Test
   void hasAnalyzers() {
@@ -102,14 +102,16 @@ class AnalyzerServiceServiceTest {
     indexLaunch.setLaunchId(launch.getId());
     indexLaunch.setAnalyzerConfig(analyzerConfig);
 
-    final List<IndexTestItem> indexTestItems = items.stream().map(AnalyzerUtils::fromTestItem)
-        .peek(item -> item.setLogs(errorLogs(2))).collect(Collectors.toList());
+    final List<IndexTestItem> indexTestItems =
+        items.stream().map(AnalyzerUtils::fromTestItem).peek(item -> item.setLogs(errorLogs(2)))
+            .collect(Collectors.toList());
     indexLaunch.setTestItems(indexTestItems);
 
     when(testItemRepository.findAllById(anyList())).thenReturn(items);
 
     when(launchPreparerService.prepare(any(Launch.class), anyList(),
-        any(AnalyzerConfig.class))).thenReturn(Optional.of(indexLaunch));
+        any(AnalyzerConfig.class)
+    )).thenReturn(Optional.of(indexLaunch));
 
     when(analyzerServiceClient.analyze(any())).thenReturn(analyzedItems(itemsCount));
 
@@ -117,7 +119,8 @@ class AnalyzerServiceServiceTest {
         issueProductBug().getIssueType());
 
     issuesAnalyzer.runAnalyzers(launch,
-        items.stream().map(TestItem::getItemId).collect(Collectors.toList()), analyzerConfig);
+        items.stream().map(TestItem::getItemId).collect(Collectors.toList()), analyzerConfig
+    );
 
     verify(analyzerServiceClient, times(1)).analyze(any());
     verify(testItemRepository, times(itemsCount)).save(any());

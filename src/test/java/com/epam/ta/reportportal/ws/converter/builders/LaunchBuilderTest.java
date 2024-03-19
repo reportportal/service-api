@@ -24,10 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
+import com.epam.ta.reportportal.ws.reporting.Mode;
+import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.google.common.collect.Sets;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -101,7 +101,7 @@ class LaunchBuilderTest {
         Sets.newHashSet(new ItemAttribute("key", "value", false), systemAttribute));
 
     final Launch buildLaunch = new LaunchBuilder(launch).overwriteAttributes(
-        Sets.newHashSet(new ItemAttributeResource("newKey",
+        Sets.newHashSet(new com.epam.ta.reportportal.ws.reporting.ItemAttributeResource("newKey",
             "newVal"
         ))).get();
 

@@ -20,11 +20,11 @@ import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguratio
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
+import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.util.ReportingQueueService;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
 import com.epam.ta.reportportal.ws.rabbit.RequestType;
+import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import java.util.Map;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,8 +47,7 @@ public class FinishLaunchHandlerAsyncImpl implements FinishLaunchHandler {
 
   @Override
   public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ request,
-      ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user, String baseUrl) {
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
 
     // todo: may be problem - no access to repository, so no possibility to validateRoles() here
     amqpTemplate.convertAndSend(EXCHANGE_REPORTING,
@@ -60,7 +59,8 @@ public class FinishLaunchHandlerAsyncImpl implements FinishLaunchHandler {
           headers.put(MessageHeaders.LAUNCH_ID, launchId);
           headers.put(MessageHeaders.BASE_URL, baseUrl);
           return message;
-        });
+        }
+    );
 
     FinishLaunchRS response = new FinishLaunchRS();
     response.setId(launchId);

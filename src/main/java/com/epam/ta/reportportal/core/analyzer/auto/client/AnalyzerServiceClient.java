@@ -21,10 +21,10 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestRq;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
-import com.epam.ta.reportportal.ws.model.analyzer.AnalyzedItemRs;
+import com.epam.ta.reportportal.model.analyzer.AnalyzedItemRs;
+import com.epam.ta.reportportal.model.analyzer.SearchRq;
+import com.epam.ta.reportportal.model.analyzer.SearchRs;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
-import com.epam.ta.reportportal.ws.model.analyzer.SearchRq;
-import com.epam.ta.reportportal.ws.model.analyzer.SearchRs;
 import java.util.List;
 import java.util.Map;
 
@@ -65,7 +65,7 @@ public interface AnalyzerServiceClient {
    * Searches logs with similar log message
    *
    * @param rq {@link SearchRq} request
-   * @return {@link List<SearchRs>} of log ids
+   * @return {@link List} of {@link SearchRs} of log ids
    */
   List<SearchRs> searchLogs(SearchRq rq);
 
@@ -80,7 +80,7 @@ public interface AnalyzerServiceClient {
    * Searches suggests in analyzer for provided item
    *
    * @param rq {@link SuggestRq} request
-   * @return {@link List<SuggestInfo>} list of founded suggests
+   * @return {@link List} of {@link SuggestInfo} - list of founded suggests
    */
   List<SuggestInfo> searchSuggests(SuggestRq rq);
 

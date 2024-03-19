@@ -43,8 +43,8 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Map;
 import java.util.Objects;
@@ -109,8 +109,6 @@ public class LaunchNotificationRunner
   /**
    * Try to send email when it is needed
    *
-   * @param launch       Launch to be used
-   * @param project      Project
    * @param emailService Mail Service
    */
   private void sendEmail(LaunchFinishedEvent launchFinishedEvent, EmailService emailService) {
@@ -122,7 +120,8 @@ public class LaunchNotificationRunner
       SendCase sendCase = ec.getSendCase();
       boolean successRate = isSuccessRateEnough(launch, sendCase);
       boolean matchedNames = isLaunchNameMatched(launch, ec);
-      boolean matchedTags = isAttributesMatched(launch, ec.getLaunchAttributeRules(), ec.getAttributesOperator());
+      boolean matchedTags =
+          isAttributesMatched(launch, ec.getLaunchAttributeRules(), ec.getAttributesOperator());
 
       Set<String> recipients = ec.getRecipients();
       if (successRate && matchedNames && matchedTags) {
@@ -229,21 +228,41 @@ public class LaunchNotificationRunner
       return true;
     }
 
-		Set<ItemAttributeResource> itemAttributesResource = launchAttributeRules.stream()
-				.map(NotificationConfigConverter.TO_ATTRIBUTE_RULE_RESOURCE)
-				.collect(Collectors.toSet());
+    Set<ItemAttributeResource> itemAttributesResource =
+        launchAttributeRules.stream().map(NotificationConfigConverter.TO_ATTRIBUTE_RULE_RESOURCE)
+            .collect(Collectors.toSet());
 
-		Set<ItemAttributeResource> itemAttributes = launch.getAttributes().stream().filter(attribute -> !attribute.isSystem()).map(attribute -> {
-			ItemAttributeResource attributeResource = new ItemAttributeResource();
-			attributeResource.setKey(attribute.getKey());
-			attributeResource.setValue(attribute.getValue());
-			return attributeResource;
-		}).collect(Collectors.toSet());
+    Set<ItemAttributeResource> itemAttributes =
+        launch.getAttributes().stream().filter(attribute -> !attribute.isSystem())
+            .map(attribute -> {
+              ItemAttributeResource attributeResource = new ItemAttributeResource();
+              attributeResource.setKey(attribute.getKey());
+              attributeResource.setValue(attribute.getValue());
+              return attributeResource;
+            }).collect(Collectors.toSet());
 
-		if (LogicalOperator.AND.equals(logicalOperator)) {
-			return itemAttributes.containsAll(itemAttributesResource);
-		}
+    if (LogicalOperator.AND.equals(logicalOperator)) {
+      return itemAttributesResource.stream().allMatch(resourceAttr -> itemAttributes.stream()
+          .anyMatch(attr -> areAttributesMatched(attr, resourceAttr)));
+    }
 
-		return CollectionUtils.containsAny(itemAttributes, itemAttributesResource);
-	}
+    return itemAttributes.stream().anyMatch(attr -> itemAttributesResource.stream()
+        .anyMatch(resourceAttr -> areAttributesMatched(attr, resourceAttr)));
+  }
+
+  private static boolean areAttributesMatched(ItemAttributeResource itemAttribute,
+      ItemAttributeResource itemAttributeResource) {
+    // Case 1: Key and Value are the same
+    boolean isEqual =
+        Objects.equals(itemAttribute.getKey(), itemAttributeResource.getKey()) && Objects.equals(
+            itemAttribute.getValue(), itemAttributeResource.getValue());
+
+    // Case 2: Key is null in itemAttributesResource and the Value is the same
+    boolean isValueEqualWithKeyNull =
+        itemAttributeResource.getKey() == null && Objects.equals(itemAttribute.getValue(),
+            itemAttributeResource.getValue()
+        );
+
+    return isEqual || isValueEqualWithKeyNull;
+  }
 }

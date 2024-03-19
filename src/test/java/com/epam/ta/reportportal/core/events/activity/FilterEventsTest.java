@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
+import com.epam.ta.reportportal.model.activity.UserFilterActivityResource;
 import com.google.common.collect.Lists;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -59,8 +59,8 @@ class FilterEventsTest {
   @Test
   void created() {
     final String name = "name";
-    final Activity actual = new FilterCreatedEvent(getUserFilter(name, true, "description"), 1L,
-        "user").toActivity();
+    final Activity actual =
+        new FilterCreatedEvent(getUserFilter(name, true, "description"), 1L, "user").toActivity();
     final Activity expected = getExpectedActivity(EventAction.CREATE, name);
     checkActivity(expected, actual);
   }
@@ -68,8 +68,8 @@ class FilterEventsTest {
   @Test
   void deleted() {
     final String name = "name";
-    final Activity actual = new FilterDeletedEvent(getUserFilter(name, true, "description"), 1L,
-        "user").toActivity();
+    final Activity actual =
+        new FilterDeletedEvent(getUserFilter(name, true, "description"), 1L, "user").toActivity();
     final Activity expected = getExpectedActivity(EventAction.DELETE, name);
     checkActivity(expected, actual);
   }
@@ -92,24 +92,20 @@ class FilterEventsTest {
     final String newName = "newName";
     final boolean newShared = true;
     final String newDescription = "newDescription";
-    final Activity actual = new FilterUpdatedEvent(
-        getUserFilter(oldName, oldShared, oldDescription),
-        getUserFilter(newName, newShared, newDescription),
-        1L,
-        "user"
-    ).toActivity();
+    final Activity actual =
+        new FilterUpdatedEvent(getUserFilter(oldName, oldShared, oldDescription),
+            getUserFilter(newName, newShared, newDescription), 1L, "user"
+        ).toActivity();
     final Activity expected = getExpectedActivity(EventAction.UPDATE, newName);
-    expected.getDetails()
-        .setHistory(getExpectedHistory(Pair.of(oldName, newName),
-            Pair.of(oldShared, newShared),
+    expected.getDetails().setHistory(
+        getExpectedHistory(Pair.of(oldName, newName), Pair.of(oldShared, newShared),
             Pair.of(oldDescription, newDescription)
         ));
     checkActivity(expected, actual);
   }
 
   private static List<HistoryField> getExpectedHistory(Pair<String, String> name,
-      Pair<Boolean, Boolean> shared,
-      Pair<String, String> description) {
+      Pair<Boolean, Boolean> shared, Pair<String, String> description) {
     return Lists.newArrayList(HistoryField.of(NAME, name.getLeft(), name.getRight()),
         HistoryField.of(DESCRIPTION, description.getLeft(), description.getRight())
     );

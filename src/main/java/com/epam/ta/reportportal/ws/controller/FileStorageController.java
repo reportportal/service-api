@@ -28,9 +28,10 @@ import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.net.HttpHeaders;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -55,6 +56,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @RestController
 @RequestMapping("/v1/data")
+@Tag(name = "file-storage-controller", description = "File Storage Controller")
 public class FileStorageController {
 
   private final ProjectExtractor projectExtractor;
@@ -74,6 +76,7 @@ public class FileStorageController {
   @Transactional(readOnly = true)
   @PreAuthorize(ASSIGNED_TO_PROJECT)
   @GetMapping(value = "/{projectName}/{dataId}")
+  @Operation(summary = "Get file")
   public void getFile(@PathVariable String projectName, @PathVariable("dataId") Long dataId,
       HttpServletResponse response,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -81,25 +84,19 @@ public class FileStorageController {
         projectExtractor.extractProjectDetails(user, projectName)));
   }
 
-  /**
-   * (non-Javadoc)
-   */
   @Transactional(readOnly = true)
   @GetMapping(value = "/photo")
-  @ApiOperation("Get photo of current user")
+  @Operation(summary = "Get photo of current user")
   public void getMyPhoto(@AuthenticationPrincipal ReportPortalUser user,
       HttpServletResponse response,
       @RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail) {
     toResponse(response, getFileHandler.getUserPhoto(user, loadThumbnail));
   }
 
-  /**
-   * (non-Javadoc)
-   */
   @Transactional(readOnly = true)
   @PreAuthorize(NOT_CUSTOMER)
   @GetMapping(value = "/{projectName}/userphoto")
-  @ApiOperation("Get user's photo")
+  @Operation(summary = "Get user's photo")
   public void getUserPhoto(@PathVariable String projectName,
       @RequestParam(value = "id") String username,
       @RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail,
@@ -112,7 +109,7 @@ public class FileStorageController {
 
   @Transactional
   @PostMapping(value = "/photo", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-  @ApiOperation("Upload user's photo")
+  @Operation(summary = "Upload user's photo")
   public OperationCompletionRS uploadPhoto(@RequestParam("file") MultipartFile file,
       @AuthenticationPrincipal ReportPortalUser user) {
     return editUserHandler.uploadPhoto(EntityUtils.normalizeId(user.getUsername()), file);
@@ -120,7 +117,7 @@ public class FileStorageController {
 
   @Transactional
   @DeleteMapping(value = "/photo")
-  @ApiOperation("Delete user's photo")
+  @Operation(summary = "Delete user's photo")
   public OperationCompletionRS deletePhoto(@AuthenticationPrincipal ReportPortalUser user) {
     return editUserHandler.deletePhoto(EntityUtils.normalizeId(user.getUsername()));
   }
@@ -128,7 +125,7 @@ public class FileStorageController {
   @Transactional
   @PreAuthorize(ADMIN_ONLY)
   @PostMapping(value = "/clean", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-  @ApiOperation("Remove attachments from file storage according to uploaded csv file")
+  @Operation(summary = "Remove attachments from file storage according to uploaded csv file")
   public OperationCompletionRS removeAttachmentsByCsv(@RequestParam("file") MultipartFile file,
       @AuthenticationPrincipal ReportPortalUser user) {
     return deleteFilesHandler.removeFilesByCsv(file);

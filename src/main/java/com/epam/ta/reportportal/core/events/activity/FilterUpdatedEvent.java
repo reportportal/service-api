@@ -27,13 +27,13 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
-import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
+import com.epam.ta.reportportal.model.activity.UserFilterActivityResource;
 
 /**
  * @author Pavel Bortnik
  */
-public class FilterUpdatedEvent extends AroundEvent<UserFilterActivityResource> implements
-    ActivityEvent {
+public class FilterUpdatedEvent extends AroundEvent<UserFilterActivityResource>
+    implements ActivityEvent {
 
   public FilterUpdatedEvent() {
   }
@@ -45,21 +45,12 @@ public class FilterUpdatedEvent extends AroundEvent<UserFilterActivityResource> 
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder()
-        .addCreatedNow()
-        .addAction(EventAction.UPDATE)
-        .addEventName(ActivityAction.UPDATE_FILTER.getValue())
-        .addPriority(EventPriority.LOW)
-        .addObjectId(getAfter().getId())
-        .addObjectName(getAfter().getName())
-        .addObjectType(EventObject.FILTER)
-        .addProjectId(getAfter().getProjectId())
-        .addSubjectId(getUserId())
-        .addSubjectName(getUserLogin())
-        .addSubjectType(EventSubject.USER)
-        .addHistoryField(processName(getBefore().getName(), getAfter().getName()))
-        .addHistoryField(
-            processDescription(getBefore().getDescription(), getAfter().getDescription()))
-        .get();
+    return new ActivityBuilder().addCreatedNow().addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_FILTER.getValue()).addPriority(EventPriority.LOW)
+        .addObjectId(getAfter().getId()).addObjectName(getAfter().getName())
+        .addObjectType(EventObject.FILTER).addProjectId(getAfter().getProjectId())
+        .addSubjectId(getUserId()).addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER)
+        .addHistoryField(processName(getBefore().getName(), getAfter().getName())).addHistoryField(
+            processDescription(getBefore().getDescription(), getAfter().getDescription())).get();
   }
 }

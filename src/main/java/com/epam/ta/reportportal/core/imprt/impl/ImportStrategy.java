@@ -16,7 +16,7 @@
 package com.epam.ta.reportportal.core.imprt.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.launch.LaunchImportRQ;
+import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
 import java.io.File;
 
 /**
@@ -32,6 +32,8 @@ public interface ImportStrategy {
    * @param projectDetails project
    * @param user           user
    * @param file           zip file that contains xml test reports
+   * @param baseUrl        application base url
+   * @param rq             {@link LaunchImportRQ} launch import request
    * @return launch uuid
    */
   String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,

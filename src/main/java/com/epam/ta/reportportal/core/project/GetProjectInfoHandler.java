@@ -18,12 +18,12 @@ package com.epam.ta.reportportal.core.project;
 
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.enums.InfoInterval;
-import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
+import com.epam.ta.reportportal.model.project.ProjectInfoResource;
 import java.util.Map;
 import org.springframework.data.domain.Pageable;
 
 /**
- * Get {@link com.epam.ta.reportportal.ws.model.project.ProjectInfoResource} request handler
+ * Get {@link ProjectInfoResource} request handler
  *
  * @author Dzmitry_Kavalets
  */
@@ -32,7 +32,9 @@ public interface GetProjectInfoHandler {
   /**
    * Get all projects info
    *
-   * @return
+   * @param filter   Queryable filter to apply on the projects
+   * @param pageable Pagination information for the results
+   * @return An {@link Iterable} of {@link ProjectInfoResource} containing information about all projects
    */
   Iterable<ProjectInfoResource> getAllProjectsInfo(Queryable filter, Pageable pageable);
 
@@ -52,7 +54,7 @@ public interface GetProjectInfoHandler {
    * @param projectName Project name
    * @param interval    Interval
    * @param widgetCode  Project Info Widget code
-   * @return
+   * @return Map of widget data content
    */
   Map<String, ?> getProjectInfoWidgetContent(String projectName, String interval,
       String widgetCode);

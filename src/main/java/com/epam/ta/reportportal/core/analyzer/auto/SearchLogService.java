@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.analyzer.auto;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.log.SearchLogRq;
-import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
+import com.epam.ta.reportportal.model.log.SearchLogRq;
+import com.epam.ta.reportportal.model.log.SearchLogRs;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>

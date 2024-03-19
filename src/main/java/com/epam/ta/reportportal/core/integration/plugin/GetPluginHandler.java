@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.integration.plugin;
 
-import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
+import com.epam.ta.reportportal.model.integration.IntegrationTypeResource;
 import java.util.List;
 
 /**

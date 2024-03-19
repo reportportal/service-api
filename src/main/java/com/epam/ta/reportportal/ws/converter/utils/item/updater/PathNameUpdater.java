@@ -21,7 +21,7 @@ import static java.util.Optional.ofNullable;
 import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
-import com.epam.ta.reportportal.ws.model.TestItemResource;
+import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.Map;
 
 /**
@@ -38,8 +38,7 @@ public class PathNameUpdater implements ResourceUpdater<TestItemResource> {
   @Override
   public void updateResource(TestItemResource resource) {
     ofNullable(pathNamesMapping.get(resource.getItemId())).ifPresent(
-        pathName -> resource.setPathNames(TestItemConverter.PATH_NAME_TO_RESOURCE
-            .apply(pathName)));
+        pathName -> resource.setPathNames(TestItemConverter.PATH_NAME_TO_RESOURCE.apply(pathName)));
   }
 
   public static PathNameUpdater of(Map<Long, PathName> pathNameMapping) {

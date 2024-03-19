@@ -28,8 +28,8 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
-import com.epam.ta.reportportal.ws.model.ActivityEventResource;
-import com.epam.ta.reportportal.ws.model.PagedResponse;
+import com.epam.ta.reportportal.model.ActivityEventResource;
+import com.epam.ta.reportportal.model.PagedResponse;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -46,7 +46,6 @@ import org.springframework.data.domain.Sort.Direction;
 
 @ExtendWith(MockitoExtension.class)
 class ActivityEventHandlerTest {
-
 
   @Mock
   private ActivityRepository activityRepository;

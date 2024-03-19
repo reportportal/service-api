@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
+import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
 import org.junit.jupiter.api.Test;
 
 /**

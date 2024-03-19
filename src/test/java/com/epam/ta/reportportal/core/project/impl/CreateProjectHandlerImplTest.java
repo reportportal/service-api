@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
+import com.epam.ta.reportportal.model.project.CreateProjectRQ;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,8 +52,8 @@ class CreateProjectHandlerImplTest {
 
   @Test
   void createProjectWithWrongType() {
-    ReportPortalUser rpUser = getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
-        1L);
+    ReportPortalUser rpUser =
+        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
     CreateProjectRQ createProjectRQ = new CreateProjectRQ();
     String projectName = "projectName";
@@ -64,16 +64,18 @@ class CreateProjectHandlerImplTest {
         Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.createProject(createProjectRQ, rpUser));
+        () -> handler.createProject(createProjectRQ, rpUser)
+    );
 
     assertEquals("Error in handled Request. Please, check specified parameters: 'wrongType'",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
   void createProjectByNotExistUser() {
-    ReportPortalUser rpUser = getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
-        1L);
+    ReportPortalUser rpUser =
+        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
     CreateProjectRQ createProjectRQ = new CreateProjectRQ();
     String projectName = "projectName";
@@ -85,7 +87,8 @@ class CreateProjectHandlerImplTest {
     when(userRepository.findRawById(rpUser.getUserId())).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.createProject(createProjectRQ, rpUser));
+        () -> handler.createProject(createProjectRQ, rpUser)
+    );
 
     assertEquals("User 'user' not found.", exception.getMessage());
   }

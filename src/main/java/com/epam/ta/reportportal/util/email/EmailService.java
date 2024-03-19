@@ -37,9 +37,9 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
+import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.constant.IssueRegexConstant;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
@@ -75,7 +75,8 @@ public class EmailService extends JavaMailSenderImpl {
   private static final String FINISH_LAUNCH_EMAIL_SUBJECT =
       " ReportPortal Notification: [%s] launch '%s' #%s finished";
   private static final String URL_FORMAT = "%s/launches/all";
-  private static final String COMPOSITE_ATTRIBUTE_FILTER_FORMAT = "%s?launchesParams=filter.has.compositeAttribute=%s";
+  private static final String COMPOSITE_ATTRIBUTE_FILTER_FORMAT =
+      "%s?launchesParams=filter.has.compositeAttribute=%s";
   private static final String TEMPLATE_IMAGES_PREFIX = "templates/email/images/";
   private TemplateEngine templateEngine;
   /* Default value for FROM project notifications field */
@@ -117,6 +118,7 @@ public class EmailService extends JavaMailSenderImpl {
    * Finish launch notification
    *
    * @param recipients List of recipients
+   * @param project    {@link Project}
    * @param url        ReportPortal URL
    * @param launch     Launch
    */
@@ -124,7 +126,8 @@ public class EmailService extends JavaMailSenderImpl {
       final Project project, final Launch launch) {
     String subject =
         format(FINISH_LAUNCH_EMAIL_SUBJECT, project.getName().toUpperCase(), launch.getName(),
-            launch.getNumber());
+            launch.getNumber()
+        );
     MimeMessagePreparator preparator = mimeMessage -> {
       MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
       message.setSubject(subject);
@@ -151,25 +154,21 @@ public class EmailService extends JavaMailSenderImpl {
 
     /* Tags with links */
     if (!CollectionUtils.isEmpty(launch.getAttributes())) {
-      email.put("attributes",
-          launch.getAttributes()
-              .stream()
-              .filter(it -> !it.isSystem())
-              .collect(toMap(attribute -> ofNullable(attribute.getKey()).map(it -> it.concat(":"))
-                      .orElse("")
-                      .concat(attribute.getValue()),
-                  attribute -> buildAttributesLink(basicUrl, attribute)))
-      );
+      email.put("attributes", launch.getAttributes().stream().filter(it -> !it.isSystem()).collect(
+          toMap(attribute -> ofNullable(attribute.getKey()).map(it -> it.concat(":")).orElse("")
+                  .concat(attribute.getValue()),
+              attribute -> buildAttributesLink(basicUrl, attribute)
+          )));
     }
 
     /* Launch execution statistics */
 
-    Map<String, Integer> statistics = launch.getStatistics()
-        .stream()
-        .filter(s -> ofNullable(s.getStatisticsField()).isPresent() && StringUtils.isNotEmpty(
-            s.getStatisticsField().getName()))
-        .collect(Collectors.toMap(s -> s.getStatisticsField().getName(), Statistics::getCounter,
-            (prev, curr) -> prev));
+    Map<String, Integer> statistics = launch.getStatistics().stream().filter(
+        s -> ofNullable(s.getStatisticsField()).isPresent() && StringUtils.isNotEmpty(
+            s.getStatisticsField().getName())).collect(
+        Collectors.toMap(s -> s.getStatisticsField().getName(), Statistics::getCounter,
+            (prev, curr) -> prev
+        ));
 
     email.put("total", ofNullable(statistics.get(EXECUTIONS_TOTAL)).orElse(0));
     email.put("passed", ofNullable(statistics.get(EXECUTIONS_PASSED)).orElse(0));
@@ -179,26 +178,31 @@ public class EmailService extends JavaMailSenderImpl {
     /* Launch issue statistics global counters */
     email.put("productBugTotal", ofNullable(statistics.get(DEFECTS_PRODUCT_BUG_TOTAL)).orElse(0));
     email.put("automationBugTotal",
-        ofNullable(statistics.get(DEFECTS_AUTOMATION_BUG_TOTAL)).orElse(0));
+        ofNullable(statistics.get(DEFECTS_AUTOMATION_BUG_TOTAL)).orElse(0)
+    );
     email.put("systemIssueTotal", ofNullable(statistics.get(DEFECTS_SYSTEM_ISSUE_TOTAL)).orElse(0));
     email.put("noDefectTotal", ofNullable(statistics.get(DEFECTS_NO_DEFECT_TOTAL)).orElse(0));
     email.put("toInvestigateTotal",
-        ofNullable(statistics.get(DEFECTS_TO_INVESTIGATE_TOTAL)).orElse(0));
+        ofNullable(statistics.get(DEFECTS_TO_INVESTIGATE_TOTAL)).orElse(0)
+    );
 
-    Map<String, String> locatorsMapping = projectIssueTypes.stream()
-        .collect(
-            toMap(it -> it.getIssueType().getLocator(), it -> it.getIssueType().getLongName()));
+    Map<String, String> locatorsMapping = projectIssueTypes.stream().collect(
+        toMap(it -> it.getIssueType().getLocator(), it -> it.getIssueType().getLongName()));
 
     /* Launch issue statistics custom sub-types */
     fillEmail(email, "pbInfo", statistics, locatorsMapping,
-        IssueRegexConstant.PRODUCT_BUG_ISSUE_REGEX);
+        IssueRegexConstant.PRODUCT_BUG_ISSUE_REGEX
+    );
     fillEmail(email, "abInfo", statistics, locatorsMapping,
-        IssueRegexConstant.AUTOMATION_BUG_ISSUE_REGEX);
+        IssueRegexConstant.AUTOMATION_BUG_ISSUE_REGEX
+    );
     fillEmail(email, "siInfo", statistics, locatorsMapping, IssueRegexConstant.SYSTEM_ISSUE_REGEX);
     fillEmail(email, "ndInfo", statistics, locatorsMapping,
-        IssueRegexConstant.NO_DEFECT_ISSUE_REGEX);
+        IssueRegexConstant.NO_DEFECT_ISSUE_REGEX
+    );
     fillEmail(email, "tiInfo", statistics, locatorsMapping,
-        IssueRegexConstant.TO_INVESTIGATE_ISSUE_REGEX);
+        IssueRegexConstant.TO_INVESTIGATE_ISSUE_REGEX
+    );
 
     return templateEngine.merge("finish-launch-template.ftl", email);
   }
@@ -206,43 +210,33 @@ public class EmailService extends JavaMailSenderImpl {
   private String getUrl(String baseUrl) {
     return ofNullable(rpHost).map(rh -> {
       final UriComponents rpHostUri = UriComponentsBuilder.fromUriString(rh).build();
-      return UriComponentsBuilder.fromUriString(baseUrl)
-          .scheme(rpHostUri.getScheme())
-          .host(rpHostUri.getHost())
-          .port(rpHostUri.getPort())
-          .build()
-          .toUri()
-          .toASCIIString();
+      return UriComponentsBuilder.fromUriString(baseUrl).scheme(rpHostUri.getScheme())
+          .host(rpHostUri.getHost()).port(rpHostUri.getPort()).build().toUri().toASCIIString();
     }).orElse(baseUrl);
   }
 
   private String buildAttributesLink(String basicUrl, ItemAttribute attribute) {
     if (null != attribute.getKey()) {
-      return format(COMPOSITE_ATTRIBUTE_FILTER_FORMAT,
-          basicUrl,
-          urlPathSegmentEscaper().escape(attribute.getKey()) + ":" +
-          urlPathSegmentEscaper().escape(attribute.getValue())
+      return format(COMPOSITE_ATTRIBUTE_FILTER_FORMAT, basicUrl,
+          urlPathSegmentEscaper().escape(attribute.getKey()) + ":" + urlPathSegmentEscaper().escape(
+              attribute.getValue())
       );
     } else {
       return format(COMPOSITE_ATTRIBUTE_FILTER_FORMAT, basicUrl,
-          urlPathSegmentEscaper().escape(attribute.getValue()));
+          urlPathSegmentEscaper().escape(attribute.getValue())
+      );
     }
   }
 
   private void fillEmail(Map<String, Object> email, String statisticsName,
-      Map<String, Integer> statistics,
-      Map<String, String> locatorsMapping, String regex) {
-    Optional<Map<String, Integer>> pb = Optional.of(statistics.entrySet()
-        .stream()
-        .filter(entry -> {
-          Pattern pattern = Pattern.compile(regex);
-          return pattern.matcher(entry.getKey()).matches();
-        })
-        .collect(Collectors.toMap(
-            entry -> locatorsMapping.get(StringUtils.substringAfterLast(entry.getKey(), "$")),
-            entry -> ofNullable(entry.getValue()).orElse(0),
-            (prev, curr) -> prev
-        )));
+      Map<String, Integer> statistics, Map<String, String> locatorsMapping, String regex) {
+    Optional<Map<String, Integer>> pb = Optional.of(statistics.entrySet().stream().filter(entry -> {
+      Pattern pattern = Pattern.compile(regex);
+      return pattern.matcher(entry.getKey()).matches();
+    }).collect(Collectors.toMap(
+        entry -> locatorsMapping.get(StringUtils.substringAfterLast(entry.getKey(), "$")),
+        entry -> ofNullable(entry.getValue()).orElse(0), (prev, curr) -> prev
+    )));
 
     pb.ifPresent(stats -> email.put(statisticsName, stats));
   }
@@ -452,7 +446,10 @@ public class EmailService extends JavaMailSenderImpl {
       message.setText(text, true);
 
       message.addInline("new-logo.png", emailTemplateResource("new-logo.png"));
-      message.addInline("delete-account-notification.png", emailTemplateResource("delete-account-notification.png"));
+      message.addInline(
+          "delete-account-notification.png",
+          emailTemplateResource("delete-account-notification.png")
+      );
       attachNewSocialImages(message);
     };
     this.send(preparator);

@@ -30,7 +30,7 @@ import static java.time.temporal.ChronoUnit.WEEKS;
 import com.epam.ta.reportportal.entity.enums.InfoInterval;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
-import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import com.epam.ta.reportportal.model.widget.ChartObject;
 import com.google.common.collect.Lists;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
@@ -70,23 +70,20 @@ public class ProjectInfoWidgetDataConverter {
   }
 
   public enum ProjectInfoGroup {
-    BY_DAY,
-    BY_WEEK,
-    BY_NAME
+    BY_DAY, BY_WEEK, BY_NAME
   }
 
-  private static DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendValue(
-          IsoFields.WEEK_BASED_YEAR, 4)
-      .appendLiteral("-W")
-      .appendValue(IsoFields.WEEK_OF_WEEK_BASED_YEAR, 2)
-      .toFormatter();
+  private static DateTimeFormatter formatter =
+      new DateTimeFormatterBuilder().appendValue(IsoFields.WEEK_BASED_YEAR, 4).appendLiteral("-W")
+          .appendValue(IsoFields.WEEK_OF_WEEK_BASED_YEAR, 2).toFormatter();
 
   /**
    * <b>Percentage Of Investigation</b> project info widget content
    *
-   * @param initial
-   * @param interval
-   * @return
+   * @param initial  A list of {@link Launch} objects to calculate investigation percentages
+   * @param interval An {@link InfoInterval} representing the grouping interval (e.g., daily, weekly)
+   * @return A {@link Map} with keys representing interval group names and values containing
+   * {@link List} of {@link ChartObject} instances with investigated and to-investigate percentage information
    */
   public Map<String, List<ChartObject>> getInvestigatedProjectInfo(List<Launch> initial,
       InfoInterval interval) {
@@ -110,12 +107,11 @@ public class ProjectInfoWidgetDataConverter {
       for (Launch one : group) {
         investigated =
             investigated + extractStatisticsCount(DEFECTS_PRODUCT_BUG_TOTAL, one.getStatistics())
-                + extractStatisticsCount(
-                DEFECTS_SYSTEM_ISSUE_TOTAL,
-                one.getStatistics()
-            ) + extractStatisticsCount(DEFECTS_AUTOMATION_BUG_TOTAL, one.getStatistics());
+                + extractStatisticsCount(DEFECTS_SYSTEM_ISSUE_TOTAL, one.getStatistics())
+                + extractStatisticsCount(DEFECTS_AUTOMATION_BUG_TOTAL, one.getStatistics());
         toInvestigate = toInvestigate + extractStatisticsCount(DEFECTS_TO_INVESTIGATE_TOTAL,
-            one.getStatistics());
+            one.getStatistics()
+        );
       }
       if ((investigated + toInvestigate) > 0) {
         double investigatedPercent = (investigated / (investigated + toInvestigate)) * 100;
@@ -137,8 +133,9 @@ public class ProjectInfoWidgetDataConverter {
    * <b>Test-cases statistics in unique launches</b> project info widget
    * content data-source
    *
-   * @param initial
-   * @return
+   * @param initial A list of {@link Launch} objects to calculate test-case statistics
+   * @return A {@link Map} with keys representing launch names and values containing
+   * {@link List} of {@link ChartObject} instances with min, max, and average statistics
    */
   public Map<String, List<ChartObject>> getTestCasesStatisticsProjectInfo(List<Launch> initial) {
     DecimalFormat formatter = new DecimalFormat("#####.##");
@@ -159,14 +156,10 @@ public class ProjectInfoWidgetDataConverter {
       Map<String, String> values = new HashMap<>();
       List<Launch> group = pair.getValue();
 
-      DoubleSummaryStatistics statistics = group.stream()
-          .mapToDouble(launch -> launch.getStatistics()
-              .stream()
+      DoubleSummaryStatistics statistics = group.stream().mapToDouble(
+          launch -> launch.getStatistics().stream()
               .filter(it -> it.getStatisticsField().getName().equalsIgnoreCase(EXECUTIONS_TOTAL))
-              .findFirst()
-              .orElse(new Statistics())
-              .getCounter())
-          .summaryStatistics();
+              .findFirst().orElse(new Statistics()).getCounter()).summaryStatistics();
 
       values.put(MIN, String.valueOf(statistics.getMin()));
       values.put(MAX, String.valueOf(statistics.getMax()));
@@ -187,9 +180,10 @@ public class ProjectInfoWidgetDataConverter {
   /**
    * <b>Quantity of Launches</b> project info widget content
    *
-   * @param initial
-   * @param interval
-   * @return
+   * @param initial  A list of {@link Launch} objects to calculate the quantity of launches
+   * @param interval An {@link InfoInterval} representing the grouping interval (e.g., daily, weekly)
+   * @return A {@link Map} with keys representing interval group names and values containing
+   * {@link List} of {@link ChartObject} instances with launch quantity information
    */
   public Map<String, List<ChartObject>> getLaunchesQuantity(List<Launch> initial,
       InfoInterval interval) {
@@ -214,7 +208,8 @@ public class ProjectInfoWidgetDataConverter {
         DateTime parse = DateTime.parse(entry.getKey());
         // TODO remove Yoda time. replace with JDK8
         values.put(START_PERIOD,
-            parse.withDayOfWeek(DateTimeConstants.MONDAY).toString("yyy-MM-dd"));
+            parse.withDayOfWeek(DateTimeConstants.MONDAY).toString("yyy-MM-dd")
+        );
         values.put(END_PERIOD, parse.withDayOfWeek(DateTimeConstants.SUNDAY).toString("yyy-MM-dd"));
       } else {
         values.put(START_PERIOD, entry.getKey());
@@ -229,9 +224,10 @@ public class ProjectInfoWidgetDataConverter {
   /**
    * <b>Launch statistics line chart</b> project info widget content
    *
-   * @param initial
-   * @param interval
-   * @return
+   * @param initial  A list of {@link Launch} objects to calculate the issues
+   * @param interval An {@link InfoInterval} representing the grouping interval (e.g., daily, weekly)
+   * @return A {@link Map} with keys representing interval group names and values containing
+   * {@link List} of {@link ChartObject} instances with issue count information
    */
   public Map<String, List<ChartObject>> getLaunchesIssues(List<Launch> initial,
       InfoInterval interval) {
@@ -273,9 +269,10 @@ public class ProjectInfoWidgetDataConverter {
   /**
    * Utility method for grouping input list of {@link Launch} by {@link ProjectInfoGroup} criteria
    *
-   * @param initial
-   * @param criteria
-   * @return
+   * @param initial  A list of {@link Launch} objects to be grouped
+   * @param criteria The {@link ProjectInfoGroup} criteria that determines the grouping key
+   * @return A map where the keys represent the grouping parameters (e.g., launch names or formatted dates)
+   * and the values are lists of {@link Launch} objects grouped under that key
    */
   private static Map<String, List<Launch>> groupBy(List<Launch> initial,
       ProjectInfoGroup criteria) {

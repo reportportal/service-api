@@ -17,12 +17,13 @@
 package com.epam.ta.reportportal.core.project;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
-import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
-import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
+import com.epam.ta.reportportal.model.project.AssignUsersRQ;
+import com.epam.ta.reportportal.model.project.UnassignUsersRQ;
+import com.epam.ta.reportportal.model.project.UpdateProjectRQ;
+import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 
 /**
  * Update {@link com.epam.ta.reportportal.entity.project.Project} request handler
@@ -45,11 +46,11 @@ public interface UpdateProjectHandler {
   /**
    * Update specified project(projectName, customer and addInfo)
    *
-   * @param projectName     {@link com.epam.ta.reportportal.entity.project.Project#name}
+   * @param projectName     {@link Project#getName()}
    * @param updateProjectRQ Project data
    * @param user            ReportPortal user
    * @return Operation result
-   * @throws ReportPortalException
+   * @throws ReportPortalException in case of error due updating project
    */
   OperationCompletionRS updateProject(String projectName, UpdateProjectRQ updateProjectRQ,
       ReportPortalUser user);
@@ -61,7 +62,7 @@ public interface UpdateProjectHandler {
    * @param modifier        Modifier User
    * @param unassignUsersRQ Request Data
    * @return Operation Result
-   * @throws ReportPortalException
+   * @throws ReportPortalException in case of error due unassign users
    */
   OperationCompletionRS unassignUsers(String projectName, UnassignUsersRQ unassignUsersRQ,
       ReportPortalUser modifier);

@@ -43,9 +43,10 @@ public abstract class AbstractStatisticsContentLoader {
   /**
    * Return lists of objects grouped by specified period
    *
-   * @param input
-   * @param period
-   * @return
+   * @param input   A list of {@link ChartStatisticsContent} objects to be grouped
+   * @param period  The {@link Period} that defines the desired time grouping (e.g., DAY, WEEK, MONTH)
+   * @return A map where keys represent the grouped time periods, and values are instances of
+   *         {@link ChartStatisticsContent} containing aggregated statistical data for each group
    */
   protected Map<String, ChartStatisticsContent> groupByDate(List<ChartStatisticsContent> input,
       Period period) {

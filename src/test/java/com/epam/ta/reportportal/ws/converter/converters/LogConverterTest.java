@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.LogFull;
-import com.epam.ta.reportportal.ws.model.log.LogResource;
+import com.epam.ta.reportportal.model.log.LogResource;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -62,8 +62,10 @@ class LogConverterTest {
     assertEquals(resource.getUuid(), logFull.getUuid());
     assertEquals(resource.getMessage(), logFull.getLogMessage());
     assertEquals(resource.getLevel(), LogLevel.toLevel(logFull.getLogLevel()).toString());
-    assertEquals(resource.getLogTime(),
-        Date.from(logFull.getLogTime().atZone(ZoneId.of("UTC")).toInstant()));
+    assertEquals(
+        resource.getLogTime(),
+        Date.from(logFull.getLogTime().atZone(ZoneId.of("UTC")).toInstant())
+    );
     assertEquals(resource.getItemId(), logFull.getTestItem().getItemId());
 
     final LogResource.BinaryContent binaryContent = resource.getBinaryContent();

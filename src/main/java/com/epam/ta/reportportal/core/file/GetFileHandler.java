@@ -27,7 +27,8 @@ public interface GetFileHandler {
   /**
    * Returns {@link InputStream} for current logged-in user photo
    *
-   * @param loggedInUser Logged-in {@link ReportPortalUser}
+   * @param loggedInUser  Logged-in {@link ReportPortalUser}
+   * @param loadThumbnail true if need to load thumbnail
    * @return {@link InputStream}
    */
   BinaryData getUserPhoto(ReportPortalUser loggedInUser, boolean loadThumbnail);
@@ -36,18 +37,21 @@ public interface GetFileHandler {
    * Returns {@link InputStream} for photo of the {@link com.epam.ta.reportportal.entity.user.User}
    * with specified username
    *
-   * @param username     Username of user which photo to get
-   * @param loggedInUser Logged-in {@link ReportPortalUser}
+   * @param username       Username of user which photo to get
+   * @param loggedInUser   Logged-in {@link ReportPortalUser}
+   * @param projectName    Project name
+   * @param loadThumbnail  true if need to load thumbnail
    * @return {@link InputStream}
    */
   BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, String projectName,
       boolean loadThumbnail);
 
   /**
-   * Returns {@link InputStream} for the file with the specified id
+   * Returns {@link BinaryData} for the file with the specified id
    *
    * @param fileId Id of the file to get
-   * @return {@link InputStream}
+   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @return {@link BinaryData} file data
    */
   BinaryData loadFileById(Long fileId, ReportPortalUser.ProjectDetails projectDetails);
 }

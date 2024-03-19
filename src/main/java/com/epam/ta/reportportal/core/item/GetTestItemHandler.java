@@ -24,8 +24,8 @@ import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.TestItemResource;
-import com.epam.ta.reportportal.ws.model.statistics.StatisticsResource;
+import com.epam.ta.reportportal.ws.reporting.StatisticsResource;
+import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -57,12 +57,15 @@ public interface GetTestItemHandler {
    * @param pageable       {@link Pageable}
    * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
    * @param user           {@link ReportPortalUser}
+   * @param launchId       Launch id
+   * @param filterId       Filter id
+   * @param isLatest       true if
+   * @param launchesLimit  response limit
    * @return {@link Iterable} of the {@link TestItemResource}
    */
   Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user, @Nullable Long launchId, @Nullable Long filterId, boolean isLatest,
-      int launchesLimit);
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit);
 
   /**
    * Gets {@link TestItem} instances
@@ -74,14 +77,15 @@ public interface GetTestItemHandler {
    * @return {@link Iterable} of the {@link TestItemResource}
    */
   Iterable<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user, Map<String, String> params);
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      Map<String, String> params);
 
   /**
    * Gets accumulated statistics of items by data provider
    *
    * @param filter         {@link Filter}
    * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param user           {@link ReportPortalUser}
    * @return Accumulated statistics
    */
   StatisticsResource getStatisticsByProvider(Queryable filter,
@@ -120,8 +124,7 @@ public interface GetTestItemHandler {
    * @return {@link List} of the {@link ItemAttribute#getKey()}
    */
   List<String> getAttributeKeys(Long launchFilterId, boolean isLatest, int launchesLimit,
-      ReportPortalUser.ProjectDetails projectDetails,
-      String keyPart);
+      ReportPortalUser.ProjectDetails projectDetails, String keyPart);
 
   /**
    * Get specified attribute keys
@@ -137,6 +140,7 @@ public interface GetTestItemHandler {
    * Get specified attribute values
    *
    * @param launchId {@link com.epam.ta.reportportal.entity.launch.Launch#id}
+   * @param key      Attribute key to search
    * @param value    part of the {@link com.epam.ta.reportportal.entity.ItemAttribute#value} to
    *                 search
    * @return {@link List} of the {@link com.epam.ta.reportportal.entity.ItemAttribute#value}
@@ -169,7 +173,9 @@ public interface GetTestItemHandler {
       String key, String valuePart);
 
   /**
-   * @param ids array of the {@link com.epam.ta.reportportal.entity.launch.Launch#id}
+   * @param ids            array of the {@link com.epam.ta.reportportal.entity.launch.Launch#id}
+   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param user           {@link ReportPortalUser}
    * @return {@link List} of the {@link TestItemResource}
    */
   List<TestItemResource> getTestItems(Long[] ids, ReportPortalUser.ProjectDetails projectDetails,

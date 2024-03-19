@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.configs;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -30,6 +31,7 @@ import com.epam.ta.reportportal.ws.resolver.PredefinedFilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.SortArgumentResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -43,6 +45,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -73,9 +76,8 @@ public class MvcConfig implements WebMvcConfigurer {
   @Autowired
   private List<HttpMessageConverter<?>> converters;
 
-  private static final String[] CLASSPATH_RESOURCE_LOCATIONS = {"classpath:/public/",
-      "classpath:/META-INF/resources/",
-      "classpath:/resources/"};
+  private static final String[] CLASSPATH_RESOURCE_LOCATIONS =
+      { "classpath:/public/", "classpath:/META-INF/resources/", "classpath:/resources/" };
 
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -104,8 +106,8 @@ public class MvcConfig implements WebMvcConfigurer {
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
     argumentResolvers.clear();
-    PagingHandlerMethodArgumentResolver pageableResolver = new PagingHandlerMethodArgumentResolver(
-        sortArgumentResolver());
+    PagingHandlerMethodArgumentResolver pageableResolver =
+        new PagingHandlerMethodArgumentResolver(sortArgumentResolver());
     pageableResolver.setPrefix("page.");
     pageableResolver.setOneIndexedParameters(true);
 
@@ -119,7 +121,9 @@ public class MvcConfig implements WebMvcConfigurer {
   @Override
   public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
     converters.clear();
+    converters.add(byteArrayConverter());
     converters.add(jsonConverter());
+    converters.add(openMetricsTextStringConverter());
     converters.add(stringConverter());
   }
 
@@ -127,15 +131,16 @@ public class MvcConfig implements WebMvcConfigurer {
   public void configureHandlerExceptionResolvers(
       List<HandlerExceptionResolver> exceptionResolvers) {
     /* to propagate exceptions from downstream services */
-    ClientResponseForwardingExceptionHandler forwardingExceptionHandler = new ClientResponseForwardingExceptionHandler();
+    ClientResponseForwardingExceptionHandler forwardingExceptionHandler =
+        new ClientResponseForwardingExceptionHandler();
     forwardingExceptionHandler.setOrder(Ordered.HIGHEST_PRECEDENCE);
     exceptionResolvers.add(forwardingExceptionHandler);
 
     RestExceptionHandler handler = new RestExceptionHandler();
     handler.setOrder(Ordered.HIGHEST_PRECEDENCE + 1);
 
-    DefaultErrorResolver defaultErrorResolver = new DefaultErrorResolver(
-        ExceptionMappings.DEFAULT_MAPPING);
+    DefaultErrorResolver defaultErrorResolver =
+        new DefaultErrorResolver(ExceptionMappings.DEFAULT_MAPPING);
     handler.setErrorResolver(new ReportPortalExceptionResolver(defaultErrorResolver));
     handler.setMessageConverters(Collections.singletonList(jsonConverter()));
     exceptionResolvers.add(handler);
@@ -166,6 +171,19 @@ public class MvcConfig implements WebMvcConfigurer {
     StringHttpMessageConverter converter = new StringHttpMessageConverter();
     converter.setSupportedMediaTypes(Collections.singletonList(MediaType.TEXT_PLAIN));
     return converter;
+  }
+
+  @Bean
+  public StringHttpMessageConverter openMetricsTextStringConverter() {
+    StringHttpMessageConverter converter = new StringHttpMessageConverter();
+    converter.setSupportedMediaTypes(Collections.singletonList(
+        new MediaType("application", "openmetrics-text", StandardCharsets.UTF_8)));
+    return converter;
+  }
+
+  @Bean
+  public ByteArrayHttpMessageConverter byteArrayConverter() {
+    return new ByteArrayHttpMessageConverter();
   }
 
   @Bean

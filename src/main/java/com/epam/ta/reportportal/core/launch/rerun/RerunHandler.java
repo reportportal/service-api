@@ -19,9 +19,9 @@ package com.epam.ta.reportportal.core.launch.rerun;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.ItemCreatedRS;
+import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import java.util.Optional;
 
 /**
@@ -51,8 +51,9 @@ public interface RerunHandler {
   /**
    * Finds child {@link TestItem} to rerun and creates retries
    *
-   * @param request Request data
-   * @param launch  {@link Launch}
+   * @param request     Request data
+   * @param launch      {@link Launch}
+   * @param parentUuid  Parent testItem's id
    * @return {@link ItemCreatedRS} if item is rerun, otherwise {@link Optional#empty()}
    */
   Optional<ItemCreatedRS> handleChildItem(StartTestItemRQ request, Launch launch,

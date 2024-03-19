@@ -25,12 +25,13 @@ import com.epam.ta.reportportal.core.activityevent.ActivityEventHandler;
 import com.epam.ta.reportportal.core.filter.SearchCriteriaService;
 import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.model.ActivityEventResource;
+import com.epam.ta.reportportal.model.PagedResponse;
+import com.epam.ta.reportportal.model.SearchCriteriaRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.ActivityEventResource;
-import com.epam.ta.reportportal.ws.model.PagedResponse;
-import com.epam.ta.reportportal.ws.model.SearchCriteriaRQ;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -57,6 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping("/v1/activities")
+@Tag(name = "activity-event-controller", description = "Activity Event Controller")
 public class ActivityEventController {
 
   private final ActivityEventHandler activityEventHandler;
@@ -64,8 +66,7 @@ public class ActivityEventController {
   private final SearchCriteriaService searchCriteriaService;
 
   public ActivityEventController(ActivityEventHandler activityEventHandler,
-      ProjectExtractor projectExtractor,
-      SearchCriteriaService searchCriteriaService) {
+      ProjectExtractor projectExtractor, SearchCriteriaService searchCriteriaService) {
     this.activityEventHandler = activityEventHandler;
     this.projectExtractor = projectExtractor;
     this.searchCriteriaService = searchCriteriaService;
@@ -84,18 +85,17 @@ public class ActivityEventController {
    */
   @PreAuthorize(ADMIN_ONLY)
   @PostMapping("/searches")
-  @ApiOperation("Get activities by search criteria")
+  @Operation(summary = "Get activities by search criteria")
   public PagedResponse<ActivityEventResource> getActivities(
-      @RequestParam @Min(0) @Max(300) int limit,
-      @RequestParam @Min(0) int offset,
-      @RequestParam Direction order,
-      @RequestParam String sort,
+      @RequestParam @Min(0) @Max(300) int limit, @RequestParam @Min(0) int offset,
+      @RequestParam Direction order, @RequestParam String sort,
       @RequestBody SearchCriteriaRQ searchCriteria,
       @AuthenticationPrincipal ReportPortalUser user) {
 
-    Queryable filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteria,
-        Activity.class,
-        PredefinedFilterType.ACTIVITIES);
+    Queryable filter =
+        searchCriteriaService.createFilterBySearchCriteria(searchCriteria, Activity.class,
+            PredefinedFilterType.ACTIVITIES
+        );
     Pageable pageable = PageRequest.of(offset / limit, limit, Sort.by(order, sort));
 
     return activityEventHandler.getActivityEventsHistory(filter, pageable);
@@ -103,11 +103,10 @@ public class ActivityEventController {
 
   @GetMapping("/{projectName}/subjectName")
   @PreAuthorize(ADMIN_ONLY)
-  @ApiOperation(value = "Load project activities subjectNames by filter", notes = "Only for current project")
+  @Operation(summary =  "Load project activities subjectNames by filter", description = "Only for current project")
   public List<String> getProjectSubjectName(@PathVariable String projectName,
-      @RequestParam(FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT
-          + "subjectName") String value,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestParam(FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + "subjectName")
+      String value, @AuthenticationPrincipal ReportPortalUser user) {
     return activityEventHandler.getSubjectNames(
         projectExtractor.extractProjectDetails(user, projectName), value);
   }

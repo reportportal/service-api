@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.imprt.impl;
 
 import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
@@ -21,8 +22,8 @@ import static java.util.Optional.ofNullable;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.imprt.impl.junit.XunitParseJob;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.launch.LaunchImportRQ;
+import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -59,11 +60,13 @@ public class XmlImportStrategy extends AbstractImportStrategy {
     String savedLaunchId = null;
     try (InputStream xmlStream = new FileInputStream(xml)) {
       String launchId = startLaunch(projectDetails, user,
-          xml.getName().substring(0, xml.getName().indexOf("." + XML_EXTENSION)), rq);
+          xml.getName().substring(0, xml.getName().indexOf("." + XML_EXTENSION)), rq
+      );
       savedLaunchId = launchId;
       XunitParseJob job = xmlParseJobProvider.get()
           .withParameters(projectDetails, launchId, user, xmlStream,
-              getSkippedIsNotIssueAttribute(rq.getAttributes()));
+              isSkippedNotIssue(rq.getAttributes())
+          );
       ParseResults parseResults = job.call();
       finishLaunch(launchId, projectDetails, user, parseResults, baseUrl);
       return launchId;

@@ -21,9 +21,9 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.ws.model.project.ProjectResource;
-import com.epam.ta.reportportal.ws.model.user.SearchUserResource;
-import com.epam.ta.reportportal.ws.model.user.UserResource;
+import com.epam.ta.reportportal.model.project.ProjectResource;
+import com.epam.ta.reportportal.model.user.SearchUserResource;
+import com.epam.ta.reportportal.model.user.UserResource;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
@@ -83,7 +83,8 @@ public interface GetProjectHandler {
    * Performs global search for user
    *
    * @param value          login OR full name of user
-   * @param projectDetails
+   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param pageable       {@link Pageable} Page Details
    * @return List of found user resources
    */
   Iterable<SearchUserResource> getUserNames(String value,
@@ -99,6 +100,7 @@ public interface GetProjectHandler {
   /**
    * Get all project names, which contain provided term
    *
+   * @param term project term
    * @return {@link List} of the {@link com.epam.ta.reportportal.entity.project.Project#name}
    */
   List<String> getAllProjectNamesByTerm(String term);

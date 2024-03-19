@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.item.impl.status;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_REQUEST;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,31 +51,22 @@ public class ToFailedStatusChangingStrategy extends AbstractStatusChangingStrate
 
   @Autowired
   public ToFailedStatusChangingStrategy(TestItemService testItemService,
-      ProjectRepository projectRepository,
-      LaunchRepository launchRepository, TestItemRepository testItemRepository,
-      IssueTypeHandler issueTypeHandler,
+      ProjectRepository projectRepository, LaunchRepository launchRepository,
+      TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
       MessageBus messageBus, IssueEntityRepository issueEntityRepository,
       LogRepository logRepository, LogIndexer logIndexer) {
-    super(
-        testItemService,
-        projectRepository,
-        launchRepository,
-        testItemRepository,
-        issueTypeHandler,
-        messageBus,
-        issueEntityRepository,
-        logRepository,
-        logIndexer
+    super(testItemService, projectRepository, launchRepository, testItemRepository,
+        issueTypeHandler, messageBus, issueEntityRepository, logRepository, logIndexer
     );
   }
 
   @Override
   protected void updateStatus(Project project, Launch launch, TestItem testItem,
-      StatusEnum providedStatus, ReportPortalUser user) {
-    BusinessRule.expect(providedStatus, statusIn(StatusEnum.FAILED)).verify(
-        INCORRECT_REQUEST,
+      StatusEnum providedStatus, ReportPortalUser user, boolean updateParents) {
+    BusinessRule.expect(providedStatus, statusIn(StatusEnum.FAILED)).verify(INCORRECT_REQUEST,
         Suppliers.formattedSupplier("Incorrect status - '{}', only '{}' is allowed", providedStatus,
-            StatusEnum.FAILED).get()
+            StatusEnum.FAILED
+        ).get()
     );
 
     testItem.getItemResults().setStatus(providedStatus);
@@ -83,11 +75,15 @@ public class ToFailedStatusChangingStrategy extends AbstractStatusChangingStrate
         addToInvestigateIssue(testItem, project.getId());
       }
 
-      List<Long> itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
+      List<Long> itemsToReindex = new ArrayList<>();
+      if (updateParents) {
+        itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
+      }
       itemsToReindex.add(testItem.getItemId());
       logIndexer.indexItemsRemove(project.getId(), itemsToReindex);
       logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemsToReindex,
-          AnalyzerUtils.getAnalyzerConfig(project));
+          AnalyzerUtils.getAnalyzerConfig(project)
+      );
     }
   }
 

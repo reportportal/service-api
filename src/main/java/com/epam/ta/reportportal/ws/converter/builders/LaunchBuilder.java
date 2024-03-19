@@ -25,11 +25,11 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
+import com.epam.ta.reportportal.ws.reporting.Mode;
+import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.google.common.base.Preconditions;
 import java.util.Date;
 import java.util.Optional;
@@ -85,7 +85,8 @@ public class LaunchBuilder implements Supplier<Launch> {
     return this;
   }
 
-  public LaunchBuilder addAttribute(ItemAttributeResource attributeResource) {
+  public LaunchBuilder addAttribute(
+      com.epam.ta.reportportal.ws.reporting.ItemAttributeResource attributeResource) {
     ItemAttribute itemAttribute = FROM_RESOURCE.apply(attributeResource);
     itemAttribute.setLaunch(launch);
     launch.getAttributes().add(itemAttribute);

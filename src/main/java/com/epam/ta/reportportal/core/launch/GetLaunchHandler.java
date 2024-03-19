@@ -21,8 +21,8 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.cluster.ClusterInfoResource;
+import com.epam.ta.reportportal.ws.reporting.LaunchResource;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +56,7 @@ public interface GetLaunchHandler {
    * @param project  Project Name
    * @param pageable Page details
    * @param username User name
+   * @param filter   {@link Filter}
    * @return Response Data
    */
   LaunchResource getLaunchByProjectName(String project, Pageable pageable, Filter filter,
@@ -99,6 +100,7 @@ public interface GetLaunchHandler {
    *
    * @param projectDetails Project Details
    * @param value          Tag prefix to be searched
+   * @param key            Attribute key
    * @return List of found tags
    */
   List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String key,
@@ -169,6 +171,7 @@ public interface GetLaunchHandler {
    *
    * @param launchId       Launch uuid
    * @param projectDetails Project Details
+   * @param pageable       Pagination information for the results
    * @return {@link ClusterInfoResource}
    */
   Iterable<ClusterInfoResource> getClusters(String launchId,

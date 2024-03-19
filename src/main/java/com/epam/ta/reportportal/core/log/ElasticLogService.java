@@ -39,7 +39,7 @@ import org.springframework.stereotype.Service;
 
 @Primary
 @Service
-@ConditionalOnProperty(prefix = "rp.elasticsearch", name = "host")
+@ConditionalOnProperty(prefix = "rp.searchengine", name = "host")
 public class ElasticLogService implements LogService {
 
   private final AmqpTemplate amqpTemplate;
@@ -71,7 +71,7 @@ public class ElasticLogService implements LogService {
    * Used only for generation demo data, that send all per message to avoid some object/collection
    * wrapping during reporting.
    *
-   * @param logFullList
+   * @param logFullList list of {@link LogFull}
    */
   public void saveLogMessageList(List<LogFull> logFullList, Long launchId) {
     if (CollectionUtils.isEmpty(logFullList)) {
@@ -217,32 +217,27 @@ public class ElasticLogService implements LogService {
 
   @Override
   public List<Long> selectTestItemIdsByStringLogMessage(Collection<Long> itemIds, Integer logLevel,
-      String string) {
-    Long projectId = getProjectId(itemIds);
-    List<Long> logIdsPg = testItemRepository.selectLogIdsWithLogLevelCondition(itemIds, logLevel);
-
-    return elasticSearchClient.searchTestItemIdsByLogIdsAndString(projectId, logIdsPg, string);
+      String pattern) {
+    return testItemRepository.selectIdsByStringLogMessage(itemIds, logLevel, pattern);
   }
 
   @Override
   public List<Long> selectTestItemIdsUnderByStringLogMessage(Long launchId,
-      Collection<Long> itemIds, Integer logLevel, String string) {
-    return selectTestItemIdsUnderByLogMessage(launchId, itemIds, logLevel, string, false);
+      Collection<Long> itemIds, Integer logLevel, String pattern) {
+    return testItemRepository.selectIdsUnderByStringLogMessage(launchId, itemIds, logLevel,
+        pattern);
   }
 
   @Override
   public List<Long> selectTestItemIdsByRegexLogMessage(Collection<Long> itemIds, Integer logLevel,
       String pattern) {
-    Long projectId = getProjectId(itemIds);
-    List<Long> logIdsPg = testItemRepository.selectLogIdsWithLogLevelCondition(itemIds, logLevel);
-
-    return elasticSearchClient.searchTestItemIdsByLogIdsAndRegexp(projectId, logIdsPg, pattern);
+    return testItemRepository.selectIdsByRegexLogMessage(itemIds, logLevel, pattern);
   }
 
   @Override
   public List<Long> selectTestItemIdsUnderByRegexLogMessage(Long launchId, Collection<Long> itemIds,
       Integer logLevel, String pattern) {
-    return selectTestItemIdsUnderByLogMessage(launchId, itemIds, logLevel, pattern, true);
+    return testItemRepository.selectIdsUnderByRegexLogMessage(launchId, itemIds, logLevel, pattern);
   }
 
   // TODO : refactoring pattern analyzer and add projectId as parameter

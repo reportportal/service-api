@@ -2,7 +2,7 @@ package com.epam.ta.reportportal.core.item.identity;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;

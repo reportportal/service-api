@@ -17,15 +17,15 @@
 package com.epam.ta.reportportal.core.user;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.YesNoRS;
-import com.epam.ta.reportportal.ws.model.user.CreateUserBidRS;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQ;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRS;
-import com.epam.ta.reportportal.ws.model.user.ResetPasswordRQ;
-import com.epam.ta.reportportal.ws.model.user.RestorePasswordRQ;
+import com.epam.ta.reportportal.model.YesNoRS;
+import com.epam.ta.reportportal.model.user.CreateUserBidRS;
+import com.epam.ta.reportportal.model.user.CreateUserRQ;
+import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
+import com.epam.ta.reportportal.model.user.CreateUserRQFull;
+import com.epam.ta.reportportal.model.user.CreateUserRS;
+import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
+import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 
 /**
  * Post request handler
@@ -56,8 +56,9 @@ public interface CreateUserHandler {
   /**
    * Create user bid (send invitation)
    *
-   * @param request  Create Request
-   * @param username Username/User that creates the request
+   * @param request    Create Request
+   * @param username   Username/User that creates the request
+   * @param userRegURL User registration url
    * @return Operation result
    */
   CreateUserBidRS createUserBid(CreateUserRQ request, ReportPortalUser username, String userRegURL);
@@ -74,7 +75,7 @@ public interface CreateUserHandler {
   /**
    * Reset password
    *
-   * @param rq
+   * @param rq request for reset password
    * @return Operation result
    */
   OperationCompletionRS resetPassword(ResetPasswordRQ rq);

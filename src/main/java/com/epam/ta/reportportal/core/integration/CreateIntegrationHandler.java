@@ -18,9 +18,9 @@ package com.epam.ta.reportportal.core.integration;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
+import com.epam.ta.reportportal.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.integration.IntegrationRQ;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -32,6 +32,7 @@ public interface CreateIntegrationHandler {
    *
    * @param pluginName    Plugin name
    * @param createRequest {@link IntegrationRQ}
+   * @param user          {@link ReportPortalUser}
    * @return {@link EntryCreatedRS}
    */
   EntryCreatedRS createGlobalIntegration(IntegrationRQ createRequest, String pluginName,

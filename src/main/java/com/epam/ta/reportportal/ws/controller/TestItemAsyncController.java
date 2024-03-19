@@ -26,11 +26,12 @@ import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.logging.HttpLogging;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
-import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import io.swagger.annotations.ApiOperation;
+import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
+import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -54,6 +55,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v2/{projectName}/item")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
+@Tag(name = "test-item-async-controller", description = "Test Item Async Controller")
 public class TestItemAsyncController {
 
   private final ProjectExtractor projectExtractor;
@@ -72,7 +74,7 @@ public class TestItemAsyncController {
   @HttpLogging
   @PostMapping
   @ResponseStatus(CREATED)
-  @ApiOperation("Start a root test item")
+  @Operation(summary = "Start a root test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
   public EntryCreatedAsyncRS startRootItem(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user,
@@ -84,7 +86,7 @@ public class TestItemAsyncController {
   @HttpLogging
   @PostMapping("/{parentItem}")
   @ResponseStatus(CREATED)
-  @ApiOperation("Start a child test item")
+  @Operation(summary = "Start a child test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
   public EntryCreatedAsyncRS startChildItem(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user,
@@ -96,7 +98,7 @@ public class TestItemAsyncController {
   @HttpLogging
   @PutMapping("/{testItemId}")
   @ResponseStatus(OK)
-  @ApiOperation("Finish test item")
+  @Operation(summary = "Finish test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
   public OperationCompletionRS finishTestItem(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user,

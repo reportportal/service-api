@@ -16,10 +16,10 @@
 
 package com.epam.ta.reportportal.core.user;
 
-import com.epam.ta.reportportal.ws.model.ApiKeyRQ;
-import com.epam.ta.reportportal.ws.model.ApiKeyRS;
-import com.epam.ta.reportportal.ws.model.ApiKeysRS;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.model.ApiKeyRQ;
+import com.epam.ta.reportportal.model.ApiKeyRS;
+import com.epam.ta.reportportal.model.ApiKeysRS;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 
 /**
  * Api keys handler.
@@ -32,7 +32,7 @@ public interface ApiKeyHandler {
    * Generate api key for user.
    *
    * @param keyName name of Api Key
-   * @param userId User id
+   * @param userId  User id
    * @return generated api key.
    */
   ApiKeyRS createApiKey(String keyName, Long userId);

@@ -42,10 +42,10 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.ws.model.analyzer.SearchRq;
-import com.epam.ta.reportportal.ws.model.analyzer.SearchRs;
-import com.epam.ta.reportportal.ws.model.log.SearchLogRq;
-import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
+import com.epam.ta.reportportal.model.analyzer.SearchRq;
+import com.epam.ta.reportportal.model.analyzer.SearchRs;
+import com.epam.ta.reportportal.model.log.SearchLogRq;
+import com.epam.ta.reportportal.model.log.SearchLogRs;
 import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.Optional;
@@ -80,18 +80,16 @@ class SearchLogServiceImplTest {
 
   private CurrentLaunchCollector currentLaunchCollector = mock(CurrentLaunchCollector.class);
 
-  private final SearchLogServiceImpl searchLogService = new SearchLogServiceImpl(projectRepository,
-      launchRepository,
-      testItemRepository,
-      logService, analyzerServiceClient,
-      searchCollectorFactory
-  );
+  private final SearchLogServiceImpl searchLogService =
+      new SearchLogServiceImpl(projectRepository, launchRepository, testItemRepository, logService,
+          analyzerServiceClient, searchCollectorFactory
+      );
 
   @Test
   void searchTest() {
 
-    ReportPortalUser.ProjectDetails projectDetails = new ReportPortalUser.ProjectDetails(1L,
-        "project", ProjectRole.PROJECT_MANAGER);
+    ReportPortalUser.ProjectDetails projectDetails =
+        new ReportPortalUser.ProjectDetails(1L, "project", ProjectRole.PROJECT_MANAGER);
 
     when(projectRepository.findById(projectDetails.getProjectId())).thenReturn(
         Optional.of(project));
@@ -122,9 +120,7 @@ class SearchLogServiceImplTest {
     when(userFilter.getFilterCondition()).thenReturn(Collections.emptySet());
 
     when(logService.findMessagesByLaunchIdAndItemIdAndPathAndLevelGte(launch.getId(),
-        testItem.getItemId(),
-        testItem.getPath(),
-        LogLevel.ERROR_INT
+        testItem.getItemId(), testItem.getPath(), LogLevel.ERROR_INT
     )).thenReturn(Lists.newArrayList("message"));
     SearchRs searchRs = new SearchRs();
     searchRs.setLogId(1L);

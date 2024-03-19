@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.imprt.impl.junit;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.imprt.impl.ParseResults;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -73,9 +73,9 @@ public class XunitParseJob implements Callable<ParseResults> {
 	}
 
 	public XunitParseJob withParameters(ReportPortalUser.ProjectDetails projectDetails, String launchId, ReportPortalUser user,
-			InputStream xmlInputStream, boolean skipped) {
+			InputStream xmlInputStream, boolean isSkippedNotIssue) {
 		this.xmlInputStream = xmlInputStream;
-		this.handler = handler.withParameters(projectDetails, launchId, user, skipped);
+		this.handler = handler.withParameters(projectDetails, launchId, user, isSkippedNotIssue);
 		return this;
 	}
 

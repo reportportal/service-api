@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
+import com.epam.ta.reportportal.ws.reporting.ItemCreatedRS;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 
 /**
  * Handler for start launch operation
@@ -30,6 +30,7 @@ public interface StartTestItemHandler {
   /**
    * Start Root item operation
    *
+   * @param user           {@link ReportPortalUser}
    * @param projectDetails Project Details
    * @param rq             Item details
    * @return ItemID and uniqueID of test item
@@ -40,8 +41,10 @@ public interface StartTestItemHandler {
   /**
    * Start child item operation
    *
+   * @param user           {@link ReportPortalUser}
    * @param projectDetails Project Details
    * @param rq             Item details
+   * @param parentId       Id of parrent test item
    * @return ItemID and uniqueID of test item
    */
   ItemCreatedRS startChildItem(ReportPortalUser user,

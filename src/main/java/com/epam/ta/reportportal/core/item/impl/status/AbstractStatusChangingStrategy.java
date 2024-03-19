@@ -23,8 +23,8 @@ import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.WARN;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_REQUEST;
+import static com.epam.ta.reportportal.ws.reporting.ErrorType.PROJECT_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -47,8 +47,8 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
+import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
@@ -73,9 +73,8 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
   protected final LogIndexer logIndexer;
 
   protected AbstractStatusChangingStrategy(TestItemService testItemService,
-      ProjectRepository projectRepository,
-      LaunchRepository launchRepository, TestItemRepository testItemRepository,
-      IssueTypeHandler issueTypeHandler,
+      ProjectRepository projectRepository, LaunchRepository launchRepository,
+      TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
       MessageBus messageBus, IssueEntityRepository issueEntityRepository,
       LogRepository logRepository, LogIndexer logIndexer) {
     this.testItemService = testItemService;
@@ -90,19 +89,19 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
   }
 
   protected abstract void updateStatus(Project project, Launch launch, TestItem testItem,
-      StatusEnum providedStatus,
-      ReportPortalUser user);
+      StatusEnum providedStatus, ReportPortalUser user, boolean updateParents);
 
   protected abstract StatusEnum evaluateParentItemStatus(TestItem parentItem, TestItem childItem);
 
   @Override
-  public void changeStatus(TestItem testItem, StatusEnum providedStatus, ReportPortalUser user) {
+  public void changeStatus(TestItem testItem, StatusEnum providedStatus, ReportPortalUser user,
+      boolean updateParents) {
     BusinessRule.expect(testItem.getItemResults().getStatus(),
-            currentStatus -> !IN_PROGRESS.equals(currentStatus))
-        .verify(INCORRECT_REQUEST, Suppliers.formattedSupplier(
+        currentStatus -> !IN_PROGRESS.equals(currentStatus)
+    ).verify(
+        INCORRECT_REQUEST, Suppliers.formattedSupplier(
             "Unable to update status of test item = '{}' because of '{}' status",
-            testItem.getItemId(),
-            testItem.getItemResults().getStatus()
+            testItem.getItemId(), testItem.getItemResults().getStatus()
         ).get());
     if (providedStatus == testItem.getItemResults().getStatus()) {
       return;
@@ -112,13 +111,13 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
     Project project = projectRepository.findById(launch.getProjectId())
         .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, launch.getProjectId()));
 
-    updateStatus(project, launch, testItem, providedStatus, user);
+    updateStatus(project, launch, testItem, providedStatus, user, updateParents);
   }
 
   protected void addToInvestigateIssue(TestItem testItem, Long projectId) {
     IssueEntity issueEntity = new IssueEntity();
-    IssueType toInvestigate = issueTypeHandler.defineIssueType(projectId,
-        TO_INVESTIGATE.getLocator());
+    IssueType toInvestigate =
+        issueTypeHandler.defineIssueType(projectId, TO_INVESTIGATE.getLocator());
     issueEntity.setIssueType(toInvestigate);
     issueEntity.setTestItemResults(testItem.getItemResults());
     issueEntityRepository.save(issueEntity);
@@ -132,21 +131,21 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
     Long parentId = testItem.getParentId();
     while (parentId != null) {
 
-      TestItem parent = testItemRepository.findById(parentId)
-          .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND,
-              testItem.getParentId()));
+      TestItem parent = testItemRepository.findById(parentId).orElseThrow(
+          () -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItem.getParentId()));
 
       StatusEnum currentParentStatus = parent.getItemResults().getStatus();
       if (!StatusEnum.IN_PROGRESS.equals(currentParentStatus)) {
 
         StatusEnum newParentStatus = evaluateParentItemStatus(parent, testItem);
         if (!currentParentStatus.equals(newParentStatus)) {
-          TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent,
-              launch.getProjectId());
+          TestItemActivityResource before =
+              TO_ACTIVITY_RESOURCE.apply(parent, launch.getProjectId());
           parent.getItemResults().setStatus(newParentStatus);
           updateItem(parent, launch.getProjectId(), issueRequired).ifPresent(updatedParents::add);
           publishUpdateActivity(before, TO_ACTIVITY_RESOURCE.apply(parent, launch.getProjectId()),
-              user);
+              user
+          );
         } else {
           return updatedParents;
         }
@@ -159,11 +158,10 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
     }
 
     if (launch.getStatus() != IN_PROGRESS) {
-      launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(),
-          StatusEnum.PASSED.name(),
-          INFO.name(),
-          WARN.name()
-      ) ? FAILED : PASSED);
+      launch.setStatus(
+          launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(), StatusEnum.PASSED.name(),
+              INFO.name(), WARN.name()
+          ) ? FAILED : PASSED);
     }
 
     return updatedParents;

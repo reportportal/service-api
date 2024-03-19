@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.reporting.Issue;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
-import java.util.Calendar;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -64,7 +64,7 @@ public class JaskonRequiredPropertiesValidatorTest {
   public void testInnerRequiredFields1() {
     FinishTestItemRQ issueRQ = new FinishTestItemRQ();
     issueRQ.setLaunchUuid(UUID.randomUUID().toString());
-    issueRQ.setEndTime(Calendar.getInstance().getTime());
+    issueRQ.setEndTime(Instant.now());
     issueRQ.setStatus("PASSED");
     JaskonRequiredPropertiesValidator validator = new JaskonRequiredPropertiesValidator();
     Errors errors = new BeanPropertyBindingResult(issueRQ, "issueRQ");
@@ -75,7 +75,7 @@ public class JaskonRequiredPropertiesValidatorTest {
   @Test
   public void testInnerRequiredFields2() {
     FinishTestItemRQ issueRQ = new FinishTestItemRQ();
-    issueRQ.setEndTime(Calendar.getInstance().getTime());
+    issueRQ.setEndTime(Instant.now());
     issueRQ.setStatus("PASSED");
     issueRQ.setIssue(new Issue());
     JaskonRequiredPropertiesValidator validator = new JaskonRequiredPropertiesValidator();

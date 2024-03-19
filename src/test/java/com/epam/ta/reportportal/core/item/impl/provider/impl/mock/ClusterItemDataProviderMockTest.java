@@ -33,8 +33,7 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.entity.statistics.StatisticsField;
 import com.google.common.base.Suppliers;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -99,9 +98,9 @@ class ClusterItemDataProviderMockTest {
     testItem.setType(TestItemTypeEnum.STEP);
     testItem.setHasRetries(false);
     testItem.setHasStats(true);
-    testItem.setLastModified(LocalDateTime.now(ZoneOffset.UTC));
+    testItem.setLastModified(Instant.now());
     testItem.setPath(String.valueOf(index));
-    testItem.setStartTime(LocalDateTime.now(ZoneOffset.UTC));
+    testItem.setStartTime(Instant.now());
 
     final Set<Parameter> parameters = getParameters(index);
     testItem.setParameters(parameters);
@@ -135,7 +134,7 @@ class ClusterItemDataProviderMockTest {
   private TestItemResults getTestItemResults(Long index) {
     final TestItemResults testItemResults = new TestItemResults();
     testItemResults.setDuration(0.01);
-    testItemResults.setEndTime(LocalDateTime.now(ZoneOffset.UTC));
+    testItemResults.setEndTime(Instant.now());
     testItemResults.setStatus(StatusEnum.FAILED);
 
     final IssueEntity issueEntity = getIssueEntity(index);

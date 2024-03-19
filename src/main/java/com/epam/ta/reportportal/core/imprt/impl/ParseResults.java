@@ -15,27 +15,25 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 
 public class ParseResults {
 
-  private LocalDateTime startTime;
+  private Instant startTime;
 
   private long duration;
 
   ParseResults() {
-    startTime = LocalDateTime.now();
+    startTime = Instant.now();
   }
 
-  public ParseResults(LocalDateTime startTime, long duration) {
+  public ParseResults(Instant startTime, long duration) {
     this.startTime = startTime;
     this.duration = duration;
   }
 
-  public LocalDateTime getStartTime() {
+  public Instant getStartTime() {
     return startTime;
   }
 
@@ -43,7 +41,7 @@ public class ParseResults {
     return duration;
   }
 
-  void checkAndSetStartLaunchTime(LocalDateTime startSuiteTime) {
+  void checkAndSetStartLaunchTime(Instant startSuiteTime) {
     if (this.startTime.isAfter(startSuiteTime)) {
       this.startTime = startSuiteTime;
     }
@@ -53,7 +51,7 @@ public class ParseResults {
     this.duration += duration;
   }
 
-  public Date getEndTime() {
-    return EntityUtils.TO_DATE.apply(startTime.plus(duration, ChronoUnit.MILLIS));
+  public Instant getEndTime() {
+    return startTime.plus(duration, ChronoUnit.MILLIS);
   }
 }

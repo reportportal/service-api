@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.google.common.collect.Maps;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.function.Supplier;
 import javax.validation.constraints.NotNull;
 
@@ -33,7 +33,7 @@ public class IntegrationTypeBuilder implements Supplier<IntegrationType> {
 
   public IntegrationTypeBuilder() {
     this.integrationType = new IntegrationType();
-    this.integrationType.setCreationDate(LocalDateTime.now());
+    this.integrationType.setCreationDate(Instant.now());
     integrationType.setDetails(createIntegrationTypeDetails());
   }
 

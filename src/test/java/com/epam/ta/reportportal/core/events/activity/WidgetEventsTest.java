@@ -33,7 +33,7 @@ import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.model.activity.WidgetActivityResource;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
@@ -55,7 +55,7 @@ class WidgetEventsTest {
     activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
     activity.setObjectId(2L);
-    activity.setCreatedAt(LocalDateTime.now());
+    activity.setCreatedAt(Instant.now());
     activity.setObjectName(name);
     activity.setDetails(new ActivityDetails());
     return activity;

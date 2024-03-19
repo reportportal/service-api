@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.user.User;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -60,7 +60,7 @@ public class UserPhotoRemover implements ContentRemover<User> {
   private Long prepareAttachmentAndGetId(String fileId) {
     Attachment attachment = new Attachment();
     attachment.setFileId(fileId);
-    attachment.setCreationDate(LocalDateTime.now());
+    attachment.setCreationDate(Instant.now());
     return attachmentRepository.save(attachment).getId();
   }
 }

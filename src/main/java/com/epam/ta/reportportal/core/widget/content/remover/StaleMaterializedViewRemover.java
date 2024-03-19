@@ -20,8 +20,7 @@ import com.epam.ta.reportportal.core.widget.content.materialized.generator.Mater
 import com.epam.ta.reportportal.dao.StaleMaterializedViewRepository;
 import com.epam.ta.reportportal.entity.materialized.StaleMaterializedView;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.Instant;
 import org.springframework.stereotype.Service;
 
 /**
@@ -49,7 +48,7 @@ public class StaleMaterializedViewRemover implements WidgetContentRemover {
     final String viewName = materializedViewNameGenerator.generate(widget);
     final StaleMaterializedView view = new StaleMaterializedView();
     view.setName(viewName);
-    view.setCreationDate(LocalDateTime.now(ZoneOffset.UTC));
+    view.setCreationDate(Instant.now());
     return view;
   }
 }

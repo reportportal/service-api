@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.model.log.LogResource;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -68,8 +68,8 @@ class LogResourceAssemblerTest {
   private LogFull getFullLog() {
     LogFull logFull = new LogFull();
     logFull.setId(1L);
-    logFull.setLogTime(LocalDateTime.now());
-    logFull.setLastModified(LocalDateTime.now());
+    logFull.setLogTime(Instant.now());
+    logFull.setLastModified(Instant.now());
     logFull.setLogMessage("message");
     logFull.setLogLevel(40000);
     TestItem testItem = new TestItem();

@@ -54,11 +54,9 @@ import com.epam.ta.reportportal.ws.reporting.UpdateItemAttributeRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -86,7 +84,7 @@ class LaunchControllerTest extends BaseMvcTest {
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
     startLaunchRQ.setDescription("some description");
     startLaunchRQ.setName(name);
-    startLaunchRQ.setStartTime(new Date());
+    startLaunchRQ.setStartTime(Instant.now());
     startLaunchRQ.setMode(DEFAULT);
     startLaunchRQ.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
 
@@ -167,8 +165,8 @@ class LaunchControllerTest extends BaseMvcTest {
     rq.setLaunches(set);
     rq.setName("Merged");
     rq.setMergeStrategyType("BASIC");
-    rq.setStartTime(new Date());
-    rq.setEndTime(new Date());
+    rq.setStartTime(Instant.now());
+    rq.setEndTime(Instant.now());
     mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/launch/merge").contentType(APPLICATION_JSON)
             .with(token(oAuthHelper.getDefaultToken())).content(objectMapper.writeValueAsBytes(rq)))
         .andExpect(status().is(200));
@@ -197,8 +195,7 @@ class LaunchControllerTest extends BaseMvcTest {
   @Test
   void finishLaunch() throws Exception {
     final FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-    finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    finishExecutionRQ.setEndTime(Instant.now());
     finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
     mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL
         + "/launch/befef834-b2ef-4acf-aea3-b5a5b15fd93c/finish").contentType(APPLICATION_JSON)
@@ -209,8 +206,7 @@ class LaunchControllerTest extends BaseMvcTest {
   @Test
   void forceFinishLaunch() throws Exception {
     final FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-    finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    finishExecutionRQ.setEndTime(Instant.now());
     finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
     mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/3/stop").contentType(APPLICATION_JSON)
         .with(token(oAuthHelper.getDefaultToken()))
@@ -223,8 +219,7 @@ class LaunchControllerTest extends BaseMvcTest {
     bulkRQ.setEntities(Stream.of(3L, 5L).collect(toMap(it -> it, it -> {
       FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
       finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
-      finishExecutionRQ.setEndTime(
-          Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+      finishExecutionRQ.setEndTime(Instant.now());
       return finishExecutionRQ;
     })));
     mockMvc.perform(

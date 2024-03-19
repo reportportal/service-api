@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.hierarchy;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.item.impl.status.ToSkippedStatusChangingStrategy.SKIPPED_ISSUE_KEY;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
@@ -43,8 +42,7 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.job.PageUtil;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
-import java.time.LocalDateTime;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -113,23 +111,21 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
   }
 
   @Override
-  public int finishDescendants(T parentEntity, StatusEnum status, Date endDate,
+  public int finishDescendants(T parentEntity, StatusEnum status, Instant endDate,
       ReportPortalUser user,
       ReportPortalUser.ProjectDetails projectDetails) {
 
     expect(status, s -> s != IN_PROGRESS).verify(INCORRECT_REQUEST,
         "Unable to update current status to - " + IN_PROGRESS);
 
-    LocalDateTime endTime = TO_LOCAL_DATE_TIME.apply(endDate);
-
     final int withoutChildren = updateDescendantsWithoutChildren(parentEntity,
-        projectDetails.getProjectId(), status, endTime, user);
-    final int withChildren = updateDescendantsWithChildren(parentEntity, endTime);
+        projectDetails.getProjectId(), status, endDate, user);
+    final int withChildren = updateDescendantsWithChildren(parentEntity, endDate);
     return withoutChildren + withChildren;
   }
 
   private int updateDescendantsWithoutChildren(T entity, Long projectId, StatusEnum status,
-      LocalDateTime endTime, ReportPortalUser user) {
+      Instant endTime, ReportPortalUser user) {
     AtomicInteger updatedCount = new AtomicInteger(0);
     getIssueType(isIssueRequired(status, entity),
         projectId,
@@ -147,7 +143,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
   }
 
   private Consumer<List<Long>> itemIdsWithoutChildrenHandler(IssueType issueType, StatusEnum status,
-      LocalDateTime endTime,
+      Instant endTime,
       Long projectId, ReportPortalUser user, AtomicInteger updatedCount) {
     return itemIds -> {
       Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
@@ -161,7 +157,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
   }
 
   private Consumer<List<Long>> itemIdsWithoutChildrenHandler(StatusEnum status,
-      LocalDateTime endTime, Long projectId,
+      Instant endTime, Long projectId,
       ReportPortalUser user, AtomicInteger updatedCount) {
     return itemIds -> {
       Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
@@ -192,7 +188,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
     }
   }
 
-  private int updateDescendantsWithChildren(T entity, LocalDateTime endTime) {
+  private int updateDescendantsWithChildren(T entity, Instant endTime) {
     AtomicInteger updatedCount = new AtomicInteger(0);
     PageUtil.iterateOverContent(ITEM_PAGE_SIZE,
         getItemIdsFunction(true, entity, IN_PROGRESS),
@@ -201,7 +197,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
     return updatedCount.get();
   }
 
-  private Consumer<List<Long>> itemIdsWithChildrenHandler(LocalDateTime endTime,
+  private Consumer<List<Long>> itemIdsWithChildrenHandler(Instant endTime,
       AtomicInteger updatedCount) {
     return itemIds -> {
       Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
@@ -222,7 +218,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
         .collect(Collectors.toMap(TestItem::getItemId, i -> i));
   }
 
-  private void finishItem(TestItem testItem, StatusEnum status, LocalDateTime endTime) {
+  private void finishItem(TestItem testItem, StatusEnum status, Instant endTime) {
     testItem.getItemResults().setStatus(status);
     testItem.getItemResults().setEndTime(endTime);
     ItemAttribute interruptedAttribute = new ItemAttribute(ATTRIBUTE_KEY_STATUS,

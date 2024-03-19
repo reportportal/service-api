@@ -32,9 +32,8 @@ import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.google.common.collect.Sets;
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -74,7 +73,7 @@ public class DemoDataLaunchService {
     rq.setDescription(ContentUtils.getLaunchDescription());
     LocalDateTime now = LocalDateTime.now();
     rq.setName(name);
-    rq.setStartTime(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()));
+    rq.setStartTime(Instant.now());
     rq.setUuid(UUID.randomUUID().toString());
     Set<ItemAttributesRQ> attributes = Sets.newHashSet(new ItemAttributesRQ("platform",
             platformValues[new Random().nextInt(platformValues.length)]
@@ -102,7 +101,7 @@ public class DemoDataLaunchService {
       testItemRepository.interruptInProgressItems(launch.getId());
     }
 
-    launch = new LaunchBuilder(launch).addEndTime(new Date()).get();
+    launch = new LaunchBuilder(launch).addEndTime(Instant.now()).get();
 
     StatusEnum fromStatisticsStatus = PASSED;
     if (launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(),

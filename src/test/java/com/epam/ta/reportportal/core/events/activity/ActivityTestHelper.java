@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -31,15 +31,15 @@ class ActivityTestHelper {
     assertThat(actual).isEqualToIgnoringGivenFields(expected, "details", "createdAt");
     assertThat(actual.getObjectName()).isEqualTo(expected.getObjectName());
     checkActivityDetails(expected.getDetails(), actual.getDetails());
-    checkCreatedAt(expected.getCreatedAt(), expected.getCreatedAt());
+    checkCreatedAt(expected.getCreatedAt(), actual.getCreatedAt());
   }
 
   private static void checkActivityDetails(ActivityDetails expected, ActivityDetails actual) {
     assertThat(actual.getHistory()).containsExactlyInAnyOrderElementsOf(expected.getHistory());
   }
 
-  private static void checkCreatedAt(LocalDateTime expected, LocalDateTime actual) {
-    assertThat(expected.minusNanos(50).isBefore(actual) && expected.plusNanos(50)
-        .isAfter(actual)).isTrue();
+  private static void checkCreatedAt(Instant expected, Instant actual) {
+    assertThat(expected.minusMillis(50).isBefore(actual)
+        && expected.plusMillis(50).isAfter(actual)).isTrue();
   }
 }

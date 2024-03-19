@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import static java.util.Optional.ofNullable;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.integration.util.property.AuthProperties;
 import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
 import com.epam.ta.reportportal.core.integration.util.property.SauceLabsProperties;
@@ -56,7 +55,7 @@ public final class IntegrationConverter {
         resource.setId(integration.getId());
         resource.setName(integration.getName());
         resource.setCreator(integration.getCreator());
-        resource.setCreationDate(EntityUtils.TO_DATE.apply(integration.getCreationDate()));
+        resource.setCreationDate(integration.getCreationDate());
         resource.setEnabled(integration.isEnabled());
         ofNullable(integration.getProject()).ifPresent(p -> resource.setProjectId(p.getId()));
         ofNullable(integration.getParams()).flatMap(IntegrationConverter::convertToResourceParams)
@@ -65,7 +64,7 @@ public final class IntegrationConverter {
         type.setId(integration.getType().getId());
         type.setName(integration.getType().getName());
         type.setEnabled(integration.getType().isEnabled());
-        type.setCreationDate(EntityUtils.TO_DATE.apply(integration.getType().getCreationDate()));
+        type.setCreationDate(integration.getType().getCreationDate());
         type.setGroupType(integration.getType().getIntegrationGroup().name());
         ofNullable(integration.getType().getDetails()).ifPresent(
             it -> type.setDetails(it.getDetails()));

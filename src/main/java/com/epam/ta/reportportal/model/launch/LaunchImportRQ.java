@@ -25,16 +25,18 @@ import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Set;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Data
+@NoArgsConstructor
 public class LaunchImportRQ {
 
   @JsonProperty(value = "name")
@@ -54,49 +56,9 @@ public class LaunchImportRQ {
   @JsonProperty
   @JsonAlias({ "startTime", "start_time" })
   @Schema
-  private Date startTime;
+  private Instant startTime;
 
   @JsonProperty("mode")
   private Mode mode;
 
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public Set<ItemAttributesRQ> getAttributes() {
-    return attributes;
-  }
-
-  public void setAttributes(
-      Set<ItemAttributesRQ> attributes) {
-    this.attributes = attributes;
-  }
-
-  public Date getStartTime() {
-    return startTime;
-  }
-
-  public void setStartTime(Date startTime) {
-    this.startTime = startTime;
-  }
-
-  public Mode getMode() {
-    return mode;
-  }
-
-  public void setMode(Mode mode) {
-    this.mode = mode;
-  }
 }

@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.model.widget.ChartObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -115,7 +116,7 @@ class ProjectInfoWidgetDataConverterTest {
     launch.setName("test_launch");
     launch.setId(1L);
     launch.setNumber(1L);
-    launch.setStartTime(LocalDateTime.now(ZoneOffset.UTC));
+    launch.setStartTime(Instant.now());
     launch.setStatistics(
         Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 5), getStatistics(EXECUTIONS_PASSED, 5)));
 
@@ -205,7 +206,7 @@ class ProjectInfoWidgetDataConverterTest {
     launch1.setName("test_launch");
     launch1.setId(1L);
     launch1.setNumber(1L);
-    launch1.setStartTime(LocalDateTime.of(yesterday, LocalTime.now(ZoneOffset.UTC)));
+    launch1.setStartTime(LocalDateTime.of(yesterday, LocalTime.now(ZoneOffset.UTC)).toInstant(ZoneOffset.UTC));
     launch1.setStatistics(
         Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 18), getStatistics(EXECUTIONS_PASSED, 5),
             getStatistics(EXECUTIONS_SKIPPED, 1), getStatistics(EXECUTIONS_FAILED, 12),
@@ -218,7 +219,7 @@ class ProjectInfoWidgetDataConverterTest {
     launch2.setName("test_launch");
     launch2.setId(2L);
     launch2.setNumber(2L);
-    launch2.setStartTime(LocalDateTime.of(today, LocalTime.now(ZoneOffset.UTC)));
+    launch2.setStartTime(LocalDateTime.of(today, LocalTime.now(ZoneOffset.UTC)).toInstant(ZoneOffset.UTC));
     launch2.setStatistics(
         Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 21), getStatistics(EXECUTIONS_PASSED, 6),
             getStatistics(EXECUTIONS_SKIPPED, 2), getStatistics(EXECUTIONS_FAILED, 13),

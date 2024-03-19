@@ -7,22 +7,22 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
-import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.reporting.ItemCreatedRS;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayDeque;
@@ -101,15 +101,9 @@ public class XunitImportHandlerTest {
     when(attributes.getValue(XunitReportTag.TIMESTAMP.getValue())).thenReturn(TIMESTAMP);
     when(attributes.getValue(XunitReportTag.START_TIME.getValue())).thenReturn(TIMESTAMP);
 
-    LocalDateTime startSuiteTime =
-        LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(suiteTimestamp)),
-            TEST_ZONE_ID
-        );
+    Instant startSuiteTime = Instant.ofEpochMilli(Long.parseLong(suiteTimestamp));
 
-    LocalDateTime startItemTime =
-        LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(TIMESTAMP)),
-            TEST_ZONE_ID
-        );
+    Instant startItemTime = Instant.ofEpochMilli(Long.parseLong(TIMESTAMP));
 
     setStartSuiteTime(xunitImportHandler, startSuiteTime);
 
@@ -125,7 +119,7 @@ public class XunitImportHandlerTest {
         eq(user), eq(projectDetails), startTestItemRQArgumentCaptor.capture());
     StartTestItemRQ startTestItemRQ = startTestItemRQArgumentCaptor.getValue();
     assertEquals(startTestItemRQ.getLaunchUuid(), LAUNCH_ID);
-    assertEquals(startTestItemRQ.getStartTime(), EntityUtils.TO_DATE.apply(startItemTime));
+    assertEquals(startTestItemRQ.getStartTime(), startItemTime);
     assertEquals(startTestItemRQ.getType(), TestItemTypeEnum.TEST.name());
     assertEquals(startTestItemRQ.getName(), ATTR_NAME);
 
@@ -144,12 +138,9 @@ public class XunitImportHandlerTest {
             .appendOptional(DateTimeFormatter.ISO_LOCAL_DATE_TIME).optionalStart().appendZoneId()
             .optionalEnd().optionalStart().appendLiteral(' ').parseCaseSensitive().appendZoneId()
             .optionalEnd().toFormatter();
-    LocalDateTime startItemTime = LocalDateTime.parse(ISO_DATE, formatter);
+    Instant startItemTime = LocalDateTime.parse(ISO_DATE, formatter).toInstant(ZoneOffset.UTC);
 
-    LocalDateTime startSuiteTime =
-        LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(TIMESTAMP)),
-            ZoneId.systemDefault()
-        );
+    Instant startSuiteTime = Instant.ofEpochMilli(Long.parseLong(TIMESTAMP));
 
     setStartItemTime(xunitImportHandler, startSuiteTime);
 
@@ -165,7 +156,7 @@ public class XunitImportHandlerTest {
         eq(user), eq(projectDetails), startTestItemRQArgumentCaptor.capture());
     StartTestItemRQ startTestItemRQ = startTestItemRQArgumentCaptor.getValue();
     assertEquals(startTestItemRQ.getLaunchUuid(), LAUNCH_ID);
-    assertEquals(startTestItemRQ.getStartTime(), EntityUtils.TO_DATE.apply(startItemTime));
+    assertEquals(startTestItemRQ.getStartTime(), startItemTime);
     assertEquals(startTestItemRQ.getType(), TestItemTypeEnum.TEST.name());
     assertEquals(startTestItemRQ.getName(), ATTR_NAME);
 
@@ -177,9 +168,7 @@ public class XunitImportHandlerTest {
     Attributes attributes = mock(Attributes.class);
     when(attributes.getValue(XunitReportTag.ATTR_NAME.getValue())).thenReturn(ATTR_NAME);
 
-    LocalDateTime startItemTime =
-        LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(TIMESTAMP)),
-            ZoneId.systemDefault()
+    Instant startItemTime =Instant.ofEpochMilli(Long.parseLong(TIMESTAMP)
         );
 
     setStartItemTime(xunitImportHandler, startItemTime);
@@ -201,7 +190,7 @@ public class XunitImportHandlerTest {
         eq(user), eq(projectDetails), startTestItemRQArgumentCaptor.capture(), eq(parentId));
     StartTestItemRQ startTestItemRQ = startTestItemRQArgumentCaptor.getValue();
     assertEquals(startTestItemRQ.getLaunchUuid(), LAUNCH_ID);
-    assertEquals(startTestItemRQ.getStartTime(), EntityUtils.TO_DATE.apply(startItemTime));
+    assertEquals(startTestItemRQ.getStartTime(), startItemTime);
     assertEquals(startTestItemRQ.getType(), TestItemTypeEnum.TEST.name());
     assertEquals(startTestItemRQ.getName(), ATTR_NAME);
 
@@ -217,10 +206,7 @@ public class XunitImportHandlerTest {
     when(attributes.getValue(XunitReportTag.TIMESTAMP.getValue())).thenReturn(TIMESTAMP);
     when(attributes.getValue(XunitReportTag.ATTR_TIME.getValue())).thenReturn(DURATION);
 
-    LocalDateTime startItemTime =
-        LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(TIMESTAMP)),
-            TEST_ZONE_ID
-        );
+    Instant startItemTime = Instant.ofEpochMilli(Long.parseLong(TIMESTAMP));
 
     setStartItemTime(xunitImportHandler, startItemTime);
 
@@ -241,7 +227,7 @@ public class XunitImportHandlerTest {
         eq(user), eq(projectDetails), startTestItemRQArgumentCaptor.capture(), eq(parentId));
     StartTestItemRQ startTestItemRQ = startTestItemRQArgumentCaptor.getValue();
     assertEquals(startTestItemRQ.getLaunchUuid(), LAUNCH_ID);
-    assertEquals(startTestItemRQ.getStartTime(), EntityUtils.TO_DATE.apply(startItemTime));
+    assertEquals(startTestItemRQ.getStartTime(), startItemTime);
     assertEquals(startTestItemRQ.getType(), TestItemTypeEnum.STEP.name());
     assertEquals(startTestItemRQ.getName(), ATTR_NAME);
 
@@ -344,6 +330,9 @@ public class XunitImportHandlerTest {
           "2023-09-26T07:47:26-05:00",
           "2023-09-26T12:47:26+00:00",
           "2023-09-26T12:47:26",
+          "2023-09-26T12:47:26.000000",
+          "2023-09-26T12:47:26.000000000",
+          "2023-09-26T12:47:26Z",
           "2023-09-26T12:47:26 UTC",
           "2023-09-26T12:47:26 GMT",
           "2023-09-26T12:47:26+00:00 GMT",
@@ -355,13 +344,13 @@ public class XunitImportHandlerTest {
     Method method = XunitImportHandler.class.getDeclaredMethod("parseTimeStamp", String.class);
     method.setAccessible(true);
 
-    LocalDateTime startDateTime = (LocalDateTime) method.invoke(xunitImportHandler, timestamp);
+    Instant startDateTime = (Instant) method.invoke(xunitImportHandler, timestamp);
 
-    assertEquals("2023-09-26T12:47:26", startDateTime.toString());
+    assertEquals("2023-09-26T12:47:26Z", startDateTime.toString());
   }
 
   private void setStartSuiteTime(XunitImportHandler xunitImportHandler,
-      LocalDateTime startSuiteTime) {
+      Instant startSuiteTime) {
     try {
       Field startSuiteTimeField = XunitImportHandler.class.getDeclaredField("startSuiteTime");
       startSuiteTimeField.setAccessible(true);
@@ -372,7 +361,7 @@ public class XunitImportHandlerTest {
   }
 
   private void setStartItemTime(XunitImportHandler xunitImportHandler,
-      LocalDateTime startItemTime) {
+      Instant startItemTime) {
     try {
       Field startSuiteTimeField = XunitImportHandler.class.getDeclaredField("startItemTime");
       startSuiteTimeField.setAccessible(true);

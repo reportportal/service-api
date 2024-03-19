@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.model.ActivityEventResource;
 import com.epam.ta.reportportal.model.PagedResponse;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -76,7 +77,8 @@ class ActivityEventHandlerTest {
   private Activity createActivity(Long id) {
     final Activity activity = new Activity();
     activity.setId(id);
-    activity.setCreatedAt(LocalDateTime.of(2023, 7, 4, 23, 30));
+    activity.setCreatedAt(LocalDateTime.of(2023, 7, 4, 23, 30)
+        .toInstant(ZoneOffset.UTC));
     activity.setAction(EventAction.CREATE);
     activity.setEventName("createDashboard");
     activity.setPriority(EventPriority.LOW);

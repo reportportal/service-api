@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.google.common.collect.Maps;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 
@@ -49,7 +49,7 @@ class IntegrationBuilderTest {
 
     final String name = "name";
     final boolean enabled = true;
-    final LocalDateTime creationDate = LocalDateTime.now();
+    final Instant creationDate = Instant.now();
     final String creator = "creator";
 
     final Integration integration = new IntegrationBuilder().withName(name)
@@ -90,7 +90,7 @@ class IntegrationBuilderTest {
 
     final String name = "name";
     final boolean enabled = true;
-    final LocalDateTime creationDate = LocalDateTime.now();
+    final Instant creationDate = Instant.now();
     final String creator = "creator";
 
     final Integration updatedIntegration = new IntegrationBuilder(integration).withName(name)

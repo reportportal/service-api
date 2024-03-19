@@ -20,7 +20,6 @@ import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConv
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Optional.ofNullable;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
@@ -33,7 +32,7 @@ import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.reporting.ParameterResource;
 import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
@@ -64,7 +63,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 
   public TestItemBuilder addStartItemRequest(StartTestItemRQ rq) {
 
-    testItem.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(rq.getStartTime()));
+    testItem.setStartTime(rq.getStartTime());
     testItem.setName(rq.getName().trim());
     testItem.setUniqueId(rq.getUniqueId());
     testItem.setUuid(Optional.ofNullable(rq.getUuid()).orElse(UUID.randomUUID().toString()));
@@ -179,7 +178,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
     return this;
   }
 
-  public TestItemBuilder addDuration(LocalDateTime endTime) {
+  public TestItemBuilder addDuration(Instant endTime) {
     checkNotNull(endTime, "Provided value shouldn't be null");
     checkNotNull(testItem.getItemResults(), "Test item results shouldn't be null");
 

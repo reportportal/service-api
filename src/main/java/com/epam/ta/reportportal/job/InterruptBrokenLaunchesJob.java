@@ -30,8 +30,8 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.quartz.Job;
@@ -91,7 +91,7 @@ public class InterruptBrokenLaunchesJob implements Job {
                 try (Stream<Long> ids = launchRepository.streamIdsWithStatusAndStartTimeBefore(
                     project.getId(),
                     StatusEnum.IN_PROGRESS,
-                    LocalDateTime.now(ZoneOffset.UTC).minus(maxDuration)
+                    Instant.now().minus(maxDuration.toSeconds(), ChronoUnit.SECONDS)
                 )) {
                   ids.forEach(launchId -> {
                     if (!testItemRepository.hasItemsInStatusByLaunch(launchId,
@@ -144,7 +144,7 @@ public class InterruptBrokenLaunchesJob implements Job {
   private void interruptLaunch(Long launchId) {
     launchRepository.findById(launchId).ifPresent(launch -> {
       launch.setStatus(StatusEnum.INTERRUPTED);
-      launch.setEndTime(LocalDateTime.now(ZoneOffset.UTC));
+      launch.setEndTime(Instant.now());
       launchRepository.save(launch);
       publishFinishEvent(launch);
     });

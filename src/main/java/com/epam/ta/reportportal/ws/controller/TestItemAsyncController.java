@@ -53,7 +53,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Konstantin Antipin
  */
 @RestController
-@RequestMapping("/v2/{projectName}/item")
+@RequestMapping("/v2/{projectKey}/item")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 @Tag(name = "test-item-async-controller", description = "Test Item Async Controller")
 public class TestItemAsyncController {

@@ -1,4 +1,4 @@
-package com.epam.ta.reportportal.model;
+package com.epam.ta.reportportal.model.organization;
 
 /*
  * Copyright 2024 EPAM Systems

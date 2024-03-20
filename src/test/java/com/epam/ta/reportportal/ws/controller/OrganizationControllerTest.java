@@ -29,13 +29,36 @@ class OrganizationControllerTest extends BaseMvcTest {
 
   @Test
   void getOrganization() throws Exception {
-    mockMvc.perform(get("/v1/organization/1").with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(get("/v1/organizations/1")
+            .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
   }
 
   @Test
   void getAllOrganizations() throws Exception {
-    mockMvc.perform(get("/v1/organization/list").with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(get("/v1/organizations")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void getAllOrganizationsInfo() throws Exception {
+    mockMvc.perform(get("/v1/organizations-info")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void getAllOrganizationsInfoFilterByDifferentUser() throws Exception {
+    mockMvc.perform(get("/v1/organizations-info?filter.eq.user=default")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void getAllOrganizationsInfoFilterByAdminUser() throws Exception {
+    mockMvc.perform(get("/v1/organizations-info?filter.eq.user=superadmin")
+            .with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk());
   }
 }

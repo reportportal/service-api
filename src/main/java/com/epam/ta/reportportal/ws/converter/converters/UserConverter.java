@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.MoreCollectors;
-import com.epam.ta.reportportal.entity.organization.OrganizationUser;
+import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserType;

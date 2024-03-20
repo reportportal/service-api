@@ -31,7 +31,7 @@ public class OrganizationUtil {
   public static final Long TEST_ORG_ID = 1L;
   public static final String TEST_ORG_SLUG = "o-slug";
   public static final String TEST_PROJECT_SLUG = "project-name";
-  public static final String TEST_PROJECT_KEY = TEST_ORG_SLUG + "-" + TEST_PROJECT_SLUG;
+  public static final String TEST_PROJECT_KEY = TEST_ORG_SLUG + "." + TEST_PROJECT_SLUG;
   public static final Organization TEST_ORG = new Organization(TEST_ORG_ID,
       LocalDateTime.now(),
       TEST_ORG_NAME,

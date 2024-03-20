@@ -223,7 +223,7 @@ class GetTestItemHandlerImplTest {
 				.build(), PageRequest.of(0, 10), extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser, null, 1L, false, 0);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
-		assertEquals("User filter with ID '1' not found on project 'o-slug-project-name'. Did you use correct User Filter ID?",
+		assertEquals("User filter with ID '1' not found on project 'o-slug.project-name'. Did you use correct User Filter ID?",
 				exception.getMessage()
 		);
 	}

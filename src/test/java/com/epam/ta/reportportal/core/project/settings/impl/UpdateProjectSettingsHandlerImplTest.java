@@ -80,7 +80,7 @@ class UpdateProjectSettingsHandlerImplTest {
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.updateProjectIssueSubType(TEST_PROJECT_KEY, user, updateIssueSubTypeRQ)
     );
-    assertEquals("Project 'o-slug-project-name' not found. Did you use correct project name?",
+    assertEquals("Project 'o-slug.project-name' not found. Did you use correct project name?",
         exception.getMessage()
     );
   }

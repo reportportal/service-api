@@ -125,7 +125,7 @@ class FinishLaunchHandlerImplTest {
     verify(finishHierarchyHandler, times(1)).finishDescendants(any(), any(), any(), any(), any());
 
     assertNotNull(finishLaunchRS);
-    assertEquals("http://example.com/ui/#o-slug-project-name/launches/all/1", finishLaunchRS.getLink());
+    assertEquals("http://example.com/ui/#o-slug.project-name/launches/all/1", finishLaunchRS.getLink());
   }
 
   @Test

@@ -41,9 +41,9 @@ public class ReportPortalUserUtil {
         .withUserId(1L)
         .withEmail("test@email.com")
         .withUserRole(userRole)
-        .withProjectDetails(Maps.newHashMap("o-slug-project-name",
+        .withProjectDetails(Maps.newHashMap("o-slug.project-name",
             new ReportPortalUser.ProjectDetails(projectId, "project Name", projectRole,
-                "o-slug-project-name")
+                "o-slug.project-name")
         ))
         .build();
   }

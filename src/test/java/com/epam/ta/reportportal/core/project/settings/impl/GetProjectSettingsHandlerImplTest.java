@@ -50,7 +50,7 @@ class GetProjectSettingsHandlerImplTest {
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.getProjectSettings(TEST_PROJECT_KEY));
 
-    assertEquals("Project 'o-slug-project-name' not found. Did you use correct project name?",
+    assertEquals("Project 'o-slug.project-name' not found. Did you use correct project name?",
         exception.getMessage());
   }
 }

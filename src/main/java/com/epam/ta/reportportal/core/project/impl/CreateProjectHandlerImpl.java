@@ -179,6 +179,6 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
   }
 
   private String generateProjectKey(Organization organization, String projectSlug) {
-    return organization.getSlug() + "-" + projectSlug;
+    return organization.getSlug() + "." + projectSlug;
   }
 }

@@ -70,7 +70,7 @@ class GetProjectHandlerImplTest {
     });
 
     assertEquals(
-        "Project 'o-slug-project-name' not found. Did you use correct project name?",
+        "Project 'o-slug.project-name' not found. Did you use correct project name?",
         exception.getMessage()
     );
   }

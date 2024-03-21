@@ -58,9 +58,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import javax.servlet.ServletContext;
 import org.springdoc.core.SpringDocUtils;
@@ -72,6 +70,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
@@ -127,14 +126,6 @@ public class SpringDocConfiguration {
         .addServersItem(new Server().url("/" + applicationName));
   }
 
-  @Bean
-  public OpenApiCustomiser sortSchemasAlphabetically() {
-    return openApi -> {
-      Map<String, Schema> schemas = openApi.getComponents().getSchemas();
-      openApi.getComponents().setSchemas(new TreeMap<>(schemas));
-    };
-  }
-
   /**
    * Resolve Iterable schema responses.
    *
@@ -176,6 +167,7 @@ public class SpringDocConfiguration {
   }
 
   @Bean
+  @Order(2)
   public OperationCustomizer sortParametersAlphabetically() {
     return (operation, handlerMethod) -> {
       if (operation.getParameters() != null) {
@@ -205,6 +197,7 @@ public class SpringDocConfiguration {
   }
 
   @Bean
+  @Order(1)
   public OperationCustomizer customizeParameters() {
     return (operation, handlerMethod) -> {
       for (MethodParameter parameter : handlerMethod.getMethodParameters()) {

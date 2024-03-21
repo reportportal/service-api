@@ -176,6 +176,18 @@ public class SpringDocConfiguration {
   }
 
   @Bean
+  public OperationCustomizer sortParametersAlphabetically() {
+    return (operation, handlerMethod) -> {
+      if (operation.getParameters() != null) {
+        operation.setParameters(operation.getParameters().stream()
+            .sorted(Comparator.comparing(Parameter::getName))
+            .collect(Collectors.toList()));
+      }
+      return operation;
+    };
+  }
+
+  @Bean
   public OperationCustomizer apiSummaryCustomizer() {
     return (operation, handlerMethod) -> {
       if (operation.getSummary() == null || operation.getSummary().isEmpty()) {

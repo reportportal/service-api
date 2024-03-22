@@ -45,6 +45,7 @@ logging:
 springdoc:
   api-docs:
     path: /v1/api-docs
+  writer-with-order-by-keys: true
 
 
 #### Custom ReportPortal Properties ######

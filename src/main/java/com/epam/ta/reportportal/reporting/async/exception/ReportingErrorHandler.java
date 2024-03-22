@@ -24,17 +24,18 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.listener.api.RabbitListenerErrorHandler;
 import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ErrorHandler;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Component
-public class ReportingErrorHandler implements RabbitListenerErrorHandler {
+public class ReportingErrorHandler implements ErrorHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(
       ReportingErrorHandler.class);
@@ -49,21 +50,20 @@ public class ReportingErrorHandler implements RabbitListenerErrorHandler {
   }
 
   @Override
-  public Object handleError(Message amqpMessage, org.springframework.messaging.Message<?> message,
-      ListenerExecutionFailedException exception) {
-    Throwable exceptionCause = exception.getCause();
-    if (exceptionCause instanceof ReportPortalException) {
-      ErrorType errorType = ((ReportPortalException) exceptionCause).getErrorType();
-      if (RETRYABLE_ERROR_TYPES.contains(errorType)) {
-        throw exception;
+  public void handleError(Throwable t) {
+    if (t instanceof ListenerExecutionFailedException executionFailedException) {
+      if (executionFailedException.getCause() instanceof ReportPortalException reportPortalException) {
+        if (RETRYABLE_ERROR_TYPES.contains(reportPortalException.getErrorType())) {
+          throw new AmqpRejectAndDontRequeueException(t);
+        }
       }
+      Message failedMessage = executionFailedException.getFailedMessage();
+      LOGGER.error(t.getCause().getMessage());
+      LOGGER.error("Message rejected to the parking lot queue: {}",
+          new String(failedMessage.getBody()));
+      failedMessage.getMessageProperties().getHeaders()
+          .put("exception", t.getCause().getMessage());
+      rabbitTemplate.send(REPORTING_PARKING_LOT, failedMessage);
     }
-    LOGGER.error(exception.getCause().getMessage());
-    LOGGER.error("Message rejected to the parking lot queue: {}",
-        new String(amqpMessage.getBody()));
-    amqpMessage.getMessageProperties().getHeaders()
-        .put("exception", exception.getCause().getMessage());
-    rabbitTemplate.send(REPORTING_PARKING_LOT, amqpMessage);
-    return null;
   }
 }

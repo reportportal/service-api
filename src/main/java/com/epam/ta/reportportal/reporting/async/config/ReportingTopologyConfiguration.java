@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.reporting.async.config;
 
 import com.epam.ta.reportportal.reporting.async.consumer.ReportingConsumer;
+import com.epam.ta.reportportal.reporting.async.exception.ReportingErrorHandler;
 import com.epam.ta.reportportal.reporting.async.handler.provider.ReportingHandlerProvider;
 import com.rabbitmq.http.client.Client;
 import java.util.ArrayList;
@@ -167,6 +168,7 @@ public class ReportingTopologyConfiguration {
       ConnectionFactory connectionFactory,
       ApplicationEventPublisher applicationEventPublisher,
       ReportingHandlerProvider reportingHandlerProvider,
+      ReportingErrorHandler errorHandler,
       @Qualifier("reportingConsistentQueues") List<Queue> queues) {
     List<AbstractMessageListenerContainer> containers = new ArrayList<>();
     queues.forEach(q -> {
@@ -175,6 +177,7 @@ public class ReportingTopologyConfiguration {
       containers.add(listenerContainer);
       listenerContainer.setConnectionFactory(connectionFactory);
       listenerContainer.addQueueNames(q.getName());
+      listenerContainer.setErrorHandler(errorHandler);
       listenerContainer.setExclusive(true);
       listenerContainer.setMissingQueuesFatal(false);
       listenerContainer.setApplicationEventPublisher(applicationEventPublisher);

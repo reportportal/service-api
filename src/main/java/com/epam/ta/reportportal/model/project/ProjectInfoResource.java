@@ -95,7 +95,4 @@ public class ProjectInfoResource {
   @JsonProperty(value = "organizationId")
   private String organizationId;
 
-  @JsonProperty(value = "organizationSlug")
-  private String organizationSlug;
-
 }

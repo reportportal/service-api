@@ -73,7 +73,7 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         implementation 'com.github.reportportal:commons-events:e337f8b7be'
-        implementation 'com.github.reportportal:commons-dao:e65998a'
+        implementation 'com.github.reportportal:commons-dao:724e9a6'
         implementation 'com.github.reportportal:commons-rules:1f6bfed'
         implementation 'com.github.reportportal:commons-model:11a2665'
         implementation 'com.github.reportportal:commons-reporting:5c74bb2'

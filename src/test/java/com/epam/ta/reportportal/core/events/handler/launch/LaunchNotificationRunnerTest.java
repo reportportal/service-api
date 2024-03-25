@@ -107,6 +107,8 @@ class LaunchNotificationRunnerTest {
     project.setId(1L);
     project.setSenderCases(LaunchFinishedTestUtils.getSenderCases());
 
+    when(emailIntegration.getName()).thenReturn("email server");
+
     when(
         getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(event.getProjectId(),
             IntegrationGroupEnum.NOTIFICATION

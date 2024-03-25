@@ -66,7 +66,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class LaunchNotificationRunner
     implements ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
 
-  public static final Logger LOGGER = LoggerFactory.getLogger(LaunchNotificationRunner.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(LaunchNotificationRunner.class);
+
+  private static final String EMAIL_INTEGRATION_NAME = "email server";
 
   private final GetProjectHandler getProjectHandler;
   private final GetLaunchHandler getLaunchHandler;
@@ -95,6 +97,7 @@ public class LaunchNotificationRunner
     if (isNotificationsEnabled) {
       getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(
               launchFinishedEvent.getProjectId(), IntegrationGroupEnum.NOTIFICATION)
+          .filter(integration -> EMAIL_INTEGRATION_NAME.equals(integration.getName()))
           .flatMap(mailServiceFactory::getDefaultEmailService)
           .ifPresentOrElse(emailService -> sendEmail(launchFinishedEvent, emailService),
               () -> LOGGER.warn("Unable to find {} integration for project {}",

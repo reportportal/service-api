@@ -505,46 +505,47 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
     project.getSenderCases().clear();
     if (CollectionUtils.isNotEmpty(cases)) {
-      cases.forEach(sendCase -> {
-        expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(
-            BAD_REQUEST_ERROR, sendCase.getSendCase());
-        expect(sendCase.getRecipients(), notNull()).verify(BAD_REQUEST_ERROR,
-            "Recipients list should not be null"
-        );
-        expect(sendCase.getRecipients().isEmpty(), equalTo(false)).verify(BAD_REQUEST_ERROR,
-            formattedSupplier("Empty recipients list for email case '{}' ", sendCase)
-        );
-        sendCase.setRecipients(sendCase.getRecipients().stream().map(it -> {
-          EmailRulesValidator.validateRecipient(project, it);
-          return it.trim();
-        }).distinct().collect(toList()));
+      cases.forEach(sendCase -> validateSenderCase(sendCase, project));
 
-        ofNullable(sendCase.getLaunchNames()).ifPresent(
-            launchNames -> sendCase.setLaunchNames(launchNames.stream().map(name -> {
-              EmailRulesValidator.validateLaunchName(name);
-              return name.trim();
-            }).distinct().collect(toList())));
-
-        ofNullable(sendCase.getAttributes()).ifPresent(
-            attributes -> sendCase.setAttributes(attributes.stream().peek(attribute -> {
-              EmailRulesValidator.validateLaunchAttribute(attribute);
-              cutAttributeToMaxLength(attribute);
-              attribute.setValue(attribute.getValue().trim());
-            }).collect(Collectors.toSet())));
-
-      });
-
-      /* If project email settings */
+      /* Check project notification settings duplicates */
       Set<SenderCase> withoutDuplicateCases =
           cases.stream().distinct().map(NotificationConfigConverter.TO_CASE_MODEL)
               .peek(sc -> sc.setProject(project)).collect(toSet());
       if (cases.size() != withoutDuplicateCases.size()) {
-        fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
+        fail().withError(BAD_REQUEST_ERROR, "Project notification settings contain duplicate cases for this communication channel");
       }
 
       project.getSenderCases().addAll(withoutDuplicateCases);
     }
 
+  }
+
+  private void validateSenderCase(SenderCaseDTO sendCase, Project project) {
+    expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(
+        BAD_REQUEST_ERROR, sendCase.getSendCase());
+    expect(sendCase.getRecipients(), notNull()).verify(BAD_REQUEST_ERROR,
+        "Recipients list should not be null"
+    );
+    expect(sendCase.getRecipients().isEmpty(), equalTo(false)).verify(BAD_REQUEST_ERROR,
+        formattedSupplier("Empty recipients list for case '{}' ", sendCase)
+    );
+    sendCase.setRecipients(sendCase.getRecipients().stream().map(it -> {
+      EmailRulesValidator.validateRecipient(project, it);
+      return it.trim();
+    }).distinct().collect(toList()));
+
+    ofNullable(sendCase.getLaunchNames()).ifPresent(
+        launchNames -> sendCase.setLaunchNames(launchNames.stream().map(name -> {
+          EmailRulesValidator.validateLaunchName(name);
+          return name.trim();
+        }).distinct().collect(toList())));
+
+    ofNullable(sendCase.getAttributes()).ifPresent(
+        attributes -> sendCase.setAttributes(attributes.stream().peek(attribute -> {
+          EmailRulesValidator.validateLaunchAttribute(attribute);
+          cutAttributeToMaxLength(attribute);
+          attribute.setValue(attribute.getValue().trim());
+        }).collect(Collectors.toSet())));
   }
 
   private void cutAttributeToMaxLength(ItemAttributeResource entity) {

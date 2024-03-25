@@ -87,9 +87,9 @@ class NotificationConfigConverterTest {
     launchAttributeRule.setId(1L);
     launchAttributeRule.setKey("key");
     launchAttributeRule.setValue("value");
-    senderCases.add(new SenderCase(Sets.newHashSet("recipent3", "recipient8"),
+    senderCases.add(new SenderCase("rule", Sets.newHashSet("recipent3", "recipient8"),
         Sets.newHashSet("launch1", "launch5", "launch10"), Sets.newHashSet(launchAttributeRule),
-        SendCase.ALWAYS, true, LogicalOperator.AND
+        SendCase.ALWAYS,  true, "email", LogicalOperator.AND
     ));
     return senderCases;
   }
@@ -99,9 +99,9 @@ class NotificationConfigConverterTest {
     launchAttributeRule.setId(2L);
     launchAttributeRule.setKey("key1");
     launchAttributeRule.setValue("value1");
-    return new SenderCase(Sets.newHashSet("recipent1", "recipient2"),
+    return new SenderCase("rule", Sets.newHashSet("recipent1", "recipient2"),
         Sets.newHashSet("launch1", "launch2", "launch3"), Sets.newHashSet(launchAttributeRule),
-        SendCase.MORE_10, true, LogicalOperator.AND
+        SendCase.MORE_10, true, "email", LogicalOperator.AND
     );
   }
 

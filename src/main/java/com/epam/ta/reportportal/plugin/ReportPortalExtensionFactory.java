@@ -44,18 +44,18 @@ public class ReportPortalExtensionFactory extends DefaultExtensionFactory {
   }
 
   @Override
-  public Object create(Class<?> extensionClass) {
+  public <T> T create(Class<T> extensionClass) {
     PluginWrapper pluginWrapper = pluginManager.whichPlugin(extensionClass);
     if (beanFactory.containsSingleton(pluginWrapper.getPluginId())) {
-      return beanFactory.getSingleton(pluginWrapper.getPluginId());
+      return extensionClass.cast(beanFactory.getSingleton(pluginWrapper.getPluginId()));
     } else {
-      return createExtension(extensionClass, pluginWrapper);
+      return extensionClass.cast(createExtension(extensionClass, pluginWrapper));
     }
   }
 
-  private Object createExtension(Class<?> extensionClass, PluginWrapper pluginWrapper) {
+  private <T> T createExtension(Class<T> extensionClass, PluginWrapper pluginWrapper) {
     Map<String, Object> initParams = getInitParams(pluginWrapper);
-    Object plugin = createPlugin(extensionClass, initParams);
+    T plugin = createPlugin(extensionClass, initParams);
     beanFactory.autowireBean(plugin);
     beanFactory.initializeBean(plugin, pluginWrapper.getDescriptor().getPluginId());
     beanFactory.registerSingleton(pluginWrapper.getDescriptor().getPluginId(), plugin);
@@ -66,7 +66,7 @@ public class ReportPortalExtensionFactory extends DefaultExtensionFactory {
     return plugin;
   }
 
-  private Object createPlugin(Class<?> extensionClass, Map<String, Object> initParams) {
+  private <T> T createPlugin(Class<T> extensionClass, Map<String, Object> initParams) {
     try {
       return extensionClass.getDeclaredConstructor(Map.class).newInstance(initParams);
     } catch (Exception ex) {

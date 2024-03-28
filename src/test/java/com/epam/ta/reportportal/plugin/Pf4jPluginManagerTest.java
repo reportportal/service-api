@@ -44,7 +44,7 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.pf4j.PluginException;
+import org.pf4j.PluginRuntimeException;
 import org.pf4j.PluginManager;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
@@ -65,24 +65,19 @@ class Pf4jPluginManagerTest {
   public static final String NEW_JIRA_PLUGIN_VERSION = "1.0";
 
   private final PluginLoader pluginLoader = mock(PluginLoader.class);
-  private final IntegrationTypeRepository integrationTypeRepository = mock(
-      IntegrationTypeRepository.class);
+  private final IntegrationTypeRepository integrationTypeRepository =
+      mock(IntegrationTypeRepository.class);
   private final AutowireCapableBeanFactory beanFactory = mock(AutowireCapableBeanFactory.class);
   private final PluginManager pluginManager = mock(PluginManager.class);
   private final PluginWrapper previousPlugin = mock(PluginWrapper.class);
   private final PluginWrapper newPlugin = mock(PluginWrapper.class);
-  private final ApplicationEventPublisher applicationEventPublisher = mock(
-      ApplicationEventPublisher.class);
+  private final ApplicationEventPublisher applicationEventPublisher =
+      mock(ApplicationEventPublisher.class);
 
-  private final Pf4jPluginManager pluginBox = new Pf4jPluginManager(PLUGINS_PATH,
-      PLUGINS_TEMP_PATH,
-      RESOURCES_PATH,
-      pluginLoader,
-      integrationTypeRepository,
-      pluginManager,
-      beanFactory,
-      applicationEventPublisher
-  );
+  private final Pf4jPluginManager pluginBox =
+      new Pf4jPluginManager(PLUGINS_PATH, PLUGINS_TEMP_PATH, RESOURCES_PATH, pluginLoader,
+          integrationTypeRepository, pluginManager, beanFactory, applicationEventPublisher
+      );
 
   private final InputStream fileStream = mock(InputStream.class);
 
@@ -98,7 +93,7 @@ class Pf4jPluginManagerTest {
   }
 
   @Test
-  void uploadPlugin() throws PluginException, IOException {
+  void uploadPlugin() throws PluginRuntimeException, IOException {
     PluginInfo pluginInfo = getPluginInfo();
 
     when(pluginLoader.extractPluginInfo(
@@ -130,7 +125,7 @@ class Pf4jPluginManagerTest {
   }
 
   @Test
-  void uploadPluginWithExistingFile() throws PluginException, IOException {
+  void uploadPluginWithExistingFile() throws PluginRuntimeException, IOException {
     File tempFile = File.createTempFile(NEW_PLUGIN_FILE_NAME, ".jar", new File(PLUGINS_TEMP_PATH));
     tempFile.deleteOnExit();
     PluginInfo pluginInfo = getPluginInfo();
@@ -158,7 +153,7 @@ class Pf4jPluginManagerTest {
   }
 
   @Test
-  void uploadPluginWithLoadingError() throws PluginException {
+  void uploadPluginWithLoadingError() throws PluginRuntimeException {
 
     PluginInfo pluginInfo = getPluginInfo();
     when(pluginLoader.extractPluginInfo(
@@ -179,11 +174,12 @@ class Pf4jPluginManagerTest {
     );
     assertEquals(
         "Error during plugin uploading: 'Failed to load new plugin from file = 'plugin.jar''",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
-  void uploadPluginWithoutExtensionClasses() throws PluginException {
+  void uploadPluginWithoutExtensionClasses() throws PluginRuntimeException {
 
     PluginInfo pluginInfo = getPluginInfo();
     when(pluginLoader.extractPluginInfo(
@@ -210,11 +206,11 @@ class Pf4jPluginManagerTest {
   }
 
   @Test
-  void uploadPluginWithPluginException() throws PluginException {
+  void uploadPluginWithPluginException() throws PluginRuntimeException {
 
     when(pluginLoader.extractPluginInfo(
-        Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenThrow(new PluginException(
-        "Manifest not found"));
+        Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenThrow(
+        new PluginRuntimeException("Manifest not found"));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> pluginBox.uploadPlugin(NEW_PLUGIN_FILE_NAME, fileStream)
@@ -223,7 +219,7 @@ class Pf4jPluginManagerTest {
   }
 
   @Test
-  void uploadPluginWithoutVersion() throws PluginException {
+  void uploadPluginWithoutVersion() throws PluginRuntimeException {
 
     when(pluginLoader.extractPluginInfo(
         Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(
@@ -233,7 +229,8 @@ class Pf4jPluginManagerTest {
         () -> pluginBox.uploadPlugin(NEW_PLUGIN_FILE_NAME, fileStream)
     );
     assertEquals("Error during plugin uploading: 'Plugin version should be specified.'",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test

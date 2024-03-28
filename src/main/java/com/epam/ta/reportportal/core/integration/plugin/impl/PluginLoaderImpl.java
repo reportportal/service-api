@@ -48,7 +48,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.pf4j.PluginDescriptor;
 import org.pf4j.PluginDescriptorFinder;
-import org.pf4j.PluginException;
+import org.pf4j.PluginRuntimeException;
 import org.pf4j.PluginWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -87,7 +87,7 @@ public class PluginLoaderImpl implements PluginLoader {
 
   @Override
   @NotNull
-  public PluginInfo extractPluginInfo(Path pluginPath) throws PluginException {
+  public PluginInfo extractPluginInfo(Path pluginPath) throws PluginRuntimeException {
     PluginDescriptor pluginDescriptor = pluginDescriptorFinder.find(pluginPath);
     return new PluginInfo(pluginDescriptor.getPluginId(), pluginDescriptor.getVersion());
   }
@@ -99,8 +99,7 @@ public class PluginLoaderImpl implements PluginLoader {
         .flatMap(it -> ofNullable(it.getDetails())).flatMap(
             typeDetails -> IntegrationTypeProperties.VERSION.getValue(typeDetails.getDetails())
                 .map(String::valueOf)).ifPresent(
-                    version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(
-                pluginInfo.getVersion()))
+            version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(pluginInfo.getVersion()))
                 .verify(
                     ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
                         "Plugin with ID = '{}' of the same VERSION = '{}' "

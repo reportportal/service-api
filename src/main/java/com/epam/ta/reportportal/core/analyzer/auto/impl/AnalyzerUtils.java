@@ -36,6 +36,8 @@ import com.epam.ta.reportportal.model.project.UniqueErrorConfig;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,11 +79,14 @@ public class AnalyzerUtils {
    * @return {@link IndexTestItem} object
    */
   public static IndexTestItem fromTestItem(TestItem testItem) {
+    var  testItemStarTime = testItem.getStartTime() != null
+        ? LocalDateTime.ofInstant(testItem.getStartTime(), ZoneId.systemDefault())
+        : null;
     IndexTestItem indexTestItem = new IndexTestItem();
     indexTestItem.setTestItemId(testItem.getItemId());
     indexTestItem.setTestItemName(testItem.getName());
     indexTestItem.setUniqueId(testItem.getUniqueId());
-    indexTestItem.setStartTime(testItem.getStartTime());
+    indexTestItem.setStartTime(testItemStarTime);
     indexTestItem.setTestCaseHash(testItem.getTestCaseHash());
     if (testItem.getItemResults().getIssue() != null) {
       indexTestItem.setIssueTypeLocator(

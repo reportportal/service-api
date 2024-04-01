@@ -73,13 +73,13 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         implementation 'com.github.reportportal:commons-events:e337f8b7be'
-        implementation 'com.github.reportportal:commons-dao:f9fb202'
+        implementation 'com.github.reportportal:commons-dao:3991beb'
         implementation 'com.github.reportportal:commons-rules:1f6bfed'
-        implementation 'com.github.reportportal:commons-model:4d97653'
-        implementation 'com.github.reportportal:commons-reporting:55bb424'
+        implementation 'com.github.reportportal:commons-model:696bfaf'
+        implementation 'com.github.reportportal:commons-reporting:817dfdf'
         implementation 'com.github.reportportal:commons:07566b8e'
         implementation 'com.github.reportportal:commons-fonts:d6e62dd'
-        implementation 'com.github.reportportal:plugin-api:d16ed2a'
+        implementation 'com.github.reportportal:plugin-api:eec4267'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'

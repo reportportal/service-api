@@ -29,6 +29,8 @@ import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -83,7 +85,7 @@ public class LaunchPreparerServiceImpl implements LaunchPreparerService {
     IndexLaunch rqLaunch = new IndexLaunch();
     rqLaunch.setLaunchId(launchId);
     rqLaunch.setLaunchName(name);
-    rqLaunch.setLaunchStartTime(startLaunchTime);
+    rqLaunch.setLaunchStartTime(LocalDateTime.ofInstant(startLaunchTime, ZoneId.systemDefault()));
     rqLaunch.setProjectId(projectId);
     rqLaunch.setAnalyzerConfig(analyzerConfig);
     rqLaunch.setTestItems(rqTestItems);

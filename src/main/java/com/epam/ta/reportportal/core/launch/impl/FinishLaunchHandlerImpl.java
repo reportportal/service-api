@@ -95,8 +95,8 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
           ) ? FAILED : PASSED));
     }
 
-    launch = new LaunchBuilder(launch).addDescription(
-            buildDescription(launch.getDescription(), finishLaunchRQ.getDescription()))
+    launch = new LaunchBuilder(launch)
+        .addDescription(buildDescription(launch.getDescription(), finishLaunchRQ.getDescription()))
         .addAttributes(finishLaunchRQ.getAttributes()).addEndTime(finishLaunchRQ.getEndTime())
         .get();
 

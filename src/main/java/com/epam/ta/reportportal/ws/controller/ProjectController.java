@@ -44,7 +44,6 @@ import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
@@ -70,7 +69,6 @@ import io.swagger.annotations.ApiParam;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.Principal;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
@@ -78,7 +76,6 @@ import javax.validation.Valid;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -115,8 +112,6 @@ public class ProjectController {
   private final UpdatePreferenceHandler updatePreference;
   private final GetJasperReportHandler<ProjectInfo> jasperReportHandler;
 
-  private final boolean isUserSuggestions;
-
   @Autowired
   public ProjectController(ProjectExtractor projectExtractor, GetProjectHandler getProjectHandler,
       GetProjectInfoHandler projectInfoHandler,
@@ -125,8 +120,7 @@ public class ProjectController {
       GetUserHandler getUserHandler, GetPreferenceHandler getPreference,
       UpdatePreferenceHandler updatePreference,
       @Qualifier("projectJasperReportHandler")
-      GetJasperReportHandler<ProjectInfo> jasperReportHandler,
-      @Value("${rp.environment.variable.user.suggestions:true}") boolean isUserSuggestions) {
+      GetJasperReportHandler<ProjectInfo> jasperReportHandler) {
     this.projectExtractor = projectExtractor;
     this.getProjectHandler = getProjectHandler;
     this.projectInfoHandler = projectInfoHandler;
@@ -137,7 +131,6 @@ public class ProjectController {
     this.getPreference = getPreference;
     this.updatePreference = updatePreference;
     this.jasperReportHandler = jasperReportHandler;
-    this.isUserSuggestions = isUserSuggestions;
   }
 
   @Transactional
@@ -283,9 +276,6 @@ public class ProjectController {
   public Iterable<SearchUserResource> searchForUser(@PathVariable String projectName,
       @RequestParam(value = "term") String term,
       Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-    if (!user.getUserRole().equals(UserRole.ADMINISTRATOR) && !isUserSuggestions) {
-      return Collections.emptyList();
-    }
     return getProjectHandler.getUserNames(term,
         projectExtractor.extractProjectDetails(user, projectName), pageable);
   }

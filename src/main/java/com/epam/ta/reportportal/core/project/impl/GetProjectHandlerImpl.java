@@ -60,6 +60,7 @@ import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -82,14 +83,18 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
   private final ProjectConverter projectConverter;
 
+  private final boolean isUserSuggestions;
+
   @Autowired
   public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
-      @Qualifier("projectJasperReportHandler")
-      GetJasperReportHandler<ProjectInfo> jasperReportHandler, ProjectConverter projectConverter) {
+      @Qualifier("projectJasperReportHandler") GetJasperReportHandler<ProjectInfo> jasperReportHandler,
+      ProjectConverter projectConverter,
+      @Value("${rp.environment.variable.user.suggestions:true}") boolean isUserSuggestions) {
     this.projectRepository = projectRepository;
     this.userRepository = userRepository;
     this.jasperReportHandler = jasperReportHandler;
     this.projectConverter = projectConverter;
+    this.isUserSuggestions = isUserSuggestions;
   }
 
   @Override
@@ -160,11 +165,11 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   }
 
   @Override
-  public Iterable<SearchUserResource> getUserNames(String value,
-      ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
+  public Iterable<SearchUserResource> getUserNames(String value, ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
     checkBusinessRuleLessThan1Symbol(value);
 
-    final CompositeFilterCondition userCondition = getUserSearchCondition(value);
+    final CompositeFilterCondition userCondition =
+        isUserSuggestions ? getUserSearchSuggestCondition(value) : getUserSearchCondition(value);
 
     final Filter filter = Filter.builder().withTarget(User.class).withCondition(userCondition)
         .withCondition(
@@ -176,12 +181,17 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
         .apply(userRepository.findByFilterExcludingProjects(filter, pageable));
   }
 
+  private CompositeFilterCondition getUserSearchSuggestCondition(String value) {
+    return new CompositeFilterCondition(List.of(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER),
+        new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_FULL_NAME),
+        new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_EMAIL)
+    ), Operator.AND);
+  }
+
   private CompositeFilterCondition getUserSearchCondition(String value) {
-    return new CompositeFilterCondition(
-        List.of(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER),
-            new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_FULL_NAME),
-            new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_EMAIL)
-        ), Operator.AND);
+    return new CompositeFilterCondition(List.of(
+        new FilterCondition(Operator.OR, Condition.EQUALS, false, value, CRITERIA_EMAIL)
+    ), Operator.AND);
   }
 
   @Override

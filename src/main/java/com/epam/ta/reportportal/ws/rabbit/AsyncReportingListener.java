@@ -311,15 +311,17 @@ public class AsyncReportingListener implements MessageListener {
     Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
     logService.saveLogMessage(logFull, effectiveLaunch.getId());
 
-    if (Objects.nonNull(request.getFile())) {saveAttachment(request.getFile().getName(), metaInfo,
-        logFull.getId(),
-        projectId,
-        effectiveLaunch.getId(),
-        item.getItemId(),
-        effectiveLaunch.getUuid(),
-        logFull.getUuid()
-    );
-  }}
+    if (Objects.nonNull(request.getFile())) {
+      saveAttachment(request.getFile().getName(), metaInfo,
+          logFull.getId(),
+          projectId,
+          effectiveLaunch.getId(),
+          item.getItemId(),
+          effectiveLaunch.getUuid(),
+          logFull.getUuid()
+      );
+    }
+  }
 
   private void createLaunchLog(SaveLogRQ request, Launch launch, BinaryDataMetaInfo metaInfo,
       Long projectId) {
@@ -330,9 +332,12 @@ public class AsyncReportingListener implements MessageListener {
     logFull.setId(log.getId());
     logService.saveLogMessage(logFull, launch.getId());
 
-    saveAttachment(request.getFile().getName(), metaInfo, logFull.getId(), projectId, launch.getId(),
-				null, launch.getUuid(),
-        logFull.getUuid());
+    if (Objects.nonNull(request.getFile())) {
+      saveAttachment(request.getFile().getName(), metaInfo, logFull.getId(), projectId,
+          launch.getId(),
+          null, launch.getUuid(),
+          logFull.getUuid());
+    }
   }
 
   private void saveAttachment(String fileName, BinaryDataMetaInfo metaInfo, Long logId,

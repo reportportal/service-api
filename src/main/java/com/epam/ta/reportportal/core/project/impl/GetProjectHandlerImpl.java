@@ -78,19 +78,18 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	private final ProjectConverter projectConverter;
 
-	private final boolean isUserSuggestions;
+  @Value("${rp.environment.variable.user.suggestions:true}")
+  boolean isUserSuggestions;
 
-	@Autowired
-	public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
-			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<ProjectInfo> jasperReportHandler,
-			ProjectConverter projectConverter,
-			@Value("${rp.environment.variable.user.suggestions:true}") boolean isUserSuggestions) {
-		this.projectRepository = projectRepository;
-		this.userRepository = userRepository;
-		this.jasperReportHandler = jasperReportHandler;
-		this.projectConverter = projectConverter;
-		this.isUserSuggestions = isUserSuggestions;
-	}
+  @Autowired
+  public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
+      @Qualifier("projectJasperReportHandler") GetJasperReportHandler<ProjectInfo> jasperReportHandler,
+      ProjectConverter projectConverter) {
+    this.projectRepository = projectRepository;
+    this.userRepository = userRepository;
+    this.jasperReportHandler = jasperReportHandler;
+    this.projectConverter = projectConverter;
+  }
 
 	@Override
 	public Iterable<UserResource> getProjectUsers(String projectName, Filter filter, Pageable pageable) {

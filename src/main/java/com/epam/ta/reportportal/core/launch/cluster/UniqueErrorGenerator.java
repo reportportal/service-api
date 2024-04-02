@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.cluster;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;

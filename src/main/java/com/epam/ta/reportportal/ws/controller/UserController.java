@@ -36,7 +36,7 @@ import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.ApiKeyRQ;
 import com.epam.ta.reportportal.model.ApiKeyRS;
 import com.epam.ta.reportportal.model.ApiKeysRS;

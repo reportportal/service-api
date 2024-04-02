@@ -1,12 +1,12 @@
 package com.epam.ta.reportportal.core.widget.content.loader.materialized.handler;
 
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.core.widget.content.loader.materialized.MaterializedWidgetContentLoader;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import java.util.Collections;
 import java.util.Map;

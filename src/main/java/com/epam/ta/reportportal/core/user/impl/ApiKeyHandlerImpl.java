@@ -16,12 +16,12 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.reporting.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.reporting.ErrorType.NOT_FOUND;
 
 import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.bts.handler.GetTicketHandler;
 import com.epam.ta.reportportal.core.user.ApiKeyHandler;
 import com.epam.ta.reportportal.dao.ApiKeyRepository;

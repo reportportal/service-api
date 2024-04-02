@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.resolver;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType;
 import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilters;
 import com.epam.ta.reportportal.ws.reporting.ErrorType;

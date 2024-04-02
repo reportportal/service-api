@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.configs.rabbit;
 
 import com.epam.ta.reportportal.core.configs.Conditions;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.http.client.Client;

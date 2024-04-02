@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.reporting.ErrorType.USER_FILTER_NOT_FOUND;
 
@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.core.events.activity.FilterDeletedEvent;
 import com.epam.ta.reportportal.core.filter.DeleteUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.function.Predicate;

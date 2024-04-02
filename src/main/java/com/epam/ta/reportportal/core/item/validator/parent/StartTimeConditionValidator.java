@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.item.validator.parent;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.reporting.ErrorType.CHILD_START_TIME_EARLIER_THAN_PARENT;
 
 import com.epam.ta.reportportal.commons.Preconditions;

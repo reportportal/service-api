@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.analyzer.pattern.service.impl;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.analyzer.pattern.service.CreatePatternTemplateHandler;
 import com.epam.ta.reportportal.dao.PatternTemplateRepository;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;

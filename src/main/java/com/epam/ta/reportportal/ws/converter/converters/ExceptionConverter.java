@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.ErrorRS;
 import java.util.function.Function;
 

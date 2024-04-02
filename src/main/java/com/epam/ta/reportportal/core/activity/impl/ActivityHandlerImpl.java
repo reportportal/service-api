@@ -15,18 +15,21 @@
  */
 package com.epam.ta.reportportal.core.activity.impl;
 
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ACTION;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_CREATED_AT;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_TYPE;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.reporting.ErrorType.ACCESS_DENIED;
 import static com.epam.ta.reportportal.ws.reporting.ErrorType.ACTIVITY_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.reporting.ErrorType.LAUNCH_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.reporting.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.reporting.ErrorType.TEST_ITEM_NOT_FOUND;
 
+import com.epam.reportportal.model.ActivityResource;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -34,8 +37,6 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.FilterTarget;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.activity.ActivityHandler;
 import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -46,12 +47,10 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.ActivityEventResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ActivityConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ActivityEventConverter;
-import com.epam.ta.reportportal.ws.model.ActivityResource;
 import java.util.function.Predicate;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jooq.Operator;
@@ -86,7 +85,7 @@ public class ActivityHandlerImpl implements ActivityHandler {
 	public Iterable<ActivityResource> getActivitiesHistory(ReportPortalUser.ProjectDetails projectDetails, Filter filter,
 			Queryable predefinedFilter, Pageable pageable) {
 
-		BusinessRule.expect(projectRepository.existsById(projectDetails.getProjectId()), BooleanUtils::isTrue)
+		expect(projectRepository.existsById(projectDetails.getProjectId()), BooleanUtils::isTrue)
 				.verify(PROJECT_NOT_FOUND, projectDetails.getProjectId());
 
 		FilterCondition projectCondition = FilterCondition.builder()
@@ -150,7 +149,7 @@ public class ActivityHandlerImpl implements ActivityHandler {
   @Override
   public Iterable<ActivityResource> getItemActivities(
       ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
-    BusinessRule.expect(projectRepository.existsById(projectDetails.getProjectId()),
+    expect(projectRepository.existsById(projectDetails.getProjectId()),
             BooleanUtils::isTrue)
         .verify(PROJECT_NOT_FOUND, projectDetails.getProjectId());
     filter.withCondition(FilterCondition.builder()

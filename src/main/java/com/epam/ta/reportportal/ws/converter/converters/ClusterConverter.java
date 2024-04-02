@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterInfoRs;
 import com.epam.ta.reportportal.entity.cluster.Cluster;
-import com.epam.ta.reportportal.ws.model.launch.cluster.ClusterInfoResource;
+import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
 import java.util.function.Function;
 
 /**

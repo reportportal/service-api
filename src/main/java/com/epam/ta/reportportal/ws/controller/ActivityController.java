@@ -26,7 +26,7 @@
  import com.epam.ta.reportportal.entity.activity.Activity;
  import com.epam.ta.reportportal.model.ActivityEventResource;
  import com.epam.ta.reportportal.util.ProjectExtractor;
- import com.epam.ta.reportportal.ws.model.ActivityResource;
+ import com.epam.reportportal.model.ActivityResource;
  import com.epam.ta.reportportal.ws.resolver.FilterFor;
  import com.epam.ta.reportportal.ws.resolver.SortFor;
  import io.swagger.v3.oas.annotations.Operation;

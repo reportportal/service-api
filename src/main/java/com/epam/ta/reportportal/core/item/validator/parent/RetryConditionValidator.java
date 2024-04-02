@@ -1,7 +1,7 @@
 package com.epam.ta.reportportal.core.item.validator.parent;
 
 import static com.epam.ta.reportportal.commons.Predicates.isNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.reporting.ErrorType.UNABLE_TO_SAVE_CHILD_ITEM_FOR_THE_RETRY;
 
 import com.epam.ta.reportportal.entity.item.TestItem;

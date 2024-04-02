@@ -29,7 +29,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItems
 import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.task.SyncTaskExecutor;

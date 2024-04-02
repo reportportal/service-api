@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.auth.permissions;
 
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import com.google.common.collect.Maps;

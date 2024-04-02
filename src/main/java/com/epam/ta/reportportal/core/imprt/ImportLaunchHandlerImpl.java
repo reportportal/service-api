@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.imprt;
 
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
 import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.ZIP_EXTENSION;
 import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_REQUEST;
@@ -30,7 +30,7 @@ import com.epam.ta.reportportal.core.imprt.impl.ImportStrategy;
 import com.epam.ta.reportportal.core.imprt.impl.ImportStrategyFactory;
 import com.epam.ta.reportportal.core.imprt.impl.ImportType;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.LaunchImportCompletionRS;
 import com.epam.ta.reportportal.model.LaunchImportData;
 import com.epam.ta.reportportal.model.launch.LaunchImportRQ;

@@ -20,7 +20,7 @@ import static com.epam.ta.reportportal.util.Predicates.ITEM_ATTRIBUTE_EQUIVALENC
 import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_REQUEST;
 
 import com.epam.ta.reportportal.entity.ItemAttribute;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.reporting.UpdateItemAttributeRQ;

@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.model.externalsystem;
 
-import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
+import com.epam.reportportal.model.externalsystem.PostFormField;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;

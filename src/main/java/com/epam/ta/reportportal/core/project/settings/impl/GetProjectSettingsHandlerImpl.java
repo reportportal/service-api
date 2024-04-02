@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.project.settings.impl;
 import com.epam.ta.reportportal.core.project.settings.GetProjectSettingsHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.project.config.ProjectSettingsResource;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectSettingsConverter;
 import com.epam.ta.reportportal.ws.reporting.ErrorType;

@@ -5,10 +5,10 @@ import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.FOREVER
 import static com.epam.ta.reportportal.ws.reporting.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import java.util.List;
 import java.util.Map;
 

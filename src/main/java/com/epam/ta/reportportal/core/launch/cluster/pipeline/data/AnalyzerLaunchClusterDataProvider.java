@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
+import com.epam.reportportal.model.analyzer.IndexLaunch;
 import java.util.Optional;
 
 /**

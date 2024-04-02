@@ -15,7 +15,7 @@ import com.epam.ta.reportportal.core.imprt.impl.ImportStrategyFactory;
 import com.epam.ta.reportportal.core.imprt.impl.ImportType;
 import com.epam.ta.reportportal.core.imprt.impl.XmlImportStrategy;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.LaunchImportCompletionRS;
 import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
 import com.epam.ta.reportportal.util.sample.LaunchSampleUtil;

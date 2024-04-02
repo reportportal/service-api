@@ -16,7 +16,7 @@
 package com.epam.ta.reportportal.info;
 
 import com.epam.ta.reportportal.core.configs.Conditions;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;

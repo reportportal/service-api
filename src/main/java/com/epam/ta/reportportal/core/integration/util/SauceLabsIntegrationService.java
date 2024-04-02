@@ -16,14 +16,14 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.integration.util.property.SauceLabsProperties.ACCESS_TOKEN;
 import static com.epam.ta.reportportal.core.integration.util.property.SauceLabsProperties.USERNAME;
 import static com.epam.ta.reportportal.ws.reporting.ErrorType.BAD_REQUEST_ERROR;
 
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.google.common.collect.Maps;
 import java.util.HashMap;
 import java.util.Map;

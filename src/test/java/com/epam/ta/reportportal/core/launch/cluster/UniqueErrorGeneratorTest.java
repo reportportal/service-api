@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.pipeline.PipelineConstructor;
 import com.epam.ta.reportportal.pipeline.TransactionalPipeline;
 import org.junit.jupiter.api.Test;

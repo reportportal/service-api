@@ -18,8 +18,8 @@ package com.epam.ta.reportportal.core.item.impl.history.param;
 
 import static java.util.Optional.ofNullable;
 
-import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import java.util.Arrays;
 import java.util.Optional;

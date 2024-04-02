@@ -36,7 +36,7 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.strategy.EmailNotificationStrategy;
 import com.epam.ta.reportportal.util.email.strategy.EmailTemplate;
 import com.google.common.collect.Lists;

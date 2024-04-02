@@ -16,11 +16,11 @@
 
 package com.epam.ta.reportportal.model.filter;
 
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_USER_FILTER_NAME_LENGTH;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_COLLECTION_SIZE;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_NAME_LENGTH;
+import static com.epam.reportportal.model.ValidationConstraints.MAX_USER_FILTER_NAME_LENGTH;
+import static com.epam.reportportal.model.ValidationConstraints.MIN_COLLECTION_SIZE;
+import static com.epam.reportportal.model.ValidationConstraints.MIN_NAME_LENGTH;
 
-import com.epam.ta.reportportal.ws.annotations.In;
+import com.epam.reportportal.annotations.In;
 import com.epam.ta.reportportal.ws.reporting.OwnedResource;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;

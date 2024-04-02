@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.ws.rabbit;
 
 import com.epam.ta.reportportal.core.configs.Conditions;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ShutdownSignalException;
 import java.io.IOException;

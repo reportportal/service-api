@@ -64,17 +64,12 @@ dependencyManagement {
 
 dependencies {
     if (releaseMode) {
-        implementation 'com.epam.reportportal:commons-events'
         implementation 'com.epam.reportportal:commons-dao'
-        implementation 'com.epam.reportportal:commons-rules'
-        implementation 'com.epam.reportportal:commons-model'
         implementation 'com.epam.reportportal:commons'
-        implementation 'com.epam.reportportal:commons-fonts'
         implementation 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.github.reportportal:commons-events:e337f8b7be'
         implementation 'com.github.reportportal:commons-dao:f2bc116'
-        implementation 'com.github.reportportal:commons:e647ea7'
+        implementation 'com.github.reportportal:commons:a1048cd'
         implementation 'com.github.reportportal:plugin-api:57375ae'
     }
 

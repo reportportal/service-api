@@ -30,7 +30,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * JSON Representation of Report Portal's Activity domain object.
+ * JSON Representation of ReportPortal's Activity domain object.
  *
  * @author Ryhor_Kukharenka
  */

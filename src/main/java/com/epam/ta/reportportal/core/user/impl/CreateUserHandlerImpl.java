@@ -321,7 +321,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
                 IntegrationGroupEnum.NOTIFICATION
             )
             .orElseThrow(() -> new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
-                "Please configure email server in Report Portal settings."
+                "Please configure email server in ReportPortal settings."
             ));
 
     final String normalizedEmail = normalizeEmail(request.getEmail());

@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.config;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 

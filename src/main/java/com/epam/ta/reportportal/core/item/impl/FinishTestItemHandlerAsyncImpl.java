@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ReportingQueueService;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;

@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.project.config.ProjectSettingsResource;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectSettingsConverter;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

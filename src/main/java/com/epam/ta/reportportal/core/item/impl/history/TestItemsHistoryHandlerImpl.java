@@ -21,7 +21,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaC
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_HAS_STATS;
 import static com.epam.reportportal.model.ValidationConstraints.MAX_HISTORY_DEPTH_BOUND;
 import static com.epam.reportportal.model.ValidationConstraints.MIN_HISTORY_DEPTH_BOUND;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.UNABLE_LOAD_TEST_ITEM_HISTORY;
+import static com.epam.reportportal.rules.exception.ErrorType.UNABLE_LOAD_TEST_ITEM_HISTORY;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;

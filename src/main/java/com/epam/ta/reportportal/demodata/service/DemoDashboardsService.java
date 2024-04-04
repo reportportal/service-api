@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.demodata.service;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_COMPOSITE_ATTRIBUTE;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static java.util.stream.Collectors.toList;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -43,7 +43,7 @@ import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;

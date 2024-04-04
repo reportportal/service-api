@@ -44,7 +44,7 @@ import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Map;
 import java.util.Objects;

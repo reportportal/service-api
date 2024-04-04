@@ -25,9 +25,9 @@ import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.PRODUCT_B
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.SYSTEM_ISSUE;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_REQUEST;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
+import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
@@ -56,7 +56,7 @@ import com.epam.ta.reportportal.model.project.config.IssueSubTypeCreatedRS;
 import com.epam.ta.reportportal.model.project.config.pattern.CreatePatternTemplateRQ;
 import com.epam.ta.reportportal.ws.converter.builders.IssueTypeBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.model.ValidationConstraints;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;

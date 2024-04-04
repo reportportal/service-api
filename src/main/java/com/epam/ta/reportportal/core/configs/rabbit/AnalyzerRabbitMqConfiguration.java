@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClie
 import com.epam.ta.reportportal.core.analyzer.auto.client.impl.RabbitMqManagementClientTemplate;
 import com.epam.ta.reportportal.core.configs.Conditions;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.rabbitmq.http.client.Client;
 import java.net.URI;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;

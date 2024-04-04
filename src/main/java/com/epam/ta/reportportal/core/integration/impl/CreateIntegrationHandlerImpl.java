@@ -36,7 +36,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.activity.IntegrationActivityResource;
 import com.epam.ta.reportportal.model.integration.IntegrationRQ;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Map;
 import org.apache.commons.lang3.BooleanUtils;

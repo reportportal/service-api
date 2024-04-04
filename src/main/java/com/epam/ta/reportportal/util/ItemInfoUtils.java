@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.util;
 
 import static com.epam.ta.reportportal.util.Predicates.ITEM_ATTRIBUTE_EQUIVALENCE;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_REQUEST;
+import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.reportportal.rules.exception.ReportPortalException;

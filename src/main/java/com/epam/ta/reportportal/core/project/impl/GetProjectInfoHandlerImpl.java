@@ -35,8 +35,8 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_DEF
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ITEM;
 import static com.epam.ta.reportportal.ws.converter.converters.ActivityConverter.TO_RESOURCE;
 import static com.epam.ta.reportportal.ws.converter.converters.ActivityConverter.TO_RESOURCE_WITH_USER;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;

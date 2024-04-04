@@ -18,8 +18,8 @@ package com.epam.ta.reportportal.core.integration.util;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.fail;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.reportportal.rules.exception.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
+import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Maps;
 import com.mchange.lang.IntegerUtils;
 import java.util.Map;

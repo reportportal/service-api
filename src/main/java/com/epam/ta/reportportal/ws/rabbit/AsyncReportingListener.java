@@ -45,7 +45,7 @@ import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.builders.LogFullBuilder;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;

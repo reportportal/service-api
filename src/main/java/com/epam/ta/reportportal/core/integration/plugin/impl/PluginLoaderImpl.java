@@ -31,7 +31,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.util.FeatureFlagHandler;
 import com.epam.ta.reportportal.ws.converter.builders.IntegrationTypeBuilder;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

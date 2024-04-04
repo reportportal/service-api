@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.demodata.service;
 
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 
 import com.epam.reportportal.extension.event.LaunchFinishedPluginEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;

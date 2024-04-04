@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.strategy;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 import static java.util.stream.Collectors.toSet;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -28,7 +28,7 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Set;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;

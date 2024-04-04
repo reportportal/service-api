@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfi
 import com.epam.ta.reportportal.pipeline.PipelineConstructor;
 import com.epam.ta.reportportal.pipeline.PipelinePart;
 import com.epam.ta.reportportal.pipeline.TransactionalPipeline;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.List;
 import java.util.function.Predicate;
 import org.slf4j.Logger;

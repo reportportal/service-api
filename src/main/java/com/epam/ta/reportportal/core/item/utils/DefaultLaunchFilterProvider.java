@@ -32,7 +32,7 @@ import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.PageRequest;

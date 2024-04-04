@@ -2,7 +2,7 @@ package com.epam.ta.reportportal.core.item.validator.parent;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 
 import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.entity.item.TestItem;

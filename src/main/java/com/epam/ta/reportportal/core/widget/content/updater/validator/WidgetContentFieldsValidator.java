@@ -6,7 +6,7 @@ import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Lists;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;

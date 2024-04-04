@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import com.google.common.base.Preconditions;
 import java.util.Optional;

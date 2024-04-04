@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
+import static com.epam.reportportal.rules.exception.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 

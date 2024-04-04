@@ -22,9 +22,9 @@ import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.FORBIDDEN_OPERATION;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.LAUNCH_IS_NOT_FINISHED;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_IS_NOT_FINISHED;
 
 import com.epam.reportportal.events.ElementsDeletedEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -43,8 +43,8 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.model.activity.LaunchActivityResource;
-import com.epam.ta.reportportal.ws.reporting.ErrorRS;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorRS;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.api.client.util.Maps;
 import com.google.common.collect.Lists;

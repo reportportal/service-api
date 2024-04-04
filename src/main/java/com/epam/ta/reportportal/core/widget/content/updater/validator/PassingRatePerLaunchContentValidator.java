@@ -23,7 +23,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.collections.MapUtils;

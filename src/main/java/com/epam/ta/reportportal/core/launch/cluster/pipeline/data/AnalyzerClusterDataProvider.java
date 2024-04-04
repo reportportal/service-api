@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.reportportal.model.analyzer.IndexLaunch;
 import com.epam.reportportal.model.project.AnalyzerConfig;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Optional;
 import java.util.function.Predicate;
 

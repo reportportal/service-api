@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.preference.UserPreference;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.UserPreferenceBuilder;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

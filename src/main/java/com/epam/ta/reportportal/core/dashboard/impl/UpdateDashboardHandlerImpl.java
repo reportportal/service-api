@@ -38,7 +38,7 @@ import com.epam.ta.reportportal.model.dashboard.AddWidgetRq;
 import com.epam.ta.reportportal.model.dashboard.UpdateDashboardRQ;
 import com.epam.ta.reportportal.ws.converter.builders.DashboardBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Set;
 import org.apache.commons.collections.CollectionUtils;

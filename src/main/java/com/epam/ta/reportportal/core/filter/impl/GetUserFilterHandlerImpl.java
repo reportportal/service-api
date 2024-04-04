@@ -28,7 +28,7 @@ import com.epam.ta.reportportal.model.filter.UserFilterResource;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Lists;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -33,7 +33,7 @@ import com.epam.ta.reportportal.model.analyzer.AnalyzedItemRs;
 import com.epam.ta.reportportal.model.analyzer.SearchRq;
 import com.epam.ta.reportportal.model.analyzer.SearchRs;
 import com.epam.reportportal.model.analyzer.IndexLaunch;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
 import java.util.Collections;
 import java.util.Comparator;

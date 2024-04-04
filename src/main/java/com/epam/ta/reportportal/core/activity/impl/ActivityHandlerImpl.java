@@ -21,11 +21,11 @@ import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteri
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_TYPE;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.ACTIVITY_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.LAUNCH_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.PROJECT_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.TEST_ITEM_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.ACTIVITY_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.TEST_ITEM_NOT_FOUND;
 
 import com.epam.reportportal.model.ActivityResource;
 import com.epam.reportportal.rules.commons.validation.Suppliers;

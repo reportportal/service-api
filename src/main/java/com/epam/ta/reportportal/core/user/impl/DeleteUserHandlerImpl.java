@@ -40,7 +40,7 @@ import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.util.email.strategy.EmailNotificationStrategy;
 import com.epam.ta.reportportal.util.email.strategy.EmailTemplate;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import java.util.Collections;

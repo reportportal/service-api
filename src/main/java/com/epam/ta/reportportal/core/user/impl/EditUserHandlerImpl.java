@@ -36,7 +36,7 @@ import com.epam.ta.reportportal.model.user.ChangePasswordRQ;
 import com.epam.ta.reportportal.model.user.EditUserRQ;
 import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
@@ -65,7 +65,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.entity.user.UserType.INTERNAL;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.*;
+import static com.epam.reportportal.rules.exception.ErrorType.*;
 import static com.epam.reportportal.model.ValidationConstraints.*;
 import static java.util.Optional.ofNullable;
 

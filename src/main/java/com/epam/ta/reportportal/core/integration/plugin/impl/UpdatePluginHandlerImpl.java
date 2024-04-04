@@ -28,7 +28,7 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.activity.PluginActivityResource;
 import com.epam.ta.reportportal.model.integration.UpdatePluginStateRQ;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;

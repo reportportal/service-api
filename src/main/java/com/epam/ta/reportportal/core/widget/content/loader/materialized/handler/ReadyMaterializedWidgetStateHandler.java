@@ -7,7 +7,7 @@ import com.epam.ta.reportportal.core.widget.content.loader.materialized.Material
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Collections;
 import java.util.Map;
 import org.apache.commons.lang3.BooleanUtils;

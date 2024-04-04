@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.activity.PluginActivityResource;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.io.IOException;
 import java.io.InputStream;
 import org.apache.commons.lang3.StringUtils;

@@ -26,10 +26,10 @@ import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.SKIPPED;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.FINISH_LAUNCH_NOT_ALLOWED;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_FINISH_STATUS;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.FINISH_LAUNCH_NOT_ALLOWED;
+import static com.epam.reportportal.rules.exception.ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME;
+import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_FINISH_STATUS;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;

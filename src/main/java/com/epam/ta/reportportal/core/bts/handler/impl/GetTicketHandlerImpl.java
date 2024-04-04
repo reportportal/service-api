@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.bts.handler.impl;
 
 
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -29,7 +29,7 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.reportportal.model.externalsystem.PostFormField;
 import com.epam.reportportal.model.externalsystem.Ticket;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -21,7 +21,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static java.util.stream.Collectors.toList;
 
 import com.epam.ta.reportportal.commons.Predicates;
@@ -54,7 +54,7 @@ import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterProvider;
 import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemUpdaterContent;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.StatisticsResource;
 import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.Arrays;

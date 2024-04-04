@@ -22,7 +22,7 @@ import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.BooleanUtils;

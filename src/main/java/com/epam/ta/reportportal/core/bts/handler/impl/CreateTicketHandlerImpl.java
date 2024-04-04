@@ -19,8 +19,8 @@ package com.epam.ta.reportportal.core.bts.handler.impl;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.UNABLE_POST_TICKET;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.UNABLE_POST_TICKET;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.extension.bugtracking.BtsConstants;

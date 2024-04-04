@@ -41,7 +41,7 @@ import com.epam.ta.reportportal.model.analyzer.RelevantItemInfo;
 import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.epam.reportportal.model.analyzer.IndexLaunch;
 import com.epam.reportportal.model.project.AnalyzerConfig;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import java.util.List;

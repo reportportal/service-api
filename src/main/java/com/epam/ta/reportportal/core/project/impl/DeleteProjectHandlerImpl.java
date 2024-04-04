@@ -44,7 +44,7 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.util.FeatureFlagHandler;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.cache.Cache;
 import com.google.common.collect.Lists;

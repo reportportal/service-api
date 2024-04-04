@@ -20,7 +20,7 @@ import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;

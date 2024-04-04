@@ -38,9 +38,9 @@ import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConst
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_SKIPPED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.reportportal.model.ValidationConstraints.MAX_LAUNCH_NAME_LENGTH;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_FILTER_PARAMETERS;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_FILTER_PARAMETERS;
+import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 import static java.util.Collections.singletonMap;
 import static java.util.Optional.ofNullable;
 
@@ -76,7 +76,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.LaunchResource;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.google.common.base.Preconditions;

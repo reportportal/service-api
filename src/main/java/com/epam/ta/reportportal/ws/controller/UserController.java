@@ -54,7 +54,7 @@ import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
 import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
 import com.epam.ta.reportportal.model.user.UserBidRS;
 import com.epam.ta.reportportal.model.user.UserResource;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.resolver.ActiveRole;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;

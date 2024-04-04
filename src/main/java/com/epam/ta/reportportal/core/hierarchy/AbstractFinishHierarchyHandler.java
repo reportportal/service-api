@@ -25,7 +25,7 @@ import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.SKIPPED;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.SUITE;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_REQUEST;
+import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;

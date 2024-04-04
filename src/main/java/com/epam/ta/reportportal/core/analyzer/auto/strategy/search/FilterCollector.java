@@ -30,7 +30,7 @@ import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -21,7 +21,7 @@ import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
 import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.function.Predicate;
 
 /**

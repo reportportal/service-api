@@ -37,7 +37,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.activity.WidgetActivityResource;
 import com.epam.ta.reportportal.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

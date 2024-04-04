@@ -28,7 +28,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.reportportal.model.analyzer.IndexLaunch;
 import com.epam.reportportal.model.project.AnalyzerConfig;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;

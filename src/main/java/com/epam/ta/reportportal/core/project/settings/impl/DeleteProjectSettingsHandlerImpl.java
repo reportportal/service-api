@@ -33,7 +33,7 @@ import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.activity.PatternTemplateActivityResource;
 import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +50,7 @@ import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.*;
 import static com.epam.ta.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.*;
+import static com.epam.reportportal.rules.exception.ErrorType.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>

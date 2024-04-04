@@ -29,7 +29,7 @@ import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.converter.builders.DashboardBuilder;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

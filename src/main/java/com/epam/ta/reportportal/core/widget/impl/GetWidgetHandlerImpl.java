@@ -40,7 +40,7 @@ import com.epam.ta.reportportal.model.widget.WidgetResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.Collections;

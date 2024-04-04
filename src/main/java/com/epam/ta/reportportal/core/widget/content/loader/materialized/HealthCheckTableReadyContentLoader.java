@@ -21,7 +21,7 @@ import com.epam.ta.reportportal.entity.widget.content.healthcheck.HealthCheckTab
 import com.epam.ta.reportportal.entity.widget.content.healthcheck.LevelEntry;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.widget.SortEntry;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;

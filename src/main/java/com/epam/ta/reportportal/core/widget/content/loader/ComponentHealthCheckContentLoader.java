@@ -47,7 +47,7 @@ import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.healthcheck.ComponentHealthCheckContent;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Lists;
 import java.util.Arrays;
 import java.util.Collections;

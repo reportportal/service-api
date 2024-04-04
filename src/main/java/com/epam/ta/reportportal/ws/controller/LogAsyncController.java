@@ -34,7 +34,7 @@ import com.epam.ta.reportportal.ws.reporting.BatchElementCreatedRS;
 import com.epam.ta.reportportal.ws.reporting.BatchSaveOperatingRS;
 import com.epam.ta.reportportal.ws.reporting.Constants;
 import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;

@@ -38,7 +38,7 @@ import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;

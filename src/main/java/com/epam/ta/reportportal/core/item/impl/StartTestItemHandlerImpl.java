@@ -18,11 +18,11 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.CHILD_START_TIME_EARLIER_THAN_PARENT;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.LAUNCH_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.TEST_ITEM_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.CHILD_START_TIME_EARLIER_THAN_PARENT;
+import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.TEST_ITEM_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 

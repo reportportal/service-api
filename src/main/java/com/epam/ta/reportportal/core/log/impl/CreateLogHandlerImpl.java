@@ -36,7 +36,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LogFullBuilder;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.concurrent.CompletableFuture;

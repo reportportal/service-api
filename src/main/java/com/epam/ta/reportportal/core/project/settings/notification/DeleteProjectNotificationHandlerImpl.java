@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.model.project.ProjectResource;
 import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Objects;
 import java.util.Optional;

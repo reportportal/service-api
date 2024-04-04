@@ -4,7 +4,7 @@ import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Optional;
 
 public class TestProjectExtractor {

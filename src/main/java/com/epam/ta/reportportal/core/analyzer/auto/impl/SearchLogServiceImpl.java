@@ -49,7 +49,7 @@ import com.epam.ta.reportportal.model.log.SearchLogRs;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.reportportal.model.project.AnalyzerConfig;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.time.temporal.ChronoUnit;

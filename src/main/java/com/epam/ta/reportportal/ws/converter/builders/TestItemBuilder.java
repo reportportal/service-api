@@ -28,7 +28,7 @@ import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.reporting.ParameterResource;

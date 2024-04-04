@@ -49,7 +49,7 @@ import com.epam.ta.reportportal.model.launch.cluster.CreateClustersRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
 import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.reporting.LaunchResource;
 import com.epam.ta.reportportal.ws.reporting.MergeLaunchesRQ;

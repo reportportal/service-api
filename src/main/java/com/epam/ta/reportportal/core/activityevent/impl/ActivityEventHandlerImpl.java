@@ -28,7 +28,7 @@ import com.epam.ta.reportportal.model.ActivityEventResource;
 import com.epam.ta.reportportal.model.PagedResponse;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ActivityEventConverter;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

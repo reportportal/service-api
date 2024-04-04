@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;

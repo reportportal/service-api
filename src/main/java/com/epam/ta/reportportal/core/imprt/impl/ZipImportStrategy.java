@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.imprt.impl.junit.XunitParseJob;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

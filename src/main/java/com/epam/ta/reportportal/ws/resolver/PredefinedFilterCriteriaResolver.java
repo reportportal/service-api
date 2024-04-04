@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType;
 import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilters;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;

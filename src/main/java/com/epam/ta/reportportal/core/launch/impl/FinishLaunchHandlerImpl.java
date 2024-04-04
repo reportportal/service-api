@@ -21,7 +21,7 @@ import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validate
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateLaunchLink;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 
 import com.epam.reportportal.extension.event.LaunchFinishedPluginEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;

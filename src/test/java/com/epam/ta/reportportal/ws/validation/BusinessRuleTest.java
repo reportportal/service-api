@@ -24,7 +24,7 @@ import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.BusinessRuleViolationException;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import org.junit.jupiter.api.Test;
 
 /**

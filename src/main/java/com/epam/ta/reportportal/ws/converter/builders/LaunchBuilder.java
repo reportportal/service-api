@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.reporting.Mode;

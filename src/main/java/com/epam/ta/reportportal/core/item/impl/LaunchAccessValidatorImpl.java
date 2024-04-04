@@ -20,9 +20,9 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.FORBIDDEN_OPERATION;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.LaunchRepository;

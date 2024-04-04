@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.util;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import java.util.Iterator;
 import java.util.List;

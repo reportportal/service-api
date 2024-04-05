@@ -70,8 +70,8 @@ dependencies {
     } else {
         implementation 'com.github.reportportal:commons-dao:fa04c1fc02'
         implementation 'com.github.reportportal:commons-reporting:6b3ed9d'
-        implementation 'com.github.reportportal:commons:83ea1a5'
-        implementation 'com.github.reportportal:plugin-api:1b1805c'
+        implementation 'com.github.reportportal:commons:83ea1a5b9e'
+        implementation 'com.github.reportportal:plugin-api:48030ad'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'

@@ -20,7 +20,7 @@ import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
 import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.model.ActivityResource;
+import com.epam.reportportal.model.ActivityResource;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 

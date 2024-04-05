@@ -1,16 +1,16 @@
 package com.epam.ta.reportportal.core.project.validator.attribute;
 
 import static com.epam.ta.reportportal.commons.Predicates.isPresent;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.FOREVER_ALIAS;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

@@ -64,22 +64,14 @@ dependencyManagement {
 
 dependencies {
     if (releaseMode) {
-        implementation 'com.epam.reportportal:commons-events'
         implementation 'com.epam.reportportal:commons-dao'
-        implementation 'com.epam.reportportal:commons-rules'
-        implementation 'com.epam.reportportal:commons-model'
         implementation 'com.epam.reportportal:commons'
-        implementation 'com.epam.reportportal:commons-fonts'
         implementation 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.github.reportportal:commons-events:e337f8b7be'
-        implementation 'com.github.reportportal:commons-dao:55172e8'
-        implementation 'com.github.reportportal:commons-rules:1f6bfed'
-        implementation 'com.github.reportportal:commons-model:f466951'
-        implementation 'com.github.reportportal:commons-reporting:5c74bb2'
-        implementation 'com.github.reportportal:commons:07566b8e'
-        implementation 'com.github.reportportal:commons-fonts:d6e62dd'
-        implementation 'com.github.reportportal:plugin-api:cc3c5c8'
+        implementation 'com.github.reportportal:commons-dao:fa04c1fc02'
+        implementation 'com.github.reportportal:commons-reporting:6b3ed9d'
+        implementation 'com.github.reportportal:commons:83ea1a5b9e'
+        implementation 'com.github.reportportal:plugin-api:48030ad'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'

@@ -38,9 +38,9 @@ import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfi
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.reportportal.model.analyzer.IndexLaunch;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;

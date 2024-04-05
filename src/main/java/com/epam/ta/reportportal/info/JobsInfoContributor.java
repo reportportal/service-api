@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.info;
 
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.validation.JaskonRequiredPropertiesValidator;
 import java.util.Map;
 import org.slf4j.Logger;

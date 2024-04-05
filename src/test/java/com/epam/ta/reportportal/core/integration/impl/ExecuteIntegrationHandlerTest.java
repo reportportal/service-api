@@ -12,7 +12,7 @@ import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;

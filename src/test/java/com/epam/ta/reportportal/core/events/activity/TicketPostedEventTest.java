@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
-import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
+import com.epam.reportportal.model.externalsystem.Ticket;
 import com.google.common.collect.Lists;
 import java.time.LocalDateTime;
 import java.util.List;

@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.events;
 
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import java.util.List;
 
 /**

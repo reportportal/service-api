@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
@@ -151,11 +152,13 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	}
 
 	@Override
-	public Iterable<SearchUserResource> getUserNames(String value, ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
+	public Iterable<SearchUserResource> getUserNames(String value, UserRole userRole,
+			ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
 		checkBusinessRuleLessThan1Symbol(value);
 
 		final CompositeFilterCondition userCondition =
-				isUserSuggestions ? getUserSearchSuggestCondition(value) : getUserSearchCondition(value);
+				(userRole.equals(UserRole.ADMINISTRATOR) || isUserSuggestions)
+						? getUserSearchSuggestCondition(value) : getUserSearchCondition(value);
 
 		final Filter filter = Filter.builder()
 				.withTarget(User.class)

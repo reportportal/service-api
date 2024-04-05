@@ -226,7 +226,7 @@ public class MailServiceFactory {
       LOGGER.error("Cannot send email to user", e);
     }
     return new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
-        "Please configure email server in Report Portal settings.");
+        "Please configure email server in ReportPortal settings.");
   }
 
 }

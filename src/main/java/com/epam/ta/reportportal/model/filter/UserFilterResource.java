@@ -33,7 +33,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 /**
- * JSON Representation of Report Portal's UserFilter domain object
+ * JSON Representation of ReportPortal's UserFilter domain object
  *
  * @author Aliaksei_Makayed
  */

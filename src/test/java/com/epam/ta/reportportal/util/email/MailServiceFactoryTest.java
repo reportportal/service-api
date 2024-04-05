@@ -237,7 +237,7 @@ class MailServiceFactoryTest {
         () -> mailServiceFactory.checkConnection(null));
 
     Assertions.assertEquals(
-        "Email server is not configured or configuration is incorrect. Please configure email server in Report Portal settings.",
+        "Email server is not configured or configuration is incorrect. Please configure email server in ReportPortal settings.",
         exception.getMessage()
     );
   }
@@ -252,7 +252,7 @@ class MailServiceFactoryTest {
     );
 
     Assertions.assertEquals(
-        "Email server is not configured or configuration is incorrect. Please configure email server in Report Portal settings.",
+        "Email server is not configured or configuration is incorrect. Please configure email server in ReportPortal settings.",
         exception.getMessage()
     );
   }

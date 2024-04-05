@@ -118,7 +118,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
       return null != fromRequestDescription ? existDescription + " " + fromRequestDescription :
           existDescription;
     } else {
-      return null;
+      return fromRequestDescription;
     }
   }
 

@@ -121,7 +121,7 @@ public class IntegrationController {
   @Transactional
   @PostMapping(value = "/{pluginName}")
   @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Create global Report Portal integration instance")
+  @Operation(summary = "Create global ReportPortal integration instance")
   @PreAuthorize(ADMIN_ONLY)
   public EntryCreatedRS createGlobalIntegration(@RequestBody @Valid IntegrationRQ createRequest,
       @PathVariable String pluginName, @AuthenticationPrincipal ReportPortalUser user) {
@@ -131,7 +131,7 @@ public class IntegrationController {
   @Transactional
   @PostMapping(value = "/{projectName}/{pluginName}")
   @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Create project Report Portal integration instance")
+  @Operation(summary = "Create project ReportPortal integration instance")
   @PreAuthorize(PROJECT_MANAGER)
   public EntryCreatedRS createProjectIntegration(@RequestBody @Valid IntegrationRQ createRequest,
       @PathVariable String pluginName, @PathVariable String projectName,
@@ -165,7 +165,7 @@ public class IntegrationController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/{integrationId}")
   @ResponseStatus(HttpStatus.OK)
-  @Operation(summary = "Get global Report Portal integration instance")
+  @Operation(summary = "Get global ReportPortal integration instance")
   @PreAuthorize(ADMIN_ONLY)
   public IntegrationResource getGlobalIntegration(@PathVariable Long integrationId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -185,7 +185,7 @@ public class IntegrationController {
   @Transactional
   @PutMapping(value = "/{integrationId}")
   @ResponseStatus(HttpStatus.OK)
-  @Operation(summary = "Update global Report Portal integration instance")
+  @Operation(summary = "Update global ReportPortal integration instance")
   @PreAuthorize(ADMIN_ONLY)
   public OperationCompletionRS updateGlobalIntegration(@PathVariable Long integrationId,
       @RequestBody @Valid IntegrationRQ updateRequest,

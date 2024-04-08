@@ -16,23 +16,23 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.FIELD_NAME_IS_BLANK_MESSAGE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.FIELD_NAME_IS_NULL_MESSAGE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.FIELD_NAME_SIZE_MESSAGE_WITH_FORMAT;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.INCORRECT_REQUEST_MESSAGE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.WHITESPACES_NAME_VALUE;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_REQUEST;
-import static com.epam.reportportal.rules.exception.Mode.DEFAULT;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.reportportal.rules.exception.ErrorRS;
+import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.reporting.MergeLaunchesRQ;
+import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
@@ -148,7 +148,7 @@ public class LaunchControllerValidationTest extends BaseMvcTest {
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
     startLaunchRQ.setDescription("some description");
     startLaunchRQ.setStartTime(Instant.now());
-    startLaunchRQ.setMode(DEFAULT);
+    startLaunchRQ.setMode(Mode.DEFAULT);
     startLaunchRQ.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
     return startLaunchRQ;
   }

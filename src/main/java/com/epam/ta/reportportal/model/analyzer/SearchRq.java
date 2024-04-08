@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.model.analyzer;
 
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import java.util.List;
 
 /**

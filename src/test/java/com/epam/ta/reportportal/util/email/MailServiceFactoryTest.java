@@ -32,7 +32,7 @@ import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import java.util.Map;
@@ -237,7 +237,7 @@ class MailServiceFactoryTest {
         () -> mailServiceFactory.checkConnection(null));
 
     Assertions.assertEquals(
-        "Email server is not configured or configuration is incorrect. Please configure email server in Report Portal settings.",
+        "Email server is not configured or configuration is incorrect. Please configure email server in ReportPortal settings.",
         exception.getMessage()
     );
   }
@@ -252,7 +252,7 @@ class MailServiceFactoryTest {
     );
 
     Assertions.assertEquals(
-        "Email server is not configured or configuration is incorrect. Please configure email server in Report Portal settings.",
+        "Email server is not configured or configuration is incorrect. Please configure email server in ReportPortal settings.",
         exception.getMessage()
     );
   }

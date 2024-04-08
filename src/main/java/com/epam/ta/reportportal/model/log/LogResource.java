@@ -27,7 +27,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * JSON Representation of Report Portal's Log domain object
+ * JSON Representation of ReportPortal's Log domain object
  *
  * @author Andrei Varabyeu
  */

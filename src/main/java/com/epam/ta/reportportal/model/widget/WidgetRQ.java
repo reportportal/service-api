@@ -18,9 +18,9 @@ package com.epam.ta.reportportal.model.widget;
 
 import com.epam.ta.reportportal.model.BaseEntityRQ;
 import com.epam.ta.reportportal.core.events.annotations.WidgetLimitRange;
-import com.epam.ta.reportportal.ws.annotations.In;
-import com.epam.ta.reportportal.ws.annotations.NotBlankWithSize;
-import com.epam.ta.reportportal.ws.model.ValidationConstraints;
+import com.epam.reportportal.annotations.In;
+import com.epam.reportportal.annotations.NotBlankWithSize;
+import com.epam.reportportal.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;

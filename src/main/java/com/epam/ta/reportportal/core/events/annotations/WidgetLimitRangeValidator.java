@@ -1,7 +1,7 @@
 package com.epam.ta.reportportal.core.events.annotations;
 
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_WIDGET_LIMIT;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_WIDGET_LIMIT;
+import static com.epam.reportportal.model.ValidationConstraints.MAX_WIDGET_LIMIT;
+import static com.epam.reportportal.model.ValidationConstraints.MIN_WIDGET_LIMIT;
 
 import com.epam.ta.reportportal.model.BaseEntityRQ;
 import com.epam.ta.reportportal.model.widget.MaterializedWidgetType;

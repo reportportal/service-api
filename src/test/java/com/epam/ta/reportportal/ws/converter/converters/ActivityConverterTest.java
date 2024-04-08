@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import com.epam.ta.reportportal.ws.model.ActivityResource;
+import com.epam.reportportal.model.ActivityResource;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;

@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.bts.handler;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
-import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
+import com.epam.reportportal.model.externalsystem.PostFormField;
+import com.epam.reportportal.model.externalsystem.Ticket;
 import java.util.List;
 
 /**

@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.ws.model.ActivityResource;
+import com.epam.reportportal.model.ActivityResource;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 

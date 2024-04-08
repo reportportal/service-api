@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.model;
 
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_ENTITY_DESCRIPTION;
+import static com.epam.reportportal.model.ValidationConstraints.MAX_ENTITY_DESCRIPTION;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;

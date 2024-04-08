@@ -56,7 +56,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /**
- * Data converter for Report Portal common UI graphics
+ * Data converter for ReportPortal common UI graphics
  *
  * @author Andrei_Ramanchuk
  */

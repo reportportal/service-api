@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.model.item;
 
-import com.epam.ta.reportportal.ws.annotations.NotBlankStringCollection;
+import com.epam.reportportal.annotations.NotBlankStringCollection;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;

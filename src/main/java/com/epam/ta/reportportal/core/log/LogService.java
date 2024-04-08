@@ -5,7 +5,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
+import com.epam.reportportal.model.analyzer.IndexLog;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;

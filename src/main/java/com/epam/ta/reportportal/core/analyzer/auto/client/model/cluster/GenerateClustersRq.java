@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster;
 
-import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
+import com.epam.reportportal.model.analyzer.IndexLaunch;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>

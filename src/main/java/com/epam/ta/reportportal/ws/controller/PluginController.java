@@ -86,7 +86,7 @@ public class PluginController {
   @Transactional
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Upload new Report Portal plugin")
+  @Operation(summary = "Upload new ReportPortal plugin")
   @PreAuthorize(ADMIN_ONLY)
   public EntryCreatedRS uploadPlugin(@NotNull @RequestParam("file") MultipartFile pluginFile,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -96,7 +96,7 @@ public class PluginController {
   @Transactional
   @PutMapping(value = "/{pluginId}")
   @ResponseStatus(HttpStatus.OK)
-  @Operation(summary = "Update Report Portal plugin state")
+  @Operation(summary = "Update ReportPortal plugin state")
   @PreAuthorize(ADMIN_ONLY)
   public OperationCompletionRS updatePluginState(@PathVariable(value = "pluginId") Long id,
       @RequestBody @Valid UpdatePluginStateRQ updatePluginStateRQ,

@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.project;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.model.project.UpdateProjectRQ;

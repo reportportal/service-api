@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.model.widget;
 
-import com.epam.ta.reportportal.ws.annotations.In;
+import com.epam.reportportal.annotations.In;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.Generate
 import com.epam.ta.reportportal.model.analyzer.AnalyzedItemRs;
 import com.epam.ta.reportportal.model.analyzer.SearchRq;
 import com.epam.ta.reportportal.model.analyzer.SearchRs;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
+import com.epam.reportportal.model.analyzer.IndexLaunch;
 import java.util.List;
 import java.util.Map;
 

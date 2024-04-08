@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.events.handler;
 import static com.epam.ta.reportportal.util.MultipartFileUtils.getMultipartFile;
 
 import com.epam.ta.reportportal.binary.UserBinaryDataService;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.user.User;

@@ -58,7 +58,7 @@ ext['spring-boot.version'] = '2.5.15'
 dependencyManagement {
     imports {
         mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.11.6' : 'com.epam.reportportal:commons-bom:5.11.6')
-        mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:12.9.0')
+        mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
     }
 }
 
@@ -68,7 +68,7 @@ dependencies {
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.github.reportportal:commons-dao:fa04c1fc02'
+        implementation 'com.github.reportportal:commons-dao:df62349'
         implementation 'com.github.reportportal:commons-reporting:6b3ed9d'
         implementation 'com.github.reportportal:commons:83ea1a5b9e'
         implementation 'com.github.reportportal:plugin-api:48030ad'
@@ -82,7 +82,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
 
-
+    implementation 'org.springframework:spring-jdbc:6.1.5'
     implementation 'com.opencsv:opencsv:5.8'
 
     // Fix CVE-2021-41079, CVE-2022-23181, CVE-2021-33037, CVE-2021-30640, CVE-2022-42252

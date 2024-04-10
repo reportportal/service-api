@@ -58,7 +58,7 @@ ext['spring-boot.version'] = '2.5.15'
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.11.6' : 'com.github.reportportal:commons-bom:8603a03b4f')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.11.7' : 'com.epam.reportportal:commons-bom:5.11.7')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:12.9.0')
     }
 }
@@ -71,15 +71,15 @@ dependencies {
         implementation 'com.epam.reportportal:commons-model'
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:commons-fonts'
-        implementation 'com.epam.reportportal:plugin-api'
+        implementation 'com.epam.reportportal:plugin-api:5.11.1'
     } else {
         implementation 'com.epam.reportportal:commons-events'
-        implementation 'com.github.reportportal:commons-dao:586c730aaf'
+        implementation 'com.epam.reportportal:commons-dao'
         implementation 'com.epam.reportportal:commons-rules'
         implementation 'com.epam.reportportal:commons-model'
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:commons-fonts'
-        implementation 'com.github.reportportal:plugin-api:399273afd2'
+        implementation 'com.epam.reportportal:plugin-api:5.11.1'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
@@ -94,8 +94,8 @@ dependencies {
     implementation 'org.springframework.amqp:spring-amqp:2.4.17'
 
     //Fix CVE-2023-40827, CVE-2023-40828, CVE-2023-40826
-    implementation 'org.springframework:spring-webmvc:5.3.32'
-    implementation 'org.springframework:spring-web:5.3.32'
+    implementation 'org.springframework:spring-webmvc:5.3.33'
+    implementation 'org.springframework:spring-web:5.3.33'
 
     implementation 'com.opencsv:opencsv:5.8'
 

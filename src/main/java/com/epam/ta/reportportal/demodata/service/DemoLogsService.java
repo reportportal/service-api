@@ -43,8 +43,7 @@ import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.reportportal.rules.exception.ErrorType;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,7 +101,7 @@ public class DemoLogsService {
 	private LogFull getLogFull(Launch launch, String message, LogLevel logLevel) {
 		LogFull logFull = new LogFull();
 		logFull.setLogLevel(logLevel.toInt());
-		logFull.setLogTime(LocalDateTime.now());
+		logFull.setLogTime(Instant.now());
 		logFull.setLaunch(launch);
 		logFull.setProjectId(launch.getProjectId());
 		logFull.setLogMessage(message);
@@ -133,7 +132,7 @@ public class DemoLogsService {
 			String logMessage) {
 		LogFull logFull = new LogFull();
 		logFull.setLogLevel(logLevel.toInt());
-		logFull.setLogTime(LocalDateTime.now());
+		logFull.setLogTime(Instant.now());
 		logFull.setTestItem(testItem);
 		logFull.setProjectId(projectId);
 		logFull.setLogMessage(logMessage);
@@ -198,7 +197,7 @@ public class DemoLogsService {
 							.withLaunchUuid(launchUuid)
 							.withLogUuid(it.getUuid())
 							.withFileName(attachment.getName())
-							.withCreationDate(LocalDateTime.now(ZoneOffset.UTC))
+							.withCreationDate(Instant.now())
 							.build()
 			);
 		} catch (IOException e) {

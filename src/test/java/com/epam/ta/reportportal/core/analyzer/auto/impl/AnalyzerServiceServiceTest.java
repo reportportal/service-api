@@ -103,7 +103,9 @@ class AnalyzerServiceServiceTest {
     indexLaunch.setAnalyzerConfig(analyzerConfig);
 
     final List<IndexTestItem> indexTestItems =
-        items.stream().map(AnalyzerUtils::fromTestItem).peek(item -> item.setLogs(errorLogs(2)))
+        items.stream()
+            .map(AnalyzerUtils::fromTestItem)
+            .peek(item -> item.setLogs(errorLogs(2)))
             .collect(Collectors.toList());
     indexLaunch.setTestItems(indexTestItems);
 

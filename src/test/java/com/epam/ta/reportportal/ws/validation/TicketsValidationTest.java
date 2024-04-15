@@ -7,8 +7,8 @@ import com.epam.ta.reportportal.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.reporting.Issue;
 import com.google.common.collect.Lists;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -123,7 +123,7 @@ public class TicketsValidationTest {
   private FinishTestItemRQ getFinishTestItem() {
     FinishTestItemRQ finishTestItemRQ = new FinishTestItemRQ();
     finishTestItemRQ.setStatus("PASSED");
-    finishTestItemRQ.setEndTime(new Date());
+    finishTestItemRQ.setEndTime(Instant.now());
     return finishTestItemRQ;
   }
 

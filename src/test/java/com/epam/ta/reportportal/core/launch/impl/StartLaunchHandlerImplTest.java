@@ -38,7 +38,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
-import java.util.Date;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -76,7 +76,7 @@ class StartLaunchHandlerImplTest {
         ProjectRole.PROJECT_MANAGER, 1L);
 
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
-    startLaunchRQ.setStartTime(new Date());
+    startLaunchRQ.setStartTime(Instant.now());
     startLaunchRQ.setName("test");
 
     Launch launch = new Launch();
@@ -103,7 +103,7 @@ class StartLaunchHandlerImplTest {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
 
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
-    startLaunchRQ.setStartTime(new Date());
+    startLaunchRQ.setStartTime(Instant.now());
     startLaunchRQ.setMode(Mode.DEBUG);
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,

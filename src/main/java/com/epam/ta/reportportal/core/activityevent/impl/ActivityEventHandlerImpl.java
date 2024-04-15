@@ -67,7 +67,7 @@ public class ActivityEventHandlerImpl implements ActivityEventHandler {
   }
 
   private void checkBusinessRuleLessThan1Symbol(String value) {
-    BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true)).verify(
+    BusinessRule.expect(!value.isEmpty(), Predicates.equalTo(true)).verify(
         ErrorType.INCORRECT_FILTER_PARAMETERS,
         Suppliers.formattedSupplier(LENGTH_LESS_THAN_1_SYMBOL_MSG, value)
     );

@@ -30,7 +30,7 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.integration.IntegrationRQ;
 import com.epam.ta.reportportal.ws.converter.builders.IntegrationBuilder;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +60,7 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
   @Override
   public Integration createIntegration(IntegrationRQ integrationRq,
       IntegrationType integrationType) {
-    return new IntegrationBuilder().withCreationDate(LocalDateTime.now()).withType(integrationType)
+    return new IntegrationBuilder().withCreationDate(Instant.now()).withType(integrationType)
         .withEnabled(integrationRq.getEnabled()).withName(integrationRq.getName()).withParams(
             new IntegrationParams(retrieveCreateParams(integrationType.getName(),
                 integrationRq.getIntegrationParams()

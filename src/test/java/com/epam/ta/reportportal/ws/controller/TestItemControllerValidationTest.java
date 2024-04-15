@@ -16,11 +16,11 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.FIELD_NAME_IS_BLANK_MESSAGE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.FIELD_NAME_IS_NULL_MESSAGE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.INCORRECT_REQUEST_MESSAGE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.WHITESPACES_NAME_VALUE;
-import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -28,18 +28,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.reportportal.rules.exception.ErrorRS;
-import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import com.epam.ta.reportportal.model.issue.DefineIssueRQ;
-import com.epam.ta.reportportal.ws.reporting.Issue;
 import com.epam.ta.reportportal.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.model.item.UnlinkExternalIssueRQ;
+import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.epam.ta.reportportal.ws.reporting.Issue;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -303,7 +301,7 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
     externalSystemIssue.setBtsProject("prj");
     externalSystemIssue.setUrl("url");
     externalSystemIssue.setBtsUrl("btsUrl");
-    externalSystemIssue.setSubmitDate(123L);
+    externalSystemIssue.setSubmitDate(Instant.ofEpochMilli(123L));
     externalSystemIssue.setTicketId("id");
     return externalSystemIssue;
   }
@@ -389,8 +387,7 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
     startTestItemRQ.setLaunchUuid("a7b66ef2-db30-4db7-94df-f5f7786b398a");
     startTestItemRQ.setType("SUITE");
     startTestItemRQ.setUniqueId(UUID.randomUUID().toString());
-    startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    startTestItemRQ.setStartTime(Instant.now());
     return startTestItemRQ;
   }
 }

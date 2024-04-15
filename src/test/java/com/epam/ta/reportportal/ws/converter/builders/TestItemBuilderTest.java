@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -29,13 +28,13 @@ import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.reporting.ParameterResource;
-import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
+import com.epam.ta.reportportal.ws.reporting.ParameterResource;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -88,8 +87,8 @@ class TestItemBuilderTest {
     rq.setUniqueId(uuid);
     final String description = "description";
     rq.setDescription(description);
-    final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
-    rq.setStartTime(TO_DATE.apply(now));
+    final Instant now = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+    rq.setStartTime(now);
     final String name = "name";
     rq.setName(name);
 
@@ -109,7 +108,7 @@ class TestItemBuilderTest {
   @Test
   void addResultsTest() {
     TestItem item = new TestItem();
-    final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
+    final Instant now = Instant.now().truncatedTo(ChronoUnit.MILLIS);
     item.setStartTime(now);
     final TestItemResults itemResults = new TestItemResults();
     itemResults.setEndTime(now.plusSeconds(120));
@@ -131,7 +130,7 @@ class TestItemBuilderTest {
   @Test
   void overwriteAttributesValuesTest() {
     TestItem item = new TestItem();
-    final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
+    final Instant now = Instant.now().truncatedTo(ChronoUnit.MILLIS);
     item.setStartTime(now);
     final TestItemResults itemResults = new TestItemResults();
     itemResults.setEndTime(now.plusSeconds(120));

@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
@@ -72,8 +71,8 @@ import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
-import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.reporting.Issue;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -177,7 +176,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
     testItemRepository.save(itemForUpdate);
 
-    if (BooleanUtils.toBoolean(finishExecutionRQ.isRetry()) || StringUtils.isNotBlank(
+    if (BooleanUtils.toBoolean(finishExecutionRQ.getRetry()) || StringUtils.isNotBlank(
         finishExecutionRQ.getRetryOf())) {
       Optional.of(testItem).filter(
               it -> !it.isHasChildren() && !it.isHasRetries() && Objects.isNull(it.getRetryOf()))
@@ -221,7 +220,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
       testItemResults =
           processChildItemResult(testItem, finishTestItemRQ, user, projectDetails, launch);
     }
-    testItemResults.setEndTime(TO_LOCAL_DATE_TIME.apply(finishTestItemRQ.getEndTime()));
+    testItemResults.setEndTime(finishTestItemRQ.getEndTime());
     return testItemResults;
   }
 
@@ -315,7 +314,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
         changeStatusHandler.changeLaunchStatus(launch);
         if (testItem.isHasRetries()) {
           retryHandler.finishRetries(testItem.getItemId(), JStatusEnum.valueOf(actualStatus.name()),
-              TO_LOCAL_DATE_TIME.apply(finishTestItemRQ.getEndTime())
+              finishTestItemRQ.getEndTime()
           );
         }
       });

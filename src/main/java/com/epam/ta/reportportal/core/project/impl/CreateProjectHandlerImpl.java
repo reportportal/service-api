@@ -44,7 +44,7 @@ import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.project.CreateProjectRQ;
 import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.reportportal.rules.exception.ErrorType;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,7 +121,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 
     Project project = new Project();
     project.setName(projectName);
-    project.setCreationDate(new Date());
+    project.setCreationDate(Instant.now());
 
     project.setProjectIssueTypes(
         ProjectUtils.defaultIssueTypes(project, issueTypeRepository.getDefaultIssueTypes()));

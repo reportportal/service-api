@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.imprt.impl.junit;
 import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toMillis;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
@@ -85,7 +84,7 @@ public class XunitImportHandler extends DefaultHandler {
   //need to know item's id to attach System.out/System.err logs
   private String currentItemUuid;
 
-  private LocalDateTime startSuiteTime;
+  private Instant startSuiteTime;
 
   private long commonDuration;
   private long currentDuration;
@@ -96,13 +95,13 @@ public class XunitImportHandler extends DefaultHandler {
   private Deque<String> itemUuids;
   private StatusEnum status;
   private StringBuilder message;
-  private LocalDateTime startItemTime;
+  private Instant startItemTime;
 
   @Override
   public void startDocument() {
     itemUuids = new ArrayDeque<>();
     message = new StringBuilder();
-    startSuiteTime = LocalDateTime.now();
+    startSuiteTime = Instant.now();
   }
 
   @Override
@@ -191,16 +190,16 @@ public class XunitImportHandler extends DefaultHandler {
     if (null != timestamp) {
       startItemTime = parseTimeStamp(timestamp);
       if (startSuiteTime.isAfter(startItemTime)) {
-        startSuiteTime = LocalDateTime.of(startItemTime.toLocalDate(), startItemTime.toLocalTime());
+        startSuiteTime = startItemTime;
       }
     } else if (null != startTime) {
       startItemTime = parseTimeStamp(startTime);
       if (startSuiteTime.isAfter(startItemTime)) {
-        startSuiteTime = LocalDateTime.of(startItemTime.toLocalDate(), startItemTime.toLocalTime());
+        startSuiteTime = startItemTime;
       }
     } else {
-      startItemTime = LocalDateTime.now();
-      startSuiteTime = LocalDateTime.now();
+      startItemTime = Instant.now();
+      startSuiteTime = Instant.now();
     }
     currentSuiteDuration = toMillis(duration);
     StartTestItemRQ rq = buildStartTestRq(name);
@@ -208,11 +207,10 @@ public class XunitImportHandler extends DefaultHandler {
     itemUuids.push(id);
   }
 
-  private LocalDateTime parseTimeStamp(String timestamp) {
+  private Instant parseTimeStamp(String timestamp) {
     // try to parse datetime as Long, otherwise parse as timestamp
     try {
-      return LocalDateTime.ofInstant(
-          Instant.ofEpochMilli(Long.parseLong(timestamp)), ZoneOffset.UTC);
+      return Instant.ofEpochMilli(Long.parseLong(timestamp));
     } catch (NumberFormatException ignored) {
       DateTimeFormatter formatter =
           new DateTimeFormatterBuilder().appendOptional(DateTimeFormatter.RFC_1123_DATE_TIME)
@@ -224,9 +222,9 @@ public class XunitImportHandler extends DefaultHandler {
       TemporalAccessor temporalAccessor = formatter.parse(timestamp);
       if (isParsedTimeStampHasOffset(temporalAccessor)) {
         return ZonedDateTime.from(temporalAccessor).withZoneSameInstant(ZoneOffset.UTC)
-            .toLocalDateTime();
+            .toInstant();
       } else {
-        return LocalDateTime.from(temporalAccessor);
+        return LocalDateTime.from(temporalAccessor).toInstant(ZoneOffset.UTC);
       }
     }
 
@@ -253,7 +251,7 @@ public class XunitImportHandler extends DefaultHandler {
       startItemTime = startSuiteTime;
     }
 
-    rq.setStartTime(EntityUtils.TO_DATE.apply(startItemTime));
+    rq.setStartTime(startItemTime);
 
     String id =
         startTestItemHandler.startChildItem(user, projectDetails, rq, itemUuids.peek()).getId();
@@ -265,8 +263,7 @@ public class XunitImportHandler extends DefaultHandler {
   private void finishRootItem() {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     markAsNotIssue(rq);
-    rq.setEndTime(
-        EntityUtils.TO_DATE.apply(startSuiteTime.plus(currentSuiteDuration, ChronoUnit.MILLIS)));
+    rq.setEndTime(startSuiteTime.plus(currentSuiteDuration, ChronoUnit.MILLIS));
     finishTestItemHandler.finishTestItem(user, projectDetails, itemUuids.poll(), rq);
     status = null;
   }
@@ -274,9 +271,9 @@ public class XunitImportHandler extends DefaultHandler {
   private void finishTestItem() {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     markAsNotIssue(rq);
-    LocalDateTime endTime = startItemTime.plus(currentDuration, ChronoUnit.MILLIS);
+    Instant endTime = startItemTime.plus(currentDuration, ChronoUnit.MILLIS);
     commonDuration += currentDuration;
-    rq.setEndTime(EntityUtils.TO_DATE.apply(endTime));
+    rq.setEndTime(endTime);
     rq.setStatus(Optional.ofNullable(status).orElse(StatusEnum.PASSED).name());
     currentItemUuid = itemUuids.poll();
     finishTestItemHandler.finishTestItem(user, projectDetails, currentItemUuid, rq);
@@ -295,7 +292,7 @@ public class XunitImportHandler extends DefaultHandler {
     if (null != message && message.length() != 0) {
       SaveLogRQ saveLogRQ = new SaveLogRQ();
       saveLogRQ.setLevel(logLevel.name());
-      saveLogRQ.setLogTime(EntityUtils.TO_DATE.apply(startItemTime));
+      saveLogRQ.setLogTime(startItemTime);
       saveLogRQ.setMessage(message.toString().trim());
       saveLogRQ.setItemUuid(currentItemUuid);
       createLogHandler.createLog(saveLogRQ, null, projectDetails);
@@ -314,13 +311,13 @@ public class XunitImportHandler extends DefaultHandler {
   private StartTestItemRQ buildStartTestRq(String name) {
     StartTestItemRQ rq = new StartTestItemRQ();
     rq.setLaunchUuid(launchUuid);
-    rq.setStartTime(EntityUtils.TO_DATE.apply(startItemTime));
+    rq.setStartTime(startItemTime);
     rq.setType(TestItemTypeEnum.TEST.name());
     rq.setName(Strings.isNullOrEmpty(name) ? "no_name" : name);
     return rq;
   }
 
-  LocalDateTime getStartSuiteTime() {
+  Instant getStartSuiteTime() {
     return startSuiteTime;
   }
 

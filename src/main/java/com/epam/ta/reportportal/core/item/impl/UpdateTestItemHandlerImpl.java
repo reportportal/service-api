@@ -75,8 +75,8 @@ import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
 import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
 import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.reporting.Issue;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -171,8 +171,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
         IssueEntity issueEntity =
             new IssueEntityBuilder(testItem.getItemResults().getIssue()).addIssueType(issueType)
-                .addDescription(issue.getComment()).addIgnoreFlag(issue.getIgnoreAnalyzer())
-                .addAutoAnalyzedFlag(issue.getAutoAnalyzed()).get();
+                .addDescription(issue.getComment()).addIgnoreFlag(issue.isIgnoreAnalyzer())
+                .addAutoAnalyzedFlag(issue.isAutoAnalyzed()).get();
 
         externalTicketHandler.updateLinking(
             user.getUsername(), issueEntity, issueDefinition.getIssue().getExternalSystemIssues());

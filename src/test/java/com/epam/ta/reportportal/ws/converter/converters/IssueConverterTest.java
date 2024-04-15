@@ -35,9 +35,9 @@ class IssueConverterTest {
     final IssueEntity issueEntity = getIssueEntity();
     final Issue resource = IssueConverter.TO_MODEL.apply(issueEntity);
 
-    assertEquals(resource.getAutoAnalyzed(), issueEntity.getAutoAnalyzed());
+    assertEquals(resource.isAutoAnalyzed(), issueEntity.getAutoAnalyzed());
     assertEquals(resource.getComment(), issueEntity.getIssueDescription());
-    assertEquals(resource.getIgnoreAnalyzer(), issueEntity.getIgnoreAnalyzer());
+    assertEquals(resource.isIgnoreAnalyzer(), issueEntity.getIgnoreAnalyzer());
     assertEquals(resource.getIssueType(), issueEntity.getIssueType().getLocator());
   }
 
@@ -46,8 +46,8 @@ class IssueConverterTest {
     final Issue issue = getIssue();
     final IssueEntity issueEntity = IssueConverter.TO_ISSUE.apply(issue);
 
-    assertEquals(issueEntity.getIgnoreAnalyzer(), issue.getIgnoreAnalyzer());
-    assertEquals(issueEntity.getAutoAnalyzed(), issue.getAutoAnalyzed());
+    assertEquals(issueEntity.getIgnoreAnalyzer(), issue.isIgnoreAnalyzer());
+    assertEquals(issueEntity.getAutoAnalyzed(), issue.isAutoAnalyzed());
     assertEquals(issue.getComment(), issue.getComment());
   }
 

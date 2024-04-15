@@ -52,8 +52,7 @@ import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import com.google.common.base.Strings;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -355,7 +354,7 @@ public class AsyncReportingListener implements MessageListener {
               .withLaunchUuid(launchUuid)
               .withLogUuid(logUuid)
 							.withFileName(fileName)
-              .withCreationDate(LocalDateTime.now(ZoneOffset.UTC))
+              .withCreationDate(Instant.now())
               .build()
       );
     }

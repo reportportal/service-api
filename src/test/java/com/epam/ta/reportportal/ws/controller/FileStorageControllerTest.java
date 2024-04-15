@@ -16,12 +16,21 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.util.MultipartFileUtils.getMultipartFile;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -30,16 +39,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.util.MultipartFileUtils.getMultipartFile;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -114,7 +113,7 @@ class FileStorageControllerTest extends BaseMvcTest {
 	void getFile() throws Exception {
 		AttachmentMetaInfo metaInfo = AttachmentMetaInfo.builder()
 				.withProjectId(1L)
-				.withCreationDate(LocalDateTime.now())
+				.withCreationDate(Instant.now())
 				.withItemId(1L)
 				.withLaunchId(1L)
 				.withLogId(1L)

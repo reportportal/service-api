@@ -30,7 +30,7 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -238,7 +238,7 @@ class SuggestItemServiceTest {
     relevantItem.setItemId(2L);
 
     TestItemResults relevantItemRes = new TestItemResults();
-    relevantItemRes.setEndTime(LocalDateTime.now());
+    relevantItemRes.setEndTime(Instant.now());
 
     relevantItem.setItemResults(relevantItemRes);
 

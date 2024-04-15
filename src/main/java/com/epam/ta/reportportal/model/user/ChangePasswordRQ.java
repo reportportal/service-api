@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.model.user;
 
-import com.epam.ta.reportportal.ws.model.ValidationConstraints;
+import com.epam.reportportal.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;

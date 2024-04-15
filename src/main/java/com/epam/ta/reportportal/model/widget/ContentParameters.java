@@ -26,8 +26,8 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_WIDGET_LIMIT;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_WIDGET_LIMIT;
+import static com.epam.reportportal.model.ValidationConstraints.MAX_WIDGET_LIMIT;
+import static com.epam.reportportal.model.ValidationConstraints.MIN_WIDGET_LIMIT;
 
 /**
  * Part of widget domain object. Describe chart parameters

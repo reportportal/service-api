@@ -15,9 +15,9 @@
  */
 package com.epam.ta.reportportal.model.project.config;
 
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.HEX_COLOR_REGEXP;
+import static com.epam.reportportal.model.ValidationConstraints.HEX_COLOR_REGEXP;
 
-import com.epam.ta.reportportal.ws.model.ValidationConstraints;
+import com.epam.reportportal.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;

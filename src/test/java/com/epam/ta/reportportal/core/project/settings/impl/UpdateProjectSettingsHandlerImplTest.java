@@ -28,7 +28,7 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.project.config.UpdateIssueSubTypeRQ;
 import com.epam.ta.reportportal.model.project.config.UpdateOneIssueSubTypeRQ;
 import java.util.Collections;

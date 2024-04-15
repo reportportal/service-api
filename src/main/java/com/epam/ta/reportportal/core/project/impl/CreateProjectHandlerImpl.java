@@ -19,12 +19,12 @@ package com.epam.ta.reportportal.core.project.impl;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.isPresent;
 import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 
 import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.activity.ProjectCreatedEvent;
 import com.epam.ta.reportportal.core.project.CreateProjectHandler;
 import com.epam.ta.reportportal.dao.AttributeRepository;
@@ -41,13 +41,13 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.project.CreateProjectRQ;
 import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.util.SlugifyUtils;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
-import java.util.Date;
+import com.epam.reportportal.rules.exception.ErrorType;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,7 +137,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
     project.setKey(projectKey);
     project.setSlug(projectSlug);
     project.setName(projectName);
-    project.setCreationDate(new Date());
+    project.setCreationDate(Instant.now());
 
     project.setProjectIssueTypes(
         ProjectUtils.defaultIssueTypes(project, issueTypeRepository.getDefaultIssueTypes()));

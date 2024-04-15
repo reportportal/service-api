@@ -44,11 +44,10 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
-import java.time.LocalDateTime;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -194,7 +193,7 @@ class FinishTestItemHandlerImplTest {
     launch.setId(1L);
     launch.setUserId(1L);
     launch.setProjectId(1L);
-    item.setStartTime(LocalDateTime.now().minusSeconds(5L));
+    item.setStartTime(Instant.now().minusSeconds(5L));
     item.setLaunchId(launch.getId());
     item.setType(TestItemTypeEnum.STEP);
     item.setHasStats(true);
@@ -217,7 +216,7 @@ class FinishTestItemHandlerImplTest {
 
     FinishTestItemRQ finishExecutionRQ = new FinishTestItemRQ();
     finishExecutionRQ.setStatus("FAILED");
-    finishExecutionRQ.setEndTime(new Date());
+    finishExecutionRQ.setEndTime(Instant.now());
 
     OperationCompletionRS operationCompletionRS =
         handler.finishTestItem(rpUser, extractProjectDetails(rpUser, TEST_PROJECT_KEY), "1",

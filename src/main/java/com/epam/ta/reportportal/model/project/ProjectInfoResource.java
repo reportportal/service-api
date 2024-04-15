@@ -19,27 +19,28 @@ package com.epam.ta.reportportal.model.project;
 import com.epam.ta.reportportal.model.ModelViews;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 /**
- * Project info resource representation for responses<br>
- * {@link ModelViews.DefaultView} used as
- * default fields output<br>
- * {@link ModelViews.FullProjectInfoView} used
- * as extended fields output<br>
+ * Project info resource representation for responses<br> {@link ModelViews.DefaultView} used as
+ * default fields output<br> {@link ModelViews.FullProjectInfoView} used as extended fields
+ * output<br>
  *
  * @author Dzmitry_Kavalets
  * @author Andrei_Ramanchuk
  */
+
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
 public class ProjectInfoResource {
 
   @NotNull
@@ -72,11 +73,11 @@ public class ProjectInfoResource {
 
   @NotNull
   @JsonProperty(value = "lastRun")
-  private Date lastRun;
+  private Instant lastRun;
 
   @NotNull
   @JsonProperty(value = "creationDate")
-  private Date creationDate;
+  private Instant creationDate;
 
   @JsonProperty(value = "entryType")
   private String entryType;

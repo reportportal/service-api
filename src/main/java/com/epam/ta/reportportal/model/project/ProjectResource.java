@@ -18,10 +18,11 @@ package com.epam.ta.reportportal.model.project;
 
 import com.epam.ta.reportportal.model.integration.IntegrationResource;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import javax.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -30,9 +31,10 @@ import lombok.ToString;
  *
  * @author Pavel Bortnik
  */
-
 @Getter
 @Setter
+@ToString
+@NoArgsConstructor
 public class ProjectResource {
 
   @NotNull
@@ -73,7 +75,7 @@ public class ProjectResource {
 
   @NotNull
   @JsonProperty(value = "creationDate")
-  private Date creationDate;
+  private Instant creationDate;
 
   @Getter
   @Setter

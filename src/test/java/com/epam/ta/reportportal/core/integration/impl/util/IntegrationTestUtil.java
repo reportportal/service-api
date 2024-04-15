@@ -23,7 +23,7 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.google.common.collect.Maps;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 
@@ -42,7 +42,7 @@ public final class IntegrationTestUtil {
     Integration integration = new Integration();
 
     integration.setCreator("superadmin");
-    integration.setCreationDate(LocalDateTime.now());
+    integration.setCreationDate(Instant.now());
     integration.setType(getEmailIntegrationType());
     integration.setParams(new IntegrationParams(getParams()));
     integration.setId(emailIntegrationId);
@@ -64,7 +64,7 @@ public final class IntegrationTestUtil {
     Integration integration = new Integration();
 
     integration.setCreator("superadmin");
-    integration.setCreationDate(LocalDateTime.now());
+    integration.setCreationDate(Instant.now());
     integration.setType(getJiraIntegrationType());
     integration.setParams(new IntegrationParams(params));
     integration.setId(id);
@@ -103,7 +103,7 @@ public final class IntegrationTestUtil {
     IntegrationType integrationType = new IntegrationType();
 
     integrationType.setName("jira");
-    integrationType.setCreationDate(LocalDateTime.now());
+    integrationType.setCreationDate(Instant.now());
     integrationType.setId(1L);
     integrationType.setIntegrationGroup(IntegrationGroupEnum.BTS);
     IntegrationTypeDetails details = new IntegrationTypeDetails();
@@ -118,7 +118,7 @@ public final class IntegrationTestUtil {
     IntegrationType integrationType = new IntegrationType();
 
     integrationType.setName("EMAIL");
-    integrationType.setCreationDate(LocalDateTime.now());
+    integrationType.setCreationDate(Instant.now());
     integrationType.setId(1L);
     integrationType.setIntegrationGroup(IntegrationGroupEnum.NOTIFICATION);
 

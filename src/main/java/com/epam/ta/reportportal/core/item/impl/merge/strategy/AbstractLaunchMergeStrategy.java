@@ -16,18 +16,16 @@
 
 package com.epam.ta.reportportal.core.item.impl.merge.strategy;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME;
+import static com.epam.reportportal.rules.exception.ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.identity.IdentityUtil;
 import com.epam.ta.reportportal.core.item.identity.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.merge.LaunchMergeStrategy;
@@ -40,17 +38,17 @@ import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.reporting.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.google.common.collect.Sets;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -101,16 +99,20 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
    */
   private Launch createResultedLaunch(Long projectId, Long userId, MergeLaunchesRQ mergeLaunchesRQ,
       List<Launch> launches) {
-    Date startTime = ofNullable(mergeLaunchesRQ.getStartTime()).orElse(EntityUtils.TO_DATE.apply(
-        launches.stream().min(Comparator.comparing(Launch::getStartTime)).orElseThrow(
+    Instant startTime = ofNullable(mergeLaunchesRQ.getStartTime())
+        .orElse(launches.stream()
+            .min(Comparator.comparing(Launch::getStartTime))
+            .orElseThrow(
                 () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Invalid launches"))
-            .getStartTime()));
-    Date endTime = ofNullable(mergeLaunchesRQ.getEndTime()).orElse(EntityUtils.TO_DATE.apply(
-        launches.stream().max(Comparator.comparing(Launch::getEndTime)).orElseThrow(
+            .getStartTime());
+    Instant endTime = ofNullable(mergeLaunchesRQ.getEndTime())
+        .orElse(launches.stream()
+            .max(Comparator.comparing(Launch::getEndTime))
+            .orElseThrow(
                 () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Invalid launches"))
-            .getEndTime()));
-    expect(endTime, time -> !time.before(startTime)).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
-        TO_LOCAL_DATE_TIME.apply(endTime), startTime, projectId
+            .getEndTime());
+    expect(endTime, time -> !time.isBefore(startTime)).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
+        endTime, startTime, projectId
     );
 
     StartLaunchRQ startRQ = new StartLaunchRQ();

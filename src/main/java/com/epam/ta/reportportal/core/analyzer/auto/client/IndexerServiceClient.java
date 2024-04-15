@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.client;
 
-import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
+import com.epam.reportportal.model.analyzer.IndexLaunch;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;

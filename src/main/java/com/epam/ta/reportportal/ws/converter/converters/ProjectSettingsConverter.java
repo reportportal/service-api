@@ -16,9 +16,6 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import static java.util.Optional.ofNullable;
-
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
@@ -51,8 +48,8 @@ public final class ProjectSettingsConverter {
         resource.setProjectName(project.getName());
         resource.setProjectKey(project.getKey());
         resource.setProjectSlug(project.getSlug());
-        resource.setCreationDate(EntityUtils.TO_DATE.apply(project.getCreationDate()));
-        resource.setLastRun(ofNullable(project.getLastRun()).map(EntityUtils.TO_DATE).orElse(null));
+        resource.setCreationDate(project.getCreationDate());
+        resource.setLastRun(project.getLastRun());
         resource.setEntryType(project.getProjectType());
         resource.setOrganizationId(project.getOrganizationId());
         return resource;

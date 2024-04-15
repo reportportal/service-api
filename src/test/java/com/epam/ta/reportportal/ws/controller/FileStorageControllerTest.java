@@ -29,7 +29,7 @@ import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,7 +113,7 @@ class FileStorageControllerTest extends BaseMvcTest {
 	void getFile() throws Exception {
 		AttachmentMetaInfo metaInfo = AttachmentMetaInfo.builder()
 				.withProjectId(1L)
-				.withCreationDate(LocalDateTime.now())
+				.withCreationDate(Instant.now())
 				.withItemId(1L)
 				.withLaunchId(1L)
 				.withLogId(1L)

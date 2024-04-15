@@ -38,14 +38,13 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.BulkRQ;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,8 +85,7 @@ class FinishLaunchHandlerImplTest {
   @Test
   void finishLaunch() {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-    finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    finishExecutionRQ.setEndTime(Instant.now());
 
     ReportPortalUser rpUser =
         getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
@@ -108,8 +106,7 @@ class FinishLaunchHandlerImplTest {
   @Test
   void finishLaunchWithLink() {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-    finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    finishExecutionRQ.setEndTime(Instant.now());
 
     ReportPortalUser rpUser =
         getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
@@ -131,8 +128,7 @@ class FinishLaunchHandlerImplTest {
   @Test
   void stopLaunch() {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-    finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    finishExecutionRQ.setEndTime(Instant.now());
 
     ReportPortalUser rpUser =
         getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
@@ -150,8 +146,7 @@ class FinishLaunchHandlerImplTest {
   @Test
   void bulkStopLaunch() {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-    finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    finishExecutionRQ.setEndTime(Instant.now());
 
     Map<Long, FinishExecutionRQ> entities = new HashMap<>();
     entities.put(1L, finishExecutionRQ);
@@ -174,8 +169,7 @@ class FinishLaunchHandlerImplTest {
   @Test
   void finishWithIncorrectStatus() {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-    finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    finishExecutionRQ.setEndTime(Instant.now());
 
     final ReportPortalUser rpUser =
         getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
@@ -191,8 +185,7 @@ class FinishLaunchHandlerImplTest {
   @Test
   void finishWithIncorrectEndTime() {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-    finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().minusHours(5).atZone(ZoneId.of("UTC")).toInstant()));
+    finishExecutionRQ.setEndTime(Instant.now().minus(5, ChronoUnit.HOURS));
 
     final ReportPortalUser rpUser =
         getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
@@ -208,8 +201,7 @@ class FinishLaunchHandlerImplTest {
   @Test
   void finishNotOwnLaunch() {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-    finishExecutionRQ.setEndTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    finishExecutionRQ.setEndTime(Instant.now());
 
     final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
     rpUser.setUserId(2L);

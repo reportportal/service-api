@@ -20,8 +20,8 @@ import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.entity.bts.DefectFieldAllowedValue;
 import com.epam.ta.reportportal.entity.bts.DefectFormField;
-import com.epam.ta.reportportal.ws.model.externalsystem.AllowedValue;
-import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
+import com.epam.reportportal.model.externalsystem.AllowedValue;
+import com.epam.reportportal.model.externalsystem.PostFormField;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;

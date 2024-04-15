@@ -35,8 +35,8 @@ public final class IssueConverter {
 
   public static final Function<Issue, IssueEntity> TO_ISSUE = from -> {
     IssueEntity issue = new IssueEntity();
-    issue.setAutoAnalyzed(from.getAutoAnalyzed());
-    issue.setIgnoreAnalyzer(from.getIgnoreAnalyzer());
+    issue.setAutoAnalyzed(from.isAutoAnalyzed());
+    issue.setIgnoreAnalyzer(from.isIgnoreAnalyzer());
     issue.setIssueDescription(from.getComment());
     return issue;
   };

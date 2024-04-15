@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.epam.ta.reportportal.model.widget.ContentParameters;
 import com.epam.ta.reportportal.model.widget.MaterializedWidgetType;
 import com.epam.ta.reportportal.model.widget.WidgetRQ;
-import com.epam.ta.reportportal.ws.model.ValidationConstraints;
+import com.epam.reportportal.model.ValidationConstraints;
 import java.util.Collections;
 import java.util.Set;
 import javax.validation.ConstraintViolation;

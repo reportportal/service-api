@@ -69,9 +69,9 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         implementation 'com.github.reportportal:commons-dao:0703b75'
-        implementation 'com.github.reportportal:commons-reporting:ecff674'
+        implementation 'com.github.reportportal:commons-reporting:d99e842'
         implementation 'com.github.reportportal:commons:d7f9bec'
-        implementation 'com.github.reportportal:plugin-api:0ade3c1'
+        implementation 'com.github.reportportal:plugin-api:3ecb915657'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'

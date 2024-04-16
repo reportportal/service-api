@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.epam.ta.reportportal.entity.enums.OrganizationType;
 import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.model.organization.OrganizationResource;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -39,7 +39,7 @@ class OrganizationConverterTest {
   @Test
   void testConvert() {
     final Organization org = new Organization(1L,
-        LocalDateTime.now(),
+        Instant.now(),
         "my-org-name",
         OrganizationType.INTERNAL,
         "my-org-slug");

@@ -16,17 +16,17 @@
 
 package com.epam.ta.reportportal.core.organization.impl;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.organization.Organization;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.organization.OrganizationInfoResource;
 import com.epam.ta.reportportal.model.organization.OrganizationResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

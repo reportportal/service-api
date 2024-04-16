@@ -1,5 +1,3 @@
-package com.epam.ta.reportportal.model.organization;
-
 /*
  * Copyright 2024 EPAM Systems
  *
@@ -16,11 +14,12 @@ package com.epam.ta.reportportal.model.organization;
  * limitations under the License.
  */
 
+package com.epam.ta.reportportal.model.organization;
 
 import com.epam.ta.reportportal.entity.enums.OrganizationType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
+import java.time.Instant;
 import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -55,6 +54,6 @@ public class OrganizationResource {
 
   @NotNull
   @JsonProperty(value = "creationDate", required = true)
-  private Date creationDate;
+  private Instant creationDate;
 
 }

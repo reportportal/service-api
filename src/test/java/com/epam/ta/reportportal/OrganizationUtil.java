@@ -18,7 +18,7 @@ package com.epam.ta.reportportal;
 
 import com.epam.ta.reportportal.entity.enums.OrganizationType;
 import com.epam.ta.reportportal.entity.organization.Organization;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * @author Siarhei Hrabko
@@ -33,7 +33,7 @@ public class OrganizationUtil {
   public static final String TEST_PROJECT_SLUG = "project-name";
   public static final String TEST_PROJECT_KEY = TEST_ORG_SLUG + "." + TEST_PROJECT_SLUG;
   public static final Organization TEST_ORG = new Organization(TEST_ORG_ID,
-      LocalDateTime.now(),
+      Instant.now(),
       TEST_ORG_NAME,
       OrganizationType.INTERNAL,
       TEST_ORG_SLUG);

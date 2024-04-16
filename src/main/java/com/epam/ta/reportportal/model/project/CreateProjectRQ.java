@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.model.project;
 
 import static com.epam.reportportal.model.ValidationConstraints.PROJECT_NAME_REGEXP;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.PROJECT_SLUG_REGEXP;
 
 import com.epam.reportportal.annotations.In;
 import com.epam.reportportal.model.ValidationConstraints;
@@ -59,7 +58,7 @@ public class CreateProjectRQ {
   @JsonProperty(value = "organizationId")
   private Long organizationId;
 
-  @Pattern(regexp = PROJECT_SLUG_REGEXP)
+  @Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$")
   @Size(min = ValidationConstraints.MIN_NAME_LENGTH, max = ValidationConstraints.MAX_NAME_LENGTH)
   @JsonProperty(value = "projectSlug", required = true)
   @Schema(requiredMode = RequiredMode.REQUIRED)

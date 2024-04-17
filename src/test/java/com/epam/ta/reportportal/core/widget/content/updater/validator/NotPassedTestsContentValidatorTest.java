@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import java.util.Collections;
 import java.util.HashMap;
 import org.junit.jupiter.api.BeforeEach;

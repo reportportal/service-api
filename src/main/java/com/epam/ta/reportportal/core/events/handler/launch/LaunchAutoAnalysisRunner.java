@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItems
 import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.stereotype.Service;

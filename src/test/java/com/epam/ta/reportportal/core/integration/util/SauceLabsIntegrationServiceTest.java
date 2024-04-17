@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.core.integration.util.property.SauceLabsProperties;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.google.common.collect.Maps;
 import java.util.Collections;
 import java.util.HashMap;

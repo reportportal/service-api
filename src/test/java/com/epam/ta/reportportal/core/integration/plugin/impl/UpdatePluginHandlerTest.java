@@ -29,14 +29,14 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.activity.PluginUpdatedEvent;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.model.integration.UpdatePluginStateRQ;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;

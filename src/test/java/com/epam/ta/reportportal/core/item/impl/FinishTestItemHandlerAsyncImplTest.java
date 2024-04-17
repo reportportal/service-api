@@ -25,7 +25,7 @@ import static org.mockito.Mockito.verify;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ReportingQueueService;
 import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
 import java.util.UUID;

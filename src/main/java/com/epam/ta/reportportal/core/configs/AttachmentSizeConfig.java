@@ -17,9 +17,9 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import java.io.InputStream;
 import java.util.Optional;
 import javax.sql.DataSource;

@@ -16,16 +16,16 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.configs.Conditions;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.job.service.PluginLoaderService;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

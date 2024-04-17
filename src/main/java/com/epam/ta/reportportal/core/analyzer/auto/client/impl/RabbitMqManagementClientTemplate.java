@@ -21,8 +21,8 @@ import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUt
 import static java.util.Comparator.comparingInt;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.rabbitmq.http.client.Client;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
 import java.util.List;

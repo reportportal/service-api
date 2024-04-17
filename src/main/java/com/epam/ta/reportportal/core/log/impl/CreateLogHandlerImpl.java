@@ -32,13 +32,12 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LogFullBuilder;
-import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
+import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
 import org.slf4j.Logger;
@@ -131,7 +130,7 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
             .withLogId(savedLog.getId())
             .withFileName(file.getOriginalFilename())
             .withLogUuid(savedLog.getUuid())
-            .withCreationDate(LocalDateTime.now(ZoneOffset.UTC));
+            .withCreationDate(Instant.now());
     ofNullable(savedLog.getTestItem()).map(TestItem::getItemId)
         .ifPresent(metaInfoBuilder::withItemId);
 

@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.auto.impl.preparer;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
+import com.epam.reportportal.model.analyzer.IndexTestItem;
 import java.util.Collection;
 import java.util.List;
 

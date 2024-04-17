@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.integration.plugin;
 
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;

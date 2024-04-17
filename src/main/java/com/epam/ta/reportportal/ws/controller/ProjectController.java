@@ -44,7 +44,7 @@ import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.preference.PreferenceResource;
@@ -58,7 +58,7 @@ import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO
 import com.epam.ta.reportportal.model.user.SearchUserResource;
 import com.epam.ta.reportportal.model.user.UserResource;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;

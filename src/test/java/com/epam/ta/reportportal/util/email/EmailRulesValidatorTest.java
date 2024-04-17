@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.RandomStringUtils;

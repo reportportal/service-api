@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.project.settings.impl;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.AUTOMATION_BUG;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NO_DEFECT;
@@ -25,12 +25,12 @@ import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.PRODUCT_B
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.SYSTEM_ISSUE;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_REQUEST;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
+import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.pattern.service.CreatePatternTemplateHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeCreatedEvent;
@@ -49,15 +49,15 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.project.config.CreateIssueSubTypeRQ;
 import com.epam.ta.reportportal.model.project.config.IssueSubTypeCreatedRS;
 import com.epam.ta.reportportal.model.project.config.pattern.CreatePatternTemplateRQ;
 import com.epam.ta.reportportal.ws.converter.builders.IssueTypeBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
-import com.epam.ta.reportportal.ws.model.ValidationConstraints;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.model.ValidationConstraints;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import java.nio.ByteBuffer;

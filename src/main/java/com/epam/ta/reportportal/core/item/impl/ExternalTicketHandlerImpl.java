@@ -30,8 +30,6 @@ import com.epam.ta.reportportal.ws.converter.converters.TicketConverter;
 import com.epam.ta.reportportal.ws.reporting.Issue;
 import com.epam.ta.reportportal.ws.reporting.Issue.ExternalSystemIssue;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -124,9 +122,7 @@ public class ExternalTicketHandlerImpl implements ExternalTicketHandler {
         ticket = TicketConverter.TO_TICKET.apply(it);
       }
       ticket.setSubmitter(username);
-      ticket.setSubmitDate(ofNullable(it.getSubmitDate()).map(
-              millis -> LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneOffset.UTC))
-          .orElse(LocalDateTime.now()));
+      ticket.setSubmitDate(ofNullable(it.getSubmitDate()).orElse(Instant.now()));
       return ticket;
     }).collect(toSet());
   }

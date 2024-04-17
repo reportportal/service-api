@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import static java.util.Optional.ofNullable;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.model.integration.IntegrationTypeResource;
 import java.util.function.Function;
@@ -34,7 +33,7 @@ public final class IntegrationTypeConverter {
         resource.setId(integrationType.getId());
         resource.setName(integrationType.getName());
         resource.setEnabled(integrationType.isEnabled());
-        resource.setCreationDate(EntityUtils.TO_DATE.apply(integrationType.getCreationDate()));
+        resource.setCreationDate(integrationType.getCreationDate());
         resource.setGroupType(integrationType.getIntegrationGroup().name());
         ofNullable(integrationType.getDetails()).ifPresent(
             it -> resource.setDetails(integrationType.getDetails().getDetails()));

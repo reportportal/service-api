@@ -42,18 +42,17 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.builders.LogFullBuilder;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
-import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
-import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
+import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import com.google.common.base.Strings;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -312,15 +311,17 @@ public class AsyncReportingListener implements MessageListener {
     Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
     logService.saveLogMessage(logFull, effectiveLaunch.getId());
 
-    if (Objects.nonNull(request.getFile())) {saveAttachment(request.getFile().getName(), metaInfo,
-        logFull.getId(),
-        projectId,
-        effectiveLaunch.getId(),
-        item.getItemId(),
-        effectiveLaunch.getUuid(),
-        logFull.getUuid()
-    );
-  }}
+    if (Objects.nonNull(request.getFile())) {
+      saveAttachment(request.getFile().getName(), metaInfo,
+          logFull.getId(),
+          projectId,
+          effectiveLaunch.getId(),
+          item.getItemId(),
+          effectiveLaunch.getUuid(),
+          logFull.getUuid()
+      );
+    }
+  }
 
   private void createLaunchLog(SaveLogRQ request, Launch launch, BinaryDataMetaInfo metaInfo,
       Long projectId) {
@@ -331,9 +332,12 @@ public class AsyncReportingListener implements MessageListener {
     logFull.setId(log.getId());
     logService.saveLogMessage(logFull, launch.getId());
 
-    saveAttachment(request.getFile().getName(), metaInfo, logFull.getId(), projectId, launch.getId(),
-				null, launch.getUuid(),
-        logFull.getUuid());
+    if (Objects.nonNull(request.getFile())) {
+      saveAttachment(request.getFile().getName(), metaInfo, logFull.getId(), projectId,
+          launch.getId(),
+          null, launch.getUuid(),
+          logFull.getUuid());
+    }
   }
 
   private void saveAttachment(String fileName, BinaryDataMetaInfo metaInfo, Long logId,
@@ -350,7 +354,7 @@ public class AsyncReportingListener implements MessageListener {
               .withLaunchUuid(launchUuid)
               .withLogUuid(logUuid)
 							.withFileName(fileName)
-              .withCreationDate(LocalDateTime.now(ZoneOffset.UTC))
+              .withCreationDate(Instant.now())
               .build()
       );
     }

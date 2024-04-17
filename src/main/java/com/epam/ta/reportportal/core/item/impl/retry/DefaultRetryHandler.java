@@ -1,14 +1,14 @@
 package com.epam.ta.reportportal.core.item.impl.retry;
 
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.events.activity.item.ItemRetryEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
-import java.time.LocalDateTime;
+import com.epam.reportportal.rules.exception.ErrorType;
+import java.time.Instant;
 import java.util.Objects;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -39,7 +39,7 @@ public class DefaultRetryHandler implements RetryHandler {
   }
 
   @Override
-  public void finishRetries(Long retryParentId, JStatusEnum status, LocalDateTime endTime) {
+  public void finishRetries(Long retryParentId, JStatusEnum status, Instant endTime) {
     testItemRepository.updateStatusAndEndTimeByRetryOfId(retryParentId,
         JStatusEnum.IN_PROGRESS,
         JStatusEnum.valueOf(status.name()),

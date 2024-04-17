@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.model.project.config.pattern;
 
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_ANALYSIS_PATTERN_NAME_LENGTH;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_ANALYSIS_PATTERN_NAME_LENGTH;
+import static com.epam.reportportal.model.ValidationConstraints.MAX_ANALYSIS_PATTERN_NAME_LENGTH;
+import static com.epam.reportportal.model.ValidationConstraints.MIN_ANALYSIS_PATTERN_NAME_LENGTH;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;

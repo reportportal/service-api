@@ -23,12 +23,14 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.cluster.Cluster;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.reportportal.model.analyzer.IndexLaunch;
+import com.epam.reportportal.model.analyzer.IndexTestItem;
+import com.epam.reportportal.model.project.AnalyzerConfig;
+import com.epam.reportportal.rules.exception.ErrorType;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -78,12 +80,12 @@ public class LaunchPreparerServiceImpl implements LaunchPreparerService {
   }
 
   private IndexLaunch createIndexLaunch(Long projectId, Long launchId, String name,
-      LocalDateTime startLaunchTime, AnalyzerConfig analyzerConfig,
+      Instant startLaunchTime, AnalyzerConfig analyzerConfig,
       List<IndexTestItem> rqTestItems, Long launchNumber) {
     IndexLaunch rqLaunch = new IndexLaunch();
     rqLaunch.setLaunchId(launchId);
     rqLaunch.setLaunchName(name);
-    rqLaunch.setLaunchStartTime(startLaunchTime);
+    rqLaunch.setLaunchStartTime(LocalDateTime.ofInstant(startLaunchTime, ZoneId.systemDefault()));
     rqLaunch.setProjectId(projectId);
     rqLaunch.setAnalyzerConfig(analyzerConfig);
     rqLaunch.setTestItems(rqTestItems);

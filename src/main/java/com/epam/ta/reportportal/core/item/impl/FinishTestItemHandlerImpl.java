@@ -16,10 +16,9 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.core.hierarchy.AbstractFinishHierarchyHandler.ATTRIBUTE_KEY_STATUS;
 import static com.epam.ta.reportportal.core.hierarchy.AbstractFinishHierarchyHandler.ATTRIBUTE_VALUE_INTERRUPTED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
@@ -35,11 +34,11 @@ import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVEST
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.AMBIGUOUS_TEST_ITEM_STATUS;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.FINISH_ITEM_NOT_ALLOWED;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.LAUNCH_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.TEST_ITEM_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.AMBIGUOUS_TEST_ITEM_STATUS;
+import static com.epam.reportportal.rules.exception.ErrorType.FINISH_ITEM_NOT_ALLOWED;
+import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.TEST_ITEM_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.commons.Preconditions;
@@ -66,14 +65,14 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
-import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.reporting.Issue;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -177,7 +176,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
     testItemRepository.save(itemForUpdate);
 
-    if (BooleanUtils.toBoolean(finishExecutionRQ.isRetry()) || StringUtils.isNotBlank(
+    if (BooleanUtils.toBoolean(finishExecutionRQ.getRetry()) || StringUtils.isNotBlank(
         finishExecutionRQ.getRetryOf())) {
       Optional.of(testItem).filter(
               it -> !it.isHasChildren() && !it.isHasRetries() && Objects.isNull(it.getRetryOf()))
@@ -221,7 +220,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
       testItemResults =
           processChildItemResult(testItem, finishTestItemRQ, user, projectDetails, launch);
     }
-    testItemResults.setEndTime(TO_LOCAL_DATE_TIME.apply(finishTestItemRQ.getEndTime()));
+    testItemResults.setEndTime(finishTestItemRQ.getEndTime());
     return testItemResults;
   }
 
@@ -315,7 +314,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
         changeStatusHandler.changeLaunchStatus(launch);
         if (testItem.isHasRetries()) {
           retryHandler.finishRetries(testItem.getItemId(), JStatusEnum.valueOf(actualStatus.name()),
-              TO_LOCAL_DATE_TIME.apply(finishTestItemRQ.getEndTime())
+              finishTestItemRQ.getEndTime()
           );
         }
       });

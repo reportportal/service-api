@@ -28,7 +28,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;

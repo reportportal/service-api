@@ -20,7 +20,8 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.User;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 /**
@@ -38,7 +39,7 @@ public class LaunchTestUtil {
     launch.setNumber(1L);
     launch.setProjectId(1L);
     launch.setStatus(status);
-    launch.setStartTime(LocalDateTime.now().minusHours(3));
+    launch.setStartTime(Instant.now().minus(3, ChronoUnit.HOURS));
     User user = new User();
     user.setId(1L);
     user.setLogin("owner");

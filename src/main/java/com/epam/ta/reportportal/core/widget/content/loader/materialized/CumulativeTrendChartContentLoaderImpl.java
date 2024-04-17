@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.widget.content.loader.materialized;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.KEY_VALUE_SEPARATOR;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTES;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.content.CumulativeTrendChartEntry;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.ImmutableMap;
 import java.util.Collections;
 import java.util.List;

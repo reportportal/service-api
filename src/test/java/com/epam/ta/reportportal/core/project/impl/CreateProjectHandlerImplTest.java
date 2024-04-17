@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.project.CreateProjectRQ;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;

@@ -29,7 +29,7 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.rabbit.QueryRQ;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;

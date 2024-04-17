@@ -46,7 +46,7 @@ public interface GetUserFilterHandler {
    * @param projectName Project Name
    * @param pageable    Page request
    * @param filter      Filter representation
-   * @param user        Report Portal User
+   * @param user        ReportPortal User
    * @return {@link Iterable}
    */
   Iterable<UserFilterResource> getUserFilters(String projectName, Pageable pageable, Filter filter,
@@ -58,7 +58,7 @@ public interface GetUserFilterHandler {
    * @param projectDetails Project details
    * @param pageable       Page request
    * @param filter         Filter representation
-   * @param user           Report Portal user
+   * @param user           ReportPortal user
    * @return List of {@link OwnedEntityResource}
    */
   Iterable<OwnedEntityResource> getFiltersNames(ReportPortalUser.ProjectDetails projectDetails,
@@ -71,7 +71,7 @@ public interface GetUserFilterHandler {
    *
    * @param ids            Filter IDs
    * @param projectDetails Project details
-   * @param user           Report Portal user
+   * @param user           ReportPortal user
    * @return Found filters
    */
   List<UserFilter> getFiltersById(Long[] ids, ReportPortalUser.ProjectDetails projectDetails,

@@ -30,7 +30,7 @@ import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 import com.google.common.collect.Lists;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
@@ -88,7 +88,7 @@ class ItemIssueTypeDefinedEventTest {
     activity.setProjectId(3L);
     activity.setObjectId(2L);
     activity.setObjectName("name");
-    activity.setCreatedAt(LocalDateTime.now());
+    activity.setCreatedAt(Instant.now());
     activity.setDetails(new ActivityDetails());
     return activity;
   }

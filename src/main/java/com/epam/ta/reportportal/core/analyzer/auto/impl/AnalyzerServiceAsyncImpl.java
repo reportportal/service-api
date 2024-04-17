@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerServiceAsync;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.beans.factory.annotation.Autowired;

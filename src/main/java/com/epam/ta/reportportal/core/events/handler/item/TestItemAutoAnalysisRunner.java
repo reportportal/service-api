@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;

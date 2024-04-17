@@ -216,6 +216,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 
     SenderCaseDTO senderCaseDTO = new SenderCaseDTO();
     senderCaseDTO.setId(5L);
+    senderCaseDTO.setType("email");
     senderCaseDTO.setSendCase(SendCase.MORE_20.getCaseString());
     senderCaseDTO.setEnabled(true);
     senderCaseDTO.setRuleName("rule #5");
@@ -233,6 +234,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 
     SenderCaseDTO senderCaseDTO = new SenderCaseDTO();
     senderCaseDTO.setId(5L);
+    senderCaseDTO.setType("email");
     senderCaseDTO.setSendCase(SendCase.MORE_20.getCaseString());
     senderCaseDTO.setEnabled(true);
     senderCaseDTO.setRuleName("rule #2");

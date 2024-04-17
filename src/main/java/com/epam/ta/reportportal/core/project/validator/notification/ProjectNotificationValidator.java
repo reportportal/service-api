@@ -57,7 +57,8 @@ public class ProjectNotificationValidator {
   public void validateCreateRQ(Project project, SenderCaseDTO senderCaseDTO) {
     validateRecipients(senderCaseDTO);
 
-    expect(senderCaseDTO.getType(), Objects::nonNull).verify(ErrorType.BAD_REQUEST_ERROR, "Notification type");
+    expect(senderCaseDTO.getType(), Objects::nonNull).verify(ErrorType.BAD_REQUEST_ERROR,
+        "Notification type");
 
     normalizeCreateNotificationRQ(project, senderCaseDTO);
 

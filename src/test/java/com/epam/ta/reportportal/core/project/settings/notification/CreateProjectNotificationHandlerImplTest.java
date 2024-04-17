@@ -52,6 +52,8 @@ class CreateProjectNotificationHandlerImplTest {
   private static final long DEFAULT_PROJECT_ID = 1L;
   private static final String DEFAULT_RULE_NAME = "Rule1";
 
+  private static final String RULE_TYPE = "email";
+
   private final SenderCaseRepository senderCaseRepository = mock(SenderCaseRepository.class);
   private final MessageBus messageBus = mock(MessageBus.class);
   private final ProjectConverter projectConverter = mock(ProjectConverter.class);
@@ -71,6 +73,7 @@ class CreateProjectNotificationHandlerImplTest {
   public void beforeEach() {
     createNotificationRQ = new SenderCaseDTO();
     createNotificationRQ.setSendCase("always");
+    createNotificationRQ.setType("email");
     createNotificationRQ.setRuleName(DEFAULT_RULE_NAME);
     createNotificationRQ.setAttributesOperator(LogicalOperator.AND.getOperator());
     createNotificationRQ.setRecipients(Collections.singletonList("OWNER"));
@@ -91,7 +94,8 @@ class CreateProjectNotificationHandlerImplTest {
   public void createNotificationWithExistingRuleNameTest() {
     SenderCase existingSenderCase = mock(SenderCase.class);
 
-    when(senderCaseRepository.findByProjectIdAndRuleNameIgnoreCase(DEFAULT_PROJECT_ID,
+    when(senderCaseRepository.findByProjectIdAndTypeAndRuleNameIgnoreCase(DEFAULT_PROJECT_ID,
+        RULE_TYPE,
         DEFAULT_RULE_NAME
     )).thenReturn(Optional.of(existingSenderCase));
 

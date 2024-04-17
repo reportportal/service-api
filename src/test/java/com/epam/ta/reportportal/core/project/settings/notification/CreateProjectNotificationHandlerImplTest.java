@@ -136,6 +136,7 @@ class CreateProjectNotificationHandlerImplTest {
   public void createNotificationWithDuplicateContentButWithDifferentRuleNameTest() {
     SenderCase dupeCreateNotificationRQ = mock(SenderCase.class);
     when(dupeCreateNotificationRQ.getSendCase()).thenReturn(SendCase.ALWAYS);
+    when(dupeCreateNotificationRQ.getType()).thenReturn("email");
     when(dupeCreateNotificationRQ.getRuleName()).thenReturn("Rule2");
     when(dupeCreateNotificationRQ.getAttributesOperator()).thenReturn(LogicalOperator.AND);
     when(dupeCreateNotificationRQ.getRecipients()).thenReturn(Collections.singleton("OWNER"));
@@ -155,7 +156,7 @@ class CreateProjectNotificationHandlerImplTest {
 
     assertTrue(assertThrows(ReportPortalException.class,
         () -> service.createNotification(project, createNotificationRQ, rpUser)
-    ).getMessage().contains("Project email settings contain duplicate cases"));
+    ).getMessage().contains("Project notification settings contain duplicate cases"));
   }
 
 }

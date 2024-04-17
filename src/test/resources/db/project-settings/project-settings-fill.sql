@@ -64,11 +64,11 @@ values (1, 'some_name', 'value', 'STRING', true, 2),
        (3, 'another_name', 'value', 'STRING', true, 1);
 alter sequence pattern_template_id_seq restart with 4;
 
-INSERT INTO public.sender_case (id, send_case, project_id, enabled, rule_name)
-VALUES (1, 'ALWAYS', 2, TRUE, 'rule #1'),
-       (2, 'FAILED', 2, FALSE, 'rule #2'),
-       (3, 'TO_INVESTIGATE', 2, FALSE, 'rule #3'),
-       (4, 'MORE_10', 2, TRUE, 'rule #4');
+INSERT INTO public.sender_case (id, send_case, project_id, enabled, rule_name, rule_type)
+VALUES (1, 'ALWAYS', 2, TRUE, 'rule #1', 'email'),
+       (2, 'FAILED', 2, FALSE, 'rule #2', 'email'),
+       (3, 'TO_INVESTIGATE', 2, FALSE, 'rule #3', 'email'),
+       (4, 'MORE_10', 2, TRUE, 'rule #4', 'email');
 
 ALTER SEQUENCE sender_case_id_seq RESTART WITH 5;
 

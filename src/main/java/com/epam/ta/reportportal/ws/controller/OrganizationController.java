@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.USER;
 
+import com.epam.ta.reportportal.api.OrganizationsApi;
+import com.epam.ta.reportportal.api.model.GetOrganizationsOrgIdNotificationRules200Response;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -34,23 +36,23 @@ import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.ArrayList;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Andrei Piankouski
  */
 @RestController
-@RequestMapping("/v1")
 @Tag(name = "organizations-controller", description = "Organizations Controller")
-public class OrganizationController {
+public class OrganizationController implements OrganizationsApi {
 
   private final GetOrganizationHandler getOrganizationHandler;
 
@@ -101,8 +103,8 @@ public class OrganizationController {
   }
 
   /**
-   * By security reasons "filter.*.user" should always be replaced with filter by current user.
-   * Only Admin users can retrieve all organizations regardless organization membership
+   * By security reasons "filter.*.user" should always be replaced with filter by current user. Only
+   * Admin users can retrieve all organizations regardless organization membership
    */
   private void modifyFilterWithUserCriteria(Filter filter, ReportPortalUser user) {
     // always remove user filter
@@ -114,5 +116,13 @@ public class OrganizationController {
       filter.withCondition(
           new FilterCondition(Condition.EQUALS, false, user.getUsername(), USER));
     }
+  }
+
+  @Override
+  public ResponseEntity<GetOrganizationsOrgIdNotificationRules200Response> getOrganizationsOrgIdNotificationRules(
+      String orgId
+  ) {
+    return ResponseEntity.ok(
+        new GetOrganizationsOrgIdNotificationRules200Response().items(new ArrayList<>()));
   }
 }

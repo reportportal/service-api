@@ -17,12 +17,14 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.ws.resolver.JacksonViewAwareModule;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -44,6 +46,8 @@ public class JacksonConfiguration {
     om.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     om.registerModule(new JacksonViewAwareModule(om));
     om.registerModule(new JavaTimeModule());
+    om.registerModule(new JsonNullableModule());
+    //om.setSerializationInclusion(Include.NON_NULL);
     return om;
   }
 }

@@ -71,9 +71,4 @@ public class JobsHealthIndicator extends AbstractHealthIndicator {
     }
   }
 
-  @Override
-  public Health getHealth(boolean includeDetails) {
-    return super.getHealth(includeDetails);
-  }
-
 }

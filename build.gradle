@@ -19,8 +19,10 @@ plugins {
     id 'org.springframework.boot' version '2.5.15'
     id 'java'
     id "org.owasp.dependencycheck" version "9.0.9"
+    id "org.openapi.generator" version "7.4.0"
 }
 
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
@@ -81,6 +83,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
+
+    implementation 'javax.validation:validation-api:2.0.1.Final'
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
 
     implementation 'org.springframework:spring-jdbc:6.1.5'
     implementation 'com.opencsv:opencsv:5.8'
@@ -153,6 +158,39 @@ dependencies {
     testImplementation 'org.flywaydb.flyway-test-extensions:flyway-spring-test:9.5.0'
 }
 
+sourceSets {
+    main {
+        java {
+            srcDirs "$buildDir/generated/src/main/java"
+        }
+    }
+}
+
+tasks.register('updateGitSubmodules', Exec) {
+    // comment for local specification development
+    commandLine 'git', 'submodule', 'update', '--init' , "--recursive", "--remote"
+    //commandLine 'git', 'status'
+}
+
+tasks.register('generateOrganizationsApi', GenerateTask) {
+    generatorName.set("spring")
+    inputSpec.set("$rootDir/reportportal-common-api/api/openapi/organizations.yaml")
+    outputDir.set("$buildDir/generated")
+    apiPackage.set("com.epam.ta.reportportal.api")
+    generateModelTests.set(false)
+    generateApiTests.set(false)
+    generateApiTests.set(false)
+    modelPackage.set("com.epam.ta.reportportal.api.model")
+    configOptions.set([
+        //    openApiNullable: "false",
+            dateLibrary: "java8",
+            interfaceOnly: "true"
+    ])
+    skipOverwrite.set(false)
+    cleanupOutput.set(true)
+    // verbose.set(true)
+}
+
 processResources {
     dependsOn(gitInfo)
     filesMatching('application.properties') {
@@ -194,6 +232,8 @@ test {
     }
 }
 
+generateOrganizationsApi.dependsOn updateGitSubmodules
+compileJava.dependsOn generateOrganizationsApi
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts

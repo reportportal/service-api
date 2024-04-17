@@ -183,8 +183,8 @@ rp:
         height: 50
 
 datastore:
-  path: /data/storage
-  type: minio
+  path: data/storage
+  type: filesystem
   endpoint: http://play.min.io
   accessKey:
   secretKey:

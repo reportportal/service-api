@@ -120,6 +120,9 @@ public final class NotificationConfigConverter {
     senderCase.setAttributesOperator(LogicalOperator.valueOf(resource.getAttributesOperator()));
     senderCase.setRuleName(resource.getRuleName());
     senderCase.setId(resource.getId());
+    senderCase.setType(resource.getType());
+    Optional.ofNullable(resource.getRuleDetails()).map(SenderCaseOptions::new)
+        .ifPresent(senderCase::setRuleDetails);
     return senderCase;
   };
 }

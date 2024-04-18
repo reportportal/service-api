@@ -55,12 +55,7 @@ public class ProjectNotificationValidator {
   }
 
   public void validateCreateRQ(Project project, SenderCaseDTO senderCaseDTO) {
-    validateRecipients(senderCaseDTO);
-
-    expect(senderCaseDTO.getType(), Objects::nonNull).verify(ErrorType.BAD_REQUEST_ERROR,
-        "Notification type");
-
-    normalizeCreateNotificationRQ(project, senderCaseDTO);
+    validateSenderCase(project, senderCaseDTO);
 
     Optional<SenderCaseDTO> duplicate =
         senderCaseRepository.findAllByProjectId(project.getId()).stream()
@@ -72,9 +67,7 @@ public class ProjectNotificationValidator {
   }
 
   public void validateUpdateRQ(Project project, SenderCaseDTO senderCaseDTO) {
-    validateRecipients(senderCaseDTO);
-
-    normalizeCreateNotificationRQ(project, senderCaseDTO);
+    validateSenderCase(project, senderCaseDTO);
 
     Optional<SenderCaseDTO> duplicate =
         senderCaseRepository.findAllByProjectId(project.getId()).stream()
@@ -82,8 +75,17 @@ public class ProjectNotificationValidator {
             .map(NotificationConfigConverter.TO_CASE_RESOURCE)
             .filter(o1 -> equalsWithoutRuleName(o1, senderCaseDTO)).findFirst();
     expect(duplicate, Optional::isEmpty).verify(BAD_REQUEST_ERROR,
-        "Project email settings contain duplicate cases"
+        "Project notification settings contain duplicate cases"
     );
+  }
+
+  private void validateSenderCase(Project project, SenderCaseDTO senderCaseDTO) {
+    validateRecipients(senderCaseDTO);
+
+    expect(senderCaseDTO.getType(), Objects::nonNull).verify(ErrorType.BAD_REQUEST_ERROR,
+        "Notification type");
+
+    normalizeCreateNotificationRQ(project, senderCaseDTO);
   }
 
   private void validateRecipients(SenderCaseDTO senderCaseDTO) {

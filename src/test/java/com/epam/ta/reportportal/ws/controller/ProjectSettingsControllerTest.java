@@ -256,6 +256,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
     updateRq.setSendCase(SendCase.ALWAYS.getCaseString());
     updateRq.setRecipients(List.of("test1@email.com", "test2@email.com"));
     updateRq.setLaunchNames(List.of("launch"));
+    updateRq.setType("email");
     updateRq.setAttributesOperator(LogicalOperator.AND.getOperator());
 
     mockMvc.perform(

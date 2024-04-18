@@ -92,7 +92,9 @@ public class LaunchNotificationRunner
   public void handle(LaunchFinishedEvent launchFinishedEvent, Map<String, String> projectConfig) {
 
     boolean isNotificationsEnabled = BooleanUtils.toBoolean(
-        projectConfig.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()));
+        projectConfig.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()))
+        && BooleanUtils.toBoolean(
+        projectConfig.get(ProjectAttributeEnum.NOTIFICATIONS_EMAIL_ENABLED.getAttribute()));
 
     if (isNotificationsEnabled) {
       getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(

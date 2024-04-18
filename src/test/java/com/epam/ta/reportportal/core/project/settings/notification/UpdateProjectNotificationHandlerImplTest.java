@@ -37,6 +37,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.List;
@@ -75,6 +76,7 @@ class UpdateProjectNotificationHandlerImplTest {
     updateNotificationRQ.setSendCase("always");
     updateNotificationRQ.setAttributesOperator(LogicalOperator.AND.getOperator());
     updateNotificationRQ.setRuleName(DEFAULT_RULE_NAME);
+    updateNotificationRQ.setType("email");
     updateNotificationRQ.setRecipients(Collections.singletonList("OWNER"));
     updateNotificationRQ.setLaunchNames(Collections.singletonList("test launch"));
     updateNotificationRQ.setEnabled(true);
@@ -160,6 +162,7 @@ class UpdateProjectNotificationHandlerImplTest {
     when(modelForUpdate.getId()).thenReturn(1L);
     when(modelForUpdate.getSendCase()).thenReturn(SendCase.ALWAYS);
     when(modelForUpdate.getRuleName()).thenReturn("Rule2");
+    when(modelForUpdate.getType()).thenReturn("email");
     when(modelForUpdate.getAttributesOperator()).thenReturn(LogicalOperator.AND);
     when(modelForUpdate.getRecipients()).thenReturn(Collections.singleton("OWNER"));
     when(modelForUpdate.getLaunchNames()).thenReturn(Collections.singleton("test launch1"));
@@ -170,6 +173,7 @@ class UpdateProjectNotificationHandlerImplTest {
     when(dupeUpdateNotification.getId()).thenReturn(2L);
     when(dupeUpdateNotification.getSendCase()).thenReturn(SendCase.ALWAYS);
     when(dupeUpdateNotification.getRuleName()).thenReturn("Rule3");
+    when(dupeUpdateNotification.getType()).thenReturn("email");
     when(dupeUpdateNotification.getAttributesOperator()).thenReturn(LogicalOperator.AND);
     when(dupeUpdateNotification.getRecipients()).thenReturn(Collections.singleton("OWNER"));
     when(dupeUpdateNotification.getLaunchNames()).thenReturn(Collections.singleton("test launch"));
@@ -187,7 +191,7 @@ class UpdateProjectNotificationHandlerImplTest {
 
     assertTrue(assertThrows(ReportPortalException.class,
         () -> service.updateNotification(project, updateNotificationRQ, rpUser)
-    ).getMessage().contains("Project email settings contain duplicate cases"));
+    ).getMessage().contains("Project notification settings contain duplicate cases"));
   }
 
 }

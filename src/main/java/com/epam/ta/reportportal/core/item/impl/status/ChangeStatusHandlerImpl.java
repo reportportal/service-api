@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.item.impl.status;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.INFO;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.SKIPPED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.WARN;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
@@ -93,6 +94,7 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
     return parent.getItemResults().getStatus() != StatusEnum.IN_PROGRESS
         && parent.getItemResults().getStatus() != PASSED
         && parent.getItemResults().getStatus() != FAILED
+        && parent.getItemResults().getStatus() != SKIPPED
         && !testItemRepository.hasItemsInStatusByParent(parent.getItemId(), parent.getPath(),
         StatusEnum.IN_PROGRESS.name());
   }

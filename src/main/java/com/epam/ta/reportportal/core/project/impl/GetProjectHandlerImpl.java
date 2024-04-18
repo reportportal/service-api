@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
@@ -43,6 +44,7 @@ import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -77,15 +79,18 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	private final ProjectConverter projectConverter;
 
-	@Autowired
-	public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
-			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<ProjectInfo> jasperReportHandler,
-			ProjectConverter projectConverter) {
-		this.projectRepository = projectRepository;
-		this.userRepository = userRepository;
-		this.jasperReportHandler = jasperReportHandler;
-		this.projectConverter = projectConverter;
-	}
+  @Value("${rp.environment.variable.user.suggestions:true}")
+  boolean isUserSuggestions;
+
+  @Autowired
+  public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
+      @Qualifier("projectJasperReportHandler") GetJasperReportHandler<ProjectInfo> jasperReportHandler,
+      ProjectConverter projectConverter) {
+    this.projectRepository = projectRepository;
+    this.userRepository = userRepository;
+    this.jasperReportHandler = jasperReportHandler;
+    this.projectConverter = projectConverter;
+  }
 
 	@Override
 	public Iterable<UserResource> getProjectUsers(String projectName, Filter filter, Pageable pageable) {
@@ -147,10 +152,13 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	}
 
 	@Override
-	public Iterable<SearchUserResource> getUserNames(String value, ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
+	public Iterable<SearchUserResource> getUserNames(String value, UserRole userRole,
+			ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
 		checkBusinessRuleLessThan1Symbol(value);
 
-		final CompositeFilterCondition userCondition = getUserSearchCondition(value);
+		final CompositeFilterCondition userCondition =
+				(userRole.equals(UserRole.ADMINISTRATOR) || isUserSuggestions)
+						? getUserSearchSuggestCondition(value) : getUserSearchCondition(value);
 
 		final Filter filter = Filter.builder()
 				.withTarget(User.class)
@@ -162,10 +170,16 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 				.apply(userRepository.findByFilterExcludingProjects(filter, pageable));
 	}
 
-	private CompositeFilterCondition getUserSearchCondition(String value) {
+	private CompositeFilterCondition getUserSearchSuggestCondition(String value) {
 		return new CompositeFilterCondition(List.of(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER),
 				new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_FULL_NAME),
 				new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_EMAIL)
+		), Operator.AND);
+	}
+
+	private CompositeFilterCondition getUserSearchCondition(String value) {
+		return new CompositeFilterCondition(List.of(
+				new FilterCondition(Operator.OR, Condition.EQUALS, false, value, CRITERIA_EMAIL)
 		), Operator.AND);
 	}
 

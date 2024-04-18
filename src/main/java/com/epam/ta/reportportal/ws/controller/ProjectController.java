@@ -276,7 +276,7 @@ public class ProjectController {
   public Iterable<SearchUserResource> searchForUser(@PathVariable String projectName,
       @RequestParam(value = "term") String term,
       Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-    return getProjectHandler.getUserNames(term,
+    return getProjectHandler.getUserNames(term, user.getUserRole(),
         projectExtractor.extractProjectDetails(user, projectName), pageable);
   }
 

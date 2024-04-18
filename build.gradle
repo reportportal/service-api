@@ -58,7 +58,7 @@ ext['spring-boot.version'] = '2.5.15'
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.11.6' : 'com.epam.reportportal:commons-bom:5.11.6')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.11.7' : 'com.epam.reportportal:commons-bom:5.11.7')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:12.9.0')
     }
 }
@@ -71,7 +71,7 @@ dependencies {
         implementation 'com.epam.reportportal:commons-model'
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:commons-fonts'
-        implementation 'com.epam.reportportal:plugin-api'
+        implementation 'com.epam.reportportal:plugin-api:5.11.1'
     } else {
         implementation 'com.epam.reportportal:commons-events'
         implementation 'com.epam.reportportal:commons-dao'
@@ -79,7 +79,7 @@ dependencies {
         implementation 'com.epam.reportportal:commons-model'
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:commons-fonts'
-        implementation 'com.epam.reportportal:plugin-api'
+        implementation 'com.epam.reportportal:plugin-api:5.11.1'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
@@ -90,13 +90,19 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
 
+    //Fix CVE-2023-34050
+    implementation 'org.springframework.amqp:spring-amqp:2.4.17'
+
+    //Fix CVE-2023-40827, CVE-2023-40828, CVE-2023-40826
+    implementation 'org.springframework:spring-webmvc:5.3.33'
+    implementation 'org.springframework:spring-web:5.3.33'
 
     implementation 'com.opencsv:opencsv:5.8'
 
-    // Fix CVE-2021-41079, CVE-2022-23181, CVE-2021-33037, CVE-2021-30640, CVE-2022-42252
-    implementation 'org.apache.tomcat.embed:tomcat-embed-core:9.0.82'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-el:9.0.82'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:9.0.82'
+    // Fix CVE-2023-46589, CVE-2024-24549
+    implementation 'org.apache.tomcat.embed:tomcat-embed-core:9.0.86'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-el:9.0.86'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:9.0.86'
     //
 
     //https://nvd.nist.gov/vuln/detail/CVE-2020-5411
@@ -139,9 +145,14 @@ dependencies {
     implementation 'org.codehaus.jettison:jettison:1.5.4'
     // Fix CVE-2020-15522
     implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
-    implementation 'org.apache.commons:commons-compress:1.25.0'
+    // Fix CVE-2024-25710, CVE-2024-26308
+    implementation 'org.apache.commons:commons-compress:1.26.0'
     implementation 'org.yaml:snakeyaml:1.33'
     implementation 'org.hibernate:hibernate-core:5.6.15.Final'
+
+    //Fix CVE-2023-6378, CVE-2023-6481, CVE-2023-6378, CVE-2023-6481
+    implementation 'ch.qos.logback:logback-classic:1.2.13'
+    implementation 'ch.qos.logback:logback-core:1.2.13'
 
     // Metrics
     implementation 'io.micrometer:micrometer-registry-prometheus:1.8.13'

@@ -275,11 +275,10 @@ public class ProjectController {
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
   public Iterable<SearchUserResource> searchForUser(@PathVariable String projectName,
-      @RequestParam(value = "term") String term, Pageable pageable,
-      @AuthenticationPrincipal ReportPortalUser user) {
-    return getProjectHandler.getUserNames(term,
-        projectExtractor.extractProjectDetails(user, projectName), pageable
-    );
+      @RequestParam(value = "term") String term,
+      Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+    return getProjectHandler.getUserNames(term, user.getUserRole(),
+        projectExtractor.extractProjectDetails(user, projectName), pageable);
   }
 
   @Transactional

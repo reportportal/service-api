@@ -16,7 +16,9 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.reportportal.extension.util.CommandParamUtils.ENTITY_PARAM;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -143,6 +145,7 @@ public class PluginController {
     );
   }
 
+  @PreAuthorize(ALLOWED_TO_REPORT)
   @PostMapping(value = "/{projectName}/{pluginName}/import", consumes = {
       MediaType.MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(OK)
@@ -154,7 +157,7 @@ public class PluginController {
       @RequestPart(required = false) @Valid LaunchImportRQ launchImportRq) {
     Map<String, Object> executionParams = new HashMap<>();
     Optional.ofNullable(launchImportRq)
-        .ifPresent(rq -> executionParams.put("entity", launchImportRq));
+        .ifPresent(rq -> executionParams.put(ENTITY_PARAM, launchImportRq));
     executionParams.put("file", file);
     return executeIntegrationHandler.executeCommand(
         projectExtractor.extractProjectDetails(user, projectName), pluginName, "import",

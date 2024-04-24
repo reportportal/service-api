@@ -17,12 +17,16 @@
 package com.epam.ta.reportportal.reporting;
 
 import com.epam.reportportal.events.FinishItemRqEvent;
+import com.epam.reportportal.events.FinishLaunchRqEvent;
 import com.epam.reportportal.events.SaveLogRqEvent;
 import com.epam.reportportal.events.StartChildItemRqEvent;
+import com.epam.reportportal.events.StartLaunchRqEvent;
 import com.epam.reportportal.events.StartRootItemRqEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
+import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
+import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +38,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class EventBasedReporting {
 
+  private final StartLaunchHandler startLaunchHandler;
+
+  private final FinishLaunchHandler finishLaunchHandler;
+
   private final StartTestItemHandler startTestItemHandler;
 
   private final FinishTestItemHandler finishTestItemHandler;
@@ -43,9 +51,26 @@ public class EventBasedReporting {
   private final ProjectExtractor projectExtractor;
 
   @EventListener
+  public void handleStartLaunch(StartLaunchRqEvent startLaunchRqEvent) {
+    var user = extractUserPrincipal();
+    var projectDetails = projectExtractor.extractProjectDetails(user,
+        startLaunchRqEvent.getProjectName());
+    startLaunchHandler.startLaunch(user, projectDetails, startLaunchRqEvent.getStartLaunchRQ());
+  }
+
+  @EventListener
+  public void handleFinishLaunch(FinishLaunchRqEvent finishLaunchRqEvent) {
+    var user = extractUserPrincipal();
+    var projectDetails = projectExtractor.extractProjectDetails(user,
+        finishLaunchRqEvent.getProjectName());
+    finishLaunchHandler.finishLaunch(finishLaunchRqEvent.getLaunchUuid(),
+        finishLaunchRqEvent.getFinishExecutionRQ(), projectDetails, user,
+        "");
+  }
+
+  @EventListener
   public void handleStartRootItem(StartRootItemRqEvent startRootItemRqEvent) {
-    var user = (ReportPortalUser) SecurityContextHolder.getContext()
-        .getAuthentication().getPrincipal();
+    var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         startRootItemRqEvent.getProjectName());
     startTestItemHandler.startRootItem(user, projectDetails,
@@ -54,8 +79,7 @@ public class EventBasedReporting {
 
   @EventListener
   public void handleStartItem(StartChildItemRqEvent startChildItemRqEvent) {
-    var user = (ReportPortalUser) SecurityContextHolder.getContext()
-        .getAuthentication().getPrincipal();
+    var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         startChildItemRqEvent.getProjectName());
     startTestItemHandler.startChildItem(user, projectDetails,
@@ -64,8 +88,7 @@ public class EventBasedReporting {
 
   @EventListener
   public void handleFinishRootItem(FinishItemRqEvent finishItemRqEvent) {
-    var user = (ReportPortalUser) SecurityContextHolder.getContext()
-        .getAuthentication().getPrincipal();
+    var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         finishItemRqEvent.getProjectName());
     finishTestItemHandler.finishTestItem(user, projectDetails, finishItemRqEvent.getItemUuid(),
@@ -74,11 +97,15 @@ public class EventBasedReporting {
 
   @EventListener
   public void handleLogCreation(SaveLogRqEvent saveLogRqEvent) {
-    var user = (ReportPortalUser) SecurityContextHolder.getContext()
-        .getAuthentication().getPrincipal();
+    var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         saveLogRqEvent.getProjectName());
     createLogHandler.createLog(saveLogRqEvent.getSaveLogRQ(), null, projectDetails);
+  }
+
+  private ReportPortalUser extractUserPrincipal() {
+    return (ReportPortalUser) SecurityContextHolder.getContext()
+        .getAuthentication().getPrincipal();
   }
 
 }

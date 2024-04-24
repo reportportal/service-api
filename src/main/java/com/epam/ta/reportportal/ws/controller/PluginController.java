@@ -151,14 +151,14 @@ public class PluginController {
   @ResponseStatus(OK)
   @Operation(summary = "Send report to the specified plugin for importing")
   public Object executeImportPluginCommand(@AuthenticationPrincipal ReportPortalUser user,
-      @PathVariable String projectName,
-      @PathVariable String pluginName,
+      @PathVariable String projectName, @PathVariable String pluginName,
       @RequestParam("file") MultipartFile file,
       @RequestPart(required = false) @Valid LaunchImportRQ launchImportRq) {
     Map<String, Object> executionParams = new HashMap<>();
     Optional.ofNullable(launchImportRq)
         .ifPresent(rq -> executionParams.put(ENTITY_PARAM, launchImportRq));
     executionParams.put("file", file);
+    executionParams.put("async", true);
     return executeIntegrationHandler.executeCommand(
         projectExtractor.extractProjectDetails(user, projectName), pluginName, "import",
         executionParams);

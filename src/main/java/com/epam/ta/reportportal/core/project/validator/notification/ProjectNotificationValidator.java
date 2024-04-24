@@ -62,7 +62,7 @@ public class ProjectNotificationValidator {
             .map(NotificationConfigConverter.TO_CASE_RESOURCE)
             .filter(existing -> equalsWithoutRuleName(existing, senderCaseDTO)).findFirst();
     expect(duplicate, Optional::isEmpty).verify(BAD_REQUEST_ERROR,
-        "Project notification settings contain duplicate cases"
+        "Project notification settings contain duplicate cases for this communication channel"
     );
   }
 
@@ -75,15 +75,17 @@ public class ProjectNotificationValidator {
             .map(NotificationConfigConverter.TO_CASE_RESOURCE)
             .filter(o1 -> equalsWithoutRuleName(o1, senderCaseDTO)).findFirst();
     expect(duplicate, Optional::isEmpty).verify(BAD_REQUEST_ERROR,
-        "Project notification settings contain duplicate cases"
+        "Project notification settings contain duplicate cases for this communication channel"
     );
   }
 
   private void validateSenderCase(Project project, SenderCaseDTO senderCaseDTO) {
-    validateRecipients(senderCaseDTO);
-
     expect(senderCaseDTO.getType(), Objects::nonNull).verify(ErrorType.BAD_REQUEST_ERROR,
         "Notification type");
+
+    if (senderCaseDTO.getType().equals("email")) {
+      validateRecipients(senderCaseDTO);
+    }
 
     normalizeCreateNotificationRQ(project, senderCaseDTO);
   }

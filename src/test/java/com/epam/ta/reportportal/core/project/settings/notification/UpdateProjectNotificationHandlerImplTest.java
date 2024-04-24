@@ -191,7 +191,7 @@ class UpdateProjectNotificationHandlerImplTest {
 
     assertTrue(assertThrows(ReportPortalException.class,
         () -> service.updateNotification(project, updateNotificationRQ, rpUser)
-    ).getMessage().contains("Project notification settings contain duplicate cases"));
+    ).getMessage().contains("Project notification settings contain duplicate cases for this communication channel"));
   }
 
 }

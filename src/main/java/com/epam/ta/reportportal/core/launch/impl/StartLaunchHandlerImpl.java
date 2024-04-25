@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
+import com.epam.ta.reportportal.core.launch.util.AttributeService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
@@ -51,13 +52,17 @@ class StartLaunchHandlerImpl implements StartLaunchHandler {
   private final MessageBus messageBus;
   private final RerunHandler rerunHandler;
 
+  private final AttributeService attributeService;
+
   @Autowired
   public StartLaunchHandlerImpl(LaunchRepository launchRepository,
-      ApplicationEventPublisher eventPublisher, MessageBus messageBus, RerunHandler rerunHandler) {
+      ApplicationEventPublisher eventPublisher, MessageBus messageBus, RerunHandler rerunHandler,
+      AttributeService attributeService) {
     this.launchRepository = launchRepository;
     this.eventPublisher = eventPublisher;
     this.messageBus = messageBus;
     this.rerunHandler = rerunHandler;
+    this.attributeService = attributeService;
   }
 
   @Override
@@ -66,15 +71,14 @@ class StartLaunchHandlerImpl implements StartLaunchHandler {
       ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ request) {
     validateRoles(projectDetails, request);
 
-    final Launch savedLaunch = Optional.of(request.isRerun())
-        .filter(Boolean::booleanValue)
+    final Launch savedLaunch = Optional.of(request.isRerun()).filter(Boolean::booleanValue)
         .map(rerun -> rerunHandler.handleLaunch(request, projectDetails.getProjectId(), user))
         .orElseGet(() -> {
-          Launch launch = new LaunchBuilder().addStartRQ(request)
-              .addAttributes(request.getAttributes())
-              .addProject(projectDetails.getProjectId())
-              .addUserId(user.getUserId())
-              .get();
+          Launch launch =
+              new LaunchBuilder().addStartRQ(request).addAttributes(request.getAttributes())
+                  .addProject(projectDetails.getProjectId()).addUserId(user.getUserId()).get();
+
+          attributeService.processAttributes(launch, request);
           launchRepository.save(launch);
           launchRepository.refresh(launch);
           return launch;
@@ -83,11 +87,13 @@ class StartLaunchHandlerImpl implements StartLaunchHandler {
     eventPublisher.publishEvent(new StartLaunchEvent(savedLaunch.getId()));
     messageBus.publishActivity(
         new LaunchStartedEvent(TO_ACTIVITY_RESOURCE.apply(savedLaunch), user.getUserId(),
-            user.getUsername()));
+            user.getUsername()
+        ));
 
     StartLaunchRS response = new StartLaunchRS();
     response.setId(savedLaunch.getUuid());
     response.setNumber(savedLaunch.getNumber());
     return response;
   }
+
 }

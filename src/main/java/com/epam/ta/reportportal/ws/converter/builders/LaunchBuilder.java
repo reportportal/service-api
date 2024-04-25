@@ -21,6 +21,7 @@ import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.enums.RetentionPolicyEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -130,6 +131,11 @@ public class LaunchBuilder implements Supplier<Launch> {
 
   public LaunchBuilder addEndTime(Instant date) {
     launch.setEndTime(date);
+    return this;
+  }
+
+  public LaunchBuilder addRetentionPolicy(RetentionPolicyEnum retentionPolicy) {
+    launch.setRetentionPolicy(retentionPolicy);
     return this;
   }
 

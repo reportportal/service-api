@@ -56,7 +56,7 @@ public final class LinkGenerator {
      * Use Uri components since they are aware of x-forwarded-host headers
      */
     return UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
-        .replacePath(null)
+        .replacePath(staticPath)
         .replaceQuery(null)
         .build()
         .toUri()

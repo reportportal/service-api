@@ -33,14 +33,14 @@ public final class LinkGenerator {
   private static final String UI_PREFIX = "/ui/#";
   private static final String LAUNCHES = "/launches/all/";
 
-  private static String staticPath;
+  private static String path;
 
   @Value("${server.servlet.context-path:/api}")
   private String pathValue;
 
   @PostConstruct
   public void init() {
-    LinkGenerator.staticPath = this.pathValue;
+    LinkGenerator.path = this.pathValue;
   }
 
   private LinkGenerator() {
@@ -52,11 +52,13 @@ public final class LinkGenerator {
   }
 
   public static String composeBaseUrl(HttpServletRequest request) {
+
+    String processedPath = "/".equals(path) ? null : path.replace("/api", "");
     /*
      * Use Uri components since they are aware of x-forwarded-host headers
      */
     return UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
-        .replacePath(staticPath)
+        .replacePath(processedPath)
         .replaceQuery(null)
         .build()
         .toUri()

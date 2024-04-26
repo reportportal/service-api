@@ -58,17 +58,18 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
   private final FinishHierarchyHandler<Launch> finishHierarchyHandler;
   private final ApplicationEventPublisher eventPublisher;
 
-  @Value("${server.servlet.context.path:}")
-  private String path;
+  private final String path;
 
   @Autowired
   public FinishLaunchHandlerImpl(LaunchRepository launchRepository,
       @Qualifier("finishLaunchHierarchyHandler")
       FinishHierarchyHandler<Launch> finishHierarchyHandler,
-      ApplicationEventPublisher eventPublisher) {
+      ApplicationEventPublisher eventPublisher,
+      @Value("${server.servlet.context-path:}") String path) {
     this.launchRepository = launchRepository;
     this.finishHierarchyHandler = finishHierarchyHandler;
     this.eventPublisher = eventPublisher;
+    this.path = path;
   }
 
   @Override
@@ -111,7 +112,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
     FinishLaunchRS response = new FinishLaunchRS();
     response.setId(launch.getUuid());
     response.setNumber(launch.getNumber());
-    response.setLink(generateLaunchLink(baseUrl + path.replace("/api", ""), projectDetails.getProjectName(),
+    response.setLink(generateLaunchLink(baseUrl, path, projectDetails.getProjectName(),
         String.valueOf(launch.getId())
     ));
     return response;

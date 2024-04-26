@@ -84,7 +84,6 @@ public class EmailService extends JavaMailSenderImpl {
   private String from;
   private String rpHost;
 
-  @Value("${server.servlet.context.path:}")
   private String path;
 
   public EmailService(Properties javaMailProperties) {
@@ -213,7 +212,8 @@ public class EmailService extends JavaMailSenderImpl {
 
   private String getUrl(String baseUrl) {
     return ofNullable(rpHost).map(rh -> {
-      String RPUrl = rpHost + path.replace("/api", "");
+      String processedPath = "/".equals(path) ? "" : path.replace("/api", "");
+      String RPUrl = rpHost + processedPath;
       final UriComponents rpHostUri = UriComponentsBuilder.fromUriString(RPUrl).build();
       return UriComponentsBuilder.fromUriString(baseUrl).scheme(rpHostUri.getScheme())
           .host(rpHostUri.getHost()).port(rpHostUri.getPort()).build().toUri().toASCIIString();
@@ -320,6 +320,10 @@ public class EmailService extends JavaMailSenderImpl {
 
   public void setRpHost(String rpHost) {
     this.rpHost = rpHost;
+  }
+
+  public void setPath(String path) {
+    this.path = path;
   }
 
   public void sendCreateUserConfirmationEmail(CreateUserRQFull req, String basicUrl) {

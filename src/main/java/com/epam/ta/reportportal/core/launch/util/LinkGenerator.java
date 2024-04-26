@@ -33,8 +33,10 @@ public final class LinkGenerator {
     //static only
   }
 
-  public static String generateLaunchLink(String baseUrl, String projectName, String id) {
-    return StringUtils.isEmpty(baseUrl) ? null : baseUrl + UI_PREFIX + projectName + LAUNCHES + id;
+  public static String generateLaunchLink(String baseUrl, String path, String projectName, String id) {
+    path = "/".equals(path) ? "" : path.replace("/api", "");
+    return StringUtils.isEmpty(baseUrl) ? null
+        : baseUrl + path + UI_PREFIX + projectName + LAUNCHES + id;
   }
 
   public static String composeBaseUrl(HttpServletRequest request) {

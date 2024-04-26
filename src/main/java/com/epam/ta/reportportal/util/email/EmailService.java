@@ -212,10 +212,13 @@ public class EmailService extends JavaMailSenderImpl {
   private String getUrl(String baseUrl) {
     return ofNullable(rpHost).map(rh -> {
       String processedPath = "/".equals(path) ? "" : path.replace("/api", "");
-      String updatedBaseUrl = processedPath + baseUrl;
       final UriComponents rpHostUri = UriComponentsBuilder.fromUriString(rpHost).build();
-      return UriComponentsBuilder.fromUriString(updatedBaseUrl).scheme(rpHostUri.getScheme())
-          .host(rpHostUri.getHost()).port(rpHostUri.getPort()).build().toUri().toASCIIString();
+      return UriComponentsBuilder.newInstance()
+          .scheme(rpHostUri.getScheme())
+          .host(rpHostUri.getHost())
+          .port(rpHostUri.getPort())
+          .path(processedPath)
+          .build().toUri().toASCIIString() + baseUrl;
     }).orElse(baseUrl);
   }
 

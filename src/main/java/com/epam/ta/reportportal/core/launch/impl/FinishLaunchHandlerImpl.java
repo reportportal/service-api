@@ -38,6 +38,7 @@ import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -56,6 +57,9 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
   private final LaunchRepository launchRepository;
   private final FinishHierarchyHandler<Launch> finishHierarchyHandler;
   private final ApplicationEventPublisher eventPublisher;
+
+  @Value("${server.servlet.context.path:}")
+  private String path;
 
   @Autowired
   public FinishLaunchHandlerImpl(LaunchRepository launchRepository,
@@ -107,7 +111,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
     FinishLaunchRS response = new FinishLaunchRS();
     response.setId(launch.getUuid());
     response.setNumber(launch.getNumber());
-    response.setLink(generateLaunchLink(baseUrl, projectDetails.getProjectName(),
+    response.setLink(generateLaunchLink(baseUrl + path.replace("/api", ""), projectDetails.getProjectName(),
         String.valueOf(launch.getId())
     ));
     return response;

@@ -56,7 +56,6 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileUrlResource;
 import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -213,9 +212,9 @@ public class EmailService extends JavaMailSenderImpl {
   private String getUrl(String baseUrl) {
     return ofNullable(rpHost).map(rh -> {
       String processedPath = "/".equals(path) ? "" : path.replace("/api", "");
-      String RPUrl = rpHost + processedPath;
-      final UriComponents rpHostUri = UriComponentsBuilder.fromUriString(RPUrl).build();
-      return UriComponentsBuilder.fromUriString(baseUrl).scheme(rpHostUri.getScheme())
+      String updatedBaseUrl = processedPath + baseUrl;
+      final UriComponents rpHostUri = UriComponentsBuilder.fromUriString(rpHost).build();
+      return UriComponentsBuilder.fromUriString(updatedBaseUrl).scheme(rpHostUri.getScheme())
           .host(rpHostUri.getHost()).port(rpHostUri.getPort()).build().toUri().toASCIIString();
     }).orElse(baseUrl);
   }

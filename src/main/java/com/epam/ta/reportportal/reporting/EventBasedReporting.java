@@ -27,13 +27,21 @@ import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class EventBasedReporting {
@@ -65,7 +73,7 @@ public class EventBasedReporting {
         finishLaunchRqEvent.getProjectName());
     finishLaunchHandler.finishLaunch(finishLaunchRqEvent.getLaunchUuid(),
         finishLaunchRqEvent.getFinishExecutionRQ(), projectDetails, user,
-        "");
+        extractCurrentHttpRequest().map(LinkGenerator::composeBaseUrl).orElse(""));
   }
 
   @EventListener
@@ -101,6 +109,15 @@ public class EventBasedReporting {
     var projectDetails = projectExtractor.extractProjectDetails(user,
         saveLogRqEvent.getProjectName());
     createLogHandler.createLog(saveLogRqEvent.getSaveLogRQ(), null, projectDetails);
+  }
+
+  private Optional<HttpServletRequest> extractCurrentHttpRequest() {
+    RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+    if (requestAttributes instanceof ServletRequestAttributes) {
+      return Optional.of(((ServletRequestAttributes) requestAttributes).getRequest());
+    }
+    log.debug("Not called in the context of an HTTP request");
+    return Optional.empty();
   }
 
   private ReportPortalUser extractUserPrincipal() {

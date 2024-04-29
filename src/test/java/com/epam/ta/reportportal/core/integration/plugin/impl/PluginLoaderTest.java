@@ -36,8 +36,8 @@ import java.util.Collection;
 import org.junit.jupiter.api.Test;
 import org.pf4j.PluginDescriptor;
 import org.pf4j.PluginDescriptorFinder;
-import org.pf4j.PluginException;
 import org.pf4j.PluginManager;
+import org.pf4j.PluginRuntimeException;
 import org.pf4j.PluginWrapper;
 
 /**
@@ -72,7 +72,7 @@ class PluginLoaderTest {
       );
 
   @Test
-  void shouldExtractPluginIdWhenExists() throws PluginException {
+  void shouldExtractPluginIdWhenExists() throws PluginRuntimeException {
 
     Path path = Paths.get("dir", FILE_NAME);
 

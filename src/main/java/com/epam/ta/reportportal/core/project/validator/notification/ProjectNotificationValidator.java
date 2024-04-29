@@ -27,6 +27,7 @@ import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
@@ -54,23 +55,19 @@ public class ProjectNotificationValidator {
   }
 
   public void validateCreateRQ(Project project, SenderCaseDTO senderCaseDTO) {
-    validateRecipients(senderCaseDTO);
-
-    normalizeCreateNotificationRQ(project, senderCaseDTO);
+    validateSenderCase(project, senderCaseDTO);
 
     Optional<SenderCaseDTO> duplicate =
         senderCaseRepository.findAllByProjectId(project.getId()).stream()
             .map(NotificationConfigConverter.TO_CASE_RESOURCE)
             .filter(existing -> equalsWithoutRuleName(existing, senderCaseDTO)).findFirst();
     expect(duplicate, Optional::isEmpty).verify(BAD_REQUEST_ERROR,
-        "Project email settings contain duplicate cases"
+        "Project notification settings contain duplicate cases for this communication channel"
     );
   }
 
   public void validateUpdateRQ(Project project, SenderCaseDTO senderCaseDTO) {
-    validateRecipients(senderCaseDTO);
-
-    normalizeCreateNotificationRQ(project, senderCaseDTO);
+    validateSenderCase(project, senderCaseDTO);
 
     Optional<SenderCaseDTO> duplicate =
         senderCaseRepository.findAllByProjectId(project.getId()).stream()
@@ -78,8 +75,19 @@ public class ProjectNotificationValidator {
             .map(NotificationConfigConverter.TO_CASE_RESOURCE)
             .filter(o1 -> equalsWithoutRuleName(o1, senderCaseDTO)).findFirst();
     expect(duplicate, Optional::isEmpty).verify(BAD_REQUEST_ERROR,
-        "Project email settings contain duplicate cases"
+        "Project notification settings contain duplicate cases for this communication channel"
     );
+  }
+
+  private void validateSenderCase(Project project, SenderCaseDTO senderCaseDTO) {
+    expect(senderCaseDTO.getType(), Objects::nonNull).verify(ErrorType.BAD_REQUEST_ERROR,
+        "Notification type");
+
+    if (senderCaseDTO.getType().equals("email")) {
+      validateRecipients(senderCaseDTO);
+    }
+
+    normalizeCreateNotificationRQ(project, senderCaseDTO);
   }
 
   private void validateRecipients(SenderCaseDTO senderCaseDTO) {
@@ -114,8 +122,9 @@ public class ProjectNotificationValidator {
     return CollectionUtils.isEqualCollection(senderCase.getRecipients(), toCompare.getRecipients())
         && Objects.equals(senderCase.getSendCase(), toCompare.getSendCase())
         && CollectionUtils.isEqualCollection(senderCase.getLaunchNames(),
-        toCompare.getLaunchNames()
-    ) && CollectionUtils.isEqualCollection(senderCase.getAttributes(), toCompare.getAttributes())
+        toCompare.getLaunchNames())
+        && Objects.equals(senderCase.getType(), toCompare.getType())
+        && CollectionUtils.isEqualCollection(senderCase.getAttributes(), toCompare.getAttributes())
         && Objects.equals(senderCase.getAttributesOperator(), toCompare.getAttributesOperator());
   }
 }

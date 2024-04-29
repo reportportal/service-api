@@ -158,7 +158,6 @@ public class PluginController {
     Optional.ofNullable(launchImportRq)
         .ifPresent(rq -> executionParams.put(ENTITY_PARAM, launchImportRq));
     executionParams.put("file", file);
-    executionParams.put("async", true);
     return executeIntegrationHandler.executeCommand(
         projectExtractor.extractProjectDetails(user, projectName), pluginName, "import",
         executionParams);

@@ -40,6 +40,7 @@ import org.springframework.stereotype.Service;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
+@SuppressWarnings("unchecked")
 public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler {
 
   private static final String ASYNC_MODE = "async";
@@ -70,14 +71,7 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
     executionParams.put(PROJECT_ID, projectDetails.getProjectId());
     executionParams.put(PROJECT_NAME, projectDetails.getProjectName());
     return ofNullable(pluginInstance.getCommonCommand(command)).map(
-            it -> {
-              if (isAsyncMode(executionParams)) {
-                supplyAsync(() -> it.executeCommand(executionParams));
-                return new OperationCompletionRS(
-                    formattedSupplier("Command '{}' accepted for processing in plugin", command).get());
-              }
-              return it.executeCommand(executionParams);
-            })
+            it -> it.executeCommand(executionParams))
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
             formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
         ));
@@ -136,7 +130,9 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
   }
 
   @Async
+  @Deprecated
   //need for security context sharing into plugin
+  //it doesn't work as expected
   public <U> void supplyAsync(Supplier<U> supplier) {
     supplier.get();
   }

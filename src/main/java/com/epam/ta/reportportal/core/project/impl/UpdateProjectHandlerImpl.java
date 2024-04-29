@@ -16,6 +16,15 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.fail;
+import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.ROLE_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT;
+import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.commons.Preconditions.contains;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -24,24 +33,18 @@ import static com.epam.ta.reportportal.commons.Predicates.isNull;
 import static com.epam.ta.reportportal.commons.Predicates.isPresent;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.fail;
-import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_PATTERN_ANALYZER_ENABLED;
 import static com.epam.ta.reportportal.entity.enums.SendCase.findByName;
 import static com.epam.ta.reportportal.ws.converter.converters.ProjectActivityConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
-import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
-import static com.epam.reportportal.rules.exception.ErrorType.ROLE_NOT_FOUND;
-import static com.epam.reportportal.rules.exception.ErrorType.UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT;
-import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import com.epam.reportportal.extension.event.ProjectEvent;
+import com.epam.reportportal.model.ValidationConstraints;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
@@ -76,7 +79,6 @@ import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.activity.ProjectAttributesActivityResource;
 import com.epam.ta.reportportal.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.model.project.AssignUsersRQ;
@@ -92,10 +94,8 @@ import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
-import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.cache.Cache;
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -391,7 +391,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     );
     if (ProjectType.UPSA.equals(project.getProjectType()) && UserType.UPSA.equals(
         modifyingUser.getUserType())) {
-      fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Project and user has UPSA type!");
+      fail().withError(
+          UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+          "Please verify user assignment to the project in EPAM internal system: delivery.epam.com"
+      );
     }
     ProjectUser projectUser = new ProjectUser();
     projectUser.setProjectRole(projectRole);
@@ -418,7 +421,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     }
     if (ProjectType.UPSA.equals(project.getProjectType()) && UserType.UPSA.equals(
         userForUnassign.getUserType())) {
-      fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Project and user has UPSA type!");
+      fail().withError(
+          UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+          "Please verify user assignment to the project in EPAM internal system: delivery.epam.com"
+      );
     }
     if (!ProjectUtils.doesHaveUser(project, userForUnassign.getLogin())) {
       fail().withError(USER_NOT_FOUND, userForUnassign.getLogin(),
@@ -512,7 +518,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
           cases.stream().distinct().map(NotificationConfigConverter.TO_CASE_MODEL)
               .peek(sc -> sc.setProject(project)).collect(toSet());
       if (cases.size() != withoutDuplicateCases.size()) {
-        fail().withError(BAD_REQUEST_ERROR, "Project notification settings contain duplicate cases for this communication channel");
+        fail().withError(
+            BAD_REQUEST_ERROR,
+            "Project notification settings contain duplicate cases for this communication channel"
+        );
       }
 
       project.getSenderCases().addAll(withoutDuplicateCases);

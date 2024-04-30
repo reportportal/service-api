@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.reporting.async.handler;
 
 import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.LOG_FULL_TO_LOG;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.core.configs.rabbit.DeserializablePair;
@@ -31,18 +33,15 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
 import com.epam.ta.reportportal.reporting.async.message.MessageRetriever;
 import com.epam.ta.reportportal.ws.converter.builders.LogFullBuilder;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -175,7 +174,7 @@ public class LogMessageHandler implements ReportingMessageHandler {
               .withLaunchUuid(launchUuid)
               .withLogUuid(logUuid)
               .withFileName(fileName)
-              .withCreationDate(LocalDateTime.now(ZoneOffset.UTC))
+              .withCreationDate(Instant.now())
               .build()
       );
     }

@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.reporting.async.config;
 
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.rabbitmq.http.client.Client;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.reporting.async.producer;
 
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.DEFAULT_CONSISTENT_HASH_ROUTING_KEY;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
 

@@ -101,11 +101,13 @@ public class ProjectNotificationValidator {
   }
 
   private void normalizeCreateNotificationRQ(Project project, SenderCaseDTO createNotificationRQ) {
-    createNotificationRQ.setRecipients(
-        createNotificationRQ.getRecipients().stream().map(recipient -> {
-          EmailRulesValidator.validateRecipient(project, recipient);
-          return recipient.trim();
-        }).distinct().collect(toList()));
+    if (createNotificationRQ.getRecipients() != null) {
+      createNotificationRQ.setRecipients(
+          createNotificationRQ.getRecipients().stream().map(recipient -> {
+            EmailRulesValidator.validateRecipient(project, recipient);
+            return recipient.trim();
+          }).distinct().collect(toList()));
+    }
     ofNullable(createNotificationRQ.getLaunchNames()).ifPresent(
         launchNames -> createNotificationRQ.setLaunchNames(launchNames.stream().map(name -> {
           EmailRulesValidator.validateLaunchName(name);
@@ -119,7 +121,11 @@ public class ProjectNotificationValidator {
   }
 
   private boolean equalsWithoutRuleName(SenderCaseDTO senderCase, SenderCaseDTO toCompare) {
-    return CollectionUtils.isEqualCollection(senderCase.getRecipients(), toCompare.getRecipients())
+    boolean recipientsEqual =
+        senderCase.getRecipients() != null && toCompare.getRecipients() != null
+            && CollectionUtils.isEqualCollection(senderCase.getRecipients(),
+            toCompare.getRecipients());
+    return recipientsEqual
         && Objects.equals(senderCase.getSendCase(), toCompare.getSendCase())
         && CollectionUtils.isEqualCollection(senderCase.getLaunchNames(),
         toCompare.getLaunchNames())

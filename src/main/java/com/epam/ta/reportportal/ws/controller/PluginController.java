@@ -20,6 +20,7 @@ import static com.epam.reportportal.extension.util.CommandParamUtils.ENTITY_PARA
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -40,7 +41,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -155,9 +155,11 @@ public class PluginController {
       @RequestParam("file") MultipartFile file,
       @RequestPart(required = false) @Valid LaunchImportRQ launchImportRq) {
     Map<String, Object> executionParams = new HashMap<>();
-    Optional.ofNullable(launchImportRq)
-        .ifPresent(rq -> executionParams.put(ENTITY_PARAM, launchImportRq));
     executionParams.put("file", file);
+    ofNullable(launchImportRq).ifPresentOrElse(
+        rq -> executionParams.put(ENTITY_PARAM, launchImportRq),
+        () -> executionParams.put(ENTITY_PARAM, new LaunchImportRQ())
+    );
     return executeIntegrationHandler.executeCommand(
         projectExtractor.extractProjectDetails(user, projectName), pluginName, "import",
         executionParams);

@@ -101,13 +101,12 @@ public class ProjectNotificationValidator {
   }
 
   private void normalizeCreateNotificationRQ(Project project, SenderCaseDTO createNotificationRQ) {
-    if (createNotificationRQ.getRecipients() != null) {
-      createNotificationRQ.setRecipients(
-          createNotificationRQ.getRecipients().stream().map(recipient -> {
-            EmailRulesValidator.validateRecipient(project, recipient);
-            return recipient.trim();
-          }).distinct().collect(toList()));
-    }
+    ofNullable(createNotificationRQ.getRecipients()).ifPresent(
+        recipients -> createNotificationRQ.setRecipients(
+            createNotificationRQ.getRecipients().stream().map(recipient -> {
+              EmailRulesValidator.validateRecipient(project, recipient);
+              return recipient.trim();
+            }).distinct().collect(toList())));
     ofNullable(createNotificationRQ.getLaunchNames()).ifPresent(
         launchNames -> createNotificationRQ.setLaunchNames(launchNames.stream().map(name -> {
           EmailRulesValidator.validateLaunchName(name);

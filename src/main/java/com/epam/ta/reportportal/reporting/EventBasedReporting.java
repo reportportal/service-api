@@ -41,6 +41,9 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+/**
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor

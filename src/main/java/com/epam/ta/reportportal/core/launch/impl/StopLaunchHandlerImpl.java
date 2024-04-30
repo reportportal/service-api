@@ -28,14 +28,14 @@ import com.epam.ta.reportportal.core.launch.StopLaunchHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.BulkRQ;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
-import java.util.Date;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
+import java.time.Instant;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -76,7 +76,7 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
             ofNullable(finishLaunchRQ.getDescription()).orElse(
                 ofNullable(launch.getDescription()).orElse("")).concat(LAUNCH_STOP_DESCRIPTION))
         .addStatus(ofNullable(finishLaunchRQ.getStatus()).orElse(STOPPED.name()))
-        .addEndTime(ofNullable(finishLaunchRQ.getEndTime()).orElse(new Date()))
+        .addEndTime(ofNullable(finishLaunchRQ.getEndTime()).orElse(Instant.now()))
         .addAttributes(finishLaunchRQ.getAttributes())
         .addAttribute(new ItemAttributeResource("status", "stopped")).get();
 

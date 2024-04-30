@@ -17,13 +17,13 @@
 package com.epam.ta.reportportal.core.bts.handler.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.bts.handler.GetBugTrackingSystemHandler;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

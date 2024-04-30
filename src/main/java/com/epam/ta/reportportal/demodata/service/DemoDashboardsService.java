@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.demodata.service;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_COMPOSITE_ATTRIBUTE;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static java.util.stream.Collectors.toList;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -40,15 +40,15 @@ import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -176,7 +176,7 @@ class DemoDashboardsService {
     Dashboard dashboard = new Dashboard();
     dashboard.setName(name);
     dashboard.setProject(project);
-    dashboard.setCreationDate(LocalDateTime.now());
+    dashboard.setCreationDate(Instant.now());
     dashboard.setOwner(user.getUsername());
 
     dashboardRepository.save(dashboard);

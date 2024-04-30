@@ -22,7 +22,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaCon
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -31,8 +31,8 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -41,14 +41,15 @@ import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.model.project.ProjectResource;
 import com.epam.ta.reportportal.model.user.SearchUserResource;
 import com.epam.ta.reportportal.model.user.UserResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
@@ -60,6 +61,7 @@ import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -81,6 +83,9 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   private final GetJasperReportHandler<ProjectInfo> jasperReportHandler;
 
   private final ProjectConverter projectConverter;
+
+  @Value("${rp.environment.variable.user.suggestions:true}")
+  boolean isUserSuggestions;
 
   @Autowired
   public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
@@ -161,10 +166,12 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
   @Override
   public Iterable<SearchUserResource> getUserNames(String value,
-      ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
+      UserRole userRole,ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
     checkBusinessRuleLessThan1Symbol(value);
 
-    final CompositeFilterCondition userCondition = getUserSearchCondition(value);
+    final CompositeFilterCondition userCondition =
+				(userRole.equals(UserRole.ADMINISTRATOR) || isUserSuggestions)
+						? getUserSearchSuggestCondition(value) : getUserSearchCondition(value);
 
     final Filter filter = Filter.builder().withTarget(User.class).withCondition(userCondition)
         .withCondition(
@@ -176,13 +183,18 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
         .apply(userRepository.findByFilterExcludingProjects(filter, pageable));
   }
 
-  private CompositeFilterCondition getUserSearchCondition(String value) {
-    return new CompositeFilterCondition(
-        List.of(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER),
-            new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_FULL_NAME),
-            new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_EMAIL)
-        ), Operator.AND);
-  }
+	private CompositeFilterCondition getUserSearchSuggestCondition(String value) {
+		return new CompositeFilterCondition(List.of(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER),
+				new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_FULL_NAME),
+				new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_EMAIL)
+		), Operator.AND);
+	}
+
+	private CompositeFilterCondition getUserSearchCondition(String value) {
+		return new CompositeFilterCondition(List.of(
+				new FilterCondition(Operator.OR, Condition.EQUALS, false, value, CRITERIA_EMAIL)
+		), Operator.AND);
+	}
 
   @Override
   public List<String> getAllProjectNames() {

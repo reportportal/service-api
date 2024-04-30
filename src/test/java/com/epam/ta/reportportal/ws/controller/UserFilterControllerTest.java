@@ -33,7 +33,7 @@ import com.epam.ta.reportportal.model.filter.Order;
 import com.epam.ta.reportportal.model.filter.UpdateUserFilterRQ;
 import com.epam.ta.reportportal.model.filter.UserFilterCondition;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.ValidationConstraints;
+import com.epam.reportportal.model.ValidationConstraints;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;

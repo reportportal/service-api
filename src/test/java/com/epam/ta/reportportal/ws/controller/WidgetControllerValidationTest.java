@@ -24,7 +24,7 @@ import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsCo
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.LONG_NAME_VALUE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.SHORT_NAME_VALUE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.WHITESPACES_NAME_VALUE;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.INCORRECT_REQUEST;
+import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.epam.ta.reportportal.model.widget.ContentParameters;
 import com.epam.ta.reportportal.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.reporting.ErrorRS;
+import com.epam.reportportal.rules.exception.ErrorRS;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import org.junit.jupiter.api.Test;

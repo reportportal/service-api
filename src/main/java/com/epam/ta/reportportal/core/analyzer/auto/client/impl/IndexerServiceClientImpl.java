@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.model.IndexDefectsUpda
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.IndexItemsRemove;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.IndexLaunchRemove;
 import com.epam.ta.reportportal.model.analyzer.CleanIndexRq;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
+import com.epam.reportportal.model.analyzer.IndexLaunch;
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Collections;

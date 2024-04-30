@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.project.settings.notification;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -25,13 +25,14 @@ import com.epam.ta.reportportal.core.project.validator.notification.ProjectNotif
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
+import com.epam.ta.reportportal.entity.project.email.SenderCaseOptions;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.project.ProjectResource;
 import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 
@@ -58,7 +59,8 @@ public class CreateProjectNotificationHandlerImpl implements CreateProjectNotifi
   @Override
   public EntryCreatedRS createNotification(Project project, SenderCaseDTO createNotificationRQ,
       ReportPortalUser user) {
-    expect(senderCaseRepository.findByProjectIdAndRuleNameIgnoreCase(project.getId(),
+    expect(senderCaseRepository.findByProjectIdAndTypeAndRuleNameIgnoreCase(project.getId(),
+        createNotificationRQ.getType(),
         createNotificationRQ.getRuleName()
     ), Optional::isEmpty).verify(
         ErrorType.RESOURCE_ALREADY_EXISTS, createNotificationRQ.getRuleName());
@@ -68,6 +70,9 @@ public class CreateProjectNotificationHandlerImpl implements CreateProjectNotifi
     SenderCase senderCase = NotificationConfigConverter.TO_CASE_MODEL.apply(createNotificationRQ);
     senderCase.setId(null);
     senderCase.setProject(project);
+    senderCase.setType(createNotificationRQ.getType());
+    Optional.ofNullable(createNotificationRQ.getRuleDetails()).map(SenderCaseOptions::new)
+        .ifPresent(senderCase::setRuleDetails);
     senderCaseRepository.save(senderCase);
 
     ProjectResource projectResource = projectConverter.TO_PROJECT_RESOURCE.apply(project);

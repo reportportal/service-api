@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.core.filter.FilterOperation;
 import com.epam.ta.reportportal.core.filter.SearchCriteriaService;
 import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType;
 import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilters;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.SearchCriteria;
 import com.epam.ta.reportportal.model.SearchCriteriaRQ;
 import com.google.common.collect.Lists;

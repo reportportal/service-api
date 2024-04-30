@@ -39,12 +39,12 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Map;
 import java.util.Objects;
@@ -66,7 +66,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class LaunchNotificationRunner
     implements ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
 
-  public static final Logger LOGGER = LoggerFactory.getLogger(LaunchNotificationRunner.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(LaunchNotificationRunner.class);
+
+  private static final String EMAIL_INTEGRATION_NAME = "email server";
 
   private final GetProjectHandler getProjectHandler;
   private final GetLaunchHandler getLaunchHandler;
@@ -90,11 +92,14 @@ public class LaunchNotificationRunner
   public void handle(LaunchFinishedEvent launchFinishedEvent, Map<String, String> projectConfig) {
 
     boolean isNotificationsEnabled = BooleanUtils.toBoolean(
-        projectConfig.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()));
+        projectConfig.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()))
+        && BooleanUtils.toBoolean(
+        projectConfig.get(ProjectAttributeEnum.NOTIFICATIONS_EMAIL_ENABLED.getAttribute()));
 
     if (isNotificationsEnabled) {
       getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(
               launchFinishedEvent.getProjectId(), IntegrationGroupEnum.NOTIFICATION)
+          .filter(integration -> EMAIL_INTEGRATION_NAME.equals(integration.getName()))
           .flatMap(mailServiceFactory::getDefaultEmailService)
           .ifPresentOrElse(emailService -> sendEmail(launchFinishedEvent, emailService),
               () -> LOGGER.warn("Unable to find {} integration for project {}",

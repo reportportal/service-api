@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.google.common.collect.Lists;

@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;

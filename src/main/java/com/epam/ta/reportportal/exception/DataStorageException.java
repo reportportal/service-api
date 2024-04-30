@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.exception;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
+
 /**
  * Exceptions related to data storage
  *

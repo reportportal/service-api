@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.core.launch.cluster.ClusterGenerator;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.model.project.UniqueErrorConfig;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Qualifier;

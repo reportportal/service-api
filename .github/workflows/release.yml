@@ -11,7 +11,7 @@ on:
 
 env:
   GH_USER_NAME: github.actor
-  RELEASE_VERSION: 5.11.0
+  RELEASE_VERSION: 5.11.1
   REPOSITORY_URL: 'https://maven.pkg.github.com/'
 
 jobs:
@@ -31,7 +31,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Setup git credentials
-        uses: oleksiyrudenko/gha-git-credentials@v2
+        uses: oleksiyrudenko/gha-git-credentials@v2-latest
         with:
           name: 'reportportal.io'
           email: 'support@reportportal.io'

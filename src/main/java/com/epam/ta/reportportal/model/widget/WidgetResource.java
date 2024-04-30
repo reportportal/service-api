@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.model.widget;
 
 import com.epam.ta.reportportal.model.filter.UserFilterResource;
-import com.epam.ta.reportportal.ws.model.ValidationConstraints;
+import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.reporting.OwnedResource;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;

@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.core.widget.impl;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTES;
 import static java.util.Optional.ofNullable;
 
@@ -34,13 +34,13 @@ import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.model.widget.WidgetResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.Collections;

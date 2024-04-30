@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.core.file.DeleteFilesHandler;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.net.HttpHeaders;

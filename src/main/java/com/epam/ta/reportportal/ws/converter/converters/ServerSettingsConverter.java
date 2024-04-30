@@ -16,10 +16,10 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 
 import com.epam.ta.reportportal.entity.ServerSettings;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;

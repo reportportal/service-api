@@ -23,8 +23,8 @@ import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.extension.event.PluginEvent;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.Plugin;
@@ -34,10 +34,10 @@ import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.entity.plugin.PluginFileExtension;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.ws.converter.builders.IntegrationTypeBuilder;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import java.io.IOException;
@@ -53,8 +53,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.pf4j.PluginException;
 import org.pf4j.PluginManager;
+import org.pf4j.PluginRuntimeException;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 import org.slf4j.Logger;
@@ -385,7 +385,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
       BusinessRule.expect(validatePluginMetaInfo(newPluginInfo), equalTo(Boolean.TRUE))
           .verify(ErrorType.PLUGIN_UPLOAD_ERROR, "Plugin version should be specified.");
       return newPluginInfo;
-    } catch (PluginException e) {
+    } catch (PluginRuntimeException e) {
       removeUploadingPlugin(fileName);
       throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, e.getMessage());
     }
@@ -746,7 +746,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
                         previousPlugin.getPluginId())
                     .get()
             )));
-      } catch (PluginException e) {
+      } catch (PluginRuntimeException e) {
         throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
             Suppliers.formattedSupplier("Unable to reload previousPlugin with id = '{}': '{}'",
                 previousPlugin.getPluginId(),

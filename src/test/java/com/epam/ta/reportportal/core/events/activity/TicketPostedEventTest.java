@@ -27,9 +27,9 @@ import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
-import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
+import com.epam.reportportal.model.externalsystem.Ticket;
 import com.google.common.collect.Lists;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
@@ -55,7 +55,7 @@ class TicketPostedEventTest {
     activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
     activity.setObjectId(2L);
-    activity.setCreatedAt(LocalDateTime.now());
+    activity.setCreatedAt(Instant.now());
     activity.setObjectName("name");
     activity.setDetails(new ActivityDetails());
     activity.getDetails().setHistory(getExpectedHistory(

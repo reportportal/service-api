@@ -16,13 +16,12 @@
 
 package com.epam.ta.reportportal.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import java.util.Date;
+import java.time.Instant;
 import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
@@ -30,7 +29,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * JSON Representation of Report Portal's Activity domain object.
+ * JSON Representation of ReportPortal's Activity domain object.
  *
  * @author Ryhor_Kukharenka
  */
@@ -47,9 +46,8 @@ public class ActivityEventResource {
   private Long id;
 
   @NotNull
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ")
   @JsonProperty(value = "created_at")
-  private Date createdAt;
+  private Instant createdAt;
 
   @NotNull
   @JsonProperty(value = "event_name", required = true)

@@ -16,20 +16,20 @@
 
 package com.epam.ta.reportportal.core.integration.impl;
 
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.INTEGRATION_NOT_FOUND;
+import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.INTEGRATION_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Map;
 import java.util.function.Supplier;

@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.model.project.config;
 
-import com.epam.ta.reportportal.ws.annotations.NotNullMapValue;
+import com.epam.reportportal.annotations.NotNullMapValue;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;

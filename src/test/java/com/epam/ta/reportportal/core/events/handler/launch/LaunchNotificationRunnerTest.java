@@ -101,11 +101,14 @@ class LaunchNotificationRunnerTest {
 
     final Map<String, String> mapping = ImmutableMap.<String, String>builder()
         .put(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute(), "true")
+        .put(ProjectAttributeEnum.NOTIFICATIONS_EMAIL_ENABLED.getAttribute(), "true")
         .build();
 
     final Project project = new Project();
     project.setId(1L);
     project.setSenderCases(LaunchFinishedTestUtils.getSenderCases());
+
+    when(emailIntegration.getName()).thenReturn("email server");
 
     when(
         getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(event.getProjectId(),

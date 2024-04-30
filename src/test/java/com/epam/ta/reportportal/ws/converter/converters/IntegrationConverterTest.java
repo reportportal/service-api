@@ -29,9 +29,8 @@ import com.epam.ta.reportportal.model.activity.IntegrationActivityResource;
 import com.epam.ta.reportportal.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.model.integration.IntegrationTypeResource;
 import com.google.common.collect.Sets;
-import java.sql.Date;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 
@@ -46,9 +45,8 @@ class IntegrationConverterTest {
     final IntegrationResource resource =
         IntegrationConverter.TO_INTEGRATION_RESOURCE.apply(integration);
 
-    assertEquals(resource.getCreationDate(),
-        Date.from(integration.getCreationDate().atZone(ZoneId.of("UTC")).toInstant())
-    );
+    assertEquals(resource.getCreationDate().truncatedTo(ChronoUnit.SECONDS),
+        Instant.now().truncatedTo(ChronoUnit.SECONDS));
     assertEquals(resource.getEnabled(), integration.isEnabled());
     assertEquals(resource.getId(), integration.getId());
     assertEquals(resource.getProjectId(), integration.getProject().getId());
@@ -86,7 +84,7 @@ class IntegrationConverterTest {
   private static Integration getIntegration() {
     Integration integration = new Integration();
     final IntegrationType type = new IntegrationType();
-    type.setCreationDate(LocalDateTime.now());
+    type.setCreationDate(Instant.now());
     type.setIntegrationGroup(IntegrationGroupEnum.NOTIFICATION);
     type.setName("typeName");
     type.setAuthFlow(IntegrationAuthFlowEnum.BASIC);
@@ -109,7 +107,7 @@ class IntegrationConverterTest {
     project.setName("projectName");
     integration.setProject(project);
     integration.setId(3L);
-    integration.setCreationDate(LocalDateTime.now());
+    integration.setCreationDate(Instant.now());
     return integration;
   }
 }

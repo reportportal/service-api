@@ -24,7 +24,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.Issue;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
 import com.google.common.base.CaseFormat;

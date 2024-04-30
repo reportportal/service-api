@@ -18,11 +18,11 @@
 
 package com.epam.ta.reportportal.core.project.settings.notification;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.NotificationsConfigUpdatedEvent;
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.model.project.ProjectResource;
 import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Objects;
 import java.util.Optional;

@@ -18,11 +18,11 @@ package com.epam.ta.reportportal.core.integration.plugin;
 
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import org.pf4j.PluginException;
+import org.pf4j.PluginRuntimeException;
 import org.pf4j.PluginWrapper;
 
 /**
@@ -35,9 +35,9 @@ public interface PluginLoader {
    *
    * @param pluginPath Plugin's path
    * @return {@link PluginInfo} with {@link PluginInfo#getId()} and {@link PluginInfo#getVersion()}
-   * @throws PluginException if there is an issue in loading the plugin or the plugin is not found in the specified path
+   * @throws PluginRuntimeException if there is an issue in loading the plugin or the plugin is not found in the specified path
    */
-  PluginInfo extractPluginInfo(Path pluginPath) throws PluginException;
+  PluginInfo extractPluginInfo(Path pluginPath) throws PluginRuntimeException;
 
   /**
    * Creates the {@link IntegrationTypeDetails} object based on the params of the plugin

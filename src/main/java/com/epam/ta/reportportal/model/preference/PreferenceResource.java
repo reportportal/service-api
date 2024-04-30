@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
- * JSON representation of report portal domain object
+ * JSON representation of ReportPortal domain object
  *
  * @author Dzmitry_Kavalets
  */

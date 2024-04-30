@@ -16,16 +16,16 @@
 
 package com.epam.ta.reportportal.core.launch.cluster.pipeline.data;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.model.analyzer.IndexLaunch;
+import com.epam.reportportal.model.project.AnalyzerConfig;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Optional;
 import java.util.function.Predicate;
 

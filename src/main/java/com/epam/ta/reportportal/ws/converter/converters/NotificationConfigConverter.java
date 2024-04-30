@@ -20,17 +20,22 @@ import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.entity.enums.LogicalOperator;
 import com.epam.ta.reportportal.entity.enums.SendCase;
+import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.project.email.SenderCaseOptions;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
-import com.epam.ta.reportportal.ws.model.ValidationConstraints;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -70,6 +75,9 @@ public final class NotificationConfigConverter {
     resource.setAttributesOperator(model.getAttributesOperator().getOperator());
     resource.setRuleName(model.getRuleName());
     resource.setId(model.getId());
+    resource.setType(model.getType());
+    ofNullable(model.getRuleDetails()).map(SenderCaseOptions::getOptions)
+        .ifPresent(resource::setRuleDetails);
     return resource;
   };
 
@@ -112,6 +120,9 @@ public final class NotificationConfigConverter {
     senderCase.setAttributesOperator(LogicalOperator.valueOf(resource.getAttributesOperator()));
     senderCase.setRuleName(resource.getRuleName());
     senderCase.setId(resource.getId());
+    senderCase.setType(resource.getType());
+    Optional.ofNullable(resource.getRuleDetails()).map(SenderCaseOptions::new)
+        .ifPresent(senderCase::setRuleDetails);
     return senderCase;
   };
 }

@@ -70,7 +70,8 @@ public final class NotificationConfigConverter {
             launchAttributeRules.stream().map(TO_ATTRIBUTE_RULE_RESOURCE)
                 .collect(Collectors.toSet())));
     resource.setSendCase(model.getSendCase().getCaseString());
-    resource.setRecipients(Lists.newArrayList(model.getRecipients()));
+    ofNullable(model.getRecipients()).ifPresent(
+        recipients -> resource.setRecipients(Lists.newArrayList(recipients)));
     resource.setEnabled(model.isEnabled());
     resource.setAttributesOperator(model.getAttributesOperator().getOperator());
     resource.setRuleName(model.getRuleName());
@@ -111,7 +112,8 @@ public final class NotificationConfigConverter {
         }).collect(Collectors.toSet())));
     ofNullable(resource.getLaunchNames()).ifPresent(
         launchNames -> senderCase.setLaunchNames(Sets.newHashSet(launchNames)));
-    senderCase.setRecipients(Sets.newHashSet(resource.getRecipients()));
+    ofNullable(resource.getRecipients()).ifPresent(
+        recipients -> senderCase.setRecipients(Sets.newHashSet(recipients)));
     senderCase.setSendCase(SendCase.findByName(resource.getSendCase()).orElseThrow(
         () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
             "Incorrect send case type " + resource.getSendCase()

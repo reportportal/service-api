@@ -45,110 +45,136 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
  */
 class FileStorageControllerTest extends BaseMvcTest {
 
-	@Autowired
-	private AttachmentBinaryDataService attachmentBinaryDataService;
+  @Autowired
+  private AttachmentBinaryDataService attachmentBinaryDataService;
 
-	@Autowired
-	private AttachmentRepository attachmentRepository;
+  @Autowired
+  private AttachmentRepository attachmentRepository;
 
-	@Test
-	void userPhoto() throws Exception {
-		final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart("/v1/data/photo")
-				.file(new MockMultipartFile("file", "file", "image/png", new ClassPathResource("image/image.png").getInputStream()))
-				.contentType(MediaType.MULTIPART_FORM_DATA);
+  @Test
+  void userPhoto() throws Exception {
+    final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
+            "/v1/data/photo")
+        .file(new MockMultipartFile("file", "file", "image/png",
+            new ClassPathResource("image/image.png").getInputStream()))
+        .contentType(MediaType.MULTIPART_FORM_DATA);
 
-		mockMvc.perform(requestBuilder.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+    mockMvc.perform(requestBuilder.with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk());
 
-		mockMvc.perform(get("/v1/data/photo").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+    mockMvc.perform(get("/v1/data/photo").with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk());
 
-		mockMvc.perform(get("/v1/data/default_personal/userphoto?login=default").with(token(oAuthHelper.getDefaultToken())))
-				.andExpect(status().isOk());
+    mockMvc.perform(get("/v1/data/default_personal/userphoto?login=default").with(
+            token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk());
 
-		mockMvc.perform(delete("/v1/data/photo").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
-	}
+    mockMvc.perform(delete("/v1/data/photo").with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk());
+  }
 
-	@Test
-	@Sql("/db/user/user-customer.sql")
-	public void testUserPhotoAccessDeniedForCustomer() throws Exception {
-		mockMvc.perform(get("/v1/data/default_personal/userphoto?login=default").with(token(oAuthHelper.getCustomerToken())))
-				.andExpect(status().isForbidden());
-	}
+  @Test
+  @Sql("/db/user/user-customer.sql")
+  public void testUserPhotoAccessDeniedForCustomer() throws Exception {
+    mockMvc.perform(get("/v1/data/default_personal/userphoto?login=default").with(
+            token(oAuthHelper.getCustomerToken())))
+        .andExpect(status().isForbidden());
+  }
 
-	@Test
-	void uploadLargeUserPhoto() throws Exception {
-		final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart("/v1/data/photo")
-				.file(new MockMultipartFile("file", new ClassPathResource("image/large_image.png").getInputStream()))
-				.contentType(MediaType.MULTIPART_FORM_DATA);
+  @Test
+  void uploadLargeUserPhoto() throws Exception {
+    final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
+            "/v1/data/photo")
+        .file(new MockMultipartFile("file",
+            new ClassPathResource("image/large_image.png").getInputStream()))
+        .contentType(MediaType.MULTIPART_FORM_DATA);
 
-		mockMvc.perform(requestBuilder.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isBadRequest());
-	}
+    mockMvc.perform(requestBuilder.with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isBadRequest());
+  }
 
-	@Test
-	void cleanAttachmentsByCvsForbidden() throws Exception {
-		final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart("/v1/data/clean")
-				.file(new MockMultipartFile("file", new ClassPathResource("attachments.csv").getInputStream()))
-				.contentType(MediaType.MULTIPART_FORM_DATA);
-		mockMvc.perform(requestBuilder.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isForbidden());
-	}
+  @Test
+  void cleanAttachmentsByCvsForbidden() throws Exception {
+    final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
+            "/v1/data/clean")
+        .file(new MockMultipartFile("file",
+            new ClassPathResource("attachments.csv").getInputStream()))
+        .contentType(MediaType.MULTIPART_FORM_DATA);
+    mockMvc.perform(requestBuilder.with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isForbidden());
+  }
 
-	@Test
-	void cleanAttachmentsByCvs() throws Exception {
-		final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart("/v1/data/clean")
-				.file(new MockMultipartFile("file", new ClassPathResource("attachments.csv").getInputStream()))
-				.contentType(MediaType.MULTIPART_FORM_DATA);
-		mockMvc.perform(requestBuilder.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
-	}
+  @Test
+  void cleanAttachmentsByCvs() throws Exception {
+    final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
+            "/v1/data/clean")
+        .file(new MockMultipartFile("file",
+            new ClassPathResource("attachments.csv").getInputStream()))
+        .contentType(MediaType.MULTIPART_FORM_DATA);
+    mockMvc.perform(requestBuilder.with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
 
-	@Test
-	void uploadNotImage() throws Exception {
-		final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart("/v1/data/photo")
-				.file(new MockMultipartFile("file", "text.txt", "text/plain", "test".getBytes(StandardCharsets.UTF_8)))
-				.contentType(MediaType.MULTIPART_FORM_DATA);
+  @Test
+  void uploadNotImage() throws Exception {
+    final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
+            "/v1/data/photo")
+        .file(new MockMultipartFile("file", "text.txt", "text/plain",
+            "test".getBytes(StandardCharsets.UTF_8)))
+        .contentType(MediaType.MULTIPART_FORM_DATA);
 
-		mockMvc.perform(requestBuilder.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isBadRequest());
-	}
+    mockMvc.perform(requestBuilder.with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isBadRequest());
+  }
 
-	@Test
-	@Sql("/db/data-store/data-store-fill.sql")
-	void getFile() throws Exception {
-		AttachmentMetaInfo metaInfo = AttachmentMetaInfo.builder()
-				.withProjectId(1L)
-				.withCreationDate(Instant.now())
-				.withItemId(1L)
-				.withLaunchId(1L)
-				.withLogId(1L)
-				.withLogUuid("uuid")
-				.withLaunchUuid("uuid")
-				.withFileName("name")
-				.build();
-		Optional<BinaryDataMetaInfo> binaryDataMetaInfo = attachmentBinaryDataService.saveAttachment(metaInfo,
-				getMultipartFile("image/large_image.png")
-		);
-		assertTrue(binaryDataMetaInfo.isPresent());
-		attachmentBinaryDataService.attachToLog(binaryDataMetaInfo.get(), metaInfo);
+  @Test
+  @Sql("/db/data-store/data-store-fill.sql")
+  void getFile() throws Exception {
+    AttachmentMetaInfo metaInfo = AttachmentMetaInfo.builder()
+        .withProjectId(1L)
+        .withCreationDate(Instant.now())
+        .withItemId(1L)
+        .withLaunchId(1L)
+        .withLogId(1L)
+        .withLogUuid("uuid")
+        .withLaunchUuid("uuid")
+        .withFileName("name")
+        .build();
+    Optional<BinaryDataMetaInfo> binaryDataMetaInfo = attachmentBinaryDataService.saveAttachment(
+        metaInfo,
+        getMultipartFile("image/large_image.png")
+    );
+    assertTrue(binaryDataMetaInfo.isPresent());
+    attachmentBinaryDataService.attachToLog(binaryDataMetaInfo.get(), metaInfo);
 
-		Optional<Attachment> attachment = attachmentRepository.findByFileId(binaryDataMetaInfo.get().getFileId());
+    Optional<Attachment> attachment = attachmentRepository.findByFileId(
+        binaryDataMetaInfo.get().getFileId());
 
-		assertTrue(attachment.isPresent());
+    assertTrue(attachment.isPresent());
 
-		mockMvc.perform(get("/v1/data/superadmin_personal/" + attachment.get().getId()).with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isOk());
-	}
+    mockMvc.perform(get("/v1/data/superadmin_personal/" + attachment.get().getId()).with(
+            token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
 
-	@Test
-	void getUserPhotoNegative() throws Exception {
-		mockMvc.perform(get("/v1/data/photo").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
-	}
+  @Test
+  void getUserPhotoNegative() throws Exception {
+    mockMvc.perform(get("/v1/data/photo").with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk());
+  }
 
-	@Test
-	void getUserPhotoByLoginNegative() throws Exception {
-		mockMvc.perform(get("/v1/data/superadmin_personal/userphoto?login=superadmin").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isOk());
-	}
+  @Test
+  void getUserPhotoByLoginNegative() throws Exception {
+    mockMvc.perform(get("/v1/data/superadmin_personal/userphoto?login=superadmin").with(
+            token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
 
-	@Test
-	void getNotExistUserPhoto() throws Exception {
-		mockMvc.perform(get("/v1/data/userphoto?login=not_exist").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isNotFound());
-	}
+  @Test
+  void getNotExistUserPhoto() throws Exception {
+    mockMvc.perform(
+            get("/v1/data/userphoto?login=not_exist")
+								.with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound());
+  }
 }

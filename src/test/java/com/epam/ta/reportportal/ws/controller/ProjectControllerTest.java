@@ -368,27 +368,27 @@ class ProjectControllerTest extends BaseMvcTest {
 
 	@Test
 	void addUserPreference() throws Exception {
-		mockMvc.perform(put("/v1/project/test_project/preference/superadmin/2").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(put("/v1/project/test_project/preference/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void addUserPreferenceNegative() throws Exception {
-		mockMvc.perform(put("/v1/project/test_project/preference/superadmin/2").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(put("/v1/project/test_project/preference/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
-		mockMvc.perform(put("/v1/project/test_project/preference/superadmin/2").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(put("/v1/project/test_project/preference/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isConflict());
 	}
 
 	@Test
 	void getUserPreferencePositive() throws Exception {
-		mockMvc.perform(get("/v1/project/test_project/preference/superadmin").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/project/test_project/preference").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void deleteUserPreference() throws Exception {
-		mockMvc.perform(delete("/v1/project/test_project/preference/superadmin/1").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(delete("/v1/project/test_project/preference/1").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 

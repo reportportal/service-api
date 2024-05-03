@@ -174,7 +174,7 @@ class FileStorageControllerTest extends BaseMvcTest {
   void getNotExistUserPhoto() throws Exception {
     mockMvc.perform(
             get("/v1/data/userphoto?login=not_exist")
-								.with(token(oAuthHelper.getSuperadminToken())))
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound());
   }
 }

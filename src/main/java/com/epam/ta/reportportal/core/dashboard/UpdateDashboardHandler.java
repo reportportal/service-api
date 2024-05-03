@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.dashboard;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.dashboard.AddWidgetRq;
 import com.epam.ta.reportportal.model.dashboard.UpdateDashboardRQ;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
@@ -35,7 +36,7 @@ public interface UpdateDashboardHandler {
    * @param user           User
    * @return OperationCompletionRS
    */
-  OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails,
+  OperationCompletionRS updateDashboard(MembershipDetails membershipDetails,
       UpdateDashboardRQ rq, Long dashboardId,
       ReportPortalUser user);
 
@@ -48,7 +49,7 @@ public interface UpdateDashboardHandler {
    * @param user           User
    * @return OperationCompletionRS
    */
-  OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails,
+  OperationCompletionRS addWidget(Long dashboardId, MembershipDetails membershipDetails,
       AddWidgetRq rq,
       ReportPortalUser user);
 
@@ -62,7 +63,7 @@ public interface UpdateDashboardHandler {
    * @return OperationCompletionRS
    */
   OperationCompletionRS removeWidget(Long widgetId, Long dashboardId,
-      ReportPortalUser.ProjectDetails projectDetails,
+      MembershipDetails membershipDetails,
       ReportPortalUser user);
 
 }

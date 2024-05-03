@@ -16,20 +16,21 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
-import static com.epam.ta.reportportal.entity.project.ProjectUtils.getConfigParameters;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.entity.project.ProjectUtils.getConfigParameters;
 import static java.util.stream.Collectors.toList;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.config.AnalyzerType;
@@ -46,10 +47,11 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.BulkRQ;
 import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.model.launch.UpdateLaunchRQ;
@@ -58,9 +60,8 @@ import com.epam.ta.reportportal.util.ItemInfoUtils;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
 import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
-import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.reporting.Mode;
-import com.epam.reportportal.model.project.AnalyzerConfig;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
@@ -109,11 +110,11 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
   @Override
   public OperationCompletionRS updateLaunch(Long launchId,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, UpdateLaunchRQ rq) {
-    Project project = getProjectHandler.get(projectDetails);
+      MembershipDetails membershipDetails, ReportPortalUser user, UpdateLaunchRQ rq) {
+    Project project = getProjectHandler.get(membershipDetails);
     Launch launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
-    validate(launch, user, projectDetails, rq.getMode());
+    validate(launch, user, membershipDetails, rq.getMode());
 
     LaunchModeEnum previousMode = launch.getMode();
 
@@ -130,17 +131,17 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
   @Override
   public List<OperationCompletionRS> updateLaunch(BulkRQ<Long, UpdateLaunchRQ> rq,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
     return rq.getEntities().entrySet().stream()
-        .map(entry -> updateLaunch(entry.getKey(), projectDetails, user, entry.getValue()))
+        .map(entry -> updateLaunch(entry.getKey(), membershipDetails, user, entry.getValue()))
         .collect(toList());
   }
 
   @Override
   public OperationCompletionRS startLaunchAnalyzer(AnalyzeLaunchRQ analyzeRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
     AnalyzerType analyzerType = AnalyzerType.fromString(analyzeRQ.getAnalyzerTypeName());
-    launchAnalysisStrategyMapping.get(analyzerType).analyze(analyzeRQ, projectDetails, user);
+    launchAnalysisStrategyMapping.get(analyzerType).analyze(analyzeRQ, membershipDetails, user);
     return new OperationCompletionRS(
         analyzerType.getName() + " analysis for launch with ID='" + analyzeRQ.getLaunchId()
             + "' started.");
@@ -149,10 +150,10 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
   @Override
   @Transactional
   public OperationCompletionRS createClusters(CreateClustersRQ createClustersRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
 
     final Launch launch = getLaunchHandler.get(createClustersRQ.getLaunchId());
-    launchAccessValidator.validate(launch, projectDetails, user);
+    launchAccessValidator.validate(launch, membershipDetails, user);
     //TODO should be put inside *Validator after validators refactoring
     expect(launch.getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(INCORRECT_REQUEST,
         "Cannot analyze launch in progress."
@@ -177,9 +178,9 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
   @Override
   public OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq,
-      ReportPortalUser.ProjectDetails projectDetails) {
-    expect(getProjectHandler.exists(projectDetails.getProjectId()), Predicate.isEqual(true)).verify(
-        PROJECT_NOT_FOUND, projectDetails.getProjectId());
+      MembershipDetails membershipDetails) {
+    expect(getProjectHandler.exists(membershipDetails.getProjectId()), Predicate.isEqual(true)).verify(
+        PROJECT_NOT_FOUND, membershipDetails.getProjectId());
 
     List<Launch> launches = launchRepository.findAllById(bulkUpdateRq.getIds());
     launches.forEach(
@@ -239,13 +240,11 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
    */
   //TODO *Validator refactoring
   private void validate(Launch launch, ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails, Mode mode) {
-    if (projectDetails.getProjectRole() == ProjectRole.CUSTOMER && null != mode) {
-      expect(mode, equalTo(Mode.DEFAULT)).verify(ACCESS_DENIED);
-    }
-    if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-      expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
-      if (projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
+      MembershipDetails membershipDetails, Mode mode) {
+    if (user.getUserRole() != UserRole.ADMINISTRATOR && !OrganizationRole.MANAGER.equals(membershipDetails.getOrgRole())) {
+      expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId()))
+          .verify(ACCESS_DENIED);
+      if ((membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER) && membershipDetails.getProjectRole().equals(ProjectRole.VIEWER))) {
         expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED);
       }
     }

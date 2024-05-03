@@ -17,6 +17,7 @@ package com.epam.ta.reportportal.core.file;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import java.io.InputStream;
 
 /**
@@ -53,5 +54,5 @@ public interface GetFileHandler {
    * @param projectDetails {@link ReportPortalUser.ProjectDetails}
    * @return {@link BinaryData} file data
    */
-  BinaryData loadFileById(Long fileId, ReportPortalUser.ProjectDetails projectDetails);
+  BinaryData loadFileById(Long fileId, MembershipDetails membershipDetails);
 }

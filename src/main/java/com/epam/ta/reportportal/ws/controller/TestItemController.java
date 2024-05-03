@@ -143,7 +143,7 @@ public class TestItemController {
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
     return startTestItemHandler.startRootItem(user,
-        projectExtractor.extractProjectDetails(user, projectKey), startTestItemRQ
+        projectExtractor.extractMemberShipDetails(user, projectKey), startTestItemRQ
     );
   }
 
@@ -155,7 +155,7 @@ public class TestItemController {
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable String parentItem,
       @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
     return startTestItemHandler.startChildItem(user,
-        projectExtractor.extractProjectDetails(user, projectKey), startTestItemRQ, parentItem
+        projectExtractor.extractMemberShipDetails(user, projectKey), startTestItemRQ, parentItem
     );
   }
 
@@ -167,7 +167,7 @@ public class TestItemController {
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable String testItemId,
       @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
     return finishTestItemHandler.finishTestItem(user,
-        projectExtractor.extractProjectDetails(user, projectKey), testItemId, finishExecutionRQ
+        projectExtractor.extractMemberShipDetails(user, projectKey), testItemId, finishExecutionRQ
     );
   }
 
@@ -181,7 +181,7 @@ public class TestItemController {
   public TestItemResource getTestItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable String itemId) {
     return getTestItemHandler.getTestItem(itemId,
-        projectExtractor.extractProjectDetails(user, projectKey), user
+        projectExtractor.extractMemberShipDetails(user, projectKey), user
     );
 
   }
@@ -193,7 +193,7 @@ public class TestItemController {
   public TestItemResource getTestItemByUuid(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable String itemId) {
     return getTestItemHandler.getTestItem(itemId,
-        projectExtractor.extractProjectDetails(user, projectKey), user
+        projectExtractor.extractMemberShipDetails(user, projectKey), user
     );
 
   }
@@ -205,7 +205,7 @@ public class TestItemController {
   public List<SuggestedItem> getSuggestedItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable Long itemId) {
     return suggestItemService.suggestItems(itemId,
-        projectExtractor.extractProjectDetails(user, projectKey), user
+        projectExtractor.extractMemberShipDetails(user, projectKey), user
     );
   }
 
@@ -215,7 +215,7 @@ public class TestItemController {
   public List<SuggestedItem> getSuggestedClusterItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable Long clusterId) {
     return suggestItemService.suggestClusterItems(clusterId,
-        projectExtractor.extractProjectDetails(user, projectKey), user
+        projectExtractor.extractMemberShipDetails(user, projectKey), user
     );
   }
 
@@ -226,7 +226,7 @@ public class TestItemController {
   public OperationCompletionRS handleSuggestChoose(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated List<SuggestInfo> request) {
-    projectExtractor.extractProjectDetails(user, projectKey);
+    projectExtractor.extractMemberShipDetails(user, projectKey);
     return suggestItemService.handleSuggestChoice(request);
   }
 
@@ -249,7 +249,7 @@ public class TestItemController {
       @SortFor(TestItem.class) Pageable pageable) {
     return getTestItemHandler.getTestItems(
         new CompositeFilter(Operator.AND, filter, predefinedFilter), pageable,
-        projectExtractor.extractProjectDetails(user, projectKey), user, launchId, filterId,
+        projectExtractor.extractMemberShipDetails(user, projectKey), user, launchId, filterId,
         isLatest, launchesLimit
     );
   }
@@ -269,7 +269,7 @@ public class TestItemController {
     }
     return getTestItemHandler.getTestItemsByProvider(
         new CompositeFilter(Operator.AND, filter, predefinedFilter), pageable,
-        projectExtractor.extractProjectDetails(user, projectKey), user, params
+        projectExtractor.extractMemberShipDetails(user, projectKey), user, params
     );
   }
 
@@ -283,7 +283,7 @@ public class TestItemController {
       @RequestParam Map<String, String> params) {
     return getTestItemHandler.getStatisticsByProvider(
         new CompositeFilter(Operator.AND, filter, predefinedFilter),
-        projectExtractor.extractProjectDetails(user, projectKey), user, params
+        projectExtractor.extractMemberShipDetails(user, projectKey), user, params
     );
   }
 
@@ -294,7 +294,7 @@ public class TestItemController {
   public OperationCompletionRS deleteTestItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable Long itemId) {
     return deleteTestItemHandler.deleteTestItem(itemId,
-        projectExtractor.extractProjectDetails(user, projectKey), user
+        projectExtractor.extractMemberShipDetails(user, projectKey), user
     );
   }
 
@@ -305,7 +305,7 @@ public class TestItemController {
   public List<OperationCompletionRS> deleteTestItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "ids") Set<Long> ids) {
     return deleteTestItemHandler.deleteTestItems(ids,
-        projectExtractor.extractProjectDetails(user, projectKey), user
+        projectExtractor.extractMemberShipDetails(user, projectKey), user
     );
   }
 
@@ -317,7 +317,7 @@ public class TestItemController {
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated DefineIssueRQ request) {
     return updateTestItemHandler.defineTestItemsIssues(
-        projectExtractor.extractProjectDetails(user, projectKey), request, user);
+        projectExtractor.extractMemberShipDetails(user, projectKey), request, user);
   }
 
   @Transactional(readOnly = true)
@@ -343,7 +343,7 @@ public class TestItemController {
       int historyDepth) {
 
     return testItemsHistoryHandler.getItemsHistory(
-        projectExtractor.extractProjectDetails(user, projectKey),
+        projectExtractor.extractMemberShipDetails(user, projectKey),
         new CompositeFilter(Operator.AND, filter, predefinedFilter), pageable,
         HistoryRequestParams.of(historyDepth, parentId, itemId, launchId, type, filterId,
             launchesLimit, isLatest
@@ -368,7 +368,7 @@ public class TestItemController {
   public List<String> getTicketIdsForProject(@AuthenticationPrincipal ReportPortalUser user,
       @PathVariable String projectKey, @RequestParam(value = "term") String term) {
     return getTestItemHandler.getTicketIds(
-        projectExtractor.extractProjectDetails(user, projectKey), normalizeId(term));
+        projectExtractor.extractMemberShipDetails(user, projectKey), normalizeId(term));
   }
 
   //TODO EPMRPP-59414
@@ -396,7 +396,7 @@ public class TestItemController {
       boolean isLatest,
       @RequestParam(value = LAUNCHES_LIMIT_REQUEST_PARAM, defaultValue = "0") int launchesLimit) {
     return getTestItemHandler.getAttributeKeys(launchFilterId, isLatest, launchesLimit,
-        projectExtractor.extractProjectDetails(user, projectKey), value
+        projectExtractor.extractMemberShipDetails(user, projectKey), value
     );
   }
 
@@ -426,7 +426,7 @@ public class TestItemController {
       String value) {
     return ofNullable(launchName).filter(StringUtils::isNotBlank).map(
             name -> getTestItemHandler.getAttributeKeys(
-                projectExtractor.extractProjectDetails(user, projectKey), name, value))
+                projectExtractor.extractMemberShipDetails(user, projectKey), name, value))
         .orElseGet(Collections::emptyList);
   }
 
@@ -443,7 +443,7 @@ public class TestItemController {
       String value) {
     return ofNullable(launchName).filter(StringUtils::isNotBlank).map(
             name -> getTestItemHandler.getAttributeValues(
-                projectExtractor.extractProjectDetails(user, projectKey), name, key, value))
+                projectExtractor.extractMemberShipDetails(user, projectKey), name, key, value))
         .orElseGet(Collections::emptyList);
   }
 
@@ -456,7 +456,7 @@ public class TestItemController {
       @RequestBody @Validated BulkInfoUpdateRQ bulkInfoUpdateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateTestItemHandler.bulkInfoUpdate(bulkInfoUpdateRQ,
-        projectExtractor.extractProjectDetails(user, projectKey)
+        projectExtractor.extractMemberShipDetails(user, projectKey)
     );
   }
 
@@ -468,7 +468,7 @@ public class TestItemController {
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable Long itemId,
       @RequestBody @Validated UpdateTestItemRQ rq) {
     return updateTestItemHandler.updateTestItem(
-        projectExtractor.extractProjectDetails(user, projectKey), itemId, rq, user);
+        projectExtractor.extractMemberShipDetails(user, projectKey), itemId, rq, user);
   }
 
   @Transactional
@@ -479,7 +479,7 @@ public class TestItemController {
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated LinkExternalIssueRQ rq) {
     return updateTestItemHandler.processExternalIssues(rq,
-        projectExtractor.extractProjectDetails(user, projectKey), user
+        projectExtractor.extractMemberShipDetails(user, projectKey), user
     );
   }
 
@@ -491,7 +491,7 @@ public class TestItemController {
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated UnlinkExternalIssueRQ rq) {
     return updateTestItemHandler.processExternalIssues(rq,
-        projectExtractor.extractProjectDetails(user, projectKey), user
+        projectExtractor.extractMemberShipDetails(user, projectKey), user
     );
   }
 
@@ -502,7 +502,7 @@ public class TestItemController {
   public List<TestItemResource> getTestItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "ids") Long[] ids) {
     return getTestItemHandler.getTestItems(ids,
-        projectExtractor.extractProjectDetails(user, projectKey), user
+        projectExtractor.extractMemberShipDetails(user, projectKey), user
     );
   }
 }

@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.log;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 
 public interface DeleteLogHandler {
@@ -29,6 +30,6 @@ public interface DeleteLogHandler {
    * @param user           User
    * @return OperationCompletionRS
    */
-  OperationCompletionRS deleteLog(Long logId, ReportPortalUser.ProjectDetails projectDetails,
+  OperationCompletionRS deleteLog(Long logId, MembershipDetails membershipDetails,
       ReportPortalUser user);
 }

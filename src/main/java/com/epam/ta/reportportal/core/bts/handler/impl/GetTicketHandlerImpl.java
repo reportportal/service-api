@@ -30,6 +30,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.reportportal.model.externalsystem.PostFormField;
 import com.epam.reportportal.model.externalsystem.Ticket;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,8 +55,8 @@ public class GetTicketHandlerImpl implements GetTicketHandler {
 
   @Override
   public Ticket getTicket(String ticketId, String url, String btsProject,
-      ReportPortalUser.ProjectDetails projectDetails) {
-    Integration integration = getIntegrationHandler.getEnabledBtsIntegration(projectDetails, url,
+      MembershipDetails membershipDetails) {
+    Integration integration = getIntegrationHandler.getEnabledBtsIntegration(membershipDetails, url,
         btsProject);
     return getBtsExtension(integration).getTicket(ticketId, integration)
         .orElseThrow(() -> new ReportPortalException(ErrorType.TICKET_NOT_FOUND, ticketId));
@@ -63,8 +64,8 @@ public class GetTicketHandlerImpl implements GetTicketHandler {
 
   @Override
   public List<PostFormField> getSubmitTicketFields(String ticketType, Long integrationId,
-      ReportPortalUser.ProjectDetails projectDetails) {
-    Integration integration = getIntegrationHandler.getEnabledBtsIntegration(projectDetails,
+      MembershipDetails membershipDetails) {
+    Integration integration = getIntegrationHandler.getEnabledBtsIntegration(membershipDetails,
         integrationId);
     return getBtsExtension(integration).getTicketFields(ticketType, integration);
   }
@@ -77,8 +78,8 @@ public class GetTicketHandlerImpl implements GetTicketHandler {
 
   @Override
   public List<String> getAllowableIssueTypes(Long integrationId,
-      ReportPortalUser.ProjectDetails projectDetails) {
-    Integration integration = getIntegrationHandler.getEnabledBtsIntegration(projectDetails,
+      MembershipDetails membershipDetails) {
+    Integration integration = getIntegrationHandler.getEnabledBtsIntegration(membershipDetails,
         integrationId);
     return getBtsExtension(integration).getIssueTypes(integration);
   }

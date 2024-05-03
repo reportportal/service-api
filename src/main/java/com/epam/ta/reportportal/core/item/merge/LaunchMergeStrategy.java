@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.item.merge;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.reporting.MergeLaunchesRQ;
 import java.util.List;
 
@@ -26,6 +27,6 @@ import java.util.List;
  */
 public interface LaunchMergeStrategy {
 
-  Launch mergeLaunches(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+  Launch mergeLaunches(MembershipDetails membershipDetails, ReportPortalUser user,
       MergeLaunchesRQ rq, List<Launch> launchesList);
 }

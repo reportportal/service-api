@@ -44,6 +44,8 @@ public class ExtensionsInfoContributor implements ExtensionContributor {
   public Map<String, ?> contribute() {
     Set<String> names = pluginBox.getPlugins().stream().map(Plugin::getId)
         .collect(Collectors.toSet());
-    return ImmutableMap.<String, Object>builder().put(EXTENSION_KEY, names).build();
+    return ImmutableMap.<String, Object>builder()
+        .put(EXTENSION_KEY, names)
+        .build();
   }
 }

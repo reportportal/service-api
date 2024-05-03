@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
@@ -63,16 +64,16 @@ class StartLaunchHandlerImpl implements StartLaunchHandler {
   @Override
   @Transactional
   public StartLaunchRS startLaunch(ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ request) {
-    validateRoles(projectDetails, request);
+      MembershipDetails membershipDetails, StartLaunchRQ request) {
+    validateRoles(membershipDetails, request);
 
     final Launch savedLaunch = Optional.of(request.isRerun())
         .filter(Boolean::booleanValue)
-        .map(rerun -> rerunHandler.handleLaunch(request, projectDetails.getProjectId(), user))
+        .map(rerun -> rerunHandler.handleLaunch(request, membershipDetails.getProjectId(), user))
         .orElseGet(() -> {
           Launch launch = new LaunchBuilder().addStartRQ(request)
               .addAttributes(request.getAttributes())
-              .addProject(projectDetails.getProjectId())
+              .addProject(membershipDetails.getProjectId())
               .addUserId(user.getUserId())
               .get();
           launchRepository.save(launch);

@@ -100,7 +100,7 @@ public class UserFilterController {
   public UserFilterResource getFilter(@PathVariable String projectKey, @PathVariable Long filterId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getFilterHandler.getUserFilter(
-        filterId, projectExtractor.extractProjectDetails(user, projectKey));
+        filterId, projectExtractor.extractMemberShipDetails(user, projectKey));
   }
 
   @Transactional(readOnly = true)
@@ -120,7 +120,7 @@ public class UserFilterController {
   public OperationCompletionRS deleteFilter(@PathVariable String projectKey,
       @PathVariable Long filterId, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteFilterHandler.deleteFilter(
-        filterId, projectExtractor.extractProjectDetails(user, projectKey), user);
+        filterId, projectExtractor.extractMemberShipDetails(user, projectKey), user);
   }
 
   @Transactional(readOnly = true)
@@ -131,7 +131,7 @@ public class UserFilterController {
       @SortFor(UserFilter.class) Pageable pageable, @FilterFor(UserFilter.class) Filter filter,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getFilterHandler.getFiltersNames(
-        projectExtractor.extractProjectDetails(user, projectKey), pageable, filter, user);
+        projectExtractor.extractMemberShipDetails(user, projectKey), pageable, filter, user);
   }
 
   @Transactional
@@ -142,7 +142,7 @@ public class UserFilterController {
       @PathVariable Long filterId, @RequestBody @Validated UpdateUserFilterRQ updateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateUserFilterHandler.updateUserFilter(filterId, updateRQ,
-        projectExtractor.extractProjectDetails(user, projectKey), user
+        projectExtractor.extractMemberShipDetails(user, projectKey), user
     );
   }
 
@@ -153,7 +153,7 @@ public class UserFilterController {
   public List<UserFilterResource> getUserFilters(@PathVariable String projectKey,
       @RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
     List<UserFilter> filters = getFilterHandler.getFiltersById(ids,
-        projectExtractor.extractProjectDetails(user, projectKey), user
+        projectExtractor.extractMemberShipDetails(user, projectKey), user
     );
     return filters.stream().map(UserFilterConverter.TO_FILTER_RESOURCE)
         .collect(Collectors.toList());
@@ -167,7 +167,7 @@ public class UserFilterController {
       @RequestBody @Validated CollectionsRQ<BulkUpdateFilterRQ> updateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateUserFilterHandler.updateUserFilter(
-        updateRQ, projectExtractor.extractProjectDetails(user, projectKey), user);
+        updateRQ, projectExtractor.extractMemberShipDetails(user, projectKey), user);
   }
 
 }

@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.demodata.model.RootMetaData;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import java.time.Instant;
@@ -72,10 +73,10 @@ public class DemoDataTestItemService {
 
   @Transactional
   public void finishRootItem(String rootItemId, ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setEndTime(Instant.now());
-    finishTestItemHandler.finishTestItem(user, projectDetails, rootItemId, rq);
+    finishTestItemHandler.finishTestItem(user, membershipDetails, rootItemId, rq);
   }
 
   @Transactional

@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.auth.permissions;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,9 @@ public class ReporterPermission extends BaseProjectPermission {
    * Validates that user is allowed to report (start/finish, launch, start/finish item, log)
    */
   @Override
-  protected boolean checkAllowed(ReportPortalUser user, String project, ProjectRole role) {
-    return role.sameOrHigherThan(ProjectRole.CUSTOMER);
+  protected boolean checkAllowed(ReportPortalUser user, String project, OrganizationRole orgRole,
+      ProjectRole prjRole) {
+    return orgRole.equals(OrganizationRole.MANAGER) ||
+        (orgRole.sameOrHigherThan(OrganizationRole.MEMBER) && prjRole.sameOrHigherThan(ProjectRole.EDITOR));
   }
 }

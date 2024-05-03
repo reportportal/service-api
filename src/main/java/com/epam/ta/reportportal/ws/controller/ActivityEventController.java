@@ -108,6 +108,6 @@ public class ActivityEventController {
       @RequestParam(FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + "subjectName")
       String value, @AuthenticationPrincipal ReportPortalUser user) {
     return activityEventHandler.getSubjectNames(
-        projectExtractor.extractProjectDetails(user, projectKey), value);
+        projectExtractor.extractMemberShipDetails(user, projectKey), value);
   }
 }

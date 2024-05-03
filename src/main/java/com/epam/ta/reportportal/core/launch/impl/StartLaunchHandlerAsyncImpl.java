@@ -20,6 +20,7 @@ import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguratio
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.util.ReportingQueueService;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
@@ -48,8 +49,9 @@ public class StartLaunchHandlerAsyncImpl implements StartLaunchHandler {
 
   @Override
   public StartLaunchRS startLaunch(ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ request) {
-    validateRoles(projectDetails, request);
+      MembershipDetails membershipDetails,
+      StartLaunchRQ request) {
+    validateRoles(membershipDetails, request);
 
     if (request.getUuid() == null) {
       request.setUuid(UUID.randomUUID().toString());
@@ -59,7 +61,7 @@ public class StartLaunchHandlerAsyncImpl implements StartLaunchHandler {
           Map<String, Object> headers = message.getMessageProperties().getHeaders();
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_LAUNCH);
           headers.put(MessageHeaders.USERNAME, user.getUsername());
-          headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
+          headers.put(MessageHeaders.PROJECT_NAME, membershipDetails.getProjectName());
           return message;
         });
 

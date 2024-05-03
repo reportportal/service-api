@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.dao.DashboardWidgetRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.activity.DashboardActivityResource;
@@ -74,19 +75,19 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
   }
 
   @Override
-  public OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails, UpdateDashboardRQ rq, Long dashboardId,
+  public OperationCompletionRS updateDashboard(MembershipDetails membershipDetails, UpdateDashboardRQ rq, Long dashboardId,
       ReportPortalUser user) {
-    Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
+    Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, membershipDetails.getProjectId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
             dashboardId,
-            projectDetails.getProjectName()
+            membershipDetails.getProjectName()
         ));
     DashboardActivityResource before = TO_ACTIVITY_RESOURCE.apply(dashboard);
 
     if (!dashboard.getName().equals(rq.getName())) {
       BusinessRule.expect(dashboardRepository.existsByNameAndOwnerAndProjectId(rq.getName(),
               user.getUsername(),
-              projectDetails.getProjectId()
+              membershipDetails.getProjectId()
           ), BooleanUtils::isFalse)
           .verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
     }
@@ -103,21 +104,21 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
   }
 
   @Override
-  public OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq,
+  public OperationCompletionRS addWidget(Long dashboardId, MembershipDetails membershipDetails, AddWidgetRq rq,
       ReportPortalUser user) {
-    final Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
+    final Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, membershipDetails.getProjectId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
             dashboardId,
-            projectDetails.getProjectName()
+            membershipDetails.getProjectName()
         ));
     Set<DashboardWidget> dashboardWidgets = dashboard.getDashboardWidgets();
 
     validateWidgetBeforeAddingToDashboard(rq, dashboard, dashboardWidgets);
 
-    Widget widget = widgetRepository.findByIdAndProjectId(rq.getAddWidget().getWidgetId(), projectDetails.getProjectId())
+    Widget widget = widgetRepository.findByIdAndProjectId(rq.getAddWidget().getWidgetId(), membershipDetails.getProjectId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
             rq.getAddWidget().getWidgetId(),
-            projectDetails.getProjectName()
+            membershipDetails.getProjectName()
         ));
     boolean isCreatedOnDashboard = CollectionUtils.isEmpty(widget.getDashboardWidgets());
     DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getAddWidget(), dashboard, widget, isCreatedOnDashboard);
@@ -149,17 +150,17 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
   }
 
   @Override
-  public OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ReportPortalUser.ProjectDetails projectDetails,
+  public OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, MembershipDetails membershipDetails,
       ReportPortalUser user) {
-    Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
+    Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, membershipDetails.getProjectId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
             dashboardId,
-            projectDetails.getProjectName()
+            membershipDetails.getProjectName()
         ));
-    Widget widget = widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
+    Widget widget = widgetRepository.findByIdAndProjectId(widgetId, membershipDetails.getProjectId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
             widgetId,
-            projectDetails.getProjectName()
+            membershipDetails.getProjectName()
         ));
 
     if (shouldDelete(widget)) {

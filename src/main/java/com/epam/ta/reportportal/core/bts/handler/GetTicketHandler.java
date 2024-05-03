@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.bts.handler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.model.externalsystem.PostFormField;
 import com.epam.reportportal.model.externalsystem.Ticket;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import java.util.List;
 
 /**
@@ -39,7 +40,7 @@ public interface GetTicketHandler {
    * @return Ticket
    */
   Ticket getTicket(String ticketId, String btsUrl, String btsProject,
-      ReportPortalUser.ProjectDetails projectDetails);
+      MembershipDetails membershipDetails);
 
   /**
    * Get set of fields of external system to submit a ticket
@@ -50,7 +51,7 @@ public interface GetTicketHandler {
    * @return Found fields
    */
   List<PostFormField> getSubmitTicketFields(String ticketType, Long integrationId,
-      ReportPortalUser.ProjectDetails projectDetails);
+      MembershipDetails membershipDetails);
 
   List<PostFormField> getSubmitTicketFields(String issueType, Long integrationId);
 
@@ -62,7 +63,7 @@ public interface GetTicketHandler {
    * @return Fields
    */
   List<String> getAllowableIssueTypes(Long integrationId,
-      ReportPortalUser.ProjectDetails projectDetails);
+      MembershipDetails membershipDetails);
 
   List<String> getAllowableIssueTypes(Long integrationId);
 }

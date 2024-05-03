@@ -42,6 +42,7 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.TestItemHistoryElement;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
@@ -90,7 +91,7 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
   @Override
   public Iterable<TestItemHistoryElement> getItemsHistory(
-      ReportPortalUser.ProjectDetails projectDetails, Queryable filter, Pageable pageable,
+      MembershipDetails membershipDetails, Queryable filter, Pageable pageable,
       HistoryRequestParams historyRequestParams, ReportPortalUser user) {
 
     validateHistoryDepth(historyRequestParams.getHistoryDepth());
@@ -98,7 +99,7 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
     CompositeFilter itemHistoryFilter = new CompositeFilter(Operator.AND, filter,
         Filter.builder().withTarget(filter.getTarget().getClazz()).withCondition(
                 FilterCondition.builder()
-                    .eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build())
+                    .eq(CRITERIA_PROJECT_ID, String.valueOf(membershipDetails.getProjectId())).build())
             .withCondition(
                 FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, LaunchModeEnum.DEFAULT.name())
                     .build()).withCondition(
@@ -110,13 +111,13 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
         historyProviderFactory.getProvider(historyRequestParams).orElseThrow(
             () -> new ReportPortalException(UNABLE_LOAD_TEST_ITEM_HISTORY,
                 "Unable to find suitable history baseline provider"
-            )).provide(itemHistoryFilter, pageable, historyRequestParams, projectDetails, user,
+            )).provide(itemHistoryFilter, pageable, historyRequestParams, membershipDetails, user,
             !oldHistory
         );
 
     return buildHistoryElements(oldHistory ? TestItemResource::getUniqueId :
             testItemResource -> String.valueOf(testItemResource.getTestCaseHash()), testItemHistoryPage,
-        projectDetails.getProjectId(), pageable
+        membershipDetails.getProjectId(), pageable
     );
 
   }

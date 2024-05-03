@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.reporting.StatisticsResource;
 import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.List;
@@ -47,7 +48,7 @@ public interface GetTestItemHandler {
    * @param user           {@link ReportPortalUser}
    * @return {@link TestItemResource}
    */
-  TestItemResource getTestItem(String testItemId, ReportPortalUser.ProjectDetails projectDetails,
+  TestItemResource getTestItem(String testItemId, MembershipDetails membershipDetails,
       ReportPortalUser user);
 
   /**
@@ -64,7 +65,7 @@ public interface GetTestItemHandler {
    * @return {@link Iterable} of the {@link TestItemResource}
    */
   Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      MembershipDetails membershipDetails, ReportPortalUser user,
       @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit);
 
   /**
@@ -77,7 +78,7 @@ public interface GetTestItemHandler {
    * @return {@link Iterable} of the {@link TestItemResource}
    */
   Iterable<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      MembershipDetails membershipDetails, ReportPortalUser user,
       Map<String, String> params);
 
   /**
@@ -89,7 +90,7 @@ public interface GetTestItemHandler {
    * @return Accumulated statistics
    */
   StatisticsResource getStatisticsByProvider(Queryable filter,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      MembershipDetails membershipDetails, ReportPortalUser user,
       Map<String, String> providerParams);
 
   /**
@@ -108,7 +109,7 @@ public interface GetTestItemHandler {
    * @param term           part of {@link Ticket#getTicketId()} to search
    * @return {@link List} of {@link Ticket#getTicketId()}
    */
-  List<String> getTicketIds(ReportPortalUser.ProjectDetails projectDetails, String term);
+  List<String> getTicketIds(MembershipDetails membershipDetails, String term);
 
   /**
    * Get specified attribute keys of all test items and launches for project with provided id
@@ -124,7 +125,7 @@ public interface GetTestItemHandler {
    * @return {@link List} of the {@link ItemAttribute#getKey()}
    */
   List<String> getAttributeKeys(Long launchFilterId, boolean isLatest, int launchesLimit,
-      ReportPortalUser.ProjectDetails projectDetails, String keyPart);
+      MembershipDetails membershipDetails, String keyPart);
 
   /**
    * Get specified attribute keys
@@ -156,7 +157,7 @@ public interface GetTestItemHandler {
    * @param keyPart        part of the {@link ItemAttribute#getKey()} to search
    * @return {@link List} of the {@link ItemAttribute#getKey()}
    */
-  List<String> getAttributeKeys(ReportPortalUser.ProjectDetails projectDetails, String launchName,
+  List<String> getAttributeKeys(MembershipDetails membershipDetails, String launchName,
       String keyPart);
 
   /**
@@ -169,7 +170,7 @@ public interface GetTestItemHandler {
    * @param valuePart      part of the {@link ItemAttribute#getValue()} to search
    * @return {@link List} of the {@link ItemAttribute#getValue()}
    */
-  List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String launchName,
+  List<String> getAttributeValues(MembershipDetails membershipDetails, String launchName,
       String key, String valuePart);
 
   /**
@@ -178,6 +179,6 @@ public interface GetTestItemHandler {
    * @param user           {@link ReportPortalUser}
    * @return {@link List} of the {@link TestItemResource}
    */
-  List<TestItemResource> getTestItems(Long[] ids, ReportPortalUser.ProjectDetails projectDetails,
+  List<TestItemResource> getTestItems(Long[] ids, MembershipDetails membershipDetails,
       ReportPortalUser user);
 }

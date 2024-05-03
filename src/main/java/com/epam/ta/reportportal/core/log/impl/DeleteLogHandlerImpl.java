@@ -42,6 +42,8 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -87,15 +89,15 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
   }
 
   @Override
-  public OperationCompletionRS deleteLog(Long logId, ReportPortalUser.ProjectDetails projectDetails,
+  public OperationCompletionRS deleteLog(Long logId, MembershipDetails membershipDetails,
       ReportPortalUser user) {
-    BusinessRule.expect(projectRepository.existsById(projectDetails.getProjectId()),
+    BusinessRule.expect(projectRepository.existsById(membershipDetails.getProjectId()),
             BooleanUtils::isTrue)
-        .verify(PROJECT_NOT_FOUND, projectDetails.getProjectId());
+        .verify(PROJECT_NOT_FOUND, membershipDetails.getProjectId());
 
-    Log log = validate(logId, user, projectDetails);
+    Log log = validate(logId, user, membershipDetails);
     try {
-      logService.deleteLogMessage(projectDetails.getProjectId(), log.getId());
+      logService.deleteLogMessage(membershipDetails.getProjectId(), log.getId());
       logRepository.delete(log);
       ofNullable(log.getAttachment()).ifPresent(
           attachment -> attachmentRepository.moveForDeletion(attachment.getId()));
@@ -103,7 +105,7 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
       throw new ReportPortalException("Error while Log instance deleting.", exc);
     }
 
-    logIndexer.cleanIndex(projectDetails.getProjectId(), Collections.singletonList(logId));
+    logIndexer.cleanIndex(membershipDetails.getProjectId(), Collections.singletonList(logId));
     return new OperationCompletionRS(
         formattedSupplier("Log with ID = '{}' successfully deleted.", logId).toString());
   }
@@ -112,11 +114,11 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
    * Validate specified log against parent objects and project
    *
    * @param logId          - validated log ID value
-   * @param projectDetails Project details
+   * @param membershipDetails  Membership details
    * @return Log
    */
   private Log validate(Long logId, ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
 
     Log log = logRepository.findById(logId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.LOG_NOT_FOUND, logId));
@@ -141,10 +143,10 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
       );
     }
 
-    expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
+    expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId())).verify(
         FORBIDDEN_OPERATION,
         formattedSupplier("Log '{}' not under specified '{}' project", logId,
-            projectDetails.getProjectId())
+            membershipDetails.getProjectId())
     );
 
     if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUserId(),
@@ -152,8 +154,9 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
       /*
        * Only PROJECT_MANAGER roles could delete logs
        */
-      expect(projectDetails.getProjectRole(), equalTo(ProjectRole.PROJECT_MANAGER)).verify(
-          ACCESS_DENIED);
+      expect(membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER)
+              && membershipDetails.getProjectRole().equals(ProjectRole.VIEWER), equalTo(true))
+          .verify(ACCESS_DENIED);
     }
 
     return log;

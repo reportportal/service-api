@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.preference.UpdatePreferenceHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.preference.UserPreference;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.UserPreferenceBuilder;
@@ -48,21 +49,21 @@ public class UpdatePreferenceHandlerImpl implements UpdatePreferenceHandler {
 	}
 
 	@Override
-	public OperationCompletionRS addPreference(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long filterId) {
+	public OperationCompletionRS addPreference(MembershipDetails membershipDetails, ReportPortalUser user, Long filterId) {
 
-		if (userPreferenceRepository.findByProjectIdAndUserIdAndFilterId(projectDetails.getProjectId(), user.getUserId(), filterId)
+		if (userPreferenceRepository.findByProjectIdAndUserIdAndFilterId(membershipDetails.getProjectId(), user.getUserId(), filterId)
 				.isPresent()) {
 			throw new ReportPortalException(ErrorType.RESOURCE_ALREADY_EXISTS, "User Preference");
 		}
 
-		UserFilter filter = userFilterRepository.findByIdAndProjectId(filterId, projectDetails.getProjectId())
+		UserFilter filter = userFilterRepository.findByIdAndProjectId(filterId, membershipDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
 						filterId,
-						projectDetails.getProjectName()
+            membershipDetails.getProjectName()
 				));
 
 		UserPreference userPreference = new UserPreferenceBuilder().withUser(user.getUserId())
-				.withProject(projectDetails.getProjectId())
+				.withProject(membershipDetails.getProjectId())
 				.withFilter(filter)
 				.get();
 		userPreferenceRepository.save(userPreference);
@@ -70,8 +71,8 @@ public class UpdatePreferenceHandlerImpl implements UpdatePreferenceHandler {
 	}
 
 	@Override
-	public OperationCompletionRS removePreference(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long filterId) {
-		UserPreference userPreference = userPreferenceRepository.findByProjectIdAndUserIdAndFilterId(projectDetails.getProjectId(),
+	public OperationCompletionRS removePreference(MembershipDetails membershipDetails, ReportPortalUser user, Long filterId) {
+		UserPreference userPreference = userPreferenceRepository.findByProjectIdAndUserIdAndFilterId(membershipDetails.getProjectId(),
 						user.getUserId(),
 						filterId
 				)

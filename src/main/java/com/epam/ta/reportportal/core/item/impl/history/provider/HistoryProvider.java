@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -43,5 +44,5 @@ public interface HistoryProvider {
    */
   Page<TestItemHistory> provide(Queryable filter, Pageable pageable,
       HistoryRequestParams historyRequestParams,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean usingHash);
+      MembershipDetails membershipDetails, ReportPortalUser user, boolean usingHash);
 }

@@ -241,9 +241,10 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
     userAuthenticator.authenticate(user);
 
+    // TODO: assign organization
     projectUserHandler.assign(user, projectToAssign, projectRole, creator, false);
     final Project personalProject = createProjectHandler.createPersonal(user);
-    projectUserHandler.assign(user, personalProject, ProjectRole.PROJECT_MANAGER, creator, isSystemEvent);
+    projectUserHandler.assign(user, personalProject, ProjectRole.EDITOR, creator, isSystemEvent);
 
     final CreateUserRS response = new CreateUserRS();
     response.setId(user.getId());
@@ -332,7 +333,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
       expect(projectUser, not(isNull())).verify(ACCESS_DENIED,
           formattedSupplier("'{}' is not your project", defaultProject.getName())
       );
-      expect(projectUser.getProjectRole(), Predicate.isEqual(ProjectRole.PROJECT_MANAGER)).verify(
+      // TODO FIX ROLE CHECK
+      expect(projectUser.getProjectRole(), Predicate.isEqual(ProjectRole.EDITOR)).verify(
           ACCESS_DENIED);
     }
 

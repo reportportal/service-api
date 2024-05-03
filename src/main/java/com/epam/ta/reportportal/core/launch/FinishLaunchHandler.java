@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 
@@ -40,6 +41,6 @@ public interface FinishLaunchHandler {
    * @return FinishLaunchRS
    */
   FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl);
+      MembershipDetails membershipDetails, ReportPortalUser user, String baseUrl);
 
 }

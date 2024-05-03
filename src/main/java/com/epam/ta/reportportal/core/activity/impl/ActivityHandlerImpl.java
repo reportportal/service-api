@@ -47,6 +47,7 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.ActivityEventResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ActivityConverter;
@@ -82,14 +83,14 @@ public class ActivityHandlerImpl implements ActivityHandler {
 	}
 
 	@Override
-	public Iterable<ActivityResource> getActivitiesHistory(ReportPortalUser.ProjectDetails projectDetails, Filter filter,
+	public Iterable<ActivityResource> getActivitiesHistory(MembershipDetails membershipDetails, Filter filter,
 			Queryable predefinedFilter, Pageable pageable) {
 
-		expect(projectRepository.existsById(projectDetails.getProjectId()), BooleanUtils::isTrue)
-				.verify(PROJECT_NOT_FOUND, projectDetails.getProjectId());
+		expect(projectRepository.existsById(membershipDetails.getProjectId()), BooleanUtils::isTrue)
+				.verify(PROJECT_NOT_FOUND, membershipDetails.getProjectId());
 
 		FilterCondition projectCondition = FilterCondition.builder()
-				.eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId()))
+				.eq(CRITERIA_PROJECT_ID, String.valueOf(membershipDetails.getProjectId()))
 				.build();
 		Page<Activity> page = activityRepository.findByFilter(new CompositeFilter(Operator.AND,
 				filter.withCondition(projectCondition),
@@ -99,13 +100,13 @@ public class ActivityHandlerImpl implements ActivityHandler {
 	}
 
 	@Override
-	public ActivityResource getActivity(ReportPortalUser.ProjectDetails projectDetails, Long activityId) {
+	public ActivityResource getActivity(MembershipDetails membershipDetails, Long activityId) {
 		Activity activity = activityRepository.findById(activityId)
 				.orElseThrow(() -> new ReportPortalException(ACTIVITY_NOT_FOUND, activityId));
-		expect(projectDetails.getProjectId(), Predicate.isEqual(activity.getProjectId())).verify(ACCESS_DENIED,
+		expect(membershipDetails.getProjectId(), Predicate.isEqual(activity.getProjectId())).verify(ACCESS_DENIED,
 				Suppliers.formattedSupplier("Activity with id '{}' is not under project with id '{}'",
 						activityId,
-						projectDetails.getProjectId()
+            membershipDetails.getProjectId()
 				)
 		);
 		return ActivityConverter.TO_RESOURCE.apply(activity);
@@ -113,15 +114,15 @@ public class ActivityHandlerImpl implements ActivityHandler {
 
 	@Override
 	public Iterable<ActivityEventResource> getItemActivities(
-			ReportPortalUser.ProjectDetails projectDetails, Long itemId, Filter filter,
+			MembershipDetails membershipDetails, Long itemId, Filter filter,
 			Pageable pageable) {
 		TestItem testItem = testItemRepository.findById(itemId).orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, itemId));
 		Launch launch = launchRepository.findById(testItem.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, testItem.getLaunchId()));
-		expect(projectDetails.getProjectId(), Predicate.isEqual(launch.getProjectId())).verify(ACCESS_DENIED,
+		expect(membershipDetails.getProjectId(), Predicate.isEqual(launch.getProjectId())).verify(ACCESS_DENIED,
 				Suppliers.formattedSupplier("Test item with id '{}' is not under project with id '{}'",
 						itemId,
-            projectDetails.getProjectId()
+            membershipDetails.getProjectId()
         )
     );
 
@@ -148,12 +149,12 @@ public class ActivityHandlerImpl implements ActivityHandler {
 
   @Override
   public Iterable<ActivityResource> getItemActivities(
-      ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
-    expect(projectRepository.existsById(projectDetails.getProjectId()),
+      MembershipDetails membershipDetails, Filter filter, Pageable pageable) {
+    expect(projectRepository.existsById(membershipDetails.getProjectId()),
             BooleanUtils::isTrue)
-        .verify(PROJECT_NOT_FOUND, projectDetails.getProjectId());
+        .verify(PROJECT_NOT_FOUND, membershipDetails.getProjectId());
     filter.withCondition(FilterCondition.builder()
-        .eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build());
+        .eq(CRITERIA_PROJECT_ID, String.valueOf(membershipDetails.getProjectId())).build());
     return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE)
         .apply(activityRepository.findByFilter(filter, pageable));
   }

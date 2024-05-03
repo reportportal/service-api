@@ -55,7 +55,7 @@ class XmlImportStrategyTest {
   @InjectMocks
   private XmlImportStrategy xmlImportStrategy;
 
-  private ReportPortalUser.ProjectDetails projectDetails;
+  private MembershipDetails membershipDetails;
 
   private ReportPortalUser user = mock(ReportPortalUser.class);
 

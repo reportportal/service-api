@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -59,7 +60,7 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
   }
 
   @Override
-  public Object executeCommand(ReportPortalUser.ProjectDetails projectDetails, String pluginName,
+  public Object executeCommand(MembershipDetails membershipDetails, String pluginName,
       String command,
       Map<String, Object> executionParams) {
     ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(pluginName,
@@ -67,7 +68,7 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
             formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
         ));
-    executionParams.put(PROJECT_ID, projectDetails.getProjectId());
+    executionParams.put(PROJECT_ID, membershipDetails.getProjectId());
     return ofNullable(pluginInstance.getCommonCommand(command)).map(
             it -> it.executeCommand(executionParams))
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
@@ -94,11 +95,11 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
   }
 
   @Override
-  public Object executeCommand(ReportPortalUser.ProjectDetails projectDetails, Long integrationId,
+  public Object executeCommand(MembershipDetails membershipDetails, Long integrationId,
       String command,
       Map<String, Object> executionParams) {
     Integration integration = integrationRepository.findByIdAndProjectId(integrationId,
-            projectDetails.getProjectId())
+            membershipDetails.getProjectId())
         .orElseGet(() -> integrationRepository.findGlobalById(integrationId)
             .orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId)));
 
@@ -111,7 +112,7 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
     Boolean asyncMode = ofNullable((Boolean) executionParams.get(ASYNC_MODE)).orElse(false);
 
-    executionParams.put(PROJECT_ID, projectDetails.getProjectId());
+    executionParams.put(PROJECT_ID, membershipDetails.getProjectId());
 
     return ofNullable(pluginInstance.getIntegrationCommand(command)).map(it -> {
       if (asyncMode) {

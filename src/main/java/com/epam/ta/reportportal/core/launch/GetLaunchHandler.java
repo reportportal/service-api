@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
 import com.epam.ta.reportportal.ws.reporting.LaunchResource;
@@ -48,7 +49,7 @@ public interface GetLaunchHandler {
    * @param projectDetails Project Details
    * @return {@link LaunchResource}
    */
-  LaunchResource getLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails);
+  LaunchResource getLaunch(String launchId, MembershipDetails membershipDetails);
 
   /**
    * Get Launch resource by specified Name (for Jenkins Plugin)
@@ -71,7 +72,7 @@ public interface GetLaunchHandler {
    * @param userName       Name of User
    * @return Response Data
    */
-  Iterable<LaunchResource> getProjectLaunches(ReportPortalUser.ProjectDetails projectDetails,
+  Iterable<LaunchResource> getProjectLaunches(MembershipDetails membershipDetails,
       Filter filter, Pageable pageable,
       String userName);
 
@@ -83,7 +84,7 @@ public interface GetLaunchHandler {
    * @param pageable       Page details
    * @return Response Data
    */
-  Iterable<LaunchResource> getDebugLaunches(ReportPortalUser.ProjectDetails projectDetails,
+  Iterable<LaunchResource> getDebugLaunches(MembershipDetails membershipDetails,
       Filter filter, Pageable pageable);
 
   /**
@@ -93,7 +94,7 @@ public interface GetLaunchHandler {
    * @param value          Tag prefix to be searched
    * @return List of found tags
    */
-  List<String> getAttributeKeys(ReportPortalUser.ProjectDetails projectDetails, String value);
+  List<String> getAttributeKeys(MembershipDetails membershipDetails, String value);
 
   /**
    * Get specified launch attribute values (auto-complete functionality)
@@ -103,7 +104,7 @@ public interface GetLaunchHandler {
    * @param key            Attribute key
    * @return List of found tags
    */
-  List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String key,
+  List<String> getAttributeValues(MembershipDetails membershipDetails, String key,
       String value);
 
   /**
@@ -113,7 +114,7 @@ public interface GetLaunchHandler {
    * @param value          Launch name prefix
    * @return List of found launches
    */
-  List<String> getLaunchNames(ReportPortalUser.ProjectDetails projectDetails, String value);
+  List<String> getLaunchNames(MembershipDetails membershipDetails, String value);
 
   /**
    * Get unique owners of launches in specified mode
@@ -123,7 +124,7 @@ public interface GetLaunchHandler {
    * @param mode           Mode
    * @return Response Data
    */
-  List<String> getOwners(ReportPortalUser.ProjectDetails projectDetails, String value, String mode);
+  List<String> getOwners(MembershipDetails membershipDetails, String value, String mode);
 
   /**
    * Get launches comparison info
@@ -133,7 +134,7 @@ public interface GetLaunchHandler {
    * @return Response Data //
    */
   Map<String, List<ChartStatisticsContent>> getLaunchesComparisonInfo(
-      ReportPortalUser.ProjectDetails projectDetails, Long[] ids);
+      MembershipDetails membershipDetails, Long[] ids);
 
   /**
    * Get statuses of specified launches
@@ -142,7 +143,7 @@ public interface GetLaunchHandler {
    * @param ids            Launch IDs
    * @return Response Data
    */
-  Map<String, String> getStatuses(ReportPortalUser.ProjectDetails projectDetails, Long[] ids);
+  Map<String, String> getStatuses(MembershipDetails membershipDetails, Long[] ids);
 
   /**
    * Export Launch info according to the {@link ReportFormat} type
@@ -163,7 +164,7 @@ public interface GetLaunchHandler {
    * @param pageable       Page details
    * @return Response Data
    */
-  Iterable<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails,
+  Iterable<LaunchResource> getLatestLaunches(MembershipDetails membershipDetails,
       Filter filter, Pageable pageable);
 
   /**
@@ -175,7 +176,7 @@ public interface GetLaunchHandler {
    * @return {@link ClusterInfoResource}
    */
   Iterable<ClusterInfoResource> getClusters(String launchId,
-      ReportPortalUser.ProjectDetails projectDetails, Pageable pageable);
+      MembershipDetails membershipDetails, Pageable pageable);
 
   boolean hasItemsWithIssues(Launch launch);
 }

@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
 import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Set;
@@ -49,7 +50,7 @@ public class LaunchPatternAnalysisStrategy extends AbstractLaunchAnalysisStrateg
     this.launchPatternAnalyzer = launchPatternAnalyzer;
   }
 
-  public void analyze(AnalyzeLaunchRQ analyzeRQ, ReportPortalUser.ProjectDetails projectDetails,
+  public void analyze(AnalyzeLaunchRQ analyzeRQ, MembershipDetails membershipDetails,
       ReportPortalUser user) {
 
     Set<AnalyzeItemsMode> analyzeItemsModes =
@@ -62,7 +63,7 @@ public class LaunchPatternAnalysisStrategy extends AbstractLaunchAnalysisStrateg
 
     Launch launch = launchRepository.findById(analyzeRQ.getLaunchId())
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, analyzeRQ.getLaunchId()));
-    validateLaunch(launch, projectDetails);
+    validateLaunch(launch, membershipDetails);
 
     launchPatternAnalyzer.analyzeLaunch(launch, analyzeItemsModes);
 

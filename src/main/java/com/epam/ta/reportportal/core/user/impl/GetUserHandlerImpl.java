@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
@@ -113,12 +114,12 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
   @Override
   public Iterable<UserResource> getUsers(Filter filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
     // Active users only
     filter.withCondition(new FilterCondition(Condition.EQUALS, false, "false", CRITERIA_EXPIRED));
     filter.withCondition(new FilterCondition(Condition.EQUALS,
         false,
-        String.valueOf(projectDetails.getProjectId()),
+        String.valueOf(membershipDetails.getProjectId()),
         CRITERIA_PROJECT_ID
     ));
 

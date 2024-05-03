@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Collection;
 import java.util.List;
@@ -37,7 +38,7 @@ public interface DeleteTestItemHandler {
    * @param user           User
    * @return {@link OperationCompletionRS}
    */
-  OperationCompletionRS deleteTestItem(Long itemId, ReportPortalUser.ProjectDetails projectDetails,
+  OperationCompletionRS deleteTestItem(Long itemId, MembershipDetails membershipDetails,
       ReportPortalUser user);
 
   /**
@@ -49,6 +50,6 @@ public interface DeleteTestItemHandler {
    * @return {@link OperationCompletionRS}
    */
   List<OperationCompletionRS> deleteTestItems(Collection<Long> ids,
-      ReportPortalUser.ProjectDetails projectDetails,
+      MembershipDetails membershipDetails,
       ReportPortalUser user);
 }

@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.model.project.ProjectResource;
 import com.epam.ta.reportportal.model.user.SearchUserResource;
@@ -47,7 +48,7 @@ public interface GetProjectHandler {
 
   boolean exists(Long id);
 
-  Project get(ReportPortalUser.ProjectDetails projectDetails);
+  Project get(MembershipDetails membershipDetails);
 
   Project get(Long id);
 
@@ -77,7 +78,7 @@ public interface GetProjectHandler {
    * @param value          Login
    * @return List of found user logins
    */
-  List<String> getUserNames(ReportPortalUser.ProjectDetails projectDetails, String value);
+  List<String> getUserNames(MembershipDetails membershipDetails, String value);
 
   /**
    * Performs global search for user
@@ -88,7 +89,7 @@ public interface GetProjectHandler {
    * @return List of found user resources
    */
   Iterable<SearchUserResource> getUserNames(String value,
-      ReportPortalUser.ProjectDetails projectDetails, Pageable pageable);
+      MembershipDetails membershipDetails, Pageable pageable);
 
   /**
    * Get all project names

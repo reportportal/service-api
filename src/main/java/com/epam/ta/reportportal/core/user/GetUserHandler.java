@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.user.UserBidRS;
 import com.epam.ta.reportportal.model.user.UserResource;
@@ -76,7 +77,7 @@ public interface GetUserHandler {
    * @return Page of users
    */
   Iterable<UserResource> getUsers(Filter filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails);
+      MembershipDetails membershipDetails);
 
   Map<String, UserResource.AssignedProject> getUserProjects(String userName);
 

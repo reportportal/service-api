@@ -57,6 +57,8 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -139,10 +141,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
   }
 
   @Override
-  public List<Issue> defineTestItemsIssues(ReportPortalUser.ProjectDetails projectDetails,
+  public List<Issue> defineTestItemsIssues(MembershipDetails membershipDetails,
       DefineIssueRQ defineIssue, ReportPortalUser user) {
-    Project project = projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
-        () -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+    Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
+        () -> new ReportPortalException(PROJECT_NOT_FOUND, membershipDetails.getProjectId()));
 
     List<String> errors = new ArrayList<>();
     List<IssueDefinition> definitions = defineIssue.getIssues();
@@ -163,11 +165,11 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
         verifyTestItem(testItem, issueDefinition.getId());
         TestItemActivityResource before =
-            TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId());
+            TO_ACTIVITY_RESOURCE.apply(testItem, membershipDetails.getProjectId());
 
         Issue issue = issueDefinition.getIssue();
         IssueType issueType =
-            issueTypeHandler.defineIssueType(projectDetails.getProjectId(), issue.getIssueType());
+            issueTypeHandler.defineIssueType(membershipDetails.getProjectId(), issue.getIssueType());
 
         IssueEntity issueEntity =
             new IssueEntityBuilder(testItem.getItemResults().getIssue()).addIssueType(issueType)
@@ -190,7 +192,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
         updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
 
         TestItemActivityResource after =
-            TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId());
+            TO_ACTIVITY_RESOURCE.apply(testItem, membershipDetails.getProjectId());
 
         events.add(
             new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername()));
@@ -214,12 +216,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
   }
 
   @Override
-  public OperationCompletionRS updateTestItem(ReportPortalUser.ProjectDetails projectDetails,
+  public OperationCompletionRS updateTestItem(MembershipDetails membershipDetails,
       Long itemId, UpdateTestItemRQ rq, ReportPortalUser user) {
     TestItem testItem = testItemRepository.findById(itemId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
 
-    validate(projectDetails, user, testItem);
+    validate(membershipDetails, user, testItem);
 
     Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
     if (providedStatus.isPresent() && !providedStatus.get()
@@ -236,10 +238,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
           )
       );
       TestItemActivityResource before =
-          TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId());
+          TO_ACTIVITY_RESOURCE.apply(testItem, membershipDetails.getProjectId());
       strategy.changeStatus(testItem, providedStatus.get(), user, true);
       messageBus.publishActivity(new TestItemStatusChangedEvent(before,
-          TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId()), user.getUserId(),
+          TO_ACTIVITY_RESOURCE.apply(testItem, membershipDetails.getProjectId()), user.getUserId(),
           user.getUsername()
       ));
     }
@@ -252,7 +254,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
   @Override
   public List<OperationCompletionRS> processExternalIssues(ExternalIssueRQ request,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
     List<String> errors = new ArrayList<>();
 
     List<TestItem> testItems = testItemRepository.findAllById(request.getTestItemIds());
@@ -268,7 +270,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
         FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 
     List<TestItemActivityResource> before =
-        testItems.stream().map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
+        testItems.stream().map(it -> TO_ACTIVITY_RESOURCE.apply(it, membershipDetails.getProjectId()))
             .collect(Collectors.toList());
 
     if (LinkExternalIssueRQ.class.equals(request.getClass())) {
@@ -284,8 +286,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     }
     testItemRepository.saveAll(testItems);
     List<TestItemActivityResource> after =
-        testItems.stream().map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
-            .collect(Collectors.toList());
+        testItems.stream()
+            .map(it -> TO_ACTIVITY_RESOURCE.apply(it, membershipDetails.getProjectId()))
+            .toList();
 
     before.forEach(it -> messageBus.publishActivity(new LinkTicketEvent(it,
         after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
@@ -348,9 +351,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
   @Override
   public OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq,
-      ReportPortalUser.ProjectDetails projectDetails) {
-    expect(projectRepository.existsById(projectDetails.getProjectId()), equalTo(TRUE)).verify(
-        PROJECT_NOT_FOUND, projectDetails.getProjectId());
+      MembershipDetails membershipDetails) {
+    expect(projectRepository.existsById(membershipDetails.getProjectId()), equalTo(TRUE)).verify(
+        PROJECT_NOT_FOUND, membershipDetails.getProjectId());
 
     List<TestItem> items = testItemRepository.findAllById(bulkUpdateRq.getIds());
     items.forEach(
@@ -395,14 +398,16 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
    * @param user           User
    * @param testItem       Test Item
    */
-  private void validate(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+  private void validate(MembershipDetails membershipDetails, ReportPortalUser user,
       TestItem testItem) {
     Launch launch = testItemService.getEffectiveLaunch(testItem);
     if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-      expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED,
+      expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId())).verify(ACCESS_DENIED,
           "Launch is not under the specified project."
       );
-      if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
+
+      if (membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER)
+          && membershipDetails.getProjectRole().equals(ProjectRole.VIEWER)) {
         expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(
             ACCESS_DENIED, "You are not a launch owner.");
       }

@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.core.item.impl.filter.updater.FilterUpdater;
 import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ControllerUtils;
@@ -65,11 +66,12 @@ public class BaselineLaunchDataProvider implements DataProviderHandler {
 
   @Override
   public Page<TestItem> getTestItems(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails,
+
+      MembershipDetails membershipDetails,
       ReportPortalUser user, Map<String, String> params) {
-    final Queryable targetFilter = getLaunchIdFilter(LAUNCH_ID_PARAM, params, projectDetails, user);
+    final Queryable targetFilter = getLaunchIdFilter(LAUNCH_ID_PARAM, params, membershipDetails, user);
     final Queryable baselineFilter = getLaunchIdFilter(BASELINE_LAUNCH_ID_PARAM, params,
-        projectDetails, user);
+        membershipDetails, user);
     filterUpdater.update(filter);
 
     return testItemRepository.findAllNotFromBaseline(joinFilters(targetFilter, filter),
@@ -78,11 +80,11 @@ public class BaselineLaunchDataProvider implements DataProviderHandler {
 
   @Override
   public Set<Statistics> accumulateStatistics(Queryable filter,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      MembershipDetails membershipDetails, ReportPortalUser user,
       Map<String, String> params) {
-    final Queryable targetFilter = getLaunchIdFilter(LAUNCH_ID_PARAM, params, projectDetails, user);
+    final Queryable targetFilter = getLaunchIdFilter(LAUNCH_ID_PARAM, params, membershipDetails, user);
     final Queryable baselineFilter = getLaunchIdFilter(BASELINE_LAUNCH_ID_PARAM, params,
-        projectDetails, user);
+        membershipDetails, user);
     filterUpdater.update(filter);
     return testItemRepository.accumulateStatisticsByFilterNotFromBaseline(
         joinFilters(targetFilter, filter),
@@ -91,10 +93,10 @@ public class BaselineLaunchDataProvider implements DataProviderHandler {
   }
 
   private Queryable getLaunchIdFilter(String key, Map<String, String> params,
-      ReportPortalUser.ProjectDetails projectDetails,
+      MembershipDetails membershipDetails,
       ReportPortalUser user) {
     final Long launchId = getLaunchId(key, params);
-    launchAccessValidator.validate(launchId, projectDetails, user);
+    launchAccessValidator.validate(launchId, membershipDetails, user);
     return getLaunchIdFilter(launchId);
   }
 

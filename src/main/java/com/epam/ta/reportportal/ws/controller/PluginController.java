@@ -134,7 +134,7 @@ public class PluginController {
       @RequestBody Map<String, Object> executionParams,
       @AuthenticationPrincipal ReportPortalUser user) {
     return executeIntegrationHandler.executeCommand(
-        projectExtractor.extractProjectDetails(user, projectKey), pluginName, command,
+        projectExtractor.extractMemberShipDetails(user, projectKey), pluginName, command,
         executionParams
     );
   }

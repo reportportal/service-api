@@ -58,7 +58,7 @@ public class XunitImportHandlerTest {
 
   private ReportPortalUser user;
 
-  private ReportPortalUser.ProjectDetails projectDetails;
+  private MembershipDetails membershipDetails;
 
   @Captor
   private ArgumentCaptor<StartTestItemRQ> startTestItemRQArgumentCaptor;

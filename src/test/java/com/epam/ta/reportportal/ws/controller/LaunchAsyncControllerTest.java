@@ -83,7 +83,7 @@ class LaunchAsyncControllerTest {
     ArgumentCaptor<StartLaunchRQ> requestArgumentCaptor =
         ArgumentCaptor.forClass(StartLaunchRQ.class);
 
-    when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
+    when(projectExtractor.extractMemberShipDetails(any(ReportPortalUser.class),
         anyString()
     )).thenReturn(user.getProjectDetails().get(TEST_PROJECT_KEY));
 
@@ -116,7 +116,7 @@ class LaunchAsyncControllerTest {
         ArgumentCaptor.forClass(ReportPortalUser.class);
     ArgumentCaptor<String> urlArgumentCaptor = ArgumentCaptor.forClass(String.class);
 
-    when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
+    when(projectExtractor.extractMemberShipDetails(any(ReportPortalUser.class),
         anyString()
     )).thenReturn(user.getProjectDetails().get(TEST_PROJECT_KEY));
 
@@ -150,7 +150,7 @@ class LaunchAsyncControllerTest {
     ArgumentCaptor<MergeLaunchesRQ> requestArgumentCaptor =
         ArgumentCaptor.forClass(MergeLaunchesRQ.class);
 
-    when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
+    when(projectExtractor.extractMemberShipDetails(any(ReportPortalUser.class),
         anyString()
     )).thenReturn(user.getProjectDetails().get(TEST_PROJECT_KEY));
 

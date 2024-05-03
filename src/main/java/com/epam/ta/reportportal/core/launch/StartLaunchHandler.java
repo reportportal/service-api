@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.launch;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.Mode;
@@ -41,7 +42,7 @@ public interface StartLaunchHandler {
    * @param startLaunchRQ  Request Data
    * @return StartLaunchRS
    */
-  StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
+  StartLaunchRS startLaunch(ReportPortalUser user, MembershipDetails membershipDetails,
       StartLaunchRQ startLaunchRQ);
 
   /**
@@ -51,12 +52,7 @@ public interface StartLaunchHandler {
    * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
    * @param startLaunchRQ  {@link StartLaunchRQ}
    */
-  default void validateRoles(ReportPortalUser.ProjectDetails projectDetails,
+  default void validateRoles(MembershipDetails membershipDetails,
       StartLaunchRQ startLaunchRQ) {
-    expect(
-        Mode.DEBUG.equals(startLaunchRQ.getMode()) && ProjectRole.CUSTOMER.equals(
-            projectDetails.getProjectRole()),
-        Predicate.isEqual(false)
-    ).verify(ErrorType.FORBIDDEN_OPERATION);
   }
 }

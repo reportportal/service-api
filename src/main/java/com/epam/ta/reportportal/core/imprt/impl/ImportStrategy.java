@@ -16,6 +16,7 @@
 package com.epam.ta.reportportal.core.imprt.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
 import java.io.File;
 
@@ -36,6 +37,6 @@ public interface ImportStrategy {
    * @param rq             {@link LaunchImportRQ} launch import request
    * @return launch uuid
    */
-  String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+  String importLaunch(MembershipDetails membershipDetails, ReportPortalUser user,
       File file, String baseUrl, LaunchImportRQ rq);
 }

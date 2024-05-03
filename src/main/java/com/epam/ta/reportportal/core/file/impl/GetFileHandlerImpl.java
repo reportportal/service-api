@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -71,20 +72,20 @@ public class GetFileHandlerImpl implements GetFileHandler {
       boolean loadThumbnail) {
     User user = userRepository.findByLogin(username)
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
-    ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetailsAdmin(
+    MembershipDetails membershipDetails = projectExtractor.extractProjectDetailsAdmin(
         loggedInUser, projectKey);
     if (loggedInUser.getUserRole() != UserRole.ADMINISTRATOR) {
       expect(
-          ProjectUtils.isAssignedToProject(user, projectDetails.getProjectId()),
+          ProjectUtils.isAssignedToProject(user, membershipDetails.getProjectId()),
           Predicate.isEqual(true)
       ).verify(ErrorType.ACCESS_DENIED, formattedSupplier("You are not assigned to project '{}'",
-          projectDetails.getProjectName()));
+          membershipDetails.getProjectName()));
     }
     return userDataStoreService.loadUserPhoto(user, loadThumbnail);
   }
 
   @Override
-  public BinaryData loadFileById(Long fileId, ReportPortalUser.ProjectDetails projectDetails) {
-    return attachmentBinaryDataService.load(fileId, projectDetails);
+  public BinaryData loadFileById(Long fileId, MembershipDetails membershipDetails) {
+    return attachmentBinaryDataService.load(fileId, membershipDetails);
   }
 }

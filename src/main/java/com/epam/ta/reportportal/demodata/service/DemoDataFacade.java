@@ -19,6 +19,7 @@
 package com.epam.ta.reportportal.demodata.service;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import java.util.List;
 
 /**
@@ -34,5 +35,5 @@ public interface DemoDataFacade {
    * @return {@link List} of generated launch ids
    */
   List<Long> generateDemoLaunches(ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails);
+      MembershipDetails membershipDetails);
 }

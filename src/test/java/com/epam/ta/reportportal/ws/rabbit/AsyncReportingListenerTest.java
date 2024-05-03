@@ -114,7 +114,7 @@ class AsyncReportingListenerTest {
   private static final String ITEM_ID = "c0237647-7f6d-4cb9-b885-72ee9fd7a24b";
   private MessageProperties messageProperties;
   private ReportPortalUser userDetails;
-  private ReportPortalUser.ProjectDetails projectDetails;
+  private MembershipDetails membershipDetails;
   private Message message;
 
   @BeforeEach
@@ -127,7 +127,7 @@ class AsyncReportingListenerTest {
     projectDetails = mock(ReportPortalUser.ProjectDetails.class);
 
     lenient().when(userDetailsService.loadUserByUsername(USERNAME)).thenReturn(userDetails);
-    lenient().when(projectExtractor.extractProjectDetails(userDetails, PROJECT_NAME))
+    lenient().when(projectExtractor.extractMemberShipDetails(userDetails, PROJECT_NAME))
         .thenReturn(projectDetails);
 
     byte[] messageBody = "message body".getBytes();

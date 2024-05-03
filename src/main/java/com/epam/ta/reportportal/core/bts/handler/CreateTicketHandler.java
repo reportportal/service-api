@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.bts.handler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.model.externalsystem.PostTicketRQ;
 import com.epam.reportportal.model.externalsystem.Ticket;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 
 /**
  * External system ticket creation handler
@@ -38,6 +39,6 @@ public interface CreateTicketHandler {
    * @return Found Ticket
    */
   Ticket createIssue(PostTicketRQ postTicketRQ, Long integrationId,
-      ReportPortalUser.ProjectDetails projectDetails,
+      MembershipDetails membershipDetails,
       ReportPortalUser user);
 }

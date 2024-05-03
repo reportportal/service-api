@@ -88,10 +88,10 @@ class SearchLogServiceImplTest {
   @Test
   void searchTest() {
 
-    ReportPortalUser.ProjectDetails projectDetails =
+    MembershipDetails membershipDetails =
         new ReportPortalUser.ProjectDetails(1L, "project", ProjectRole.PROJECT_MANAGER, "project-key");
 
-    when(projectRepository.findById(projectDetails.getProjectId())).thenReturn(
+    when(projectRepository.findById(membershipDetails.getProjectId())).thenReturn(
         Optional.of(project));
     when(testItemRepository.findById(1L)).thenReturn(Optional.of(testItem));
     when(testItemRepository.findAllById(any())).thenReturn(Lists.newArrayList(testItemOfFoundLog));

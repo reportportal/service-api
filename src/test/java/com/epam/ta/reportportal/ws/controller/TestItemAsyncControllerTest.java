@@ -72,7 +72,7 @@ class TestItemAsyncControllerTest {
     ArgumentCaptor<StartTestItemRQ> requestArgumentCaptor = ArgumentCaptor.forClass(
         StartTestItemRQ.class);
 
-    when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
+    when(projectExtractor.extractMemberShipDetails(any(ReportPortalUser.class),
         anyString())).thenReturn(user.getProjectDetails()
         .get(TEST_PROJECT_KEY));
 
@@ -103,7 +103,7 @@ class TestItemAsyncControllerTest {
         StartTestItemRQ.class);
     ArgumentCaptor<String> parentArgumentCaptor = ArgumentCaptor.forClass(String.class);
 
-    when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
+    when(projectExtractor.extractMemberShipDetails(any(ReportPortalUser.class),
         anyString())).thenReturn(user.getProjectDetails()
         .get(TEST_PROJECT_KEY));
 
@@ -136,7 +136,7 @@ class TestItemAsyncControllerTest {
     ArgumentCaptor<FinishTestItemRQ> requestArgumentCaptor = ArgumentCaptor.forClass(
         FinishTestItemRQ.class);
 
-    when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
+    when(projectExtractor.extractMemberShipDetails(any(ReportPortalUser.class),
         anyString())).thenReturn(user.getProjectDetails()
         .get(TEST_PROJECT_KEY));
 

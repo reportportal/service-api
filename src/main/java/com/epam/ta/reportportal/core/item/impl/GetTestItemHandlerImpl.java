@@ -20,7 +20,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
+
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static java.util.stream.Collectors.toList;
 
@@ -45,6 +45,7 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -118,7 +119,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
   @Override
   public TestItemResource getTestItem(String testItemId,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
     TestItem testItem;
     try {
       testItem = testItemRepository.findById(Long.parseLong(testItemId))
@@ -129,10 +130,10 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
     }
 
     Launch launch = testItemService.getEffectiveLaunch(testItem);
-    launchAccessValidator.validate(launch.getId(), projectDetails, user);
+    launchAccessValidator.validate(launch.getId(), membershipDetails, user);
 
     List<ResourceUpdater<TestItemResource>> resourceUpdaters =
-        getResourceUpdaters(projectDetails.getProjectId(), Collections.singletonList(testItem));
+        getResourceUpdaters(membershipDetails.getProjectId(), Collections.singletonList(testItem));
     TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(testItem);
     resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
     return testItemResource;
@@ -140,18 +141,17 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
   @Override
   public Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      MembershipDetails membershipDetails, ReportPortalUser user,
       @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit) {
 
     Optional<Long> launchIdOptional = Optional.ofNullable(launchId);
     Optional<Long> filterIdOptional = Optional.ofNullable(filterId);
 
-    Page<TestItem> testItemPage = filterIdOptional.map(launchFilterId -> {
-      validateProjectRole(projectDetails, user);
-      return getItemsWithLaunchesFiltering(
-          filter, pageable, projectDetails, launchFilterId, isLatest, launchesLimit);
-    }).orElseGet(() -> launchIdOptional.map(id -> {
-      launchAccessValidator.validate(id, projectDetails, user);
+    Page<TestItem> testItemPage = filterIdOptional
+        .map(launchFilterId ->
+            getItemsWithLaunchesFiltering(filter, pageable, membershipDetails, launchFilterId, isLatest, launchesLimit))
+        .orElseGet(() -> launchIdOptional.map(id -> {
+      launchAccessValidator.validate(id, membershipDetails, user);
       return testItemRepository.findByFilter(filter, pageable);
     }).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
         "Neither launch nor filter id specified."
@@ -159,7 +159,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
     return PagedResourcesAssembler.<TestItem, TestItemResource>pageMultiConverter(items -> {
       List<ResourceUpdater<TestItemResource>> resourceUpdaters =
-          getResourceUpdaters(projectDetails.getProjectId(), testItemPage.getContent());
+          getResourceUpdaters(membershipDetails.getProjectId(), testItemPage.getContent());
       return items.stream().map(item -> {
         TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
         resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
@@ -170,7 +170,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
   @Override
   public Iterable<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      MembershipDetails membershipDetails, ReportPortalUser user,
       Map<String, String> params) {
     DataProviderType dataProviderType = DataProviderType.findByName(params.get(PROVIDER_TYPE_PARAM))
         .orElseThrow(() -> new ReportPortalException(
@@ -180,11 +180,11 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
         ));
 
     Page<TestItem> testItemPage = testItemDataProviders.get(dataProviderType)
-        .getTestItems(filter, pageable, projectDetails, user, params);
+        .getTestItems(filter, pageable, membershipDetails, user, params);
 
     return PagedResourcesAssembler.<TestItem, TestItemResource>pageMultiConverter(items -> {
       List<ResourceUpdater<TestItemResource>> resourceUpdaters =
-          getResourceUpdaters(projectDetails.getProjectId(), testItemPage.getContent());
+          getResourceUpdaters(membershipDetails.getProjectId(), testItemPage.getContent());
       return items.stream().map(item -> {
         TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
         resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
@@ -195,7 +195,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
   @Override
   public StatisticsResource getStatisticsByProvider(Queryable filter,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser reportPortalUser,
+      MembershipDetails membershipDetails, ReportPortalUser reportPortalUser,
       Map<String, String> params) {
     DataProviderType dataProviderType = DataProviderType.findByName(params.get(PROVIDER_TYPE_PARAM))
         .orElseThrow(() -> new ReportPortalException(
@@ -204,29 +204,21 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
             DataProviderType.values()
         ));
     return StatisticsConverter.TO_RESOURCE.apply(testItemDataProviders.get(dataProviderType)
-        .accumulateStatistics(filter, projectDetails, reportPortalUser, params));
-  }
-
-  protected void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user) {
-    if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-      expect(projectDetails.getProjectRole() == OPERATOR, Predicate.isEqual(false)).verify(
-          ACCESS_DENIED);
-    }
+        .accumulateStatistics(filter, membershipDetails, reportPortalUser, params));
   }
 
   private Page<TestItem> getItemsWithLaunchesFiltering(Queryable testItemFilter,
-      Pageable testItemPageable, ReportPortalUser.ProjectDetails projectDetails,
+      Pageable testItemPageable, MembershipDetails membershipDetails,
       Long launchFilterId, boolean isLatest, int launchesLimit) {
 
     UserFilter userFilter =
-        filterRepository.findByIdAndProjectId(launchFilterId, projectDetails.getProjectId())
+        filterRepository.findByIdAndProjectId(launchFilterId, membershipDetails.getProjectId())
             .orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
-                launchFilterId, projectDetails.getProjectName()
+                launchFilterId, membershipDetails.getProjectName()
             ));
 
     Pair<Queryable, Pageable> queryablePair =
-        DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(projectDetails, userFilter,
+        DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(membershipDetails, userFilter,
             launchesLimit
         );
 
@@ -252,25 +244,25 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   }
 
   @Override
-  public List<String> getTicketIds(ReportPortalUser.ProjectDetails projectDetails, String term) {
+  public List<String> getTicketIds(MembershipDetails membershipDetails, String term) {
     BusinessRule.expect(term.length() > 0, Predicates.equalTo(true))
         .verify(ErrorType.INCORRECT_FILTER_PARAMETERS, Suppliers.formattedSupplier(
             "Length of the filtering string '{}' is less than 1 symbols", term));
-    return ticketRepository.findByProjectIdAndTerm(projectDetails.getProjectId(), term);
+    return ticketRepository.findByProjectIdAndTerm(membershipDetails.getProjectId(), term);
   }
 
   @Override
   public List<String> getAttributeKeys(Long launchFilterId, boolean isLatest, int launchesLimit,
-      ReportPortalUser.ProjectDetails projectDetails, String keyPart) {
+      MembershipDetails membershipDetails, String keyPart) {
 
     UserFilter userFilter =
-        filterRepository.findByIdAndProjectId(launchFilterId, projectDetails.getProjectId())
+        filterRepository.findByIdAndProjectId(launchFilterId, membershipDetails.getProjectId())
             .orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
-                launchFilterId, projectDetails.getProjectName()
+                launchFilterId, membershipDetails.getProjectName()
             ));
 
     Pair<Queryable, Pageable> queryablePair =
-        DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(projectDetails, userFilter,
+        DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(membershipDetails, userFilter,
             launchesLimit
         );
     return itemAttributeRepository.findAllKeysByLaunchFilter(queryablePair.getKey(),
@@ -289,30 +281,30 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   }
 
   @Override
-  public List<String> getAttributeKeys(ReportPortalUser.ProjectDetails projectDetails,
+  public List<String> getAttributeKeys(MembershipDetails membershipDetails,
       String launchName, String keyPart) {
     return itemAttributeRepository.findTestItemKeysByProjectIdAndLaunchName(
-        projectDetails.getProjectId(), launchName, keyPart, false);
+        membershipDetails.getProjectId(), launchName, keyPart, false);
   }
 
   @Override
-  public List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails,
+  public List<String> getAttributeValues(MembershipDetails membershipDetails,
       String launchName, String key, String valuePart) {
     return itemAttributeRepository.findTestItemValuesByProjectIdAndLaunchName(
-        projectDetails.getProjectId(), launchName, key, valuePart, false);
+        membershipDetails.getProjectId(), launchName, key, valuePart, false);
   }
 
   @Override
   public List<TestItemResource> getTestItems(Long[] ids,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
     List<TestItem> items;
     if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-      items = testItemRepository.findByFilter(getItemsFilter(ids, projectDetails));
+      items = testItemRepository.findByFilter(getItemsFilter(ids, membershipDetails));
     } else {
       items = testItemRepository.findAllById(Arrays.asList(ids));
     }
     List<ResourceUpdater<TestItemResource>> resourceUpdaters =
-        getResourceUpdaters(projectDetails.getProjectId(), items);
+        getResourceUpdaters(membershipDetails.getProjectId(), items);
     return items.stream().map(item -> {
       TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
       resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
@@ -320,17 +312,18 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
     }).collect(toList());
   }
 
-  private Filter getItemsFilter(Long[] ids, ReportPortalUser.ProjectDetails projectDetails) {
-    final Filter filter = Filter.builder().withTarget(TestItem.class).withCondition(
-            FilterCondition.builder()
-                .eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build())
+  private Filter getItemsFilter(Long[] ids, MembershipDetails membershipDetails) {
+    final Filter filter = Filter.builder()
+        .withTarget(TestItem.class)
+        .withCondition(FilterCondition.builder()
+            .eq(CRITERIA_PROJECT_ID, String.valueOf(membershipDetails.getProjectId())).build())
         .withCondition(
             FilterCondition.builder().withSearchCriteria(CRITERIA_ID).withCondition(Condition.IN)
                 .withValue(
                     Arrays.stream(ids).map(Object::toString).collect(Collectors.joining(",")))
-                .build()).build();
-    return projectDetails.getProjectRole() != ProjectRole.OPERATOR ? filter : filter.withCondition(
-        FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, LaunchModeEnum.DEFAULT.name()).build());
+                .build())
+        .build();
+    return filter;
   }
 
 }

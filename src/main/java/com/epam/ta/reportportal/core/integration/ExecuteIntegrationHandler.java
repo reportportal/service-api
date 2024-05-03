@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.integration;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import java.util.Map;
 
 /**
@@ -35,7 +36,7 @@ public interface ExecuteIntegrationHandler {
    * @param executionParams Parameters for execute
    * @return Result of the command execution
    */
-  Object executeCommand(ReportPortalUser.ProjectDetails projectDetails, String pluginName,
+  Object executeCommand(MembershipDetails membershipDetails, String pluginName,
       String command,
       Map<String, Object> executionParams);
 
@@ -59,7 +60,7 @@ public interface ExecuteIntegrationHandler {
    * @param executionParams Parameters for execute
    * @return Result of the command execution
    */
-  Object executeCommand(ReportPortalUser.ProjectDetails projectDetails, Long integrationId,
+  Object executeCommand(MembershipDetails membershipDetails, Long integrationId,
       String command,
       Map<String, Object> executionParams);
 

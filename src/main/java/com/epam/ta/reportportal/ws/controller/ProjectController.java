@@ -253,7 +253,7 @@ public class ProjectController {
       @SortFor(User.class) Pageable pageable, @PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getUserHandler.getUsers(filter, pageable,
-        projectExtractor.extractProjectDetails(user, projectKey)
+        projectExtractor.extractMemberShipDetails(user, projectKey)
     );
   }
 
@@ -265,7 +265,7 @@ public class ProjectController {
   public List<String> getProjectUsers(@PathVariable String projectKey,
       @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + "users")
       String value, @AuthenticationPrincipal ReportPortalUser user) {
-    return getProjectHandler.getUserNames(projectExtractor.extractProjectDetails(user, projectKey),
+    return getProjectHandler.getUserNames(projectExtractor.extractMemberShipDetails(user, projectKey),
         normalizeId(value)
     );
   }
@@ -278,7 +278,7 @@ public class ProjectController {
       @RequestParam(value = "term") String term, Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getProjectHandler.getUserNames(term,
-        projectExtractor.extractProjectDetails(user, projectKey), pageable
+        projectExtractor.extractMemberShipDetails(user, projectKey), pageable
     );
   }
 
@@ -289,7 +289,7 @@ public class ProjectController {
   public OperationCompletionRS addUserPreference(@PathVariable String projectKey,
       @PathVariable String login, @PathVariable Long filterId,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return updatePreference.addPreference(projectExtractor.extractProjectDetails(user, projectKey),
+    return updatePreference.addPreference(projectExtractor.extractMemberShipDetails(user, projectKey),
         user, filterId
     );
   }
@@ -302,7 +302,7 @@ public class ProjectController {
       @PathVariable String login, @PathVariable Long filterId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updatePreference.removePreference(
-        projectExtractor.extractProjectDetails(user, projectKey), user, filterId);
+        projectExtractor.extractMemberShipDetails(user, projectKey), user, filterId);
   }
 
   @Transactional(readOnly = true)
@@ -312,7 +312,7 @@ public class ProjectController {
   @Operation(summary =  "Load user preferences", description = "Only for users that allowed to edit other users")
   public PreferenceResource getUserPreference(@PathVariable String projectKey,
       @PathVariable String login, @AuthenticationPrincipal ReportPortalUser user) {
-    return getPreference.getPreference(projectExtractor.extractProjectDetails(user, projectKey),
+    return getPreference.getPreference(projectExtractor.extractMemberShipDetails(user, projectKey),
         user
     );
   }

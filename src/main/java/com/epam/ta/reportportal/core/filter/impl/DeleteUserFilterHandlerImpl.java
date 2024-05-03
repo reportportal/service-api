@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.function.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,15 +47,15 @@ public class DeleteUserFilterHandlerImpl implements DeleteUserFilterHandler {
 	}
 
 	@Override
-	public OperationCompletionRS deleteFilter(Long id, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		UserFilter userFilter = userFilterRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
+	public OperationCompletionRS deleteFilter(Long id, MembershipDetails membershipDetails, ReportPortalUser user) {
+		UserFilter userFilter = userFilterRepository.findByIdAndProjectId(id, membershipDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
 						id,
-						projectDetails.getProjectName()
+						membershipDetails.getProjectName()
 				));
-		expect(userFilter.getProject().getId(), Predicate.isEqual(projectDetails.getProjectId())).verify(USER_FILTER_NOT_FOUND,
+		expect(userFilter.getProject().getId(), Predicate.isEqual(membershipDetails.getProjectId())).verify(USER_FILTER_NOT_FOUND,
 				id,
-				projectDetails.getProjectId(),
+				membershipDetails.getProjectId(),
 				user.getUserId()
 		);
 		userFilterRepository.delete(userFilter);

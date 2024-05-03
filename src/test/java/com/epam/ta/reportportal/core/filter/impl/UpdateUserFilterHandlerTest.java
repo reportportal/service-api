@@ -83,8 +83,8 @@ class UpdateUserFilterHandlerTest {
 
     UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(SAME_NAME);
 
-    ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, TEST_PROJECT_KEY);
-    when(userFilterRepository.findByIdAndProjectId(1L, projectDetails.getProjectId())).thenReturn(
+    MembershipDetails membershipDetails = extractProjectDetails(rpUser, TEST_PROJECT_KEY);
+    when(userFilterRepository.findByIdAndProjectId(1L, membershipDetails.getProjectId())).thenReturn(
         Optional.of(userFilter));
 
     when(userFilter.getId()).thenReturn(1L);
@@ -111,8 +111,8 @@ class UpdateUserFilterHandlerTest {
 
     UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(ANOTHER_NAME);
 
-    ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, TEST_PROJECT_KEY);
-    when(userFilterRepository.findByIdAndProjectId(1L, projectDetails.getProjectId())).thenReturn(
+    MembershipDetails membershipDetails = extractProjectDetails(rpUser, TEST_PROJECT_KEY);
+    when(userFilterRepository.findByIdAndProjectId(1L, membershipDetails.getProjectId())).thenReturn(
         Optional.of(userFilter));
 
     when(userFilter.getId()).thenReturn(1L);
@@ -143,8 +143,8 @@ class UpdateUserFilterHandlerTest {
 
     UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(ANOTHER_NAME);
 
-    ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, TEST_PROJECT_KEY);
-    when(userFilterRepository.findByIdAndProjectId(1L, projectDetails.getProjectId())).thenReturn(
+    MembershipDetails membershipDetails = extractProjectDetails(rpUser, TEST_PROJECT_KEY);
+    when(userFilterRepository.findByIdAndProjectId(1L, membershipDetails.getProjectId())).thenReturn(
         Optional.of(userFilter));
 
     when(userFilter.getId()).thenReturn(1L);
@@ -154,7 +154,7 @@ class UpdateUserFilterHandlerTest {
     when(project.getId()).thenReturn(1L);
 
     when(userFilterRepository.existsByNameAndOwnerAndProjectId(updateUserFilterRQ.getName(),
-        userFilter.getOwner(), projectDetails.getProjectId()
+        userFilter.getOwner(), membershipDetails.getProjectId()
     )).thenReturn(Boolean.TRUE);
 
     doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
@@ -166,7 +166,7 @@ class UpdateUserFilterHandlerTest {
     );
     assertEquals(Suppliers.formattedSupplier(
         "User filter with name '{}' already exists for user '{}' under the project '{}'. You couldn't create the duplicate.",
-        ANOTHER_NAME, "user", projectDetails.getProjectName()
+        ANOTHER_NAME, "user", membershipDetails.getProjectName()
     ).get(), exception.getMessage());
   }
 

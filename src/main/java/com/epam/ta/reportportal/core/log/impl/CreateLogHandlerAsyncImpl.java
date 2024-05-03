@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.configs.rabbit.DeserializablePair;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.util.ReportingQueueService;
 import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
@@ -70,7 +71,7 @@ public class CreateLogHandlerAsyncImpl implements CreateLogHandler {
   @Override
   @Nonnull
   public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, MultipartFile file,
-      ReportPortalUser.ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
 
     validate(request);
 
@@ -80,10 +81,10 @@ public class CreateLogHandlerAsyncImpl implements CreateLogHandler {
       CompletableFuture.supplyAsync(saveLogBinaryDataTask.get()
               .withRequest(request)
               .withFile(file)
-              .withProjectId(projectDetails.getProjectId()), taskExecutor)
-          .thenAccept(metaInfo -> sendMessage(request, metaInfo, projectDetails.getProjectId()));
+              .withProjectId(membershipDetails.getProjectId()), taskExecutor)
+          .thenAccept(metaInfo -> sendMessage(request, metaInfo, membershipDetails.getProjectId()));
     } else {
-      sendMessage(request, null, projectDetails.getProjectId());
+      sendMessage(request, null, membershipDetails.getProjectId());
     }
 
     EntryCreatedAsyncRS response = new EntryCreatedAsyncRS();

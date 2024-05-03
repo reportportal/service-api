@@ -71,7 +71,7 @@ public class ImportLaunchHandlerImplTest {
 
   private static final String USER_NAME = "default";
 
-  private ReportPortalUser.ProjectDetails projectDetails;
+  private MembershipDetails membershipDetails;
 
   private ReportPortalUser reportPortalUser;
 
@@ -80,7 +80,7 @@ public class ImportLaunchHandlerImplTest {
   @BeforeEach
   public void setUp() {
     projectDetails = mock(ReportPortalUser.ProjectDetails.class);
-    lenient().when(projectDetails.getProjectId()).thenReturn(ID);
+    lenient().when(membershipDetails.getProjectId()).thenReturn(ID);
     reportPortalUser = mock(ReportPortalUser.class);
     lenient().when(reportPortalUser.getUserId()).thenReturn(ID);
     lenient().when(reportPortalUser.getUsername()).thenReturn(USER_NAME);

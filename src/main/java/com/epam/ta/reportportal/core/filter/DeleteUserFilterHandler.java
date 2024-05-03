@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.filter;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 
 /**
@@ -34,7 +35,7 @@ public interface DeleteUserFilterHandler {
    * @param user           User
    * @return {@link OperationCompletionRS}
    */
-  OperationCompletionRS deleteFilter(Long id, ReportPortalUser.ProjectDetails projectDetails,
+  OperationCompletionRS deleteFilter(Long id, MembershipDetails membershipDetails,
       ReportPortalUser user);
 
 }

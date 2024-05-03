@@ -38,6 +38,7 @@ import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
@@ -114,9 +115,9 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   }
 
   @Override
-  public Project get(ReportPortalUser.ProjectDetails projectDetails) {
-    return projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
-        () -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectName()));
+  public Project get(MembershipDetails membershipDetails) {
+    return projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
+        () -> new ReportPortalException(PROJECT_NOT_FOUND, membershipDetails.getProjectName()));
   }
 
   @Override
@@ -147,9 +148,9 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   }
 
   @Override
-  public List<String> getUserNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
+  public List<String> getUserNames(MembershipDetails membershipDetails, String value) {
     checkBusinessRuleLessThan1Symbol(value);
-    return userRepository.findNamesByProject(projectDetails.getProjectId(), value);
+    return userRepository.findNamesByProject(membershipDetails.getProjectId(), value);
   }
 
   private void checkBusinessRuleLessThan1Symbol(String value) {
@@ -161,14 +162,14 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
   @Override
   public Iterable<SearchUserResource> getUserNames(String value,
-      ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
+      MembershipDetails membershipDetails, Pageable pageable) {
     checkBusinessRuleLessThan1Symbol(value);
 
     final CompositeFilterCondition userCondition = getUserSearchCondition(value);
 
     final Filter filter = Filter.builder().withTarget(User.class).withCondition(userCondition)
         .withCondition(
-            new FilterCondition(Operator.AND, Condition.ANY, true, projectDetails.getProjectName(),
+            new FilterCondition(Operator.AND, Condition.ANY, true, membershipDetails.getProjectName(),
                 CRITERIA_PROJECT
             )).build();
 

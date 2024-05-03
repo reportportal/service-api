@@ -20,7 +20,6 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
@@ -39,6 +38,9 @@ import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
@@ -100,16 +102,16 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
   }
 
   public OperationCompletionRS deleteLaunch(Long launchId,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
     Launch launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-    validate(launch, user, projectDetails);
+    validate(launch, user, membershipDetails);
     final Long numberOfLaunchElements =
         elementsCounterService.countNumberOfLaunchElements(launchId);
 
-    logIndexer.indexLaunchesRemove(projectDetails.getProjectId(), Lists.newArrayList(launchId));
+    logIndexer.indexLaunchesRemove(membershipDetails.getProjectId(), Lists.newArrayList(launchId));
     launchContentRemover.remove(launch);
-    logService.deleteLogMessageByLaunch(projectDetails.getProjectId(), launch.getId());
+    logService.deleteLogMessageByLaunch(membershipDetails.getProjectId(), launch.getId());
     launchRepository.delete(launch);
     attachmentRepository.moveForDeletionByLaunchId(launchId);
 
@@ -123,7 +125,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
   }
 
   public DeleteBulkRS deleteLaunches(List<Long> ids,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
     List<Long> notFound = Lists.newArrayList();
     List<ReportPortalException> exceptions = Lists.newArrayList();
     Map<Launch, Long> toDelete = Maps.newHashMap();
@@ -134,7 +136,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
       if (optionalLaunch.isPresent()) {
         Launch launch = optionalLaunch.get();
         try {
-          validate(launch, user, projectDetails);
+          validate(launch, user, membershipDetails);
           Long numberOfLaunchElements =
               elementsCounterService.countNumberOfLaunchElements(launch.getId());
           toDelete.put(launch, numberOfLaunchElements);
@@ -148,9 +150,9 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
     });
 
     if (CollectionUtils.isNotEmpty(launchIds)) {
-      logIndexer.indexLaunchesRemove(projectDetails.getProjectId(), launchIds);
+      logIndexer.indexLaunchesRemove(membershipDetails.getProjectId(), launchIds);
       toDelete.keySet().forEach(launchContentRemover::remove);
-      logService.deleteLogMessageByLaunchList(projectDetails.getProjectId(), launchIds);
+      logService.deleteLogMessageByLaunchList(membershipDetails.getProjectId(), launchIds);
       launchRepository.deleteAll(toDelete.keySet());
       attachmentRepository.moveForDeletionByLaunchIds(launchIds);
     }
@@ -181,24 +183,27 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
    * @param projectDetails {@link ReportPortalUser.ProjectDetails}
    */
   private void validate(Launch launch, ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
     expect(launch, not(l -> StatusEnum.IN_PROGRESS.equals(l.getStatus()))).verify(
         LAUNCH_IS_NOT_FINISHED,
         formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())
     );
     if (!UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
-      expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
+      expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId())).verify(
           FORBIDDEN_OPERATION,
           formattedSupplier("Target launch '{}' not under specified project '{}'", launch.getId(),
-              projectDetails.getProjectId()
+              membershipDetails.getProjectId()
           )
       );
       /* Only PROJECT_MANAGER roles could delete launches */
-      if (projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
-        expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED,
+      if ((membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER) && membershipDetails.getProjectRole().equals(ProjectRole.VIEWER))) {
+        expect(user.getUserId(), Predicate.isEqual(launch.getUserId()))
+            .verify(ACCESS_DENIED,
             "You are not launch owner."
         );
       }
     }
   }
+
+
 }

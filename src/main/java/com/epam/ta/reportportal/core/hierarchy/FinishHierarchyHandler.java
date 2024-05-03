@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.hierarchy;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import java.time.Instant;
 
 /**
@@ -34,5 +35,5 @@ public interface FinishHierarchyHandler<T> {
    * @return finished descendants count
    */
   int finishDescendants(T parentEntity, StatusEnum status, Instant endDate, ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails);
+      MembershipDetails membershipDetails);
 }

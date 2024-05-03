@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.OwnedEntityResource;
 import com.epam.ta.reportportal.model.filter.UserFilterResource;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -58,11 +59,11 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
   }
 
   @Override
-  public UserFilterResource getUserFilter(Long id, ReportPortalUser.ProjectDetails projectDetails) {
+  public UserFilterResource getUserFilter(Long id, MembershipDetails membershipDetails) {
     final UserFilter userFilter =
-        filterRepository.findByIdAndProjectId(id, projectDetails.getProjectId()).orElseThrow(
+        filterRepository.findByIdAndProjectId(id, membershipDetails.getProjectId()).orElseThrow(
             () -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT, id,
-                projectDetails.getProjectName()
+                membershipDetails.getProjectName()
             ));
     return UserFilterConverter.TO_FILTER_RESOURCE.apply(userFilter);
   }
@@ -70,10 +71,10 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
   @Override
   public Iterable<UserFilterResource> getUserFilters(String projectName, Pageable pageable,
       Filter filter, ReportPortalUser user) {
-    ReportPortalUser.ProjectDetails projectDetails =
-        projectExtractor.extractProjectDetails(user, projectName);
+    MembershipDetails membershipDetails =
+        projectExtractor.extractMemberShipDetails(user, projectName);
     Page<UserFilter> userFilters =
-        filterRepository.findByFilter(ProjectFilter.of(filter, projectDetails.getProjectId()),
+        filterRepository.findByFilter(ProjectFilter.of(filter, membershipDetails.getProjectId()),
             pageable
         );
     return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_FILTER_RESOURCE)
@@ -82,10 +83,10 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 
   @Override
   public Iterable<OwnedEntityResource> getFiltersNames(
-      ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+      MembershipDetails membershipDetails, Pageable pageable, Filter filter,
       ReportPortalUser user) {
     final Page<UserFilter> userFilters =
-        filterRepository.findByFilter(ProjectFilter.of(filter, projectDetails.getProjectId()),
+        filterRepository.findByFilter(ProjectFilter.of(filter, membershipDetails.getProjectId()),
             pageable
         );
     return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_OWNED_ENTITY_RESOURCE)
@@ -93,9 +94,9 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
   }
 
   @Override
-  public List<UserFilter> getFiltersById(Long[] ids, ReportPortalUser.ProjectDetails projectDetails,
+  public List<UserFilter> getFiltersById(Long[] ids, MembershipDetails membershipDetails,
       ReportPortalUser user) {
     return filterRepository.findAllByIdInAndProjectId(
-        Lists.newArrayList(ids), projectDetails.getProjectId());
+        Lists.newArrayList(ids), membershipDetails.getProjectId());
   }
 }

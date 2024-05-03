@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.widget;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.model.widget.WidgetResource;
 import org.springframework.data.domain.Pageable;
@@ -38,7 +39,7 @@ public interface GetWidgetHandler {
 	 * @param user           User
 	 * @return WidgetResource
 	 */
-	WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	WidgetResource getWidget(Long widgetId, MembershipDetails membershipDetails, ReportPortalUser user);
 
 	/**
 	 * Get specified widget level by id and attributes
@@ -50,7 +51,7 @@ public interface GetWidgetHandler {
 	 * @param user           User
 	 * @return WidgetResource
 	 */
-	WidgetResource getWidget(Long widgetId, String[] attributes, MultiValueMap<String, String> params, ReportPortalUser.ProjectDetails projectDetails,
+	WidgetResource getWidget(Long widgetId, String[] attributes, MultiValueMap<String, String> params, MembershipDetails membershipDetails,
 			ReportPortalUser user);
 
 	/**
@@ -61,7 +62,7 @@ public interface GetWidgetHandler {
 	 * @param user           Username
 	 * @return Widget content
 	 */
-	Map<String, ?> getWidgetPreview(WidgetPreviewRQ previewRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	Map<String, ?> getWidgetPreview(WidgetPreviewRQ previewRQ, MembershipDetails membershipDetails, ReportPortalUser user);
 
 	/**
 	 * Get widget names that belong to user
@@ -72,6 +73,6 @@ public interface GetWidgetHandler {
 	 * @param user           User
 	 * @return List of widget names
 	 */
-	Iterable<Object> getOwnNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter, ReportPortalUser user);
+	Iterable<Object> getOwnNames(MembershipDetails membershipDetails, Pageable pageable, Filter filter, ReportPortalUser user);
 
 }

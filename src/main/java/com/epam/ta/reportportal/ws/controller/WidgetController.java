@@ -87,7 +87,7 @@ public class WidgetController {
   public EntryCreatedRS createWidget(@RequestBody @Validated WidgetRQ createWidget,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable String projectKey) {
     return createWidgetHandler.createWidget(
-        createWidget, projectExtractor.extractProjectDetails(user, projectKey), user);
+        createWidget, projectExtractor.extractMemberShipDetails(user, projectKey), user);
   }
 
   @Transactional(readOnly = true)
@@ -97,7 +97,7 @@ public class WidgetController {
   public WidgetResource getWidget(@PathVariable String projectKey, @PathVariable Long widgetId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getWidgetHandler.getWidget(
-        widgetId, projectExtractor.extractProjectDetails(user, projectKey), user);
+        widgetId, projectExtractor.extractMemberShipDetails(user, projectKey), user);
   }
 
   @Transactional(readOnly = true)
@@ -110,7 +110,7 @@ public class WidgetController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return getWidgetHandler.getWidget(
         widgetId, ArrayUtils.nullToEmpty(attributes), params,
-        projectExtractor.extractProjectDetails(user, projectKey), user
+        projectExtractor.extractMemberShipDetails(user, projectKey), user
     );
   }
 
@@ -122,7 +122,7 @@ public class WidgetController {
       @RequestBody @Validated WidgetPreviewRQ previewRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getWidgetHandler.getWidgetPreview(
-        previewRQ, projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), user);
+        previewRQ, projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), user);
   }
 
   @Transactional
@@ -133,7 +133,7 @@ public class WidgetController {
       @PathVariable Long widgetId, @RequestBody @Validated WidgetRQ updateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateWidgetHandler.updateWidget(
-        widgetId, updateRQ, projectExtractor.extractProjectDetails(user, projectKey), user);
+        widgetId, updateRQ, projectExtractor.extractMemberShipDetails(user, projectKey), user);
   }
 
   @Transactional(readOnly = true)
@@ -144,6 +144,6 @@ public class WidgetController {
       @SortFor(Widget.class) Pageable pageable, @FilterFor(Widget.class) Filter filter,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getWidgetHandler.getOwnNames(
-        projectExtractor.extractProjectDetails(user, projectKey), pageable, filter, user);
+        projectExtractor.extractMemberShipDetails(user, projectKey), pageable, filter, user);
   }
 }

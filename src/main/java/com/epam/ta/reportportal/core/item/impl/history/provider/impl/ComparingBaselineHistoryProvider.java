@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -59,17 +60,17 @@ public class ComparingBaselineHistoryProvider implements HistoryProvider {
 
 	@Override
 	public Page<TestItemHistory> provide(Queryable filter, Pageable pageable, HistoryRequestParams historyRequestParams,
-			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean usingHash) {
+			MembershipDetails membershipDetails, ReportPortalUser user, boolean usingHash) {
 
 		return historyRequestParams.getFilterParams().map(filterParams -> {
 
-			UserFilter userFilter = userFilterRepository.findByIdAndProjectId(filterParams.getFilterId(), projectDetails.getProjectId())
+			UserFilter userFilter = userFilterRepository.findByIdAndProjectId(filterParams.getFilterId(), membershipDetails.getProjectId())
 					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
 							filterParams.getFilterId(),
-							projectDetails.getProjectName()
+              membershipDetails.getProjectName()
 					));
 
-			Pair<Queryable, Pageable> launchQueryablePair = DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(projectDetails,
+			Pair<Queryable, Pageable> launchQueryablePair = DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(membershipDetails,
 					userFilter,
 					filterParams.getLaunchesLimit()
 			);
@@ -82,7 +83,7 @@ public class ComparingBaselineHistoryProvider implements HistoryProvider {
 
 			return testItemRepository.loadItemsHistoryPage(filter,
 					pageable,
-					projectDetails.getProjectId(),
+          membershipDetails.getProjectId(),
 					launchIds,
 					historyRequestParams.getHistoryDepth(),
 					usingHash

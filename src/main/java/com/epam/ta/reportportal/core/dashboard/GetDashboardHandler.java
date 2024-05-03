@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.dashboard;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.dashboard.DashboardResource;
 import org.springframework.data.domain.Pageable;
 
@@ -35,7 +36,7 @@ public interface GetDashboardHandler {
 	 * @param projectDetails Project detail
 	 * @return {@link DashboardResource}
 	 */
-	DashboardResource getDashboard(Long id, ReportPortalUser.ProjectDetails projectDetails);
+	DashboardResource getDashboard(Long id, MembershipDetails membershipDetails);
 
 	/**
 	 * Get permitted projects for concrete user for concrete project
@@ -46,7 +47,7 @@ public interface GetDashboardHandler {
 	 * @param filter         {@link Filter}
 	 * @return Page of permitted dashboard resources
 	 */
-	Iterable<DashboardResource> getDashboards(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+	Iterable<DashboardResource> getDashboards(MembershipDetails membershipDetails, Pageable pageable, Filter filter,
 			ReportPortalUser user);
 
 }

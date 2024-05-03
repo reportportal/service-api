@@ -44,6 +44,8 @@ import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -107,14 +109,14 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
   @Override
   public OperationCompletionRS deleteTestItem(Long itemId,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
     TestItem item = testItemRepository.findById(itemId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
     Launch launch = launchRepository.findById(item.getLaunchId())
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, item.getLaunchId()));
 
-    validate(item, launch, user, projectDetails);
+    validate(item, launch, user, membershipDetails);
     Optional<Long> parentId = ofNullable(item.getParentId());
 
     Set<Long> itemsForRemove = Sets.newHashSet(
@@ -122,10 +124,10 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
     itemsForRemove.forEach(itemContentRemover::remove);
 
     eventPublisher.publishEvent(new ElementsDeletedEvent(item,
-        projectDetails.getProjectId(),
+        membershipDetails.getProjectId(),
         elementsCounterService.countNumberOfItemElements(item)
     ));
-    logService.deleteLogMessageByTestItemSet(projectDetails.getProjectId(), itemsForRemove);
+    logService.deleteLogMessageByTestItemSet(membershipDetails.getProjectId(), itemsForRemove);
     itemContentRemover.remove(item.getItemId());
     testItemRepository.deleteById(item.getItemId());
 
@@ -134,7 +136,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
         .ifPresent(
             p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
 
-    logIndexer.indexItemsRemoveAsync(projectDetails.getProjectId(), itemsForRemove);
+    logIndexer.indexItemsRemoveAsync(membershipDetails.getProjectId(), itemsForRemove);
     attachmentRepository.moveForDeletionByItems(itemsForRemove);
 
     return COMPOSE_DELETE_RESPONSE.apply(item.getItemId());
@@ -142,7 +144,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
   @Override
   public List<OperationCompletionRS> deleteTestItems(Collection<Long> ids,
-      ReportPortalUser.ProjectDetails projectDetails,
+      MembershipDetails membershipDetails,
       ReportPortalUser user) {
     List<TestItem> items = testItemRepository.findAllById(ids);
 
@@ -153,7 +155,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
     Map<Long, List<TestItem>> launchItemMap = items.stream()
         .collect(Collectors.groupingBy(TestItem::getLaunchId));
     launches.forEach(launch -> launchItemMap.get(launch.getId())
-        .forEach(item -> validate(item, launch, user, projectDetails)));
+        .forEach(item -> validate(item, launch, user, membershipDetails)));
 
     Map<Long, PathName> descendantsMapping = testItemRepository.selectPathNames(items);
 
@@ -182,10 +184,10 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
     idsToDelete.forEach(itemContentRemover::remove);
     eventPublisher.publishEvent(new ElementsDeletedEvent(
         items,
-        projectDetails.getProjectId(),
+        membershipDetails.getProjectId(),
         elementsCounterService.countNumberOfItemElements(items)
     ));
-    logService.deleteLogMessageByTestItemSet(projectDetails.getProjectId(), removedItems);
+    logService.deleteLogMessageByTestItemSet(membershipDetails.getProjectId(), removedItems);
     testItemRepository.deleteAllByItemIdIn(idsToDelete);
 
     launches.forEach(it -> it.setHasRetries(launchRepository.hasRetries(it.getId())));
@@ -194,7 +196,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
         it -> it.setHasChildren(testItemRepository.hasChildren(it.getItemId(), it.getPath())));
 
     if (CollectionUtils.isNotEmpty(removedItems)) {
-      logIndexer.indexItemsRemoveAsync(projectDetails.getProjectId(), removedItems);
+      logIndexer.indexItemsRemoveAsync(membershipDetails.getProjectId(), removedItems);
       attachmentRepository.moveForDeletionByItems(removedItems);
     }
 
@@ -217,18 +219,18 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
    * @param projectDetails {@link ReportPortalUser.ProjectDetails}
    */
   private void validate(TestItem testItem, Launch launch, ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
     if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-      expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
+      expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId())).verify(
           FORBIDDEN_OPERATION,
           formattedSupplier("Deleting testItem '{}' is not under specified project '{}'",
               testItem.getItemId(),
-              projectDetails.getProjectId()
+              membershipDetails.getProjectId()
           )
       );
-      if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
-        expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED,
-            "You are not a launch owner.");
+      if (membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER) && membershipDetails.getProjectRole().equals(ProjectRole.VIEWER)) {
+        expect(user.getUserId(), Predicate.isEqual(launch.getUserId()))
+            .verify(ACCESS_DENIED, "You are not a launch owner.");
       }
     }
     expect(testItem.getRetryOf(), Objects::isNull).verify(ErrorType.RETRIES_HANDLER_ERROR,

@@ -74,7 +74,7 @@ class LogAsyncControllerTest {
     ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(
         ReportPortalUser.ProjectDetails.class);
 
-    when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
+    when(projectExtractor.extractMemberShipDetails(any(ReportPortalUser.class),
         anyString())).thenReturn(user.getProjectDetails()
         .get(TEST_PROJECT_KEY));
 
@@ -101,7 +101,7 @@ class LogAsyncControllerTest {
     ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(
         ReportPortalUser.ProjectDetails.class);
 
-    when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
+    when(projectExtractor.extractMemberShipDetails(any(ReportPortalUser.class),
         anyString())).thenReturn(user.getProjectDetails()
         .get(TEST_PROJECT_KEY));
 
@@ -129,7 +129,7 @@ class LogAsyncControllerTest {
     ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(
         ReportPortalUser.ProjectDetails.class);
 
-    when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
+    when(projectExtractor.extractMemberShipDetails(any(ReportPortalUser.class),
         anyString())).thenReturn(user.getProjectDetails()
         .get(TEST_PROJECT_KEY));
 

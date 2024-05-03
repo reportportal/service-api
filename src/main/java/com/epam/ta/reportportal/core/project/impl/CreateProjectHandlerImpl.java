@@ -150,7 +150,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
     project.setProjectAttributes(projectAttributes);
 
     ProjectUser projectUser = new ProjectUser().withProject(project).withUser(dbUser)
-        .withProjectRole(ProjectRole.PROJECT_MANAGER);
+        .withProjectRole(ProjectRole.EDITOR);
 
     projectRepository.save(project);
     projectUserRepository.save(projectUser);

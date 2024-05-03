@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -29,7 +30,7 @@ public interface LaunchAccessValidator {
    * @param projectDetails {@link ReportPortalUser.ProjectDetails}
    * @param user           {@link ReportPortalUser}
    */
-  void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails,
+  void validate(Launch launch, MembershipDetails membershipDetails,
       ReportPortalUser user);
 
   /**
@@ -37,6 +38,6 @@ public interface LaunchAccessValidator {
    * @param projectDetails {@link ReportPortalUser.ProjectDetails}
    * @param user           {@link ReportPortalUser}
    */
-  void validate(Long launchId, ReportPortalUser.ProjectDetails projectDetails,
+  void validate(Long launchId, MembershipDetails membershipDetails,
       ReportPortalUser user);
 }

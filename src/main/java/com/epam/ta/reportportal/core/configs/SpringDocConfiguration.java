@@ -55,9 +55,11 @@ import io.swagger.v3.oas.models.tags.Tag;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.ServletContext;
@@ -89,6 +91,13 @@ public class SpringDocConfiguration {
 
   private static final Set<String> hiddenParams = ImmutableSet.<String>builder()
       .add(CRITERIA_PROJECT_ATTRIBUTE_NAME).build();
+
+  private static final Map<String, String> ATTRIBUTE_TO_FILTER_PREFIX = new HashMap<>();
+
+  static {
+    ATTRIBUTE_TO_FILTER_PREFIX.put("compositeAttribute", "filter.has.");
+    ATTRIBUTE_TO_FILTER_PREFIX.put("compositeSystemAttribute", "filter.has.");
+  }
 
   @Autowired
   private ServletContext servletContext;
@@ -231,19 +240,22 @@ public class SpringDocConfiguration {
   }
 
   private Parameter buildFilterParameters(String parameter) {
+    String filterPrefix = ATTRIBUTE_TO_FILTER_PREFIX.getOrDefault(parameter, "filter.eq.");
     return new Parameter()
         .in(ParameterIn.QUERY.toString())
-        .name("filter.eq." + parameter)
+        .name(filterPrefix + parameter)
         .schema(new IntegerSchema())
         .description("Filters by '" + parameter + "'");
   }
 
   private Parameter buildFilterParameters(CriteriaHolder criteriaHolder) {
     Schema schema = SchemaFactory.createSchemaForType(criteriaHolder.getDataType());
+    String parameter = criteriaHolder.getFilterCriteria();
+    String filterPrefix = ATTRIBUTE_TO_FILTER_PREFIX.getOrDefault(parameter, "filter.eq.");
 
     return new Parameter()
         .in(ParameterIn.QUERY.toString())
-        .name("filter.eq." + criteriaHolder.getFilterCriteria())
+        .name(filterPrefix + parameter)
         .schema(schema)
         .description("Filters by '" + criteriaHolder.getFilterCriteria() + "'");
   }

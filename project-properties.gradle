@@ -69,6 +69,7 @@ project.ext {
             (migrationsUrl + '/migrations/78_drop_redundant_index.up.sql')             : 'V078__drop_redundant_index.sql',
             (migrationsUrl + '/migrations/83_add_slugify_function.up.sql')             : 'V083__add_slugify_function.sql',
             (migrationsUrl + '/migrations/84_organization_tables.up.sql')              : 'V084__organization_tables.sql',
+            (migrationsUrl + '/migrations/86_notication_update.up.sql')                : 'V086__notication_update.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

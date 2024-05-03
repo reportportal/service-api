@@ -16,18 +16,32 @@
 
 package com.epam.ta.reportportal.core.launch.util;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@Component
 public final class LinkGenerator {
 
   private static final String UI_PREFIX = "/ui/#";
   private static final String LAUNCHES = "/launches/all/";
+
+  private static String path;
+
+  @Value("${server.servlet.context-path:/api}")
+  private String pathValue;
+
+  @PostConstruct
+  public void init() {
+    LinkGenerator.path = this.pathValue;
+  }
 
   private LinkGenerator() {
     //static only
@@ -38,11 +52,13 @@ public final class LinkGenerator {
   }
 
   public static String composeBaseUrl(HttpServletRequest request) {
+
+    String processedPath = "/".equals(path) ? null : path.replace("/api", "");
     /*
      * Use Uri components since they are aware of x-forwarded-host headers
      */
     return UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
-        .replacePath(null)
+        .replacePath(processedPath)
         .replaceQuery(null)
         .build()
         .toUri()

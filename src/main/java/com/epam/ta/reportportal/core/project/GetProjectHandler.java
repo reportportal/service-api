@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.model.project.ProjectResource;
 import com.epam.ta.reportportal.model.user.SearchUserResource;
 import com.epam.ta.reportportal.model.user.UserResource;
@@ -89,7 +90,9 @@ public interface GetProjectHandler {
    * @return List of found user resources
    */
   Iterable<SearchUserResource> getUserNames(String value,
-      MembershipDetails membershipDetails, Pageable pageable);
+      MembershipDetails membershipDetails,
+      UserRole userRole,
+      Pageable pageable);
 
   /**
    * Get all project names

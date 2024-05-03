@@ -108,7 +108,7 @@ class ProjectControllerTest extends BaseMvcTest {
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
 		final Optional<Project> createdProjectOptional = projectRepository.findByName("TestProject".toLowerCase());
 		assertTrue(createdProjectOptional.isPresent());
-		assertEquals(14, createdProjectOptional.get().getProjectAttributes().size());
+		assertEquals(15, createdProjectOptional.get().getProjectAttributes().size());
 		assertEquals(5, createdProjectOptional.get().getProjectIssueTypes().size());
 	}
 

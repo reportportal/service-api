@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.core.project.validator.notification.ProjectNotif
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
+import com.epam.ta.reportportal.entity.project.email.SenderCaseOptions;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.project.ProjectResource;
 import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO;
@@ -58,7 +59,8 @@ public class CreateProjectNotificationHandlerImpl implements CreateProjectNotifi
   @Override
   public EntryCreatedRS createNotification(Project project, SenderCaseDTO createNotificationRQ,
       ReportPortalUser user) {
-    expect(senderCaseRepository.findByProjectIdAndRuleNameIgnoreCase(project.getId(),
+    expect(senderCaseRepository.findByProjectIdAndTypeAndRuleNameIgnoreCase(project.getId(),
+        createNotificationRQ.getType(),
         createNotificationRQ.getRuleName()
     ), Optional::isEmpty).verify(
         ErrorType.RESOURCE_ALREADY_EXISTS, createNotificationRQ.getRuleName());
@@ -68,6 +70,9 @@ public class CreateProjectNotificationHandlerImpl implements CreateProjectNotifi
     SenderCase senderCase = NotificationConfigConverter.TO_CASE_MODEL.apply(createNotificationRQ);
     senderCase.setId(null);
     senderCase.setProject(project);
+    senderCase.setType(createNotificationRQ.getType());
+    Optional.ofNullable(createNotificationRQ.getRuleDetails()).map(SenderCaseOptions::new)
+        .ifPresent(senderCase::setRuleDetails);
     senderCaseRepository.save(senderCase);
 
     ProjectResource projectResource = projectConverter.TO_PROJECT_RESOURCE.apply(project);

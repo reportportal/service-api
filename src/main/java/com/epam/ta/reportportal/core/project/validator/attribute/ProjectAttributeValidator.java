@@ -20,6 +20,8 @@ import org.apache.commons.lang3.BooleanUtils;
 //TODO need refactoring - split attributes validation logic
 public class ProjectAttributeValidator {
 
+  private static String NOTIFICATION_ATTRIBUTE_PATTERN = "notifications.\\w+.enabled";
+
   private final DelayBoundValidator delayBoundValidator;
 
   public ProjectAttributeValidator(DelayBoundValidator delayBoundValidator) {
@@ -30,7 +32,8 @@ public class ProjectAttributeValidator {
       Map<String, String> newAttributes) {
     Set<String> incompatibleAttributes = newAttributes.keySet()
         .stream()
-        .filter(it -> !ProjectAttributeEnum.isPresent(it))
+        .filter(it -> !(ProjectAttributeEnum.isPresent(it) || it.matches(
+            NOTIFICATION_ATTRIBUTE_PATTERN)))
         .collect(toSet());
     expect(incompatibleAttributes, Set::isEmpty).verify(BAD_REQUEST_ERROR, incompatibleAttributes);
 

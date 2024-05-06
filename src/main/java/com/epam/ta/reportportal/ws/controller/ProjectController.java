@@ -275,43 +275,40 @@ public class ProjectController {
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
   public Iterable<SearchUserResource> searchForUser(@PathVariable String projectKey,
-      @RequestParam(value = "term") String term, Pageable pageable,
-      @AuthenticationPrincipal ReportPortalUser user) {
-    return getProjectHandler.getUserNames(term,
-        projectExtractor.extractProjectDetails(user, projectKey), pageable
-    );
+      @RequestParam(value = "term") String term,
+      Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+    return getProjectHandler.getUserNames(term, user.getUserRole(),
+        projectExtractor.extractProjectDetails(user, projectKey), pageable);
   }
 
   @Transactional
-  @PutMapping("/{projectKey}/preference/{login}/{filterId}")
+  @PutMapping("/{projectKey}/preference/{filterId}")
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize(ALLOWED_TO_EDIT_USER)
+  @Operation(summary = "Edit logged-in user preferences", description = "Only for logged-in user")
   public OperationCompletionRS addUserPreference(@PathVariable String projectKey,
-      @PathVariable String login, @PathVariable Long filterId,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable Long filterId, @AuthenticationPrincipal ReportPortalUser user) {
     return updatePreference.addPreference(projectExtractor.extractProjectDetails(user, projectKey),
         user, filterId
     );
   }
 
   @Transactional
-  @DeleteMapping("/{projectKey}/preference/{login}/{filterId}")
+  @DeleteMapping("/{projectKey}/preference/{filterId}")
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize(ALLOWED_TO_EDIT_USER)
+  @Operation(summary = "Delete logged-in user preferences", description = "Only for logged-in user")
   public OperationCompletionRS removeUserPreference(@PathVariable String projectKey,
-      @PathVariable String login, @PathVariable Long filterId,
+      @PathVariable Long filterId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updatePreference.removePreference(
         projectExtractor.extractProjectDetails(user, projectKey), user, filterId);
   }
 
   @Transactional(readOnly = true)
-  @GetMapping("/{projectKey}/preference/{login}")
+  @GetMapping("/{projectKey}/preference")
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize(ALLOWED_TO_EDIT_USER)
-  @Operation(summary =  "Load user preferences", description = "Only for users that allowed to edit other users")
+  @Operation(summary = "Load logged-in user preferences", description = "Only for logged-in user")
   public PreferenceResource getUserPreference(@PathVariable String projectKey,
-      @PathVariable String login, @AuthenticationPrincipal ReportPortalUser user) {
+      @AuthenticationPrincipal ReportPortalUser user) {
     return getPreference.getPreference(projectExtractor.extractProjectDetails(user, projectKey),
         user
     );

@@ -16,8 +16,12 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.reportportal.extension.util.CommandParamUtils.ENTITY_PARAM;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static java.util.Optional.ofNullable;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -29,10 +33,12 @@ import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.integration.IntegrationTypeResource;
 import com.epam.ta.reportportal.model.integration.UpdatePluginStateRQ;
+import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.validation.Valid;
@@ -51,6 +57,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -137,5 +144,25 @@ public class PluginController {
         projectExtractor.extractProjectDetails(user, projectKey), pluginName, command,
         executionParams
     );
+  }
+
+  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PostMapping(value = "/{projectName}/{pluginName}/import", consumes = {
+      MediaType.MULTIPART_FORM_DATA_VALUE})
+  @ResponseStatus(OK)
+  @Operation(summary = "Send report to the specified plugin for importing")
+  public Object executeImportPluginCommand(@AuthenticationPrincipal ReportPortalUser user,
+      @PathVariable String projectName, @PathVariable String pluginName,
+      @RequestParam("file") MultipartFile file,
+      @RequestPart(required = false) @Valid LaunchImportRQ launchImportRq) {
+    Map<String, Object> executionParams = new HashMap<>();
+    executionParams.put("file", file);
+    ofNullable(launchImportRq).ifPresentOrElse(
+        rq -> executionParams.put(ENTITY_PARAM, launchImportRq),
+        () -> executionParams.put(ENTITY_PARAM, new LaunchImportRQ())
+    );
+    return executeIntegrationHandler.executeCommand(
+        projectExtractor.extractProjectDetails(user, projectName), pluginName, "import",
+        executionParams);
   }
 }

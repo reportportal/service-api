@@ -5,12 +5,14 @@ rp:
     pass: rabbitmq
     apiuser: rabbitmq
     apipass: rabbitmq
+    port: 5673
+    apiport: 15673
   db:
     user: rpuser
     pass: rppass
     host: localhost
   plugins:
-    rootDir: /Users/pavel_bortnik/ReportPortal5/data/storage/
+    rootDir: E:/ReportPortal5/data/storage/
   datasource:
     maximumPoolSize: 12
 

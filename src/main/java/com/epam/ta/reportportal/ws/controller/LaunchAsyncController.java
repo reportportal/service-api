@@ -88,7 +88,7 @@ public class LaunchAsyncController {
       @Parameter(description = "Start launch request body", required = true) @RequestBody @Validated
           StartLaunchRQ startLaunchRQ, @AuthenticationPrincipal ReportPortalUser user) {
     return startLaunchHandler.startLaunch(user,
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), startLaunchRQ
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), startLaunchRQ
     );
   }
 
@@ -101,7 +101,7 @@ public class LaunchAsyncController {
       @PathVariable String launchId, @RequestBody @Validated FinishExecutionRQ finishLaunchRQ,
       @AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request) {
     return finishLaunchHandler.finishLaunch(launchId, finishLaunchRQ,
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), user,
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
         composeBaseUrl(request)
     );
   }
@@ -116,7 +116,7 @@ public class LaunchAsyncController {
       @Parameter(description = "Merge launches request body", required = true) @RequestBody @Validated
           MergeLaunchesRQ mergeLaunchesRQ, @AuthenticationPrincipal ReportPortalUser user) {
     return mergeLaunchesHandler.mergeLaunches(
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), user,
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
         mergeLaunchesRQ
     );
   }

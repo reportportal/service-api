@@ -66,7 +66,7 @@ public class DeleteIntegrationHandlerTest {
 
 		final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
 				UserRole.ADMINISTRATOR,
-				ProjectRole.PROJECT_MANAGER,
+				ProjectRole.EDITOR,
 				1L
 		);
 
@@ -92,7 +92,7 @@ public class DeleteIntegrationHandlerTest {
 
 		final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
 				UserRole.ADMINISTRATOR,
-				ProjectRole.PROJECT_MANAGER,
+				ProjectRole.EDITOR,
 				1L
 		);
 
@@ -123,7 +123,7 @@ public class DeleteIntegrationHandlerTest {
 
 		final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
 				UserRole.ADMINISTRATOR,
-				ProjectRole.PROJECT_MANAGER,
+				ProjectRole.EDITOR,
 				projectId
 		);
 
@@ -159,7 +159,7 @@ public class DeleteIntegrationHandlerTest {
 
 		final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
 				UserRole.ADMINISTRATOR,
-				ProjectRole.PROJECT_MANAGER,
+				ProjectRole.EDITOR,
 				projectId
 		);
 

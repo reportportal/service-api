@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -74,7 +75,7 @@ class StartLaunchHandlerImplTest {
   @Test
   void startLaunch() {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR,
-        ProjectRole.PROJECT_MANAGER, 1L);
+        ProjectRole.EDITOR, 1L);
 
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
     startLaunchRQ.setStartTime(Instant.now());
@@ -90,7 +91,7 @@ class StartLaunchHandlerImplTest {
     }).thenReturn(launch);
 
     final StartLaunchRS startLaunchRS = startLaunchHandlerImpl.startLaunch(rpUser,
-        extractProjectDetails(rpUser, TEST_PROJECT_KEY),
+        rpUserToMembership(rpUser),
         startLaunchRQ
     );
 
@@ -101,7 +102,7 @@ class StartLaunchHandlerImplTest {
 
   @Test
   void accessDeniedForCustomerRoleAndDebugMode() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
 
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
     startLaunchRQ.setStartTime(Instant.now());
@@ -109,7 +110,7 @@ class StartLaunchHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> startLaunchHandlerImpl.startLaunch(rpUser,
-            extractProjectDetails(rpUser, TEST_PROJECT_KEY), startLaunchRQ)
+            rpUserToMembership(rpUser), startLaunchRQ)
     );
     assertEquals("Forbidden operation.", exception.getMessage());
   }

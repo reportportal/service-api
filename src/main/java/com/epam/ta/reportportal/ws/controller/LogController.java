@@ -127,7 +127,7 @@ public class LogController {
       @RequestBody SaveLogRQ createLogRQ, @AuthenticationPrincipal ReportPortalUser user) {
     validateSaveRQ(validator, createLogRQ);
     return createLogHandler.createLog(createLogRQ, null,
-        projectExtractor.extractMemberShipDetails(user, projectKey)
+        projectExtractor.extractMembershipDetails(user, projectKey)
     );
   }
 
@@ -140,7 +140,7 @@ public class LogController {
       @RequestBody SaveLogRQ createLogRQ, @AuthenticationPrincipal ReportPortalUser user) {
     validateSaveRQ(validator, createLogRQ);
     return createLogHandler.createLog(createLogRQ, null,
-        projectExtractor.extractMemberShipDetails(user, projectKey)
+        projectExtractor.extractMembershipDetails(user, projectKey)
     );
   }
 
@@ -189,7 +189,7 @@ public class LogController {
            */
           //noinspection ConstantConditions
           responseItem = createLogHandler.createLog(createLogRq, data,
-              projectExtractor.extractMemberShipDetails(user, projectKey)
+              projectExtractor.extractMembershipDetails(user, projectKey)
           );
         }
         response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
@@ -211,7 +211,7 @@ public class LogController {
   public OperationCompletionRS deleteLog(@PathVariable String projectKey, @PathVariable Long logId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return deleteLogHandler.deleteLog(logId,
-        projectExtractor.extractMemberShipDetails(user, projectKey), user
+        projectExtractor.extractMembershipDetails(user, projectKey), user
     );
   }
 
@@ -224,7 +224,7 @@ public class LogController {
       @SortDefault({"logTime"}) @SortFor(Log.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getLogs(underPath,
-        projectExtractor.extractMemberShipDetails(user, projectKey), filter, pageable
+        projectExtractor.extractMembershipDetails(user, projectKey), filter, pageable
     );
   }
 
@@ -234,7 +234,7 @@ public class LogController {
   public Map<Long, List<LogResource>> getLogsUnder(@PathVariable String projectKey,
       @RequestBody GetLogsUnderRq logsUnderRq, @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getLogs(logsUnderRq,
-        projectExtractor.extractMemberShipDetails(user, projectKey)
+        projectExtractor.extractMembershipDetails(user, projectKey)
     );
   }
 
@@ -246,7 +246,7 @@ public class LogController {
       @SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
     return ImmutableMap.<String, Serializable>builder().put("number",
         getLogHandler.getPageNumber(logId,
-            projectExtractor.extractMemberShipDetails(user, projectKey), filter, pageable
+            projectExtractor.extractMembershipDetails(user, projectKey), filter, pageable
         )
     ).build();
   }
@@ -256,7 +256,7 @@ public class LogController {
   @Transactional(readOnly = true)
   public LogResource getLog(@PathVariable String projectKey, @PathVariable String logId,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return getLogHandler.getLog(logId, projectExtractor.extractMemberShipDetails(user, projectKey),
+    return getLogHandler.getLog(logId, projectExtractor.extractMembershipDetails(user, projectKey),
         user
     );
   }
@@ -271,7 +271,7 @@ public class LogController {
   @Transactional(readOnly = true)
   public LogResource getLogByUuid(@PathVariable String projectKey, @PathVariable String logId,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return getLogHandler.getLog(logId, projectExtractor.extractMemberShipDetails(user, projectKey),
+    return getLogHandler.getLog(logId, projectExtractor.extractMembershipDetails(user, projectKey),
         user
     );
   }
@@ -284,7 +284,7 @@ public class LogController {
       @FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getNestedItems(parentId,
-        projectExtractor.extractMemberShipDetails(user, projectKey), params, filter, pageable
+        projectExtractor.extractMembershipDetails(user, projectKey), params, filter, pageable
     );
   }
 
@@ -296,7 +296,7 @@ public class LogController {
       @FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getLogsWithLocation(parentId,
-        projectExtractor.extractMemberShipDetails(user, projectKey), params, filter, pageable
+        projectExtractor.extractMembershipDetails(user, projectKey), params, filter, pageable
     );
   }
 
@@ -307,7 +307,7 @@ public class LogController {
       @RequestBody SearchLogRq request, @PathVariable Long itemId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return searchLogService.search(itemId, request,
-        projectExtractor.extractMemberShipDetails(user, projectKey)
+        projectExtractor.extractMembershipDetails(user, projectKey)
     );
   }
 

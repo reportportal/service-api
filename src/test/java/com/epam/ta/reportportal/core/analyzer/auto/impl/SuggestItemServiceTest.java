@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.LogFull;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -66,7 +67,7 @@ class SuggestItemServiceTest {
 
   @Test
   void suggestItems() {
-    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.VIEWER, 1L);
     final Project project = new Project();
     project.setId(1L);
     project.setKey("default");
@@ -89,7 +90,7 @@ class SuggestItemServiceTest {
     when(testItemValidator.validate(any(TestItem.class))).thenReturn(true);
     when(testItemRepository.findById(2L)).thenReturn(Optional.of(relevantItem));
     when(getLaunchHandler.get(testItem.getLaunchId())).thenReturn(launch);
-    when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(project);
+    when(getProjectHandler.get(any(MembershipDetails.class))).thenReturn(project);
     when(logService.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
         Collections.singletonList(testItem.getItemId()),
         ERROR_INT
@@ -99,8 +100,10 @@ class SuggestItemServiceTest {
         Collections.singletonList(suggestInfo));
 
     final List<SuggestedItem> suggestedItems = suggestItemService.suggestItems(1L,
-        ReportPortalUser.ProjectDetails.builder().withProjectId(1L)
-            .withProjectRole(ProjectRole.MEMBER.name()).build(),
+        MembershipDetails.builder()
+            .withProjectId(1L)
+            .withProjectRole(ProjectRole.VIEWER)
+            .build(),
         rpUser
     );
 
@@ -110,7 +113,7 @@ class SuggestItemServiceTest {
 
   @Test
   void suggestRemovedItems() {
-    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.VIEWER, 1L);
     final Project project = new Project();
     project.setId(1L);
     project.setKey("default");
@@ -128,15 +131,15 @@ class SuggestItemServiceTest {
     when(testItemRepository.findById(1L)).thenReturn(Optional.of(testItem));
     when(testItemValidator.validate(any(TestItem.class))).thenReturn(true);
     when(getLaunchHandler.get(testItem.getLaunchId())).thenReturn(launch);
-    when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(project);
+    when(getProjectHandler.get(any(MembershipDetails.class))).thenReturn(project);
     when(testItemRepository.findById(2L)).thenReturn(Optional.empty());
 
     when(analyzerServiceClient.searchSuggests(any(SuggestRq.class))).thenReturn(
         Collections.singletonList(suggestInfo));
 
     final List<SuggestedItem> suggestedItems = suggestItemService.suggestItems(1L,
-        ReportPortalUser.ProjectDetails.builder().withProjectId(1L)
-            .withProjectRole(ProjectRole.MEMBER.name()).build(),
+        MembershipDetails.builder().withProjectId(1L)
+            .withProjectRole(ProjectRole.VIEWER).build(),
         rpUser
     );
 
@@ -146,7 +149,7 @@ class SuggestItemServiceTest {
 
   @Test
   void showThrowExceptionWhenNotValid() {
-    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.VIEWER, 1L);
 
     TestItem testItem = new TestItem();
     testItem.setItemId(1L);
@@ -157,8 +160,8 @@ class SuggestItemServiceTest {
 
     final ReportPortalException exception = Assertions.assertThrows(ReportPortalException.class,
         () -> suggestItemService.suggestItems(1L,
-            ReportPortalUser.ProjectDetails.builder().withProjectId(1L)
-                .withProjectRole(ProjectRole.MEMBER.name()).build(),
+            MembershipDetails.builder().withProjectId(1L)
+                .withProjectRole(ProjectRole.VIEWER).build(),
             rpUser
         )
     );
@@ -170,14 +173,14 @@ class SuggestItemServiceTest {
 
   @Test
   void showThrowExceptionWhenNotFound() {
-    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.VIEWER, 1L);
 
     when(testItemRepository.findById(1L)).thenReturn(Optional.empty());
 
     final ReportPortalException exception = Assertions.assertThrows(ReportPortalException.class,
         () -> suggestItemService.suggestItems(1L,
-            ReportPortalUser.ProjectDetails.builder().withProjectId(1L)
-                .withProjectRole(ProjectRole.MEMBER.name()).build(),
+            MembershipDetails.builder().withProjectId(1L)
+                .withProjectRole(ProjectRole.VIEWER).build(),
             rpUser
         )
     );
@@ -188,7 +191,7 @@ class SuggestItemServiceTest {
 
   @Test
   void suggestClusterItems() {
-    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.VIEWER, 1L);
     final Project project = new Project();
     project.setId(1L);
     project.setKey("default");
@@ -210,7 +213,7 @@ class SuggestItemServiceTest {
     when(getClusterHandler.getById(1L)).thenReturn(cluster);
     when(testItemRepository.findById(2L)).thenReturn(Optional.of(relevantItem));
     when(getLaunchHandler.get(cluster.getLaunchId())).thenReturn(launch);
-    when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(project);
+    when(getProjectHandler.get(any(MembershipDetails.class))).thenReturn(project);
     when(logService.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
         Collections.singletonList(relevantItem.getItemId()),
         ERROR_INT
@@ -219,9 +222,10 @@ class SuggestItemServiceTest {
     when(analyzerServiceClient.searchSuggests(any(SuggestRq.class))).thenReturn(
         Collections.singletonList(suggestInfo));
 
-    final List<SuggestedItem> suggestedItems = suggestItemService.suggestClusterItems(1L,
-        ReportPortalUser.ProjectDetails.builder().withProjectId(1L)
-            .withProjectRole(ProjectRole.MEMBER.name()).build(),
+    final List<SuggestedItem> suggestedItems =
+        suggestItemService.suggestClusterItems(1L, MembershipDetails.builder()
+                .withProjectId(1L)
+            .withProjectRole(ProjectRole.VIEWER).build(),
         rpUser
     );
 

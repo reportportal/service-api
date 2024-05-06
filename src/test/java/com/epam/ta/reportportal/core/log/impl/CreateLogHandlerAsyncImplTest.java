@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.log.impl;
 
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -72,7 +73,7 @@ class CreateLogHandlerAsyncImplTest {
   @Test
   void createLog() {
     SaveLogRQ request = new SaveLogRQ();
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR,
         1L);
 
     when(provider.get()).thenReturn(saveLogBinaryDataTask);
@@ -81,13 +82,13 @@ class CreateLogHandlerAsyncImplTest {
     when(saveLogBinaryDataTask.withProjectId(any())).thenReturn(saveLogBinaryDataTask);
 
     createLogHandlerAsync.createLog(request, multipartFile,
-        user.getProjectDetails().get(TEST_PROJECT_KEY));
+        rpUserToMembership(user));
 
     verify(provider).get();
     verify(saveLogBinaryDataTask).withRequest(request);
     verify(saveLogBinaryDataTask).withFile(multipartFile);
     verify(saveLogBinaryDataTask).withProjectId(
-        user.getProjectDetails().get(TEST_PROJECT_KEY).getProjectId());
+        rpUserToMembership(user).getProjectId());
   }
 
   @Test

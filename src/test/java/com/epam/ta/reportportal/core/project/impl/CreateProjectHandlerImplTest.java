@@ -61,7 +61,7 @@ class CreateProjectHandlerImplTest {
   @Test
   void createProjectWithWrongType() {
     ReportPortalUser rpUser =
-        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
 
     CreateProjectRQ createProjectRQ = new CreateProjectRQ();
     createProjectRQ.setProjectName(TEST_PROJECT_NAME);
@@ -84,7 +84,7 @@ class CreateProjectHandlerImplTest {
   @Test
   void createProjectByNotExistUser() {
     ReportPortalUser rpUser =
-        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
 
     CreateProjectRQ createProjectRQ = new CreateProjectRQ();
     createProjectRQ.setProjectName(TEST_PROJECT_NAME);

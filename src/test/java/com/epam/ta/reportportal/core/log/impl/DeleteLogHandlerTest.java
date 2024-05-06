@@ -83,7 +83,7 @@ class DeleteLogHandlerTest {
   @Test
   void deleteLogOnNotExistProject() {
     long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.EDITOR,
         projectId);
 
     when(projectRepository.existsById(projectId)).thenReturn(false);
@@ -99,7 +99,7 @@ class DeleteLogHandlerTest {
   void deleteNotExistLog() {
     long projectId = 1L;
     long logId = 2L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.EDITOR,
         projectId);
 
     when(projectRepository.existsById(projectId)).thenReturn(true);
@@ -115,7 +115,7 @@ class DeleteLogHandlerTest {
   void deleteLogByNotOwner() {
     long projectId = 1L;
     long logId = 2L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER, projectId);
 
     Log log = new Log();
     TestItem testItem = new TestItem();
@@ -146,7 +146,7 @@ class DeleteLogHandlerTest {
   void cleanUpLogDataTest() {
     long projectId = 1L;
     long logId = 2L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER, projectId);
 
     Log log = new Log();
     TestItem testItem = new TestItem();
@@ -183,7 +183,7 @@ class DeleteLogHandlerTest {
   void cleanUpLogDataNegative() {
     long projectId = 1L;
     long logId = 2L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER, projectId);
 
     Log log = new Log();
     TestItem testItem = new TestItem();

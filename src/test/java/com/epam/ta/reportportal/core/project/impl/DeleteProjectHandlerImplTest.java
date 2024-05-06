@@ -99,7 +99,7 @@ class DeleteProjectHandlerImplTest {
 	void deleteNotExistProject() {
 		Long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
 
 		when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
@@ -201,7 +201,7 @@ class DeleteProjectHandlerImplTest {
 		Project project = getProjectWithAnalyzerAttributes(projectId, false);
 		project.setName(projectName);
     ReportPortalUser user =
-        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
 
 		when(issueTypeRepository.getDefaultIssueTypes()).thenReturn(new ArrayList<>());
 		when(projectRepository.findById(1L)).thenReturn(Optional.of(project));

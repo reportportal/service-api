@@ -57,7 +57,7 @@ class IndexingAutoAnalysisStarterTest {
   void shouldIndex() {
     final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
 
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER, 1L);
     final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(launch.getId(),
         new AnalyzerConfig(),
         Set.of(AnalyzeItemsMode.TO_INVESTIGATE),

@@ -79,7 +79,7 @@ public class BugTrackingSystemController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return getTicketHandler.getSubmitTicketFields(issuetype,
         integrationId,
-        projectExtractor.extractMemberShipDetails(user, EntityUtils.normalizeId(projectKey))
+        projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
     );
   }
 
@@ -92,7 +92,7 @@ public class BugTrackingSystemController {
       @PathVariable Long integrationId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getTicketHandler.getAllowableIssueTypes(integrationId,
-        projectExtractor.extractMemberShipDetails(user, EntityUtils.normalizeId(projectKey)));
+        projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey)));
   }
 
   @Transactional(readOnly = true)
@@ -125,7 +125,7 @@ public class BugTrackingSystemController {
       @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
     return createTicketHandler.createIssue(ticketRQ,
         integrationId,
-        projectExtractor.extractMemberShipDetails(user, EntityUtils.normalizeId(projectKey)),
+        projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey)),
         user
     );
   }
@@ -139,7 +139,7 @@ public class BugTrackingSystemController {
       @RequestParam(value = "btsProject") String btsProject,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getTicketHandler.getTicket(ticketId, btsUrl, btsProject,
-        projectExtractor.extractMemberShipDetails(user, EntityUtils.normalizeId(projectKey)));
+        projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey)));
   }
 
 }

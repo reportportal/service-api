@@ -16,13 +16,8 @@
 
 package com.epam.ta.reportportal.util;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.entity.user.UserRole.ADMINISTRATOR;
-
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +43,7 @@ public class ProjectExtractor {
    * @param projectKey Project name
    * @return Project Details
    */
-  public MembershipDetails extractMemberShipDetails(ReportPortalUser user,
+  public MembershipDetails extractMembershipDetails(ReportPortalUser user,
       String projectKey) {
 
     //TODO fix

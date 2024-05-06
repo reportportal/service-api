@@ -77,7 +77,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
   public EntryCreatedRS createFilter(UpdateUserFilterRQ createFilterRQ, String projectName,
       ReportPortalUser user) {
     MembershipDetails membershipDetails =
-        projectExtractor.extractMemberShipDetails(user, projectName);
+        projectExtractor.extractMembershipDetails(user, projectName);
 
     validateFilterRq(createFilterRQ);
 

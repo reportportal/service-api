@@ -97,7 +97,7 @@ public class LogAsyncController {
       @AuthenticationPrincipal ReportPortalUser user) {
     validateSaveRQ(validator, createLogRQ);
     return createLogHandler.createLog(createLogRQ, null,
-        projectExtractor.extractMemberShipDetails(user, projectKey));
+        projectExtractor.extractMembershipDetails(user, projectKey));
   }
 
   @HttpLogging
@@ -110,7 +110,7 @@ public class LogAsyncController {
       @AuthenticationPrincipal ReportPortalUser user) {
     validateSaveRQ(validator, createLogRQ);
     return createLogHandler.createLog(createLogRQ, null,
-        projectExtractor.extractMemberShipDetails(user, projectKey));
+        projectExtractor.extractMembershipDetails(user, projectKey));
   }
 
   @HttpLogging
@@ -158,7 +158,7 @@ public class LogAsyncController {
            */
           //noinspection ConstantConditions
           responseItem = createLogHandler.createLog(createLogRq, data,
-              projectExtractor.extractMemberShipDetails(user, projectKey));
+              projectExtractor.extractMembershipDetails(user, projectKey));
         }
         response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
       } catch (Exception e) {

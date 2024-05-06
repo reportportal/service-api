@@ -265,7 +265,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
       );
 
       MembershipDetails membershipDetails =
-          projectExtractor.extractMemberShipDetails(user, projectKey);
+          projectExtractor.extractMembershipDetails(user, projectKey);
       Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
           () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectKey)));
 
@@ -335,7 +335,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
       });
     } else {
       MembershipDetails membershipDetails =
-          projectExtractor.extractMemberShipDetails(user, project.getKey());
+          projectExtractor.extractMembershipDetails(user, project.getKey());
 
       usernames.forEach(username -> {
         User userForUnassign = userRepository.findByLogin(username)
@@ -454,7 +454,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
         if (UserRole.ADMINISTRATOR != user.getUserRole()) {
           ProjectRole principalRole =
-              projectExtractor.extractMemberShipDetails(user, project.getName()).getProjectRole();
+              projectExtractor.extractMembershipDetails(user, project.getName()).getProjectRole();
           ProjectRole updatingUserRole =
               ofNullable(ProjectUtils.findUserConfigByLogin(project, key)).orElseThrow(
                   () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, key)).getProjectRole();

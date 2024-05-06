@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.dashboard.impl;
 
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -52,12 +53,12 @@ class CreateDashboardHandlerImplTest {
     CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
     createDashboardRQ.setName("exist");
 
-    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.VIEWER, 1L);
 
     when(dashboardRepository.existsByNameAndOwnerAndProjectId("exist", "owner", 1L)).thenReturn(
         true);
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.createDashboard(extractProjectDetails(rpUser, TEST_PROJECT_KEY),
+        () -> handler.createDashboard(rpUserToMembership(rpUser),
             createDashboardRQ, rpUser
         )
     );

@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
@@ -52,11 +53,11 @@ class FinishLaunchHandlerAsyncImplTest {
   @Test
   void finishLaunch() {
     FinishExecutionRQ request = new FinishExecutionRQ();
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR,
         1L);
 
     finishLaunchHandlerAsync.finishLaunch("0", request,
-        user.getProjectDetails().get(TEST_PROJECT_KEY), user, "http://base");
+        rpUserToMembership(user), user, "http://base");
     verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
     verify(reportingQueueService).getReportingQueueKey(any());
   }

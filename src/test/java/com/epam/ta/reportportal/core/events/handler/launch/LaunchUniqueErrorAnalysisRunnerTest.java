@@ -54,7 +54,7 @@ class LaunchUniqueErrorAnalysisRunnerTest {
   void shouldStartWhenEnabled() {
 
     final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER,
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER,
         launch.getProjectId());
     final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl");
 
@@ -79,7 +79,7 @@ class LaunchUniqueErrorAnalysisRunnerTest {
   void shouldNotStartWhenDisabled() {
 
     final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER,
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER,
         launch.getProjectId());
     final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl");
 

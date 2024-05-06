@@ -30,6 +30,8 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -68,16 +70,24 @@ class LaunchAutoAnalysisStrategyTest {
     when(project.getId()).thenReturn(1L);
 
     when(project.getProjectAttributes()).thenReturn(Sets.newHashSet());
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.EDITOR, 1L);
 
-    MembershipDetails membershipDetails =
-        new ReportPortalUser.ProjectDetails(1L, "name", ProjectRole.PROJECT_MANAGER, "project-key");
+    MembershipDetails membershipDetails = MembershipDetails.builder()
+        .withOrgId(1L)
+        .withOrgName("org Name")
+        .withOrgRole(OrganizationRole.MANAGER)
+        .withProjectId(1L)
+        .withProjectRole(ProjectRole.EDITOR)
+        .withProjectKey("project-key")
+        .withProjectName("name")
+        .build();
+
     AnalyzeLaunchRQ analyzeLaunchRQ = new AnalyzeLaunchRQ();
     analyzeLaunchRQ.setLaunchId(1L);
     analyzeLaunchRQ.setAnalyzerHistoryMode("ALL");
     analyzeLaunchRQ.setAnalyzeItemsModes(Lists.newArrayList("TO_INVESTIGATE"));
     analyzeLaunchRQ.setAnalyzerTypeName("patternAnalyzer");
-    launchAutoAnalysisStrategy.analyze(analyzeLaunchRQ, projectDetails, user);
+    launchAutoAnalysisStrategy.analyze(analyzeLaunchRQ, membershipDetails, user);
 
     final ArgumentCaptor<StartLaunchAutoAnalysisConfig> configArgumentCaptor =
         ArgumentCaptor.forClass(StartLaunchAutoAnalysisConfig.class);

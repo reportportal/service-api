@@ -59,7 +59,7 @@ class CreateProjectSettingsHandlerImplTest {
   void createSubtypeOnNotExistProject() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+        getRpUser("user", UserRole.USER, ProjectRole.EDITOR, projectId);
 
     when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.empty());
 
@@ -77,7 +77,7 @@ class CreateProjectSettingsHandlerImplTest {
   void createSubtypeWithWrongGroup() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+        getRpUser("user", UserRole.USER, ProjectRole.EDITOR, projectId);
 
     when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.of(new Project()));
 
@@ -100,7 +100,7 @@ class CreateProjectSettingsHandlerImplTest {
 
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+        getRpUser("user", UserRole.USER, ProjectRole.EDITOR, projectId);
 
     when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.of(project));
 

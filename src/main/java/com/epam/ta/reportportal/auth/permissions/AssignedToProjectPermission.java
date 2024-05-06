@@ -86,8 +86,8 @@ class AssignedToProjectPermission implements Permission {
 
     var prjDetails = new ProjectDetails(membershipDetails.getProjectId(),
         membershipDetails.getProjectName(),
-        membershipDetails.getProjectRole(),
         membershipDetails.getProjectKey(),
+        membershipDetails.getProjectRole(),
         membershipDetails.getOrgId());
     prjDetailsMap.put(membershipDetails.getProjectKey(), prjDetails);
 

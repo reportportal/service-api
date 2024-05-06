@@ -80,7 +80,7 @@ public class TestItemAsyncController {
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
     return startTestItemHandler.startRootItem(user,
-        projectExtractor.extractMemberShipDetails(user, projectKey), startTestItemRQ);
+        projectExtractor.extractMembershipDetails(user, projectKey), startTestItemRQ);
   }
 
   @HttpLogging
@@ -92,7 +92,7 @@ public class TestItemAsyncController {
       @AuthenticationPrincipal ReportPortalUser user,
       @PathVariable String parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
     return startTestItemHandler.startChildItem(user,
-        projectExtractor.extractMemberShipDetails(user, projectKey), startTestItemRQ, parentItem);
+        projectExtractor.extractMembershipDetails(user, projectKey), startTestItemRQ, parentItem);
   }
 
   @HttpLogging
@@ -104,7 +104,7 @@ public class TestItemAsyncController {
       @AuthenticationPrincipal ReportPortalUser user,
       @PathVariable String testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
     return finishTestItemHandler.finishTestItem(user,
-        projectExtractor.extractMemberShipDetails(user, projectKey), testItemId, finishExecutionRQ);
+        projectExtractor.extractMembershipDetails(user, projectKey), testItemId, finishExecutionRQ);
   }
 
 }

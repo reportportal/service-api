@@ -3,6 +3,7 @@ package com.epam.ta.reportportal.core.hierarchy.impl;
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.item.impl.status.ToSkippedStatusChangingStrategy.SKIPPED_ISSUE_KEY;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -88,7 +89,7 @@ class FinishLaunchHierarchyHandlerTest {
     Instant endTime  = LocalDate.of(2020, Month.OCTOBER, 30)
         .atStartOfDay(ZoneId.systemDefault())
         .toInstant();
-    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
 
     when(testItemRepository.findAllById(idsWithChildren)).thenReturn(
         getTestItemsWithChildren(launch));
@@ -102,7 +103,7 @@ class FinishLaunchHierarchyHandlerTest {
         StatusEnum.PASSED,
         endTime,
         rpUser,
-        rpUser.getProjectDetails().get(TEST_PROJECT_KEY)
+        rpUserToMembership(rpUser)
     );
 
     verify(changeStatusHandler, times(2)).changeParentStatus(any(TestItem.class), any(), any());
@@ -138,7 +139,7 @@ class FinishLaunchHierarchyHandlerTest {
 
     Instant endTime = LocalDate.of(2020, Month.OCTOBER, 30)
         .atStartOfDay(ZoneId.systemDefault()).toInstant();
-    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
 
     when(testItemRepository.findAllById(idsWithChildren)).thenReturn(
         getTestItemsWithChildren(launch));
@@ -149,7 +150,7 @@ class FinishLaunchHierarchyHandlerTest {
         StatusEnum.SKIPPED,
         endTime,
         rpUser,
-        rpUser.getProjectDetails().get(TEST_PROJECT_KEY)
+        rpUserToMembership(rpUser)
     );
 
     verify(changeStatusHandler, times(2)).changeParentStatus(any(TestItem.class), any(), any());

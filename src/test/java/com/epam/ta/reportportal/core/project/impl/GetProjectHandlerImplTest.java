@@ -25,15 +25,17 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.user.UserResource;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -100,7 +102,7 @@ class GetProjectHandlerImplTest {
     String projectKey = "not_exist";
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+        getRpUser("user", UserRole.USER, ProjectRole.EDITOR, projectId);
 
     when(projectRepository.findByKey(projectKey)).thenReturn(Optional.empty());
 
@@ -117,7 +119,7 @@ class GetProjectHandlerImplTest {
   void getUserNamesByIncorrectTerm() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+        getRpUser("user", UserRole.USER, ProjectRole.EDITOR, projectId);
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.getUserNames(extractProjectDetails(user, TEST_PROJECT_KEY), "")
@@ -132,10 +134,20 @@ class GetProjectHandlerImplTest {
   @Test
   void getUserNamesNegative() {
     ReportPortalException exception = assertThrows(
-        ReportPortalException.class, () -> handler.getUserNames("", UserRole.ADMINISTRATOR,
-            new ReportPortalUser.ProjectDetails(1L, "superadmin_personal", ProjectRole.PROJECT_MANAGER, "project-key"
-            ), PageRequest.of(0, 10)
-        ));
+        ReportPortalException.class, () ->
+            handler.getUserNames("",
+                new MembershipDetails.MembershipDetailsBuilder()
+                    .withOrgId(1L)
+                    .withOrgRole(OrganizationRole.MANAGER)
+                    .withOrgName("org-name")
+                    .withProjectId(1L)
+                    .withProjectName("superadmin_personal")
+                    .withProjectKey("superadmin_personal")
+                    .withProjectRole(ProjectRole.EDITOR)
+                    .build(),
+                UserRole.ADMINISTRATOR,
+                PageRequest.of(0, 10)
+            ));
     assertEquals(
         "Incorrect filtering parameters. Length of the filtering string '' is less than 1 symbol",
         exception.getMessage()

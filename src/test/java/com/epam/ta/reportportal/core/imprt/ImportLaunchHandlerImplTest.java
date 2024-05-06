@@ -16,6 +16,7 @@ import com.epam.ta.reportportal.core.imprt.impl.ImportType;
 import com.epam.ta.reportportal.core.imprt.impl.XmlImportStrategy;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.LaunchImportCompletionRS;
 import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
 import com.epam.ta.reportportal.util.sample.LaunchSampleUtil;
@@ -79,7 +80,7 @@ public class ImportLaunchHandlerImplTest {
 
   @BeforeEach
   public void setUp() {
-    projectDetails = mock(ReportPortalUser.ProjectDetails.class);
+    membershipDetails = mock(MembershipDetails.class);
     lenient().when(membershipDetails.getProjectId()).thenReturn(ID);
     reportPortalUser = mock(ReportPortalUser.class);
     lenient().when(reportPortalUser.getUserId()).thenReturn(ID);
@@ -90,7 +91,7 @@ public class ImportLaunchHandlerImplTest {
   @Test
   public void whenImportLaunch_AndFileNameIsNotValid_ThenThrowException() {
     ReportPortalException reportPortalException = assertThrows(ReportPortalException.class,
-        () -> importLaunchHandlerImpl.importLaunch(projectDetails, reportPortalUser, FORMAT,
+        () -> importLaunchHandlerImpl.importLaunch(membershipDetails, reportPortalUser, FORMAT,
             multipartFile, BASE_URL, new LaunchImportRQ()
         )
     );
@@ -104,7 +105,7 @@ public class ImportLaunchHandlerImplTest {
   public void whenImportLaunch_AndFileExtensionIsNotValid_ThenThrowException() {
     when(multipartFile.getOriginalFilename()).thenReturn(INCORRECT_FILE_NAME);
     ReportPortalException reportPortalException = assertThrows(ReportPortalException.class,
-        () -> importLaunchHandlerImpl.importLaunch(projectDetails, reportPortalUser, FORMAT,
+        () -> importLaunchHandlerImpl.importLaunch(membershipDetails, reportPortalUser, FORMAT,
             multipartFile, BASE_URL, new LaunchImportRQ()
         )
     );
@@ -121,7 +122,7 @@ public class ImportLaunchHandlerImplTest {
     when(multipartFile.getOriginalFilename()).thenReturn(FILE_NAME);
     when(multipartFile.getSize()).thenReturn(MAX_FILE_SIZE + 1L);
     ReportPortalException reportPortalException = assertThrows(ReportPortalException.class,
-        () -> importLaunchHandlerImpl.importLaunch(projectDetails, reportPortalUser, FORMAT,
+        () -> importLaunchHandlerImpl.importLaunch(membershipDetails, reportPortalUser, FORMAT,
             multipartFile, BASE_URL, new LaunchImportRQ()
         )
     );
@@ -144,7 +145,7 @@ public class ImportLaunchHandlerImplTest {
           .thenReturn(tempFile);
       XmlImportStrategy xmlImportStrategy = mock(XmlImportStrategy.class);
       LaunchImportRQ rq = new LaunchImportRQ();
-      when(xmlImportStrategy.importLaunch(projectDetails, reportPortalUser, tempFile, BASE_URL,
+      when(xmlImportStrategy.importLaunch(membershipDetails, reportPortalUser, tempFile, BASE_URL,
           rq
       )).thenReturn(LAUNCH_ID);
       when(importStrategyFactory.getImportStrategy(ImportType.XUNIT, FILE_NAME)).thenReturn(
@@ -153,7 +154,7 @@ public class ImportLaunchHandlerImplTest {
       var sampleLaunch = LaunchSampleUtil.getSampleLaunch(LAUNCH_ID);
       when(launchRepository.findByUuid(LAUNCH_ID)).thenReturn(Optional.of(sampleLaunch));
 
-      var response = (LaunchImportCompletionRS) importLaunchHandlerImpl.importLaunch(projectDetails,
+      var response = (LaunchImportCompletionRS) importLaunchHandlerImpl.importLaunch(membershipDetails,
           reportPortalUser, FORMAT, multipartFile, BASE_URL, rq
       );
 
@@ -162,7 +163,7 @@ public class ImportLaunchHandlerImplTest {
       assertEquals(sampleLaunch.getNumber(), response.getData().getNumber());
 
       verify(importStrategyFactory).getImportStrategy(ImportType.XUNIT, FILE_NAME);
-      verify(xmlImportStrategy).importLaunch(projectDetails, reportPortalUser, tempFile, BASE_URL,
+      verify(xmlImportStrategy).importLaunch(membershipDetails, reportPortalUser, tempFile, BASE_URL,
           rq
       );
       verify(messageBus).publishActivity(importFinishedEventCaptor.capture());

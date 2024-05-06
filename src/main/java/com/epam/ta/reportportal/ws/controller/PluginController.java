@@ -141,7 +141,7 @@ public class PluginController {
       @RequestBody Map<String, Object> executionParams,
       @AuthenticationPrincipal ReportPortalUser user) {
     return executeIntegrationHandler.executeCommand(
-        projectExtractor.extractMemberShipDetails(user, projectKey), pluginName, command,
+        projectExtractor.extractMembershipDetails(user, projectKey), pluginName, command,
         executionParams
     );
   }
@@ -162,7 +162,7 @@ public class PluginController {
         () -> executionParams.put(ENTITY_PARAM, new LaunchImportRQ())
     );
     return executeIntegrationHandler.executeCommand(
-        projectExtractor.extractProjectDetails(user, projectName), pluginName, "import",
+        projectExtractor.extractMembershipDetails(user, projectName), pluginName, "import",
         executionParams);
   }
 }

@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.builders.LogFullBuilder;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
@@ -124,11 +125,11 @@ class AsyncReportingListenerTest {
     messageProperties.setHeader(MessageHeaders.PROJECT_NAME, PROJECT_NAME);
 
     userDetails = mock(ReportPortalUser.class);
-    projectDetails = mock(ReportPortalUser.ProjectDetails.class);
+    membershipDetails= mock(MembershipDetails.class);
 
     lenient().when(userDetailsService.loadUserByUsername(USERNAME)).thenReturn(userDetails);
-    lenient().when(projectExtractor.extractMemberShipDetails(userDetails, PROJECT_NAME))
-        .thenReturn(projectDetails);
+    lenient().when(projectExtractor.extractMembershipDetails(userDetails, PROJECT_NAME))
+        .thenReturn(membershipDetails);
 
     byte[] messageBody = "message body".getBytes();
     message = new Message(messageBody, messageProperties);
@@ -144,7 +145,7 @@ class AsyncReportingListenerTest {
     asyncReportingListener.onMessage(message);
 
     // Verify that the correct handler method is called
-    verify(startLaunchHandler).startLaunch(userDetails, projectDetails, startLaunchRQ);
+    verify(startLaunchHandler).startLaunch(userDetails, membershipDetails, startLaunchRQ);
   }
 
   @Test
@@ -160,7 +161,7 @@ class AsyncReportingListenerTest {
 
     // Verify that the correct handler method is called
     verify(finishLaunchHandler).finishLaunch(
-        LAUNCH_ID, finishExecutionRQ, projectDetails, userDetails, BASE_URL);
+        LAUNCH_ID, finishExecutionRQ, membershipDetails, userDetails, BASE_URL);
   }
 
   @Test
@@ -175,9 +176,9 @@ class AsyncReportingListenerTest {
 
     // Verify that the correct handler method is called
     verify(startTestItemHandler).startChildItem(
-        userDetails, projectDetails, startTestItemRQ, ITEM_ID);
+        userDetails, membershipDetails, startTestItemRQ, ITEM_ID);
     verify(startTestItemHandler, never()).startRootItem(
-        userDetails, projectDetails, startTestItemRQ);
+        userDetails, membershipDetails, startTestItemRQ);
   }
 
   @Test
@@ -191,8 +192,8 @@ class AsyncReportingListenerTest {
 
     // Verify that the correct handler method is called
     verify(startTestItemHandler, never()).startChildItem(
-        userDetails, projectDetails, startTestItemRQ, ITEM_ID);
-    verify(startTestItemHandler).startRootItem(userDetails, projectDetails, startTestItemRQ);
+        userDetails, membershipDetails, startTestItemRQ, ITEM_ID);
+    verify(startTestItemHandler).startRootItem(userDetails, membershipDetails, startTestItemRQ);
   }
 
   @Test
@@ -207,7 +208,7 @@ class AsyncReportingListenerTest {
     asyncReportingListener.onMessage(message);
 
     // Verify that the correct handler method is called
-    verify(finishTestItemHandler).finishTestItem(userDetails, projectDetails, ITEM_ID,
+    verify(finishTestItemHandler).finishTestItem(userDetails, membershipDetails, ITEM_ID,
         finishTestItemRQ
     );
   }

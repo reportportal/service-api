@@ -263,7 +263,7 @@ public class IntegrationController {
       @RequestBody Map<String, Object> executionParams,
       @AuthenticationPrincipal ReportPortalUser user) {
     return executeIntegrationHandler.executeCommand(
-        projectExtractor.extractMemberShipDetails(user, projectKey), integrationId, command,
+        projectExtractor.extractMembershipDetails(user, projectKey), integrationId, command,
         executionParams
     );
   }

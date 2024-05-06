@@ -224,7 +224,7 @@ public class AsyncReportingListener implements MessageListener {
   }
 
 	private MembershipDetails extractProjectDetails(ReportPortalUser user, String projectName) {
-    return projectExtractor.extractMemberShipDetails(user, projectName);
+    return projectExtractor.extractMembershipDetails(user, projectName);
 	}
 
   public void onLogCreate(DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload,

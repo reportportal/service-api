@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -54,13 +55,13 @@ class LaunchAccessValidatorImplTest {
   @Test
   void validateNotExistingLaunch() {
 
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
     Launch launch = new Launch();
     launch.setId(1L);
     when(launchRepository.findById(1L)).thenReturn(Optional.empty());
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> launchAccessValidator.validate(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY),
+        () -> launchAccessValidator.validate(1L, rpUserToMembership(rpUser),
             rpUser)
     );
     assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
@@ -68,7 +69,7 @@ class LaunchAccessValidatorImplTest {
 
   @Test
   void validateLaunchUnderAnotherProject() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
 
     TestItem item = new TestItem();
     Launch launch = new Launch();
@@ -78,7 +79,7 @@ class LaunchAccessValidatorImplTest {
     when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
 
     final Executable executable = () -> launchAccessValidator.validate(1L,
-        extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser);
+        rpUserToMembership(rpUser), rpUser);
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
     assertEquals(
@@ -89,7 +90,7 @@ class LaunchAccessValidatorImplTest {
 
   @Test
   void validateLaunchWithOperatorRole() {
-    ReportPortalUser operator = getRpUser("operator", UserRole.USER, ProjectRole.OPERATOR, 1L);
+    ReportPortalUser operator = getRpUser("operator", UserRole.USER, ProjectRole.VIEWER, 1L);
 
     Launch launch = new Launch();
     launch.setId(1L);

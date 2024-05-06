@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -57,10 +58,10 @@ class FinishTestItemHandlerAsyncImplTest {
   void finishTestItem() {
     FinishTestItemRQ request = new FinishTestItemRQ();
     request.setLaunchUuid(UUID.randomUUID().toString());
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR,
         1L);
 
-    finishTestItemHandlerAsync.finishTestItem(user, user.getProjectDetails().get(TEST_PROJECT_KEY),
+    finishTestItemHandlerAsync.finishTestItem(user, rpUserToMembership(user),
         "123", request);
     verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
     verify(reportingQueueService).getReportingQueueKey(any());
@@ -69,13 +70,12 @@ class FinishTestItemHandlerAsyncImplTest {
   @Test
   void finishTestItemWithoutLaunchUuid() {
     FinishTestItemRQ request = new FinishTestItemRQ();
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR,
         1L);
 
     ReportPortalException exception = assertThrows(
         ReportPortalException.class,
-        () -> finishTestItemHandlerAsync.finishTestItem(user,
-            user.getProjectDetails().get(TEST_PROJECT_KEY), "123", request)
+        () -> finishTestItemHandlerAsync.finishTestItem(user, rpUserToMembership(user), "123", request)
     );
     assertEquals(
         "Error in handled Request. Please, check specified parameters: 'Launch UUID should not be null or empty.'",

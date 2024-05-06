@@ -61,7 +61,7 @@ class GetUserHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(
         ReportPortalException.class,
-        () -> handler.getUser("not_exist", getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L))
+        () -> handler.getUser("not_exist", getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L))
     );
     assertEquals("User 'not_exist' not found.", exception.getMessage());
   }
@@ -72,7 +72,7 @@ class GetUserHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(
         ReportPortalException.class,
-        () -> handler.getUser(getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L))
+        () -> handler.getUser(getRpUser("not_exist", UserRole.USER, ProjectRole.VIEWER, 1L))
     );
     assertEquals("User 'not_exist' not found.", exception.getMessage());
   }

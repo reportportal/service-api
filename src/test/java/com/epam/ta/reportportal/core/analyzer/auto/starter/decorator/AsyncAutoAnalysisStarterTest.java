@@ -47,7 +47,7 @@ class AsyncAutoAnalysisStarterTest {
 
   @Test
   void shouldExecute() {
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER, 1L);
     final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(1L,
         new AnalyzerConfig(),
         Set.of(AnalyzeItemsMode.TO_INVESTIGATE),

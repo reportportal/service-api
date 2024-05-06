@@ -71,7 +71,7 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
             formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
         ));
     executionParams.put(PROJECT_ID, membershipDetails.getProjectId());
-    executionParams.put(PROJECT_NAME, projectDetails.getProjectName());
+    executionParams.put(PROJECT_NAME, membershipDetails.getProjectKey());
     return ofNullable(pluginInstance.getCommonCommand(command)).map(
             it -> it.executeCommand(executionParams))
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,

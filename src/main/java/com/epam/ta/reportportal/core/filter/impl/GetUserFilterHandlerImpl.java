@@ -72,7 +72,7 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
   public Iterable<UserFilterResource> getUserFilters(String projectName, Pageable pageable,
       Filter filter, ReportPortalUser user) {
     MembershipDetails membershipDetails =
-        projectExtractor.extractMemberShipDetails(user, projectName);
+        projectExtractor.extractMembershipDetails(user, projectName);
     Page<UserFilter> userFilters =
         filterRepository.findByFilter(ProjectFilter.of(filter, membershipDetails.getProjectId()),
             pageable

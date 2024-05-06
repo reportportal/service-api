@@ -53,7 +53,7 @@ class UpdateProjectSettingsHandlerImplTest {
 
   @Test
   void emptyRequest() {
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.EDITOR, 1L);
 
     UpdateIssueSubTypeRQ updateIssueSubTypeRQ = new UpdateIssueSubTypeRQ();
     updateIssueSubTypeRQ.setIds(Collections.emptyList());
@@ -70,7 +70,7 @@ class UpdateProjectSettingsHandlerImplTest {
   void updateSubtypeOnNotExistProject() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+        getRpUser("user", UserRole.USER, ProjectRole.EDITOR, projectId);
 
     UpdateIssueSubTypeRQ updateIssueSubTypeRQ = new UpdateIssueSubTypeRQ();
     updateIssueSubTypeRQ.setIds(Collections.singletonList(new UpdateOneIssueSubTypeRQ()));
@@ -89,7 +89,7 @@ class UpdateProjectSettingsHandlerImplTest {
   void updateSubtypeWithIncorrectGroup() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+        getRpUser("user", UserRole.USER, ProjectRole.EDITOR, projectId);
 
     UpdateIssueSubTypeRQ updateIssueSubTypeRQ = new UpdateIssueSubTypeRQ();
     UpdateOneIssueSubTypeRQ oneIssueSubTypeRQ = new UpdateOneIssueSubTypeRQ();
@@ -108,7 +108,7 @@ class UpdateProjectSettingsHandlerImplTest {
   void updateNotExistSubtype() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+        getRpUser("user", UserRole.USER, ProjectRole.EDITOR, projectId);
 
     UpdateIssueSubTypeRQ updateIssueSubTypeRQ = new UpdateIssueSubTypeRQ();
     UpdateOneIssueSubTypeRQ oneIssueSubTypeRQ = new UpdateOneIssueSubTypeRQ();

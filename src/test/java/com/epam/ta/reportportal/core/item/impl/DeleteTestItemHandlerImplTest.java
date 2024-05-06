@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -89,12 +90,12 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void testItemNotFound() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
 
     when(testItemRepository.findById(1L)).thenReturn(Optional.empty());
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser)
+        () -> handler.deleteTestItem(1L, rpUserToMembership(rpUser), rpUser)
     );
     assertEquals("Test Item '1' not found. Did you use correct Test Item ID?",
         exception.getMessage());
@@ -102,7 +103,7 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteInProgressItem() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
 
     Launch launch = new Launch();
     launch.setStatus(StatusEnum.PASSED);
@@ -117,7 +118,7 @@ class DeleteTestItemHandlerImplTest {
     )));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser)
+        () -> handler.deleteTestItem(1L, rpUserToMembership(rpUser), rpUser)
     );
     assertEquals(
         "Unable to perform operation for non-finished test item. Unable to delete test item ['1'] in progress state",
@@ -127,7 +128,7 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteTestItemWithInProgressLaunch() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
 
     Launch launch = new Launch();
     launch.setStatus(StatusEnum.IN_PROGRESS);
@@ -139,7 +140,7 @@ class DeleteTestItemHandlerImplTest {
         Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.IN_PROGRESS, 1L, "test")));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser)
+        () -> handler.deleteTestItem(1L, rpUserToMembership(rpUser), rpUser)
     );
     assertEquals(
         "Unable to perform operation for non-finished launch. Unable to delete test item ['1'] under launch ['null'] with 'In progress' state",
@@ -149,7 +150,7 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteTestItemFromAnotherProject() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
 
     Launch launch = new Launch();
     launch.setStatus(StatusEnum.PASSED);
@@ -161,7 +162,7 @@ class DeleteTestItemHandlerImplTest {
         Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.FAILED, 2L, "test")));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser)
+        () -> handler.deleteTestItem(1L, rpUserToMembership(rpUser), rpUser)
     );
     assertEquals("Forbidden operation. Deleting testItem '1' is not under specified project '1'",
         exception.getMessage());
@@ -169,7 +170,7 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteNotOwnTestItem() {
-    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.VIEWER, 1L);
     rpUser.setUserId(2L);
 
     Launch launch = new Launch();
@@ -182,7 +183,7 @@ class DeleteTestItemHandlerImplTest {
     when(launchRepository.findById(any(Long.class))).thenReturn(Optional.of(launch));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser)
+        () -> handler.deleteTestItem(1L, rpUserToMembership(rpUser), rpUser)
     );
     assertEquals("You do not have enough permissions. You are not a launch owner.",
         exception.getMessage());
@@ -190,7 +191,7 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteTestItemWithParent() {
-    ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, ProjectRole.MEMBER, 1L);
+    ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, ProjectRole.VIEWER, 1L);
 
     TestItem item = getTestItem(StatusEnum.PASSED, StatusEnum.PASSED, 1L, "owner");
     item.setItemId(123123L);
@@ -213,7 +214,7 @@ class DeleteTestItemHandlerImplTest {
     when(testItemRepository.hasChildren(parent.getItemId(), parent.getPath())).thenReturn(false);
     when(launchRepository.hasRetries(any())).thenReturn(false);
     when(attachmentRepository.moveForDeletionByItems(any(Collection.class))).thenReturn(1);
-    handler.deleteTestItem(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser);
+    handler.deleteTestItem(1L, rpUserToMembership(rpUser), rpUser);
 
     verify(itemContentRemover, times(1)).remove(anyLong());
     assertFalse(parent.isHasChildren());
@@ -221,7 +222,7 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteItemPositive() {
-    ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, ProjectRole.MEMBER, 1L);
+    ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, ProjectRole.VIEWER, 1L);
     TestItem item = getTestItem(StatusEnum.FAILED, StatusEnum.FAILED, 1L, "owner");
 
     Launch launch = new Launch();
@@ -233,7 +234,7 @@ class DeleteTestItemHandlerImplTest {
     when(launchRepository.findById(any(Long.class))).thenReturn(Optional.of(launch));
 
     OperationCompletionRS response = handler.deleteTestItem(1L,
-        extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser);
+        rpUserToMembership(rpUser), rpUser);
 
     verify(itemContentRemover, times(1)).remove(anyLong());
     assertEquals("Test Item with ID = '1' has been successfully deleted.",

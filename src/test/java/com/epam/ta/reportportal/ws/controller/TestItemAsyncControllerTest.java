@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -27,6 +28,7 @@ import static org.mockito.Mockito.when;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -60,21 +62,20 @@ class TestItemAsyncControllerTest {
 
   @Test
   void startRootItem() {
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR,
         1L);
 
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
 
     ArgumentCaptor<ReportPortalUser> userArgumentCaptor = ArgumentCaptor.forClass(
         ReportPortalUser.class);
-    ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(
-        ReportPortalUser.ProjectDetails.class);
-    ArgumentCaptor<StartTestItemRQ> requestArgumentCaptor = ArgumentCaptor.forClass(
-        StartTestItemRQ.class);
+    ArgumentCaptor<MembershipDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(
+        MembershipDetails.class);
+    ArgumentCaptor<StartTestItemRQ> requestArgumentCaptor = ArgumentCaptor
+        .forClass(StartTestItemRQ.class);
 
-    when(projectExtractor.extractMemberShipDetails(any(ReportPortalUser.class),
-        anyString())).thenReturn(user.getProjectDetails()
-        .get(TEST_PROJECT_KEY));
+    when(projectExtractor.extractMembershipDetails(any(ReportPortalUser.class), anyString()))
+        .thenReturn(rpUserToMembership(user));
 
     testItemAsyncController.startRootItem(TEST_PROJECT_KEY, user, startTestItemRQ);
     verify(startTestItemHandler).startRootItem(userArgumentCaptor.capture(),
@@ -82,30 +83,30 @@ class TestItemAsyncControllerTest {
         requestArgumentCaptor.capture()
     );
     assertEquals(user, userArgumentCaptor.getValue());
-    assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY),
+    assertEquals(rpUserToMembership(user),
         projectDetailsArgumentCaptor.getValue());
     assertEquals(startTestItemRQ, requestArgumentCaptor.getValue());
   }
 
   @Test
   void startChildItem() {
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR,
         1L);
+
 
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     String parentItem = "parent";
 
     ArgumentCaptor<ReportPortalUser> userArgumentCaptor = ArgumentCaptor.forClass(
         ReportPortalUser.class);
-    ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(
-        ReportPortalUser.ProjectDetails.class);
+    ArgumentCaptor<MembershipDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(
+        MembershipDetails.class);
     ArgumentCaptor<StartTestItemRQ> requestArgumentCaptor = ArgumentCaptor.forClass(
         StartTestItemRQ.class);
     ArgumentCaptor<String> parentArgumentCaptor = ArgumentCaptor.forClass(String.class);
 
-    when(projectExtractor.extractMemberShipDetails(any(ReportPortalUser.class),
-        anyString())).thenReturn(user.getProjectDetails()
-        .get(TEST_PROJECT_KEY));
+    when(projectExtractor.extractMembershipDetails(any(ReportPortalUser.class), anyString()))
+        .thenReturn(rpUserToMembership(user));
 
     testItemAsyncController.startChildItem(TEST_PROJECT_KEY, user, parentItem, startTestItemRQ);
     verify(startTestItemHandler).startChildItem(userArgumentCaptor.capture(),
@@ -114,14 +115,14 @@ class TestItemAsyncControllerTest {
         parentArgumentCaptor.capture()
     );
     assertEquals(user, userArgumentCaptor.getValue());
-    assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY),
+    assertEquals(rpUserToMembership(user),
         projectDetailsArgumentCaptor.getValue());
     assertEquals(startTestItemRQ, requestArgumentCaptor.getValue());
   }
 
   @Test
   void finishTestItem() {
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR,
         1L);
 
     FinishTestItemRQ finishTestItemRQ = new FinishTestItemRQ();
@@ -130,15 +131,14 @@ class TestItemAsyncControllerTest {
 
     ArgumentCaptor<ReportPortalUser> userArgumentCaptor = ArgumentCaptor.forClass(
         ReportPortalUser.class);
-    ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(
-        ReportPortalUser.ProjectDetails.class);
+    ArgumentCaptor<MembershipDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(
+        MembershipDetails.class);
     ArgumentCaptor<String> testItemCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<FinishTestItemRQ> requestArgumentCaptor = ArgumentCaptor.forClass(
         FinishTestItemRQ.class);
 
-    when(projectExtractor.extractMemberShipDetails(any(ReportPortalUser.class),
-        anyString())).thenReturn(user.getProjectDetails()
-        .get(TEST_PROJECT_KEY));
+    when(projectExtractor.extractMembershipDetails(any(ReportPortalUser.class),
+        anyString())).thenReturn(rpUserToMembership(user));
 
     testItemAsyncController.finishTestItem(TEST_PROJECT_KEY, user, testItemId, finishTestItemRQ);
     verify(finishTestItemHandler).finishTestItem(userArgumentCaptor.capture(),
@@ -147,7 +147,7 @@ class TestItemAsyncControllerTest {
         requestArgumentCaptor.capture()
     );
     assertEquals(user, userArgumentCaptor.getValue());
-    assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY),
+    assertEquals(rpUserToMembership(user),
         projectDetailsArgumentCaptor.getValue());
     assertEquals(finishTestItemRQ, requestArgumentCaptor.getValue());
   }

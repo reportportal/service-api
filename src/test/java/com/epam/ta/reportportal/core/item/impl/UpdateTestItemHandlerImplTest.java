@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.item.impl;
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.item.impl.UpdateTestItemHandlerImpl.INITIAL_STATUS_ATTRIBUTE_KEY;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -86,10 +87,10 @@ class UpdateTestItemHandlerImplTest {
   @Test
   void updateNotExistedTestItem() {
     final ReportPortalUser rpUser =
-        getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("test", UserRole.USER, ProjectRole.EDITOR, 1L);
     when(itemRepository.findById(1L)).thenReturn(Optional.empty());
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateTestItem(extractProjectDetails(rpUser, TEST_PROJECT_KEY), 1L,
+        () -> handler.updateTestItem(rpUserToMembership(rpUser), 1L,
             new UpdateTestItemRQ(), rpUser
         )
     );
@@ -101,7 +102,7 @@ class UpdateTestItemHandlerImplTest {
   @Test
   void updateTestItemUnderNotExistedLaunch() {
     final ReportPortalUser rpUser =
-        getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("test", UserRole.USER, ProjectRole.EDITOR, 1L);
 
     TestItem testItem = new TestItem();
     testItem.setLaunchId(2L);
@@ -110,7 +111,7 @@ class UpdateTestItemHandlerImplTest {
         new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateTestItem(extractProjectDetails(rpUser, TEST_PROJECT_KEY), 1L,
+        () -> handler.updateTestItem(rpUserToMembership(rpUser), 1L,
             new UpdateTestItemRQ(), rpUser
         )
     );
@@ -119,7 +120,7 @@ class UpdateTestItemHandlerImplTest {
 
   @Test
   void updateTestItemUnderNotOwnLaunch() {
-    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.VIEWER, 1L);
 
     TestItem item = new TestItem();
     Launch launch = new Launch();
@@ -134,7 +135,7 @@ class UpdateTestItemHandlerImplTest {
     when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateTestItem(extractProjectDetails(rpUser, TEST_PROJECT_KEY), 1L,
+        () -> handler.updateTestItem(rpUserToMembership(rpUser), 1L,
             new UpdateTestItemRQ(), rpUser
         )
     );
@@ -145,21 +146,18 @@ class UpdateTestItemHandlerImplTest {
 
   @Test
   void updateTestItemFromAnotherProject() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
     TestItem item = new TestItem();
     Launch launch = new Launch();
     launch.setId(1L);
-    User user = new User();
-    user.setId(1L);
-    user.setLogin("owner");
-    launch.setUserId(user.getId());
+    launch.setUserId(1L);
     launch.setProjectId(2L);
     item.setLaunchId(launch.getId());
     when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
     when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateTestItem(extractProjectDetails(rpUser, TEST_PROJECT_KEY), 1L,
+        () -> handler.updateTestItem(rpUserToMembership(rpUser), 1L,
             new UpdateTestItemRQ(), rpUser
         )
     );
@@ -170,12 +168,12 @@ class UpdateTestItemHandlerImplTest {
 
   @Test
   void defineIssuesOnNotExistProject() {
-    ReportPortalUser rpUser = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+    ReportPortalUser rpUser = getRpUser("user", UserRole.USER, ProjectRole.VIEWER, 1L);
 
     when(projectRepository.findById(1L)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.defineTestItemsIssues(extractProjectDetails(rpUser, TEST_PROJECT_KEY),
+        () -> handler.defineTestItemsIssues(rpUserToMembership(rpUser),
             new DefineIssueRQ(), rpUser
         )
     );
@@ -188,7 +186,7 @@ class UpdateTestItemHandlerImplTest {
   @Test
   void changeNotStepItemStatus() {
     ReportPortalUser user =
-        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
 
     UpdateTestItemRQ rq = new UpdateTestItemRQ();
     rq.setStatus("FAILED");
@@ -219,7 +217,7 @@ class UpdateTestItemHandlerImplTest {
   @Test
   void shouldCreateInitialStatusAttribute() {
     ReportPortalUser user =
-        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
 
     UpdateTestItemRQ rq = new UpdateTestItemRQ();
     rq.setStatus("PASSED");
@@ -251,7 +249,7 @@ class UpdateTestItemHandlerImplTest {
   @Test
   void shouldNotCreateInitialStatusAttribute() {
     ReportPortalUser user =
-        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
 
     UpdateTestItemRQ rq = new UpdateTestItemRQ();
     rq.setStatus("PASSED");
@@ -285,7 +283,7 @@ class UpdateTestItemHandlerImplTest {
   @Test
   void updateItemPositive() {
     ReportPortalUser user =
-        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
 
     UpdateTestItemRQ rq = new UpdateTestItemRQ();
     rq.setDescription("new description");

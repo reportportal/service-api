@@ -93,7 +93,7 @@ class DeleteUserHandlerImplTest {
     doNothing().when(applicationEventPublisher).publishEvent(isA(UserDeletedEvent.class));
 
     handler.deleteUser(
-        2L, getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L));
+        2L, getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L));
 
     verify(repository, times(1)).findById(2L);
     verify(dataStore, times(1)).deleteUserPhoto(any());
@@ -106,7 +106,7 @@ class DeleteUserHandlerImplTest {
 
     final ReportPortalException exception =
         assertThrows(ReportPortalException.class, () -> handler.deleteUser(12345L,
-            getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L)
+            getRpUser("test", UserRole.USER, ProjectRole.EDITOR, 1L)
         ));
     assertEquals("User '12345' not found.", exception.getMessage());
   }
@@ -120,7 +120,7 @@ class DeleteUserHandlerImplTest {
 
     final ReportPortalException exception =
         assertThrows(ReportPortalException.class, () -> handler.deleteUser(1L,
-            getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L)
+            getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L)
         ));
     assertEquals("You do not have enough permissions. You cannot delete own account", exception.getMessage());
 

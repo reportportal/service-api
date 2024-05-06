@@ -43,7 +43,7 @@ class AutoAnalysisEnabledStarterTest {
   @Test
   void shouldRunWhenAutoAnalysisEnabled() {
 
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER, 1L);
     final AnalyzerConfig analyzerConfig = new AnalyzerConfig();
     analyzerConfig.setIsAutoAnalyzerEnabled(true);
 
@@ -60,7 +60,7 @@ class AutoAnalysisEnabledStarterTest {
 
   @Test
   void shouldNotRunWhenAutoAnalysisDisabled() {
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER, 1L);
     final AnalyzerConfig analyzerConfig = new AnalyzerConfig();
     analyzerConfig.setIsAutoAnalyzerEnabled(false);
 

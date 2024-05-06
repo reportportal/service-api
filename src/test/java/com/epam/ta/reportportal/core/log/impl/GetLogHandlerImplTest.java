@@ -54,7 +54,7 @@ class GetLogHandlerTest {
   void getLogs() {
 
     Long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.EDITOR,
         projectId);
 
     String wrongPath = "1";

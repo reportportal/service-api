@@ -88,7 +88,7 @@ public class DashboardController {
       @RequestBody @Validated CreateDashboardRQ createRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return createDashboardHandler.createDashboard(
-        projectExtractor.extractMemberShipDetails(user, projectKey), createRQ, user);
+        projectExtractor.extractMembershipDetails(user, projectKey), createRQ, user);
   }
 
   @Transactional(readOnly = true)
@@ -99,7 +99,7 @@ public class DashboardController {
       @SortFor(Dashboard.class) Pageable pageable, @FilterFor(Dashboard.class) Filter filter,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getDashboardHandler.getDashboards(
-        projectExtractor.extractMemberShipDetails(user, projectKey), pageable, filter, user);
+        projectExtractor.extractMembershipDetails(user, projectKey), pageable, filter, user);
   }
 
   @Transactional
@@ -110,7 +110,7 @@ public class DashboardController {
       @PathVariable Long dashboardId, @RequestBody @Validated AddWidgetRq addWidgetRq,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateDashboardHandler.addWidget(
-        dashboardId, projectExtractor.extractMemberShipDetails(user, projectKey), addWidgetRq, user);
+        dashboardId, projectExtractor.extractMembershipDetails(user, projectKey), addWidgetRq, user);
   }
 
   @Transactional
@@ -121,7 +121,7 @@ public class DashboardController {
       @PathVariable Long dashboardId, @PathVariable Long widgetId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateDashboardHandler.removeWidget(
-        widgetId, dashboardId, projectExtractor.extractMemberShipDetails(user, projectKey), user);
+        widgetId, dashboardId, projectExtractor.extractMembershipDetails(user, projectKey), user);
   }
 
   @Transactional
@@ -132,7 +132,7 @@ public class DashboardController {
       @PathVariable Long dashboardId, @RequestBody @Validated UpdateDashboardRQ updateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateDashboardHandler.updateDashboard(
-        projectExtractor.extractMemberShipDetails(user, projectKey), updateRQ, dashboardId, user);
+        projectExtractor.extractMembershipDetails(user, projectKey), updateRQ, dashboardId, user);
   }
 
   @Transactional
@@ -142,7 +142,7 @@ public class DashboardController {
   public OperationCompletionRS deleteDashboard(@PathVariable String projectKey,
       @PathVariable Long dashboardId, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteDashboardHandler.deleteDashboard(
-        dashboardId, projectExtractor.extractMemberShipDetails(user, projectKey), user);
+        dashboardId, projectExtractor.extractMembershipDetails(user, projectKey), user);
   }
 
   @Transactional
@@ -152,6 +152,6 @@ public class DashboardController {
   public DashboardResource getDashboard(@PathVariable String projectKey,
       @PathVariable Long dashboardId, @AuthenticationPrincipal ReportPortalUser user) {
     return getDashboardHandler.getDashboard(
-        dashboardId, projectExtractor.extractMemberShipDetails(user, projectKey));
+        dashboardId, projectExtractor.extractMembershipDetails(user, projectKey));
   }
 }

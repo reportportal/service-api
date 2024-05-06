@@ -17,9 +17,13 @@
 package com.epam.ta.reportportal;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails.ProjectDetails;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.collect.Sets;
+import java.util.HashMap;
 import org.assertj.core.util.Maps;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -41,10 +45,15 @@ public class ReportPortalUserUtil {
         .withUserId(1L)
         .withEmail("test@email.com")
         .withUserRole(userRole)
-        .withProjectDetails(Maps.newHashMap("o-slug.project-name",
-            new ReportPortalUser.ProjectDetails(projectId, "project Name", projectRole,
-                "o-slug.project-name")
-        ))
+        .withOrganizationDetails(Maps.newHashMap("o-slug.project-name",
+            new ReportPortalUser.OrganizationDetails(
+                1L,
+                "org Name",
+                OrganizationRole.MANAGER,
+                Maps.newHashMap("o-slug.project-name", new ProjectDetails(
+                    projectId, "project Name",  "o-slug.project-name", projectRole, 1L)
+                )))
+        )
         .build();
   }
 }

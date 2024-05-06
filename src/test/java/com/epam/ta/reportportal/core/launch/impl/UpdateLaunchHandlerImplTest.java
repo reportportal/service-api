@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -41,6 +42,7 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -85,14 +87,14 @@ class UpdateLaunchHandlerImplTest {
 
   @Test
   void updateNotOwnLaunch() {
-    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.EDITOR, 1L);
     rpUser.setUserId(2L);
-    when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(
-        new Project());
-    when(launchRepository.findById(1L)).thenReturn(
-        getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
+    when(getProjectHandler.get(any(MembershipDetails.class)))
+        .thenReturn(new Project());
+    when(launchRepository.findById(1L))
+        .thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateLaunch(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser,
+        () -> handler.updateLaunch(1L, rpUserToMembership(rpUser), rpUser,
             new UpdateLaunchRQ()
         )
     );
@@ -101,17 +103,16 @@ class UpdateLaunchHandlerImplTest {
 
   @Test
   void updateDebugLaunchByCustomer() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
 
-    when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(
-        new Project());
+    when(getProjectHandler.get(any(MembershipDetails.class))).thenReturn(new Project());
     when(launchRepository.findById(1L)).thenReturn(
         getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
     final UpdateLaunchRQ updateLaunchRQ = new UpdateLaunchRQ();
     updateLaunchRQ.setMode(Mode.DEBUG);
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateLaunch(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser,
+        () -> handler.updateLaunch(1L, rpUserToMembership(rpUser), rpUser,
             updateLaunchRQ
         )
     );
@@ -121,7 +122,7 @@ class UpdateLaunchHandlerImplTest {
   @Test
   void createClustersLaunchInProgress() {
 
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
 
     when(getLaunchHandler.get(1L)).thenReturn(
         getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT).get());
@@ -131,19 +132,19 @@ class UpdateLaunchHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.createClusters(createClustersRQ,
-            extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser
+            rpUserToMembership(rpUser), rpUser
         )
     );
     assertEquals("Incorrect Request. Cannot analyze launch in progress.", exception.getMessage());
     verify(launchAccessValidator, times(1)).validate(any(Launch.class),
-        any(ReportPortalUser.ProjectDetails.class), eq(rpUser)
+        any(MembershipDetails.class), eq(rpUser)
     );
   }
 
   @Test
   void createClusters() {
 
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
 
     final Project project = new Project();
     project.setId(1L);
@@ -158,10 +159,10 @@ class UpdateLaunchHandlerImplTest {
         ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getDefaultValue());
     createClustersRQ.setRemoveNumbers(!defaultRemoveNumbers);
 
-    handler.createClusters(createClustersRQ, extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser);
+    handler.createClusters(createClustersRQ, rpUserToMembership(rpUser), rpUser);
 
     verify(launchAccessValidator, times(1)).validate(any(Launch.class),
-        any(ReportPortalUser.ProjectDetails.class), eq(rpUser)
+        any(MembershipDetails.class), eq(rpUser)
     );
 
     final ArgumentCaptor<ClusterEntityContext> contextCaptor =

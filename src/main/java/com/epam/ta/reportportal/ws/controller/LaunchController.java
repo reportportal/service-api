@@ -146,7 +146,7 @@ public class LaunchController {
       @Parameter(description = "Start launch request body", required = true) @RequestBody @Validated
       @Valid StartLaunchRQ startLaunchRQ, @AuthenticationPrincipal ReportPortalUser user) {
     return startLaunchHandler.startLaunch(user,
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), startLaunchRQ
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), startLaunchRQ
     );
   }
 
@@ -158,7 +158,7 @@ public class LaunchController {
       @PathVariable String launchId, @RequestBody @Validated FinishExecutionRQ finishLaunchRQ,
       @AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request) {
     return finishLaunchHandler.finishLaunch(launchId, finishLaunchRQ,
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), user,
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
         composeBaseUrl(request)
     );
   }
@@ -174,7 +174,7 @@ public class LaunchController {
       @PathVariable Long launchId, @RequestBody @Validated FinishExecutionRQ finishExecutionRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return stopLaunchHandler.stopLaunch(launchId, finishExecutionRQ,
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), user
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user
     );
   }
 
@@ -187,7 +187,7 @@ public class LaunchController {
       @RequestBody @Validated BulkRQ<Long, FinishExecutionRQ> rq,
       @AuthenticationPrincipal ReportPortalUser user) {
     return stopLaunchHandler.stopLaunch(rq,
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), user
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user
     );
   }
 
@@ -200,7 +200,7 @@ public class LaunchController {
       @PathVariable Long launchId, @RequestBody @Validated UpdateLaunchRQ updateLaunchRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateLaunchHandler.updateLaunch(launchId,
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), user, updateLaunchRQ
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user, updateLaunchRQ
     );
   }
 
@@ -213,7 +213,7 @@ public class LaunchController {
       @RequestBody @Validated BulkRQ<Long, UpdateLaunchRQ> rq,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateLaunchHandler.updateLaunch(rq,
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), user
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user
     );
   }
 
@@ -225,7 +225,7 @@ public class LaunchController {
   public OperationCompletionRS deleteLaunch(@PathVariable String projectKey,
       @PathVariable Long launchId, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteLaunchMessageHandler.deleteLaunch(launchId,
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), user
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user
     );
   }
 
@@ -236,7 +236,7 @@ public class LaunchController {
   public LaunchResource getLaunch(@PathVariable String projectKey, @PathVariable String launchId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLaunch(launchId,
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey))
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey))
     );
   }
 
@@ -247,7 +247,7 @@ public class LaunchController {
   public LaunchResource getLaunchByUuid(@PathVariable String projectKey,
       @PathVariable String launchId, @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLaunch(launchId,
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey))
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey))
     );
   }
 
@@ -259,7 +259,7 @@ public class LaunchController {
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getProjectLaunches(
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), filter, pageable,
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), filter, pageable,
         user.getUsername()
     );
   }
@@ -272,7 +272,7 @@ public class LaunchController {
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLatestLaunches(
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), filter, pageable);
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), filter, pageable);
   }
 
   @GetMapping(value = "/mode")
@@ -282,7 +282,7 @@ public class LaunchController {
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getDebugLaunches(
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), filter, pageable);
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), filter, pageable);
   }
 
   @Transactional(readOnly = true)
@@ -293,7 +293,7 @@ public class LaunchController {
       @RequestParam(value = "filter." + "cnt." + "attributeKey") String value,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getAttributeKeys(
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), value);
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), value);
   }
 
   @Transactional(readOnly = true)
@@ -305,7 +305,7 @@ public class LaunchController {
       @RequestParam(value = "filter." + "cnt." + "attributeValue") String value,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getAttributeValues(
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), key, value);
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), key, value);
   }
 
   @GetMapping(value = "/cluster/{launchId}")
@@ -315,7 +315,7 @@ public class LaunchController {
       @PathVariable String launchId, Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getClusters(launchId,
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), pageable
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), pageable
     );
   }
 
@@ -328,7 +328,7 @@ public class LaunchController {
       @RequestBody @Validated BulkInfoUpdateRQ bulkInfoUpdateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateLaunchHandler.bulkInfoUpdate(bulkInfoUpdateRQ,
-        projectExtractor.extractMemberShipDetails(user, projectKey)
+        projectExtractor.extractMembershipDetails(user, projectKey)
     );
   }
 
@@ -341,7 +341,7 @@ public class LaunchController {
       @RequestParam(value = "mode", required = false, defaultValue = "DEFAULT") String mode,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getOwners(
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), value, mode);
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), value, mode);
   }
 
   @Transactional(readOnly = true)
@@ -352,7 +352,7 @@ public class LaunchController {
       @RequestParam(value = "filter." + "cnt." + "name", required = false, defaultValue = "")
       String value, @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLaunchNames(
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), value);
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), value);
   }
 
   @Transactional(readOnly = true)
@@ -362,7 +362,7 @@ public class LaunchController {
   public Map<String, List<ChartStatisticsContent>> compareLaunches(@PathVariable String projectKey,
       @RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLaunchesComparisonInfo(
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), ids);
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), ids);
   }
 
   @Transactional
@@ -377,7 +377,7 @@ public class LaunchController {
       @Parameter(description = "Merge launches request body", required = true) @RequestBody
       @Validated MergeLaunchesRQ mergeLaunchesRQ, @AuthenticationPrincipal ReportPortalUser user) {
     return mergeLaunchesHandler.mergeLaunches(
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), user,
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
         mergeLaunchesRQ
     );
   }
@@ -390,7 +390,7 @@ public class LaunchController {
       @RequestBody @Validated AnalyzeLaunchRQ analyzeLaunchRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateLaunchHandler.startLaunchAnalyzer(analyzeLaunchRQ,
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), user
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user
     );
   }
 
@@ -401,7 +401,7 @@ public class LaunchController {
       @RequestBody @Validated CreateClustersRQ createClustersRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateLaunchHandler.createClusters(createClustersRQ,
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), user
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user
     );
   }
 
@@ -412,7 +412,7 @@ public class LaunchController {
   public Map<String, String> getStatuses(@PathVariable String projectKey,
       @RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getStatuses(
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), ids);
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), ids);
   }
 
   @Transactional(readOnly = true)
@@ -452,7 +452,7 @@ public class LaunchController {
   public DeleteBulkRS deleteLaunches(@PathVariable String projectKey,
       @RequestParam(value = "ids") List<Long> ids, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteLaunchMessageHandler.deleteLaunches(ids,
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), user
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user
     );
   }
 
@@ -465,7 +465,7 @@ public class LaunchController {
       HttpServletRequest request,
       @RequestPart(required = false) @Valid LaunchImportRQ launchImportRq) {
     return importLaunchHandler.importLaunch(
-        projectExtractor.extractMemberShipDetails(user, normalizeId(projectKey)), user, "XUNIT", file,
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user, "XUNIT", file,
         composeBaseUrl(request), launchImportRq
     );
   }

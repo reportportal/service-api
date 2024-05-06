@@ -81,7 +81,7 @@ public class FileStorageController {
       HttpServletResponse response,
       @AuthenticationPrincipal ReportPortalUser user) {
     toResponse(response, getFileHandler.loadFileById(dataId,
-        projectExtractor.extractMemberShipDetails(user, projectKey)));
+        projectExtractor.extractMembershipDetails(user, projectKey)));
   }
 
   @Transactional(readOnly = true)

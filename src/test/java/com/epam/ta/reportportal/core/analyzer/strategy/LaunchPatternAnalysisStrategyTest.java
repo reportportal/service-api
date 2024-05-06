@@ -30,6 +30,8 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -70,14 +72,21 @@ class LaunchPatternAnalysisStrategyTest {
 
     when(project.getProjectAttributes()).thenReturn(Sets.newHashSet(projectAttribute));
 
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
-    MembershipDetails membershipDetails =
-        new ReportPortalUser.ProjectDetails(1L, "name", ProjectRole.PROJECT_MANAGER, "project-key");
+    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.EDITOR, 1L);
+    MembershipDetails membershipDetails = MembershipDetails.builder()
+        .withOrgId(1L)
+        .withOrgName("org Name")
+        .withOrgRole(OrganizationRole.MANAGER)
+        .withProjectId(1L)
+        .withProjectRole(ProjectRole.EDITOR)
+        .withProjectKey("project-key")
+        .withProjectName("name")
+        .build();
     AnalyzeLaunchRQ analyzeLaunchRQ = new AnalyzeLaunchRQ();
     analyzeLaunchRQ.setLaunchId(1L);
     analyzeLaunchRQ.setAnalyzeItemsModes(Lists.newArrayList("TO_INVESTIGATE"));
     analyzeLaunchRQ.setAnalyzerTypeName("patternAnalyzer");
-    launchPatternAnalysisStrategy.analyze(analyzeLaunchRQ, projectDetails, user);
+    launchPatternAnalysisStrategy.analyze(analyzeLaunchRQ, membershipDetails, user);
 
     verify(launchPatternAnalyzer, times(1)).analyzeLaunch(launch,
         Sets.newHashSet(AnalyzeItemsMode.TO_INVESTIGATE)

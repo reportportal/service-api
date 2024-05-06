@@ -50,7 +50,7 @@ class ExistingAnalyzerStarterTest {
   @Test
   void shouldRunWhenHasAnalyzers() {
 
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER, 1L);
     final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(1L,
         new AnalyzerConfig(),
         Set.of(AnalyzeItemsMode.TO_INVESTIGATE),
@@ -66,7 +66,7 @@ class ExistingAnalyzerStarterTest {
 
   @Test
   void shouldThrowReportPortalExceptionWhenNoAnalyzers() {
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER, 1L);
     final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(1L,
         new AnalyzerConfig(),
         Set.of(AnalyzeItemsMode.TO_INVESTIGATE),

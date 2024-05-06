@@ -52,8 +52,6 @@ public class SenderCaseDTO implements Serializable {
   @JsonProperty("ruleName")
   private String ruleName;
 
-  @NotEmpty
-  @NotBlankStringCollection
   @JsonProperty(value = "recipients")
   private List<String> recipients;
 

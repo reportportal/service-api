@@ -98,7 +98,7 @@ public class FileStorageController {
   @GetMapping(value = "/{projectName}/userphoto")
   @Operation(summary = "Get user's photo")
   public void getUserPhoto(@PathVariable String projectName,
-      @RequestParam(value = "id") String username,
+      @RequestParam(value = "login") String username,
       @RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail,
       HttpServletResponse response,
       @AuthenticationPrincipal ReportPortalUser user) {

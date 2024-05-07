@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ROLE;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.NOT_CUSTOMER;
 
@@ -123,7 +123,7 @@ public class FileStorageController {
   }
 
   @Transactional
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   @PostMapping(value = "/clean", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   @Operation(summary = "Remove attachments from file storage according to uploaded csv file")
   public OperationCompletionRS removeAttachmentsByCsv(@RequestParam("file") MultipartFile file,

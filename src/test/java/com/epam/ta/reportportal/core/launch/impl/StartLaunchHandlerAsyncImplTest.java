@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ReportingQueueService;
@@ -53,7 +54,7 @@ class StartLaunchHandlerAsyncImplTest {
   @Test
   void starLaunch() {
     StartLaunchRQ request = new StartLaunchRQ();
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     startLaunchHandlerAsync.startLaunch(user, rpUserToMembership(user), request);
     verify(amqpTemplate).convertAndSend(any(), any(), any(), any());

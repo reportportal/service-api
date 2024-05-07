@@ -31,7 +31,7 @@ public interface FinishHierarchyHandler<T> {
    * @param status         {@link StatusEnum} that should be assigned to descendants
    * @param endDate        {@link java.time.Instant} finish date for descendants
    * @param user           {@link ReportPortalUser}
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @return finished descendants count
    */
   int finishDescendants(T parentEntity, StatusEnum status, Instant endDate, ReportPortalUser user,

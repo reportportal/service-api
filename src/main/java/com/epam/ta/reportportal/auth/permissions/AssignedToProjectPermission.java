@@ -17,21 +17,17 @@
 package com.epam.ta.reportportal.auth.permissions;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails;
 import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails.ProjectDetails;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
-import com.epam.ta.reportportal.entity.organization.OrganizationRole;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.google.common.collect.Maps;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
@@ -71,10 +67,9 @@ class AssignedToProjectPermission implements Permission {
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
     final String resolvedProjectKey = String.valueOf(targetDomainObject);
-    final Optional<MembershipDetails> projectDetails = projectExtractor.findProjectDetails(
+    final Optional<MembershipDetails> projectDetails = projectExtractor.findMembershipDetails(
         rpUser, resolvedProjectKey);
-    projectDetails.ifPresent(
-        details -> fillProjectDetails(rpUser, resolvedProjectKey, details));
+    projectDetails.ifPresent(details -> fillProjectDetails(rpUser, resolvedProjectKey, details));
     return projectDetails.isPresent();
   }
 
@@ -91,9 +86,11 @@ class AssignedToProjectPermission implements Permission {
         membershipDetails.getOrgId());
     prjDetailsMap.put(membershipDetails.getProjectKey(), prjDetails);
 
-    var od = new OrganizationDetails(membershipDetails.getOrgId(),
+    var od = new OrganizationDetails(
+        membershipDetails.getOrgId(),
         membershipDetails.getOrgName(),
-        membershipDetails.getOrgRole(), prjDetailsMap);
+        membershipDetails.getOrgRole(),
+        prjDetailsMap);
 
     organizationDetails.put(resolvedProjectName, od);
     rpUser.setOrganizationDetails(organizationDetails);

@@ -36,7 +36,8 @@ public class ReportPortalUserUtil {
     //static only
   }
 
-  public static ReportPortalUser getRpUser(String login, UserRole userRole, ProjectRole projectRole,
+  public static ReportPortalUser getRpUser(String login, UserRole userRole,
+      OrganizationRole organizationRole, ProjectRole projectRole,
       Long projectId) {
     return ReportPortalUser.userBuilder()
         .withUserName(login)
@@ -49,9 +50,9 @@ public class ReportPortalUserUtil {
             new ReportPortalUser.OrganizationDetails(
                 1L,
                 "org Name",
-                OrganizationRole.MANAGER,
+                organizationRole,
                 Maps.newHashMap("o-slug.project-name", new ProjectDetails(
-                    projectId, "project Name",  "o-slug.project-name", projectRole, 1L)
+                    projectId, "project Name", "o-slug.project-name", projectRole, 1L)
                 )))
         )
         .build();

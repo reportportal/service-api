@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.model.project.AnalyzerConfig;
@@ -47,7 +48,7 @@ class AsyncAutoAnalysisStarterTest {
 
   @Test
   void shouldExecute() {
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(1L,
         new AnalyzerConfig(),
         Set.of(AnalyzeItemsMode.TO_INVESTIGATE),

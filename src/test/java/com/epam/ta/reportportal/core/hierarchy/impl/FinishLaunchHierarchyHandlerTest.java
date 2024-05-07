@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.collect.Lists;
@@ -89,7 +90,7 @@ class FinishLaunchHierarchyHandlerTest {
     Instant endTime  = LocalDate.of(2020, Month.OCTOBER, 30)
         .atStartOfDay(ZoneId.systemDefault())
         .toInstant();
-    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     when(testItemRepository.findAllById(idsWithChildren)).thenReturn(
         getTestItemsWithChildren(launch));
@@ -139,7 +140,7 @@ class FinishLaunchHierarchyHandlerTest {
 
     Instant endTime = LocalDate.of(2020, Month.OCTOBER, 30)
         .atStartOfDay(ZoneId.systemDefault()).toInstant();
-    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     when(testItemRepository.findAllById(idsWithChildren)).thenReturn(
         getTestItemsWithChildren(launch));

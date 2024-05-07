@@ -72,7 +72,7 @@ class LaunchPatternAnalysisStrategyTest {
 
     when(project.getProjectAttributes()).thenReturn(Sets.newHashSet(projectAttribute));
 
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.EDITOR, 1L);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L);
     MembershipDetails membershipDetails = MembershipDetails.builder()
         .withOrgId(1L)
         .withOrgName("org Name")

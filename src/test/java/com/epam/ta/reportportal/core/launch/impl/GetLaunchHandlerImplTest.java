@@ -42,6 +42,7 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -99,7 +100,7 @@ class GetLaunchHandlerImplTest {
   @Test
   void getLaunchFromOtherProject() {
     final ReportPortalUser rpUser =
-        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 2L);
+        getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 2L);
     when(launchRepository.findById(1L)).thenReturn(
         getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT));
 
@@ -111,7 +112,7 @@ class GetLaunchHandlerImplTest {
 
   @Test
   void getDebugLaunchWithCustomerRole() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     when(launchRepository.findById(1L)).thenReturn(
         getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEBUG));
 
@@ -123,7 +124,7 @@ class GetLaunchHandlerImplTest {
 
   @Test
   void getLaunchNamesIncorrectInput() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     assertThrows(ReportPortalException.class,
         () -> handler.getLaunchNames(rpUserToMembership(rpUser),
@@ -134,7 +135,7 @@ class GetLaunchHandlerImplTest {
 
   @Test
   void getNotExistLaunch() {
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER, 1L);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     String launchId = "1";
 
     when(launchRepository.findById(Long.parseLong(launchId))).thenReturn(Optional.empty());
@@ -180,7 +181,7 @@ class GetLaunchHandlerImplTest {
   void getLaunchesByNotExistProject() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.EDITOR, projectId);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  projectId);
 
     when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
@@ -198,7 +199,7 @@ class GetLaunchHandlerImplTest {
   void getLatestLaunchesOnNotExistProject() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.EDITOR, projectId);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  projectId);
 
     when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
@@ -216,7 +217,7 @@ class GetLaunchHandlerImplTest {
   void getOwnersWrongTerm() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.EDITOR, projectId);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  projectId);
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.getOwners(extractProjectDetails(user, TEST_PROJECT_KEY), "qw",
@@ -233,7 +234,7 @@ class GetLaunchHandlerImplTest {
   void getOwnersWrongMode() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.EDITOR, projectId);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  projectId);
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.getOwners(extractProjectDetails(user, TEST_PROJECT_KEY), "qwe", "incorrectMode")
@@ -246,7 +247,7 @@ class GetLaunchHandlerImplTest {
   @Test
   void exportLaunchNotFound() {
     long launchId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER, 1L);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     when(launchRepository.findById(launchId)).thenReturn(Optional.empty());
 
@@ -259,7 +260,7 @@ class GetLaunchHandlerImplTest {
   @Test
   void exportLaunchUserNotFound() {
     long launchId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER, 1L);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     Launch launch = new Launch();
     launch.setStatus(StatusEnum.FAILED);
@@ -275,7 +276,7 @@ class GetLaunchHandlerImplTest {
   @Test
   void getLaunchInDebugModeByCustomer() {
     long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER, projectId);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, projectId);
     String launchId = "1";
 
     Launch launch = new Launch();
@@ -292,7 +293,7 @@ class GetLaunchHandlerImplTest {
   @Test
   void getClusterInfo() {
     long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER, projectId);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, projectId);
     String launchId = "1";
 
     Launch launch = new Launch();

@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -53,7 +54,7 @@ class TestItemsHistoryHandlerImplTest {
 
   @Test
   void historyDepthLowerThanBoundTest() {
-    ReportPortalUser rpUser = ReportPortalUserUtil.getRpUser("test", UserRole.USER,
+    ReportPortalUser rpUser = ReportPortalUserUtil.getRpUser("test", UserRole.USER, OrganizationRole.MEMBER,
         ProjectRole.VIEWER, 1L);
 
     assertThrows(ReportPortalException.class,
@@ -71,7 +72,7 @@ class TestItemsHistoryHandlerImplTest {
 
   @Test
   void historyDepthGreaterThanBoundTest() {
-    ReportPortalUser rpUser = ReportPortalUserUtil.getRpUser("test", UserRole.USER,
+    ReportPortalUser rpUser = ReportPortalUserUtil.getRpUser("test", UserRole.USER, OrganizationRole.MEMBER,
         ProjectRole.VIEWER, 1L);
 
     assertThrows(ReportPortalException.class,

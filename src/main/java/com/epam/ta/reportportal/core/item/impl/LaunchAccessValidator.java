@@ -27,7 +27,7 @@ public interface LaunchAccessValidator {
 
   /**
    * @param launch         {@link com.epam.ta.reportportal.entity.launch.Launch}
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param user           {@link ReportPortalUser}
    */
   void validate(Launch launch, MembershipDetails membershipDetails,
@@ -35,7 +35,7 @@ public interface LaunchAccessValidator {
 
   /**
    * @param launchId       {@link com.epam.ta.reportportal.entity.launch.Launch#getId()}
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param user           {@link ReportPortalUser}
    */
   void validate(Long launchId, MembershipDetails membershipDetails,

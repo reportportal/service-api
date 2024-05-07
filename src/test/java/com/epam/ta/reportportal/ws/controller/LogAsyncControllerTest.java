@@ -30,6 +30,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -68,7 +69,7 @@ class LogAsyncControllerTest {
 
   @Test
   void createLog() {
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR,
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR,
         1L);
 
     SaveLogRQ saveLogRQ = new SaveLogRQ();
@@ -93,7 +94,7 @@ class LogAsyncControllerTest {
 
   @Test
   void createLogEntry() {
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR,
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR,
         1L);
 
     SaveLogRQ saveLogRQ = new SaveLogRQ();
@@ -119,7 +120,7 @@ class LogAsyncControllerTest {
 
   @Test
   void createLogs() {
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR,
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR,
         1L);
 
     SaveLogRQ saveLogRQ = new SaveLogRQ();

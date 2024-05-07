@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ReportingQueueService;
@@ -53,7 +54,7 @@ class StartTestItemHandlerAsyncImplTest {
   @Test
   void startRootItem() {
     StartTestItemRQ request = new StartTestItemRQ();
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR,
+    ReportPortalUser user = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR,
         1L);
 
     startTestItemHandlerAsync.startRootItem(user, rpUserToMembership(user),
@@ -65,7 +66,7 @@ class StartTestItemHandlerAsyncImplTest {
   @Test
   void startChildItem() {
     StartTestItemRQ request = new StartTestItemRQ();
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR,
+    ReportPortalUser user = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR,
         1L);
 
     startTestItemHandlerAsync.startChildItem(user, rpUserToMembership(user),

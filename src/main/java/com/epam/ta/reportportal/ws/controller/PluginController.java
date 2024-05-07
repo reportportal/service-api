@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.reportportal.extension.util.CommandParamUtils.ENTITY_PARAM;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ROLE;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static java.util.Optional.ofNullable;
@@ -94,7 +94,7 @@ public class PluginController {
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(summary = "Upload new ReportPortal plugin")
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   public EntryCreatedRS uploadPlugin(@NotNull @RequestParam("file") MultipartFile pluginFile,
       @AuthenticationPrincipal ReportPortalUser user) {
     return createPluginHandler.uploadPlugin(pluginFile, user);
@@ -104,7 +104,7 @@ public class PluginController {
   @PutMapping(value = "/{pluginId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Update ReportPortal plugin state")
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   public OperationCompletionRS updatePluginState(@PathVariable(value = "pluginId") Long id,
       @RequestBody @Valid UpdatePluginStateRQ updatePluginStateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -123,7 +123,7 @@ public class PluginController {
   @DeleteMapping(value = "/{pluginId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Delete plugin by id")
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   public OperationCompletionRS deletePlugin(@PathVariable(value = "pluginId") Long id,
       @AuthenticationPrincipal ReportPortalUser user) {
     return deletePluginHandler.deleteById(id, user);

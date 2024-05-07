@@ -216,7 +216,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
    *
    * @param testItem       {@link TestItem}
    * @param user           {@link ReportPortalUser}
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    */
   private void validate(TestItem testItem, Launch launch, ReportPortalUser user,
       MembershipDetails membershipDetails) {

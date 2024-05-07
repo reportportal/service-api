@@ -41,6 +41,7 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -90,7 +91,7 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void testItemNotFound() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     when(testItemRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -103,7 +104,7 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteInProgressItem() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     Launch launch = new Launch();
     launch.setStatus(StatusEnum.PASSED);
@@ -128,7 +129,7 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteTestItemWithInProgressLaunch() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     Launch launch = new Launch();
     launch.setStatus(StatusEnum.IN_PROGRESS);
@@ -150,7 +151,7 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteTestItemFromAnotherProject() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     Launch launch = new Launch();
     launch.setStatus(StatusEnum.PASSED);
@@ -170,7 +171,7 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteNotOwnTestItem() {
-    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER , 1L);
     rpUser.setUserId(2L);
 
     Launch launch = new Launch();
@@ -191,7 +192,7 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteTestItemWithParent() {
-    ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, ProjectRole.VIEWER, 1L);
+    ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     TestItem item = getTestItem(StatusEnum.PASSED, StatusEnum.PASSED, 1L, "owner");
     item.setItemId(123123L);
@@ -222,7 +223,7 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteItemPositive() {
-    ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, ProjectRole.VIEWER, 1L);
+    ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     TestItem item = getTestItem(StatusEnum.FAILED, StatusEnum.FAILED, 1L, "owner");
 
     Launch launch = new Launch();

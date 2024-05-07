@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -61,7 +62,7 @@ class GetUserHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(
         ReportPortalException.class,
-        () -> handler.getUser("not_exist", getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L))
+        () -> handler.getUser("not_exist", getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L))
     );
     assertEquals("User 'not_exist' not found.", exception.getMessage());
   }
@@ -72,7 +73,7 @@ class GetUserHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(
         ReportPortalException.class,
-        () -> handler.getUser(getRpUser("not_exist", UserRole.USER, ProjectRole.VIEWER, 1L))
+        () -> handler.getUser(getRpUser("not_exist", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.VIEWER, 1L))
     );
     assertEquals("User 'not_exist' not found.", exception.getMessage());
   }

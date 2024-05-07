@@ -37,6 +37,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -89,7 +90,7 @@ class FinishLaunchHandlerImplTest {
     finishExecutionRQ.setEndTime(Instant.now());
 
     ReportPortalUser rpUser =
-        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
+        getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     when(launchRepository.findByUuid("1")).thenReturn(
         getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
@@ -110,7 +111,7 @@ class FinishLaunchHandlerImplTest {
     finishExecutionRQ.setEndTime(Instant.now());
 
     ReportPortalUser rpUser =
-        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
+        getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     when(launchRepository.findByUuid("1")).thenReturn(
         getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
@@ -132,7 +133,7 @@ class FinishLaunchHandlerImplTest {
     finishExecutionRQ.setEndTime(Instant.now());
 
     ReportPortalUser rpUser =
-        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
+        getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     when(launchRepository.findById(1L)).thenReturn(
         getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
@@ -156,7 +157,7 @@ class FinishLaunchHandlerImplTest {
     bulkRq.setEntities(entities);
 
     ReportPortalUser rpUser =
-        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
+        getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     when(launchRepository.findById(1L)).thenReturn(
         getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
@@ -173,7 +174,7 @@ class FinishLaunchHandlerImplTest {
     finishExecutionRQ.setEndTime(Instant.now());
 
     final ReportPortalUser rpUser =
-        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
+        getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     when(launchRepository.findByUuid("1")).thenReturn(
         getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
@@ -189,7 +190,7 @@ class FinishLaunchHandlerImplTest {
     finishExecutionRQ.setEndTime(Instant.now().minus(5, ChronoUnit.HOURS));
 
     final ReportPortalUser rpUser =
-        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
+        getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     when(launchRepository.findByUuid("1")).thenReturn(
         getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
@@ -204,7 +205,7 @@ class FinishLaunchHandlerImplTest {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
     finishExecutionRQ.setEndTime(Instant.now());
 
-    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.EDITOR, 1L);
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,  1L);
     rpUser.setUserId(2L);
 
     when(launchRepository.findByUuid("1")).thenReturn(

@@ -34,7 +34,7 @@ public interface CreateTicketHandler {
    *
    * @param postTicketRQ   Request Data
    * @param integrationId  Integration id
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param user           User
    * @return Found Ticket
    */

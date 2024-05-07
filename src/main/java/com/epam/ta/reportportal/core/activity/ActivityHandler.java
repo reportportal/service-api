@@ -35,7 +35,7 @@ public interface ActivityHandler {
    * {@link com.epam.ta.reportportal.entity.item.TestItem}
    *
    * @param projectDetails   Details of project
-   *                         {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   *                         {@link MembershipDetails}
    * @param filter           Filter
    * @param pageable         Page Details
    * @param predefinedFilter Additional filter
@@ -48,7 +48,7 @@ public interface ActivityHandler {
    * Load {@link com.epam.reportportal.model.ActivityResource}
    *
    * @param projectDetails Details of project
-   *                       {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   *                       {@link MembershipDetails}
    * @param activityId     ID of activity
    * @return Found Activity or NOT FOUND exception
    */
@@ -59,7 +59,7 @@ public interface ActivityHandler {
    * {@link com.epam.ta.reportportal.entity.item.TestItem}
    *
    * @param projectDetails Details of project
-   *                       {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   *                       {@link MembershipDetails}
    * @param itemId         ID of test item
    * @param filter         Filter
    * @param pageable       Page Details

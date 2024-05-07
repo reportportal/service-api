@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ROLE;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -122,7 +122,7 @@ public class UserController {
 
   @PostMapping
   @ResponseStatus(CREATED)
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   @Operation(summary =  "Create specified user", description = "Allowable only for users with administrator role")
   public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq,
       @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
@@ -163,7 +163,7 @@ public class UserController {
   }
 
   @DeleteMapping
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   @ResponseStatus(OK)
   @Operation(summary = "Delete specified users by ids")
   public DeleteBulkRS deleteUsers(@RequestParam(value = "ids") List<Long> ids,
@@ -201,7 +201,7 @@ public class UserController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/all")
   @ResponseView(ModelViews.FullUserView.class)
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   @Operation(summary =  "Return information about all users", description = "Allowable only for users with administrator role")
   public Iterable<UserResource> getUsers(@FilterFor(User.class) Filter filter,
       @SortFor(User.class) Pageable pageable, @FilterFor(User.class) Queryable queryable,
@@ -264,7 +264,7 @@ public class UserController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/search")
   @ResponseStatus(OK)
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   public Iterable<UserResource> findUsers(@RequestParam(value = "term") String term,
       Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
     return getUserHandler.searchUsers(term, pageable);
@@ -272,7 +272,7 @@ public class UserController {
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/export")
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   @Operation(summary =  "Exports information about all users", description = "Allowable only for users with administrator role")
   public void export(@Parameter(schema = @Schema(allowableValues = "csv"))
   @RequestParam(value = "view", required = false, defaultValue = "csv") String view,

@@ -30,7 +30,7 @@ public interface ImportStrategy {
   /**
    * Processing launch importing.
    *
-   * @param projectDetails project
+   * @param membershipDetails
    * @param user           user
    * @param file           zip file that contains xml test reports
    * @param baseUrl        application base url

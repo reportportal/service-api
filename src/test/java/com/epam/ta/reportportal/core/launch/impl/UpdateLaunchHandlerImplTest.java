@@ -43,6 +43,7 @@ import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -87,7 +88,7 @@ class UpdateLaunchHandlerImplTest {
 
   @Test
   void updateNotOwnLaunch() {
-    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.EDITOR, 1L);
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L);
     rpUser.setUserId(2L);
     when(getProjectHandler.get(any(MembershipDetails.class)))
         .thenReturn(new Project());
@@ -103,7 +104,7 @@ class UpdateLaunchHandlerImplTest {
 
   @Test
   void updateDebugLaunchByCustomer() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     when(getProjectHandler.get(any(MembershipDetails.class))).thenReturn(new Project());
     when(launchRepository.findById(1L)).thenReturn(
@@ -122,7 +123,7 @@ class UpdateLaunchHandlerImplTest {
   @Test
   void createClustersLaunchInProgress() {
 
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     when(getLaunchHandler.get(1L)).thenReturn(
         getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT).get());
@@ -144,7 +145,7 @@ class UpdateLaunchHandlerImplTest {
   @Test
   void createClusters() {
 
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     final Project project = new Project();
     project.setId(1L);

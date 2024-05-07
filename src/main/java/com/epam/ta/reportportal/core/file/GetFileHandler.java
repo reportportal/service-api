@@ -51,7 +51,7 @@ public interface GetFileHandler {
    * Returns {@link BinaryData} for the file with the specified id
    *
    * @param fileId Id of the file to get
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @return {@link BinaryData} file data
    */
   BinaryData loadFileById(Long fileId, MembershipDetails membershipDetails);

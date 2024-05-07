@@ -37,7 +37,7 @@ public interface HistoryProvider {
    * @param historyRequestParams - {@link HistoryRequestParams}
    * @param projectDetails       -
    *                             {@link
-   *                             com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   *                             MembershipDetails}
    * @param user                 - {@link ReportPortalUser}
    * @param usingHash            - true if need use hash
    * @return {@link Page} with {@link TestItemHistory} content

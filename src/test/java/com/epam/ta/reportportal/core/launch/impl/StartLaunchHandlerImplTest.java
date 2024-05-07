@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -74,7 +75,7 @@ class StartLaunchHandlerImplTest {
 
   @Test
   void startLaunch() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR,
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER,
         ProjectRole.EDITOR, 1L);
 
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
@@ -102,7 +103,7 @@ class StartLaunchHandlerImplTest {
 
   @Test
   void accessDeniedForCustomerRoleAndDebugMode() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
     startLaunchRQ.setStartTime(Instant.now());

@@ -216,7 +216,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
    * affiliation to the {@link Project}
    *
    * @param user           {@link ReportPortalUser}
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param rq             {@link StartTestItemRQ}
    * @param launch         {@link Launch}
    */

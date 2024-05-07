@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ROLE;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -122,7 +122,7 @@ public class IntegrationController {
   @PostMapping(value = "/{pluginName}")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(summary = "Create global ReportPortal integration instance")
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   public EntryCreatedRS createGlobalIntegration(@RequestBody @Valid IntegrationRQ createRequest,
       @PathVariable String pluginName, @AuthenticationPrincipal ReportPortalUser user) {
     return createIntegrationHandler.createGlobalIntegration(createRequest, pluginName, user);
@@ -155,7 +155,7 @@ public class IntegrationController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/{integrationId}/connection/test")
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   @Operation(summary = "Test connection to the global integration")
   public boolean testIntegrationConnection(@PathVariable Long integrationId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -166,7 +166,7 @@ public class IntegrationController {
   @GetMapping(value = "/{integrationId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get global ReportPortal integration instance")
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   public IntegrationResource getGlobalIntegration(@PathVariable Long integrationId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getIntegrationHandler.getGlobalIntegrationById(integrationId);
@@ -186,7 +186,7 @@ public class IntegrationController {
   @PutMapping(value = "/{integrationId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Update global ReportPortal integration instance")
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   public OperationCompletionRS updateGlobalIntegration(@PathVariable Long integrationId,
       @RequestBody @Valid IntegrationRQ updateRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -212,7 +212,7 @@ public class IntegrationController {
   @DeleteMapping(value = "/{integrationId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Delete global integration instance")
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   public OperationCompletionRS deleteGlobalIntegration(@PathVariable Long integrationId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return deleteIntegrationHandler.deleteGlobalIntegration(integrationId, user);
@@ -222,7 +222,7 @@ public class IntegrationController {
   @DeleteMapping(value = "/all/{type}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Delete all global integrations by type")
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   public OperationCompletionRS deleteAllIntegrations(@PathVariable String type,
       @AuthenticationPrincipal ReportPortalUser user) {
     return deleteIntegrationHandler.deleteGlobalIntegrationsByType(type, user);

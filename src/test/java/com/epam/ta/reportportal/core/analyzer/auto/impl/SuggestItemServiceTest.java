@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -67,7 +68,7 @@ class SuggestItemServiceTest {
 
   @Test
   void suggestItems() {
-    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     final Project project = new Project();
     project.setId(1L);
     project.setKey("default");
@@ -113,7 +114,7 @@ class SuggestItemServiceTest {
 
   @Test
   void suggestRemovedItems() {
-    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     final Project project = new Project();
     project.setId(1L);
     project.setKey("default");
@@ -149,7 +150,7 @@ class SuggestItemServiceTest {
 
   @Test
   void showThrowExceptionWhenNotValid() {
-    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     TestItem testItem = new TestItem();
     testItem.setItemId(1L);
@@ -173,7 +174,7 @@ class SuggestItemServiceTest {
 
   @Test
   void showThrowExceptionWhenNotFound() {
-    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     when(testItemRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -191,7 +192,7 @@ class SuggestItemServiceTest {
 
   @Test
   void suggestClusterItems() {
-    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     final Project project = new Project();
     project.setId(1L);
     project.setKey("default");

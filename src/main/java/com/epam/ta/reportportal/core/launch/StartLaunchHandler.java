@@ -49,7 +49,7 @@ public interface StartLaunchHandler {
    * Validate {@link ReportPortalUser} credentials. User with a {@link ProjectRole#CUSTOMER} role
    * can't report launches in a debug mode.
    *
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param startLaunchRQ  {@link StartLaunchRQ}
    */
   default void validateRoles(MembershipDetails membershipDetails,

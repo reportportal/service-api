@@ -61,7 +61,7 @@ public interface UpdateTestItemHandler {
    * {@link com.epam.ta.reportportal.entity.item.TestItem}
    *
    * @param request        {@link ExternalIssueRQ}
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param user           {@link ReportPortalUser}
    * @return {@link List} of the {@link OperationCompletionRS}
    */

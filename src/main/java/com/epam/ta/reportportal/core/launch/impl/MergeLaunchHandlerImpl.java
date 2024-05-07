@@ -128,7 +128,7 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
    *
    * @param launches       {@link List} of the {@link Launch}
    * @param user           {@link ReportPortalUser}
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    */
   private void validateMergingLaunches(List<Launch> launches, ReportPortalUser user,
       MembershipDetails membershipDetails) {

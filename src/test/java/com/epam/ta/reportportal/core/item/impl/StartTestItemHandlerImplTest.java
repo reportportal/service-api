@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -82,7 +83,7 @@ class StartTestItemHandlerImplTest {
 
   @Test
   void startRootItemUnderNotExistedLaunch() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     when(launchRepository.findByUuid("1")).thenReturn(Optional.empty());
     final StartTestItemRQ rq = new StartTestItemRQ();
@@ -96,7 +97,7 @@ class StartTestItemHandlerImplTest {
 
   @Test
   void startRootItemUnderLaunchFromAnotherProject() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
     startTestItemRQ.setStartTime(Instant.now());
@@ -115,7 +116,7 @@ class StartTestItemHandlerImplTest {
   @Test
   @Disabled
   void startRootItemUnderFinishedLaunch() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
 
@@ -132,7 +133,7 @@ class StartTestItemHandlerImplTest {
 
   @Test
   void startRootItemEarlierThanLaunch() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
     startTestItemRQ.setStartTime(Instant.now());
@@ -149,7 +150,7 @@ class StartTestItemHandlerImplTest {
 
   @Test
   void startChildItemUnderNotExistedParent() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     StartTestItemRQ rq = new StartTestItemRQ();
     rq.setLaunchUuid("1");
@@ -168,7 +169,7 @@ class StartTestItemHandlerImplTest {
   @Test
   void startChildItemEarlierThanParent() {
 
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
     startTestItemRQ.setStartTime(Instant.now());
@@ -189,7 +190,7 @@ class StartTestItemHandlerImplTest {
 
   @Test
   void startChildItemUnderFinishedParent() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
     startTestItemRQ.setStartTime(Instant.now());
@@ -221,7 +222,7 @@ class StartTestItemHandlerImplTest {
 
   @Test
   void startChildItemWithNotExistedLaunch() {
-    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
     startTestItemRQ.setStartTime(Instant.now());

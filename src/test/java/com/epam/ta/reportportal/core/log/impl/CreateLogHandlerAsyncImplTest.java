@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ReportingQueueService;
@@ -73,7 +74,7 @@ class CreateLogHandlerAsyncImplTest {
   @Test
   void createLog() {
     SaveLogRQ request = new SaveLogRQ();
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR,
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR,
         1L);
 
     when(provider.get()).thenReturn(saveLogBinaryDataTask);

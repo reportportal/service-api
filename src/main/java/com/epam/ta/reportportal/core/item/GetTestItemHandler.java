@@ -44,7 +44,7 @@ public interface GetTestItemHandler {
    * Get {@link TestItem} instance
    *
    * @param testItemId     {@link TestItem#uuid}
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param user           {@link ReportPortalUser}
    * @return {@link TestItemResource}
    */
@@ -56,7 +56,7 @@ public interface GetTestItemHandler {
    *
    * @param filter         {@link Filter}
    * @param pageable       {@link Pageable}
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param user           {@link ReportPortalUser}
    * @param launchId       Launch id
    * @param filterId       Filter id
@@ -73,7 +73,7 @@ public interface GetTestItemHandler {
    *
    * @param filter         {@link Filter}
    * @param pageable       {@link Pageable}
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param user           {@link ReportPortalUser}
    * @return {@link Iterable} of the {@link TestItemResource}
    */
@@ -85,7 +85,7 @@ public interface GetTestItemHandler {
    * Gets accumulated statistics of items by data provider
    *
    * @param filter         {@link Filter}
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param user           {@link ReportPortalUser}
    * @return Accumulated statistics
    */
@@ -105,7 +105,7 @@ public interface GetTestItemHandler {
   /**
    * Get tickets that contains a term as a part inside for specified project
    *
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param term           part of {@link Ticket#getTicketId()} to search
    * @return {@link List} of {@link Ticket#getTicketId()}
    */
@@ -120,7 +120,7 @@ public interface GetTestItemHandler {
    * @param isLatest       Flag defines whether all or latest launches launches will be included in
    *                       the query condition
    * @param launchesLimit  Launches limit
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param keyPart        Part of the {@link ItemAttribute#getKey()} to search
    * @return {@link List} of the {@link ItemAttribute#getKey()}
    */
@@ -152,7 +152,7 @@ public interface GetTestItemHandler {
    * Get attributes keys of test items under launches with provided name under
    * {@link com.epam.ta.reportportal.entity.project.Project} specified by `projectDetails`
    *
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param launchName     {@link Launch#getName()}
    * @param keyPart        part of the {@link ItemAttribute#getKey()} to search
    * @return {@link List} of the {@link ItemAttribute#getKey()}
@@ -164,7 +164,7 @@ public interface GetTestItemHandler {
    * Get attributes values of test items under launches with provided name under
    * {@link com.epam.ta.reportportal.entity.project.Project} specified by `projectDetails`
    *
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param launchName     {@link Launch#getName()}
    * @param key            {@link ItemAttribute#getKey()}
    * @param valuePart      part of the {@link ItemAttribute#getValue()} to search
@@ -175,7 +175,7 @@ public interface GetTestItemHandler {
 
   /**
    * @param ids            array of the {@link com.epam.ta.reportportal.entity.launch.Launch#id}
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param user           {@link ReportPortalUser}
    * @return {@link List} of the {@link TestItemResource}
    */

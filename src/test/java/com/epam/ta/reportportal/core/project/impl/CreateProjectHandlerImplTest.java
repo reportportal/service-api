@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -61,7 +62,7 @@ class CreateProjectHandlerImplTest {
   @Test
   void createProjectWithWrongType() {
     ReportPortalUser rpUser =
-        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
+        getRpUser("user", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     CreateProjectRQ createProjectRQ = new CreateProjectRQ();
     createProjectRQ.setProjectName(TEST_PROJECT_NAME);
@@ -84,7 +85,7 @@ class CreateProjectHandlerImplTest {
   @Test
   void createProjectByNotExistUser() {
     ReportPortalUser rpUser =
-        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
+        getRpUser("user", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER,ProjectRole.EDITOR, 1L);
 
     CreateProjectRQ createProjectRQ = new CreateProjectRQ();
     createProjectRQ.setProjectName(TEST_PROJECT_NAME);

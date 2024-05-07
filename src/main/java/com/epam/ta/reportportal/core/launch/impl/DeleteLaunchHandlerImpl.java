@@ -180,7 +180,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
    *
    * @param launch         {@link Launch}
    * @param user           {@link ReportPortalUser}
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    */
   private void validate(Launch launch, ReportPortalUser user,
       MembershipDetails membershipDetails) {

@@ -34,7 +34,7 @@ public interface GetTicketHandler {
    * <b>Note: resulting object returned from cache.</b>
    *
    * @param ticketId       Ticket ID
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param btsUrl         URL of the bug tracking system to get ticket from
    * @param btsProject     Project in the bug tracking system to get ticket from
    * @return Ticket
@@ -47,7 +47,7 @@ public interface GetTicketHandler {
    *
    * @param ticketType     Ticket Type
    * @param integrationId  Integration id
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @return Found fields
    */
   List<PostFormField> getSubmitTicketFields(String ticketType, Long integrationId,
@@ -59,7 +59,7 @@ public interface GetTicketHandler {
    * Get allowable issue types
    *
    * @param integrationId  Integration id
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @return Fields
    */
   List<String> getAllowableIssueTypes(Long integrationId,

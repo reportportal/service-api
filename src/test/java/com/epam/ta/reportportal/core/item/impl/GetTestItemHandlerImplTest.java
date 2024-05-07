@@ -38,6 +38,7 @@ import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -74,7 +75,7 @@ class GetTestItemHandlerImplTest {
 
 	@Test
 	void TestItemNotFound() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 		when(testItemRepository.findById(1L)).thenReturn(Optional.empty());
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -85,7 +86,7 @@ class GetTestItemHandlerImplTest {
 
 	@Test
 	void getTestItemUnderNotExistedLaunch() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
@@ -105,7 +106,7 @@ class GetTestItemHandlerImplTest {
 
 	@Test
 	void getTestItemFromAnotherProject() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
@@ -129,7 +130,7 @@ class GetTestItemHandlerImplTest {
 
 	@Test
 	void getTestItemsUnderNotExistedLaunch() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
@@ -152,7 +153,7 @@ class GetTestItemHandlerImplTest {
 
 	@Test
 	public void getTestItemUnderAnotherProject() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
@@ -180,7 +181,7 @@ class GetTestItemHandlerImplTest {
 
 	@Test
 	void getItemByViewer() {
-		ReportPortalUser operator = getRpUser("operator", UserRole.USER, ProjectRole.VIEWER, 1L);
+		ReportPortalUser operator = getRpUser("operator", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
@@ -202,7 +203,7 @@ class GetTestItemHandlerImplTest {
 
 	@Test
 	public void getItemsForNonExistingFilter() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
@@ -231,7 +232,7 @@ class GetTestItemHandlerImplTest {
 
 	@Test
 	public void getItemsForIncorrectTargetClass() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
@@ -261,7 +262,7 @@ class GetTestItemHandlerImplTest {
 
 	@Test
 	public void getItemsForIncorrectLaunchesLimit() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
 		TestItem item = new TestItem();
 		Launch launch = new Launch();

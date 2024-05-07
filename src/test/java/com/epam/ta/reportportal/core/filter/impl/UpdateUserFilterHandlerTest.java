@@ -38,6 +38,7 @@ import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -81,7 +82,7 @@ class UpdateUserFilterHandlerTest {
   void updateUserFilterWithTheSameName() {
 
     final ReportPortalUser rpUser =
-        getRpUser("user", UserRole.USER, ProjectRole.EDITOR, 1L);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L);
 
     UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(SAME_NAME);
 
@@ -109,7 +110,7 @@ class UpdateUserFilterHandlerTest {
   void updateUserFilterWithAnotherNamePositive() {
 
     final ReportPortalUser rpUser =
-        getRpUser("user", UserRole.USER, ProjectRole.EDITOR, 1L);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L);
 
     UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(ANOTHER_NAME);
 
@@ -141,7 +142,7 @@ class UpdateUserFilterHandlerTest {
   void updateUserFilterWithAnotherNameNegative() {
 
     final ReportPortalUser rpUser =
-        getRpUser("user", UserRole.USER, ProjectRole.EDITOR, 1L);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L);
 
     UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(ANOTHER_NAME);
 

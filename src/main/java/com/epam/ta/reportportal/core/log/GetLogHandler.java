@@ -50,7 +50,7 @@ public interface GetLogHandler {
 
   /**
    * @param logsUnderRq    {@link GetLogsUnderRq}
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @return mapping with {@link TestItem#getItemId()} as key and its {@link Log} list as value
    */
   Map<Long, List<LogResource>> getLogs(GetLogsUnderRq logsUnderRq,
@@ -84,7 +84,7 @@ public interface GetLogHandler {
    *
    * @param parentId       {@link com.epam.ta.reportportal.entity.log.Log#testItem} ID or
    *                       {@link com.epam.ta.reportportal.entity.item.TestItem#parentId} ID
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param params         Request params
    * @param queryable      {@link Queryable}
    * @param pageable       {@link Pageable}

@@ -70,7 +70,7 @@ class LaunchAutoAnalysisStrategyTest {
     when(project.getId()).thenReturn(1L);
 
     when(project.getProjectAttributes()).thenReturn(Sets.newHashSet());
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.EDITOR, 1L);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L);
 
     MembershipDetails membershipDetails = MembershipDetails.builder()
         .withOrgId(1L)

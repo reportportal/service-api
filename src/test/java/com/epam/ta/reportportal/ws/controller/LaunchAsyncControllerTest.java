@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.MergeLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -74,7 +75,7 @@ class LaunchAsyncControllerTest {
   @Test
   void startLaunch() {
     ReportPortalUser user =
-        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
+        getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
     var membership = rpUserToMembership(user);
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
 
@@ -103,7 +104,7 @@ class LaunchAsyncControllerTest {
   @Test
   void finishLaunch() {
     ReportPortalUser user =
-        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
+        getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 
@@ -141,7 +142,7 @@ class LaunchAsyncControllerTest {
   @Test
   void mergeLaunch() {
     ReportPortalUser user =
-        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.EDITOR, 1L);
+        getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     MergeLaunchesRQ mergeLaunchesRQ = new MergeLaunchesRQ();
 

@@ -361,7 +361,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
    * Validate launch affiliation to the project
    *
    * @param launch         {@link Launch}
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    */
   private void validate(Launch launch, MembershipDetails membershipDetails) {
     expect(launch.getProjectId(), Predicates.equalTo(membershipDetails.getProjectId()))

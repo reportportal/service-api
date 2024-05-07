@@ -85,7 +85,7 @@ public interface GetProjectHandler {
    * Performs global search for user
    *
    * @param value          login OR full name of user
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param pageable       {@link Pageable} Page Details
    * @return List of found user resources
    */

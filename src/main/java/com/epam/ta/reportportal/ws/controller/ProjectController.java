@@ -16,8 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ROLE;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.NOT_CUSTOMER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
@@ -135,7 +134,7 @@ public class ProjectController {
   @Transactional
   @PostMapping
   @ResponseStatus(CREATED)
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   @Operation(summary = "Create new project")
   public EntryCreatedRS createProject(@RequestBody @Validated CreateProjectRQ createProjectRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -168,7 +167,7 @@ public class ProjectController {
 
   @DeleteMapping
   @ResponseStatus(OK)
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   @Operation(summary =  "Delete multiple projects", description = "Could be deleted only by users with administrator role")
   public DeleteBulkRS deleteProject(@RequestParam(value = "ids") List<Long> ids,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -177,7 +176,7 @@ public class ProjectController {
 
   @DeleteMapping("/{projectId}")
   @ResponseStatus(OK)
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   @Operation(summary =  "Delete project", description = "Could be deleted only by users with administrator role")
   public OperationCompletionRS deleteProject(@PathVariable Long projectId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -315,7 +314,7 @@ public class ProjectController {
   }
 
   @Transactional(readOnly = true)
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   @GetMapping(value = "/list")
   @ResponseStatus(HttpStatus.OK)
   public Iterable<ProjectInfoResource> getAllProjectsInfo(
@@ -328,7 +327,7 @@ public class ProjectController {
   }
 
   @Transactional(readOnly = true)
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   @GetMapping(value = "/export")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary =  "Exports information about all projects", description = "Allowable only for users with administrator role")
@@ -380,7 +379,7 @@ public class ProjectController {
   }
 
   @Transactional(readOnly = true)
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   @GetMapping(value = "/names")
   @ResponseStatus(HttpStatus.OK)
   public Iterable<String> getAllProjectNames(@AuthenticationPrincipal ReportPortalUser user) {
@@ -388,7 +387,7 @@ public class ProjectController {
   }
 
   @Transactional(readOnly = true)
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   @GetMapping(value = "/names/search")
   @ResponseStatus(HttpStatus.OK)
   public Iterable<String> searchProjectNames(@RequestParam("term") String term,
@@ -397,7 +396,7 @@ public class ProjectController {
   }
 
   @Transactional(readOnly = true)
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(ADMIN_ROLE)
   @GetMapping("analyzer/status")
   @ResponseBody
   @ResponseStatus(HttpStatus.OK)

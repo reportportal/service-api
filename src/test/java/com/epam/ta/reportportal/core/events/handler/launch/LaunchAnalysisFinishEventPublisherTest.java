@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.collect.ImmutableMap;
@@ -50,7 +51,7 @@ class LaunchAnalysisFinishEventPublisherTest {
   void shouldSendEvent() {
 
     final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.VIEWER,
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,
         launch.getProjectId());
     final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl");
 

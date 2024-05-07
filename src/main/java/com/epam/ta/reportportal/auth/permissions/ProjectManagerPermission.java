@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Validates this is {@link ProjectRole#PROJECT_MANAGER} or higher authority in the authentication
+ * Validates this is {@link ProjectRole#EDITOR} or higher authority in the authentication
  * context
  *
  * @author Andrei Varabyeu
@@ -39,7 +39,7 @@ public class ProjectManagerPermission extends BaseProjectPermission {
   }
 
   /**
-   * Validates this is {@link ProjectRole#PROJECT_MANAGER} or higher authority in the authentication
+   * Validates this is {@link ProjectRole#EDITOR} or higher authority in the authentication
    * context
    */
   @Override

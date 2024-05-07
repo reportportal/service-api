@@ -59,7 +59,7 @@ public interface UpdateUserFilterHandler {
    * Update user filter
    *
    * @param updateRQ       Request for filter update
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param user           {@link ReportPortalUser} filter's owner
    * @return List of {@link OperationCompletionRS}
    */

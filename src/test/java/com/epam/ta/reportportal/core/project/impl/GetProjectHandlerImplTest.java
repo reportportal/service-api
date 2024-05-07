@@ -102,7 +102,7 @@ class GetProjectHandlerImplTest {
     String projectKey = "not_exist";
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.EDITOR, projectId);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  projectId);
 
     when(projectRepository.findByKey(projectKey)).thenReturn(Optional.empty());
 
@@ -119,7 +119,7 @@ class GetProjectHandlerImplTest {
   void getUserNamesByIncorrectTerm() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.EDITOR, projectId);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  projectId);
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.getUserNames(extractProjectDetails(user, TEST_PROJECT_KEY), "")

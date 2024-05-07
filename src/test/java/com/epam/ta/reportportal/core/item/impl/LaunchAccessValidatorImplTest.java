@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -55,7 +56,7 @@ class LaunchAccessValidatorImplTest {
   @Test
   void validateNotExistingLaunch() {
 
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     Launch launch = new Launch();
     launch.setId(1L);
     when(launchRepository.findById(1L)).thenReturn(Optional.empty());
@@ -69,7 +70,7 @@ class LaunchAccessValidatorImplTest {
 
   @Test
   void validateLaunchUnderAnotherProject() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     TestItem item = new TestItem();
     Launch launch = new Launch();
@@ -90,7 +91,7 @@ class LaunchAccessValidatorImplTest {
 
   @Test
   void validateLaunchWithOperatorRole() {
-    ReportPortalUser operator = getRpUser("operator", UserRole.USER, ProjectRole.VIEWER, 1L);
+    ReportPortalUser operator = getRpUser("operator", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     Launch launch = new Launch();
     launch.setId(1L);

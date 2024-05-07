@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.DashboardRepository;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -53,7 +54,8 @@ class CreateDashboardHandlerImplTest {
     CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
     createDashboardRQ.setName("exist");
 
-    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, OrganizationRole.MANAGER,
+        ProjectRole.VIEWER, 1L);
 
     when(dashboardRepository.existsByNameAndOwnerAndProjectId("exist", "owner", 1L)).thenReturn(
         true);

@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.Resource
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.resolver.ItemAttributeTypeResolver;
 import com.epam.ta.reportportal.ws.reporting.LaunchResource;
 import com.epam.ta.reportportal.ws.reporting.Mode;
+import com.epam.ta.reportportal.ws.reporting.RetentionPolicy;
 import com.google.common.base.Preconditions;
 import java.util.Collections;
 import java.util.Map;
@@ -54,7 +55,8 @@ public class LaunchConverter {
   private ItemAttributeTypeResolver itemAttributeTypeResolver;
 
   @Autowired
-  private Map<ItemAttributeType, ResourceAttributeHandler<LaunchResource>> resourceAttributeUpdaterMapping;
+  private Map<ItemAttributeType, ResourceAttributeHandler<LaunchResource>>
+      resourceAttributeUpdaterMapping;
 
   public static final Function<Launch, LaunchActivityResource> TO_ACTIVITY_RESOURCE = launch -> {
     LaunchActivityResource resource = new LaunchActivityResource();
@@ -76,13 +78,14 @@ public class LaunchConverter {
     resource.setDescription(db.getDescription());
     resource.setStatus(db.getStatus() == null ? null : db.getStatus().toString());
     resource.setStartTime(db.getStartTime() == null ? null : db.getStartTime());
-    resource.setEndTime(
-        db.getEndTime() == null ? null : db.getEndTime());
+    resource.setEndTime(db.getEndTime() == null ? null : db.getEndTime());
     ofNullable(db.getLastModified()).ifPresent(resource::setLastModified);
     ofNullable(db.getAttributes()).ifPresent(attributes -> updateAttributes(resource, attributes));
     ofNullable(resource.getAttributes()).ifPresentOrElse(a -> {
     }, () -> resource.setAttributes(Collections.emptySet()));
     resource.setMode(db.getMode() == null ? null : Mode.valueOf(db.getMode().name()));
+    resource.setRetentionPolicy(db.getRetentionPolicy() == null ? null :
+        RetentionPolicy.valueOf(db.getRetentionPolicy().name()));
     resource.setAnalyzers(analyzerStatusCache.getStartedAnalyzers(db.getId()));
     resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
     resource.setApproximateDuration(db.getApproximateDuration());
@@ -95,10 +98,11 @@ public class LaunchConverter {
   };
 
   private void updateAttributes(LaunchResource resource, Set<ItemAttribute> attributes) {
-    final Map<ItemAttributeType, Set<ItemAttribute>> attributeMapping = attributes.stream()
-        .collect(groupingBy(
+    final Map<ItemAttributeType, Set<ItemAttribute>> attributeMapping =
+        attributes.stream().collect(groupingBy(
             attr -> itemAttributeTypeResolver.resolve(attr).orElse(ItemAttributeType.UNRESOLVED),
-            toSet()));
+            toSet()
+        ));
     attributeMapping.forEach(
         (type, attr) -> resourceAttributeUpdaterMapping.get(type).handle(resource, attr));
   }

@@ -68,6 +68,7 @@ project.ext {
             (migrationsUrl + '/migrations/77_email_server_documentation_link.up.sql')  : 'V077__email_server_documentation_link.sql',
             (migrationsUrl + '/migrations/78_drop_redundant_index.up.sql')             : 'V078__drop_redundant_index.sql',
             (migrationsUrl + '/migrations/86_notication_update.up.sql')                : 'V086__notication_update.sql',
+            (migrationsUrl + '/migrations/89_add_retention_policy_launch.up.sql')      : 'V089__add_retention_policy_launch.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

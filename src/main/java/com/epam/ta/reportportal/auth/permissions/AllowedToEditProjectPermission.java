@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -72,19 +73,16 @@ class AllowedToEditProjectPermission implements Permission {
     final Optional<MembershipDetails> membershipDetails =
         projectExtractor.findMembershipDetails(rpUser, resolvedProjectKey);
 
-    BusinessRule.expect(membershipDetails, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
+    BusinessRule.expect(membershipDetails.isPresent(), Predicate.isEqual(true))
+        .verify(ErrorType.ACCESS_DENIED);
 
     var md = membershipDetails.get();
-    if (OrganizationRole.MANAGER == md.getOrgRole()) {
+    if (OrganizationRole.MANAGER == md.getOrgRole() || ProjectRole.EDITOR == md.getProjectRole()) {
+      membershipDetails.ifPresent(details -> fillProjectDetails(rpUser, resolvedProjectKey, details));
       return true;
     }
 
-    BusinessRule.expect(md, m -> OrganizationRole.MEMBER == md.getOrgRole()
-            && ProjectRole.VIEWER == md.getProjectRole())
-        .verify(ErrorType.ACCESS_DENIED);
-
-    membershipDetails.ifPresent(details -> fillProjectDetails(rpUser, resolvedProjectKey, details));
-    return true;
+    return false;
   }
 
   private void fillProjectDetails(ReportPortalUser rpUser, String resolvedProjectName,

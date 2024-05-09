@@ -22,11 +22,13 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails;
 import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails.ProjectDetails;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -70,10 +72,17 @@ class AllowedToViewProjectPermission implements Permission {
     final Optional<MembershipDetails> membershipDetails =
         projectExtractor.findMembershipDetails(rpUser, resolvedProjectKey);
 
-    BusinessRule.expect(membershipDetails, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
+    BusinessRule.expect(membershipDetails.isPresent(), Predicate.isEqual(true))
+        .verify(ErrorType.ACCESS_DENIED);
+
+    var md = membershipDetails.get();
+    if (OrganizationRole.MANAGER == md.getOrgRole() || md.getProjectRole() != null) {
+      membershipDetails.ifPresent(details -> fillProjectDetails(rpUser, resolvedProjectKey, details));
+      return true;
+    }
 
     membershipDetails.ifPresent(details -> fillProjectDetails(rpUser, resolvedProjectKey, details));
-    return true;
+    return false;
   }
 
   private void fillProjectDetails(ReportPortalUser rpUser, String resolvedProjectName,

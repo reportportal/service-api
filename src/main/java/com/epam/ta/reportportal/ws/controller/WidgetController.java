@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -60,7 +60,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Pavel Bortnik
  */
 @RestController
-@PreAuthorize(ASSIGNED_TO_PROJECT)
+@PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
 @RequestMapping("/v1/{projectKey}/widget")
 @Tag(name = "widget-controller", description = "Widget Controller")
 public class WidgetController {

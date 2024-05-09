@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ROLE;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -83,7 +83,7 @@ public class ActivityEventController {
    * @param user           Authorized user
    * @return Event Activity Page
    */
-  @PreAuthorize(ADMIN_ROLE)
+  @PreAuthorize(IS_ADMIN)
   @PostMapping("/searches")
   @Operation(summary = "Get activities by search criteria")
   public PagedResponse<ActivityEventResource> getActivities(
@@ -102,7 +102,7 @@ public class ActivityEventController {
   }
 
   @GetMapping("/{projectKey}/subjectName")
-  @PreAuthorize(ADMIN_ROLE)
+  @PreAuthorize(IS_ADMIN)
   @Operation(summary =  "Load project activities subjectNames by filter", description = "Only for current project")
   public List<String> getProjectSubjectName(@PathVariable String projectKey,
       @RequestParam(FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + "subjectName")

@@ -16,7 +16,8 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -58,7 +59,6 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Pavel Bortnik
  */
 @RestController
-@PreAuthorize(ASSIGNED_TO_PROJECT)
 @RequestMapping("/v1/{projectKey}/dashboard")
 @Tag(name = "dashboard-controller", description = "Dashboard Controller")
 public class DashboardController {
@@ -82,6 +82,7 @@ public class DashboardController {
 
   @Transactional
   @PostMapping
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(CREATED)
   @Operation(summary = "Create dashboard for specified project")
   public EntryCreatedRS createDashboard(@PathVariable String projectKey,
@@ -93,6 +94,7 @@ public class DashboardController {
 
   @Transactional(readOnly = true)
   @GetMapping
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Get all permitted dashboard resources for specified project")
   public Iterable<DashboardResource> getAllDashboards(@PathVariable String projectKey,
@@ -104,6 +106,7 @@ public class DashboardController {
 
   @Transactional
   @PutMapping("/{dashboardId}/add")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Add widget to specified dashboard")
   public OperationCompletionRS addWidget(@PathVariable String projectKey,
@@ -115,6 +118,7 @@ public class DashboardController {
 
   @Transactional
   @DeleteMapping("/{dashboardId}/{widgetId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Remove widget from specified dashboard")
   public OperationCompletionRS removeWidget(@PathVariable String projectKey,
@@ -126,6 +130,7 @@ public class DashboardController {
 
   @Transactional
   @PutMapping(value = "/{dashboardId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Update specified dashboard for specified project")
   public OperationCompletionRS updateDashboard(@PathVariable String projectKey,
@@ -137,6 +142,7 @@ public class DashboardController {
 
   @Transactional
   @DeleteMapping(value = "/{dashboardId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Delete specified dashboard by ID for specified project")
   public OperationCompletionRS deleteDashboard(@PathVariable String projectKey,
@@ -147,6 +153,7 @@ public class DashboardController {
 
   @Transactional
   @GetMapping(value = "/{dashboardId}")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Get specified dashboard by ID for specified project")
   public DashboardResource getDashboard(@PathVariable String projectKey,

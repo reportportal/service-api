@@ -86,7 +86,7 @@ class ReportPortalPermissionEvaluator implements PermissionEvaluator {
     if (!permissionNameToPermissionMap.containsKey(permissionKey)) {
       throw new PermissionNotDefinedException(
           "No permission with key " + permissionKey + " is defined in " + this.getClass()
-              .toString());
+              .getName());
     }
   }
 
@@ -94,6 +94,6 @@ class ReportPortalPermissionEvaluator implements PermissionEvaluator {
   public boolean hasPermission(Authentication authentication, Serializable targetId,
       String targetType, Object permission) {
     throw new PermissionNotDefinedException(
-        "Id and Class permissions are not supperted by " + this.getClass().toString());
+        "Id and Class permissions are not supported by " + this.getClass().getName());
   }
 }

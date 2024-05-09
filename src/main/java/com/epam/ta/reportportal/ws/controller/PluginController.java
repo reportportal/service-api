@@ -17,9 +17,9 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.reportportal.extension.util.CommandParamUtils.ENTITY_PARAM;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ROLE;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -94,7 +94,7 @@ public class PluginController {
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(summary = "Upload new ReportPortal plugin")
-  @PreAuthorize(ADMIN_ROLE)
+  @PreAuthorize(IS_ADMIN)
   public EntryCreatedRS uploadPlugin(@NotNull @RequestParam("file") MultipartFile pluginFile,
       @AuthenticationPrincipal ReportPortalUser user) {
     return createPluginHandler.uploadPlugin(pluginFile, user);
@@ -104,7 +104,7 @@ public class PluginController {
   @PutMapping(value = "/{pluginId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Update ReportPortal plugin state")
-  @PreAuthorize(ADMIN_ROLE)
+  @PreAuthorize(IS_ADMIN)
   public OperationCompletionRS updatePluginState(@PathVariable(value = "pluginId") Long id,
       @RequestBody @Valid UpdatePluginStateRQ updatePluginStateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -123,7 +123,7 @@ public class PluginController {
   @DeleteMapping(value = "/{pluginId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Delete plugin by id")
-  @PreAuthorize(ADMIN_ROLE)
+  @PreAuthorize(IS_ADMIN)
   public OperationCompletionRS deletePlugin(@PathVariable(value = "pluginId") Long id,
       @AuthenticationPrincipal ReportPortalUser user) {
     return deletePluginHandler.deleteById(id, user);
@@ -134,7 +134,7 @@ public class PluginController {
       value = "{projectKey}/{pluginName}/common/{command}",
       consumes = {APPLICATION_JSON_VALUE})
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize(ASSIGNED_TO_PROJECT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Execute command to the plugin instance")
   public Object executePluginCommand(@PathVariable String projectKey,
       @PathVariable("pluginName") String pluginName, @PathVariable("command") String command,

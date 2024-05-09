@@ -37,9 +37,9 @@ import org.springframework.stereotype.Component;
  *
  * @author Andrei Varabyeu
  */
-@Component("assignedToProjectPermission")
-@LookupPermission({"isAssignedToProject"})
-class AssignedToProjectPermission implements Permission {
+@Component("allowedToViewProjectPermission")
+@LookupPermission({"allowedToViewProject"})
+class AllowedToViewProjectPermission implements Permission {
 
   /*
    * Due to Spring's framework flow, Security API loads first. So, context
@@ -49,7 +49,7 @@ class AssignedToProjectPermission implements Permission {
   private final ProjectExtractor projectExtractor;
 
   @Autowired
-  AssignedToProjectPermission(ProjectExtractor projectExtractor) {
+  AllowedToViewProjectPermission(ProjectExtractor projectExtractor) {
     this.projectExtractor = projectExtractor;
   }
 
@@ -67,10 +67,13 @@ class AssignedToProjectPermission implements Permission {
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
     final String resolvedProjectKey = String.valueOf(targetDomainObject);
-    final Optional<MembershipDetails> projectDetails = projectExtractor.findMembershipDetails(
-        rpUser, resolvedProjectKey);
-    projectDetails.ifPresent(details -> fillProjectDetails(rpUser, resolvedProjectKey, details));
-    return projectDetails.isPresent();
+    final Optional<MembershipDetails> membershipDetails =
+        projectExtractor.findMembershipDetails(rpUser, resolvedProjectKey);
+
+    BusinessRule.expect(membershipDetails, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
+
+    membershipDetails.ifPresent(details -> fillProjectDetails(rpUser, resolvedProjectKey, details));
+    return true;
   }
 
   private void fillProjectDetails(ReportPortalUser rpUser, String resolvedProjectName,

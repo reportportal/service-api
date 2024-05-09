@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.ta.reportportal.util.ControllerUtils.findByFileName;
 import static com.epam.ta.reportportal.util.ControllerUtils.getUploadedFiles;
 import static com.epam.ta.reportportal.util.ControllerUtils.validateSaveRQ;
@@ -64,7 +64,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @RestController
 @RequestMapping("/v2/{projectKey}/log")
-@PreAuthorize(ASSIGNED_TO_PROJECT)
+@PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
 @Tag(name = "log-async-controller", description = "Log Async Controller")
 public class LogAsyncController {
 

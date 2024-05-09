@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ROLE;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
@@ -99,7 +99,7 @@ public class BugTrackingSystemController {
   @GetMapping(value = "/{integrationId}/fields-set")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get list of fields required for posting ticket")
-  @PreAuthorize(ADMIN_ROLE)
+  @PreAuthorize(IS_ADMIN)
   public List<PostFormField> getSetOfIntegrationSystemFields(
       @RequestParam(value = "issueType") String issueType,
       @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
@@ -110,7 +110,7 @@ public class BugTrackingSystemController {
   @GetMapping(value = "/{integrationId}/issue_types")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get list of existed issue types in bts")
-  @PreAuthorize(ADMIN_ROLE)
+  @PreAuthorize(IS_ADMIN)
   public List<String> getAllowableIssueTypes(@PathVariable Long integrationId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getTicketHandler.getAllowableIssueTypes(integrationId);

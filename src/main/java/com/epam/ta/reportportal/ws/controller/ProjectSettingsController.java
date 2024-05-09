@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -68,7 +68,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/{projectKey}/settings")
-@PreAuthorize(ASSIGNED_TO_PROJECT)
+@PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
 @Tag(name = "project-settings-controller", description = "Project Settings Controller")
 public class ProjectSettingsController {
 
@@ -140,7 +140,7 @@ public class ProjectSettingsController {
 
   @GetMapping
   @ResponseStatus(OK)
-  @PreAuthorize(ASSIGNED_TO_PROJECT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary =  "Get project specific issue sub-types", description = "Only for users that are assigned to the project")
   public ProjectSettingsResource getProjectSettings(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -184,7 +184,7 @@ public class ProjectSettingsController {
   @Transactional(readOnly = true)
   @GetMapping("/notification")
   @ResponseStatus(OK)
-  @PreAuthorize(ASSIGNED_TO_PROJECT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary =  "Returns notifications config of specified project", description = "Only for users assigned to specified project")
   public List<SenderCaseDTO> getNotifications(@PathVariable String projectKey) {
     return getProjectNotificationsHandler.getProjectNotifications(

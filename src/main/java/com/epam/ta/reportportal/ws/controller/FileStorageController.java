@@ -16,9 +16,8 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.NOT_CUSTOMER;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -74,7 +73,7 @@ public class FileStorageController {
   }
 
   @Transactional(readOnly = true)
-  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @GetMapping(value = "/{projectKey}/{dataId}")
   @Operation(summary = "Get file")
   public void getFile(@PathVariable String projectKey, @PathVariable("dataId") Long dataId,
@@ -94,9 +93,9 @@ public class FileStorageController {
   }
 
   @Transactional(readOnly = true)
-  @PreAuthorize(NOT_CUSTOMER)
   @GetMapping(value = "/{projectKey}/userphoto")
   @Operation(summary = "Get user's photo")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public void getUserPhoto(@PathVariable String projectKey,
       @RequestParam(value = "login") String username,
       @RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail,

@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -139,7 +139,7 @@ public class LaunchController {
   /* Report client API */
 
   @PostMapping
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(CREATED)
   @Operation(summary = "Starts launch for specified project")
   public StartLaunchRS startLaunch(@PathVariable String projectKey,
@@ -151,7 +151,7 @@ public class LaunchController {
   }
 
   @PutMapping(value = "/{launchId}/finish")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Finish launch for specified project")
   public FinishLaunchRS finishLaunch(@PathVariable String projectKey,
@@ -167,7 +167,7 @@ public class LaunchController {
 
   @Transactional
   @PutMapping("/{launchId}/stop")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Force finish launch for specified project")
   public OperationCompletionRS forceFinishLaunch(@PathVariable String projectKey,
@@ -180,7 +180,7 @@ public class LaunchController {
 
   @Transactional
   @PutMapping("/stop")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Force finish launch")
   public List<OperationCompletionRS> bulkForceFinish(@PathVariable String projectKey,
@@ -193,7 +193,7 @@ public class LaunchController {
 
   @Transactional
   @PutMapping("/{launchId}/update")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Updates launch for specified project")
   public OperationCompletionRS updateLaunch(@PathVariable String projectKey,
@@ -206,7 +206,7 @@ public class LaunchController {
 
   @Transactional
   @PutMapping("/update")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Updates launches for specified project")
   public List<OperationCompletionRS> updateLaunches(@PathVariable String projectKey,
@@ -219,7 +219,7 @@ public class LaunchController {
 
   @Transactional
   @DeleteMapping("/{launchId}")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Delete specified launch by ID")
   public OperationCompletionRS deleteLaunch(@PathVariable String projectKey,
@@ -232,6 +232,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping("/{launchId}")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get specified launch by ID")
   public LaunchResource getLaunch(@PathVariable String projectKey, @PathVariable String launchId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -242,7 +243,7 @@ public class LaunchController {
 
   @Transactional(readOnly = true)
   @GetMapping("/uuid/{launchId}")
-  @ResponseStatus(OK)
+  @ResponseStatus(OK)  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get specified launch by UUID")
   public LaunchResource getLaunchByUuid(@PathVariable String projectKey,
       @PathVariable String launchId, @AuthenticationPrincipal ReportPortalUser user) {
@@ -254,6 +255,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get list of project launches by filter")
   public Iterable<LaunchResource> getProjectLaunches(@PathVariable String projectKey,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
@@ -267,6 +269,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/latest")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get list of latest project launches by filter")
   public Iterable<LaunchResource> getLatestLaunches(@PathVariable String projectKey,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
@@ -277,6 +280,7 @@ public class LaunchController {
 
   @GetMapping(value = "/mode")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get launches of specified project from DEBUG mode")
   public Iterable<LaunchResource> getDebugLaunches(@PathVariable String projectKey,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
@@ -288,6 +292,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/attribute/keys")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get all unique attribute keys of project launches")
   public List<String> getAttributeKeys(@PathVariable String projectKey,
       @RequestParam(value = "filter." + "cnt." + "attributeKey") String value,
@@ -299,6 +304,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/attribute/values")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get all unique attribute values of project launches")
   public List<String> getAttributeValues(@PathVariable String projectKey,
       @RequestParam(value = "filter." + "eq." + "attributeKey", required = false) String key,
@@ -310,6 +316,7 @@ public class LaunchController {
 
   @GetMapping(value = "/cluster/{launchId}")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get all index clusters of the launch")
   public Iterable<ClusterInfoResource> getClusters(@PathVariable String projectKey,
       @PathVariable String launchId, Pageable pageable,
@@ -321,7 +328,7 @@ public class LaunchController {
 
   @Transactional
   @PutMapping(value = "/info")
-  @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Bulk update attributes and description")
   public OperationCompletionRS bulkUpdate(@PathVariable String projectKey,
@@ -335,6 +342,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/owners")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get all unique owners of project launches")
   public List<String> getAllOwners(@PathVariable String projectKey,
       @RequestParam(value = "filter." + "cnt." + "user") String value,
@@ -347,6 +355,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/names")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get launch names of project")
   public List<String> getAllLaunchNames(@PathVariable String projectKey,
       @RequestParam(value = "filter." + "cnt." + "name", required = false, defaultValue = "")
@@ -358,6 +367,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/compare")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Compare launches")
   public Map<String, List<ChartStatisticsContent>> compareLaunches(@PathVariable String projectKey,
       @RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
@@ -367,7 +377,7 @@ public class LaunchController {
 
   @Transactional
   @PostMapping("/merge")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Merge set of specified launches in common one", description =
       "This operation merges a set of launches into a common one. "
@@ -385,6 +395,7 @@ public class LaunchController {
   @Transactional
   @PostMapping(value = "/analyze")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Start launch auto-analyzer on demand")
   public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectKey,
       @RequestBody @Validated AnalyzeLaunchRQ analyzeLaunchRQ,
@@ -396,6 +407,7 @@ public class LaunchController {
 
   @PostMapping(value = "/cluster")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Create launch clusters")
   public OperationCompletionRS createClusters(@PathVariable String projectKey,
       @RequestBody @Validated CreateClustersRQ createClustersRQ,
@@ -407,6 +419,7 @@ public class LaunchController {
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/status")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @ResponseStatus(OK)
   public Map<String, String> getStatuses(@PathVariable String projectKey,
       @RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
@@ -417,7 +430,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/{launchId}/report")
   @ResponseStatus(OK)
-  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Export specified launch",
       description = "Only following formats are supported: pdf (by default), xls, html.")
   public void getLaunchReport(@PathVariable String projectKey, @PathVariable Long launchId,
@@ -445,7 +458,7 @@ public class LaunchController {
 
   @Transactional
   @DeleteMapping
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Delete specified launches by ids")
   public DeleteBulkRS deleteLaunches(@PathVariable String projectKey,
@@ -457,6 +470,7 @@ public class LaunchController {
 
   @PostMapping(value = "/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Import junit xml report",
       description = "Only following formats are supported: zip and xml.")
   public OperationCompletionRS importLaunch(@PathVariable String projectKey,

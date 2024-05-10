@@ -16,7 +16,7 @@
 
  package com.epam.ta.reportportal.ws.controller;
 
- import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+ import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
  import static org.springframework.http.HttpStatus.OK;
 
  import com.epam.ta.reportportal.commons.EntityUtils;
@@ -49,7 +49,7 @@
  @RestController
  @RequestMapping("/v1/{projectKey}/activity")
  @Transactional(readOnly = true)
- @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+ @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
  @Tag(name = "activity-controller", description = "Activity Controller")
  public class ActivityController {
 

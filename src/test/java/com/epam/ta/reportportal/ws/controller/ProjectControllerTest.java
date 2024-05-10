@@ -148,7 +148,7 @@ class ProjectControllerTest extends BaseMvcTest {
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
-    userRoles.put("test_user", "PROJECT_MANAGER");
+    userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
         .content(objectMapper.writeValueAsBytes(rq))
@@ -188,7 +188,7 @@ class ProjectControllerTest extends BaseMvcTest {
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
-    userRoles.put("test_user", "PROJECT_MANAGER");
+    userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
         .content(objectMapper.writeValueAsBytes(rq))
@@ -207,7 +207,7 @@ class ProjectControllerTest extends BaseMvcTest {
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
-    userRoles.put("test_user", "PROJECT_MANAGER");
+    userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
         .content(objectMapper.writeValueAsBytes(rq))
@@ -226,7 +226,7 @@ class ProjectControllerTest extends BaseMvcTest {
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
-    userRoles.put("test_user", "PROJECT_MANAGER");
+    userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
         .content(objectMapper.writeValueAsBytes(rq))
@@ -245,7 +245,7 @@ class ProjectControllerTest extends BaseMvcTest {
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
-    userRoles.put("test_user", "PROJECT_MANAGER");
+    userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
         .content(objectMapper.writeValueAsBytes(rq))
@@ -264,7 +264,7 @@ class ProjectControllerTest extends BaseMvcTest {
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
-    userRoles.put("test_user", "PROJECT_MANAGER");
+    userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
         .content(objectMapper.writeValueAsBytes(rq))
@@ -283,7 +283,7 @@ class ProjectControllerTest extends BaseMvcTest {
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
-    userRoles.put("test_user", "PROJECT_MANAGER");
+    userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
         .content(objectMapper.writeValueAsBytes(rq))
@@ -301,7 +301,7 @@ class ProjectControllerTest extends BaseMvcTest {
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
-    userRoles.put("test_user", "PROJECT_MANAGER");
+    userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
         .content(objectMapper.writeValueAsBytes(rq))

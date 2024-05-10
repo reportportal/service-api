@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.reportportal.extension.util.CommandParamUtils.ENTITY_PARAM;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
+
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.OK;
@@ -146,13 +146,13 @@ public class PluginController {
     );
   }
 
-  @PreAuthorize(ALLOWED_TO_REPORT)
-  @PostMapping(value = "/{projectName}/{pluginName}/import", consumes = {
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  @PostMapping(value = "/{projectKey}/{pluginName}/import", consumes = {
       MediaType.MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(OK)
   @Operation(summary = "Send report to the specified plugin for importing")
   public Object executeImportPluginCommand(@AuthenticationPrincipal ReportPortalUser user,
-      @PathVariable String projectName, @PathVariable String pluginName,
+      @PathVariable String projectKey, @PathVariable String pluginName,
       @RequestParam("file") MultipartFile file,
       @RequestPart(required = false) @Valid LaunchImportRQ launchImportRq) {
     Map<String, Object> executionParams = new HashMap<>();
@@ -162,7 +162,7 @@ public class PluginController {
         () -> executionParams.put(ENTITY_PARAM, new LaunchImportRQ())
     );
     return executeIntegrationHandler.executeCommand(
-        projectExtractor.extractMembershipDetails(user, projectName), pluginName, "import",
+        projectExtractor.extractMembershipDetails(user, projectKey), pluginName, "import",
         executionParams);
   }
 }

@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -87,6 +88,7 @@ public class UserFilterController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(summary = "Create user filter")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public EntryCreatedRS createFilter(@PathVariable String projectKey,
       @RequestBody @Validated UpdateUserFilterRQ createFilterRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -97,6 +99,7 @@ public class UserFilterController {
   @GetMapping(value = "/{filterId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get specified user filter by id")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public UserFilterResource getFilter(@PathVariable String projectKey, @PathVariable Long filterId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getFilterHandler.getUserFilter(
@@ -107,6 +110,7 @@ public class UserFilterController {
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get filters")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public Iterable<UserFilterResource> getAllFilters(@PathVariable String projectKey,
       @SortFor(UserFilter.class) Pageable pageable, @FilterFor(UserFilter.class) Filter filter,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -117,6 +121,7 @@ public class UserFilterController {
   @DeleteMapping(value = "/{filterId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Delete specified user filter by id")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public OperationCompletionRS deleteFilter(@PathVariable String projectKey,
       @PathVariable Long filterId, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteFilterHandler.deleteFilter(
@@ -127,6 +132,7 @@ public class UserFilterController {
   @GetMapping(value = "/names")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get available filter names")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public Iterable<OwnedEntityResource> getAllFiltersNames(@PathVariable String projectKey,
       @SortFor(UserFilter.class) Pageable pageable, @FilterFor(UserFilter.class) Filter filter,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -138,6 +144,7 @@ public class UserFilterController {
   @PutMapping(value = "/{filterId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Update specified user filter")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public OperationCompletionRS updateUserFilter(@PathVariable String projectKey,
       @PathVariable Long filterId, @RequestBody @Validated UpdateUserFilterRQ updateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -150,6 +157,7 @@ public class UserFilterController {
   @GetMapping(value = "/filters")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get list of specified user filters")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public List<UserFilterResource> getUserFilters(@PathVariable String projectKey,
       @RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
     List<UserFilter> filters = getFilterHandler.getFiltersById(ids,
@@ -163,6 +171,7 @@ public class UserFilterController {
   @RequestMapping(method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Update list of user filters")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public List<OperationCompletionRS> updateUserFilters(@PathVariable String projectKey,
       @RequestBody @Validated CollectionsRQ<BulkUpdateFilterRQ> updateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {

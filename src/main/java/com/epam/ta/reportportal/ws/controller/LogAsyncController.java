@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
+
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.ta.reportportal.util.ControllerUtils.findByFileName;
 import static com.epam.ta.reportportal.util.ControllerUtils.getUploadedFiles;
@@ -91,7 +91,7 @@ public class LogAsyncController {
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
   @ResponseStatus(CREATED)
   @Hidden
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public EntryCreatedAsyncRS createLog(@PathVariable String projectKey,
       @RequestBody SaveLogRQ createLogRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -104,7 +104,7 @@ public class LogAsyncController {
   @PostMapping(value = "/entry", consumes = {MediaType.APPLICATION_JSON_VALUE})
   @ResponseStatus(CREATED)
   @Operation(summary = "Create log")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public EntryCreatedAsyncRS createLogEntry(@PathVariable String projectKey,
       @RequestBody SaveLogRQ createLogRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -119,7 +119,7 @@ public class LogAsyncController {
   // Specific handler should be added for springfox in case of similar POST
   // request mappings
   //	@Async
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectKey,
       @RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs,
       HttpServletRequest request,

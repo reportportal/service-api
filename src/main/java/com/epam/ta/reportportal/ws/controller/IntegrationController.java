@@ -16,9 +16,10 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
+
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -100,7 +101,7 @@ public class IntegrationController {
   @Transactional(readOnly = true)
   @GetMapping("/project/{projectKey}/all")
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get available project integrations")
   public List<IntegrationResource> getProjectIntegrations(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser reportPortalUser) {
@@ -110,7 +111,7 @@ public class IntegrationController {
   @Transactional(readOnly = true)
   @GetMapping("/project/{projectKey}/all/{pluginName}")
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get available project integrations for plugin")
   public List<IntegrationResource> getProjectIntegrations(
       @AuthenticationPrincipal ReportPortalUser reportPortalUser, @PathVariable String projectKey,
@@ -132,7 +133,7 @@ public class IntegrationController {
   @PostMapping(value = "/{projectKey}/{pluginName}")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(summary = "Create project ReportPortal integration instance")
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public EntryCreatedRS createProjectIntegration(@RequestBody @Valid IntegrationRQ createRequest,
       @PathVariable String pluginName, @PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -145,7 +146,7 @@ public class IntegrationController {
   @Transactional(readOnly = true)
   @GetMapping(value = "{projectKey}/{integrationId}/connection/test")
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Test connection to the integration through the project config")
   public boolean testIntegrationConnection(@PathVariable Long integrationId,
       @PathVariable String projectKey, @AuthenticationPrincipal ReportPortalUser user) {
@@ -198,7 +199,7 @@ public class IntegrationController {
   @PutMapping(value = "/{projectKey}/{integrationId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Update project integration instance")
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public OperationCompletionRS updateProjectIntegration(@PathVariable Long integrationId,
       @RequestBody @Valid IntegrationRQ updateRequest, @PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -232,7 +233,7 @@ public class IntegrationController {
   @DeleteMapping(value = "/{projectKey}/{integrationId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Delete project integration instance")
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public OperationCompletionRS deleteProjectIntegration(@PathVariable String projectKey,
       @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteIntegrationHandler.deleteProjectIntegration(integrationId,
@@ -244,7 +245,7 @@ public class IntegrationController {
   @DeleteMapping(value = "/{projectKey}/all/{type}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Delete all integrations assigned to specified project")
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public OperationCompletionRS deleteAllProjectIntegrations(@PathVariable String type,
       @PathVariable String projectKey, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteIntegrationHandler.deleteProjectIntegrationsByType(type, normalizeId(projectKey),

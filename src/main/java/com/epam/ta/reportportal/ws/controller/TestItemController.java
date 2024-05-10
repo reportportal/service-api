@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
@@ -96,7 +96,6 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/{projectKey}/item")
-@PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
 @Tag(name = "test-item-controller", description = "Test Item Controller")
 public class TestItemController {
 
@@ -138,7 +137,7 @@ public class TestItemController {
   @PostMapping
   @ResponseStatus(CREATED)
   @Operation(summary = "Start a root test item")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public EntryCreatedAsyncRS startRootItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
@@ -150,7 +149,7 @@ public class TestItemController {
   @PostMapping("/{parentItem}")
   @ResponseStatus(CREATED)
   @Operation(summary = "Start a child test item")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public EntryCreatedAsyncRS startChildItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable String parentItem,
       @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
@@ -162,7 +161,7 @@ public class TestItemController {
   @PutMapping("/{testItemId}")
   @ResponseStatus(OK)
   @Operation(summary = "Finish test item")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public OperationCompletionRS finishTestItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable String testItemId,
       @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
@@ -178,6 +177,7 @@ public class TestItemController {
   @GetMapping("/{itemId}")
   @ResponseStatus(OK)
   @Operation(summary = "Find test item by ID")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public TestItemResource getTestItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable String itemId) {
     return getTestItemHandler.getTestItem(itemId,
@@ -190,6 +190,7 @@ public class TestItemController {
   @GetMapping("/uuid/{itemId}")
   @ResponseStatus(OK)
   @Operation(summary = "Find test item by UUID")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public TestItemResource getTestItemByUuid(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable String itemId) {
     return getTestItemHandler.getTestItem(itemId,
@@ -202,6 +203,7 @@ public class TestItemController {
   @GetMapping("/suggest/{itemId}")
   @ResponseStatus(OK)
   @Operation(summary = "Search suggested items in analyzer for provided one")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public List<SuggestedItem> getSuggestedItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable Long itemId) {
     return suggestItemService.suggestItems(itemId,
@@ -212,6 +214,7 @@ public class TestItemController {
   @GetMapping("/suggest/cluster/{clusterId}")
   @ResponseStatus(OK)
   @Operation(summary = "Search suggested items in analyzer for provided one")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public List<SuggestedItem> getSuggestedClusterItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable Long clusterId) {
     return suggestItemService.suggestClusterItems(clusterId,
@@ -223,6 +226,7 @@ public class TestItemController {
   @PutMapping("/suggest/choice")
   @ResponseStatus(OK)
   @Operation(summary = "Handle user choice from suggested items")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public OperationCompletionRS handleSuggestChoose(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated List<SuggestInfo> request) {
@@ -236,6 +240,7 @@ public class TestItemController {
   @ResponseStatus(OK)
   @Operation(summary = "Find test items by specified filter")
   @Schema(implementation = TestItemHistoryElement.class)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public Iterable<TestItemResource> getTestItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @Nullable
   @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID, required = false)
@@ -258,6 +263,7 @@ public class TestItemController {
   @GetMapping("/v2")
   @ResponseStatus(OK)
   @Operation(summary = "Find test items by specified filter")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public Iterable<TestItemResource> getTestItemsV2(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam Map<String, String> params,
       @FilterFor(TestItem.class) Filter filter,
@@ -277,6 +283,7 @@ public class TestItemController {
   @GetMapping("/statistics")
   @ResponseStatus(OK)
   @Operation(summary = "Find accumulated statistics of items by specified filter")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public StatisticsResource getTestItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @FilterFor(TestItem.class) Filter filter,
       @FilterFor(TestItem.class) Queryable predefinedFilter,
@@ -291,6 +298,7 @@ public class TestItemController {
   @DeleteMapping("/{itemId}")
   @ResponseStatus(OK)
   @Operation(summary = "Delete test item")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public OperationCompletionRS deleteTestItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable Long itemId) {
     return deleteTestItemHandler.deleteTestItem(itemId,
@@ -302,6 +310,7 @@ public class TestItemController {
   @DeleteMapping
   @ResponseStatus(OK)
   @Operation(summary = "Delete test items by specified ids")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public List<OperationCompletionRS> deleteTestItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "ids") Set<Long> ids) {
     return deleteTestItemHandler.deleteTestItems(ids,
@@ -313,6 +322,7 @@ public class TestItemController {
   @PutMapping
   @ResponseStatus(OK)
   @Operation(summary = "Update issues of specified test items")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public List<Issue> defineTestItemIssueType(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated DefineIssueRQ request) {
@@ -324,6 +334,7 @@ public class TestItemController {
   @GetMapping("/history")
   @ResponseStatus(OK)
   @Operation(summary = "Load history of test items")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public Iterable<TestItemHistoryElement> getItemsHistory(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @FilterFor(TestItem.class) Filter filter,
       @FilterFor(TestItem.class) Queryable predefinedFilter,
@@ -355,6 +366,7 @@ public class TestItemController {
   @GetMapping("/ticket/ids")
   @ResponseStatus(OK)
   @Operation(summary = "Get tickets that contains a term as a part inside for specified launch")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public List<String> getTicketIds(@AuthenticationPrincipal ReportPortalUser user,
       @PathVariable String projectKey, @RequestParam(value = "launch") Long id,
       @RequestParam(value = "term") String term) {
@@ -365,6 +377,7 @@ public class TestItemController {
   @GetMapping("/ticket/ids/all")
   @ResponseStatus(OK)
   @Operation(summary = "Get tickets that contains a term as a part inside for specified launch")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public List<String> getTicketIdsForProject(@AuthenticationPrincipal ReportPortalUser user,
       @PathVariable String projectKey, @RequestParam(value = "term") String term) {
     return getTestItemHandler.getTicketIds(
@@ -376,6 +389,7 @@ public class TestItemController {
   @GetMapping("/attribute/keys")
   @ResponseStatus(OK)
   @Operation(summary = "Get all unique attribute keys of specified launch")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public List<String> getAttributeKeys(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "launch") Long id,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_KEY)
@@ -388,6 +402,7 @@ public class TestItemController {
   @GetMapping("/attribute/keys/all")
   @ResponseStatus(OK)
   @Operation(summary = "Get all unique attribute keys of specified launch")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public List<String> getAttributeKeysForProject(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_KEY)
@@ -405,6 +420,7 @@ public class TestItemController {
   @GetMapping("/attribute/values")
   @ResponseStatus(OK)
   @Operation(summary = "Get all unique attribute values of specified launch")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public List<String> getAttributeValues(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "launch") Long id,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ
@@ -418,6 +434,7 @@ public class TestItemController {
   @GetMapping("/step/attribute/keys")
   @ResponseStatus(OK)
   @Operation(summary = "Get all unique attribute keys of step items under specified project")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public List<String> getAttributeKeys(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_NAME, required = false)
@@ -434,6 +451,7 @@ public class TestItemController {
   @GetMapping("/step/attribute/values")
   @ResponseStatus(OK)
   @Operation(summary = "Get all unique attribute values of step items under specified project")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public List<String> getAttributeValues(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_NAME, required = false)
@@ -449,7 +467,7 @@ public class TestItemController {
 
   @Transactional
   @PutMapping(value = "/info")
-  @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Bulk update attributes and description")
   public OperationCompletionRS bulkUpdate(@PathVariable String projectKey,
@@ -464,6 +482,7 @@ public class TestItemController {
   @PutMapping("/{itemId}/update")
   @ResponseStatus(OK)
   @Operation(summary = "Update test item")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public OperationCompletionRS updateTestItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable Long itemId,
       @RequestBody @Validated UpdateTestItemRQ rq) {
@@ -475,6 +494,7 @@ public class TestItemController {
   @PutMapping("/issue/link")
   @ResponseStatus(OK)
   @Operation(summary = "Attach external issue for specified test items")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public List<OperationCompletionRS> linkExternalIssues(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated LinkExternalIssueRQ rq) {
@@ -487,6 +507,7 @@ public class TestItemController {
   @PutMapping("/issue/unlink")
   @ResponseStatus(OK)
   @Operation(summary = "Unlink external issue for specified test items")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public List<OperationCompletionRS> unlinkExternalIssues(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated UnlinkExternalIssueRQ rq) {
@@ -499,6 +520,7 @@ public class TestItemController {
   @GetMapping("/items")
   @ResponseStatus(OK)
   @Operation(summary = "Get test items by specified ids")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public List<TestItemResource> getTestItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "ids") Long[] ids) {
     return getTestItemHandler.getTestItems(ids,

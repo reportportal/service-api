@@ -16,8 +16,9 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -72,7 +73,7 @@ public class BugTrackingSystemController {
   @GetMapping(value = "/{projectKey}/{integrationId}/fields-set")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get list of fields required for posting ticket in concrete integration")
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public List<PostFormField> getSetOfIntegrationSystemFields(
       @RequestParam(value = "issueType") String issuetype,
       @PathVariable String projectKey, @PathVariable Long integrationId,
@@ -87,7 +88,7 @@ public class BugTrackingSystemController {
   @GetMapping(value = "/{projectKey}/{integrationId}/issue_types")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get list of allowable issue types for bug tracking system")
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public List<String> getAllowableIssueTypes(@PathVariable String projectKey,
       @PathVariable Long integrationId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -120,6 +121,7 @@ public class BugTrackingSystemController {
   @PostMapping(value = "/{projectKey}/{integrationId}/ticket")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(summary = "Post ticket to the bts integration")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public Ticket createIssue(@Validated @RequestBody PostTicketRQ ticketRQ,
       @PathVariable String projectKey,
       @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
@@ -134,6 +136,7 @@ public class BugTrackingSystemController {
   @GetMapping(value = "/{projectKey}/ticket/{ticketId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get ticket from the bts integration")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public Ticket getTicket(@PathVariable String ticketId, @PathVariable String projectKey,
       @RequestParam(value = "btsUrl") String btsUrl,
       @RequestParam(value = "btsProject") String btsProject,

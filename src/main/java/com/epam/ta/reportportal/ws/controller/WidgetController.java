@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -60,7 +61,6 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Pavel Bortnik
  */
 @RestController
-@PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
 @RequestMapping("/v1/{projectKey}/widget")
 @Tag(name = "widget-controller", description = "Widget Controller")
 public class WidgetController {
@@ -84,6 +84,7 @@ public class WidgetController {
   @PostMapping
   @ResponseStatus(CREATED)
   @Operation(summary = "Create a new widget")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public EntryCreatedRS createWidget(@RequestBody @Validated WidgetRQ createWidget,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable String projectKey) {
     return createWidgetHandler.createWidget(
@@ -94,6 +95,7 @@ public class WidgetController {
   @GetMapping(value = "/{widgetId}")
   @ResponseStatus(OK)
   @Operation(summary = "Get widget by ID")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public WidgetResource getWidget(@PathVariable String projectKey, @PathVariable Long widgetId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getWidgetHandler.getWidget(
@@ -104,6 +106,7 @@ public class WidgetController {
   @GetMapping(value = "multilevel/{widgetId}")
   @ResponseStatus(OK)
   @Operation(summary = "Get multilevel widget by ID")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public WidgetResource getWidget(@PathVariable String projectKey, @PathVariable Long widgetId,
       @RequestParam(required = false, name = "attributes") String[] attributes,
       @RequestParam MultiValueMap<String, String> params,
@@ -118,6 +121,7 @@ public class WidgetController {
   @PostMapping(value = "/preview")
   @ResponseStatus(OK)
   @Operation(summary = "Get widget preview")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public Map<String, ?> getWidgetPreview(@PathVariable String projectKey,
       @RequestBody @Validated WidgetPreviewRQ previewRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -129,6 +133,7 @@ public class WidgetController {
   @PutMapping(value = "/{widgetId}")
   @ResponseStatus(OK)
   @Operation(summary = "Update specified widget")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public OperationCompletionRS updateWidget(@PathVariable String projectKey,
       @PathVariable Long widgetId, @RequestBody @Validated WidgetRQ updateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -140,6 +145,7 @@ public class WidgetController {
   @GetMapping(value = "/names/all")
   @ResponseStatus(OK)
   @Operation(summary = "Load all widget names which belong to a user")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public Iterable<Object> getWidgetNames(@PathVariable String projectKey,
       @SortFor(Widget.class) Pageable pageable, @FilterFor(Widget.class) Filter filter,
       @AuthenticationPrincipal ReportPortalUser user) {

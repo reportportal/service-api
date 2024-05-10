@@ -16,15 +16,17 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MANAGER;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.google.common.net.HttpHeaders.CONTENT_DISPOSITION;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -42,7 +44,6 @@ import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.preference.PreferenceResource;
@@ -56,7 +57,6 @@ import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO
 import com.epam.ta.reportportal.model.user.SearchUserResource;
 import com.epam.ta.reportportal.model.user.UserResource;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
@@ -133,7 +133,7 @@ public class ProjectController {
   @Transactional
   @PostMapping
   @ResponseStatus(CREATED)
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ORGANIZATION_MANAGER)
   @Operation(summary = "Create new project")
   public EntryCreatedRS createProject(@RequestBody @Validated CreateProjectRQ createProjectRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -143,7 +143,7 @@ public class ProjectController {
   @Transactional
   @PutMapping("/{projectKey}")
   @ResponseStatus(OK)
-  @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+  @PreAuthorize(ORGANIZATION_MANAGER)
   @Operation(summary =  "Update project")
   public OperationCompletionRS updateProject(@PathVariable String projectKey,
       @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
@@ -154,7 +154,7 @@ public class ProjectController {
   @Transactional
   @PutMapping("/{projectKey}/notification")
   @ResponseStatus(OK)
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Update project notifications configuration")
   public OperationCompletionRS updateProjectNotificationConfig(@PathVariable String projectKey,
       @RequestBody @Validated ProjectNotificationConfigDTO updateProjectNotificationConfigRQ,
@@ -166,7 +166,7 @@ public class ProjectController {
 
   @DeleteMapping
   @ResponseStatus(OK)
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ORGANIZATION_MANAGER)
   @Operation(summary =  "Delete multiple projects", description = "Could be deleted only by users with administrator role")
   public DeleteBulkRS deleteProject(@RequestParam(value = "ids") List<Long> ids,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -175,7 +175,7 @@ public class ProjectController {
 
   @DeleteMapping("/{projectId}")
   @ResponseStatus(OK)
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ORGANIZATION_MANAGER)
   @Operation(summary =  "Delete project", description = "Could be deleted only by users with administrator role")
   public OperationCompletionRS deleteProject(@PathVariable Long projectId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -184,7 +184,7 @@ public class ProjectController {
 
   @DeleteMapping("/{projectKey}/index")
   @ResponseStatus(OK)
-  @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Delete project index from ML")
   public OperationCompletionRS deleteProjectIndex(@PathVariable String projectKey,
       Principal principal) {
@@ -194,7 +194,7 @@ public class ProjectController {
   @Transactional
   @PutMapping("/{projectKey}/index")
   @ResponseStatus(OK)
-  @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary =  "Starts reindex all project data in ML")
   public OperationCompletionRS indexProjectData(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -223,7 +223,7 @@ public class ProjectController {
   @Transactional
   @PutMapping("/{projectKey}/unassign")
   @ResponseStatus(OK)
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Unassign users")
   public OperationCompletionRS unassignProjectUsers(@PathVariable String projectKey,
       @RequestBody @Validated UnassignUsersRQ unassignUsersRQ,
@@ -234,7 +234,7 @@ public class ProjectController {
   @Transactional
   @PutMapping("/{projectKey}/assign")
   @ResponseStatus(OK)
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Assign users")
   public OperationCompletionRS assignProjectUsers(@PathVariable String projectKey,
       @RequestBody @Validated AssignUsersRQ assignUsersRQ,
@@ -245,7 +245,7 @@ public class ProjectController {
   @Transactional(readOnly = true)
   @GetMapping("/{projectKey}/assignable")
   @ResponseStatus(OK)
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary =  "Load users which can be assigned to specified project", description = "Only for users with project manager permissions")
   public Iterable<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter,
       @SortFor(User.class) Pageable pageable, @PathVariable String projectKey,
@@ -271,7 +271,7 @@ public class ProjectController {
   @Transactional(readOnly = true)
   @GetMapping("/{projectKey}/usernames/search")
   @ResponseStatus(OK)
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public Iterable<SearchUserResource> searchForUser(@PathVariable String projectKey,
       @RequestParam(value = "term") String term,
       Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
@@ -285,9 +285,8 @@ public class ProjectController {
   @Operation(summary = "Edit logged-in user preferences", description = "Only for logged-in user")
   public OperationCompletionRS addUserPreference(@PathVariable String projectKey,
       @PathVariable Long filterId, @AuthenticationPrincipal ReportPortalUser user) {
-    return updatePreference.addPreference(projectExtractor.extractMembershipDetails(user, projectKey),
-        user, filterId
-    );
+    return updatePreference
+        .addPreference(projectExtractor.extractMembershipDetails(user, projectKey), user, filterId);
   }
 
   @Transactional

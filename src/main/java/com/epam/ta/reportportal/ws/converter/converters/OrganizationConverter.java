@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.api.model.OrganizationProfile;
 import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.entity.organization.OrganizationInfo;
 import com.epam.ta.reportportal.model.organization.OrganizationInfoResource;
@@ -32,20 +33,22 @@ public class OrganizationConverter {
   }
 
 
-  public static final Function<Organization, OrganizationResource> TO_ORGANIZATION_RESOURCE =
+  public static final Function<Organization, OrganizationProfile> TO_ORGANIZATION_RESOURCE =
       org -> {
-        OrganizationResource orgResource = new OrganizationResource();
-        orgResource.setId(org.getId());
-        orgResource.setName(org.getName());
-        orgResource.setSlug(org.getSlug());
-        orgResource.setType(org.getOrganizationType());
-        orgResource.setCreationDate(org.getCreationDate());
+        OrganizationProfile organizationProfile = new OrganizationProfile();
+        organizationProfile.setId(org.getId());
+        organizationProfile.setName(org.getName());
+        organizationProfile.setSlug(org.getSlug());
+        organizationProfile.setType(org.getOrganizationType());
+        organizationProfile.setCreatedAt(org.getCreationDate());
+        organizationProfile.setExternalId();
+        organizationProfile.setExternalId();
 
         return orgResource;
       };
 
-  public static final Function<OrganizationInfo, OrganizationInfoResource> TO_ORGANIZATION_INFO_RESOURCE = org -> {
-    OrganizationInfoResource orgInfoResource = new OrganizationInfoResource();
+  public static final Function<com.epam.ta.reportportal.api.model.OrganizationInfo, com.epam.ta.reportportal.api.model.OrganizationInfo> TO_ORGANIZATION_INFO_RESOURCE = org -> {
+    OrganizationInfo orgInfoResource = new OrganizationInfo();
     orgInfoResource.setId(org.getId());
     orgInfoResource.setName(org.getName());
     orgInfoResource.setSlug(org.getSlug());

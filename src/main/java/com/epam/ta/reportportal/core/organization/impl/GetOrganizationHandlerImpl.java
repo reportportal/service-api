@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.organization.impl;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.api.model.OrganizationProfile;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
@@ -45,7 +46,7 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
   }
 
   @Override
-  public OrganizationResource getResource(Long organizationId, ReportPortalUser user) {
+  public OrganizationProfile getResource(Long organizationId, ReportPortalUser user) {
     Organization organization = organizationRepositoryCustom.findById(organizationId)
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, organizationId));
@@ -54,13 +55,13 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
 
 
   @Override
-  public Iterable<OrganizationResource> getOrganizations(Queryable filter, Pageable pageable) {
+  public Iterable<OrganizationProfile> getOrganizations(Queryable filter, Pageable pageable) {
     return PagedResourcesAssembler.pageConverter(OrganizationConverter.TO_ORGANIZATION_RESOURCE)
         .apply(organizationRepositoryCustom.findByFilter(filter, pageable));
   }
 
   @Override
-  public Iterable<OrganizationInfoResource> getOrganizationsInfo(Queryable filter,
+  public Iterable<OrganizationProfile> getOrganizationsInfo(Queryable filter,
       Pageable pageable) {
     return PagedResourcesAssembler
         .pageConverter(OrganizationConverter.TO_ORGANIZATION_INFO_RESOURCE)

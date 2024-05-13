@@ -1,0 +1,4 @@
+[submodule "reportportal-common-api"]
+	path = reportportal-common-api
+	url = https://github.com/reportportal/reportportal-common-api
+	branch = feature/organizations

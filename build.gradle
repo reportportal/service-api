@@ -19,6 +19,8 @@ plugins {
     id 'org.springframework.boot' version '2.5.15'
     id 'java'
     id "org.owasp.dependencycheck" version "9.0.9"
+    // https://github.com/swagger-api/swagger-codegen?tab=readme-ov-file#gradle-integration
+    id 'org.hidetake.swagger.generator' version '2.19.2'
 }
 
 import org.owasp.dependencycheck.reporting.ReportGenerator
@@ -72,6 +74,8 @@ dependencies {
         implementation 'com.github.reportportal:commons:ca553cb'
         implementation 'com.github.reportportal:plugin-api:17962f8'
     }
+
+    swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.56'
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -171,6 +175,39 @@ processResources {
     }
 }
 
+
+tasks.register('updateGitSubmodules', Exec) {
+    // comment for local specification development
+    commandLine 'git', 'submodule', 'update', '--init' , "--recursive", "--remote"
+    //commandLine 'git', 'status'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs "$buildDir/swagger-code-organizations/src/main/java"
+        }
+        resources {
+            srcDirs "$buildDir/swagger-code-organizations/src/main/resources"
+        }
+    }
+}
+
+swaggerSources {
+    organizations {
+        inputFile = file("$rootDir/reportportal-common-api/api/openapi/organizations.yaml")
+
+        code {
+            dependsOn updateGitSubmodules
+            dependsOn validation
+            configFile = file("$rootDir/src/main/resources/openapi/config.json")
+            language = 'spring'
+            components = ['models'] // 'apis' to be added later
+            jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED'] // for Swagger Codegen v3 on Java 16+
+        }
+    }
+}
+
 tasks.withType(JavaCompile).configureEach {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
@@ -204,7 +241,7 @@ test {
         junitXml.required = true
     }
 }
-
+compileJava.dependsOn swaggerSources.organizations.code
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts

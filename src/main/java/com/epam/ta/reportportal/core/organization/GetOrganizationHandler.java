@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.organization;
 
+import com.epam.ta.reportportal.api.model.OrganizationProfile;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.model.organization.OrganizationInfoResource;
@@ -34,7 +35,7 @@ public interface GetOrganizationHandler {
    * @param user           User
    * @return {@link OrganizationResource}
    */
-  OrganizationResource getResource(Long organizationId, ReportPortalUser user);
+  OrganizationProfile getResource(Long organizationId, ReportPortalUser user);
 
   /**
    * Get Organizations by query parameters
@@ -44,16 +45,16 @@ public interface GetOrganizationHandler {
    * @return An {@link Iterable} of {@link OrganizationResource} containing information about all
    * projects
    */
-  Iterable<OrganizationResource> getOrganizations(Queryable filter, Pageable pageable);
+  Iterable<OrganizationProfile> getOrganizations(Queryable filter, Pageable pageable);
 
-  /**
+/*  *//**
    * Get Organizations aggregated info by query parameters
    *
    * @param filter   Queryable filter to apply on organizations
    * @param pageable Pagination information for the results
    * @return An {@link Iterable} of {@link OrganizationInfoResource} containing information about
    * all projects
-   */
-  Iterable<OrganizationInfoResource> getOrganizationsInfo(Queryable filter, Pageable pageable);
+   *//*
+  Iterable<OrganizationInfoResource> getOrganizationsInfo(Queryable filter, Pageable pageable);*/
 
 }

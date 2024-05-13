@@ -33,7 +33,7 @@ public interface FinishTestItemHandler {
    * Updates {@link com.epam.ta.reportportal.entity.item.TestItem} instance
    *
    * @param user              RQ principal
-   * @param projectDetails    Project Details
+   * @param membershipDetails Membership details
    * @param testItemId        Test item ID
    * @param finishExecutionRQ Request with finish Test Item data
    * @return OperationCompletionRS

@@ -73,7 +73,7 @@ public interface GetUserHandler {
    *
    * @param filter         Filter
    * @param pageable       Paging
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @return Page of users
    */
   Iterable<UserResource> getUsers(Filter filter, Pageable pageable,

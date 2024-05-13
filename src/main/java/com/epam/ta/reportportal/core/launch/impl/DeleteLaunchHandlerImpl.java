@@ -16,16 +16,19 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_IS_NOT_FINISHED;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 
 import com.epam.reportportal.events.ElementsDeletedEvent;
+import com.epam.reportportal.rules.exception.ErrorRS;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.ElementsCounterService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
@@ -42,11 +45,8 @@ import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.model.activity.LaunchActivityResource;
-import com.epam.reportportal.rules.exception.ErrorRS;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.api.client.util.Maps;
 import com.google.common.collect.Lists;
@@ -196,7 +196,8 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
           )
       );
       /* Only PROJECT_MANAGER roles could delete launches */
-      if ((membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER) && membershipDetails.getProjectRole().equals(ProjectRole.VIEWER))) {
+      if ((membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER)
+          && membershipDetails.getProjectRole().equals(ProjectRole.VIEWER))) {
         expect(user.getUserId(), Predicate.isEqual(launch.getUserId()))
             .verify(ACCESS_DENIED,
             "You are not launch owner."

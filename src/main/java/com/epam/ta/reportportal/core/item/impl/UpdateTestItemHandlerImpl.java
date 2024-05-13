@@ -16,26 +16,28 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttribute;
-import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttributeResource;
-import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
-import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.TEST_ITEM_NOT_FOUND;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttribute;
+import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttributeResource;
+import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
+import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toList;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.BusinessRuleViolationException;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.LogIndexerService;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -62,7 +64,6 @@ import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.model.issue.IssueDefinition;
@@ -76,7 +77,6 @@ import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
 import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.Issue;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.ArrayList;
@@ -394,7 +394,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
   /**
    * Validates test item access ability.
    *
-   * @param projectDetails Project
+   * @param membershipDetails Membership details
    * @param user           User
    * @param testItem       Test Item
    */

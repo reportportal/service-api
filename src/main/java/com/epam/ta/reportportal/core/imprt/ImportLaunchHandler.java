@@ -30,7 +30,7 @@ public interface ImportLaunchHandler {
   /**
    * Import launch from file with specified format.
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param user           user
    * @param format         report format
    * @param file           file with report

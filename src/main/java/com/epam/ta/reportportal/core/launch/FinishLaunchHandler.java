@@ -35,7 +35,7 @@ public interface FinishLaunchHandler {
    *
    * @param launchId       ID of launch
    * @param finishLaunchRQ Request data
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param user           User
    * @param baseUrl        Application base url
    * @return FinishLaunchRS

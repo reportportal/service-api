@@ -42,7 +42,7 @@ public interface GetLogHandler {
    * @param filterable     - filter definition
    * @param pageable       - pageable definition
    * @param path           - logs path
-   * @param projectDetails - project details
+   * @param membershipDetails Membership details
    * @return mapping with {@link TestItem#getItemId()} as key and its list of {@link LogResource} as value
    */
   Iterable<LogResource> getLogs(String path, MembershipDetails membershipDetails,
@@ -60,7 +60,7 @@ public interface GetLogHandler {
    * Returns log by UUID
    *
    * @param logId          - target log UUID value
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param user           User
    * @return LogResource
    */
@@ -71,7 +71,7 @@ public interface GetLogHandler {
    * Calculates page number and returns entire page for specified log ID
    *
    * @param logId          ID of log to find
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param filterable     Filter for paging
    * @param pageable       Paging details
    * @return Page Number

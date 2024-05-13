@@ -16,13 +16,13 @@
 
 package com.epam.ta.reportportal.core.launch;
 
+import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
-import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
 import com.epam.ta.reportportal.ws.reporting.LaunchResource;
 import java.io.OutputStream;
 import java.util.List;
@@ -46,7 +46,7 @@ public interface GetLaunchHandler {
    * Get Launch resource by specified UUID
    *
    * @param launchId       Launch uuid
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @return {@link LaunchResource}
    */
   LaunchResource getLaunch(String launchId, MembershipDetails membershipDetails);
@@ -60,13 +60,13 @@ public interface GetLaunchHandler {
    * @param filter   {@link Filter}
    * @return Response Data
    */
-  LaunchResource getLaunchByProjectName(String project, Pageable pageable, Filter filter,
+  LaunchResource getLaunchByProjectKey(String project, Pageable pageable, Filter filter,
       String username);
 
   /**
    * Get list of Launch resources for specified project
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param filter         Filter data
    * @param pageable       Page details
    * @param userName       Name of User
@@ -79,7 +79,7 @@ public interface GetLaunchHandler {
   /**
    * Get debug launches
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param filter         Filter data
    * @param pageable       Page details
    * @return Response Data
@@ -90,7 +90,7 @@ public interface GetLaunchHandler {
   /**
    * Get specified launch attribute keys (auto-complete functionality)
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param value          Tag prefix to be searched
    * @return List of found tags
    */
@@ -99,7 +99,7 @@ public interface GetLaunchHandler {
   /**
    * Get specified launch attribute values (auto-complete functionality)
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param value          Tag prefix to be searched
    * @param key            Attribute key
    * @return List of found tags
@@ -110,7 +110,7 @@ public interface GetLaunchHandler {
   /**
    * Get launch names of specified project (auto-complete functionality)
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param value          Launch name prefix
    * @return List of found launches
    */
@@ -119,7 +119,7 @@ public interface GetLaunchHandler {
   /**
    * Get unique owners of launches in specified mode
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param value          Owner name prefix
    * @param mode           Mode
    * @return Response Data
@@ -129,7 +129,7 @@ public interface GetLaunchHandler {
   /**
    * Get launches comparison info
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param ids            IDs to be looked up
    * @return Response Data //
    */
@@ -139,7 +139,7 @@ public interface GetLaunchHandler {
   /**
    * Get statuses of specified launches
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param ids            Launch IDs
    * @return Response Data
    */
@@ -159,7 +159,7 @@ public interface GetLaunchHandler {
   /**
    * Get latest launches
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param filter         Filter data
    * @param pageable       Page details
    * @return Response Data
@@ -171,7 +171,7 @@ public interface GetLaunchHandler {
    * Get Launch resource by specified UUID
    *
    * @param launchId       Launch uuid
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param pageable       Pagination information for the results
    * @return {@link ClusterInfoResource}
    */

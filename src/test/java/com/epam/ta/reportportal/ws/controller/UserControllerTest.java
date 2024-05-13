@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -50,7 +51,6 @@ import com.epam.ta.reportportal.model.user.EditUserRQ;
 import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
 import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.reportportal.model.ValidationConstraints;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -89,7 +89,7 @@ class UserControllerTest extends BaseMvcTest {
     rq.setFullName("Test User");
     rq.setEmail("test@test.com");
     rq.setAccountRole("USER");
-    rq.setProjectRole("MEMBER");
+    rq.setProjectRole("EDITOR");
     rq.setDefaultProject("default_personal");
 
     MvcResult mvcResult = mockMvc.perform(
@@ -134,7 +134,7 @@ class UserControllerTest extends BaseMvcTest {
     CreateUserRQ rq = new CreateUserRQ();
     rq.setDefaultProject("default_personal");
     rq.setEmail("test@domain.com");
-    rq.setRole("PROJECT_MANAGER");
+    rq.setRole("EDITOR");
 
     when(mailServiceFactory.getEmailService(any(Integration.class), any(Boolean.class))).thenReturn(
         emailService);

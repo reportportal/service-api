@@ -84,8 +84,7 @@ class TestItemAsyncControllerTest {
         requestArgumentCaptor.capture()
     );
     assertEquals(user, userArgumentCaptor.getValue());
-    assertEquals(rpUserToMembership(user),
-        projectDetailsArgumentCaptor.getValue());
+    assertEquals(rpUserToMembership(user), projectDetailsArgumentCaptor.getValue());
     assertEquals(startTestItemRQ, requestArgumentCaptor.getValue());
   }
 
@@ -116,8 +115,7 @@ class TestItemAsyncControllerTest {
         parentArgumentCaptor.capture()
     );
     assertEquals(user, userArgumentCaptor.getValue());
-    assertEquals(rpUserToMembership(user),
-        projectDetailsArgumentCaptor.getValue());
+    assertEquals(rpUserToMembership(user), projectDetailsArgumentCaptor.getValue());
     assertEquals(startTestItemRQ, requestArgumentCaptor.getValue());
   }
 
@@ -148,8 +146,7 @@ class TestItemAsyncControllerTest {
         requestArgumentCaptor.capture()
     );
     assertEquals(user, userArgumentCaptor.getValue());
-    assertEquals(rpUserToMembership(user),
-        projectDetailsArgumentCaptor.getValue());
+    assertEquals(rpUserToMembership(user), projectDetailsArgumentCaptor.getValue());
     assertEquals(finishTestItemRQ, requestArgumentCaptor.getValue());
   }
 }

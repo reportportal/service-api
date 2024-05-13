@@ -75,7 +75,7 @@ public interface GetProjectHandler {
   /**
    * Get list of specified usernames
    *
-   * @param projectDetails Project name
+   * @param membershipDetails Membership details
    * @param value          Login
    * @return List of found user logins
    */

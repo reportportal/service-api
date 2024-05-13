@@ -29,7 +29,7 @@ public interface DeleteDashboardHandler {
    * Delete {@link com.epam.ta.reportportal.entity.dashboard.Dashboard} instance with specified id
    *
    * @param dashboardId    Dashboard id
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param user           User
    * @return {@link OperationCompletionRS}
    */

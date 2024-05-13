@@ -34,7 +34,7 @@ public interface DeleteTestItemHandler {
    * Delete test item by id.
    *
    * @param itemId         Item id
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param user           User
    * @return {@link OperationCompletionRS}
    */
@@ -45,7 +45,7 @@ public interface DeleteTestItemHandler {
    * Delete list of items by ids.
    *
    * @param ids            Test item ids
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param user           User
    * @return {@link OperationCompletionRS}
    */

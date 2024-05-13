@@ -35,7 +35,7 @@ public interface HistoryProvider {
    * @param filter               - {@link Queryable}
    * @param pageable             - {@link Pageable}
    * @param historyRequestParams - {@link HistoryRequestParams}
-   * @param projectDetails       -
+   * @param membershipDetails Membership details
    *                             {@link
    *                             MembershipDetails}
    * @param user                 - {@link ReportPortalUser}

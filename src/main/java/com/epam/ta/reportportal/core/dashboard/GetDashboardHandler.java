@@ -33,7 +33,7 @@ public interface GetDashboardHandler {
 	 * Get dashboard resource by provided id
 	 *
 	 * @param id             Provided id
-	 * @param projectDetails Project detail
+   * @param membershipDetails Membership details
 	 * @return {@link DashboardResource}
 	 */
 	DashboardResource getDashboard(Long id, MembershipDetails membershipDetails);
@@ -41,7 +41,7 @@ public interface GetDashboardHandler {
 	/**
 	 * Get permitted projects for concrete user for concrete project
 	 *
-	 * @param projectDetails Project details
+   * @param membershipDetails Membership details
 	 * @param user           User
 	 * @param pageable       Page Details
 	 * @param filter         {@link Filter}

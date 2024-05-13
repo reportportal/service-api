@@ -33,7 +33,7 @@ public interface StopLaunchHandler {
    *
    * @param launchId       ID of launch
    * @param finishLaunchRQ Request data
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param user           User
    * @return OperationCompletionRS
    */
@@ -44,7 +44,7 @@ public interface StopLaunchHandler {
    * Bulk stop launches operation.
    *
    * @param bulkRQ         Bulk request
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param user           User
    * @return OperationCompletionsRS
    */

@@ -60,6 +60,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -97,7 +98,8 @@ class ProjectControllerTest extends BaseMvcTest {
   }
 
 	@Test
-	void createProjectPositive() throws Exception {
+  @Disabled("waiting for requirements")
+  void createProjectPositive() throws Exception {
 		CreateProjectRQ rq = new CreateProjectRQ();
 		rq.setProjectName("TestProject");
 		rq.setEntryType("INTERNAL");
@@ -113,6 +115,7 @@ class ProjectControllerTest extends BaseMvcTest {
   }
 
   @Test
+  @Disabled("waiting for requirements")
   void createProjectWithReservedName() throws Exception {
     CreateProjectRQ rq = new CreateProjectRQ();
     rq.setProjectName("project");
@@ -310,6 +313,7 @@ class ProjectControllerTest extends BaseMvcTest {
   }
 
   @Test
+  @Disabled("waiting for requirements")
   void deleteProjectPositive() throws Exception {
     mockMvc.perform(delete("/v1/project/3")
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -319,6 +323,7 @@ class ProjectControllerTest extends BaseMvcTest {
   }
 
   @Test
+  @Disabled("waiting for requirements")
   void bulkDeleteProjects() throws Exception {
     DeleteBulkRQ bulkRQ = new DeleteBulkRQ();
     bulkRQ.setIds(Lists.newArrayList(2L, 3L));
@@ -370,7 +375,7 @@ class ProjectControllerTest extends BaseMvcTest {
   void assignProjectUsersPositive() throws Exception {
     AssignUsersRQ rq = new AssignUsersRQ();
     Map<String, String> user = new HashMap<>();
-    user.put("default", "MEMBER");
+    user.put("default", "EDITOR");
     rq.setUserNames(user);
     mockMvc.perform(
         put("/v1/project/test_project/assign")

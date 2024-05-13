@@ -36,7 +36,7 @@ public interface UpdateTestItemHandler {
   /**
    * Define TestItem issue (or list of issues)
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param defineIssue    issues request data
    * @param user           user
    * @return list of defined issues for specified test items
@@ -47,7 +47,7 @@ public interface UpdateTestItemHandler {
   /**
    * Update specified test item
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param itemId         test item ID
    * @param rq             update test item request data
    * @param user           request principal name

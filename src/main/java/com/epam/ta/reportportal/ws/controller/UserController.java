@@ -16,12 +16,14 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
@@ -36,7 +38,6 @@ import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.ApiKeyRQ;
 import com.epam.ta.reportportal.model.ApiKeyRS;
 import com.epam.ta.reportportal.model.ApiKeysRS;
@@ -54,7 +55,6 @@ import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
 import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
 import com.epam.ta.reportportal.model.user.UserBidRS;
 import com.epam.ta.reportportal.model.user.UserResource;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.resolver.ActiveRole;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
@@ -132,7 +132,7 @@ public class UserController {
   @Transactional
   @PostMapping(value = "/bid")
   @ResponseStatus(CREATED)
-  @PreAuthorize("(hasPermission(#createUserRQ.getDefaultProject(), 'projectManagerPermission')) || hasRole('ADMINISTRATOR')")
+  @PreAuthorize("(hasPermission(#createUserRQ.getDefaultProject(), 'allowedToEditProject')) || hasRole('ADMINISTRATOR')")
   @Operation(summary = "Register invitation for user who will be created")
   public CreateUserBidRS createUserBid(@RequestBody @Validated CreateUserRQ createUserRQ,
       @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {

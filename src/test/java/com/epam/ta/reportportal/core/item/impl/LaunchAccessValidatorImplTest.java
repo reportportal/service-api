@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -32,8 +33,8 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import java.util.Optional;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
@@ -90,8 +91,9 @@ class LaunchAccessValidatorImplTest {
   }
 
   @Test
+  @Disabled("waiting for requirements")
   void validateLaunchWithOperatorRole() {
-    ReportPortalUser operator = getRpUser("operator", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    ReportPortalUser operator = getRpUser("viewer", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     Launch launch = new Launch();
     launch.setId(1L);

@@ -39,7 +39,7 @@ public class CreateUserRQ {
 
 	@NotBlank
 	@JsonProperty(value = "role", required = true)
-	@In(allowedValues = { "operator", "customer", "member", "project_manager" })
+	@In(allowedValues = { "editor", "viewer" })
 	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String role;
 

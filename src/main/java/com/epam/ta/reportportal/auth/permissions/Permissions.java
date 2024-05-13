@@ -33,10 +33,7 @@ public final class Permissions {
       "(#login.toLowerCase() == authentication.name)" + "||" + IS_ADMIN;
 
   public static final String ORGANIZATION_MANAGER =
-      "hasPermission(#projectKey.toLowerCase(), 'organizationManagerPermission')" + "||" + IS_ADMIN;
-
-  public static final String ORGANIZATION_MEMBER =
-      "hasPermission(#projectKey.toLowerCase(), 'organizationMemberPermission')" + "||" + IS_ADMIN;
+      "hasPermission(#projectKey.toLowerCase(), 'organizationManager')" + "||" + IS_ADMIN;
 
   public static final String ALLOWED_TO_EDIT_PROJECT =
       "hasPermission(#projectKey.toLowerCase(), 'allowedToEditProject')" + "||" + IS_ADMIN;

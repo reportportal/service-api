@@ -31,7 +31,7 @@ public interface MergeLaunchHandler {
   /**
    * Merges launches.
    *
-   * @param projectDetails  Project Details
+   * @param membershipDetails Membership details
    * @param user            User
    * @param mergeLaunchesRQ Request data
    * @return OperationCompletionsRS

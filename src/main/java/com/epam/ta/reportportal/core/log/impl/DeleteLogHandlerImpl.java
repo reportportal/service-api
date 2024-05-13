@@ -16,10 +16,6 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
-import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
@@ -27,10 +23,16 @@ import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATIO
 import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_IS_NOT_FINISHED;
 import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.TEST_ITEM_IS_NOT_FINISHED;
+import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static java.util.Optional.ofNullable;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.log.DeleteLogHandler;
@@ -46,8 +48,6 @@ import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Collections;
 import java.util.Objects;
@@ -155,7 +155,7 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
        * Only PROJECT_MANAGER roles could delete logs
        */
       expect(membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER)
-              && membershipDetails.getProjectRole().equals(ProjectRole.VIEWER), equalTo(true))
+              && membershipDetails.getProjectRole().equals(ProjectRole.VIEWER), equalTo(false))
           .verify(ACCESS_DENIED);
     }
 

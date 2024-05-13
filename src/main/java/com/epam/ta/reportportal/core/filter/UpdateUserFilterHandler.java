@@ -48,7 +48,7 @@ public interface UpdateUserFilterHandler {
    *
    * @param userFilterId   User filter id
    * @param updateRQ       Update filter details
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param user           User
    * @return {@link OperationCompletionRS}
    */

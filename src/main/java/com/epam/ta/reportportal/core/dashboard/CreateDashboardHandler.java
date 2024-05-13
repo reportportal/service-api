@@ -29,7 +29,7 @@ public interface CreateDashboardHandler {
   /**
    * Creates a new dashboard.
    *
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param rq             Dashboard details
    * @param user           User
    * @return EntryCreatedRS

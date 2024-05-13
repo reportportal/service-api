@@ -31,7 +31,7 @@ public interface DeleteUserFilterHandler {
    * Delete complex filter by id
    *
    * @param id             Filter id
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param user           User
    * @return {@link OperationCompletionRS}
    */

@@ -30,7 +30,7 @@ public interface CreateWidgetHandler {
    * Creates a new widget
    *
    * @param createWidgetRQ Widget details
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param user           User
    * @return EntryCreatedRS
    */

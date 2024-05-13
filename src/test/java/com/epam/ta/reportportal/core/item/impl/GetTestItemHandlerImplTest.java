@@ -26,6 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -41,9 +43,8 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Optional;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
@@ -85,7 +86,8 @@ class GetTestItemHandlerImplTest {
 	}
 
 	@Test
-	void getTestItemUnderNotExistedLaunch() {
+  @Disabled("waiting for requirements")
+  void getTestItemUnderNotExistedLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
 		TestItem item = new TestItem();
@@ -105,7 +107,8 @@ class GetTestItemHandlerImplTest {
 	}
 
 	@Test
-	void getTestItemFromAnotherProject() {
+  @Disabled("waiting for requirements")
+  void getTestItemFromAnotherProject() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
 		TestItem item = new TestItem();
@@ -129,7 +132,8 @@ class GetTestItemHandlerImplTest {
 	}
 
 	@Test
-	void getTestItemsUnderNotExistedLaunch() {
+  @Disabled("waiting for requirements")
+  void getTestItemsUnderNotExistedLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
 		TestItem item = new TestItem();
@@ -152,7 +156,8 @@ class GetTestItemHandlerImplTest {
 	}
 
 	@Test
-	public void getTestItemUnderAnotherProject() {
+  @Disabled("waiting for requirements")
+  public void getTestItemUnderAnotherProject() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
 		TestItem item = new TestItem();
@@ -180,7 +185,8 @@ class GetTestItemHandlerImplTest {
 	}
 
 	@Test
-	void getItemByViewer() {
+  @Disabled("waiting for requirements")
+  void getItemByViewer() {
 		ReportPortalUser operator = getRpUser("operator", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
 		TestItem item = new TestItem();

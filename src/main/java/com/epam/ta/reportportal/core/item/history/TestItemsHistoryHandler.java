@@ -34,7 +34,7 @@ public interface TestItemsHistoryHandler {
    * Get history for {@link com.epam.ta.reportportal.entity.item.TestItem}s according to input
    * parameters
    *
-   * @param projectDetails       - project details
+   * @param membershipDetails Membership details
    * @param filter               - filter
    * @param pageable             - paging parameters object
    * @param historyRequestParams - {@link HistoryRequestParams}

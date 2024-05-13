@@ -30,7 +30,7 @@ public interface UpdateDashboardHandler {
   /**
    * Update dashboard with specified id
    *
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param rq             Update details
    * @param dashboardId    Dashboard id to be updated
    * @param user           User
@@ -44,7 +44,7 @@ public interface UpdateDashboardHandler {
    * Add a new widget to the specified dashboard
    *
    * @param dashboardId    Dashboard id
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param rq             Widget details
    * @param user           User
    * @return OperationCompletionRS
@@ -58,7 +58,7 @@ public interface UpdateDashboardHandler {
    *
    * @param widgetId       Widget id
    * @param dashboardId    Dashboard id
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param user           {@link ReportPortalUser}
    * @return OperationCompletionRS
    */

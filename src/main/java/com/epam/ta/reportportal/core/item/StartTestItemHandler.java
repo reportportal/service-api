@@ -32,7 +32,7 @@ public interface StartTestItemHandler {
    * Start Root item operation
    *
    * @param user           {@link ReportPortalUser}
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param rq             Item details
    * @return ItemID and uniqueID of test item
    */
@@ -43,7 +43,7 @@ public interface StartTestItemHandler {
    * Start child item operation
    *
    * @param user           {@link ReportPortalUser}
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param rq             Item details
    * @param parentId       Id of parrent test item
    * @return ItemID and uniqueID of test item

@@ -43,7 +43,7 @@ public interface ActivityEventHandler {
   /**
    * Get list of specified subjectName in project activities.
    *
-   * @param projectDetails Project name
+   * @param membershipDetails Membership details
    * @param value          Filter value
    * @return List of found user logins
    */

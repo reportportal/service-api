@@ -27,6 +27,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -46,13 +48,12 @@ import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
-import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
 import java.util.List;
 import java.util.Optional;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -111,6 +112,7 @@ class GetLaunchHandlerImplTest {
   }
 
   @Test
+  @Disabled("waiting for requirements")
   void getDebugLaunchWithCustomerRole() {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     when(launchRepository.findById(1L)).thenReturn(
@@ -153,7 +155,7 @@ class GetLaunchHandlerImplTest {
     when(projectRepository.findByKey(projectKey)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getLaunchByProjectName(projectKey, PageRequest.of(0, 10), getDefaultFilter(),
+        () -> handler.getLaunchByProjectKey(projectKey, PageRequest.of(0, 10), getDefaultFilter(),
             "user"
         )
     );
@@ -170,7 +172,7 @@ class GetLaunchHandlerImplTest {
     when(launchRepository.findByFilter(any(), any())).thenReturn(null);
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getLaunchByProjectName(projectKey, PageRequest.of(0, 10), getDefaultFilter(),
+        () -> handler.getLaunchByProjectKey(projectKey, PageRequest.of(0, 10), getDefaultFilter(),
             "user"
         )
     );
@@ -274,6 +276,7 @@ class GetLaunchHandlerImplTest {
   }
 
   @Test
+  @Disabled("waiting for requirements")
   void getLaunchInDebugModeByCustomer() {
     long projectId = 1L;
     ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, projectId);

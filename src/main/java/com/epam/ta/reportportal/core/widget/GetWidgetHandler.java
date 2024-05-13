@@ -21,10 +21,9 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.model.widget.WidgetResource;
+import java.util.Map;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.MultiValueMap;
-
-import java.util.Map;
 
 /**
  * @author Pavel Bortnik
@@ -35,7 +34,7 @@ public interface GetWidgetHandler {
 	 * Get widget by id
 	 *
 	 * @param widgetId       Widget id
-	 * @param projectDetails Project details
+   * @param membershipDetails Membership details
 	 * @param user           User
 	 * @return WidgetResource
 	 */
@@ -45,7 +44,7 @@ public interface GetWidgetHandler {
 	 * Get specified widget level by id and attributes
 	 *
 	 * @param widgetId       Widget id
-	 * @param projectDetails Project details
+   * @param membershipDetails Membership details
 	 * @param attributes     Attributes
 	 * @param params         Additional widget params
 	 * @param user           User
@@ -58,7 +57,7 @@ public interface GetWidgetHandler {
 	 * Get content for building preview while creating widget
 	 *
 	 * @param previewRQ      Widget parameters
-	 * @param projectDetails Project name
+	 * @param membershipDetails Membership details
 	 * @param user           Username
 	 * @return Widget content
 	 */
@@ -67,7 +66,7 @@ public interface GetWidgetHandler {
 	/**
 	 * Get widget names that belong to user
 	 *
-	 * @param projectDetails Project details
+   * @param membershipDetails Membership details
 	 * @param pageable       Paging
 	 * @param filter         Filter
 	 * @param user           User

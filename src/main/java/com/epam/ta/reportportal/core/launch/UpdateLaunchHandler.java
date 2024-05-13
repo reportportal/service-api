@@ -39,7 +39,7 @@ public interface UpdateLaunchHandler {
    * Update specified by id launch.
    *
    * @param launchId       ID of Launch object
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param user           Recipient user
    * @param rq             Request Data
    * @return OperationCompletionRS - Response Data
@@ -51,7 +51,7 @@ public interface UpdateLaunchHandler {
   /**
    * Start launch analyzer on demand
    *
-   * @param projectDetails  Project Details
+   * @param membershipDetails Membership details
    * @param analyzeLaunchRQ Launch analyze rq
    * @param user            User started analysis
    * @return OperationCompletionRS - Response Data
@@ -68,7 +68,7 @@ public interface UpdateLaunchHandler {
    * Bulk launch update.
    *
    * @param rq             Bulk request
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param user           User
    * @return OperationCompletionRS
    */

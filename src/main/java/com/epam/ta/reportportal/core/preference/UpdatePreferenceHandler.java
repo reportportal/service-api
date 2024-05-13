@@ -30,7 +30,7 @@ public interface UpdatePreferenceHandler {
   /**
    * Add user preference
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param user           User
    * @param filterId       Adding filter id
    * @return {@link OperationCompletionRS}
@@ -41,7 +41,7 @@ public interface UpdatePreferenceHandler {
   /**
    * Remove user preference
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param user           User
    * @param filterId       Removing filter id
    * @return {@link OperationCompletionRS}

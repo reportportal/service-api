@@ -26,7 +26,7 @@ public interface DeleteLogHandler {
    * Delete {@link com.epam.ta.reportportal.entity.log.Log} instance
    *
    * @param logId          ID of Log
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param user           User
    * @return OperationCompletionRS
    */

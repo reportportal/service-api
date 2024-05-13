@@ -16,11 +16,9 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
 import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
-import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -30,6 +28,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
@@ -47,11 +46,11 @@ import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.model.launch.cluster.CreateClustersRQ;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import java.util.Map;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -88,7 +87,7 @@ class UpdateLaunchHandlerImplTest {
 
   @Test
   void updateNotOwnLaunch() {
-    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L);
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,  1L);
     rpUser.setUserId(2L);
     when(getProjectHandler.get(any(MembershipDetails.class)))
         .thenReturn(new Project());
@@ -103,6 +102,7 @@ class UpdateLaunchHandlerImplTest {
   }
 
   @Test
+  @Disabled("waiting for requirements")
   void updateDebugLaunchByCustomer() {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 

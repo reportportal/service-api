@@ -69,8 +69,8 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api:5.11.1'
     } else {
         implementation 'com.github.reportportal:commons-dao:8189ee2'
-        implementation 'com.github.reportportal:commons:ca553cb'
-        implementation 'com.github.reportportal:plugin-api:17962f8'
+        implementation 'com.github.reportportal:commons:b6926df'
+        implementation 'com.github.reportportal:plugin-api:3c87360'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
@@ -169,6 +169,15 @@ processResources {
     filesMatching('application.properties') {
         expand(project.properties)
     }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    options.encoding = "UTF-8"
+    options.compilerArgs << "-parameters"
+    options.debug = true
+    options.debugOptions.debugLevel = "source,lines,vars"
 }
 
 dependencyCheck {

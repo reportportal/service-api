@@ -16,12 +16,8 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.api.model.OrganizationProfile;
-import com.epam.ta.reportportal.entity.organization.Organization;
-import com.epam.ta.reportportal.entity.organization.OrganizationInfo;
-import com.epam.ta.reportportal.model.organization.OrganizationInfoResource;
-import com.epam.ta.reportportal.model.organization.OrganizationResource;
-import java.util.function.Function;
+import com.epam.ta.reportportal.model.OrganizationProfile;
+import java.util.function.UnaryOperator;
 
 /**
  * @author Andrei Piankouski
@@ -32,33 +28,5 @@ public class OrganizationConverter {
     //static only
   }
 
-
-  public static final Function<Organization, OrganizationProfile> TO_ORGANIZATION_RESOURCE =
-      org -> {
-        OrganizationProfile organizationProfile = new OrganizationProfile();
-        organizationProfile.setId(org.getId());
-        organizationProfile.setName(org.getName());
-        organizationProfile.setSlug(org.getSlug());
-        organizationProfile.setType(org.getOrganizationType());
-        organizationProfile.setCreatedAt(org.getCreationDate());
-        organizationProfile.setExternalId();
-        organizationProfile.setExternalId();
-
-        return orgResource;
-      };
-
-  public static final Function<com.epam.ta.reportportal.api.model.OrganizationInfo, com.epam.ta.reportportal.api.model.OrganizationInfo> TO_ORGANIZATION_INFO_RESOURCE = org -> {
-    OrganizationInfo orgInfoResource = new OrganizationInfo();
-    orgInfoResource.setId(org.getId());
-    orgInfoResource.setName(org.getName());
-    orgInfoResource.setSlug(org.getSlug());
-    orgInfoResource.setType(org.getOrganizationType());
-    orgInfoResource.setCreationDate(org.getCreationDate());
-    orgInfoResource.setLastRun(org.getLastRun());
-    orgInfoResource.setLaunchesQuantity(org.getLaunchesQuantity());
-    orgInfoResource.setProjectsQuantity(org.getProjectsQuantity());
-    orgInfoResource.setUsersQuantity(org.getUsersQuantity());
-
-    return orgInfoResource;
-  };
+  public static final UnaryOperator<OrganizationProfile> TO_ORGANIZATION_RESOURCE = org -> org;
 }

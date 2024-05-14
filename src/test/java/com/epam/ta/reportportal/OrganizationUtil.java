@@ -34,9 +34,11 @@ public class OrganizationUtil {
   public static final String TEST_PROJECT_KEY = TEST_ORG_SLUG + "." + TEST_PROJECT_SLUG;
   public static final Organization TEST_ORG = new Organization(TEST_ORG_ID,
       Instant.now(),
+      Instant.now(),
       TEST_ORG_NAME,
       OrganizationType.INTERNAL,
-      TEST_ORG_SLUG);
+      TEST_ORG_SLUG,
+      "ext-1");
 
   private OrganizationUtil() {
   }

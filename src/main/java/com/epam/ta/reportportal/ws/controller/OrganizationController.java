@@ -18,7 +18,8 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.USER;
 
-import com.epam.ta.reportportal.api.model.OrganizationProfile;
+import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
+import com.epam.ta.reportportal.model.OrganizationProfile;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -60,9 +61,9 @@ public class OrganizationController {
   @Transactional
   @GetMapping("/organizations/{organizationId}")
   @Operation(summary = "Get information about organization")
-  public OrganizationProfile getOrganization(@PathVariable Long organizationId,
+  public OrganizationProfile getOrganizationById(@PathVariable Long organizationId,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return getOrganizationHandler.getResource(organizationId, user);
+    return getOrganizationHandler.getOrganizationById(organizationId, user);
   }
 
   @Transactional
@@ -70,9 +71,9 @@ public class OrganizationController {
   @Operation(summary = "Get list of organizations associated with the user")
   public Iterable<OrganizationProfile> getAllOrganizations(
       @AuthenticationPrincipal ReportPortalUser user,
-      @FilterFor(Organization.class) Filter filter,
-      @FilterFor(Organization.class) Queryable predefinedFilter,
-      @SortFor(Organization.class) Pageable pageable) {
+      @FilterFor(OrganizationFilter.class) Filter filter,
+      @FilterFor(OrganizationFilter.class) Queryable predefinedFilter,
+      @SortFor(OrganizationFilter.class) Pageable pageable) {
 
     modifyFilterWithUserCriteria(filter, user);
 
@@ -80,22 +81,6 @@ public class OrganizationController {
         new CompositeFilter(Operator.AND, filter, predefinedFilter), pageable);
   }
 
-
-/*  @Transactional
-  @GetMapping("/organizations-info")
-  @Operation(summary = "Get list of organizations aggregated info associated with the user")
-  public Iterable<OrganizationInfoResource> getOrganizationsInfo(
-      @AuthenticationPrincipal ReportPortalUser user,
-      @FilterFor(OrganizationInfo.class) Filter filter,
-      @FilterFor(OrganizationInfo.class) Queryable predefinedFilter,
-      @SortFor(OrganizationInfo.class) Pageable pageable) {
-
-    modifyFilterWithUserCriteria(filter, user);
-
-    return getOrganizationHandler.getOrganizationsInfo(
-        new CompositeFilter(Operator.AND, filter, predefinedFilter),
-        pageable);
-  }*/
 
   /**
    * By security reasons "filter.*.user" should always be replaced with filter by current user. Only

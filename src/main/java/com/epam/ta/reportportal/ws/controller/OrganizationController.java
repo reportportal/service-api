@@ -47,7 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Andrei Piankouski
  */
 @RestController
-@RequestMapping("/v1")
+@RequestMapping("/organizations")
 @Tag(name = "organizations-controller", description = "Organizations Controller")
 public class OrganizationController {
 
@@ -59,7 +59,7 @@ public class OrganizationController {
   }
 
   @Transactional
-  @GetMapping("/organizations/{organizationId}")
+  @GetMapping("{organizationId}")
   @Operation(summary = "Get information about organization")
   public OrganizationProfile getOrganizationById(@PathVariable Long organizationId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -67,7 +67,7 @@ public class OrganizationController {
   }
 
   @Transactional
-  @GetMapping("/organizations")
+  @GetMapping
   @Operation(summary = "Get list of organizations associated with the user")
   public Iterable<OrganizationProfile> getAllOrganizations(
       @AuthenticationPrincipal ReportPortalUser user,

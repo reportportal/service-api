@@ -51,7 +51,7 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
   public OrganizationProfile getOrganizationById(Long organizationId, ReportPortalUser user) {
     Filter filter = new Filter(OrganizationFilter.class, Lists.newArrayList());
     filter.withCondition(
-        new FilterCondition(Condition.EQUALS, false, organizationId.toString(), "organization_id"));
+        new FilterCondition(Condition.EQUALS, false, organizationId.toString(), "id"));
     return organizationRepositoryCustom.findByFilter(filter).stream().findFirst()
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, organizationId));

@@ -23,19 +23,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.launch.AttributeHandler;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
@@ -68,13 +69,16 @@ class StartLaunchHandlerImplTest {
   @Mock
   private ApplicationEventPublisher eventPublisher;
 
+  @Mock
+  private AttributeHandler attributeHandler;
+
   @InjectMocks
   private StartLaunchHandlerImpl startLaunchHandlerImpl;
 
   @Test
   void startLaunch() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR,
-        ProjectRole.PROJECT_MANAGER, 1L);
+    final ReportPortalUser rpUser =
+        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
     startLaunchRQ.setStartTime(Instant.now());
@@ -83,16 +87,16 @@ class StartLaunchHandlerImplTest {
     Launch launch = new Launch();
     launch.setId(1L);
 
-    when(launchRepository.save(any(Launch.class))).then(a -> {
-      Launch l = a.getArgument(0);
+    doAnswer(invocation -> {
+      Launch l = invocation.getArgument(0);
       l.setId(1L);
       return l;
-    }).thenReturn(launch);
+    }).when(launchRepository).save(any(Launch.class));
 
-    final StartLaunchRS startLaunchRS = startLaunchHandlerImpl.startLaunch(rpUser,
-        extractProjectDetails(rpUser, TEST_PROJECT_KEY),
-        startLaunchRQ
-    );
+    final StartLaunchRS startLaunchRS =
+        startLaunchHandlerImpl.startLaunch(rpUser, extractProjectDetails(rpUser, TEST_PROJECT_KEY),
+            startLaunchRQ
+        );
 
     verify(launchRepository, times(1)).refresh(any(Launch.class));
     verify(eventPublisher, times(1)).publishEvent(any());
@@ -109,7 +113,8 @@ class StartLaunchHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> startLaunchHandlerImpl.startLaunch(rpUser,
-            extractProjectDetails(rpUser, TEST_PROJECT_KEY), startLaunchRQ)
+            extractProjectDetails(rpUser, TEST_PROJECT_KEY), startLaunchRQ
+        )
     );
     assertEquals("Forbidden operation.", exception.getMessage());
   }

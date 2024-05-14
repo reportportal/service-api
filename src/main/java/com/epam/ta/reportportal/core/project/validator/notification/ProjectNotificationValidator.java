@@ -121,14 +121,16 @@ public class ProjectNotificationValidator {
 
   private boolean equalsWithoutRuleName(SenderCaseDTO senderCase, SenderCaseDTO toCompare) {
     boolean recipientsEqual =
-        senderCase.getRecipients() != null && toCompare.getRecipients() != null
-            && CollectionUtils.isEqualCollection(senderCase.getRecipients(),
-            toCompare.getRecipients());
+        (!senderCase.getType().equals("email") || !toCompare.getType().equals("email")) ||
+            (senderCase.getRecipients() != null && toCompare.getRecipients() != null
+                && CollectionUtils.isEqualCollection(senderCase.getRecipients(),
+                toCompare.getRecipients()));
     return recipientsEqual
         && Objects.equals(senderCase.getSendCase(), toCompare.getSendCase())
         && CollectionUtils.isEqualCollection(senderCase.getLaunchNames(),
         toCompare.getLaunchNames())
         && Objects.equals(senderCase.getType(), toCompare.getType())
+        && Objects.equals(senderCase.getRuleDetails(), toCompare.getRuleDetails())
         && CollectionUtils.isEqualCollection(senderCase.getAttributes(), toCompare.getAttributes())
         && Objects.equals(senderCase.getAttributesOperator(), toCompare.getAttributesOperator());
   }

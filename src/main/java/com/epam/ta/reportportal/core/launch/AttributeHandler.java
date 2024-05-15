@@ -65,8 +65,8 @@ public class AttributeHandler {
     } else if (importantAttribute != null) {
       // If only 'important' attribute is present
       launch.setRetentionPolicy(RetentionPolicyEnum.IMPORTANT);
-    } else if (regularAttribute != null) {
-      // If only 'regular' attribute is present
+    } else {
+      // If only 'regular' attribute is present or neither is present
       launch.setRetentionPolicy(RetentionPolicyEnum.REGULAR);
     }
   }

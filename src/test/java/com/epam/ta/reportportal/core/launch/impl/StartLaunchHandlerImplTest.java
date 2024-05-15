@@ -22,13 +22,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.launch.AttributeHandler;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -69,6 +70,9 @@ class StartLaunchHandlerImplTest {
   @Mock
   private ApplicationEventPublisher eventPublisher;
 
+  @Mock
+  private AttributeHandler attributeHandler;
+
   @InjectMocks
   private StartLaunchHandlerImpl startLaunchHandlerImpl;
 
@@ -84,16 +88,16 @@ class StartLaunchHandlerImplTest {
     Launch launch = new Launch();
     launch.setId(1L);
 
-    when(launchRepository.save(any(Launch.class))).then(a -> {
-      Launch l = a.getArgument(0);
+    doAnswer(invocation -> {
+      Launch l = invocation.getArgument(0);
       l.setId(1L);
       return l;
-    }).thenReturn(launch);
+    }).when(launchRepository).save(any(Launch.class));
 
-    final StartLaunchRS startLaunchRS = startLaunchHandlerImpl.startLaunch(rpUser,
-        rpUserToMembership(rpUser),
-        startLaunchRQ
-    );
+    final StartLaunchRS startLaunchRS =
+        startLaunchHandlerImpl.startLaunch(rpUser, rpUserToMembership(rpUser),
+            startLaunchRQ
+        );
 
     verify(launchRepository, times(1)).refresh(any(Launch.class));
     verify(eventPublisher, times(1)).publishEvent(any());
@@ -111,7 +115,8 @@ class StartLaunchHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> startLaunchHandlerImpl.startLaunch(rpUser,
-            rpUserToMembership(rpUser), startLaunchRQ)
+            rpUserToMembership(rpUser), startLaunchRQ
+        )
     );
     assertEquals("Forbidden operation.", exception.getMessage());
   }

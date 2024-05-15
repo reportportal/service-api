@@ -25,11 +25,9 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
-import com.epam.ta.reportportal.entity.organization.Organization;
-import com.epam.ta.reportportal.entity.organization.OrganizationInfo;
+import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.model.organization.OrganizationInfoResource;
-import com.epam.ta.reportportal.model.organization.OrganizationResource;
+import com.epam.ta.reportportal.model.OrganizationProfile;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.v3.oas.annotations.Operation;
@@ -48,7 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Andrei Piankouski
  */
 @RestController
-@RequestMapping("/v1")
+@RequestMapping("/organizations")
 @Tag(name = "organizations-controller", description = "Organizations Controller")
 public class OrganizationController {
 
@@ -60,49 +58,32 @@ public class OrganizationController {
   }
 
   @Transactional
-  @GetMapping("/organizations/{organizationId}")
+  @GetMapping("/{organizationId}")
   @Operation(summary = "Get information about organization")
-  public OrganizationResource getOrganization(@PathVariable Long organizationId,
+  public OrganizationProfile getOrganizationById(@PathVariable Long organizationId,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return getOrganizationHandler.getResource(organizationId, user);
+    return getOrganizationHandler.getOrganizationById(organizationId, user);
   }
 
   @Transactional
-  @GetMapping("/organizations")
+  @GetMapping
   @Operation(summary = "Get list of organizations associated with the user")
-  public Iterable<OrganizationResource> getAllOrganizations(
+  public Iterable<OrganizationProfile> getAllOrganizations(
       @AuthenticationPrincipal ReportPortalUser user,
-      @FilterFor(Organization.class) Filter filter,
-      @FilterFor(Organization.class) Queryable predefinedFilter,
-      @SortFor(Organization.class) Pageable pageable) {
+      @FilterFor(OrganizationFilter.class) Filter filter,
+      @FilterFor(OrganizationFilter.class) Queryable predefinedFilter,
+      @SortFor(OrganizationFilter.class) Pageable pageable) {
 
     modifyFilterWithUserCriteria(filter, user);
 
     return getOrganizationHandler.getOrganizations(
-        new CompositeFilter(Operator.AND, filter, predefinedFilter),
-        pageable);
+        new CompositeFilter(Operator.AND, filter, predefinedFilter), pageable);
   }
 
-
-  @Transactional
-  @GetMapping("/organizations-info")
-  @Operation(summary = "Get list of organizations aggregated info associated with the user")
-  public Iterable<OrganizationInfoResource> getOrganizationsInfo(
-      @AuthenticationPrincipal ReportPortalUser user,
-      @FilterFor(OrganizationInfo.class) Filter filter,
-      @FilterFor(OrganizationInfo.class) Queryable predefinedFilter,
-      @SortFor(OrganizationInfo.class) Pageable pageable) {
-
-    modifyFilterWithUserCriteria(filter, user);
-
-    return getOrganizationHandler.getOrganizationsInfo(
-        new CompositeFilter(Operator.AND, filter, predefinedFilter),
-        pageable);
-  }
 
   /**
-   * By security reasons "filter.*.user" should always be replaced with filter by current user.
-   * Only Admin users can retrieve all organizations regardless organization membership
+   * By security reasons "filter.*.user" should always be replaced with filter by current user. Only
+   * Admin users can retrieve all organizations regardless organization membership
    */
   private void modifyFilterWithUserCriteria(Filter filter, ReportPortalUser user) {
     // always remove user filter

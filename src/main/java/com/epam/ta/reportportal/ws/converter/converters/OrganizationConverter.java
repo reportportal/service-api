@@ -16,11 +16,8 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.entity.organization.Organization;
-import com.epam.ta.reportportal.entity.organization.OrganizationInfo;
-import com.epam.ta.reportportal.model.organization.OrganizationInfoResource;
-import com.epam.ta.reportportal.model.organization.OrganizationResource;
-import java.util.function.Function;
+import com.epam.ta.reportportal.model.OrganizationProfile;
+import java.util.function.UnaryOperator;
 
 /**
  * @author Andrei Piankouski
@@ -31,31 +28,5 @@ public class OrganizationConverter {
     //static only
   }
 
-
-  public static final Function<Organization, OrganizationResource> TO_ORGANIZATION_RESOURCE =
-      org -> {
-        OrganizationResource orgResource = new OrganizationResource();
-        orgResource.setId(org.getId());
-        orgResource.setName(org.getName());
-        orgResource.setSlug(org.getSlug());
-        orgResource.setType(org.getOrganizationType());
-        orgResource.setCreationDate(org.getCreationDate());
-
-        return orgResource;
-      };
-
-  public static final Function<OrganizationInfo, OrganizationInfoResource> TO_ORGANIZATION_INFO_RESOURCE = org -> {
-    OrganizationInfoResource orgInfoResource = new OrganizationInfoResource();
-    orgInfoResource.setId(org.getId());
-    orgInfoResource.setName(org.getName());
-    orgInfoResource.setSlug(org.getSlug());
-    orgInfoResource.setType(org.getOrganizationType());
-    orgInfoResource.setCreationDate(org.getCreationDate());
-    orgInfoResource.setLastRun(org.getLastRun());
-    orgInfoResource.setLaunchesQuantity(org.getLaunchesQuantity());
-    orgInfoResource.setProjectsQuantity(org.getProjectsQuantity());
-    orgInfoResource.setUsersQuantity(org.getUsersQuantity());
-
-    return orgInfoResource;
-  };
+  public static final UnaryOperator<OrganizationProfile> TO_ORGANIZATION_RESOURCE = org -> org;
 }

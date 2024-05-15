@@ -19,14 +19,17 @@ package com.epam.ta.reportportal.core.organization.impl;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
-import com.epam.ta.reportportal.entity.organization.Organization;
-import com.epam.ta.reportportal.model.organization.OrganizationInfoResource;
-import com.epam.ta.reportportal.model.organization.OrganizationResource;
+import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
+import com.epam.ta.reportportal.model.OrganizationProfile;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -45,26 +48,19 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
   }
 
   @Override
-  public OrganizationResource getResource(Long organizationId, ReportPortalUser user) {
-    Organization organization = organizationRepositoryCustom.findById(organizationId)
+  public OrganizationProfile getOrganizationById(Long organizationId, ReportPortalUser user) {
+    Filter filter = new Filter(OrganizationFilter.class, Lists.newArrayList());
+    filter.withCondition(
+        new FilterCondition(Condition.EQUALS, false, organizationId.toString(), "id"));
+    return organizationRepositoryCustom.findByFilter(filter).stream().findFirst()
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, organizationId));
-    return OrganizationConverter.TO_ORGANIZATION_RESOURCE.apply(organization);
   }
 
-
   @Override
-  public Iterable<OrganizationResource> getOrganizations(Queryable filter, Pageable pageable) {
+  public Iterable<OrganizationProfile> getOrganizations(Queryable filter, Pageable pageable) {
     return PagedResourcesAssembler.pageConverter(OrganizationConverter.TO_ORGANIZATION_RESOURCE)
         .apply(organizationRepositoryCustom.findByFilter(filter, pageable));
-  }
-
-  @Override
-  public Iterable<OrganizationInfoResource> getOrganizationsInfo(Queryable filter,
-      Pageable pageable) {
-    return PagedResourcesAssembler
-        .pageConverter(OrganizationConverter.TO_ORGANIZATION_INFO_RESOURCE)
-        .apply(organizationRepositoryCustom.findOrganizationInfoByFilter(filter, pageable));
   }
 
 }

@@ -1,0 +1,12 @@
+{
+  "apiPackage": "com.epam.ta.reportportal.api",
+  "modelPackage": "com.epam.ta.reportportal.api.model",
+  "dateLibrary": "java8",
+  "typeMappings": {
+    "OffsetDateTime": "Instant"
+  },
+  "importMappings": {
+    "ReportPortalUser": "com.epam.ta.reportportal.commons.ReportPortalUser",
+    "java.time.OffsetDateTime": "java.time.Instant"
+  }
+}

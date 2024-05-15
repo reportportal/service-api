@@ -1,6 +1,6 @@
 -- Update 'project' table
-INSERT INTO public.organization (name, slug, organization_type)
-  VALUES ('My org', 'my-org', 'INTERNAL');
+INSERT INTO public.organization (name, slug, organization_type, external_id)
+  VALUES ('My org', 'my-org', 'INTERNAL', 'ext-1');
 
 UPDATE public.project AS prj SET
   "organization_id" = 1,

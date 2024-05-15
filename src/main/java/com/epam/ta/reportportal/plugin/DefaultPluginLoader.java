@@ -22,6 +22,9 @@ import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Paths;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.pf4j.PluginManager;
@@ -55,20 +58,25 @@ public class DefaultPluginLoader {
   @PostConstruct
   public void loadPlugins() {
     pluginBox.startUp();
-    UpdateManager updateManager = new UpdateManager(pluginManager);
-    if (updateManager.hasAvailablePlugins()) {
-      List<PluginInfo> availablePlugins = updateManager.getAvailablePlugins();
-      availablePlugins.forEach(pluginInfo -> {
-        String latestVersion = updateManager.getLastPluginRelease(pluginInfo.id).version;
-        Path path = defaultUpdateManager.downloadPlugin(pluginInfo.id, latestVersion);
-        try {
-          pluginBox.uploadPlugin(path.getFileName().toString(), Files.newInputStream(path));
-        } catch (IOException e) {
-          log.error(e.getMessage());
-          throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
-              e.getMessage());
-        }
-      });
+    URL resource = getClass().getClassLoader().getResource("repositories.json");
+    try {
+      UpdateManager updateManager = new UpdateManager(pluginManager, Paths.get(resource.toURI()));
+      if (updateManager.hasAvailablePlugins()) {
+        List<PluginInfo> availablePlugins = updateManager.getAvailablePlugins();
+        availablePlugins.forEach(pluginInfo -> {
+          String latestVersion = updateManager.getLastPluginRelease(pluginInfo.id).version;
+          Path path = defaultUpdateManager.downloadPlugin(pluginInfo.id, latestVersion);
+          try {
+            pluginBox.uploadPlugin(path.getFileName().toString(), Files.newInputStream(path));
+          } catch (IOException e) {
+            log.error(e.getMessage());
+            throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
+                e.getMessage());
+          }
+        });
+      }
+    } catch (URISyntaxException e) {
+      e.printStackTrace();
     }
   }
 

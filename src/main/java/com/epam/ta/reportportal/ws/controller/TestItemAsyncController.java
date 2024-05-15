@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -54,7 +54,6 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v2/{projectKey}/item")
-@PreAuthorize(ASSIGNED_TO_PROJECT)
 @Tag(name = "test-item-async-controller", description = "Test Item Async Controller")
 public class TestItemAsyncController {
 
@@ -75,36 +74,36 @@ public class TestItemAsyncController {
   @PostMapping
   @ResponseStatus(CREATED)
   @Operation(summary = "Start a root test item")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public EntryCreatedAsyncRS startRootItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
     return startTestItemHandler.startRootItem(user,
-        projectExtractor.extractProjectDetails(user, projectKey), startTestItemRQ);
+        projectExtractor.extractMembershipDetails(user, projectKey), startTestItemRQ);
   }
 
   @HttpLogging
   @PostMapping("/{parentItem}")
   @ResponseStatus(CREATED)
   @Operation(summary = "Start a child test item")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public EntryCreatedAsyncRS startChildItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @PathVariable String parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
     return startTestItemHandler.startChildItem(user,
-        projectExtractor.extractProjectDetails(user, projectKey), startTestItemRQ, parentItem);
+        projectExtractor.extractMembershipDetails(user, projectKey), startTestItemRQ, parentItem);
   }
 
   @HttpLogging
   @PutMapping("/{testItemId}")
   @ResponseStatus(OK)
   @Operation(summary = "Finish test item")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public OperationCompletionRS finishTestItem(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @PathVariable String testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
     return finishTestItemHandler.finishTestItem(user,
-        projectExtractor.extractProjectDetails(user, projectKey), testItemId, finishExecutionRQ);
+        projectExtractor.extractMembershipDetails(user, projectKey), testItemId, finishExecutionRQ);
   }
 
 }

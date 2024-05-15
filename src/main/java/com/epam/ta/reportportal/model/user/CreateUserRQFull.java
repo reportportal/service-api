@@ -69,8 +69,8 @@ public class CreateUserRQFull {
 
 	@NotNull
 	@JsonProperty(value = "projectRole", required = true)
-	@In(allowedValues = { "operator", "customer", "member", "project_manager" })
-	@Schema(required = true, allowableValues = "CUSTOMER, MEMBER, PROJECT_MANAGER")
+	@In(allowedValues = { "editor", "viewer"})
+	@Schema(required = true, allowableValues = "EDITOR, VIEWER")
 	private String projectRole;
 
 	@NotBlank

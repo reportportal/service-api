@@ -16,18 +16,20 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.CRITERIA_ITEM_LAUNCH_ID;
-import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PATH;
-import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_RETRY_PARENT_LAUNCH_ID;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.reportportal.rules.exception.ErrorType.LOG_NOT_FOUND;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.CRITERIA_ITEM_LAUNCH_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PATH;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_RETRY_PARENT_LAUNCH_ID;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -52,13 +54,12 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
-import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.log.GetLogsUnderRq;
 import com.epam.ta.reportportal.model.log.LogResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Lists;
 import java.util.AbstractMap;
 import java.util.Collections;
@@ -113,10 +114,10 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
   @Override
   public Iterable<LogResource> getLogs(@Nullable String path,
-      ReportPortalUser.ProjectDetails projectDetails, Filter filterable, Pageable pageable) {
+      MembershipDetails membershipDetails, Filter filterable, Pageable pageable) {
     ofNullable(path).ifPresent(p -> updateFilter(filterable, p));
     Page<LogFull> logFullPage =
-        logService.findByFilter(ProjectFilter.of(filterable, projectDetails.getProjectId()),
+        logService.findByFilter(ProjectFilter.of(filterable, membershipDetails.getProjectId()),
             pageable
         );
     return PagedResourcesAssembler.pageConverter(LogConverter.TO_RESOURCE).apply(logFullPage);
@@ -124,7 +125,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
   @Override
   public Map<Long, List<LogResource>> getLogs(GetLogsUnderRq logsUnderRq,
-      ReportPortalUser.ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
 
     final LogLevel logLevel = LogLevel.toLevel(logsUnderRq.getLogLevel()).orElseThrow(
         () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, logsUnderRq.getLogLevel()));
@@ -132,7 +133,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
     return testItemRepository.findAllById(logsUnderRq.getItemIds()).stream()
         .collect(toMap(TestItem::getItemId, item -> {
           final Launch launch = testItemService.getEffectiveLaunch(item);
-          validate(launch, projectDetails);
+          validate(launch, membershipDetails);
           return logService.findLatestUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(
                   launch.getId(), item.getItemId(), logLevel.toInt(), LOG_UNDER_ITEM_BATCH_SIZE)
               .stream().map(LogConverter.TO_RESOURCE).collect(Collectors.toList());
@@ -140,13 +141,13 @@ public class GetLogHandlerImpl implements GetLogHandler {
   }
 
   @Override
-  public long getPageNumber(Long logId, ReportPortalUser.ProjectDetails projectDetails,
+  public long getPageNumber(Long logId, MembershipDetails membershipDetails,
       Filter filterable, Pageable pageable) {
     return logRepository.getPageNumber(logId, filterable, pageable);
   }
 
   @Override
-  public LogResource getLog(String logId, ReportPortalUser.ProjectDetails projectDetails,
+  public LogResource getLog(String logId, MembershipDetails membershipDetails,
       ReportPortalUser user) {
     LogFull logFull;
     try {
@@ -154,18 +155,18 @@ public class GetLogHandlerImpl implements GetLogHandler {
     } catch (NumberFormatException e) {
       logFull = findByUuid(logId);
     }
-    validate(logFull, projectDetails);
+    validate(logFull, membershipDetails);
     return LogConverter.TO_RESOURCE.apply(logFull);
   }
 
   @Override
-  public Iterable<?> getNestedItems(Long parentId, ReportPortalUser.ProjectDetails projectDetails,
+  public Iterable<?> getNestedItems(Long parentId, MembershipDetails membershipDetails,
       Map<String, String> params, Queryable queryable, Pageable pageable) {
 
     TestItem parentItem = testItemRepository.findById(parentId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentId));
     Launch launch = testItemService.getEffectiveLaunch(parentItem);
-    validate(launch, projectDetails);
+    validate(launch, membershipDetails);
 
     Boolean excludeEmptySteps =
         ofNullable(params.get(EXCLUDE_EMPTY_STEPS)).map(BooleanUtils::toBoolean).orElse(false);
@@ -213,13 +214,13 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
   @Override
   public List<PagedLogResource> getLogsWithLocation(Long parentId,
-      ReportPortalUser.ProjectDetails projectDetails, Map<String, String> params,
+      MembershipDetails membershipDetails, Map<String, String> params,
       Queryable queryable, Pageable pageable) {
 
     TestItem parentItem = testItemRepository.findById(parentId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentId));
     Launch launch = testItemService.getEffectiveLaunch(parentItem);
-    validate(launch, projectDetails);
+    validate(launch, membershipDetails);
 
     Boolean excludeEmptySteps =
         ofNullable(params.get(EXCLUDE_EMPTY_STEPS)).map(BooleanUtils::toBoolean).orElse(false);
@@ -282,25 +283,25 @@ public class GetLogHandlerImpl implements GetLogHandler {
    * Validate log item on existence, availability under specified project, etc.
    *
    * @param log            - logFull item
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    */
-  private void validate(LogFull log, ReportPortalUser.ProjectDetails projectDetails) {
+  private void validate(LogFull log, MembershipDetails membershipDetails) {
     Long launchProjectId = ofNullable(log.getTestItem()).map(
             it -> testItemService.getEffectiveLaunch(it).getProjectId())
         .orElseGet(() -> log.getLaunch().getProjectId());
 
-    expect(launchProjectId, equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
+    expect(launchProjectId, equalTo(membershipDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
         formattedSupplier("Log '{}' is not under '{}' project", log.getId(),
-            projectDetails.getProjectName()
+            membershipDetails.getProjectName()
         )
     );
   }
 
-  private void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails) {
-    expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
+  private void validate(Launch launch, MembershipDetails membershipDetails) {
+    expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId())).verify(
         FORBIDDEN_OPERATION,
         formattedSupplier("Launch '{}' is not under '{}' project", launch.getId(),
-            projectDetails.getProjectName()
+            membershipDetails.getProjectName()
         )
     );
   }

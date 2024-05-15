@@ -16,9 +16,8 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.NOT_CUSTOMER;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -74,14 +73,14 @@ public class FileStorageController {
   }
 
   @Transactional(readOnly = true)
-  @PreAuthorize(ASSIGNED_TO_PROJECT)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @GetMapping(value = "/{projectKey}/{dataId}")
   @Operation(summary = "Get file")
   public void getFile(@PathVariable String projectKey, @PathVariable("dataId") Long dataId,
       HttpServletResponse response,
       @AuthenticationPrincipal ReportPortalUser user) {
     toResponse(response, getFileHandler.loadFileById(dataId,
-        projectExtractor.extractProjectDetails(user, projectKey)));
+        projectExtractor.extractMembershipDetails(user, projectKey)));
   }
 
   @Transactional(readOnly = true)
@@ -94,9 +93,9 @@ public class FileStorageController {
   }
 
   @Transactional(readOnly = true)
-  @PreAuthorize(NOT_CUSTOMER)
   @GetMapping(value = "/{projectKey}/userphoto")
   @Operation(summary = "Get user's photo")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public void getUserPhoto(@PathVariable String projectKey,
       @RequestParam(value = "login") String username,
       @RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail,
@@ -123,7 +122,7 @@ public class FileStorageController {
   }
 
   @Transactional
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   @PostMapping(value = "/clean", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   @Operation(summary = "Remove attachments from file storage according to uploaded csv file")
   public OperationCompletionRS removeAttachmentsByCsv(@RequestParam("file") MultipartFile file,

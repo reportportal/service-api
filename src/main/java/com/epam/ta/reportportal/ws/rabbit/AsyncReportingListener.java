@@ -43,6 +43,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.builders.LogFullBuilder;
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -206,12 +207,12 @@ public class AsyncReportingListener implements MessageListener {
   public void onStartItem(StartTestItemRQ rq, String username, String projectName,
       String parentId) {
     ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-    ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(user,
+    MembershipDetails membershipDetails = extractProjectDetails(user,
         normalizeId(projectName));
     if (!Strings.isNullOrEmpty(parentId)) {
-      startTestItemHandler.startChildItem(user, projectDetails, rq, parentId);
+      startTestItemHandler.startChildItem(user, membershipDetails, rq, parentId);
     } else {
-      startTestItemHandler.startRootItem(user, projectDetails, rq);
+      startTestItemHandler.startRootItem(user, membershipDetails, rq);
     }
   }
 
@@ -222,8 +223,8 @@ public class AsyncReportingListener implements MessageListener {
         extractProjectDetails(user, normalizeId(projectName)), itemId, rq);
   }
 
-	private ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user, String projectName) {
-    return projectExtractor.extractProjectDetails(user, projectName);
+	private MembershipDetails extractProjectDetails(ReportPortalUser user, String projectName) {
+    return projectExtractor.extractMembershipDetails(user, projectName);
 	}
 
   public void onLogCreate(DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload,

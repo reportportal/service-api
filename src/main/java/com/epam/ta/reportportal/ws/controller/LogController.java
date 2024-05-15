@@ -16,8 +16,9 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.ta.reportportal.commons.querygen.Condition.UNDR;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PATH;
 import static com.epam.ta.reportportal.util.ControllerUtils.findByFileName;
@@ -90,7 +91,6 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @RestController
 @RequestMapping("/v1/{projectKey}/log")
-@PreAuthorize(ASSIGNED_TO_PROJECT)
 @Tag(name = "log-controller", description = "Log Controller")
 public class LogController {
 
@@ -122,12 +122,12 @@ public class LogController {
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
   @ResponseStatus(CREATED)
   @Hidden
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public EntryCreatedAsyncRS createLog(@PathVariable String projectKey,
       @RequestBody SaveLogRQ createLogRQ, @AuthenticationPrincipal ReportPortalUser user) {
     validateSaveRQ(validator, createLogRQ);
     return createLogHandler.createLog(createLogRQ, null,
-        projectExtractor.extractProjectDetails(user, projectKey)
+        projectExtractor.extractMembershipDetails(user, projectKey)
     );
   }
 
@@ -135,12 +135,12 @@ public class LogController {
   @PostMapping(value = "/entry", consumes = {MediaType.APPLICATION_JSON_VALUE})
   @ResponseStatus(CREATED)
   @Operation(summary = "Create log")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public EntryCreatedAsyncRS createLogEntry(@PathVariable String projectKey,
       @RequestBody SaveLogRQ createLogRQ, @AuthenticationPrincipal ReportPortalUser user) {
     validateSaveRQ(validator, createLogRQ);
     return createLogHandler.createLog(createLogRQ, null,
-        projectExtractor.extractProjectDetails(user, projectKey)
+        projectExtractor.extractMembershipDetails(user, projectKey)
     );
   }
 
@@ -149,7 +149,7 @@ public class LogController {
   // Specific handler should be added for springfox in case of similar POST
   // request mappings
   //	@Async
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectKey,
       @RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs,
       HttpServletRequest request, @AuthenticationPrincipal ReportPortalUser user) {
@@ -189,7 +189,7 @@ public class LogController {
            */
           //noinspection ConstantConditions
           responseItem = createLogHandler.createLog(createLogRq, data,
-              projectExtractor.extractProjectDetails(user, projectKey)
+              projectExtractor.extractMembershipDetails(user, projectKey)
           );
         }
         response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
@@ -208,45 +208,49 @@ public class LogController {
   @RequestMapping(value = "/{logId}", method = RequestMethod.DELETE)
   @Operation(summary = "Delete log")
   @Transactional
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public OperationCompletionRS deleteLog(@PathVariable String projectKey, @PathVariable Long logId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return deleteLogHandler.deleteLog(logId,
-        projectExtractor.extractProjectDetails(user, projectKey), user
+        projectExtractor.extractMembershipDetails(user, projectKey), user
     );
   }
 
   @RequestMapping(method = RequestMethod.GET)
   @Operation(summary = "Get logs by filter")
   @Transactional(readOnly = true)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public Iterable<LogResource> getLogs(@PathVariable String projectKey,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + UNDR + CRITERIA_PATH, required = false)
           String underPath, @FilterFor(Log.class) Filter filter,
       @SortDefault({"logTime"}) @SortFor(Log.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getLogs(underPath,
-        projectExtractor.extractProjectDetails(user, projectKey), filter, pageable
+        projectExtractor.extractMembershipDetails(user, projectKey), filter, pageable
     );
   }
 
   @PostMapping(value = "/under")
   @Operation(summary = "Get logs under items")
   @Transactional(readOnly = true)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public Map<Long, List<LogResource>> getLogsUnder(@PathVariable String projectKey,
       @RequestBody GetLogsUnderRq logsUnderRq, @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getLogs(logsUnderRq,
-        projectExtractor.extractProjectDetails(user, projectKey)
+        projectExtractor.extractMembershipDetails(user, projectKey)
     );
   }
 
   @GetMapping(value = "/{logId}/page")
   @Operation(summary = "Get logs by filter")
   @Transactional(readOnly = true)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public Map<String, Serializable> getPageNumber(@PathVariable String projectKey,
       @PathVariable Long logId, @FilterFor(Log.class) Filter filter,
       @SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
     return ImmutableMap.<String, Serializable>builder().put("number",
         getLogHandler.getPageNumber(logId,
-            projectExtractor.extractProjectDetails(user, projectKey), filter, pageable
+            projectExtractor.extractMembershipDetails(user, projectKey), filter, pageable
         )
     ).build();
   }
@@ -254,9 +258,10 @@ public class LogController {
   @GetMapping(value = "/{logId}")
   @Operation(summary = "Get log by ID")
   @Transactional(readOnly = true)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public LogResource getLog(@PathVariable String projectKey, @PathVariable String logId,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return getLogHandler.getLog(logId, projectExtractor.extractProjectDetails(user, projectKey),
+    return getLogHandler.getLog(logId, projectExtractor.extractMembershipDetails(user, projectKey),
         user
     );
   }
@@ -269,9 +274,10 @@ public class LogController {
   @GetMapping(value = "/uuid/{logId}")
   @Operation(summary = "Get log by UUID (Will be removed in version 6.0)")
   @Transactional(readOnly = true)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public LogResource getLogByUuid(@PathVariable String projectKey, @PathVariable String logId,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return getLogHandler.getLog(logId, projectExtractor.extractProjectDetails(user, projectKey),
+    return getLogHandler.getLog(logId, projectExtractor.extractMembershipDetails(user, projectKey),
         user
     );
   }
@@ -279,35 +285,38 @@ public class LogController {
   @GetMapping(value = "/nested/{parentId}")
   @Operation(summary = "Get nested steps with logs for the parent Test Item")
   @Transactional(readOnly = true)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public Iterable<?> getNestedItems(@PathVariable String projectKey, @PathVariable Long parentId,
       @Parameter(required = false) @RequestParam Map<String, String> params,
       @FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getNestedItems(parentId,
-        projectExtractor.extractProjectDetails(user, projectKey), params, filter, pageable
+        projectExtractor.extractMembershipDetails(user, projectKey), params, filter, pageable
     );
   }
 
   @GetMapping(value = "/locations/{parentId}")
   @Operation(summary = "Get next or previous log in test item")
   @Transactional(readOnly = true)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public List<PagedLogResource> getErrorPage(@PathVariable String projectKey,
       @PathVariable Long parentId, @RequestParam Map<String, String> params,
       @FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getLogsWithLocation(parentId,
-        projectExtractor.extractProjectDetails(user, projectKey), params, filter, pageable
+        projectExtractor.extractMembershipDetails(user, projectKey), params, filter, pageable
     );
   }
 
   @PostMapping("search/{itemId}")
   @ResponseStatus(OK)
   @Operation(summary = "Search test items with similar error logs")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public Iterable<SearchLogRs> searchLogs(@PathVariable String projectKey,
       @RequestBody SearchLogRq request, @PathVariable Long itemId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return searchLogService.search(itemId, request,
-        projectExtractor.extractProjectDetails(user, projectKey)
+        projectExtractor.extractMembershipDetails(user, projectKey)
     );
   }
 

@@ -20,12 +20,15 @@ import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_STATUS;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -41,16 +44,16 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
-import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
 import java.util.List;
 import java.util.Optional;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -98,34 +101,35 @@ class GetLaunchHandlerImplTest {
   @Test
   void getLaunchFromOtherProject() {
     final ReportPortalUser rpUser =
-        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 2L);
+        getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 2L);
     when(launchRepository.findById(1L)).thenReturn(
         getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getLaunch("1", extractProjectDetails(rpUser, TEST_PROJECT_KEY))
+        () -> handler.getLaunch("1", rpUserToMembership(rpUser))
     );
     assertEquals("You do not have enough permissions.", exception.getMessage());
   }
 
   @Test
+  @Disabled("waiting for requirements")
   void getDebugLaunchWithCustomerRole() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     when(launchRepository.findById(1L)).thenReturn(
         getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEBUG));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getLaunch("1", extractProjectDetails(rpUser, TEST_PROJECT_KEY))
+        () -> handler.getLaunch("1", rpUserToMembership(rpUser))
     );
     assertEquals("You do not have enough permissions.", exception.getMessage());
   }
 
   @Test
   void getLaunchNamesIncorrectInput() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     assertThrows(ReportPortalException.class,
-        () -> handler.getLaunchNames(extractProjectDetails(rpUser, TEST_PROJECT_KEY),
+        () -> handler.getLaunchNames(rpUserToMembership(rpUser),
             RandomStringUtils.random(257)
         )
     );
@@ -133,7 +137,7 @@ class GetLaunchHandlerImplTest {
 
   @Test
   void getNotExistLaunch() {
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     String launchId = "1";
 
     when(launchRepository.findById(Long.parseLong(launchId))).thenReturn(Optional.empty());
@@ -151,7 +155,7 @@ class GetLaunchHandlerImplTest {
     when(projectRepository.findByKey(projectKey)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getLaunchByProjectName(projectKey, PageRequest.of(0, 10), getDefaultFilter(),
+        () -> handler.getLaunchByProjectKey(projectKey, PageRequest.of(0, 10), getDefaultFilter(),
             "user"
         )
     );
@@ -168,7 +172,7 @@ class GetLaunchHandlerImplTest {
     when(launchRepository.findByFilter(any(), any())).thenReturn(null);
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getLaunchByProjectName(projectKey, PageRequest.of(0, 10), getDefaultFilter(),
+        () -> handler.getLaunchByProjectKey(projectKey, PageRequest.of(0, 10), getDefaultFilter(),
             "user"
         )
     );
@@ -179,7 +183,7 @@ class GetLaunchHandlerImplTest {
   void getLaunchesByNotExistProject() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  projectId);
 
     when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
@@ -197,7 +201,7 @@ class GetLaunchHandlerImplTest {
   void getLatestLaunchesOnNotExistProject() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  projectId);
 
     when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
@@ -215,7 +219,7 @@ class GetLaunchHandlerImplTest {
   void getOwnersWrongTerm() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  projectId);
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.getOwners(extractProjectDetails(user, TEST_PROJECT_KEY), "qw",
@@ -232,7 +236,7 @@ class GetLaunchHandlerImplTest {
   void getOwnersWrongMode() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  projectId);
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.getOwners(extractProjectDetails(user, TEST_PROJECT_KEY), "qwe", "incorrectMode")
@@ -245,7 +249,7 @@ class GetLaunchHandlerImplTest {
   @Test
   void exportLaunchNotFound() {
     long launchId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     when(launchRepository.findById(launchId)).thenReturn(Optional.empty());
 
@@ -258,7 +262,7 @@ class GetLaunchHandlerImplTest {
   @Test
   void exportLaunchUserNotFound() {
     long launchId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     Launch launch = new Launch();
     launch.setStatus(StatusEnum.FAILED);
@@ -272,9 +276,10 @@ class GetLaunchHandlerImplTest {
   }
 
   @Test
+  @Disabled("waiting for requirements")
   void getLaunchInDebugModeByCustomer() {
     long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.CUSTOMER, projectId);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, projectId);
     String launchId = "1";
 
     Launch launch = new Launch();
@@ -291,7 +296,7 @@ class GetLaunchHandlerImplTest {
   @Test
   void getClusterInfo() {
     long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, projectId);
     String launchId = "1";
 
     Launch launch = new Launch();

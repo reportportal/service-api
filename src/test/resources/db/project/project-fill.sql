@@ -25,9 +25,9 @@ values (3, 'test_user', '179AD45C6CE2CB97CF1029E212046E81', 'test@domain.com', n
         '{"metadata": {"last_login": "now"}}');
 
 insert into project_user(user_id, project_id, project_role)
-values (3, 3, 'MEMBER');
+values (3, 3, 'VIEWER');
 insert into project_user(user_id, project_id, project_role)
-values (1, 3, 'PROJECT_MANAGER');
+values (1, 3, 'EDITOR');
 
 insert into organization_user (user_id, organization_id, organization_role)
     values (1, 101, (select 'MANAGER'::public."organization_role_enum"));

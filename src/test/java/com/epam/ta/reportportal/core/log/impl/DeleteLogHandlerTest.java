@@ -39,6 +39,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.entity.user.User;
@@ -83,7 +84,7 @@ class DeleteLogHandlerTest {
   @Test
   void deleteLogOnNotExistProject() {
     long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,
         projectId);
 
     when(projectRepository.existsById(projectId)).thenReturn(false);
@@ -99,7 +100,7 @@ class DeleteLogHandlerTest {
   void deleteNotExistLog() {
     long projectId = 1L;
     long logId = 2L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 
         projectId);
 
     when(projectRepository.existsById(projectId)).thenReturn(true);
@@ -115,7 +116,7 @@ class DeleteLogHandlerTest {
   void deleteLogByNotOwner() {
     long projectId = 1L;
     long logId = 2L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, projectId);
 
     Log log = new Log();
     TestItem testItem = new TestItem();
@@ -146,7 +147,7 @@ class DeleteLogHandlerTest {
   void cleanUpLogDataTest() {
     long projectId = 1L;
     long logId = 2L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, projectId);
 
     Log log = new Log();
     TestItem testItem = new TestItem();
@@ -183,7 +184,7 @@ class DeleteLogHandlerTest {
   void cleanUpLogDataNegative() {
     long projectId = 1L;
     long logId = 2L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, projectId);
 
     Log log = new Log();
     TestItem testItem = new TestItem();

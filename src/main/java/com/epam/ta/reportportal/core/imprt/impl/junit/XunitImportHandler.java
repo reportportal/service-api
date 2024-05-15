@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.reporting.Issue;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
@@ -76,7 +77,7 @@ public class XunitImportHandler extends DefaultHandler {
   }
 
   //initial info
-  private ReportPortalUser.ProjectDetails projectDetails;
+  private MembershipDetails membershipDetails;
   private ReportPortalUser user;
   private String launchUuid;
   private boolean isSkippedNotIssue = false;
@@ -203,7 +204,7 @@ public class XunitImportHandler extends DefaultHandler {
     }
     currentSuiteDuration = toMillis(duration);
     StartTestItemRQ rq = buildStartTestRq(name);
-    String id = startTestItemHandler.startRootItem(user, projectDetails, rq).getId();
+    String id = startTestItemHandler.startRootItem(user, membershipDetails, rq).getId();
     itemUuids.push(id);
   }
 
@@ -233,7 +234,7 @@ public class XunitImportHandler extends DefaultHandler {
   private void startTestItem(String name) {
     StartTestItemRQ rq = buildStartTestRq(name);
     String id =
-        startTestItemHandler.startChildItem(user, projectDetails, rq, itemUuids.peek()).getId();
+        startTestItemHandler.startChildItem(user, membershipDetails, rq, itemUuids.peek()).getId();
     itemUuids.push(id);
   }
 
@@ -254,7 +255,7 @@ public class XunitImportHandler extends DefaultHandler {
     rq.setStartTime(startItemTime);
 
     String id =
-        startTestItemHandler.startChildItem(user, projectDetails, rq, itemUuids.peek()).getId();
+        startTestItemHandler.startChildItem(user, membershipDetails, rq, itemUuids.peek()).getId();
     currentDuration = toMillis(duration);
     currentItemUuid = id;
     itemUuids.push(id);
@@ -264,7 +265,7 @@ public class XunitImportHandler extends DefaultHandler {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     markAsNotIssue(rq);
     rq.setEndTime(startSuiteTime.plus(currentSuiteDuration, ChronoUnit.MILLIS));
-    finishTestItemHandler.finishTestItem(user, projectDetails, itemUuids.poll(), rq);
+    finishTestItemHandler.finishTestItem(user, membershipDetails, itemUuids.poll(), rq);
     status = null;
   }
 
@@ -276,7 +277,7 @@ public class XunitImportHandler extends DefaultHandler {
     rq.setEndTime(endTime);
     rq.setStatus(Optional.ofNullable(status).orElse(StatusEnum.PASSED).name());
     currentItemUuid = itemUuids.poll();
-    finishTestItemHandler.finishTestItem(user, projectDetails, currentItemUuid, rq);
+    finishTestItemHandler.finishTestItem(user, membershipDetails, currentItemUuid, rq);
     status = null;
   }
 
@@ -295,13 +296,13 @@ public class XunitImportHandler extends DefaultHandler {
       saveLogRQ.setLogTime(startItemTime);
       saveLogRQ.setMessage(message.toString().trim());
       saveLogRQ.setItemUuid(currentItemUuid);
-      createLogHandler.createLog(saveLogRQ, null, projectDetails);
+      createLogHandler.createLog(saveLogRQ, null, membershipDetails);
     }
   }
 
-  XunitImportHandler withParameters(ReportPortalUser.ProjectDetails projectDetails, String launchId,
+  XunitImportHandler withParameters(MembershipDetails membershipDetails, String launchId,
       ReportPortalUser user, boolean isSkippedNotIssue) {
-    this.projectDetails = projectDetails;
+    this.membershipDetails = membershipDetails;
     this.launchUuid = launchId;
     this.user = user;
     this.isSkippedNotIssue = isSkippedNotIssue;

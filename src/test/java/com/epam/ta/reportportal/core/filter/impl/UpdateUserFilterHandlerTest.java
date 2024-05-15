@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.filter.impl;
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -36,6 +37,8 @@ import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -79,12 +82,12 @@ class UpdateUserFilterHandlerTest {
   void updateUserFilterWithTheSameName() {
 
     final ReportPortalUser rpUser =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L);
 
     UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(SAME_NAME);
 
-    ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, TEST_PROJECT_KEY);
-    when(userFilterRepository.findByIdAndProjectId(1L, projectDetails.getProjectId())).thenReturn(
+    MembershipDetails membershipDetails = rpUserToMembership(rpUser);
+    when(userFilterRepository.findByIdAndProjectId(1L, membershipDetails.getProjectId())).thenReturn(
         Optional.of(userFilter));
 
     when(userFilter.getId()).thenReturn(1L);
@@ -95,7 +98,7 @@ class UpdateUserFilterHandlerTest {
     doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
 
     OperationCompletionRS operationCompletionRS =
-        updateUserFilterHandler.updateUserFilter(1L, updateUserFilterRQ, projectDetails, rpUser);
+        updateUserFilterHandler.updateUserFilter(1L, updateUserFilterRQ, membershipDetails, rpUser);
 
     assertEquals(
         "User filter with ID = '" + userFilter.getId() + "' successfully updated.",
@@ -107,12 +110,12 @@ class UpdateUserFilterHandlerTest {
   void updateUserFilterWithAnotherNamePositive() {
 
     final ReportPortalUser rpUser =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L);
 
     UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(ANOTHER_NAME);
 
-    ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, TEST_PROJECT_KEY);
-    when(userFilterRepository.findByIdAndProjectId(1L, projectDetails.getProjectId())).thenReturn(
+    MembershipDetails membershipDetails = rpUserToMembership(rpUser);
+    when(userFilterRepository.findByIdAndProjectId(1L, membershipDetails.getProjectId())).thenReturn(
         Optional.of(userFilter));
 
     when(userFilter.getId()).thenReturn(1L);
@@ -127,7 +130,7 @@ class UpdateUserFilterHandlerTest {
     doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
 
     OperationCompletionRS operationCompletionRS =
-        updateUserFilterHandler.updateUserFilter(1L, updateUserFilterRQ, projectDetails, rpUser);
+        updateUserFilterHandler.updateUserFilter(1L, updateUserFilterRQ, membershipDetails, rpUser);
 
     assertEquals(
         "User filter with ID = '" + userFilter.getId() + "' successfully updated.",
@@ -139,12 +142,12 @@ class UpdateUserFilterHandlerTest {
   void updateUserFilterWithAnotherNameNegative() {
 
     final ReportPortalUser rpUser =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L);
 
     UpdateUserFilterRQ updateUserFilterRQ = getUpdateRequest(ANOTHER_NAME);
 
-    ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, TEST_PROJECT_KEY);
-    when(userFilterRepository.findByIdAndProjectId(1L, projectDetails.getProjectId())).thenReturn(
+    MembershipDetails membershipDetails = rpUserToMembership(rpUser);
+    when(userFilterRepository.findByIdAndProjectId(1L, membershipDetails.getProjectId())).thenReturn(
         Optional.of(userFilter));
 
     when(userFilter.getId()).thenReturn(1L);
@@ -154,19 +157,19 @@ class UpdateUserFilterHandlerTest {
     when(project.getId()).thenReturn(1L);
 
     when(userFilterRepository.existsByNameAndOwnerAndProjectId(updateUserFilterRQ.getName(),
-        userFilter.getOwner(), projectDetails.getProjectId()
+        userFilter.getOwner(), membershipDetails.getProjectId()
     )).thenReturn(Boolean.TRUE);
 
     doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> updateUserFilterHandler.updateUserFilter(1L, updateUserFilterRQ, projectDetails,
+        () -> updateUserFilterHandler.updateUserFilter(1L, updateUserFilterRQ, membershipDetails,
             rpUser
         )
     );
     assertEquals(Suppliers.formattedSupplier(
         "User filter with name '{}' already exists for user '{}' under the project '{}'. You couldn't create the duplicate.",
-        ANOTHER_NAME, "user", projectDetails.getProjectName()
+        ANOTHER_NAME, "user", membershipDetails.getProjectName()
     ).get(), exception.getMessage());
   }
 

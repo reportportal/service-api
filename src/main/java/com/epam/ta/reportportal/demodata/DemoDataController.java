@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.demodata;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.demodata.model.DemoDataRq;
@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/demo/{projectKey}")
-@PreAuthorize(PROJECT_MANAGER)
+@PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
 @Tag(name = "demo-data-controller", description = "Demo Data Controller")
 class DemoDataController {
 

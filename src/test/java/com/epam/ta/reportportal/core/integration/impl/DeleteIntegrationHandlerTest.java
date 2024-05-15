@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -64,11 +65,8 @@ public class DeleteIntegrationHandlerTest {
 	@Test
 	void deleteGlobalIntegration() {
 
-		final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
-				UserRole.ADMINISTRATOR,
-				ProjectRole.PROJECT_MANAGER,
-				1L
-		);
+    final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
+        UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
 		final long emailIntegrationId = 1L;
 
@@ -91,10 +89,7 @@ public class DeleteIntegrationHandlerTest {
 	void deleteAllIntegrations() {
 
 		final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
-				UserRole.ADMINISTRATOR,
-				ProjectRole.PROJECT_MANAGER,
-				1L
-		);
+				UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
 		when(integrationTypeRepository.findByName(anyString())).thenReturn(
 				Optional.of(IntegrationTestUtil.getEmailIntegrationType()));
@@ -122,8 +117,7 @@ public class DeleteIntegrationHandlerTest {
 		project.setKey(TEST_PROJECT_KEY);
 
 		final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
-				UserRole.ADMINISTRATOR,
-				ProjectRole.PROJECT_MANAGER,
+				UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR,
 				projectId
 		);
 
@@ -158,10 +152,7 @@ public class DeleteIntegrationHandlerTest {
 		project.setKey(TEST_PROJECT_KEY);
 
 		final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
-				UserRole.ADMINISTRATOR,
-				ProjectRole.PROJECT_MANAGER,
-				projectId
-		);
+				UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, projectId);
 
 		when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.of(project));
 

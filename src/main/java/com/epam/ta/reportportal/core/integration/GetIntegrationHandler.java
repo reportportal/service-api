@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.integration;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.integration.IntegrationResource;
 import java.util.List;
 import java.util.Optional;
@@ -40,10 +41,10 @@ public interface GetIntegrationHandler {
   Optional<Integration> getEnabledByProjectIdOrGlobalAndIntegrationGroup(Long projectId,
       IntegrationGroupEnum integrationGroup);
 
-  Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails, String url,
+  Integration getEnabledBtsIntegration(MembershipDetails membershipDetails, String url,
       String btsProject);
 
-  Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails,
+  Integration getEnabledBtsIntegration(MembershipDetails membershipDetails,
       Long integrationId);
 
   Integration getEnabledBtsIntegration(Long integrationId);

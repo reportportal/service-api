@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandler;
@@ -44,7 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/settings")
-@PreAuthorize(ADMIN_ONLY)
+@PreAuthorize(IS_ADMIN)
 @Tag(name = "settings-controller", description = "Settings Controller")
 public class SettingsController {
 

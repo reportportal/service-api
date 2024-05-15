@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.model.item.ExternalIssueRQ;
 import com.epam.ta.reportportal.model.item.UpdateTestItemRQ;
@@ -35,24 +36,24 @@ public interface UpdateTestItemHandler {
   /**
    * Define TestItem issue (or list of issues)
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param defineIssue    issues request data
    * @param user           user
    * @return list of defined issues for specified test items
    */
-  List<Issue> defineTestItemsIssues(ReportPortalUser.ProjectDetails projectDetails,
+  List<Issue> defineTestItemsIssues(MembershipDetails membershipDetails,
       DefineIssueRQ defineIssue, ReportPortalUser user);
 
   /**
    * Update specified test item
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param itemId         test item ID
    * @param rq             update test item request data
    * @param user           request principal name
    * @return OperationCompletionRS
    */
-  OperationCompletionRS updateTestItem(ReportPortalUser.ProjectDetails projectDetails, Long itemId,
+  OperationCompletionRS updateTestItem(MembershipDetails membershipDetails, Long itemId,
       UpdateTestItemRQ rq, ReportPortalUser user);
 
   /**
@@ -60,12 +61,12 @@ public interface UpdateTestItemHandler {
    * {@link com.epam.ta.reportportal.entity.item.TestItem}
    *
    * @param request        {@link ExternalIssueRQ}
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param user           {@link ReportPortalUser}
    * @return {@link List} of the {@link OperationCompletionRS}
    */
   List<OperationCompletionRS> processExternalIssues(ExternalIssueRQ request,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+      MembershipDetails membershipDetails, ReportPortalUser user);
 
   /**
    * Resets items issue to default state
@@ -78,5 +79,5 @@ public interface UpdateTestItemHandler {
   void resetItemsIssue(List<Long> itemIds, Long projectId, ReportPortalUser user);
 
   OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq,
-      ReportPortalUser.ProjectDetails projectDetails);
+      MembershipDetails membershipDetails);
 }

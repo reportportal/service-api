@@ -16,6 +16,7 @@ import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
@@ -55,7 +56,7 @@ class XmlImportStrategyTest {
   @InjectMocks
   private XmlImportStrategy xmlImportStrategy;
 
-  private ReportPortalUser.ProjectDetails projectDetails;
+  private MembershipDetails membershipDetails;
 
   private ReportPortalUser user = mock(ReportPortalUser.class);
 
@@ -65,7 +66,7 @@ class XmlImportStrategyTest {
 
   @BeforeEach
   void setUp() {
-    projectDetails = mock(ReportPortalUser.ProjectDetails.class);
+    membershipDetails = mock(MembershipDetails.class);
     user = mock(ReportPortalUser.class);
 
   }
@@ -82,7 +83,7 @@ class XmlImportStrategyTest {
     Launch launch = mock(Launch.class);
 
     XunitParseJob xunitParseJob = mock(XunitParseJob.class);
-    when(xunitParseJob.withParameters(eq(projectDetails), eq(LAUNCH_ID), eq(user),
+    when(xunitParseJob.withParameters(eq(membershipDetails), eq(LAUNCH_ID), eq(user),
         any(InputStream.class), eq(false)
     )).thenReturn(xunitParseJob);
     ParseResults parseResults = mock(ParseResults.class);
@@ -93,7 +94,7 @@ class XmlImportStrategyTest {
     when(launchRepository.findByUuid(any())).thenReturn(Optional.of(launch));
     when(xmlParseJobProvider.get()).thenReturn(xunitParseJob);
 
-    xmlImportStrategy.importLaunch(projectDetails, user, xmlFile, BASE_URL, rq);
+    xmlImportStrategy.importLaunch(membershipDetails, user, xmlFile, BASE_URL, rq);
 
     verify(startLaunchHandler, times(1)).startLaunch(any(), any(), any());
     verify(finishLaunchHandler, times(1)).finishLaunch(any(), any(), any(), any(), any());
@@ -121,7 +122,7 @@ class XmlImportStrategyTest {
     Launch launch = mock(Launch.class);
 
     XunitParseJob xunitParseJob = mock(XunitParseJob.class);
-    when(xunitParseJob.withParameters(eq(projectDetails), eq(LAUNCH_ID), eq(user),
+    when(xunitParseJob.withParameters(eq(membershipDetails), eq(LAUNCH_ID), eq(user),
         any(InputStream.class), eq(true)
     )).thenReturn(xunitParseJob);
     ParseResults parseResults = mock(ParseResults.class);
@@ -132,7 +133,7 @@ class XmlImportStrategyTest {
     when(launchRepository.findByUuid(any())).thenReturn(Optional.of(launch));
     when(xmlParseJobProvider.get()).thenReturn(xunitParseJob);
 
-    xmlImportStrategy.importLaunch(projectDetails, user, xmlFile, BASE_URL, rq);
+    xmlImportStrategy.importLaunch(membershipDetails, user, xmlFile, BASE_URL, rq);
 
     verify(startLaunchHandler, times(1)).startLaunch(any(), any(), any());
     verify(finishLaunchHandler, times(1)).finishLaunch(any(), any(), any(), any(), any());

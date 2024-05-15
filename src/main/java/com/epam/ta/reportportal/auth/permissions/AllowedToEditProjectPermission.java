@@ -17,13 +17,19 @@
 package com.epam.ta.reportportal.auth.permissions;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.reportportal.rules.exception.ErrorType;
-import com.google.common.collect.Maps;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails;
+import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails.ProjectDetails;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.util.ProjectExtractor;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -34,9 +40,9 @@ import org.springframework.stereotype.Component;
  *
  * @author Andrei Varabyeu
  */
-@Component("assignedToProjectPermission")
-@LookupPermission({"isAssignedToProject"})
-class AssignedToProjectPermission implements Permission {
+@Component("allowedToEditProjectPermission")
+@LookupPermission({"allowedToEditProject"})
+class AllowedToEditProjectPermission implements Permission {
 
   /*
    * Due to Spring's framework flow, Security API loads first. So, context
@@ -46,7 +52,7 @@ class AssignedToProjectPermission implements Permission {
   private final ProjectExtractor projectExtractor;
 
   @Autowired
-  AssignedToProjectPermission(ProjectExtractor projectExtractor) {
+  AllowedToEditProjectPermission(ProjectExtractor projectExtractor) {
     this.projectExtractor = projectExtractor;
   }
 
@@ -63,19 +69,42 @@ class AssignedToProjectPermission implements Permission {
     ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
-    final String resolvedProjectName = String.valueOf(targetDomainObject);
-    final Optional<ReportPortalUser.ProjectDetails> projectDetails = projectExtractor.findProjectDetails(
-        rpUser, resolvedProjectName);
-    projectDetails.ifPresent(
-        details -> fillProjectDetails(rpUser, resolvedProjectName, details));
-    return projectDetails.isPresent();
+    final String resolvedProjectKey = String.valueOf(targetDomainObject);
+    final Optional<MembershipDetails> membershipDetails =
+        projectExtractor.findMembershipDetails(rpUser, resolvedProjectKey);
+
+    BusinessRule.expect(membershipDetails.isPresent(), Predicate.isEqual(true))
+        .verify(ErrorType.ACCESS_DENIED);
+
+    var md = membershipDetails.get();
+    if (OrganizationRole.MANAGER == md.getOrgRole() || ProjectRole.EDITOR == md.getProjectRole()) {
+      membershipDetails.ifPresent(details -> fillProjectDetails(rpUser, resolvedProjectKey, details));
+      return true;
+    }
+
+    return false;
   }
 
   private void fillProjectDetails(ReportPortalUser rpUser, String resolvedProjectName,
-      ReportPortalUser.ProjectDetails projectDetails) {
-    final Map<String, ReportPortalUser.ProjectDetails> projectDetailsMapping = Maps.newHashMapWithExpectedSize(
-        1);
-    projectDetailsMapping.put(resolvedProjectName, projectDetails);
-    rpUser.setProjectDetails(projectDetailsMapping);
+      MembershipDetails membershipDetails) {
+    final Map<String, OrganizationDetails> organizationDetails = HashMap.newHashMap(2);
+
+    var prjDetailsMap = new HashMap<String, ProjectDetails>();
+
+    var prjDetails = new ProjectDetails(membershipDetails.getProjectId(),
+        membershipDetails.getProjectName(),
+        membershipDetails.getProjectKey(),
+        membershipDetails.getProjectRole(),
+        membershipDetails.getOrgId());
+    prjDetailsMap.put(membershipDetails.getProjectKey(), prjDetails);
+
+    var od = new OrganizationDetails(
+        membershipDetails.getOrgId(),
+        membershipDetails.getOrgName(),
+        membershipDetails.getOrgRole(),
+        prjDetailsMap);
+
+    organizationDetails.put(resolvedProjectName, od);
+    rpUser.setOrganizationDetails(organizationDetails);
   }
 }

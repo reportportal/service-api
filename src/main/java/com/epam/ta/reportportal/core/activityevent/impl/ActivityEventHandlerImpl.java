@@ -19,11 +19,12 @@ package com.epam.ta.reportportal.core.activityevent.impl;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
+
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.activityevent.ActivityEventHandler;
 import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.ActivityEventResource;
 import com.epam.ta.reportportal.model.PagedResponse;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -60,10 +61,10 @@ public class ActivityEventHandlerImpl implements ActivityEventHandler {
   }
 
   @Override
-  public List<String> getSubjectNames(ProjectDetails projectDetails, String value) {
+  public List<String> getSubjectNames(MembershipDetails membershipDetails, String value) {
     checkBusinessRuleLessThan1Symbol(value);
     return activityRepository.findSubjectNameByProjectIdAndSubjectName(
-        projectDetails.getProjectId(), value.toLowerCase());
+        membershipDetails.getProjectId(), value.toLowerCase());
   }
 
   private void checkBusinessRuleLessThan1Symbol(String value) {

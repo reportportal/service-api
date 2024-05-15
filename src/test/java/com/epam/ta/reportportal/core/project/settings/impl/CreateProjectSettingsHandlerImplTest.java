@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -59,7 +60,7 @@ class CreateProjectSettingsHandlerImplTest {
   void createSubtypeOnNotExistProject() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  projectId);
 
     when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.empty());
 
@@ -77,7 +78,7 @@ class CreateProjectSettingsHandlerImplTest {
   void createSubtypeWithWrongGroup() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  projectId);
 
     when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.of(new Project()));
 
@@ -100,7 +101,7 @@ class CreateProjectSettingsHandlerImplTest {
 
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  projectId);
 
     when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.of(project));
 

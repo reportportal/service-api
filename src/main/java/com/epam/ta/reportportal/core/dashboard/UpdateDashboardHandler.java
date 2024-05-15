@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.dashboard;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.dashboard.AddWidgetRq;
 import com.epam.ta.reportportal.model.dashboard.UpdateDashboardRQ;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
@@ -29,13 +30,13 @@ public interface UpdateDashboardHandler {
   /**
    * Update dashboard with specified id
    *
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param rq             Update details
    * @param dashboardId    Dashboard id to be updated
    * @param user           User
    * @return OperationCompletionRS
    */
-  OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails,
+  OperationCompletionRS updateDashboard(MembershipDetails membershipDetails,
       UpdateDashboardRQ rq, Long dashboardId,
       ReportPortalUser user);
 
@@ -43,12 +44,12 @@ public interface UpdateDashboardHandler {
    * Add a new widget to the specified dashboard
    *
    * @param dashboardId    Dashboard id
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param rq             Widget details
    * @param user           User
    * @return OperationCompletionRS
    */
-  OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails,
+  OperationCompletionRS addWidget(Long dashboardId, MembershipDetails membershipDetails,
       AddWidgetRq rq,
       ReportPortalUser user);
 
@@ -57,12 +58,12 @@ public interface UpdateDashboardHandler {
    *
    * @param widgetId       Widget id
    * @param dashboardId    Dashboard id
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param user           {@link ReportPortalUser}
    * @return OperationCompletionRS
    */
   OperationCompletionRS removeWidget(Long widgetId, Long dashboardId,
-      ReportPortalUser.ProjectDetails projectDetails,
+      MembershipDetails membershipDetails,
       ReportPortalUser user);
 
 }

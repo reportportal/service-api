@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
@@ -67,7 +68,7 @@ public class DemoDataLaunchService {
 
   @Transactional
   public Launch startLaunch(String name, User user,
-      ReportPortalUser.ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
     StartLaunchRQ rq = new StartLaunchRQ();
     rq.setMode(Mode.DEFAULT);
     rq.setDescription(ContentUtils.getLaunchDescription());
@@ -85,7 +86,7 @@ public class DemoDataLaunchService {
         )
     );
     Launch launch = new LaunchBuilder().addStartRQ(rq).addAttributes(attributes)
-        .addProject(projectDetails.getProjectId()).get();
+        .addProject(membershipDetails.getProjectId()).get();
     launch.setUserId(user.getId());
     launchRepository.save(launch);
     launchRepository.refresh(launch);

@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardCreatedEvent;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.converter.builders.DashboardBuilder;
@@ -53,10 +54,10 @@ public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
   }
 
   @Override
-  public EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails,
+  public EntryCreatedRS createDashboard(MembershipDetails membershipDetails,
       CreateDashboardRQ rq, ReportPortalUser user) {
 
-    BusinessRule.expect(dashboardRepository.findAllByProjectId(projectDetails.getProjectId()).size()
+    BusinessRule.expect(dashboardRepository.findAllByProjectId(membershipDetails.getProjectId()).size()
             >= DASHBOARD_LIMIT, BooleanUtils::isFalse)
         .verify(ErrorType.DASHBOARD_UPDATE_ERROR, Suppliers.formattedSupplier(
             "The limit of {} dashboards has been reached. To create a new one you need to delete at least one created previously.",
@@ -64,11 +65,11 @@ public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
         ));
     BusinessRule.expect(
         dashboardRepository.existsByNameAndOwnerAndProjectId(rq.getName(), user.getUsername(),
-            projectDetails.getProjectId()
+            membershipDetails.getProjectId()
         ), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
 
     Dashboard dashboard =
-        new DashboardBuilder().addDashboardRq(rq).addProject(projectDetails.getProjectId())
+        new DashboardBuilder().addDashboardRq(rq).addProject(membershipDetails.getProjectId())
             .addOwner(user.getUsername()).get();
     dashboardRepository.save(dashboard);
     messageBus.publishActivity(

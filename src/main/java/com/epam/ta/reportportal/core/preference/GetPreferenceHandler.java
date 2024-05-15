@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.preference;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.preference.PreferenceResource;
 
 /**
@@ -26,7 +27,7 @@ import com.epam.ta.reportportal.model.preference.PreferenceResource;
  */
 public interface GetPreferenceHandler {
 
-  PreferenceResource getPreference(ReportPortalUser.ProjectDetails projectDetails,
+  PreferenceResource getPreference(MembershipDetails membershipDetails,
       ReportPortalUser user);
 
 }

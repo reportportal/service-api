@@ -86,7 +86,7 @@ class UserConverterTest {
     project1.setProjectType(ProjectType.INTERNAL);
     project1.setOrganizationId(TEST_ORG_ID);
     final ProjectUser projectUser1 =
-        new ProjectUser().withProject(project1).withProjectRole(ProjectRole.MEMBER).withUser(user);
+        new ProjectUser().withProject(project1).withProjectRole(ProjectRole.EDITOR).withUser(user);
 
     final Project project2 = new Project();
     project2.setName("project2");
@@ -94,7 +94,7 @@ class UserConverterTest {
     project2.setProjectType(ProjectType.INTERNAL);
     project2.setOrganizationId(TEST_ORG_ID);
     final ProjectUser projectUser2 =
-        new ProjectUser().withProject(project2).withProjectRole(ProjectRole.PROJECT_MANAGER)
+        new ProjectUser().withProject(project2).withProjectRole(ProjectRole.EDITOR)
             .withUser(user);
 
     user.setProjects(Sets.newHashSet(projectUser1, projectUser2));

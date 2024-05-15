@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.dao.DashboardWidgetRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -63,11 +64,11 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 	}
 
 	@Override
-	public OperationCompletionRS deleteDashboard(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
+	public OperationCompletionRS deleteDashboard(Long dashboardId, MembershipDetails membershipDetails, ReportPortalUser user) {
+		Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, membershipDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
 						dashboardId,
-						projectDetails.getProjectName()
+            membershipDetails.getProjectName()
 				));
 
 		Set<DashboardWidget> dashboardWidgets = dashboard.getDashboardWidgets();

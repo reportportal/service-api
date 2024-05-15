@@ -18,10 +18,12 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ReportingQueueService;
@@ -52,10 +54,10 @@ class StartTestItemHandlerAsyncImplTest {
   @Test
   void startRootItem() {
     StartTestItemRQ request = new StartTestItemRQ();
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR,
         1L);
 
-    startTestItemHandlerAsync.startRootItem(user, user.getProjectDetails().get(TEST_PROJECT_KEY),
+    startTestItemHandlerAsync.startRootItem(user, rpUserToMembership(user),
         request);
     verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
     verify(reportingQueueService).getReportingQueueKey(any());
@@ -64,10 +66,10 @@ class StartTestItemHandlerAsyncImplTest {
   @Test
   void startChildItem() {
     StartTestItemRQ request = new StartTestItemRQ();
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR,
         1L);
 
-    startTestItemHandlerAsync.startChildItem(user, user.getProjectDetails().get(TEST_PROJECT_KEY),
+    startTestItemHandlerAsync.startChildItem(user, rpUserToMembership(user),
         request, "123");
     verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
     verify(reportingQueueService).getReportingQueueKey(any());

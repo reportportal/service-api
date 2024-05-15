@@ -71,6 +71,7 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.Prefix;
 import com.epam.ta.reportportal.entity.enums.ProjectType;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
@@ -263,9 +264,9 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
           "User should not assign himself to project."
       );
 
-      ReportPortalUser.ProjectDetails projectDetails =
-          projectExtractor.extractProjectDetails(user, projectKey);
-      Project project = projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
+      MembershipDetails membershipDetails =
+          projectExtractor.extractMembershipDetails(user, projectKey);
+      Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
           () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectKey)));
 
       List<String> assignedUsernames =
@@ -274,7 +275,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
         ProjectRole projectRole = ProjectRole.forName(role)
             .orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, role));
-        ProjectRole modifierRole = projectDetails.getProjectRole();
+        ProjectRole modifierRole = membershipDetails.getProjectRole();
         expect(modifierRole.sameOrHigherThan(projectRole), BooleanUtils::isTrue).verify(
             ACCESS_DENIED);
         assignUser(name, projectRole, assignedUsernames, project, user);
@@ -333,8 +334,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
       });
     } else {
-      ReportPortalUser.ProjectDetails projectDetails =
-          projectExtractor.extractProjectDetails(user, project.getKey());
+      MembershipDetails membershipDetails =
+          projectExtractor.extractMembershipDetails(user, project.getKey());
 
       usernames.forEach(username -> {
         User userForUnassign = userRepository.findByLogin(username)
@@ -346,7 +347,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
             ));
 
         expect(
-            projectDetails.getProjectRole().sameOrHigherThan(projectUser.getProjectRole()),
+            membershipDetails.getProjectRole().sameOrHigherThan(projectUser.getProjectRole()),
             BooleanUtils::isTrue
         ).verify(ACCESS_DENIED);
 
@@ -453,7 +454,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
         if (UserRole.ADMINISTRATOR != user.getUserRole()) {
           ProjectRole principalRole =
-              projectExtractor.extractProjectDetails(user, project.getName()).getProjectRole();
+              projectExtractor.extractMembershipDetails(user, project.getName()).getProjectRole();
           ProjectRole updatingUserRole =
               ofNullable(ProjectUtils.findUserConfigByLogin(project, key)).orElseThrow(
                   () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, key)).getProjectRole();

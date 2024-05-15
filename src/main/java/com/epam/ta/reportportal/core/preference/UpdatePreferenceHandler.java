@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.preference;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 
 /**
@@ -29,22 +30,22 @@ public interface UpdatePreferenceHandler {
   /**
    * Add user preference
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param user           User
    * @param filterId       Adding filter id
    * @return {@link OperationCompletionRS}
    */
-  OperationCompletionRS addPreference(ReportPortalUser.ProjectDetails projectDetails,
+  OperationCompletionRS addPreference(MembershipDetails membershipDetails,
       ReportPortalUser user, Long filterId);
 
   /**
    * Remove user preference
    *
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param user           User
    * @param filterId       Removing filter id
    * @return {@link OperationCompletionRS}
    */
-  OperationCompletionRS removePreference(ReportPortalUser.ProjectDetails projectDetails,
+  OperationCompletionRS removePreference(MembershipDetails membershipDetails,
       ReportPortalUser user, Long filterId);
 }

@@ -18,7 +18,9 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -27,12 +29,15 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Validator;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -64,19 +69,18 @@ class LogAsyncControllerTest {
 
   @Test
   void createLog() {
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR,
         1L);
 
     SaveLogRQ saveLogRQ = new SaveLogRQ();
 
     ArgumentCaptor<SaveLogRQ> requestArgumentCaptor = ArgumentCaptor.forClass(SaveLogRQ.class);
     ArgumentCaptor<MultipartFile> fileArgumentCaptor = ArgumentCaptor.forClass(MultipartFile.class);
-    ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(
-        ReportPortalUser.ProjectDetails.class);
+    ArgumentCaptor<MembershipDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(
+        MembershipDetails.class);
 
-    when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
-        anyString())).thenReturn(user.getProjectDetails()
-        .get(TEST_PROJECT_KEY));
+    when(projectExtractor.extractMembershipDetails(any(ReportPortalUser.class),
+        anyString())).thenReturn(rpUserToMembership(user));
 
     logAsyncController.createLog(TEST_PROJECT_KEY, saveLogRQ, user);
     verify(createLogHandler).createLog(requestArgumentCaptor.capture(),
@@ -84,26 +88,24 @@ class LogAsyncControllerTest {
     verify(validator).validate(requestArgumentCaptor.capture());
 
     requestArgumentCaptor.getAllValues().forEach(rq -> assertEquals(saveLogRQ, rq));
-    assertEquals(null, fileArgumentCaptor.getValue());
-    assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY),
-        projectDetailsArgumentCaptor.getValue());
+    assertNull(fileArgumentCaptor.getValue());
+    assertEquals(rpUserToMembership(user), projectDetailsArgumentCaptor.getValue());
   }
 
   @Test
   void createLogEntry() {
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR,
         1L);
 
     SaveLogRQ saveLogRQ = new SaveLogRQ();
 
     ArgumentCaptor<SaveLogRQ> requestArgumentCaptor = ArgumentCaptor.forClass(SaveLogRQ.class);
     ArgumentCaptor<MultipartFile> fileArgumentCaptor = ArgumentCaptor.forClass(MultipartFile.class);
-    ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(
-        ReportPortalUser.ProjectDetails.class);
+    ArgumentCaptor<MembershipDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(
+        MembershipDetails.class);
 
-    when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
-        anyString())).thenReturn(user.getProjectDetails()
-        .get(TEST_PROJECT_KEY));
+    when(projectExtractor.extractMembershipDetails(any(ReportPortalUser.class),
+        anyString())).thenReturn(rpUserToMembership(user));
 
     logAsyncController.createLogEntry(TEST_PROJECT_KEY, saveLogRQ, user);
     verify(createLogHandler).createLog(requestArgumentCaptor.capture(),
@@ -111,14 +113,14 @@ class LogAsyncControllerTest {
     verify(validator).validate(requestArgumentCaptor.capture());
 
     requestArgumentCaptor.getAllValues().forEach(rq -> assertEquals(saveLogRQ, rq));
-    assertEquals(null, fileArgumentCaptor.getValue());
-    assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY),
+    assertNull(fileArgumentCaptor.getValue());
+    assertEquals(rpUserToMembership(user),
         projectDetailsArgumentCaptor.getValue());
   }
 
   @Test
   void createLogs() {
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR,
         1L);
 
     SaveLogRQ saveLogRQ = new SaveLogRQ();
@@ -126,12 +128,11 @@ class LogAsyncControllerTest {
 
     ArgumentCaptor<SaveLogRQ> requestArgumentCaptor = ArgumentCaptor.forClass(SaveLogRQ.class);
     ArgumentCaptor<MultipartFile> fileArgumentCaptor = ArgumentCaptor.forClass(MultipartFile.class);
-    ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(
-        ReportPortalUser.ProjectDetails.class);
+    ArgumentCaptor<MembershipDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(
+        MembershipDetails.class);
 
-    when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
-        anyString())).thenReturn(user.getProjectDetails()
-        .get(TEST_PROJECT_KEY));
+    when(projectExtractor.extractMembershipDetails(any(ReportPortalUser.class),
+        anyString())).thenReturn(rpUserToMembership(user));
 
     logAsyncController.createLog(TEST_PROJECT_KEY, saveLogRQs, httpServletRequest, user);
     verify(validator, times(4)).validate(requestArgumentCaptor.capture());
@@ -143,8 +144,8 @@ class LogAsyncControllerTest {
     assertEquals(2, projectDetailsArgumentCaptor.getAllValues().size());
 
     requestArgumentCaptor.getAllValues().forEach(arg -> assertEquals(saveLogRQ, arg));
-    fileArgumentCaptor.getAllValues().forEach(arg -> assertEquals(null, arg));
+    fileArgumentCaptor.getAllValues().forEach(Assertions::assertNull);
     projectDetailsArgumentCaptor.getAllValues()
-        .forEach(arg -> assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY), arg));
+        .forEach(arg -> assertEquals(rpUserToMembership(user), arg));
   }
 }

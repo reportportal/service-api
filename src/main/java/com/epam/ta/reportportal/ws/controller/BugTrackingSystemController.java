@@ -16,8 +16,9 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -72,14 +73,14 @@ public class BugTrackingSystemController {
   @GetMapping(value = "/{projectKey}/{integrationId}/fields-set")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get list of fields required for posting ticket in concrete integration")
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public List<PostFormField> getSetOfIntegrationSystemFields(
       @RequestParam(value = "issueType") String issuetype,
       @PathVariable String projectKey, @PathVariable Long integrationId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getTicketHandler.getSubmitTicketFields(issuetype,
         integrationId,
-        projectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectKey))
+        projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
     );
   }
 
@@ -87,19 +88,19 @@ public class BugTrackingSystemController {
   @GetMapping(value = "/{projectKey}/{integrationId}/issue_types")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get list of allowable issue types for bug tracking system")
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public List<String> getAllowableIssueTypes(@PathVariable String projectKey,
       @PathVariable Long integrationId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getTicketHandler.getAllowableIssueTypes(integrationId,
-        projectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectKey)));
+        projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey)));
   }
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/{integrationId}/fields-set")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get list of fields required for posting ticket")
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   public List<PostFormField> getSetOfIntegrationSystemFields(
       @RequestParam(value = "issueType") String issueType,
       @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
@@ -110,7 +111,7 @@ public class BugTrackingSystemController {
   @GetMapping(value = "/{integrationId}/issue_types")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get list of existed issue types in bts")
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   public List<String> getAllowableIssueTypes(@PathVariable Long integrationId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getTicketHandler.getAllowableIssueTypes(integrationId);
@@ -120,12 +121,13 @@ public class BugTrackingSystemController {
   @PostMapping(value = "/{projectKey}/{integrationId}/ticket")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(summary = "Post ticket to the bts integration")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public Ticket createIssue(@Validated @RequestBody PostTicketRQ ticketRQ,
       @PathVariable String projectKey,
       @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
     return createTicketHandler.createIssue(ticketRQ,
         integrationId,
-        projectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectKey)),
+        projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey)),
         user
     );
   }
@@ -134,12 +136,13 @@ public class BugTrackingSystemController {
   @GetMapping(value = "/{projectKey}/ticket/{ticketId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get ticket from the bts integration")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public Ticket getTicket(@PathVariable String ticketId, @PathVariable String projectKey,
       @RequestParam(value = "btsUrl") String btsUrl,
       @RequestParam(value = "btsProject") String btsProject,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getTicketHandler.getTicket(ticketId, btsUrl, btsProject,
-        projectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectKey)));
+        projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey)));
   }
 
 }

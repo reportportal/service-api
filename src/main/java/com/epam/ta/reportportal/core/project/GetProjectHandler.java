@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.model.project.ProjectResource;
@@ -48,7 +49,7 @@ public interface GetProjectHandler {
 
   boolean exists(Long id);
 
-  Project get(ReportPortalUser.ProjectDetails projectDetails);
+  Project get(MembershipDetails membershipDetails);
 
   Project get(Long id);
 
@@ -74,23 +75,24 @@ public interface GetProjectHandler {
   /**
    * Get list of specified usernames
    *
-   * @param projectDetails Project name
+   * @param membershipDetails Membership details
    * @param value          Login
    * @return List of found user logins
    */
-  List<String> getUserNames(ReportPortalUser.ProjectDetails projectDetails, String value);
+  List<String> getUserNames(MembershipDetails membershipDetails, String value);
 
   /**
    * Performs global search for user
    *
    * @param value          login OR full name of user
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param pageable       {@link Pageable} Page Details
    * @return List of found user resources
    */
   Iterable<SearchUserResource> getUserNames(String value,
-     UserRole userRole,
-      ReportPortalUser.ProjectDetails projectDetails, Pageable pageable);
+      MembershipDetails membershipDetails,
+      UserRole userRole,
+      Pageable pageable);
 
   /**
    * Get all project names

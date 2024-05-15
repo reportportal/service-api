@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.filter;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.CollectionsRQ;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.filter.BulkUpdateFilterRQ;
@@ -47,22 +48,22 @@ public interface UpdateUserFilterHandler {
    *
    * @param userFilterId   User filter id
    * @param updateRQ       Update filter details
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param user           User
    * @return {@link OperationCompletionRS}
    */
   OperationCompletionRS updateUserFilter(Long userFilterId, UpdateUserFilterRQ updateRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+      MembershipDetails membershipDetails, ReportPortalUser user);
 
   /**
    * Update user filter
    *
    * @param updateRQ       Request for filter update
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param user           {@link ReportPortalUser} filter's owner
    * @return List of {@link OperationCompletionRS}
    */
   List<OperationCompletionRS> updateUserFilter(CollectionsRQ<BulkUpdateFilterRQ> updateRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+      MembershipDetails membershipDetails, ReportPortalUser user);
 
 }

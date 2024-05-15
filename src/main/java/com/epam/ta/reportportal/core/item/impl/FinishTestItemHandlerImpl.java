@@ -31,7 +31,7 @@ import static com.epam.ta.reportportal.entity.enums.StatusEnum.WARN;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.fromValue;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
+
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
@@ -64,6 +64,9 @@ import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
@@ -152,7 +155,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
   @Override
   public OperationCompletionRS finishTestItem(ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails, String testItemId,
+      MembershipDetails membershipDetails, String testItemId,
       FinishTestItemRQ finishExecutionRQ) {
     final TestItem testItem = testItemRepository.findByUuid(testItemId).filter(
         it -> it.isHasChildren() || (!it.isHasChildren()
@@ -164,7 +167,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
     final Launch launch = retrieveLaunch(testItem);
 
     final TestItemResults testItemResults =
-        processItemResults(user, projectDetails, launch, testItem, finishExecutionRQ,
+        processItemResults(user, membershipDetails, launch, testItem, finishExecutionRQ,
             testItem.isHasChildren()
         );
 
@@ -191,7 +194,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
               ));
     }
     eventPublisher.publishEvent(
-        new TestItemFinishedEvent(itemForUpdate, projectDetails.getProjectId()));
+        new TestItemFinishedEvent(itemForUpdate, membershipDetails.getProjectId()));
 
     return new OperationCompletionRS(
         "TestItem with ID = '" + testItemId + "' successfully finished.");
@@ -206,19 +209,19 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
    * @return TestItemResults {@link TestItemResults}
    */
   private TestItemResults processItemResults(ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails, Launch launch, TestItem testItem,
+      MembershipDetails membershipDetails, Launch launch, TestItem testItem,
       FinishTestItemRQ finishTestItemRQ, boolean hasChildren) {
 
-    validateRoles(user, projectDetails, launch);
+    validateRoles(user, membershipDetails, launch);
     verifyTestItem(testItem, fromValue(finishTestItemRQ.getStatus()), testItem.isHasChildren());
 
     TestItemResults testItemResults;
     if (hasChildren) {
       testItemResults =
-          processParentItemResult(testItem, finishTestItemRQ, launch, user, projectDetails);
+          processParentItemResult(testItem, finishTestItemRQ, launch, user, membershipDetails);
     } else {
       testItemResults =
-          processChildItemResult(testItem, finishTestItemRQ, user, projectDetails, launch);
+          processChildItemResult(testItem, finishTestItemRQ, user, membershipDetails, launch);
     }
     testItemResults.setEndTime(finishTestItemRQ.getEndTime());
     return testItemResults;
@@ -257,11 +260,14 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
         ));
   }
 
-  private void validateRoles(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
+  private void validateRoles(ReportPortalUser user, MembershipDetails membershipDetails,
       Launch launch) {
     if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-      expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
-      if (!launch.isRerun() && projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
+      expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId())).verify(ACCESS_DENIED);
+
+      if (!launch.isRerun()
+          // TODO revert equals to avoid nullpointers
+          && (membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER) && membershipDetails.getProjectRole().equals(ProjectRole.VIEWER))) {
         expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(
             FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
       }
@@ -270,7 +276,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
   private TestItemResults processParentItemResult(TestItem testItem,
       FinishTestItemRQ finishTestItemRQ, Launch launch, ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
 
     TestItemResults testItemResults = testItem.getItemResults();
     Optional<StatusEnum> actualStatus = fromValue(finishTestItemRQ.getStatus());
@@ -279,7 +285,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
         IN_PROGRESS.name()
     )) {
       finishHierarchyHandler.finishDescendants(testItem, actualStatus.orElse(INTERRUPTED),
-          finishTestItemRQ.getEndTime(), user, projectDetails
+          finishTestItemRQ.getEndTime(), user, membershipDetails
       );
     }
 
@@ -289,7 +295,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
         attribute -> ATTRIBUTE_KEY_STATUS.equalsIgnoreCase(attribute.getKey())
             && ATTRIBUTE_VALUE_INTERRUPTED.equalsIgnoreCase(attribute.getValue()));
 
-    changeStatusHandler.changeParentStatus(testItem, projectDetails.getProjectId(), user);
+    changeStatusHandler.changeParentStatus(testItem, membershipDetails.getProjectId(), user);
     changeStatusHandler.changeLaunchStatus(launch);
 
     return testItemResults;
@@ -297,12 +303,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
   private TestItemResults processChildItemResult(TestItem testItem,
       FinishTestItemRQ finishTestItemRQ, ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails, Launch launch) {
+      MembershipDetails membershipDetails, Launch launch) {
     TestItemResults testItemResults = testItem.getItemResults();
     StatusEnum actualStatus = fromValue(finishTestItemRQ.getStatus()).orElse(INTERRUPTED);
     Optional<IssueEntity> resolvedIssue =
         resolveIssue(user, actualStatus, testItem, finishTestItemRQ.getIssue(),
-            projectDetails.getProjectId()
+            membershipDetails.getProjectId()
         );
 
     if (testItemResults.getStatus() == IN_PROGRESS) {
@@ -310,7 +316,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
       resolvedIssue.ifPresent(issue -> updateItemIssue(testItemResults, issue));
       ofNullable(testItem.getRetryOf()).ifPresentOrElse(retryOf -> {
       }, () -> {
-        changeStatusHandler.changeParentStatus(testItem, projectDetails.getProjectId(), user);
+        changeStatusHandler.changeParentStatus(testItem, membershipDetails.getProjectId(), user);
         changeStatusHandler.changeLaunchStatus(launch);
         if (testItem.isHasRetries()) {
           retryHandler.finishRetries(testItem.getItemId(), JStatusEnum.valueOf(actualStatus.name()),
@@ -320,7 +326,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
       });
     } else {
       updateFinishedItem(testItemResults, actualStatus, resolvedIssue, testItem, user,
-          projectDetails.getProjectId()
+          membershipDetails.getProjectId()
       );
     }
 

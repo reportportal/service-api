@@ -16,7 +16,7 @@
 
  package com.epam.ta.reportportal.ws.controller;
 
- import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+ import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
  import static org.springframework.http.HttpStatus.OK;
 
  import com.epam.ta.reportportal.commons.EntityUtils;
@@ -24,6 +24,7 @@
  import com.epam.ta.reportportal.commons.querygen.Filter;
  import com.epam.ta.reportportal.core.activity.ActivityHandler;
  import com.epam.ta.reportportal.entity.activity.Activity;
+ import com.epam.ta.reportportal.entity.organization.MembershipDetails;
  import com.epam.ta.reportportal.model.ActivityEventResource;
  import com.epam.ta.reportportal.util.ProjectExtractor;
  import com.epam.reportportal.model.ActivityResource;
@@ -48,7 +49,7 @@
  @RestController
  @RequestMapping("/v1/{projectKey}/activity")
  @Transactional(readOnly = true)
- @PreAuthorize(ASSIGNED_TO_PROJECT)
+ @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
  @Tag(name = "activity-controller", description = "Activity Controller")
  public class ActivityController {
 
@@ -67,9 +68,9 @@
    @Operation(summary =  "Get activity by id")
    public ActivityResource getActivity(@PathVariable String projectKey,
        @PathVariable Long activityId, @AuthenticationPrincipal ReportPortalUser user) {
-     ReportPortalUser.ProjectDetails projectDetails =
+     MembershipDetails membershipDetails =
          projectExtractor.extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey));
-     return activityHandler.getActivity(projectDetails, activityId);
+     return activityHandler.getActivity(membershipDetails, activityId);
    }
 
    @GetMapping(value = "/item/{itemId}")
@@ -78,8 +79,8 @@
    public Iterable<ActivityEventResource> getTestItemActivities(@PathVariable String projectKey,
        @PathVariable Long itemId, @FilterFor(Activity.class) Filter filter,
        @SortFor(Activity.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-     ReportPortalUser.ProjectDetails projectDetails =
+     MembershipDetails membershipDetails =
          projectExtractor.extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey));
-     return activityHandler.getItemActivities(projectDetails, itemId, filter, pageable);
+     return activityHandler.getItemActivities(membershipDetails, itemId, filter, pageable);
    }
  }

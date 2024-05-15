@@ -39,6 +39,7 @@ import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
@@ -90,7 +91,7 @@ class CreateUserHandlerImplTest {
   void createByNotExistedAdmin() {
 
     final ReportPortalUser rpUser =
-        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
     when(userRepository.findRawById(rpUser.getUserId())).thenReturn(Optional.empty());
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -102,7 +103,7 @@ class CreateUserHandlerImplTest {
   @Test
   void createByNotAdmin() {
     final ReportPortalUser rpUser =
-        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
     User user = new User();
     user.setRole(UserRole.USER);
     when(userRepository.findRawById(1L)).thenReturn(Optional.of(user));
@@ -119,7 +120,7 @@ class CreateUserHandlerImplTest {
   @Test
   void createByAdminUserAlreadyExists() {
     final ReportPortalUser rpUser =
-        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
     User creator = new User();
     creator.setRole(UserRole.ADMINISTRATOR);
 
@@ -139,7 +140,7 @@ class CreateUserHandlerImplTest {
   @Test
   void createByAdminWithIncorrectName() {
     final ReportPortalUser rpUser =
-        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
     User creator = new User();
     creator.setRole(UserRole.ADMINISTRATOR);
     doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
@@ -158,7 +159,7 @@ class CreateUserHandlerImplTest {
   @Test
   void createByAdminWithIncorrectEmail() {
     final ReportPortalUser rpUser =
-        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
     User creator = new User();
     creator.setRole(UserRole.ADMINISTRATOR);
     doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
@@ -179,7 +180,7 @@ class CreateUserHandlerImplTest {
   @Test
   void createByAdminWithExistedEmail() {
     final ReportPortalUser rpUser =
-        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
     User creator = new User();
     creator.setRole(UserRole.ADMINISTRATOR);
     doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
@@ -201,7 +202,7 @@ class CreateUserHandlerImplTest {
   @Test
   void createByAdminWithExistedEmailUppercase() {
     final ReportPortalUser rpUser =
-        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
     User creator = new User();
     creator.setRole(UserRole.ADMINISTRATOR);
     doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
@@ -223,10 +224,10 @@ class CreateUserHandlerImplTest {
   @Test
   void createUserBid() {
     final ReportPortalUser rpUser =
-        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.MEMBER, 1L);
+        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.VIEWER, 1L);
     final String projectName = TEST_PROJECT_KEY;
     final String email = "email@mail.com";
-    final String role = ProjectRole.MEMBER.name();
+    final ProjectRole role = ProjectRole.VIEWER;
 
     final Project project = new Project();
     project.setId(1L);
@@ -243,7 +244,7 @@ class CreateUserHandlerImplTest {
     CreateUserRQ request = new CreateUserRQ();
     request.setDefaultProject(projectName);
     request.setEmail(email);
-    request.setRole(role);
+    request.setRole(role.name());
 
     handler.createUserBid(request, rpUser, "emailUrl");
 
@@ -255,7 +256,7 @@ class CreateUserHandlerImplTest {
 
     assertEquals(projectName, bid.getProjectName());
     assertEquals(email, bid.getEmail());
-    assertEquals(role, bid.getRole());
+    assertEquals(role.name(), bid.getRole());
     assertNotNull(bid.getMetadata());
 
     assertEquals(INTERNAL_BID_TYPE, String.valueOf(bid.getMetadata().getMetadata().get(BID_TYPE)));
@@ -264,7 +265,7 @@ class CreateUserHandlerImplTest {
 
   @Test
   void CreateUserBidOnNotExistedProject() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     when(getProjectHandler.get("not_exists")).thenThrow(
         new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, "not_exists"));

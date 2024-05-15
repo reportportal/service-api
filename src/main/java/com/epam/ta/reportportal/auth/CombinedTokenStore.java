@@ -148,6 +148,7 @@ public class CombinedTokenStore extends JwtTokenStore {
         .withPassword(user.getPassword())
         .withAuthorities(AuthUtils.AS_AUTHORITIES.apply(user.getUserRole()))
         .withUserId(user.getUserId()).withUserRole(user.getUserRole())
-        .withProjectDetails(Maps.newHashMapWithExpectedSize(1)).withEmail(user.getEmail()).build();
+        .withOrganizationDetails(Maps.newHashMapWithExpectedSize(1))
+        .withEmail(user.getEmail()).build();
   }
 }

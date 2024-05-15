@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
@@ -69,11 +70,11 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
   @Override
   public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
+      MembershipDetails membershipDetails, ReportPortalUser user, String baseUrl) {
     Launch launch = launchRepository.findByUuid(launchId)
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 
-    validateRoles(launch, user, projectDetails);
+    validateRoles(launch, user, membershipDetails);
     validate(launch, finishLaunchRQ);
 
     Optional<StatusEnum> status = StatusEnum.fromValue(finishLaunchRQ.getStatus());
@@ -82,7 +83,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
     final int finishedCount =
         finishHierarchyHandler.finishDescendants(launch, status.orElse(StatusEnum.INTERRUPTED),
-            finishLaunchRQ.getEndTime(), user, projectDetails
+            finishLaunchRQ.getEndTime(), user, membershipDetails
         );
     if (finishedCount > 0) {
       launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(id, StatusEnum.PASSED.name(),
@@ -107,7 +108,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
     FinishLaunchRS response = new FinishLaunchRS();
     response.setId(launch.getUuid());
     response.setNumber(launch.getNumber());
-    response.setLink(generateLaunchLink(baseUrl, projectDetails.getProjectKey(),
+    response.setLink(generateLaunchLink(baseUrl, membershipDetails.getProjectKey(),
         String.valueOf(launch.getId())
     ));
     return response;

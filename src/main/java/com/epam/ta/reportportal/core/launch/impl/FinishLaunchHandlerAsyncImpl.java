@@ -20,6 +20,7 @@ import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguratio
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.util.ReportingQueueService;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
@@ -47,7 +48,7 @@ public class FinishLaunchHandlerAsyncImpl implements FinishLaunchHandler {
 
   @Override
   public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ request,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
+      MembershipDetails membershipDetails, ReportPortalUser user, String baseUrl) {
 
     // todo: may be problem - no access to repository, so no possibility to validateRoles() here
     amqpTemplate.convertAndSend(EXCHANGE_REPORTING,
@@ -55,7 +56,7 @@ public class FinishLaunchHandlerAsyncImpl implements FinishLaunchHandler {
           Map<String, Object> headers = message.getMessageProperties().getHeaders();
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_LAUNCH);
           headers.put(MessageHeaders.USERNAME, user.getUsername());
-          headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
+          headers.put(MessageHeaders.PROJECT_NAME, membershipDetails.getProjectName());
           headers.put(MessageHeaders.LAUNCH_ID, launchId);
           headers.put(MessageHeaders.BASE_URL, baseUrl);
           return message;

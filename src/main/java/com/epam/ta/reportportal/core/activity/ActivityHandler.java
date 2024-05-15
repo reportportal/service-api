@@ -17,11 +17,11 @@
 
 package com.epam.ta.reportportal.core.activity;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.reportportal.model.ActivityResource;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.ActivityEventResource;
-import com.epam.reportportal.model.ActivityResource;
 import org.springframework.data.domain.Pageable;
 
 /**
@@ -33,49 +33,49 @@ public interface ActivityHandler {
    * Load list of {@link com.epam.reportportal.model.ActivityResource} for specified
    * {@link com.epam.ta.reportportal.entity.item.TestItem}
    *
-   * @param projectDetails   Details of project
-   *                         {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails Membership details
+   *                         {@link MembershipDetails}
    * @param filter           Filter
    * @param pageable         Page Details
    * @param predefinedFilter Additional filter
    * @return Found activities
    */
-  Iterable<ActivityResource> getActivitiesHistory(ReportPortalUser.ProjectDetails projectDetails,
+  Iterable<ActivityResource> getActivitiesHistory(MembershipDetails membershipDetails,
       Filter filter, Queryable predefinedFilter, Pageable pageable);
 
   /**
    * Load {@link com.epam.reportportal.model.ActivityResource}
    *
-   * @param projectDetails Details of project
-   *                       {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails Membership details
+   *                       {@link MembershipDetails}
    * @param activityId     ID of activity
    * @return Found Activity or NOT FOUND exception
    */
-  ActivityResource getActivity(ReportPortalUser.ProjectDetails projectDetails, Long activityId);
+  ActivityResource getActivity(MembershipDetails membershipDetails, Long activityId);
 
   /**
    * Load list of {@link ActivityEventResource} for specified
    * {@link com.epam.ta.reportportal.entity.item.TestItem}
    *
-   * @param projectDetails Details of project
-   *                       {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails Membership details
+   *                       {@link MembershipDetails}
    * @param itemId         ID of test item
    * @param filter         Filter
    * @param pageable       Page Details
    * @return Found activities
    */
-  Iterable<ActivityEventResource> getItemActivities(ReportPortalUser.ProjectDetails projectDetails,
+  Iterable<ActivityEventResource> getItemActivities(MembershipDetails membershipDetails,
       Long itemId, Filter filter, Pageable pageable);
 
   /**
    * Load list of {@link ActivityResource} for specified
    * {@link com.epam.ta.reportportal.entity.project.Project}
    *
-   * @param projectDetails Details of project {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails Membership details
    * @param filter         Filter
    * @param pageable       Page Details
    * @return Found activities
    */
-  Iterable<ActivityResource> getItemActivities(ReportPortalUser.ProjectDetails projectDetails,
+  Iterable<ActivityResource> getItemActivities(MembershipDetails membershipDetails,
       Filter filter, Pageable pageable);
 }

@@ -18,40 +18,48 @@ package com.epam.ta.reportportal.auth.permissions;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails;
 import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails.ProjectDetails;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Predicate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.stereotype.Component;
 
 /**
- * Base logic for project-related permissions. Validates project exists and there is provided in
- * {@link Authentication} user assigned to this project
+ * Check whether user assigned to project
  *
  * @author Andrei Varabyeu
  */
-abstract class BaseProjectPermission implements Permission {
+@Component("allowedToViewProjectPermission")
+@LookupPermission({"allowedToViewProject"})
+class AllowedToViewProjectPermission implements Permission {
 
+  /*
+   * Due to Spring's framework flow, Security API loads first. So, context
+   * doesn't know anything about Repository beans. We have to load this beans
+   * lazily
+   */
   private final ProjectExtractor projectExtractor;
 
-  protected BaseProjectPermission(ProjectExtractor projectExtractor) {
+  @Autowired
+  AllowedToViewProjectPermission(ProjectExtractor projectExtractor) {
     this.projectExtractor = projectExtractor;
   }
 
   /**
-   * Validates project exists and user assigned to project. After that delegates permission check to
-   * subclass
+   * Check whether user assigned to project<br> Or user is ADMIN who is GOD of ReportPortal
    */
   @Override
-  public boolean isAllowed(Authentication authentication, Object projectKey) {
+  public boolean isAllowed(Authentication authentication, Object targetDomainObject) {
     if (!authentication.isAuthenticated()) {
       return false;
     }
@@ -60,13 +68,21 @@ abstract class BaseProjectPermission implements Permission {
     ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
-    final String resolvedProjectKey = String.valueOf(projectKey);
-    final MembershipDetails membershipDetails =
-        projectExtractor.findMembershipDetails(rpUser, resolvedProjectKey)
-            .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED));
-    fillProjectDetails(rpUser, resolvedProjectKey, membershipDetails);
+    final String resolvedProjectKey = String.valueOf(targetDomainObject);
+    final Optional<MembershipDetails> membershipDetails =
+        projectExtractor.findMembershipDetails(rpUser, resolvedProjectKey);
 
-    return checkAllowed(rpUser, projectKey.toString(), membershipDetails.getOrgRole(), membershipDetails.getProjectRole());
+    BusinessRule.expect(membershipDetails.isPresent(), Predicate.isEqual(true))
+        .verify(ErrorType.ACCESS_DENIED);
+
+    var md = membershipDetails.get();
+    if (OrganizationRole.MANAGER == md.getOrgRole() || md.getProjectRole() != null) {
+      membershipDetails.ifPresent(details -> fillProjectDetails(rpUser, resolvedProjectKey, details));
+      return true;
+    }
+
+    membershipDetails.ifPresent(details -> fillProjectDetails(rpUser, resolvedProjectKey, details));
+    return false;
   }
 
   private void fillProjectDetails(ReportPortalUser rpUser, String resolvedProjectName,
@@ -82,23 +98,13 @@ abstract class BaseProjectPermission implements Permission {
         membershipDetails.getOrgId());
     prjDetailsMap.put(membershipDetails.getProjectKey(), prjDetails);
 
-    var od = new OrganizationDetails(membershipDetails.getOrgId(),
+    var od = new OrganizationDetails(
+        membershipDetails.getOrgId(),
         membershipDetails.getOrgName(),
-        membershipDetails.getOrgRole(), prjDetailsMap);
+        membershipDetails.getOrgRole(),
+        prjDetailsMap);
 
     organizationDetails.put(resolvedProjectName, od);
     rpUser.setOrganizationDetails(organizationDetails);
   }
-
-  /**
-   * Validates permission
-   *
-   * @param user    ReportPortal user object
-   * @param project ReportPortal's Project name
-   * @param orgRole
-   * @param role    User role
-   * @return TRUE if access allowed
-   */
-  abstract protected boolean checkAllowed(ReportPortalUser user, String project,
-      OrganizationRole orgRole, ProjectRole role);
 }

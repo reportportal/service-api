@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.core.widget.content.MaterializedLoadContentStrat
 import com.epam.ta.reportportal.core.widget.content.MultilevelLoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -111,12 +112,12 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
   }
 
   @Override
-  public WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails,
+  public WidgetResource getWidget(Long widgetId, MembershipDetails membershipDetails,
       ReportPortalUser user) {
-    Widget widget = widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
+    Widget widget = widgetRepository.findByIdAndProjectId(widgetId, membershipDetails.getProjectId())
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT, widgetId,
-                projectDetails.getProjectName()
+                membershipDetails.getProjectName()
             ));
 
     WidgetType widgetType = WidgetType.findByName(widget.getWidgetType()).orElseThrow(
@@ -130,7 +131,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
     Map<String, ?> content;
 
     if (unfilteredWidgetTypes.contains(widgetType) || isFilteredContentLoadAllowed(
-        widget.getFilters(), projectDetails, user)) {
+        widget.getFilters(), membershipDetails, user)) {
       content = loadContentStrategy.get(widgetType)
           .loadContent(Lists.newArrayList(widget.getContentFields()),
               buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
@@ -147,12 +148,12 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 
   @Override
   public WidgetResource getWidget(Long widgetId, String[] attributes,
-      MultiValueMap<String, String> params, ReportPortalUser.ProjectDetails projectDetails,
+      MultiValueMap<String, String> params, MembershipDetails membershipDetails,
       ReportPortalUser user) {
-    Widget widget = widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
+    Widget widget = widgetRepository.findByIdAndProjectId(widgetId, membershipDetails.getProjectId())
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT, widgetId,
-                projectDetails.getProjectName()
+                membershipDetails.getProjectName()
             ));
 
     WidgetType widgetType = WidgetType.findByName(widget.getWidgetType()).orElseThrow(
@@ -167,7 +168,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
     Map<String, ?> content;
 
     if (unfilteredWidgetTypes.contains(widgetType) || isFilteredContentLoadAllowed(
-        widget.getFilters(), projectDetails, user)) {
+        widget.getFilters(), membershipDetails, user)) {
       params.put(ATTRIBUTES, Lists.newArrayList(attributes));
       content = ofNullable(multilevelLoadContentStrategy.get(widgetType)).map(
           strategy -> strategy.loadContent(Lists.newArrayList(widget.getContentFields()),
@@ -185,21 +186,21 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
   }
 
   private Boolean isFilteredContentLoadAllowed(Collection<UserFilter> userFilters,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
 
     if (CollectionUtils.isEmpty(userFilters)) {
       return false;
     }
 
     Long[] ids = userFilters.stream().map(UserFilter::getId).toArray(Long[]::new);
-    List<UserFilter> permittedFilters = getPermittedFilters(ids, projectDetails, user);
+    List<UserFilter> permittedFilters = getPermittedFilters(ids, membershipDetails, user);
     return userFilters.size() == permittedFilters.size();
 
   }
 
   @Override
   public Map<String, ?> getWidgetPreview(WidgetPreviewRQ previewRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
 
     WidgetType widgetType = WidgetType.findByName(previewRQ.getWidgetType()).orElseThrow(
         () -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
@@ -209,7 +210,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
     List<UserFilter> userFilter = null;
     if (CollectionUtils.isNotEmpty(previewRQ.getFilterIds())) {
       userFilter =
-          getPermittedFilters(previewRQ.getFilterIds().toArray(Long[]::new), projectDetails, user);
+          getPermittedFilters(previewRQ.getFilterIds().toArray(Long[]::new), membershipDetails, user);
     }
 
     if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(userFilter)) {
@@ -217,7 +218,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
     }
 
     Widget widget =
-        new WidgetBuilder().addWidgetPreviewRq(previewRQ).addProject(projectDetails.getProjectId())
+        new WidgetBuilder().addWidgetPreviewRq(previewRQ).addProject(membershipDetails.getProjectId())
             .addFilters(userFilter).get();
 
     if (widgetType.isSupportMultilevelStructure()) {
@@ -235,16 +236,16 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
     }
   }
 
-  List<UserFilter> getPermittedFilters(Long[] ids, ReportPortalUser.ProjectDetails projectDetails,
+  List<UserFilter> getPermittedFilters(Long[] ids, MembershipDetails membershipDetails,
       ReportPortalUser user) {
-    return getUserFilterHandler.getFiltersById(ids, projectDetails, user);
+    return getUserFilterHandler.getFiltersById(ids, membershipDetails, user);
   }
 
   @Override
-  public Iterable<Object> getOwnNames(ReportPortalUser.ProjectDetails projectDetails,
+  public Iterable<Object> getOwnNames(MembershipDetails membershipDetails,
       Pageable pageable, Filter filter, ReportPortalUser user) {
     final Page<Widget> widgets =
-        widgetRepository.findByFilter(ProjectFilter.of(filter, projectDetails.getProjectId()),
+        widgetRepository.findByFilter(ProjectFilter.of(filter, membershipDetails.getProjectId()),
             pageable
         );
     return PagedResourcesAssembler.pageConverter().apply(widgets.map(Widget::getName));

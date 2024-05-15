@@ -19,10 +19,11 @@ package com.epam.ta.reportportal.util;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.entity.user.UserRole.ADMINISTRATOR;
 
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
-import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,33 +44,31 @@ public class ProjectExtractor {
   /**
    * Extracts project details for specified user by specified project name
    *
-   * @param user        User
+   * @param user       User
    * @param projectKey Project name
    * @return Project Details
    */
-  public ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user,
+  public MembershipDetails extractMembershipDetails(ReportPortalUser user,
       String projectKey) {
-    final String normalizedProjectName = normalizeId(projectKey);
 
+    final String normalizedProjectKey = normalizeId(projectKey);
     if (user.getUserRole().equals(ADMINISTRATOR)) {
       return extractProjectDetailsAdmin(user, projectKey);
     }
-    return user.getProjectDetails().computeIfAbsent(normalizedProjectName,
-        k -> findProjectDetails(user, normalizedProjectName).orElseThrow(
-            () -> new ReportPortalException(ErrorType.ACCESS_DENIED,
-                "Please check the list of your available projects."
-            ))
-    );
+    return findMembershipDetails(user, normalizedProjectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
+            "Please check the list of your available projects."
+        ));
   }
 
   /**
    * Find project details for specified user by specified project name
    *
-   * @param user        User
+   * @param user       User
    * @param projectKey Project unique key
    * @return {@link Optional} with Project Details
    */
-  public Optional<ReportPortalUser.ProjectDetails> findProjectDetails(ReportPortalUser user,
+  public Optional<MembershipDetails> findMembershipDetails(ReportPortalUser user,
       String projectKey) {
     return projectUserRepository.findDetailsByUserIdAndProjectKey(user.getUserId(), projectKey);
   }
@@ -78,28 +77,17 @@ public class ProjectExtractor {
    * Extracts project details for specified user by specified project name If user is ADMINISTRATOR
    * - he is added as a PROJECT_MANAGER to the project
    *
-   * @param user        User
+   * @param user       User
    * @param projectKey Project unique key
    * @return Project Details
    */
-  public ReportPortalUser.ProjectDetails extractProjectDetailsAdmin(ReportPortalUser user,
+  public MembershipDetails extractProjectDetailsAdmin(ReportPortalUser user,
       String projectKey) {
-
-    //dirty hack to allow everything for user with 'admin' authority
-    if (user.getUserRole().getAuthority().equals(ADMINISTRATOR.getAuthority())) {
-      ReportPortalUser.ProjectDetails projectDetails = projectUserRepository.findAdminDetailsProjectKey(
-              normalizeId(projectKey))
-          .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
-      user.getProjectDetails().put(
-          normalizeId(projectKey),
-          projectDetails
-      );
-    }
-
-    return Optional.ofNullable(user.getProjectDetails().get(normalizeId(projectKey))).orElseThrow(
-        () -> new ReportPortalException(ErrorType.ACCESS_DENIED,
-            "Please check the list of your available projects."
-        ));
+    final String normalizedProjectKey = normalizeId(projectKey);
+    MembershipDetails membershipDetails =
+        projectUserRepository.findAdminDetailsProjectKey(normalizeId(normalizedProjectKey))
+            .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
+    return membershipDetails;
   }
 
 }

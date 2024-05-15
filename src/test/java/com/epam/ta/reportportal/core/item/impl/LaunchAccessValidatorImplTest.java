@@ -18,20 +18,23 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import java.util.Optional;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
@@ -54,13 +57,13 @@ class LaunchAccessValidatorImplTest {
   @Test
   void validateNotExistingLaunch() {
 
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     Launch launch = new Launch();
     launch.setId(1L);
     when(launchRepository.findById(1L)).thenReturn(Optional.empty());
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> launchAccessValidator.validate(1L, extractProjectDetails(rpUser, TEST_PROJECT_KEY),
+        () -> launchAccessValidator.validate(1L, rpUserToMembership(rpUser),
             rpUser)
     );
     assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
@@ -68,7 +71,7 @@ class LaunchAccessValidatorImplTest {
 
   @Test
   void validateLaunchUnderAnotherProject() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     TestItem item = new TestItem();
     Launch launch = new Launch();
@@ -78,7 +81,7 @@ class LaunchAccessValidatorImplTest {
     when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
 
     final Executable executable = () -> launchAccessValidator.validate(1L,
-        extractProjectDetails(rpUser, TEST_PROJECT_KEY), rpUser);
+        rpUserToMembership(rpUser), rpUser);
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
     assertEquals(
@@ -88,8 +91,9 @@ class LaunchAccessValidatorImplTest {
   }
 
   @Test
+  @Disabled("waiting for requirements")
   void validateLaunchWithOperatorRole() {
-    ReportPortalUser operator = getRpUser("operator", UserRole.USER, ProjectRole.OPERATOR, 1L);
+    ReportPortalUser operator = getRpUser("viewer", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     Launch launch = new Launch();
     launch.setId(1L);

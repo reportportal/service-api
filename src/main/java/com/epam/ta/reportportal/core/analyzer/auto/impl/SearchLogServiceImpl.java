@@ -40,6 +40,7 @@ import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.LogFull;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.analyzer.SearchRq;
@@ -99,10 +100,10 @@ public class SearchLogServiceImpl implements SearchLogService {
 
   @Override
   public Iterable<SearchLogRs> search(Long itemId, SearchLogRq request,
-      ReportPortalUser.ProjectDetails projectDetails) {
-    Project project = projectRepository.findById(projectDetails.getProjectId())
+      MembershipDetails membershipDetails) {
+    Project project = projectRepository.findById(membershipDetails.getProjectId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
-            projectDetails.getProjectId()));
+            membershipDetails.getProjectId()));
 
     TestItem item = testItemRepository.findById(itemId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));

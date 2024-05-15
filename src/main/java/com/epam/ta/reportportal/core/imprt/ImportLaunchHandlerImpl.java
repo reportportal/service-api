@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.core.imprt.impl.ImportStrategyFactory;
 import com.epam.ta.reportportal.core.imprt.impl.ImportType;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.LaunchImportCompletionRS;
 import com.epam.ta.reportportal.model.LaunchImportData;
 import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
@@ -62,7 +63,7 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
   }
 
   @Override
-  public OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails,
+  public OperationCompletionRS importLaunch(MembershipDetails membershipDetails,
       ReportPortalUser user, String format, MultipartFile file, String baseUrl, LaunchImportRQ rq) {
 
     validate(file);
@@ -76,9 +77,9 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
     File tempFile = transferToTempFile(file);
     ImportStrategy strategy =
         importStrategyFactory.getImportStrategy(type, file.getOriginalFilename());
-    String launchId = strategy.importLaunch(projectDetails, user, tempFile, baseUrl, rq);
+    String launchId = strategy.importLaunch(membershipDetails, user, tempFile, baseUrl, rq);
     messageBus.publishActivity(
-        new ImportFinishedEvent(user.getUserId(), user.getUsername(), projectDetails.getProjectId(),
+        new ImportFinishedEvent(user.getUserId(), user.getUsername(), membershipDetails.getProjectId(),
             file.getOriginalFilename()
         ));
     return prepareLaunchImportResponse(launchId);

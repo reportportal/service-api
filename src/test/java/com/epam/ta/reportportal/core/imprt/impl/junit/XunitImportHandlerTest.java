@@ -13,6 +13,7 @@ import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.reporting.ItemCreatedRS;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
@@ -58,7 +59,7 @@ public class XunitImportHandlerTest {
 
   private ReportPortalUser user;
 
-  private ReportPortalUser.ProjectDetails projectDetails;
+  private MembershipDetails membershipDetails;
 
   @Captor
   private ArgumentCaptor<StartTestItemRQ> startTestItemRQArgumentCaptor;
@@ -85,11 +86,11 @@ public class XunitImportHandlerTest {
 
   @BeforeEach
   public void setUp() {
-    projectDetails = mock(ReportPortalUser.ProjectDetails.class);
+    membershipDetails = mock(MembershipDetails.class);
     user = mock(ReportPortalUser.class);
 
     xunitImportHandler.startDocument();
-    xunitImportHandler.withParameters(projectDetails, LAUNCH_ID, user, false);
+    xunitImportHandler.withParameters(membershipDetails, LAUNCH_ID, user, false);
   }
 
   @Test
@@ -111,12 +112,12 @@ public class XunitImportHandlerTest {
 
     when(itemCreatedRS.getId()).thenReturn(ITEM_UUID);
 
-    when(startTestItemHandler.startRootItem(eq(user), eq(projectDetails), any())).thenReturn(
+    when(startTestItemHandler.startRootItem(eq(user), eq(membershipDetails), any())).thenReturn(
         itemCreatedRS);
 
     xunitImportHandler.startElement("", "", qName, attributes);
     verify(startTestItemHandler).startRootItem(
-        eq(user), eq(projectDetails), startTestItemRQArgumentCaptor.capture());
+        eq(user), eq(membershipDetails), startTestItemRQArgumentCaptor.capture());
     StartTestItemRQ startTestItemRQ = startTestItemRQArgumentCaptor.getValue();
     assertEquals(startTestItemRQ.getLaunchUuid(), LAUNCH_ID);
     assertEquals(startTestItemRQ.getStartTime(), startItemTime);
@@ -148,12 +149,12 @@ public class XunitImportHandlerTest {
 
     when(itemCreatedRS.getId()).thenReturn(ITEM_UUID);
 
-    when(startTestItemHandler.startRootItem(eq(user), eq(projectDetails), any())).thenReturn(
+    when(startTestItemHandler.startRootItem(eq(user), eq(membershipDetails), any())).thenReturn(
         itemCreatedRS);
 
     xunitImportHandler.startElement("", "", qName, attributes);
     verify(startTestItemHandler).startRootItem(
-        eq(user), eq(projectDetails), startTestItemRQArgumentCaptor.capture());
+        eq(user), eq(membershipDetails), startTestItemRQArgumentCaptor.capture());
     StartTestItemRQ startTestItemRQ = startTestItemRQArgumentCaptor.getValue();
     assertEquals(startTestItemRQ.getLaunchUuid(), LAUNCH_ID);
     assertEquals(startTestItemRQ.getStartTime(), startItemTime);
@@ -181,13 +182,13 @@ public class XunitImportHandlerTest {
 
     when(itemCreatedRS.getId()).thenReturn(ITEM_UUID);
 
-    when(startTestItemHandler.startChildItem(eq(user), eq(projectDetails), any(),
+    when(startTestItemHandler.startChildItem(eq(user), eq(membershipDetails), any(),
         eq(parentId)
     )).thenReturn(itemCreatedRS);
 
     xunitImportHandler.startElement("", "", qName, attributes);
     verify(startTestItemHandler).startChildItem(
-        eq(user), eq(projectDetails), startTestItemRQArgumentCaptor.capture(), eq(parentId));
+        eq(user), eq(membershipDetails), startTestItemRQArgumentCaptor.capture(), eq(parentId));
     StartTestItemRQ startTestItemRQ = startTestItemRQArgumentCaptor.getValue();
     assertEquals(startTestItemRQ.getLaunchUuid(), LAUNCH_ID);
     assertEquals(startTestItemRQ.getStartTime(), startItemTime);
@@ -218,13 +219,13 @@ public class XunitImportHandlerTest {
 
     when(itemCreatedRS.getId()).thenReturn(ITEM_UUID);
 
-    when(startTestItemHandler.startChildItem(eq(user), eq(projectDetails), any(),
+    when(startTestItemHandler.startChildItem(eq(user), eq(membershipDetails), any(),
         eq(parentId)
     )).thenReturn(itemCreatedRS);
 
     xunitImportHandler.startElement("", "", qName, attributes);
     verify(startTestItemHandler).startChildItem(
-        eq(user), eq(projectDetails), startTestItemRQArgumentCaptor.capture(), eq(parentId));
+        eq(user), eq(membershipDetails), startTestItemRQArgumentCaptor.capture(), eq(parentId));
     StartTestItemRQ startTestItemRQ = startTestItemRQArgumentCaptor.getValue();
     assertEquals(startTestItemRQ.getLaunchUuid(), LAUNCH_ID);
     assertEquals(startTestItemRQ.getStartTime(), startItemTime);

@@ -40,6 +40,8 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.LogFull;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.model.analyzer.SearchRq;
@@ -88,10 +90,17 @@ class SearchLogServiceImplTest {
   @Test
   void searchTest() {
 
-    ReportPortalUser.ProjectDetails projectDetails =
-        new ReportPortalUser.ProjectDetails(1L, "project", ProjectRole.PROJECT_MANAGER, "project-key");
+    MembershipDetails membershipDetails = MembershipDetails.builder()
+        .withOrgId(1L)
+        .withOrgName("org Name")
+        .withOrgRole(OrganizationRole.MANAGER)
+        .withProjectId(1L)
+        .withProjectRole(ProjectRole.EDITOR)
+        .withProjectKey("project-key")
+        .withProjectName("name")
+        .build();
 
-    when(projectRepository.findById(projectDetails.getProjectId())).thenReturn(
+    when(projectRepository.findById(membershipDetails.getProjectId())).thenReturn(
         Optional.of(project));
     when(testItemRepository.findById(1L)).thenReturn(Optional.of(testItem));
     when(testItemRepository.findAllById(any())).thenReturn(Lists.newArrayList(testItemOfFoundLog));
@@ -141,7 +150,7 @@ class SearchLogServiceImplTest {
     when(searchCollectorFactory.getCollector(CURRENT_LAUNCH)).thenReturn(currentLaunchCollector);
     when(currentLaunchCollector.collect(any(), any())).thenReturn(Collections.singletonList(1L));
 
-    Iterable<SearchLogRs> responses = searchLogService.search(1L, searchLogRq, projectDetails);
+    Iterable<SearchLogRs> responses = searchLogService.search(1L, searchLogRq, membershipDetails);
     Assertions.assertNotNull(responses);
     Assertions.assertEquals(1, Lists.newArrayList(responses).size());
 

@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.DashboardConverter;
@@ -46,20 +47,20 @@ public class GetDashboardHandlerImpl implements GetDashboardHandler {
 	}
 
 	@Override
-	public Iterable<DashboardResource> getDashboards(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+	public Iterable<DashboardResource> getDashboards(MembershipDetails membershipDetails, Pageable pageable, Filter filter,
 			ReportPortalUser user) {
-		final Page<Dashboard> dashboards = dashboardRepository.findByFilter(ProjectFilter.of(filter, projectDetails.getProjectId()),
+		final Page<Dashboard> dashboards = dashboardRepository.findByFilter(ProjectFilter.of(filter, membershipDetails.getProjectId()),
 				pageable
 		);
 		return PagedResourcesAssembler.pageConverter(DashboardConverter.TO_RESOURCE).apply(dashboards);
 	}
 
 	@Override
-	public DashboardResource getDashboard(Long id, ReportPortalUser.ProjectDetails projectDetails) {
-		final Dashboard dashboard = dashboardRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
+	public DashboardResource getDashboard(Long id, MembershipDetails membershipDetails) {
+		final Dashboard dashboard = dashboardRepository.findByIdAndProjectId(id, membershipDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
 						id,
-						projectDetails.getProjectName()
+            membershipDetails.getProjectName()
 				));
 		return DashboardConverter.TO_RESOURCE.apply(dashboard);
 	}

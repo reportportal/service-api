@@ -74,7 +74,7 @@ class FileStorageControllerTest extends BaseMvcTest {
   }
 
   @Test
-  @Sql("/db/user/user-customer.sql")
+  @Sql("/db/user/user-viewer.sql")
   public void testUserPhotoAccessDeniedForCustomer() throws Exception {
     mockMvc.perform(get("/v1/data/default_personal/userphoto?login=default").with(
             token(oAuthHelper.getCustomerToken())))

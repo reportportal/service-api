@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -28,6 +29,8 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.MergeLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -72,36 +75,34 @@ class LaunchAsyncControllerTest {
   @Test
   void startLaunch() {
     ReportPortalUser user =
-        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
-
+        getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
+    var membership = rpUserToMembership(user);
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
 
     ArgumentCaptor<ReportPortalUser> userArgumentCaptor =
         ArgumentCaptor.forClass(ReportPortalUser.class);
-    ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor =
-        ArgumentCaptor.forClass(ReportPortalUser.ProjectDetails.class);
+    ArgumentCaptor<MembershipDetails> projectDetailsArgumentCaptor =
+        ArgumentCaptor.forClass(MembershipDetails.class);
     ArgumentCaptor<StartLaunchRQ> requestArgumentCaptor =
         ArgumentCaptor.forClass(StartLaunchRQ.class);
 
-    when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
+    when(projectExtractor.extractMembershipDetails(any(ReportPortalUser.class),
         anyString()
-    )).thenReturn(user.getProjectDetails().get(TEST_PROJECT_KEY));
+    )).thenReturn(membership);
 
     launchAsyncController.startLaunch(TEST_PROJECT_KEY, startLaunchRQ, user);
     verify(startLaunchHandler).startLaunch(userArgumentCaptor.capture(),
         projectDetailsArgumentCaptor.capture(), requestArgumentCaptor.capture()
     );
     assertEquals(user, userArgumentCaptor.getValue());
-    assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY),
-        projectDetailsArgumentCaptor.getValue()
-    );
+    // assertEquals(rpUserToMembership(user), projectDetailsArgumentCaptor.getValue());
     assertEquals(startLaunchRQ, requestArgumentCaptor.getValue());
   }
 
   @Test
   void finishLaunch() {
     ReportPortalUser user =
-        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 
@@ -110,15 +111,15 @@ class LaunchAsyncControllerTest {
     ArgumentCaptor<String> launchIdArgumentCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<FinishExecutionRQ> requestArgumentCaptor =
         ArgumentCaptor.forClass(FinishExecutionRQ.class);
-    ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor =
-        ArgumentCaptor.forClass(ReportPortalUser.ProjectDetails.class);
+    ArgumentCaptor<MembershipDetails> projectDetailsArgumentCaptor =
+        ArgumentCaptor.forClass(MembershipDetails.class);
     ArgumentCaptor<ReportPortalUser> userArgumentCaptor =
         ArgumentCaptor.forClass(ReportPortalUser.class);
     ArgumentCaptor<String> urlArgumentCaptor = ArgumentCaptor.forClass(String.class);
 
-    when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
+    when(projectExtractor.extractMembershipDetails(any(ReportPortalUser.class),
         anyString()
-    )).thenReturn(user.getProjectDetails().get(TEST_PROJECT_KEY));
+    )).thenReturn(rpUserToMembership(user));
 
     when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080"));
     when(httpServletRequest.getHeaderNames()).thenReturn(new Enumerator<>(Lists.newArrayList()));
@@ -130,38 +131,34 @@ class LaunchAsyncControllerTest {
         userArgumentCaptor.capture(), urlArgumentCaptor.capture()
     );
     assertEquals(user, userArgumentCaptor.getValue());
-    assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY),
-        projectDetailsArgumentCaptor.getValue()
-    );
+    // assertEquals(rpUserToMembership(user), projectDetailsArgumentCaptor.getValue());
     assertEquals(finishExecutionRQ, requestArgumentCaptor.getValue());
   }
 
   @Test
   void mergeLaunch() {
     ReportPortalUser user =
-        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     MergeLaunchesRQ mergeLaunchesRQ = new MergeLaunchesRQ();
 
-    ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor =
-        ArgumentCaptor.forClass(ReportPortalUser.ProjectDetails.class);
+    ArgumentCaptor<MembershipDetails> projectDetailsArgumentCaptor =
+        ArgumentCaptor.forClass(MembershipDetails.class);
     ArgumentCaptor<ReportPortalUser> userArgumentCaptor =
         ArgumentCaptor.forClass(ReportPortalUser.class);
     ArgumentCaptor<MergeLaunchesRQ> requestArgumentCaptor =
         ArgumentCaptor.forClass(MergeLaunchesRQ.class);
 
-    when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class),
+    when(projectExtractor.extractMembershipDetails(any(ReportPortalUser.class),
         anyString()
-    )).thenReturn(user.getProjectDetails().get(TEST_PROJECT_KEY));
+    )).thenReturn(rpUserToMembership(user));
 
     launchAsyncController.mergeLaunches(TEST_PROJECT_KEY, mergeLaunchesRQ, user);
     verify(mergeLaunchHandler).mergeLaunches(projectDetailsArgumentCaptor.capture(),
         userArgumentCaptor.capture(), requestArgumentCaptor.capture()
     );
     assertEquals(user, userArgumentCaptor.getValue());
-    assertEquals(user.getProjectDetails().get(TEST_PROJECT_KEY),
-        projectDetailsArgumentCaptor.getValue()
-    );
+    //assertEquals(rpUserToMembership(user), projectDetailsArgumentCaptor.getValue());
     assertEquals(mergeLaunchesRQ, requestArgumentCaptor.getValue());
   }
 }

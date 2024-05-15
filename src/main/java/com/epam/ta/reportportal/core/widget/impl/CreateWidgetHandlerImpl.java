@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.core.widget.content.updater.validator.WidgetVali
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.widget.WidgetRQ;
@@ -81,14 +82,14 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 
   @Override
   public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
     List<UserFilter> userFilter =
-        getUserFilters(createWidgetRQ.getFilterIds(), projectDetails.getProjectId(),
+        getUserFilters(createWidgetRQ.getFilterIds(), membershipDetails.getProjectId(),
             user.getUsername()
         );
 
     Widget widget =
-        new WidgetBuilder().addWidgetRq(createWidgetRQ).addProject(projectDetails.getProjectId())
+        new WidgetBuilder().addWidgetRq(createWidgetRQ).addProject(membershipDetails.getProjectId())
             .addFilters(userFilter).addOwner(user.getUsername()).get();
 
     widgetContentFieldsValidator.validate(widget);

@@ -19,6 +19,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.imprt.impl.ParseResults;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -72,10 +73,10 @@ public class XunitParseJob implements Callable<ParseResults> {
 		return new ParseResults(handler.getStartSuiteTime(), handler.getCommonDuration());
 	}
 
-	public XunitParseJob withParameters(ReportPortalUser.ProjectDetails projectDetails, String launchId, ReportPortalUser user,
+	public XunitParseJob withParameters(MembershipDetails membershipDetails, String launchId, ReportPortalUser user,
 			InputStream xmlInputStream, boolean isSkippedNotIssue) {
 		this.xmlInputStream = xmlInputStream;
-		this.handler = handler.withParameters(projectDetails, launchId, user, isSkippedNotIssue);
+		this.handler = handler.withParameters(membershipDetails, launchId, user, isSkippedNotIssue);
 		return this;
 	}
 

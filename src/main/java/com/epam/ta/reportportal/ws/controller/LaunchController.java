@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -139,26 +139,26 @@ public class LaunchController {
   /* Report client API */
 
   @PostMapping
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(CREATED)
   @Operation(summary = "Starts launch for specified project")
   public StartLaunchRS startLaunch(@PathVariable String projectKey,
       @Parameter(description = "Start launch request body", required = true) @RequestBody @Validated
       @Valid StartLaunchRQ startLaunchRQ, @AuthenticationPrincipal ReportPortalUser user) {
     return startLaunchHandler.startLaunch(user,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), startLaunchRQ
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), startLaunchRQ
     );
   }
 
   @PutMapping(value = "/{launchId}/finish")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Finish launch for specified project")
   public FinishLaunchRS finishLaunch(@PathVariable String projectKey,
       @PathVariable String launchId, @RequestBody @Validated FinishExecutionRQ finishLaunchRQ,
       @AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request) {
     return finishLaunchHandler.finishLaunch(launchId, finishLaunchRQ,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), user,
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
         composeBaseUrl(request)
     );
   }
@@ -167,99 +167,101 @@ public class LaunchController {
 
   @Transactional
   @PutMapping("/{launchId}/stop")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Force finish launch for specified project")
   public OperationCompletionRS forceFinishLaunch(@PathVariable String projectKey,
       @PathVariable Long launchId, @RequestBody @Validated FinishExecutionRQ finishExecutionRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return stopLaunchHandler.stopLaunch(launchId, finishExecutionRQ,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), user
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user
     );
   }
 
   @Transactional
   @PutMapping("/stop")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Force finish launch")
   public List<OperationCompletionRS> bulkForceFinish(@PathVariable String projectKey,
       @RequestBody @Validated BulkRQ<Long, FinishExecutionRQ> rq,
       @AuthenticationPrincipal ReportPortalUser user) {
     return stopLaunchHandler.stopLaunch(rq,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), user
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user
     );
   }
 
   @Transactional
   @PutMapping("/{launchId}/update")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Updates launch for specified project")
   public OperationCompletionRS updateLaunch(@PathVariable String projectKey,
       @PathVariable Long launchId, @RequestBody @Validated UpdateLaunchRQ updateLaunchRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateLaunchHandler.updateLaunch(launchId,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), user, updateLaunchRQ
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user, updateLaunchRQ
     );
   }
 
   @Transactional
   @PutMapping("/update")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Updates launches for specified project")
   public List<OperationCompletionRS> updateLaunches(@PathVariable String projectKey,
       @RequestBody @Validated BulkRQ<Long, UpdateLaunchRQ> rq,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateLaunchHandler.updateLaunch(rq,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), user
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user
     );
   }
 
   @Transactional
   @DeleteMapping("/{launchId}")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Delete specified launch by ID")
   public OperationCompletionRS deleteLaunch(@PathVariable String projectKey,
       @PathVariable Long launchId, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteLaunchMessageHandler.deleteLaunch(launchId,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), user
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user
     );
   }
 
   @Transactional(readOnly = true)
   @GetMapping("/{launchId}")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get specified launch by ID")
   public LaunchResource getLaunch(@PathVariable String projectKey, @PathVariable String launchId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLaunch(launchId,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey))
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey))
     );
   }
 
   @Transactional(readOnly = true)
   @GetMapping("/uuid/{launchId}")
-  @ResponseStatus(OK)
+  @ResponseStatus(OK)  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get specified launch by UUID")
   public LaunchResource getLaunchByUuid(@PathVariable String projectKey,
       @PathVariable String launchId, @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLaunch(launchId,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey))
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey))
     );
   }
 
   @Transactional(readOnly = true)
   @GetMapping
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get list of project launches by filter")
   public Iterable<LaunchResource> getProjectLaunches(@PathVariable String projectKey,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getProjectLaunches(
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), filter, pageable,
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), filter, pageable,
         user.getUsername()
     );
   }
@@ -267,107 +269,115 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/latest")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get list of latest project launches by filter")
   public Iterable<LaunchResource> getLatestLaunches(@PathVariable String projectKey,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLatestLaunches(
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), filter, pageable);
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), filter, pageable);
   }
 
   @GetMapping(value = "/mode")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get launches of specified project from DEBUG mode")
   public Iterable<LaunchResource> getDebugLaunches(@PathVariable String projectKey,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getDebugLaunches(
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), filter, pageable);
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), filter, pageable);
   }
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/attribute/keys")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get all unique attribute keys of project launches")
   public List<String> getAttributeKeys(@PathVariable String projectKey,
       @RequestParam(value = "filter." + "cnt." + "attributeKey") String value,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getAttributeKeys(
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), value);
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), value);
   }
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/attribute/values")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get all unique attribute values of project launches")
   public List<String> getAttributeValues(@PathVariable String projectKey,
       @RequestParam(value = "filter." + "eq." + "attributeKey", required = false) String key,
       @RequestParam(value = "filter." + "cnt." + "attributeValue") String value,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getAttributeValues(
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), key, value);
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), key, value);
   }
 
   @GetMapping(value = "/cluster/{launchId}")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get all index clusters of the launch")
   public Iterable<ClusterInfoResource> getClusters(@PathVariable String projectKey,
       @PathVariable String launchId, Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getClusters(launchId,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), pageable
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), pageable
     );
   }
 
   @Transactional
   @PutMapping(value = "/info")
-  @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Bulk update attributes and description")
   public OperationCompletionRS bulkUpdate(@PathVariable String projectKey,
       @RequestBody @Validated BulkInfoUpdateRQ bulkInfoUpdateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateLaunchHandler.bulkInfoUpdate(bulkInfoUpdateRQ,
-        projectExtractor.extractProjectDetails(user, projectKey)
+        projectExtractor.extractMembershipDetails(user, projectKey)
     );
   }
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/owners")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get all unique owners of project launches")
   public List<String> getAllOwners(@PathVariable String projectKey,
       @RequestParam(value = "filter." + "cnt." + "user") String value,
       @RequestParam(value = "mode", required = false, defaultValue = "DEFAULT") String mode,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getOwners(
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), value, mode);
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), value, mode);
   }
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/names")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get launch names of project")
   public List<String> getAllLaunchNames(@PathVariable String projectKey,
       @RequestParam(value = "filter." + "cnt." + "name", required = false, defaultValue = "")
       String value, @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLaunchNames(
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), value);
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), value);
   }
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/compare")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Compare launches")
   public Map<String, List<ChartStatisticsContent>> compareLaunches(@PathVariable String projectKey,
       @RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLaunchesComparisonInfo(
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), ids);
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), ids);
   }
 
   @Transactional
   @PostMapping("/merge")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Merge set of specified launches in common one", description =
       "This operation merges a set of launches into a common one. "
@@ -377,7 +387,7 @@ public class LaunchController {
       @Parameter(description = "Merge launches request body", required = true) @RequestBody
       @Validated MergeLaunchesRQ mergeLaunchesRQ, @AuthenticationPrincipal ReportPortalUser user) {
     return mergeLaunchesHandler.mergeLaunches(
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), user,
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
         mergeLaunchesRQ
     );
   }
@@ -385,40 +395,42 @@ public class LaunchController {
   @Transactional
   @PostMapping(value = "/analyze")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Start launch auto-analyzer on demand")
   public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectKey,
       @RequestBody @Validated AnalyzeLaunchRQ analyzeLaunchRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateLaunchHandler.startLaunchAnalyzer(analyzeLaunchRQ,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), user
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user
     );
   }
 
   @PostMapping(value = "/cluster")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Create launch clusters")
   public OperationCompletionRS createClusters(@PathVariable String projectKey,
       @RequestBody @Validated CreateClustersRQ createClustersRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateLaunchHandler.createClusters(createClustersRQ,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), user
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user
     );
   }
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/status")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @ResponseStatus(OK)
-
   public Map<String, String> getStatuses(@PathVariable String projectKey,
       @RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getStatuses(
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), ids);
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), ids);
   }
 
   @Transactional(readOnly = true)
   @GetMapping(value = "/{launchId}/report")
   @ResponseStatus(OK)
-  @PreAuthorize(ASSIGNED_TO_PROJECT)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Export specified launch",
       description = "Only following formats are supported: pdf (by default), xls, html.")
   public void getLaunchReport(@PathVariable String projectKey, @PathVariable Long launchId,
@@ -446,18 +458,19 @@ public class LaunchController {
 
   @Transactional
   @DeleteMapping
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Delete specified launches by ids")
   public DeleteBulkRS deleteLaunches(@PathVariable String projectKey,
       @RequestParam(value = "ids") List<Long> ids, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteLaunchMessageHandler.deleteLaunches(ids,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), user
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user
     );
   }
 
   @PostMapping(value = "/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Import junit xml report",
       description = "Only following formats are supported: zip and xml.")
   public OperationCompletionRS importLaunch(@PathVariable String projectKey,
@@ -465,7 +478,7 @@ public class LaunchController {
       HttpServletRequest request,
       @RequestPart(required = false) @Valid LaunchImportRQ launchImportRq) {
     return importLaunchHandler.importLaunch(
-        projectExtractor.extractProjectDetails(user, normalizeId(projectKey)), user, "XUNIT", file,
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user, "XUNIT", file,
         composeBaseUrl(request), launchImportRq
     );
   }

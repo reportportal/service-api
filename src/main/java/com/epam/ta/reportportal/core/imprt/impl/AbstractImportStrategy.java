@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
@@ -86,7 +87,7 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
     return results;
   }
 
-  protected String startLaunch(ReportPortalUser.ProjectDetails projectDetails,
+  protected String startLaunch(MembershipDetails membershipDetails,
       ReportPortalUser user, String launchName, LaunchImportRQ rq) {
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
     startLaunchRQ.setStartTime(ofNullable(rq.getStartTime()).orElse(Instant.EPOCH.minusSeconds(0)));
@@ -94,14 +95,14 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
     ofNullable(rq.getDescription()).ifPresent(startLaunchRQ::setDescription);
     startLaunchRQ.setMode(ofNullable(rq.getMode()).orElse(Mode.DEFAULT));
     startLaunchRQ.setAttributes(ofNullable(rq.getAttributes()).orElse(Sets.newHashSet()));
-    return startLaunchHandler.startLaunch(user, projectDetails, startLaunchRQ).getId();
+    return startLaunchHandler.startLaunch(user, membershipDetails, startLaunchRQ).getId();
   }
 
-  protected void finishLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails,
+  protected void finishLaunch(String launchId, MembershipDetails membershipDetails,
       ReportPortalUser user, ParseResults results, String baseUrl) {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
     finishExecutionRQ.setEndTime(results.getEndTime());
-    finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectDetails, user, baseUrl);
+    finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, membershipDetails, user, baseUrl);
     Launch launch = launchRepository.findByUuid(launchId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
     launch.setStartTime(results.getStartTime());

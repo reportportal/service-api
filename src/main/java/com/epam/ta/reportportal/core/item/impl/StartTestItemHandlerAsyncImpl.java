@@ -20,6 +20,7 @@ import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguratio
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.util.ReportingQueueService;
 import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.reporting.ItemCreatedRS;
@@ -49,7 +50,7 @@ class StartTestItemHandlerAsyncImpl implements StartTestItemHandler {
 
   @Override
   public ItemCreatedRS startRootItem(ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ request) {
+      MembershipDetails membershipDetails, StartTestItemRQ request) {
 
     // todo: may be problem - no access to repository, so no possibility to validateRoles() here
     request.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
@@ -60,7 +61,7 @@ class StartTestItemHandlerAsyncImpl implements StartTestItemHandler {
           Map<String, Object> headers = message.getMessageProperties().getHeaders();
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
           headers.put(MessageHeaders.USERNAME, user.getUsername());
-          headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
+          headers.put(MessageHeaders.PROJECT_NAME, membershipDetails.getProjectName());
           headers.put(MessageHeaders.PARENT_ITEM_ID, "");
           return message;
         }
@@ -73,7 +74,7 @@ class StartTestItemHandlerAsyncImpl implements StartTestItemHandler {
 
   @Override
   public ItemCreatedRS startChildItem(ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ request,
+      MembershipDetails membershipDetails, StartTestItemRQ request,
       String parentId) {
 
     // todo: may be problem - no access to repository, so no possibility to validateRoles() here
@@ -86,7 +87,7 @@ class StartTestItemHandlerAsyncImpl implements StartTestItemHandler {
           Map<String, Object> headers = message.getMessageProperties().getHeaders();
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
           headers.put(MessageHeaders.USERNAME, user.getUsername());
-          headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
+          headers.put(MessageHeaders.PROJECT_NAME, membershipDetails.getProjectName());
           headers.put(MessageHeaders.PARENT_ITEM_ID, parentId);
           return message;
         }

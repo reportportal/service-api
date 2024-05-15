@@ -16,9 +16,8 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -68,7 +67,6 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/{projectKey}/settings")
-@PreAuthorize(ASSIGNED_TO_PROJECT)
 @Tag(name = "project-settings-controller", description = "Project Settings Controller")
 public class ProjectSettingsController {
 
@@ -111,7 +109,7 @@ public class ProjectSettingsController {
 
   @PostMapping("/sub-type")
   @ResponseStatus(CREATED)
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Creation of custom project specific issue sub-type")
   public IssueSubTypeCreatedRS createProjectIssueSubType(@PathVariable String projectKey,
       @RequestBody @Validated CreateIssueSubTypeRQ request,
@@ -121,7 +119,7 @@ public class ProjectSettingsController {
 
   @PutMapping("/sub-type")
   @ResponseStatus(OK)
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Update of custom project specific issue sub-type")
   public OperationCompletionRS updateProjectIssueSubType(@PathVariable String projectKey,
       @RequestBody @Validated UpdateIssueSubTypeRQ request,
@@ -131,7 +129,7 @@ public class ProjectSettingsController {
 
   @DeleteMapping("/sub-type/{id}")
   @ResponseStatus(OK)
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Delete custom project specific issue sub-type")
   public OperationCompletionRS deleteProjectIssueSubType(@PathVariable String projectKey,
       @PathVariable Long id, @AuthenticationPrincipal ReportPortalUser user) {
@@ -140,7 +138,7 @@ public class ProjectSettingsController {
 
   @GetMapping
   @ResponseStatus(OK)
-  @PreAuthorize(ASSIGNED_TO_PROJECT)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary =  "Get project specific issue sub-types", description = "Only for users that are assigned to the project")
   public ProjectSettingsResource getProjectSettings(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -149,7 +147,7 @@ public class ProjectSettingsController {
 
   @PostMapping("/pattern")
   @ResponseStatus(CREATED)
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Create pattern template for items' log messages pattern analysis")
   public EntryCreatedRS createPatternTemplate(@PathVariable String projectKey,
       @RequestBody @Validated CreatePatternTemplateRQ createPatternTemplateRQ,
@@ -161,7 +159,7 @@ public class ProjectSettingsController {
 
   @PutMapping("/pattern/{id}")
   @ResponseStatus(OK)
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Update pattern template for items' log messages pattern analysis")
   public OperationCompletionRS updatePatternTemplate(@PathVariable String projectKey,
       @PathVariable Long id,
@@ -174,7 +172,7 @@ public class ProjectSettingsController {
 
   @DeleteMapping("/pattern/{id}")
   @ResponseStatus(OK)
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Delete pattern template for items' log messages pattern analysis")
   public OperationCompletionRS deletePatternTemplate(@PathVariable String projectKey,
       @PathVariable Long id, @AuthenticationPrincipal ReportPortalUser user) {
@@ -184,7 +182,7 @@ public class ProjectSettingsController {
   @Transactional(readOnly = true)
   @GetMapping("/notification")
   @ResponseStatus(OK)
-  @PreAuthorize(ASSIGNED_TO_PROJECT)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary =  "Returns notifications config of specified project", description = "Only for users assigned to specified project")
   public List<SenderCaseDTO> getNotifications(@PathVariable String projectKey) {
     return getProjectNotificationsHandler.getProjectNotifications(
@@ -194,7 +192,7 @@ public class ProjectSettingsController {
   @Transactional
   @PostMapping("/notification")
   @ResponseStatus(CREATED)
-  @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary =  "Creates notification for specified project", description = "Only for users with PROJECT_MANAGER or ADMIN roles")
   public EntryCreatedRS createNotification(@PathVariable String projectKey,
       @RequestBody @Validated SenderCaseDTO createNotificationRQ,
@@ -206,7 +204,7 @@ public class ProjectSettingsController {
   @Transactional
   @PutMapping("/notification")
   @ResponseStatus(CREATED)
-  @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary =  "Updates notification for specified project", description = "Only for users with PROJECT_MANAGER or ADMIN roles")
   public OperationCompletionRS updateNotification(@PathVariable String projectKey,
       @RequestBody @Validated SenderCaseDTO updateNotificationRQ,
@@ -218,7 +216,7 @@ public class ProjectSettingsController {
   @Transactional
   @DeleteMapping("/notification/{notificationId:\\d+}")
   @ResponseStatus(OK)
-  @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary =  "Deletes notification for specified project", description = "Only for users with PROJECT_MANAGER or ADMIN roles")
   public OperationCompletionRS deleteNotification(@PathVariable String projectKey,
       @PathVariable Long notificationId, @AuthenticationPrincipal ReportPortalUser user) {

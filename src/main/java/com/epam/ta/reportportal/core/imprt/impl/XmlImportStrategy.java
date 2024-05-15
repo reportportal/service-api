@@ -22,6 +22,7 @@ import static java.util.Optional.ofNullable;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.imprt.impl.junit.XunitParseJob;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
 import com.epam.reportportal.rules.exception.ErrorType;
 import java.io.File;
@@ -41,10 +42,10 @@ public class XmlImportStrategy extends AbstractImportStrategy {
   private Provider<XunitParseJob> xmlParseJobProvider;
 
   @Override
-  public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+  public String importLaunch(MembershipDetails membershipDetails, ReportPortalUser user,
       File file, String baseUrl, LaunchImportRQ rq) {
     try {
-      return processXmlFile(file, projectDetails, user, baseUrl, rq);
+      return processXmlFile(file, membershipDetails, user, baseUrl, rq);
     } finally {
       try {
         ofNullable(file).ifPresent(File::delete);
@@ -54,21 +55,21 @@ public class XmlImportStrategy extends AbstractImportStrategy {
     }
   }
 
-  private String processXmlFile(File xml, ReportPortalUser.ProjectDetails projectDetails,
+  private String processXmlFile(File xml, MembershipDetails membershipDetails,
       ReportPortalUser user, String baseUrl, LaunchImportRQ rq) {
     //copy of the launch's id to use it in catch block if something goes wrong
     String savedLaunchId = null;
     try (InputStream xmlStream = new FileInputStream(xml)) {
-      String launchId = startLaunch(projectDetails, user,
+      String launchId = startLaunch(membershipDetails, user,
           xml.getName().substring(0, xml.getName().indexOf("." + XML_EXTENSION)), rq
       );
       savedLaunchId = launchId;
       XunitParseJob job = xmlParseJobProvider.get()
-          .withParameters(projectDetails, launchId, user, xmlStream,
+          .withParameters(membershipDetails, launchId, user, xmlStream,
               isSkippedNotIssue(rq.getAttributes())
           );
       ParseResults parseResults = job.call();
-      finishLaunch(launchId, projectDetails, user, parseResults, baseUrl);
+      finishLaunch(launchId, membershipDetails, user, parseResults, baseUrl);
       return launchId;
     } catch (Exception e) {
       updateBrokenLaunch(savedLaunchId);

@@ -46,29 +46,30 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DefaultPluginLoader {
 
-    private final PluginManager pluginManager;
+  private final PluginManager pluginManager;
 
-    private final Pf4jPluginBox pluginBox;
+  private final Pf4jPluginBox pluginBox;
 
-    private final DefaultUpdateManager defaultUpdateManager;
+  private final DefaultUpdateManager defaultUpdateManager;
 
-    @PostConstruct
-    public void loadPlugins() {
-        pluginBox.startUp();
-        UpdateManager updateManager = new UpdateManager(pluginManager);
-        if (updateManager.hasAvailablePlugins()) {
-            List<PluginInfo> availablePlugins = updateManager.getAvailablePlugins();
-            availablePlugins.forEach(pluginInfo -> {
-                String latestVersion = updateManager.getLastPluginRelease(pluginInfo.id).version;
-                Path path = defaultUpdateManager.downloadPlugin(pluginInfo.id, latestVersion);
-                try {
-                    pluginBox.uploadPlugin(path.getFileName().toString(), Files.newInputStream(path));
-                } catch (IOException e) {
-                    log.error(e.getMessage());
-                    throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, e.getMessage());
-                }
-            });
+  @PostConstruct
+  public void loadPlugins() {
+    pluginBox.startUp();
+    UpdateManager updateManager = new UpdateManager(pluginManager);
+    if (updateManager.hasAvailablePlugins()) {
+      List<PluginInfo> availablePlugins = updateManager.getAvailablePlugins();
+      availablePlugins.forEach(pluginInfo -> {
+        String latestVersion = updateManager.getLastPluginRelease(pluginInfo.id).version;
+        Path path = defaultUpdateManager.downloadPlugin(pluginInfo.id, latestVersion);
+        try {
+          pluginBox.uploadPlugin(path.getFileName().toString(), Files.newInputStream(path));
+        } catch (IOException e) {
+          log.error(e.getMessage());
+          throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
+              e.getMessage());
         }
+      });
     }
+  }
 
 }

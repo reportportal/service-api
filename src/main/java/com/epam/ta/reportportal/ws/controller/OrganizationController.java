@@ -18,8 +18,6 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.USER;
 
-import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
-import com.epam.ta.reportportal.model.OrganizationProfile;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -27,8 +25,9 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
-import com.epam.ta.reportportal.entity.organization.Organization;
+import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.model.OrganizationProfile;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.v3.oas.annotations.Operation;
@@ -59,7 +58,7 @@ public class OrganizationController {
   }
 
   @Transactional
-  @GetMapping("{organizationId}")
+  @GetMapping("/{organizationId}")
   @Operation(summary = "Get information about organization")
   public OrganizationProfile getOrganizationById(@PathVariable Long organizationId,
       @AuthenticationPrincipal ReportPortalUser user) {

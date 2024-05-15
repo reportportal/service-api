@@ -55,21 +55,26 @@ public class DefaultPluginLoader {
 
   @PostConstruct
   public void loadPlugins() {
-    pluginBox.startUp();
-    UpdateManager updateManager = new UpdateManager(pluginManager);
-    if (updateManager.hasAvailablePlugins()) {
-      List<PluginInfo> availablePlugins = updateManager.getAvailablePlugins();
-      availablePlugins.forEach(pluginInfo -> {
-        String latestVersion = updateManager.getLastPluginRelease(pluginInfo.id).version;
-        Path path = defaultUpdateManager.downloadPlugin(pluginInfo.id, latestVersion);
-        try {
-          pluginBox.uploadPlugin(path.getFileName().toString(), Files.newInputStream(path));
-        } catch (IOException e) {
-          log.error(e.getMessage());
-          throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
-              e.getMessage());
-        }
-      });
+    try {
+
+      pluginBox.startUp();
+      UpdateManager updateManager = new UpdateManager(pluginManager);
+      if (updateManager.hasAvailablePlugins()) {
+        List<PluginInfo> availablePlugins = updateManager.getAvailablePlugins();
+        availablePlugins.forEach(pluginInfo -> {
+          String latestVersion = updateManager.getLastPluginRelease(pluginInfo.id).version;
+          Path path = defaultUpdateManager.downloadPlugin(pluginInfo.id, latestVersion);
+          try {
+            pluginBox.uploadPlugin(path.getFileName().toString(), Files.newInputStream(path));
+          } catch (IOException e) {
+            log.error(e.getMessage());
+            throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
+                e.getMessage());
+          }
+        });
+      }
+    } catch (Exception e) {
+      log.warn("Cannot upload default plugin. {}", e.getMessage());
     }
   }
 

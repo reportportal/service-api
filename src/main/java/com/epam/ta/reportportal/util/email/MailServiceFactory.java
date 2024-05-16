@@ -42,6 +42,7 @@ import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,14 +64,18 @@ public class MailServiceFactory {
   private final IntegrationRepository integrationRepository;
   private final IntegrationTypeRepository integrationTypeRepository;
 
+  private final String path;
+
   @Autowired
   public MailServiceFactory(TemplateEngine templateEngine, BasicTextEncryptor encryptor,
       IntegrationRepository integrationRepository,
-      IntegrationTypeRepository integrationTypeRepository) {
+      IntegrationTypeRepository integrationTypeRepository,
+      @Value("${server.servlet.context-path:}") String path) {
     this.templateEngine = templateEngine;
     this.encryptor = encryptor;
     this.integrationRepository = integrationRepository;
     this.integrationTypeRepository = integrationTypeRepository;
+    this.path = path;
   }
 
   /**
@@ -116,6 +121,7 @@ public class MailServiceFactory {
       }
 
       EmailService service = new EmailService(javaMailProperties);
+      service.setPath(path);
       service.setTemplateEngine(templateEngine);
 
       EmailSettingsEnum.RP_HOST.getAttribute(config).ifPresent(service::setRpHost);

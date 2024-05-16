@@ -47,12 +47,15 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.env.Environment;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -75,11 +78,20 @@ class FinishLaunchHandlerImplTest {
   @Mock
   private ApplicationEventPublisher publisher;
 
+  @Mock
+  private Environment env;
+
   @InjectMocks
   private FinishLaunchHandlerImpl handler;
 
   @InjectMocks
   private StopLaunchHandlerImpl stopLaunchHandler;
+
+  @BeforeEach
+  void setUp() {
+    when(env.getProperty("server.servlet.context-path")).thenReturn("/");
+    ReflectionTestUtils.setField(handler, "path", env.getProperty("server.servlet.context-path"));
+  }
 
   @Test
   void finishLaunch() {

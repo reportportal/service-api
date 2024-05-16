@@ -79,7 +79,7 @@ class MailServiceFactoryTest {
     basicTextEncryptor = new BasicTextEncryptor();
     basicTextEncryptor.setPassword("123");
     mailServiceFactory = new MailServiceFactory(templateEngine, basicTextEncryptor,
-        integrationRepository, integrationTypeRepository);
+        integrationRepository, integrationTypeRepository, "/");
   }
 
   @Test

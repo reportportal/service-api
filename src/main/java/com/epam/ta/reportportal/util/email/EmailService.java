@@ -83,6 +83,8 @@ public class EmailService extends JavaMailSenderImpl {
   private String from;
   private String rpHost;
 
+  private String path;
+
   public EmailService(Properties javaMailProperties) {
     super.setJavaMailProperties(javaMailProperties);
   }
@@ -209,9 +211,14 @@ public class EmailService extends JavaMailSenderImpl {
 
   private String getUrl(String baseUrl) {
     return ofNullable(rpHost).map(rh -> {
-      final UriComponents rpHostUri = UriComponentsBuilder.fromUriString(rh).build();
-      return UriComponentsBuilder.fromUriString(baseUrl).scheme(rpHostUri.getScheme())
-          .host(rpHostUri.getHost()).port(rpHostUri.getPort()).build().toUri().toASCIIString();
+      String processedPath = "/".equals(path) ? "" : path.replace("/api", "");
+      final UriComponents rpHostUri = UriComponentsBuilder.fromUriString(rpHost).build();
+      return UriComponentsBuilder.newInstance()
+          .scheme(rpHostUri.getScheme())
+          .host(rpHostUri.getHost())
+          .port(rpHostUri.getPort())
+          .path(processedPath)
+          .build().toUri().toASCIIString() + baseUrl;
     }).orElse(baseUrl);
   }
 
@@ -315,6 +322,10 @@ public class EmailService extends JavaMailSenderImpl {
 
   public void setRpHost(String rpHost) {
     this.rpHost = rpHost;
+  }
+
+  public void setPath(String path) {
+    this.path = path;
   }
 
   public void sendCreateUserConfirmationEmail(CreateUserRQFull req, String basicUrl) {

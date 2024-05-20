@@ -70,7 +70,7 @@ dependencies {
     } else {
         implementation 'com.github.reportportal:commons-dao:7de2ad1'
         implementation 'com.github.reportportal:commons:67cbfaea24'
-        implementation 'com.github.reportportal:plugin-api:8a4048c'
+        implementation 'com.github.reportportal:plugin-api:5ffeb06'
     }
 
     implementation 'org.pf4j:pf4j-update:2.3.0'

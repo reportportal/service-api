@@ -70,7 +70,7 @@ public class LaunchNotificationRunner
 
   private static final String EMAIL_INTEGRATION_NAME = "email server";
 
-  private final static String NOTIFICATION_TYPE = "Slack";
+  private final static String NOTIFICATION_TYPE = "email";
 
   private final GetProjectHandler getProjectHandler;
   private final GetLaunchHandler getLaunchHandler;

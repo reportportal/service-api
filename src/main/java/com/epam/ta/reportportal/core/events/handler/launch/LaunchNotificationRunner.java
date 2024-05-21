@@ -70,6 +70,8 @@ public class LaunchNotificationRunner
 
   private static final String EMAIL_INTEGRATION_NAME = "email server";
 
+  private final static String NOTIFICATION_TYPE = "email";
+
   private final GetProjectHandler getProjectHandler;
   private final GetLaunchHandler getLaunchHandler;
   private final GetIntegrationHandler getIntegrationHandler;
@@ -106,9 +108,7 @@ public class LaunchNotificationRunner
                   IntegrationGroupEnum.NOTIFICATION, launchFinishedEvent.getProjectId()
               )
           );
-
     }
-
   }
 
   /**
@@ -121,7 +121,8 @@ public class LaunchNotificationRunner
     final Launch launch = getLaunchHandler.get(launchFinishedEvent.getId());
     final Project project = getProjectHandler.get(launch.getProjectId());
 
-    project.getSenderCases().stream().filter(SenderCase::isEnabled).forEach(ec -> {
+    project.getSenderCases().stream().filter(SenderCase::isEnabled)
+        .filter(senderCase -> senderCase.getType().equals(NOTIFICATION_TYPE)).forEach(ec -> {
       SendCase sendCase = ec.getSendCase();
       boolean successRate = isSuccessRateEnough(launch, sendCase);
       boolean matchedNames = isLaunchNameMatched(launch, ec);

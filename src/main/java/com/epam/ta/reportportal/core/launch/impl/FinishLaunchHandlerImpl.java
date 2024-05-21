@@ -100,16 +100,18 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
         .addAttributes(finishLaunchRQ.getAttributes()).addEndTime(finishLaunchRQ.getEndTime())
         .get();
 
+    String launchLink = generateLaunchLink(baseUrl, projectDetails.getProjectName(),
+        String.valueOf(launch.getId())
+    );
+
     eventPublisher.publishEvent(
-        new LaunchFinishedPluginEvent(launch.getId(), launch.getProjectId()));
+        new LaunchFinishedPluginEvent(launch.getId(), launch.getProjectId(), launchLink));
     eventPublisher.publishEvent(new LaunchFinishedEvent(launch, user, baseUrl));
 
     FinishLaunchRS response = new FinishLaunchRS();
     response.setId(launch.getUuid());
     response.setNumber(launch.getNumber());
-    response.setLink(generateLaunchLink(baseUrl, projectDetails.getProjectName(),
-        String.valueOf(launch.getId())
-    ));
+    response.setLink(launchLink);
     return response;
   }
 

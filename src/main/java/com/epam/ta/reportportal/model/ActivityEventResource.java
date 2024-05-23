@@ -42,7 +42,8 @@ public class ActivityEventResource {
 
   @NotNull
   @JsonProperty(value = "id", required = true)
-  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The unique ID of the activity", example = "1")
+  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The unique ID of the activity",
+      example = "1")
   private Long id;
 
   @NotNull
@@ -52,48 +53,67 @@ public class ActivityEventResource {
 
   @NotNull
   @JsonProperty(value = "event_name", required = true)
-  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The name of the event", example = "updateItem")
+  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The name of the event", example =
+      "updateItem")
   private String eventName;
 
   @JsonProperty(value = "object_id")
-  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The ID of the object on which activity was performed", example = "1")
+  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The ID of the object on which "
+      + "activity was performed", example = "1")
   private Long objectId;
 
   @NotNull
   @JsonProperty(value = "object_name", required = true)
-  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The name of the object on which activity was performed", example = "Test item name")
+  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The name of the object on which "
+      + "activity was performed", example = "Test item name")
   private String objectName;
 
   @NotNull
   @JsonProperty(value = "object_type", required = true)
-  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The type of the object on which activity was performed", example = "itemIssue")
+  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The type of the object on which "
+      + "activity was performed", example = "itemIssue")
   private String objectType;
 
   @JsonProperty(value = "project_id")
-  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The ID of the project", example = "1")
+  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The ID of the project", example =
+      "1")
   private Long projectId;
 
   @JsonProperty(value = "project_name")
-  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The name of the project", example = "Project name")
+  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The name of the project", example
+      = "Project name")
   private String projectName;
 
   @NotNull
   @JsonProperty(value = "subject_name", required = true)
-  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The name of the subject who performed the activity", example = "Username")
+  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The name of the subject who "
+      + "performed the activity", example = "Username")
   private String subjectName;
 
   @NotNull
   @JsonProperty(value = "subject_type", required = true)
-  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The type of the subject who performed the activity", example = "user")
+  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The type of the subject who "
+      + "performed the activity", example = "user")
   private String subjectType;
 
   @NotNull
   @JsonProperty(value = "subject_id", required = true)
-  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The ID of the subject who performed the activity", example = "1")
+  @Schema(requiredMode = RequiredMode.REQUIRED, description = "The ID of the subject who "
+      + "performed the activity", example = "1")
   private String subjectId;
 
   @JsonProperty(value = "details")
-  @Schema(description = "The details of the activity, for example history of value", example = "{\"history\": [{\"field\": \"status\", \"newValue\": \"FAILED\", \"oldValue\": \"PASSED\"}]}")
+  @Schema(description = "The details of the activity, for example history of value", example = """
+      {
+          "history": [
+              {
+                  "field": "status",
+                  "newValue": "FAILED",
+                  "oldValue": "PASSED"
+              }
+          ]
+      }
+      """)
   private Object details;
 
 }

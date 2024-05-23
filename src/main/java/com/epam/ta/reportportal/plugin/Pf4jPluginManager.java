@@ -64,10 +64,10 @@ import org.springframework.beans.factory.support.AbstractAutowireCapableBeanFact
 import org.springframework.context.ApplicationEventPublisher;
 
 /**
- * {@link Pf4jPluginManager#uploadingPlugins} Holder for the plugin cleaning job:
- * {@link com.epam.ta.reportportal.job.CleanOutdatedPluginsJob} to prevent the removing of the
- * plugins that are still being processed within the database transaction with
- * {@link com.epam.ta.reportportal.entity.integration.IntegrationType} in uncommitted state
+ * {@link Pf4jPluginManager#uploadingPlugins} Holder for the plugin cleaning job: {@link
+ * com.epam.ta.reportportal.job.CleanOutdatedPluginsJob} to prevent the removing of the plugins that
+ * are still being processed within the database transaction with {@link
+ * com.epam.ta.reportportal.entity.integration.IntegrationType} in uncommitted state
  */
 public class Pf4jPluginManager implements Pf4jPluginBox {
 
@@ -209,11 +209,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 
       return ofNullable(pluginManager.loadPlugin(pluginPath)).map(id -> {
         if (PluginState.STARTED == pluginManager.startPlugin(pluginId)) {
-          Optional<org.pf4j.ExtensionPoint> extensionPoint = this.getInstance(pluginId,
-              org.pf4j.ExtensionPoint.class);
-          extensionPoint.ifPresent(extension -> LOGGER.info(
-              Suppliers.formattedSupplier("Plugin - '{}' initialized.", pluginId)
-                  .get()));
+          initPlugin(pluginId);
           applicationEventPublisher.publishEvent(new PluginEvent(pluginId, LOAD_KEY));
           return true;
         } else {
@@ -222,6 +218,19 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
       }).orElse(Boolean.FALSE);
     }).orElse(Boolean.FALSE);
 
+  }
+
+  private void initPlugin(String pluginId) {
+    try {
+      Optional<org.pf4j.ExtensionPoint> extensionPoint = this.getInstance(pluginId,
+          org.pf4j.ExtensionPoint.class);
+      extensionPoint.ifPresent(extension -> LOGGER.info(
+          Suppliers.formattedSupplier("Plugin - '{}' initialized.", pluginId)
+              .get()));
+    } catch (NoClassDefFoundError error) {
+      LOGGER.warn("Can't init plugin {}. Error {}. Please, try to load a new version of plugin",
+          pluginId, error.getMessage());
+    }
   }
 
   private void copyPluginResources(Path pluginPath, String pluginId) {
@@ -456,8 +465,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
   /**
    * Add plugin file name to the uploading plugins holder
    *
-   * @param fileName Name of the plugin file to put to the
-   *                 {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
+   * @param fileName Name of the plugin file to put to the {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
    * @param path     Full path to the plugin file
    * @see com.epam.ta.reportportal.plugin.Pf4jPluginManager
    */
@@ -595,8 +603,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
   /**
    * Remove plugin file name from the uploading plugins holder
    *
-   * @param fileName Name of the plugin file to remove from the
-   *                 {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
+   * @param fileName Name of the plugin file to remove from the {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
    * @see com.epam.ta.reportportal.plugin.Pf4jPluginManager
    */
   private void removeUploadingPlugin(String fileName) {
@@ -688,8 +695,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
   /**
    * Load and start up the previous plugin
    *
-   * @param previousPlugin   {@link PluginWrapper} with mandatory data for plugin loading:
-   *                         {@link PluginWrapper#getPluginPath()}
+   * @param previousPlugin   {@link PluginWrapper} with mandatory data for plugin loading: {@link
+   *                         PluginWrapper#getPluginPath()}
    * @param newPluginDetails {@link IntegrationTypeDetails} of the plugin which uploading ended up
    *                         with an error
    * @return {@link PluginState}

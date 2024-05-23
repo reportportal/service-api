@@ -41,7 +41,7 @@ class LaunchBuilderTest {
   void launchBuilder() {
     final String description = "description";
     final Instant now = Instant.now().truncatedTo(ChronoUnit.MILLIS);
-    final Instant date = Instant.now();
+    final Instant endDate = Instant.now().truncatedTo(ChronoUnit.MILLIS);
     final Long projectId = 1L;
     final ItemAttributeResource attributeResource = new ItemAttributeResource("key", "value");
     final Long userId = 2L;
@@ -49,7 +49,7 @@ class LaunchBuilderTest {
     final Mode mode = Mode.DEFAULT;
 
     final Launch launch = new LaunchBuilder().addDescription(description)
-        .addEndTime(date)
+        .addEndTime(endDate)
         .addProject(projectId)
         .addAttribute(attributeResource)
         .addUserId(userId)
@@ -58,7 +58,7 @@ class LaunchBuilderTest {
         .get();
 
     assertEquals(description, launch.getDescription());
-    assertEquals(now.truncatedTo(ChronoUnit.MILLIS),
+    assertEquals(endDate.truncatedTo(ChronoUnit.MILLIS),
         launch.getEndTime().truncatedTo(ChronoUnit.MILLIS));
     assertEquals(projectId, launch.getProjectId());
     assertTrue(launch.getAttributes().contains(new ItemAttribute("key", "value", false)));

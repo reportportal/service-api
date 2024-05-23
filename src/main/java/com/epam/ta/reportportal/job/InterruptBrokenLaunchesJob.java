@@ -20,6 +20,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofSeconds;
 
+import com.epam.reportportal.extension.event.LaunchFinishedPluginEvent;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
@@ -151,8 +152,10 @@ public class InterruptBrokenLaunchesJob implements Job {
   }
 
   private void publishFinishEvent(Launch launch) {
-    final LaunchFinishedEvent event = new LaunchFinishedEvent(launch);
-    eventPublisher.publishEvent(event);
+    final LaunchFinishedEvent launchFinishedEvent = new LaunchFinishedEvent(launch);
+    final LaunchFinishedPluginEvent finishedPluginEvent = new LaunchFinishedPluginEvent(launch.getId(), launch.getProjectId());
+    eventPublisher.publishEvent(launchFinishedEvent);
+    eventPublisher.publishEvent(finishedPluginEvent);
   }
 
   private void interruptItems(Long launchId) {

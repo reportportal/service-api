@@ -70,10 +70,9 @@ dependencies {
     } else {
         implementation 'com.github.reportportal:commons-dao:f14c1ae'
         implementation 'com.github.reportportal:commons:916f0f8abd'
-        implementation 'com.github.reportportal:plugin-api:5ffeb06'
+        implementation 'com.github.reportportal:plugin-api:d1c0f0e'
     }
 
-    implementation 'org.pf4j:pf4j-update:2.3.0'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-quartz'

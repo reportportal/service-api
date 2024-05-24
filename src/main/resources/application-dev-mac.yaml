@@ -12,12 +12,15 @@ rp:
     pass: rppass
     host: localhost
   plugins:
-    rootDir: D:\IdeaProjects\ReportPortal\service-api
+    rootDir: D:\IdeaProjects\ReportPortal\service-api\plguins
   datasource:
     maximumPoolSize: 12
 
 datastore:
   type: minio
-  endpoint: http://localhost:9000
   accessKey: minio
   secretKey: minio123
+  endpoint: http://localhost:9000
+  bucketPrefix: prj-
+  bucketPostfix:
+  defaultBucketName: rp-bucket

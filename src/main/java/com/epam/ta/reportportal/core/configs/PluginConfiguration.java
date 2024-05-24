@@ -22,7 +22,6 @@ import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
-import com.epam.ta.reportportal.plugin.DefaultPluginLoader;
 import com.epam.ta.reportportal.plugin.Pf4jPluginManager;
 import com.epam.ta.reportportal.plugin.ReportPortalExtensionFactory;
 import java.io.IOException;
@@ -30,7 +29,6 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Set;
 import javax.activation.FileTypeMap;
-import javax.annotation.PostConstruct;
 
 import org.pf4j.DefaultExtensionFinder;
 import org.pf4j.DefaultPluginManager;

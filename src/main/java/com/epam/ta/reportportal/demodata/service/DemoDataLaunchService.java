@@ -16,18 +16,19 @@
 
 package com.epam.ta.reportportal.demodata.service;
 
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 
 import com.epam.reportportal.extension.event.LaunchFinishedPluginEvent;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.launch.AttributeHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.reporting.Mode;
@@ -49,21 +50,23 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class DemoDataLaunchService {
 
-  private final String[] platformValues = {"linux", "windows", "macos", "ios", "android",
-      "windows mobile", "ubuntu", "mint", "arch",
-      "windows 10", "windows 7", "windows server", "debian", "alpine"};
+  private final String[] platformValues =
+      { "linux", "windows", "macos", "ios", "android", "windows mobile", "ubuntu", "mint", "arch",
+          "windows 10", "windows 7", "windows server", "debian", "alpine" };
 
   private final LaunchRepository launchRepository;
   private final TestItemRepository testItemRepository;
   private final ApplicationEventPublisher eventPublisher;
+  private final AttributeHandler attributeHandler;
 
   @Autowired
   public DemoDataLaunchService(LaunchRepository launchRepository,
-      TestItemRepository testItemRepository,
-      ApplicationEventPublisher eventPublisher) {
+      TestItemRepository testItemRepository, ApplicationEventPublisher eventPublisher,
+      AttributeHandler attributeHandler) {
     this.launchRepository = launchRepository;
     this.testItemRepository = testItemRepository;
     this.eventPublisher = eventPublisher;
+    this.attributeHandler = attributeHandler;
   }
 
   @Transactional
@@ -77,16 +80,14 @@ public class DemoDataLaunchService {
     rq.setStartTime(Instant.now());
     rq.setUuid(UUID.randomUUID().toString());
     Set<ItemAttributesRQ> attributes = Sets.newHashSet(new ItemAttributesRQ("platform",
-            platformValues[new Random().nextInt(platformValues.length)]
-        ),
-        new ItemAttributesRQ(null, "demo"),
-        new ItemAttributesRQ("build",
-            "3." + now.getDayOfMonth() + "." + now.getHour() + "." + now.getMinute() + "."
-                + now.getSecond()
-        )
-    );
+        platformValues[new Random().nextInt(platformValues.length)]
+    ), new ItemAttributesRQ(null, "demo"), new ItemAttributesRQ("build",
+        "3." + now.getDayOfMonth() + "." + now.getHour() + "." + now.getMinute() + "."
+            + now.getSecond()
+    ));
     Launch launch = new LaunchBuilder().addStartRQ(rq).addAttributes(attributes)
         .addProject(membershipDetails.getProjectId()).get();
+    attributeHandler.handleAttributes(launch);
     launch.setUserId(user.getId());
     launchRepository.save(launch);
     launchRepository.refresh(launch);
@@ -105,10 +106,8 @@ public class DemoDataLaunchService {
     launch = new LaunchBuilder(launch).addEndTime(Instant.now()).get();
 
     StatusEnum fromStatisticsStatus = PASSED;
-    if (launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(),
-        StatusEnum.PASSED.name(),
-        StatusEnum.INFO.name(),
-        StatusEnum.WARN.name()
+    if (launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(), StatusEnum.PASSED.name(),
+        StatusEnum.INFO.name(), StatusEnum.WARN.name()
     )) {
       fromStatisticsStatus = StatusEnum.FAILED;
     }

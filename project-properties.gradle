@@ -69,8 +69,10 @@ project.ext {
             (migrationsUrl + '/migrations/83_add_slugify_function.up.sql')             : 'V083__add_slugify_function.sql',
             (migrationsUrl + '/migrations/84_organization_tables.up.sql')              : 'V084__organization_tables.sql',
             (migrationsUrl + '/migrations/86_notication_update.up.sql')                : 'V086__notication_update.sql',
-            (migrationsUrl + '/migrations/89_add_retention_policy_launch.up.sql')      : 'V089__add_retention_policy_launch.sql',
+            (migrationsUrl + '/migrations/88_add_retention_policy_launch.up.sql')      : 'V088__add_retention_policy_launch.sql',
+            (migrationsUrl + '/migrations/89_add_group_enum_value.up.sql')             : 'V089__add_group_enum_value.sql',
             (migrationsUrl + '/migrations/200_migrate_org_roles.up.sql')               : 'V200__migrate_org_roles.sql',
+            (migrationsUrl + '/migrations/201_drop_table_onboarding.up.sql')           : 'V201__drop_table_onboarding.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

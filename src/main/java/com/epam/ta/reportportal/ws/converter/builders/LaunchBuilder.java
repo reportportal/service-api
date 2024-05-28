@@ -111,18 +111,6 @@ public class LaunchBuilder implements Supplier<Launch> {
       attributes.stream().map(val -> {
         ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
         itemAttribute.setLaunch(launch);
-
-        if ("retentionPolicy".equals(itemAttribute.getKey())) {
-          overwrittenAttributes.removeIf(
-              attr -> attr.isSystem() && "retentionPolicy".equalsIgnoreCase(attr.getKey()));
-          if ("important".equalsIgnoreCase(itemAttribute.getValue())) {
-            launch.setRetentionPolicy(RetentionPolicyEnum.IMPORTANT);
-          } else {
-            launch.setRetentionPolicy(RetentionPolicyEnum.REGULAR);
-          }
-          itemAttribute.setSystem(true);
-        }
-
         return itemAttribute;
       }).forEach(overwrittenAttributes::add);
 

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.launch;
+package com.epam.ta.reportportal.core.launch.attribute.impl;
 
+import com.epam.ta.reportportal.core.launch.attribute.AttributeHandler;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.RetentionPolicyEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -23,36 +24,29 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
- * Handler for attributes
- *
  * @author Ivan Kustau
  */
 @Component
-public class AttributeHandler {
-
+public class RetentionPolicyAttributeHandler implements AttributeHandler {
   /**
-   * Handle attributes for launch.
+   * Handles cases when retentionPolicy attribute is passed at the start.
    *
-   * @param launch Launch which attributes should be handled
+   * @param launch Launch that should be handled
    */
-  public void handleAttributes(Launch launch) {
+  public void handleLaunchStart(Launch launch) {
     if (launch == null || launch.getAttributes() == null) {
       return;
     }
 
-    handleRetentionPolicyAttribute(launch);
-  }
-
-  private void handleRetentionPolicyAttribute(Launch launch) {
     Set<ItemAttribute> attributes = launch.getAttributes();
     ItemAttribute importantAttribute = null;
     ItemAttribute regularAttribute = null;
 
     for (ItemAttribute attribute : attributes) {
       if (attribute.isSystem() && "retentionPolicy".equals(attribute.getKey())) {
-        if ("important".equals(attribute.getValue())) {
+        if ("important".equalsIgnoreCase(attribute.getValue())) {
           importantAttribute = attribute;
-        } else if ("regular".equals(attribute.getValue())) {
+        } else if ("regular".equalsIgnoreCase(attribute.getValue())) {
           regularAttribute = attribute;
         }
       }
@@ -68,6 +62,40 @@ public class AttributeHandler {
     } else {
       // If only 'regular' attribute is present or neither is present
       launch.setRetentionPolicy(RetentionPolicyEnum.REGULAR);
+    }
+  }
+
+  /**
+   * Handles cases when retentionPolicy attribute is passed at the update.
+   *
+   * @param launch Launch that should be handled
+   */
+  @Override
+  public void handleLaunchUpdate(Launch launch) {
+    Set<ItemAttribute> itemAttributes = launch.getAttributes();
+    ItemAttribute retentionPolicyOldAttribute = null;
+    ItemAttribute retentionPolicyNewAttribute = null;
+
+    for (ItemAttribute attribute : itemAttributes) {
+      if ("retentionPolicy".equalsIgnoreCase(attribute.getKey())) {
+        if (attribute.isSystem()) {
+          retentionPolicyOldAttribute = attribute;
+        } else {
+          retentionPolicyNewAttribute = attribute;
+        }
+      }
+    }
+
+    if (retentionPolicyNewAttribute != null) {
+      itemAttributes.remove(retentionPolicyOldAttribute);
+      retentionPolicyNewAttribute.setSystem(true);
+      itemAttributes.add(retentionPolicyNewAttribute);
+
+      if ("important".equalsIgnoreCase(retentionPolicyNewAttribute.getValue())) {
+        launch.setRetentionPolicy(RetentionPolicyEnum.IMPORTANT);
+      } else if ("regular".equalsIgnoreCase(retentionPolicyNewAttribute.getValue())) {
+        launch.setRetentionPolicy(RetentionPolicyEnum.REGULAR);
+      }
     }
   }
 }

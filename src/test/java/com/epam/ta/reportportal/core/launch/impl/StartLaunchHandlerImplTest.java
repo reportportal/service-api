@@ -29,7 +29,7 @@ import static org.mockito.Mockito.verify;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.launch.AttributeHandler;
+import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -69,7 +69,7 @@ class StartLaunchHandlerImplTest {
   private ApplicationEventPublisher eventPublisher;
 
   @Mock
-  private AttributeHandler attributeHandler;
+  private LaunchAttributeHandlerService launchAttributeHandlerService;
 
   @InjectMocks
   private StartLaunchHandlerImpl startLaunchHandlerImpl;

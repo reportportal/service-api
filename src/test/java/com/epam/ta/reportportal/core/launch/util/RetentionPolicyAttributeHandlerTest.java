@@ -3,7 +3,8 @@ package com.epam.ta.reportportal.core.launch.util;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import com.epam.ta.reportportal.core.launch.AttributeHandler;
+import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
+import com.epam.ta.reportportal.core.launch.attribute.impl.RetentionPolicyAttributeHandler;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.RetentionPolicyEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -12,18 +13,18 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class AttributeHandlerTest {
+public class RetentionPolicyAttributeHandlerTest {
 
-  private AttributeHandler attributeHandler;
+  private RetentionPolicyAttributeHandler retentionPolicyAttributeHandler;
 
   @BeforeEach
   public void setUp() {
-    attributeHandler = new AttributeHandler();
+    retentionPolicyAttributeHandler = new RetentionPolicyAttributeHandler();
   }
 
   @Test
   public void testHandleAttributesWhenLaunchIsNull() {
-    attributeHandler.handleAttributes(null);
+    retentionPolicyAttributeHandler.handleLaunchStart(null);
     // Since the launch is null, there's no state to assert.
     // The test just ensures no exception is thrown.
   }
@@ -36,7 +37,7 @@ public class AttributeHandlerTest {
     attributes.add(createAttribute("regular"));
     launch.setAttributes(attributes);
 
-    attributeHandler.handleAttributes(launch);
+    retentionPolicyAttributeHandler.handleLaunchStart(launch);
 
     assertEquals(RetentionPolicyEnum.IMPORTANT, launch.getRetentionPolicy());
     assertEquals(1, launch.getAttributes().size());
@@ -49,7 +50,7 @@ public class AttributeHandlerTest {
     attributes.add(createAttribute("important"));
     launch.setAttributes(attributes);
 
-    attributeHandler.handleAttributes(launch);
+    retentionPolicyAttributeHandler.handleLaunchStart(launch);
 
     assertEquals(RetentionPolicyEnum.IMPORTANT, launch.getRetentionPolicy());
   }
@@ -61,7 +62,7 @@ public class AttributeHandlerTest {
     attributes.add(createAttribute("regular"));
     launch.setAttributes(attributes);
 
-    attributeHandler.handleAttributes(launch);
+    retentionPolicyAttributeHandler.handleLaunchStart(launch);
 
     assertEquals(RetentionPolicyEnum.REGULAR, launch.getRetentionPolicy());
   }

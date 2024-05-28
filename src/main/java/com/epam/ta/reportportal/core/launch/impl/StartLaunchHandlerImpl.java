@@ -22,7 +22,7 @@ import com.epam.reportportal.extension.event.StartLaunchEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
-import com.epam.ta.reportportal.core.launch.AttributeHandler;
+import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -51,17 +51,17 @@ class StartLaunchHandlerImpl implements StartLaunchHandler {
   private final ApplicationEventPublisher eventPublisher;
   private final MessageBus messageBus;
   private final RerunHandler rerunHandler;
-  private final AttributeHandler attributeHandler;
+  private final LaunchAttributeHandlerService launchAttributeHandlerService;
 
   @Autowired
   public StartLaunchHandlerImpl(LaunchRepository launchRepository,
       ApplicationEventPublisher eventPublisher, MessageBus messageBus, RerunHandler rerunHandler,
-      AttributeHandler attributeHandler) {
+      LaunchAttributeHandlerService launchAttributeHandlerService) {
     this.launchRepository = launchRepository;
     this.eventPublisher = eventPublisher;
     this.messageBus = messageBus;
     this.rerunHandler = rerunHandler;
-    this.attributeHandler = attributeHandler;
+    this.launchAttributeHandlerService = launchAttributeHandlerService;
   }
 
   @Override
@@ -76,7 +76,7 @@ class StartLaunchHandlerImpl implements StartLaunchHandler {
           Launch launch =
               new LaunchBuilder().addStartRQ(request).addAttributes(request.getAttributes())
                   .addProject(projectDetails.getProjectId()).addUserId(user.getUserId()).get();
-          attributeHandler.handleAttributes(launch);
+          launchAttributeHandlerService.handleLaunchStart(launch);
           launchRepository.save(launch);
           launchRepository.refresh(launch);
           return launch;

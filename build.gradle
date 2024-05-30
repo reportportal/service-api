@@ -19,6 +19,7 @@ plugins {
     id 'org.springframework.boot' version '2.5.15'
     id 'java'
     id "org.owasp.dependencycheck" version "9.0.9"
+    id 'org.hidetake.swagger.generator' version '2.19.2'
 }
 
 import org.owasp.dependencycheck.reporting.ReportGenerator
@@ -72,6 +73,7 @@ dependencies {
         implementation 'com.github.reportportal:commons:df2369b'
         implementation 'com.github.reportportal:plugin-api:d1c0f0e'
     }
+    swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.47'
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -141,7 +143,7 @@ dependencies {
     implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
     // Fix CVE-2024-25710, CVE-2024-26308
     implementation 'org.apache.commons:commons-compress:1.26.0'
-    implementation 'org.yaml:snakeyaml:1.33'
+  //  implementation 'org.yaml:snakeyaml:1.33'
     implementation 'org.hibernate:hibernate-core:5.6.15.Final'
 
     //Fix CVE-2023-6378, CVE-2023-6481, CVE-2023-6378, CVE-2023-6481
@@ -164,6 +166,22 @@ dependencies {
     testImplementation 'org.flywaydb.flyway-test-extensions:flyway-spring-test:9.5.0'
 }
 
+sourceSets {
+    main {
+        java {
+            srcDirs "$buildDir/generated/src/main/java"
+        }
+    }
+}
+
+tasks.register('updateApiSubmodule', Exec) {
+    commandLine 'git', 'submodule', 'update', '--init' , "--recursive"
+}
+
+tasks.register('updateApiSubmoduleLatestCommit', Exec) {
+    commandLine 'git', 'submodule', 'update', '--init' , "--recursive", "--remote"
+}
+
 processResources {
     dependsOn(gitInfo)
     filesMatching('application.properties') {
@@ -179,6 +197,24 @@ tasks.withType(JavaCompile).configureEach {
     options.debug = true
     options.debugOptions.debugLevel = "source,lines,vars"
 }
+
+
+swaggerSources {
+    organizations {
+        inputFile = file("$rootDir/reportportal-common-api/api/openapi/organizations.yaml")
+        code {
+            language = 'spring'
+            configFile = file("$rootDir/src/main/resources/openapi/config.json")
+            components = ['models', 'apis']
+
+            jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
+            outputDir = file("$buildDir/generated")
+            wipeOutputDir = true
+        }
+    }
+}
+/*sourceSets.main.java.srcDir "${swaggerSources.organizations.code.outputDir}/src/main/java"
+sourceSets.main.resources.srcDir "${swaggerSources.organizations.code.outputDir}/src/main/resources"*/
 
 dependencyCheck {
     formats = [ReportGenerator.Format.HTML, ReportGenerator.Format.XML]
@@ -205,6 +241,8 @@ test {
     }
 }
 
+swaggerSources.organizations.code.dependsOn updateApiSubmodule
+compileJava.dependsOn swaggerSources.organizations.code
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts

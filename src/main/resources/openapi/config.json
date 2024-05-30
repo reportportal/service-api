@@ -6,7 +6,8 @@
     "OffsetDateTime": "Instant"
   },
   "importMappings": {
-    "ReportPortalUser": "com.epam.ta.reportportal.commons.ReportPortalUser",
     "java.time.OffsetDateTime": "java.time.Instant"
-  }
+  },
+  "library": "spring-boot",
+  "hideGenerationTimestamp": true
 }

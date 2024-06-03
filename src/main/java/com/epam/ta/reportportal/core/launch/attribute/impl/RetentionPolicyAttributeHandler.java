@@ -16,11 +16,18 @@
 
 package com.epam.ta.reportportal.core.launch.attribute.impl;
 
+import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
+
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.MarkLaunchAsImportantEvent;
+import com.epam.ta.reportportal.core.events.activity.UnmarkLaunchAsImportantEvent;
 import com.epam.ta.reportportal.core.launch.attribute.AttributeHandler;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.RetentionPolicyEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -28,6 +35,14 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RetentionPolicyAttributeHandler implements AttributeHandler {
+
+  private MessageBus messageBus;
+
+  @Autowired
+  public RetentionPolicyAttributeHandler(MessageBus messageBus) {
+    this.messageBus = messageBus;
+  }
+
   /**
    * Handles cases when retentionPolicy attribute is passed at the start.
    *
@@ -71,7 +86,7 @@ public class RetentionPolicyAttributeHandler implements AttributeHandler {
    * @param launch Launch that should be handled
    */
   @Override
-  public void handleLaunchUpdate(Launch launch) {
+  public void handleLaunchUpdate(Launch launch, ReportPortalUser user) {
     Set<ItemAttribute> itemAttributes = launch.getAttributes();
     ItemAttribute retentionPolicyOldAttribute = null;
     ItemAttribute retentionPolicyNewAttribute = null;
@@ -93,8 +108,16 @@ public class RetentionPolicyAttributeHandler implements AttributeHandler {
 
       if ("important".equalsIgnoreCase(retentionPolicyNewAttribute.getValue())) {
         launch.setRetentionPolicy(RetentionPolicyEnum.IMPORTANT);
+        messageBus.publishActivity(
+            new MarkLaunchAsImportantEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(),
+                user.getUsername()
+            ));
       } else if ("regular".equalsIgnoreCase(retentionPolicyNewAttribute.getValue())) {
         launch.setRetentionPolicy(RetentionPolicyEnum.REGULAR);
+        messageBus.publishActivity(
+            new UnmarkLaunchAsImportantEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(),
+                user.getUsername()
+            ));
       }
     }
   }

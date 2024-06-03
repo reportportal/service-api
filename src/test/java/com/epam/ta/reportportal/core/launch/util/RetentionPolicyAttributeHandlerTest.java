@@ -12,14 +12,16 @@ import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 public class RetentionPolicyAttributeHandlerTest {
 
   private RetentionPolicyAttributeHandler retentionPolicyAttributeHandler;
+  private ApplicationEventPublisher applicationEventPublisher;
 
   @BeforeEach
   public void setUp() {
-    retentionPolicyAttributeHandler = new RetentionPolicyAttributeHandler();
+    retentionPolicyAttributeHandler = new RetentionPolicyAttributeHandler(applicationEventPublisher);
   }
 
   @Test

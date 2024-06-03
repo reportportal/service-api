@@ -3,6 +3,7 @@ package com.epam.ta.reportportal.core.launch.util;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.ta.reportportal.core.launch.attribute.impl.RetentionPolicyAttributeHandler;
 import com.epam.ta.reportportal.entity.ItemAttribute;
@@ -10,6 +11,7 @@ import com.epam.ta.reportportal.entity.enums.RetentionPolicyEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import java.util.HashSet;
 import java.util.Set;
+import javax.mail.Message;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
@@ -17,11 +19,11 @@ import org.springframework.context.ApplicationEventPublisher;
 public class RetentionPolicyAttributeHandlerTest {
 
   private RetentionPolicyAttributeHandler retentionPolicyAttributeHandler;
-  private ApplicationEventPublisher applicationEventPublisher;
+  private MessageBus messageBus;
 
   @BeforeEach
   public void setUp() {
-    retentionPolicyAttributeHandler = new RetentionPolicyAttributeHandler(applicationEventPublisher);
+    retentionPolicyAttributeHandler = new RetentionPolicyAttributeHandler(messageBus);
   }
 
   @Test

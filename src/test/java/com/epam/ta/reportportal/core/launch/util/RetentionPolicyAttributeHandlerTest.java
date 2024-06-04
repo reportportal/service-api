@@ -74,7 +74,7 @@ public class RetentionPolicyAttributeHandlerTest {
 
     retentionPolicyAttributeHandler.handleLaunchStart(launch);
 
-    assertEquals(RetentionPolicyEnum.REGULAR, launch.getRetentionPolicy());
+    assertEquals(RetentionPolicyEnum.IMPORTANT, launch.getRetentionPolicy());
     assertEquals(1, launch.getAttributes().size());
   }
 

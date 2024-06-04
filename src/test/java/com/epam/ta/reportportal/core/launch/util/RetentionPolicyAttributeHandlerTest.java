@@ -66,6 +66,19 @@ public class RetentionPolicyAttributeHandlerTest {
   }
 
   @Test
+  public void testHandleLaunchStartWithImportantAttribute() {
+    Launch launch = new Launch();
+    Set<ItemAttribute> attributes = new HashSet<>();
+    attributes.add(createSystemAttribute("important"));
+    launch.setAttributes(attributes);
+
+    retentionPolicyAttributeHandler.handleLaunchStart(launch);
+
+    assertEquals(RetentionPolicyEnum.REGULAR, launch.getRetentionPolicy());
+    assertEquals(1, launch.getAttributes().size());
+  }
+
+  @Test
   public void testHandleLaunchUpdateWhenLaunchIsNull() {
     ReportPortalUser user = mock(ReportPortalUser.class);
     retentionPolicyAttributeHandler.handleLaunchUpdate(null, user);

@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class RetentionPolicyAttributeHandler implements AttributeHandler {
 
-  private MessageBus messageBus;
+  private final MessageBus messageBus;
 
   @Autowired
   public RetentionPolicyAttributeHandler(MessageBus messageBus) {

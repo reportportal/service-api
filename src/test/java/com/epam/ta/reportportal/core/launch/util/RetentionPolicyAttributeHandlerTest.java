@@ -1,10 +1,16 @@
 package com.epam.ta.reportportal.core.launch.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.MarkLaunchAsImportantEvent;
+import com.epam.ta.reportportal.core.events.activity.UnmarkLaunchAsImportantEvent;
 import com.epam.ta.reportportal.core.launch.attribute.impl.RetentionPolicyAttributeHandler;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.RetentionPolicyEnum;
@@ -36,8 +42,8 @@ public class RetentionPolicyAttributeHandlerTest {
   public void testHandleLaunchStartWithBothAttributes() {
     Launch launch = new Launch();
     Set<ItemAttribute> attributes = new HashSet<>();
-    attributes.add(createAttribute("important"));
-    attributes.add(createAttribute("regular"));
+    attributes.add(createSystemAttribute("important"));
+    attributes.add(createSystemAttribute("regular"));
     launch.setAttributes(attributes);
 
     retentionPolicyAttributeHandler.handleLaunchStart(launch);
@@ -50,7 +56,7 @@ public class RetentionPolicyAttributeHandlerTest {
   public void testHandleLaunchStartWithRegularAttribute() {
     Launch launch = new Launch();
     Set<ItemAttribute> attributes = new HashSet<>();
-    attributes.add(createAttribute("regular"));
+    attributes.add(createSystemAttribute("regular"));
     launch.setAttributes(attributes);
 
     retentionPolicyAttributeHandler.handleLaunchStart(launch);
@@ -68,24 +74,10 @@ public class RetentionPolicyAttributeHandlerTest {
   }
 
   @Test
-  public void testHandleLaunchUpdateWithBothAttributes() {
+  public void testHandleLaunchUpdateWithImportantOldAttributeAndRegularNew() {
     Launch launch = new Launch();
     Set<ItemAttribute> attributes = new HashSet<>();
-    attributes.add(createAttribute("important"));
-    attributes.add(createAttribute("regular"));
-    launch.setAttributes(attributes);
-    ReportPortalUser user = mock(ReportPortalUser.class);
-
-    retentionPolicyAttributeHandler.handleLaunchUpdate(launch, user);
-
-    assertEquals(RetentionPolicyEnum.IMPORTANT, launch.getRetentionPolicy());
-    assertEquals(1, launch.getAttributes().size());
-  }
-
-  @Test
-  public void testHandleLaunchUpdateWithRegularAttribute() {
-    Launch launch = new Launch();
-    Set<ItemAttribute> attributes = new HashSet<>();
+    attributes.add(createSystemAttribute("important"));
     attributes.add(createAttribute("regular"));
     launch.setAttributes(attributes);
     ReportPortalUser user = mock(ReportPortalUser.class);
@@ -94,13 +86,61 @@ public class RetentionPolicyAttributeHandlerTest {
 
     assertEquals(RetentionPolicyEnum.REGULAR, launch.getRetentionPolicy());
     assertEquals(1, launch.getAttributes().size());
+    assertTrue(launch.getAttributes().iterator().next().isSystem());
+
+    verify(messageBus).publishActivity(any(UnmarkLaunchAsImportantEvent.class));
+  }
+
+  @Test
+  public void testHandleLaunchUpdateWithRegularOldAttributeAndImportantNew() {
+    Launch launch = new Launch();
+    Set<ItemAttribute> attributes = new HashSet<>();
+    attributes.add(createSystemAttribute("regular"));
+    attributes.add(createAttribute("important"));
+    launch.setAttributes(attributes);
+    ReportPortalUser user = mock(ReportPortalUser.class);
+
+    retentionPolicyAttributeHandler.handleLaunchUpdate(launch, user);
+
+    assertEquals(RetentionPolicyEnum.IMPORTANT, launch.getRetentionPolicy());
+    assertEquals(1, launch.getAttributes().size());
+    assertTrue(launch.getAttributes().iterator().next().isSystem());
+
+    verify(messageBus).publishActivity(any(MarkLaunchAsImportantEvent.class));
+  }
+
+  @Test
+  public void testHandleLaunchUpdateWithSameOldAndNewAttributes() {
+    Launch launch = new Launch();
+    launch.setRetentionPolicy(RetentionPolicyEnum.REGULAR);
+    Set<ItemAttribute> attributes = new HashSet<>();
+    attributes.add(createSystemAttribute("regular"));
+    attributes.add(createAttribute("regular"));
+    launch.setAttributes(attributes);
+    ReportPortalUser user = mock(ReportPortalUser.class);
+
+    retentionPolicyAttributeHandler.handleLaunchUpdate(launch, user);
+
+    assertEquals(RetentionPolicyEnum.REGULAR, launch.getRetentionPolicy());
+    assertEquals(1, launch.getAttributes().size());
+    assertTrue(launch.getAttributes().iterator().next().isSystem());
+
+    verify(messageBus, never()).publishActivity(any());
+  }
+
+  private ItemAttribute createSystemAttribute(String value) {
+    ItemAttribute attribute = new ItemAttribute();
+    attribute.setKey("retentionPolicy");
+    attribute.setValue(value);
+    attribute.setSystem(true);
+    return attribute;
   }
 
   private ItemAttribute createAttribute(String value) {
     ItemAttribute attribute = new ItemAttribute();
     attribute.setKey("retentionPolicy");
     attribute.setValue(value);
-    attribute.setSystem(true);
+    attribute.setSystem(false);
     return attribute;
   }
 }

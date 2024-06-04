@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.core.launch.attribute.AttributeHandler;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.RetentionPolicyEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import java.util.Objects;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -87,6 +88,10 @@ public class RetentionPolicyAttributeHandler implements AttributeHandler {
    */
   @Override
   public void handleLaunchUpdate(Launch launch, ReportPortalUser user) {
+    if (launch == null || launch.getAttributes() == null) {
+      return;
+    }
+
     Set<ItemAttribute> itemAttributes = launch.getAttributes();
     ItemAttribute retentionPolicyOldAttribute = null;
     ItemAttribute retentionPolicyNewAttribute = null;
@@ -104,8 +109,10 @@ public class RetentionPolicyAttributeHandler implements AttributeHandler {
     if (retentionPolicyNewAttribute != null) {
       itemAttributes.remove(retentionPolicyOldAttribute);
       retentionPolicyNewAttribute.setSystem(true);
-      itemAttributes.add(retentionPolicyNewAttribute);
-
+      if (retentionPolicyOldAttribute != null && Objects.equals(
+          retentionPolicyOldAttribute.getValue(), retentionPolicyNewAttribute.getValue())) {
+        return;
+      }
       if ("important".equalsIgnoreCase(retentionPolicyNewAttribute.getValue())) {
         launch.setRetentionPolicy(RetentionPolicyEnum.IMPORTANT);
         messageBus.publishActivity(

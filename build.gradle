@@ -69,11 +69,11 @@ dependencies {
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:plugin-api:5.11.1'
     } else {
-        implementation 'com.github.reportportal:commons-dao:a9cef30'
+        implementation 'com.github.reportportal:commons-dao:110536c'
         implementation 'com.github.reportportal:commons:df2369b'
         implementation 'com.github.reportportal:plugin-api:d1c0f0e'
     }
-    swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.47'
+    swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.57'
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -205,7 +205,7 @@ swaggerSources {
         code {
             language = 'spring'
             configFile = file("$rootDir/src/main/resources/openapi/config.json")
-            components = ['models', 'apis']
+            components = ['models'] // 'apis' to be generated later
 
             jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
             outputDir = file("$buildDir/generated")
@@ -213,8 +213,6 @@ swaggerSources {
         }
     }
 }
-/*sourceSets.main.java.srcDir "${swaggerSources.organizations.code.outputDir}/src/main/java"
-sourceSets.main.resources.srcDir "${swaggerSources.organizations.code.outputDir}/src/main/resources"*/
 
 dependencyCheck {
     formats = [ReportGenerator.Format.HTML, ReportGenerator.Format.XML]

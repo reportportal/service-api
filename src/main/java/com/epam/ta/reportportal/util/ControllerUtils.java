@@ -28,6 +28,11 @@ import javax.validation.Path;
 import javax.validation.Validator;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -44,7 +49,8 @@ public class ControllerUtils {
    * @param files    Files map
    * @return Found file
    */
-  public static MultipartFile findByFileName(String filename, MultiValuedMap<String, MultipartFile> files) {
+  public static MultipartFile findByFileName(String filename,
+      MultiValuedMap<String, MultipartFile> files) {
     /* Request part name? */
     if (files.containsKey(filename)) {
       var multipartFile = files.get(filename).stream()
@@ -108,5 +114,17 @@ public class ControllerUtils {
       }
     }
     return uploadedFiles;
+  }
+
+  public static Direction parseSortDirection(String order) {
+    if (StringUtils.isEmpty(order)) {
+      return Direction.ASC;
+    }
+    return order.equalsIgnoreCase(Direction.DESC.name()) ? Direction.DESC : Direction.ASC;
+  }
+
+  public static Pageable getPageable(String sortBy, String order, int offset, int limit) {
+    var sortDirection = parseSortDirection(order);
+    return PageRequest.of(offset, limit, Sort.by(sortDirection, sortBy));
   }
 }

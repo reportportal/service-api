@@ -22,13 +22,12 @@ import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails;
 import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails.ProjectDetails;
+import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
-import com.epam.ta.reportportal.util.ProjectExtractor;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -39,15 +38,15 @@ import org.springframework.stereotype.Component;
 @LookupPermission({"organizationManager"})
 public class OrganizationManagerPermission implements Permission {
 
-  private final ProjectExtractor projectExtractor;
+  private final OrganizationUserRepository organizationUserRepository;
 
   @Autowired
-  OrganizationManagerPermission(ProjectExtractor projectExtractor) {
-    this.projectExtractor = projectExtractor;
+  OrganizationManagerPermission(OrganizationUserRepository organizationUserRepository) {
+    this.organizationUserRepository = organizationUserRepository;
   }
 
   @Override
-  public boolean isAllowed(Authentication authentication, Object targetDomainObject) {
+  public boolean isAllowed(Authentication authentication, Object orgId) {
     if (!authentication.isAuthenticated()) {
       return false;
     }
@@ -56,21 +55,13 @@ public class OrganizationManagerPermission implements Permission {
     ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
+    var ou = organizationUserRepository.findByUserIdAndOrganization_Id(rpUser.getUserId(),
+        (Long) orgId);
 
-    final String resolvedProjectKey = String.valueOf(targetDomainObject);
-    final Optional<MembershipDetails> membershipDetails =
-        projectExtractor.findMembershipDetails(rpUser, resolvedProjectKey);
-
-    BusinessRule.expect(membershipDetails.isPresent(), Predicate.isEqual(true))
+    BusinessRule.expect(ou.isPresent(), Predicate.isEqual(true))
         .verify(ErrorType.ACCESS_DENIED);
 
-    var md = membershipDetails.get();
-    if (OrganizationRole.MANAGER == md.getOrgRole()) {
-      membershipDetails.ifPresent(details -> fillProjectDetails(rpUser, resolvedProjectKey, details));
-      return true;
-    }
-
-    return false;
+    return ou.get().getOrganizationRole().equals(OrganizationRole.MANAGER);
 
   }
 

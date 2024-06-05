@@ -16,13 +16,25 @@
 
 package com.epam.ta.reportportal.core.launch.attribute;
 
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.launch.Launch;
 
 /**
  * @author Ivan Kustau
  */
 public interface AttributeHandler {
+  /**
+   * Handles different attribute creation during the start of launch.
+   *
+   * @param launch Launch that should be handled
+   */
   void handleLaunchStart(Launch launch);
 
-  void handleLaunchUpdate(Launch launch);
+  /**
+   * Handles different attribute updates during the launch.
+   *
+   * @param launch Launch that should be handled
+   * @param user   User that performs the action
+   */
+  void handleLaunchUpdate(Launch launch, ReportPortalUser user);
 }

@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.attribute;
 
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,7 @@ public class LaunchAttributeHandlerService {
     attributeHandlers.forEach(handler -> handler.handleLaunchStart(launch));
   }
 
-  public void handleLaunchUpdate(Launch launch) {
-    attributeHandlers.forEach(handler -> handler.handleLaunchUpdate(launch));
+  public void handleLaunchUpdate(Launch launch, ReportPortalUser user) {
+    attributeHandlers.forEach(handler -> handler.handleLaunchUpdate(launch, user));
   }
 }

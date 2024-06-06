@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.dao.project.OrganizationProjectRepository;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.model.Offset;
 import com.epam.ta.reportportal.model.OrganizationProjectsList;
 import com.epam.ta.reportportal.model.ProjectProfile;
 import org.slf4j.Logger;
@@ -54,7 +53,8 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
   }
 
   @Override
-  public Offset getOrganizationProjectsList(ReportPortalUser user, Long orgId, Filter filter,
+  public OrganizationProjectsList getOrganizationProjectsList(ReportPortalUser user, Long orgId,
+      Filter filter,
       Pageable pageable) {
     Page<ProjectProfile> projectProfileList = getProjectProfileList(user, orgId, filter, pageable);
 

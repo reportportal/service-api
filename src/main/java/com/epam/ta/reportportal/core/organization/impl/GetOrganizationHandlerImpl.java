@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.organization.impl;
 
+import static com.epam.ta.reportportal.util.OffsetUtils.withOffsetData;
+
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -27,12 +29,12 @@ import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
 import com.epam.ta.reportportal.model.OrganizationProfile;
-import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
-import com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter;
+import com.epam.ta.reportportal.model.OrganizationProfilesList;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
 
 /**
  * @author Andrei Piankouski
@@ -58,9 +60,14 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
   }
 
   @Override
-  public Iterable<OrganizationProfile> getOrganizations(Queryable filter, Pageable pageable) {
-    return PagedResourcesAssembler.pageConverter(OrganizationConverter.TO_ORGANIZATION_RESOURCE)
-        .apply(organizationRepositoryCustom.findByFilter(filter, pageable));
+  public OrganizationProfilesList getOrganizations(Queryable filter, Pageable pageable) {
+    var organizationProfilesPage = organizationRepositoryCustom.findByFilter(filter, pageable);
+
+    OrganizationProfilesList organizationProfilesList  =
+        new OrganizationProfilesList()
+            .organizationProfilesListItems(organizationProfilesPage.getContent());
+
+    return withOffsetData(organizationProfilesList, organizationProfilesPage);
   }
 
 }

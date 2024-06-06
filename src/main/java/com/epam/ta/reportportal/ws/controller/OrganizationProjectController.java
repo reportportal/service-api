@@ -40,11 +40,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -53,6 +56,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Tag(name = "project-controller", description = "Project Controller")
+@Validated
 public class OrganizationProjectController {
 
   private final OrganizationProjectHandler organizationProjectHandler;
@@ -62,7 +66,8 @@ public class OrganizationProjectController {
     this.organizationProjectHandler = organizationProjectHandler;
   }
 
-  // TODO: get rid of annotations here after using them from already generated interface OrganizationsApi
+  // TODO: get rid of annotations here after using them from already generated interface
+  //  OrganizationsApi
   // need to handle @AuthenticationPrincipal properly before overriding interface methods
 
   /**
@@ -91,15 +96,16 @@ public class OrganizationProjectController {
   @RequestMapping(value = "/organizations/{org_id}/projects",
       produces = {"application/json", "application/problem+json"},
       method = RequestMethod.GET)
-  public ResponseEntity<Offset> getOrganizationsOrgIdProjects(
-
+  public ResponseEntity<OrganizationProjectsList> getOrganizationsOrgIdProjects(
       @Parameter(in = ParameterIn.PATH, description = "Organization identifier", required = true, schema = @Schema()) @PathVariable("org_id") Long orgId,
       @Parameter(in = ParameterIn.QUERY, description = "The limit used for this page of results. This will be the same as the limit query parameter unless it exceeded the maximum value allowed for this API endpoint", schema = @Schema(defaultValue = "10")) @Valid @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit,
       @Parameter(in = ParameterIn.QUERY, description = "The offset used for this page of results", schema = @Schema(defaultValue = "0")) @Valid @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset,
       @Parameter(in = ParameterIn.QUERY, description = "Indicate sort by field", schema = @Schema()) @Valid @RequestParam(value = "sort", required = false) String sort,
-      @Parameter(in = ParameterIn.QUERY, description = "Indicate sorting direction", schema = @Schema(allowableValues = {
-          "ASC", "DESC"})) @Valid @RequestParam(value = "order", required = false) String order,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @Parameter(in = ParameterIn.QUERY, description = "Indicate sorting direction", schema = @Schema(allowableValues = {"ASC", "DESC"})) @Valid @RequestParam(value = "order", required = false) String order,
+      @Parameter(in = ParameterIn.QUERY, description = "Filter projects by name", schema = @Schema()) @Valid @RequestParam(value = "name", required = false) String name,
+      @Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$") @Parameter(in = ParameterIn.QUERY, description = "Filter projects by slug", schema = @Schema()) @Valid @RequestParam(value = "slug", required = false) String slug,
+      @AuthenticationPrincipal ReportPortalUser user
+  ) {
 
     // for now sort by name only
     sort = "name";
@@ -107,9 +113,18 @@ public class OrganizationProjectController {
     Filter filter = new Filter(ProjectProfile.class, Lists.newArrayList())
         .withCondition(
             new FilterCondition(Condition.EQUALS, false, orgId.toString(), "organization_id"));
+    if (StringUtils.isNotEmpty(name)) {
+      filter.withCondition(
+          new FilterCondition(Condition.EQUALS, false, name, "name"));
+    }
+    if (StringUtils.isNotEmpty(slug)) {
+      filter.withCondition(
+          new FilterCondition(Condition.EQUALS, false, name, "slug"));
+    }
 
     return ResponseEntity.status(OK)
-        .body(organizationProjectHandler.getOrganizationProjectsList(user, orgId, filter, pageable));
+        .body(
+            organizationProjectHandler.getOrganizationProjectsList(user, orgId, filter, pageable));
   }
 
 }

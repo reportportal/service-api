@@ -28,37 +28,38 @@ import org.junit.jupiter.api.Test;
 class OrganizationControllerTest extends BaseMvcTest {
 
   @Test
-  void getOrganization() throws Exception {
+  void getOrganizationAdmin() throws Exception {
     mockMvc.perform(get("/organizations/1")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
   }
 
   @Test
-  void getAllOrganizations() throws Exception {
-    mockMvc.perform(get("/organizations")
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  void getAllOrganizationsInfo() throws Exception {
-    mockMvc.perform(get("/organizations")
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  void getAllOrganizationsInfoFilterByDifferentUser() throws Exception {
-    mockMvc.perform(get("/organizations?filter.eq.user=default")
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  void getAllOrganizationsInfoFilterByAdminUser() throws Exception {
-    mockMvc.perform(get("/organizations?filter.eq.user=superadmin")
+  void getOrganizationUser() throws Exception {
+    mockMvc.perform(get("/organizations/1")
             .with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk());
   }
+
+  @Test
+  void getAllOrganizationsAdmin() throws Exception {
+    mockMvc.perform(get("/organizations")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void getAllOrganizationsUser() throws Exception {
+    mockMvc.perform(get("/organizations")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void getAllOrganizationsByName() throws Exception {
+    mockMvc.perform(get("/organizations?name=superadmin")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
+
 }

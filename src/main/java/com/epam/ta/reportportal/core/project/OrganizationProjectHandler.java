@@ -18,11 +18,12 @@ package com.epam.ta.reportportal.core.project;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.model.Offset;
+import com.epam.ta.reportportal.model.OrganizationProjectsList;
 import org.springframework.data.domain.Pageable;
 
 public interface OrganizationProjectHandler {
 
-  Offset getOrganizationProjectsList(ReportPortalUser user, Long orgId, Filter filter,
+  OrganizationProjectsList getOrganizationProjectsList(ReportPortalUser user, Long orgId,
+      Filter filter,
       Pageable pageable);
 }

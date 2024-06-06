@@ -69,7 +69,7 @@ dependencies {
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:plugin-api:5.11.1'
     } else {
-        implementation 'com.github.reportportal:commons-dao:110536c'
+        implementation 'com.github.reportportal:commons-dao:7e5a048'
         implementation 'com.github.reportportal:commons:df2369b'
         implementation 'com.github.reportportal:plugin-api:d1c0f0e'
     }
@@ -143,7 +143,7 @@ dependencies {
     implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
     // Fix CVE-2024-25710, CVE-2024-26308
     implementation 'org.apache.commons:commons-compress:1.26.0'
-  //  implementation 'org.yaml:snakeyaml:1.33'
+    implementation 'org.yaml:snakeyaml:1.33'
     implementation 'org.hibernate:hibernate-core:5.6.15.Final'
 
     //Fix CVE-2023-6378, CVE-2023-6481, CVE-2023-6378, CVE-2023-6481
@@ -205,7 +205,7 @@ swaggerSources {
         code {
             language = 'spring'
             configFile = file("$rootDir/src/main/resources/openapi/config.json")
-            components = ['models'] // 'apis' to be generated later
+            components = ['models'] // ' to be generated later
 
             jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
             outputDir = file("$buildDir/generated")

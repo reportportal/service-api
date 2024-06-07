@@ -117,9 +117,6 @@ public class ControllerUtils {
   }
 
   public static Direction parseSortDirection(String order) {
-    if (StringUtils.isEmpty(order)) {
-      return Direction.ASC;
-    }
     return order.equalsIgnoreCase(Direction.DESC.name()) ? Direction.DESC : Direction.ASC;
   }
 

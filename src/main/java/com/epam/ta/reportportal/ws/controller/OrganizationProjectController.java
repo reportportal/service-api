@@ -19,12 +19,14 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
 import static org.springframework.http.HttpStatus.OK;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.project.OrganizationProjectHandler;
-import com.epam.ta.reportportal.model.Offset;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.model.OrganizationProjectsList;
 import com.epam.ta.reportportal.model.Problem;
 import com.epam.ta.reportportal.model.ProjectProfile;
@@ -60,10 +62,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrganizationProjectController {
 
   private final OrganizationProjectHandler organizationProjectHandler;
+  private final OrganizationRepositoryCustom organizationRepositoryCustom;
+
 
   @Autowired
-  public OrganizationProjectController(OrganizationProjectHandler organizationProjectHandler) {
+  public OrganizationProjectController(OrganizationProjectHandler organizationProjectHandler,
+      OrganizationRepositoryCustom organizationRepositoryCustom) {
     this.organizationProjectHandler = organizationProjectHandler;
+    this.organizationRepositoryCustom = organizationRepositoryCustom;
   }
 
   // TODO: get rid of annotations here after using them from already generated interface
@@ -98,24 +104,24 @@ public class OrganizationProjectController {
       method = RequestMethod.GET)
   public ResponseEntity<OrganizationProjectsList> getOrganizationsOrgIdProjects(
       @Parameter(in = ParameterIn.PATH, description = "Organization identifier", required = true, schema = @Schema()) @PathVariable("org_id") Long orgId,
-      @Parameter(in = ParameterIn.QUERY, description = "The limit used for this page of results. This will be the same as the limit query parameter unless it exceeded the maximum value allowed for this API endpoint", schema = @Schema(defaultValue = "10")) @Valid @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit,
+      @Parameter(in = ParameterIn.QUERY, description = "The limit used for this page of results. This will be the same as the limit query parameter unless it exceeded the maximum value allowed for this API endpoint", schema = @Schema(defaultValue = "300")) @Valid @RequestParam(value = "limit", required = false, defaultValue = "300") Integer limit,
       @Parameter(in = ParameterIn.QUERY, description = "The offset used for this page of results", schema = @Schema(defaultValue = "0")) @Valid @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset,
-      @Parameter(in = ParameterIn.QUERY, description = "Indicate sort by field", schema = @Schema()) @Valid @RequestParam(value = "sort", required = false) String sort,
-      @Parameter(in = ParameterIn.QUERY, description = "Indicate sorting direction", schema = @Schema(allowableValues = {"ASC", "DESC"})) @Valid @RequestParam(value = "order", required = false) String order,
+      @Parameter(in = ParameterIn.QUERY, description = "Indicate sorting direction", schema = @Schema(allowableValues = {"ASC", "DESC"}, defaultValue = "ASC")) @Valid @RequestParam(value = "order", required = false, defaultValue = "ASC") String order,
       @Parameter(in = ParameterIn.QUERY, description = "Filter projects by name", schema = @Schema()) @Valid @RequestParam(value = "name", required = false) String name,
       @Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$") @Parameter(in = ParameterIn.QUERY, description = "Filter projects by slug", schema = @Schema()) @Valid @RequestParam(value = "slug", required = false) String slug,
+      @Parameter(in = ParameterIn.QUERY, description = "Indicate sort by field", schema = @Schema(defaultValue = "name")) @Valid @RequestParam(value = "sort", required = false, defaultValue = "name") String sort,
       @AuthenticationPrincipal ReportPortalUser user
   ) {
+    organizationRepositoryCustom.findById(orgId).orElseThrow(() -> new ReportPortalException(
+        ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
-    // for now sort by name only
-    sort = "name";
     var pageable = ControllerUtils.getPageable(sort, order, offset, limit);
     Filter filter = new Filter(ProjectProfile.class, Lists.newArrayList())
         .withCondition(
             new FilterCondition(Condition.EQUALS, false, orgId.toString(), "organization_id"));
     if (StringUtils.isNotEmpty(name)) {
       filter.withCondition(
-          new FilterCondition(Condition.EQUALS, false, name, "name"));
+          new FilterCondition(Condition.CONTAINS, false, name, "name"));
     }
     if (StringUtils.isNotEmpty(slug)) {
       filter.withCondition(

@@ -75,9 +75,9 @@ public class OrganizationController {
   @Operation(summary = "Get organization information", description = "Provide organization information.  ### Authority:  - `ADMINISTRATOR` - `MANAGER` - `MEMBER`", security = {
       @SecurityRequirement(name = "BearerAuth")}, tags = {"Organizations", "Ready for implementation"})
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = com.epam.ta.reportportal.api.model.OrganizationProfile.class))),
-      @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = com.epam.ta.reportportal.api.model.Problem.class))),
-      @ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = com.epam.ta.reportportal.api.model.Problem.class)))})
+      @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = OrganizationProfile.class))),
+      @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = com.epam.ta.reportportal.model.Problem.class))),
+      @ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = com.epam.ta.reportportal.model.Problem.class)))})
   @RequestMapping(value = "/organizations/{org_id}",
       produces = {"application/json", "application/problem+json"},
       method = RequestMethod.GET)
@@ -102,11 +102,11 @@ public class OrganizationController {
       method = RequestMethod.GET)
   public ResponseEntity<OrganizationProfilesList> getOrganizations(
       @Parameter(in = ParameterIn.QUERY, description = "The offset used for this page of results", schema = @Schema(defaultValue = "0")) @Valid @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset,
-      @Parameter(in = ParameterIn.QUERY, description = "The limit used for this page of results. This will be the same as the limit query parameter unless it exceeded the maximum value allowed for this API endpoint", schema = @Schema(defaultValue = "10")) @Valid @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit,
-      @Parameter(in = ParameterIn.QUERY, description = "Indicate sort by field", schema = @Schema()) @Valid @RequestParam(value = "sort", required = false) String sort,
-      @Parameter(in = ParameterIn.QUERY, description = "Indicate sorting direction", schema = @Schema(allowableValues = {"ASC", "DESC"})) @Valid @RequestParam(value = "order", required = false) String order,
+      @Parameter(in = ParameterIn.QUERY, description = "The limit used for this page of results. This will be the same as the limit query parameter unless it exceeded the maximum value allowed for this API endpoint", schema = @Schema(defaultValue = "300")) @Valid @RequestParam(value = "limit", required = false, defaultValue = "300") Integer limit,
+      @Parameter(in = ParameterIn.QUERY, description = "Indicate sorting direction", schema = @Schema(allowableValues = {"ASC", "DESC"}, defaultValue = "ASC")) @Valid @RequestParam(value = "order", required = false, defaultValue = "ASC") String order,
       @Parameter(in = ParameterIn.QUERY, description = "Filter organizations by name", schema = @Schema()) @Valid @RequestParam(value = "name", required = false) String name,
       @Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$") @Parameter(in = ParameterIn.QUERY, description = "Filter organizations by slug", schema = @Schema()) @Valid @RequestParam(value = "slug", required = false) String slug,
+      @Parameter(in = ParameterIn.QUERY, description = "Indicate sort by field", schema = @Schema(defaultValue = "name")) @Valid @RequestParam(value = "sort", required = false, defaultValue = "name") String sort,
       @AuthenticationPrincipal ReportPortalUser user
   ) {
 
@@ -118,15 +118,11 @@ public class OrganizationController {
     }
     if (StringUtils.isNotEmpty(name)) {
       filter.withCondition(
-          new FilterCondition(Condition.EQUALS, false, name, "name"));
+          new FilterCondition(Condition.CONTAINS, false, name, "name"));
     }
     if (StringUtils.isNotEmpty(slug)) {
       filter.withCondition(
           new FilterCondition(Condition.EQUALS, false, name, "slug"));
-    }
-
-    if (StringUtils.isEmpty(sort)) {
-      sort = "name";
     }
 
     var pageable = ControllerUtils.getPageable(sort, order, offset, limit);

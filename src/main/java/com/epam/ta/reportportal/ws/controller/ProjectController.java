@@ -142,6 +142,7 @@ public class ProjectController {
   @Transactional
   @PutMapping("/{projectKey}")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary =  "Update project")
   public OperationCompletionRS updateProject(@PathVariable String projectKey,
       @RequestBody @Validated UpdateProjectRQ updateProjectRQ,

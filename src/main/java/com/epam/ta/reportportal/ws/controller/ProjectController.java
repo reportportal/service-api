@@ -212,7 +212,7 @@ public class ProjectController {
 
   @Transactional(readOnly = true)
   @GetMapping("/{projectKey}")
-  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary =  "Get information about project", description = "Only for users that are assigned to the project")
   public ProjectResource getProject(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user) {

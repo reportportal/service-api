@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.ws.converter.converters;
+package com.epam.ta.reportportal.core.project;
 
-import com.epam.ta.reportportal.model.OrganizationProfile;
-import java.util.function.UnaryOperator;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.model.OrganizationProjectsList;
+import org.springframework.data.domain.Pageable;
 
-/**
- * @author Andrei Piankouski
- */
-public class OrganizationConverter {
+public interface OrganizationProjectHandler {
 
-  private OrganizationConverter() {
-    //static only
-  }
-
-  public static final UnaryOperator<OrganizationProfile> TO_ORGANIZATION_RESOURCE = org -> org;
+  OrganizationProjectsList getOrganizationProjectsList(ReportPortalUser user, Long orgId,
+      Filter filter,
+      Pageable pageable);
 }

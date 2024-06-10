@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MANAGER;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.google.common.net.HttpHeaders.CONTENT_DISPOSITION;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -97,7 +96,8 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/project")
-@Tag(name = "project-controller", description = "Project Controller")
+@Tag(name = "project-controller-deprecated", description = "Project Controller Deprecated API")
+@Deprecated
 public class ProjectController {
 
   private final ProjectExtractor projectExtractor;
@@ -133,7 +133,6 @@ public class ProjectController {
   @Transactional
   @PostMapping
   @ResponseStatus(CREATED)
-  @PreAuthorize(ORGANIZATION_MANAGER)
   @Operation(summary = "Create new project")
   public EntryCreatedRS createProject(@RequestBody @Validated CreateProjectRQ createProjectRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -143,7 +142,7 @@ public class ProjectController {
   @Transactional
   @PutMapping("/{projectKey}")
   @ResponseStatus(OK)
-  @PreAuthorize(ORGANIZATION_MANAGER)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary =  "Update project")
   public OperationCompletionRS updateProject(@PathVariable String projectKey,
       @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
@@ -166,7 +165,7 @@ public class ProjectController {
 
   @DeleteMapping
   @ResponseStatus(OK)
-  @PreAuthorize(ORGANIZATION_MANAGER)
+  @PreAuthorize(IS_ADMIN)
   @Operation(summary =  "Delete multiple projects", description = "Could be deleted only by users with administrator role")
   public DeleteBulkRS deleteProject(@RequestParam(value = "ids") List<Long> ids,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -175,7 +174,7 @@ public class ProjectController {
 
   @DeleteMapping("/{projectId}")
   @ResponseStatus(OK)
-  @PreAuthorize(ORGANIZATION_MANAGER)
+  @PreAuthorize(IS_ADMIN)
   @Operation(summary =  "Delete project", description = "Could be deleted only by users with administrator role")
   public OperationCompletionRS deleteProject(@PathVariable Long projectId,
       @AuthenticationPrincipal ReportPortalUser user) {

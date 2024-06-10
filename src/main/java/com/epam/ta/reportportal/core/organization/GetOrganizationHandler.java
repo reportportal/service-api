@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.organization;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.model.OrganizationProfile;
+import com.epam.ta.reportportal.model.OrganizationProfilesList;
 import com.epam.ta.reportportal.model.organization.OrganizationResource;
 import org.springframework.data.domain.Pageable;
 
@@ -44,6 +45,6 @@ public interface GetOrganizationHandler {
    * @return An {@link Iterable} of {@link OrganizationResource} containing information about all
    * projects
    */
-  Iterable<OrganizationProfile> getOrganizations(Queryable filter, Pageable pageable);
+  OrganizationProfilesList getOrganizations(Queryable filter, Pageable pageable);
 
 }

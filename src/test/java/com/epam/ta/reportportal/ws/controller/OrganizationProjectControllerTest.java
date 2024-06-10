@@ -17,49 +17,39 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import org.junit.jupiter.api.Test;
 
 /**
- * @author Andrei Piankouski
+ * @author Siarhei Hrabko
  */
-class OrganizationControllerTest extends BaseMvcTest {
+class OrganizationProjectControllerTest extends BaseMvcTest {
 
   @Test
-  void getOrganizationAdmin() throws Exception {
-    mockMvc.perform(get("/organizations/1")
+  void getOrganizationProjectAdmin() throws Exception {
+    mockMvc.perform(get("/organizations/1/projects")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
   }
 
   @Test
-  void getOrganizationUser() throws Exception {
-    mockMvc.perform(get("/organizations/1")
+  void getOrganizationProjectUser() throws Exception {
+    mockMvc.perform(get("/organizations/1/projects")
             .with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk());
   }
 
-  @Test
-  void getAllOrganizationsAdmin() throws Exception {
-    mockMvc.perform(get("/organizations")
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
-  }
 
   @Test
-  void getAllOrganizationsUser() throws Exception {
-    mockMvc.perform(get("/organizations")
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  void getAllOrganizationsByName() throws Exception {
-    mockMvc.perform(get("/organizations?name=superadmin")
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
+  void getOrganizationProjectUserWithParams() throws Exception {
+    mockMvc.perform(get("/organizations/1/projects?order=ASC&offset=0&limit=1")
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.offset").value(0))
+        .andExpect(jsonPath("$.limit").value(1));
   }
 
 }

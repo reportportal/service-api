@@ -19,6 +19,7 @@ plugins {
     id 'org.springframework.boot' version '2.5.15'
     id 'java'
     id "org.owasp.dependencycheck" version "9.0.9"
+    id 'org.hidetake.swagger.generator' version '2.19.2'
 }
 
 import org.owasp.dependencycheck.reporting.ReportGenerator
@@ -68,10 +69,11 @@ dependencies {
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:plugin-api:5.11.1'
     } else {
-        implementation 'com.github.reportportal:commons-dao:a9cef30'
+        implementation 'com.github.reportportal:commons-dao:d0b04dd'
         implementation 'com.github.reportportal:commons:df2369b'
         implementation 'com.github.reportportal:plugin-api:d1c0f0e'
     }
+    swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.57'
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -164,6 +166,22 @@ dependencies {
     testImplementation 'org.flywaydb.flyway-test-extensions:flyway-spring-test:9.5.0'
 }
 
+sourceSets {
+    main {
+        java {
+            srcDirs "$buildDir/generated/src/main/java"
+        }
+    }
+}
+
+tasks.register('updateApiSubmodule', Exec) {
+    commandLine 'git', 'submodule', 'update', '--init' , "--recursive"
+}
+
+tasks.register('updateApiSubmoduleLatestCommit', Exec) {
+    commandLine 'git', 'submodule', 'update', '--init' , "--recursive", "--remote"
+}
+
 processResources {
     dependsOn(gitInfo)
     filesMatching('application.properties') {
@@ -178,6 +196,22 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-parameters"
     options.debug = true
     options.debugOptions.debugLevel = "source,lines,vars"
+}
+
+
+swaggerSources {
+    organizations {
+        inputFile = file("$rootDir/reportportal-common-api/api/openapi/organizations.yaml")
+        code {
+            language = 'spring'
+            configFile = file("$rootDir/src/main/resources/openapi/config.json")
+            components = ['models'] // 'apis' to be generated later
+
+            jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
+            outputDir = file("$buildDir/generated")
+            wipeOutputDir = true
+        }
+    }
 }
 
 dependencyCheck {
@@ -205,6 +239,8 @@ test {
     }
 }
 
+swaggerSources.organizations.code.dependsOn updateApiSubmodule
+compileJava.dependsOn swaggerSources.organizations.code
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts

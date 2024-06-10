@@ -38,6 +38,7 @@ import com.epam.ta.reportportal.core.analyzer.strategy.LaunchAnalysisStrategy;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.UpdateLaunchHandler;
+import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
@@ -92,13 +93,16 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
   private final UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter;
 
+  private final LaunchAttributeHandlerService launchAttributeHandlerService;
+
   @Autowired
   public UpdateLaunchHandlerImpl(GetProjectHandler getProjectHandler,
       GetLaunchHandler getLaunchHandler, LaunchAccessValidator launchAccessValidator,
       LaunchRepository launchRepository, LogIndexer logIndexer,
       Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping,
       @Qualifier("uniqueErrorAnalysisStarterAsync")
-      UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter) {
+      UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter,
+      LaunchAttributeHandlerService launchAttributeHandlerService) {
     this.getProjectHandler = getProjectHandler;
     this.getLaunchHandler = getLaunchHandler;
     this.launchAccessValidator = launchAccessValidator;
@@ -106,6 +110,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
     this.launchAnalysisStrategyMapping = launchAnalysisStrategyMapping;
     this.logIndexer = logIndexer;
     this.uniqueErrorAnalysisStarter = uniqueErrorAnalysisStarter;
+    this.launchAttributeHandlerService = launchAttributeHandlerService;
   }
 
   @Override
@@ -120,6 +125,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
     launch = new LaunchBuilder(launch).addMode(rq.getMode()).addDescription(rq.getDescription())
         .overwriteAttributes(rq.getAttributes()).get();
+    launchAttributeHandlerService.handleLaunchUpdate(launch, user);
     launchRepository.save(launch);
 
     if (!previousMode.equals(launch.getMode())) {

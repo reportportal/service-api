@@ -22,7 +22,7 @@ import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import com.epam.reportportal.extension.event.LaunchFinishedPluginEvent;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.launch.AttributeHandler;
+import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -57,16 +57,16 @@ public class DemoDataLaunchService {
   private final LaunchRepository launchRepository;
   private final TestItemRepository testItemRepository;
   private final ApplicationEventPublisher eventPublisher;
-  private final AttributeHandler attributeHandler;
+  private final LaunchAttributeHandlerService launchAttributeHandlerService;
 
   @Autowired
   public DemoDataLaunchService(LaunchRepository launchRepository,
       TestItemRepository testItemRepository, ApplicationEventPublisher eventPublisher,
-      AttributeHandler attributeHandler) {
+      LaunchAttributeHandlerService launchAttributeHandlerService) {
     this.launchRepository = launchRepository;
     this.testItemRepository = testItemRepository;
     this.eventPublisher = eventPublisher;
-    this.attributeHandler = attributeHandler;
+    this.launchAttributeHandlerService = launchAttributeHandlerService;
   }
 
   @Transactional
@@ -87,7 +87,7 @@ public class DemoDataLaunchService {
     ));
     Launch launch = new LaunchBuilder().addStartRQ(rq).addAttributes(attributes)
         .addProject(membershipDetails.getProjectId()).get();
-    attributeHandler.handleAttributes(launch);
+    launchAttributeHandlerService.handleLaunchStart(launch);
     launch.setUserId(user.getId());
     launchRepository.save(launch);
     launchRepository.refresh(launch);

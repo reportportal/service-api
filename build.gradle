@@ -205,7 +205,7 @@ swaggerSources {
         code {
             language = 'spring'
             configFile = file("$rootDir/src/main/resources/openapi/config.json")
-            components = ['models', 'apis'] // 'apis' to be generated later
+            components = ['models'] // 'apis' to be generated later
 
             jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
             outputDir = file("$buildDir/generated")

@@ -20,14 +20,12 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.USER;
 import static com.epam.ta.reportportal.dao.util.QueryUtils.collectJoinFields;
 
-import com.epam.ta.reportportal.api.OrganizationsApi;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.QueryBuilder;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
-import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.model.OrganizationProfile;

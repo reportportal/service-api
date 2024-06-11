@@ -18,12 +18,16 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.USER;
+import static com.epam.ta.reportportal.dao.util.QueryUtils.collectJoinFields;
 
+import com.epam.ta.reportportal.api.OrganizationsApi;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.commons.querygen.QueryBuilder;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
+import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.model.OrganizationProfile;
@@ -43,6 +47,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -62,6 +68,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "organizations-controller", description = "Organizations Controller")
 @Validated
 public class OrganizationController {
+private final Logger log = LoggerFactory.getLogger(OrganizationController.class);
 
   private final GetOrganizationHandler getOrganizationHandler;
 
@@ -126,6 +133,9 @@ public class OrganizationController {
     }
 
     var pageable = ControllerUtils.getPageable(sort, order, offset, limit);
+    var query = QueryBuilder.newBuilder(filter, collectJoinFields(filter, pageable.getSort()))                 .with(pageable)                 .build();
+
+    log.info("debug orgs: {} ", query);
 
     return ResponseEntity
         .ok()

@@ -120,7 +120,7 @@ public class OrganizationController {
     }
     if (StringUtils.isNotEmpty(slug)) {
       filter.withCondition(
-          new FilterCondition(Condition.EQUALS, false, name, "slug"));
+          new FilterCondition(Condition.EQUALS, false, slug, "slug"));
     }
 
     var pageable = ControllerUtils.getPageable(sort, order, offset, limit);

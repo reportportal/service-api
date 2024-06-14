@@ -123,7 +123,7 @@ public class OrganizationProjectController {
     }
     if (StringUtils.isNotEmpty(slug)) {
       filter.withCondition(
-          new FilterCondition(Condition.EQUALS, false, name, "slug"));
+          new FilterCondition(Condition.EQUALS, false, slug, "slug"));
     }
 
     return ResponseEntity.status(OK)

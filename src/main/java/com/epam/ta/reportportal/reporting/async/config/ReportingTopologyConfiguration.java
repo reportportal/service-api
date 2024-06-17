@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -49,16 +50,18 @@ import org.springframework.context.annotation.Configuration;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Configuration
+@RequiredArgsConstructor
 public class ReportingTopologyConfiguration {
 
   public static final int RETRY_TTL_MILLIS = 10_000;
-  public static final String REPORTING_EXCHANGE = "reporting-consistent-hash";
+  public static final String REPORTING_EXCHANGE = "e.reporting";
+  public static final String RETRY_EXCHANGE = "e.reporting.retry";
   public static final String DEFAULT_CONSISTENT_HASH_ROUTING_KEY = "";
   public static final String REPORTING_QUEUE_PREFIX = "q.reporting.";
-  public static final String RETRY_EXCHANGE = "retry";
   public static final String RETRY_QUEUE = "q.retry.reporting";
   public static final String TTL_QUEUE = "q.retry.reporting.ttl";
   public static final String REPORTING_PARKING_LOT = "q.parkingLot.reporting";
+
   private final AmqpAdmin amqpAdmin;
   private final Client managementClient;
 
@@ -70,11 +73,6 @@ public class ReportingTopologyConfiguration {
 
   @Value("${reporting.consumers.reconnect:true}")
   private Boolean reconnect;
-
-  public ReportingTopologyConfiguration(AmqpAdmin amqpAdmin, Client managementClient) {
-    this.amqpAdmin = amqpAdmin;
-    this.managementClient = managementClient;
-  }
 
   @Bean
   String instanceUniqueId() {
@@ -181,8 +179,8 @@ public class ReportingTopologyConfiguration {
   }
 
 
-  @Bean("consistentListenerContainers")
-  public List<AbstractMessageListenerContainer> consistentListenerContainers(
+  @Bean("listenerContainers")
+  public List<AbstractMessageListenerContainer> listenerContainers(
       ConnectionFactory connectionFactory,
       ApplicationEventPublisher applicationEventPublisher,
       ReportingHandlerProvider reportingHandlerProvider,
@@ -199,7 +197,7 @@ public class ReportingTopologyConfiguration {
       listenerContainer.setExclusive(true);
       listenerContainer.setMissingQueuesFatal(false);
       listenerContainer.setApplicationEventPublisher(applicationEventPublisher);
-      listenerContainer.setupMessageListener(consistentListener(reportingHandlerProvider));
+      listenerContainer.setupMessageListener(reportingListener(reportingHandlerProvider));
       listenerContainer.afterPropertiesSet();
       containers.add(listenerContainer);
     });
@@ -207,8 +205,7 @@ public class ReportingTopologyConfiguration {
   }
 
   @Bean
-  public MessageListener consistentListener(
-      ReportingHandlerProvider reportingHandlerProvider) {
+  public MessageListener reportingListener(ReportingHandlerProvider reportingHandlerProvider) {
     return new ReportingConsumer(reportingHandlerProvider);
   }
 }

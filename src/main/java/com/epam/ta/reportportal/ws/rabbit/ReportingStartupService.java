@@ -33,19 +33,12 @@ import org.springframework.stereotype.Component;
 public class ReportingStartupService {
 
   @Autowired
-  @Qualifier("reportingListenerContainers")
+  @Qualifier("listenerContainers")
   private List<AbstractMessageListenerContainer> listenerContainers;
-
-  @Autowired
-  @Qualifier("consistentListenerContainers")
-  private List<AbstractMessageListenerContainer> consistentContainers;
 
   @PostConstruct
   public void init() {
     for (AbstractMessageListenerContainer listenerContainer : listenerContainers) {
-      listenerContainer.start();
-    }
-    for (AbstractMessageListenerContainer listenerContainer : consistentContainers) {
       listenerContainer.start();
     }
   }

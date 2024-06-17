@@ -63,17 +63,17 @@ import org.springframework.web.multipart.MultipartFile;
  * @author Pavel Bortnik
  */
 @RestController
-@RequestMapping("/v3/{projectName}/log")
+@RequestMapping("/v2/{projectName}/log")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 @Tag(name = "log-async-controller", description = "Log Async Controller")
-public class LogConsistentHashAsyncController {
+public class LogAsyncController {
 
   private final ProjectExtractor projectExtractor;
   private final CreateLogHandler createLogHandler;
   private final Validator validator;
 
   @Autowired
-  public LogConsistentHashAsyncController(ProjectExtractor projectExtractor,
+  public LogAsyncController(ProjectExtractor projectExtractor,
       @Qualifier("logProducer") CreateLogHandler createLogHandler, Validator validator) {
     this.projectExtractor = projectExtractor;
     this.createLogHandler = createLogHandler;
@@ -82,7 +82,7 @@ public class LogConsistentHashAsyncController {
 
   /**
    * @deprecated in favour of
-   * {@link LogConsistentHashAsyncController#createLogEntry(String, SaveLogRQ, ReportPortalUser)}
+   * {@link LogAsyncController#createLogEntry(String, SaveLogRQ, ReportPortalUser)}
    * because of mapping collisions
    */
   /* Report client API */

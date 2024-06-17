@@ -82,7 +82,7 @@ public class LogProducer implements CreateLogHandler {
     return response;
   }
 
-  protected void sendMessage(SaveLogRQ request, BinaryDataMetaInfo metaInfo, Long projectId) {
+  public void sendMessage(SaveLogRQ request, BinaryDataMetaInfo metaInfo, Long projectId) {
     amqpTemplate.convertAndSend(
         REPORTING_EXCHANGE,
         DEFAULT_CONSISTENT_HASH_ROUTING_KEY,

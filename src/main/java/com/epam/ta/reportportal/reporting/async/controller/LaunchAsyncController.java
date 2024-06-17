@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.ws.controller;
+package com.epam.ta.reportportal.reporting.async.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -56,11 +56,11 @@ import org.springframework.web.bind.annotation.RestController;
  * Controller implementation for async reporting client API for {@link
  * com.epam.ta.reportportal.entity.launch.Launch} entity
  *
- * @author Konstantin Antipin
+ * @author Pavel Bortnik
  */
 @RestController
 @RequestMapping("/v2/{projectName}/launch")
-@Tag(name = "launch-async-controller", description = "Launch Async Controller")
+@Tag(name = "launch-async-controller", description = "Launch Async Controller. Puts events to the queues")
 public class LaunchAsyncController {
 
   private final ProjectExtractor projectExtractor;
@@ -70,9 +70,10 @@ public class LaunchAsyncController {
 
   @Autowired
   public LaunchAsyncController(ProjectExtractor projectExtractor,
-      @Qualifier("startLaunchHandlerAsync") StartLaunchHandler startLaunchHandler,
-      @Qualifier("finishLaunchHandlerAsync") FinishLaunchHandler finishLaunchHandler,
+      @Qualifier("launchStartProducer") StartLaunchHandler startLaunchHandler,
+      @Qualifier("launchFinishProducer") FinishLaunchHandler finishLaunchHandler,
       MergeLaunchHandler mergeLaunchesHandler) {
+
     this.projectExtractor = projectExtractor;
     this.startLaunchHandler = startLaunchHandler;
     this.finishLaunchHandler = finishLaunchHandler;
@@ -85,23 +86,27 @@ public class LaunchAsyncController {
   @ResponseStatus(CREATED)
   @Operation(summary = "Starts launch for specified project")
   public StartLaunchRS startLaunch(@PathVariable String projectName,
-      @Parameter(description = "Start launch request body", required = true) @RequestBody @Validated
-          StartLaunchRQ startLaunchRQ, @AuthenticationPrincipal ReportPortalUser user) {
+      @Parameter(description = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
+      @AuthenticationPrincipal ReportPortalUser user) {
     return startLaunchHandler.startLaunch(user,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ
-    );
+        projectExtractor.extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
   }
 
   @HttpLogging
   @PutMapping(value = "/{launchId}/finish")
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(OK)
-  @Operation(summary = "Finish launch for specified project")
+  @Operation(description = "Finish launch for specified project")
   public FinishLaunchRS finishLaunch(@PathVariable String projectName,
-      @PathVariable String launchId, @RequestBody @Validated FinishExecutionRQ finishLaunchRQ,
-      @AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request) {
-    return finishLaunchHandler.finishLaunch(launchId, finishLaunchRQ,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user,
+      @PathVariable String launchId,
+      @RequestBody @Validated FinishExecutionRQ finishLaunchRQ,
+      @AuthenticationPrincipal ReportPortalUser user,
+      HttpServletRequest request) {
+    return finishLaunchHandler.finishLaunch(
+        launchId,
+        finishLaunchRQ,
+        projectExtractor.extractProjectDetails(user, normalizeId(projectName)),
+        user,
         composeBaseUrl(request)
     );
   }
@@ -111,7 +116,10 @@ public class LaunchAsyncController {
   @PostMapping("/merge")
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(OK)
-  @Operation(summary = "Merge set of specified launches in common one")
+  @Operation(summary = "Merge set of specified launches in common one", description =
+      "This operation merges a set of launches into a common one. "
+          + "The IDs of the launches to be merged should be provided in the 'launches' "
+          + "field of the request body.")
   public LaunchResource mergeLaunches(@PathVariable String projectName,
       @Parameter(description = "Merge launches request body", required = true) @RequestBody @Validated
           MergeLaunchesRQ mergeLaunchesRQ, @AuthenticationPrincipal ReportPortalUser user) {

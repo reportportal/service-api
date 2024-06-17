@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.util.ReportingQueueService;
+import com.epam.ta.reportportal.reporting.async.producer.LogProducer;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import javax.inject.Provider;
 import org.junit.jupiter.api.Test;
@@ -48,16 +48,10 @@ class CreateLogHandlerAsyncImplTest {
   Provider<SaveLogBinaryDataTaskAsync> provider;
 
   @Mock
-  ReportingQueueService reportingQueueService;
-
-  @Mock
   AmqpTemplate amqpTemplate;
 
-  @Mock
-  TaskExecutor taskExecutor;
-
   @InjectMocks
-  CreateLogHandlerAsyncImpl createLogHandlerAsync;
+  LogProducer createLogHandlerAsync;
 
   @Mock
   MultipartFile multipartFile;
@@ -95,7 +89,6 @@ class CreateLogHandlerAsyncImplTest {
 
     createLogHandlerAsync.sendMessage(request, binaryDataMetaInfo, 0L);
     verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
-    verify(reportingQueueService).getReportingQueueKey(any());
   }
 
 }

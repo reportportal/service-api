@@ -23,10 +23,12 @@ import com.epam.ta.reportportal.reporting.async.handler.provider.ReportingHandle
 import java.util.Optional;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
+import org.springframework.stereotype.Component;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@Component
 public class ReportingConsumer implements MessageListener {
 
   private final ReportingHandlerProvider handlerProvider;

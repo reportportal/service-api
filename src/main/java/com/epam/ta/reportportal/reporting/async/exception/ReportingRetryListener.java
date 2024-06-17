@@ -17,13 +17,14 @@
 package com.epam.ta.reportportal.reporting.async.exception;
 
 import static com.epam.ta.reportportal.reporting.async.config.MessageHeaders.XD_HEADER;
-import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_PARKING_LOT;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.RETRY_QUEUE;
 
+import com.epam.ta.reportportal.reporting.async.consumer.ReportingConsumer;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -35,34 +36,37 @@ import org.springframework.util.CollectionUtils;
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class ReportingRetryListener {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(
-      ReportingRetryListener.class);
   private final RabbitTemplate rabbitTemplate;
+
+  private final ReportingConsumer reportingConsumer;
+
   @Value("${reporting.retry.max-count:10}")
   private Integer maxRetryCount;
-
-  public ReportingRetryListener(RabbitTemplate rabbitTemplate) {
-    this.rabbitTemplate = rabbitTemplate;
-  }
 
   @RabbitListener(queues = RETRY_QUEUE)
   public void receiveRejectedMessage(Message message,
       @Header(required = false, name = XD_HEADER) Map<String, ?> xDeath) {
 
     long retryCount = getRetryCount(xDeath);
-    LOGGER.warn("Retrying reporting message. Attempt count is {}.", retryCount);
+    log.warn("Retrying reporting message. Attempt count is {}.", retryCount);
 
     if (checkRetryExceeded(retryCount)) {
-      LOGGER.warn("Number of retries exceeded max {} retry count.", maxRetryCount);
-      LOGGER.error("Rejecting message to parking lot queue.");
+      log.warn("Number of retries exceeded max {} retry count.", maxRetryCount);
+      log.error("Rejecting message to parking lot queue.");
       rabbitTemplate.send(REPORTING_PARKING_LOT, message);
       return;
     }
-    rabbitTemplate.send(REPORTING_EXCHANGE,
-        message.getMessageProperties().getReceivedRoutingKey(), message);
+    try {
+      reportingConsumer.onMessage(message);
+    } catch (Exception e) {
+      throw new AmqpRejectAndDontRequeueException(e);
+    }
   }
 
   private long getRetryCount(Map<String, ?> xDeath) {

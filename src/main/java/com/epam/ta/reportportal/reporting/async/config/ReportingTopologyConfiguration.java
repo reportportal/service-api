@@ -56,6 +56,7 @@ public class ReportingTopologyConfiguration {
   public static final String REPORTING_QUEUE_PREFIX = "q.reporting.";
   public static final String RETRY_EXCHANGE = "retry";
   public static final String RETRY_QUEUE = "q.retry.reporting";
+  public static final String TTL_QUEUE = "q.retry.reporting.ttl";
   public static final String REPORTING_PARKING_LOT = "q.parkingLot.reporting";
   private final AmqpAdmin amqpAdmin;
   private final Client managementClient;
@@ -73,7 +74,8 @@ public class ReportingTopologyConfiguration {
 
   @Bean
   String instanceUniqueId() {
-    return UUID.randomUUID().toString();
+    String instanceId = UUID.randomUUID().toString();
+    return instanceId.substring(instanceId.lastIndexOf("-") + 1);
   }
 
   @Bean
@@ -117,12 +119,24 @@ public class ReportingTopologyConfiguration {
 
   @Bean
   Queue retryQueue() {
-    return QueueBuilder.durable(RETRY_QUEUE).build();
+    return QueueBuilder.durable(RETRY_QUEUE).deadLetterExchange(RETRY_EXCHANGE)
+        .deadLetterRoutingKey(TTL_QUEUE).build();
+  }
+
+  @Bean
+  Queue ttlQueue() {
+    return QueueBuilder.durable(TTL_QUEUE).deadLetterExchange(RETRY_EXCHANGE)
+        .deadLetterRoutingKey(RETRY_QUEUE).ttl(1000).build();
   }
 
   @Bean
   Binding retryQueueBinding() {
     return BindingBuilder.bind(retryQueue()).to(retryExchange()).with(RETRY_QUEUE);
+  }
+
+  @Bean
+  Binding ttlQueueBinding() {
+    return BindingBuilder.bind(ttlQueue()).to(retryExchange()).with(TTL_QUEUE);
   }
 
   @Bean
@@ -154,7 +168,7 @@ public class ReportingTopologyConfiguration {
   private Queue buildQueue(String queueName) {
     Queue queue = QueueBuilder.durable(queueName)
         .deadLetterExchange(RETRY_EXCHANGE)
-        .deadLetterRoutingKey(RETRY_QUEUE)
+        .deadLetterRoutingKey(TTL_QUEUE)
         .build();
     queue.setShouldDeclare(true);
     queue.setAdminsThatShouldDeclare(amqpAdmin);

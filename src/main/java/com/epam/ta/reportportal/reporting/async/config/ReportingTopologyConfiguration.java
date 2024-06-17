@@ -51,6 +51,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ReportingTopologyConfiguration {
 
+  public static final int RETRY_TTL_MILLIS = 10_000;
   public static final String REPORTING_EXCHANGE = "reporting-consistent-hash";
   public static final String DEFAULT_CONSISTENT_HASH_ROUTING_KEY = "";
   public static final String REPORTING_QUEUE_PREFIX = "q.reporting.";
@@ -60,10 +61,13 @@ public class ReportingTopologyConfiguration {
   public static final String REPORTING_PARKING_LOT = "q.parkingLot.reporting";
   private final AmqpAdmin amqpAdmin;
   private final Client managementClient;
-  @Value("${reporting.parkingLot.ttl:7}")
+
+  @Value("${reporting.parkingLot.ttl:14}")
   private long PARKING_LOT_TTL;
-  @Value("${reporting.queues.count:5}")
+
+  @Value("${reporting.queues.count:10}")
   private Integer queuesCount;
+
   @Value("${reporting.consumers.reconnect:true}")
   private Boolean reconnect;
 
@@ -126,7 +130,7 @@ public class ReportingTopologyConfiguration {
   @Bean
   Queue ttlQueue() {
     return QueueBuilder.durable(TTL_QUEUE).deadLetterExchange(RETRY_EXCHANGE)
-        .deadLetterRoutingKey(RETRY_QUEUE).ttl(1000).build();
+        .deadLetterRoutingKey(RETRY_QUEUE).ttl(RETRY_TTL_MILLIS).build();
   }
 
   @Bean

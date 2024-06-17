@@ -1,4 +1,3 @@
-
 def commonScriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/'
 def migrationsScriptsUrl = 'https://raw.githubusercontent.com/reportportal/migrations/'
 
@@ -67,7 +66,10 @@ project.ext {
             (migrationsUrl + '/migrations/76_user_bid_extension.up.sql')               : 'V076__user_bid_extension.sql',
             (migrationsUrl + '/migrations/77_email_server_documentation_link.up.sql')  : 'V077__email_server_documentation_link.sql',
             (migrationsUrl + '/migrations/78_drop_redundant_index.up.sql')             : 'V078__drop_redundant_index.sql',
+            (migrationsUrl + '/migrations/83_add_slugify_function.up.sql')             : 'V083__add_slugify_function.sql',
+            (migrationsUrl + '/migrations/84_organization_tables.up.sql')              : 'V084__organization_tables.sql',
             (migrationsUrl + '/migrations/86_notication_update.up.sql')                : 'V086__notication_update.sql',
+            (migrationsUrl + '/migrations/88_add_retention_policy_launch.up.sql')      : 'V088__add_retention_policy_launch.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

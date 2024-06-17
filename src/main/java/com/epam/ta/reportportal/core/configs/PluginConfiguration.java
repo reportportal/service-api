@@ -29,6 +29,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Set;
 import javax.activation.FileTypeMap;
+
 import org.pf4j.DefaultExtensionFinder;
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.ExtensionFactory;
@@ -74,7 +75,7 @@ public class PluginConfiguration {
 
   @Bean
   public Pf4jPluginBox pf4jPluginBox() throws IOException {
-    Pf4jPluginManager pluginManager = new Pf4jPluginManager(pluginsPath,
+    return new Pf4jPluginManager(pluginsPath,
         pluginsTempPath,
         pluginsResourcesPath,
         pluginLoader,
@@ -83,8 +84,6 @@ public class PluginConfiguration {
         context,
         applicationEventPublisher
     );
-    pluginManager.startUp();
-    return pluginManager;
   }
 
   @Bean

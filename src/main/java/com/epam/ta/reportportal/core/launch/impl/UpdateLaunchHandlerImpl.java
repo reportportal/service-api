@@ -16,20 +16,22 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
-import static com.epam.ta.reportportal.entity.project.ProjectUtils.getConfigParameters;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.entity.project.ProjectUtils.getConfigParameters;
 import static java.util.stream.Collectors.toList;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.config.AnalyzerType;
@@ -37,6 +39,7 @@ import com.epam.ta.reportportal.core.analyzer.strategy.LaunchAnalysisStrategy;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.UpdateLaunchHandler;
+import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
@@ -49,7 +52,6 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.BulkRQ;
 import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.model.launch.UpdateLaunchRQ;
@@ -58,9 +60,8 @@ import com.epam.ta.reportportal.util.ItemInfoUtils;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
 import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
-import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.reporting.Mode;
-import com.epam.reportportal.model.project.AnalyzerConfig;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
@@ -91,13 +92,16 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
   private final UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter;
 
+  private final LaunchAttributeHandlerService launchAttributeHandlerService;
+
   @Autowired
   public UpdateLaunchHandlerImpl(GetProjectHandler getProjectHandler,
       GetLaunchHandler getLaunchHandler, LaunchAccessValidator launchAccessValidator,
       LaunchRepository launchRepository, LogIndexer logIndexer,
       Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping,
       @Qualifier("uniqueErrorAnalysisStarterAsync")
-      UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter) {
+      UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter,
+      LaunchAttributeHandlerService launchAttributeHandlerService) {
     this.getProjectHandler = getProjectHandler;
     this.getLaunchHandler = getLaunchHandler;
     this.launchAccessValidator = launchAccessValidator;
@@ -105,6 +109,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
     this.launchAnalysisStrategyMapping = launchAnalysisStrategyMapping;
     this.logIndexer = logIndexer;
     this.uniqueErrorAnalysisStarter = uniqueErrorAnalysisStarter;
+    this.launchAttributeHandlerService = launchAttributeHandlerService;
   }
 
   @Override
@@ -119,6 +124,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
     launch = new LaunchBuilder(launch).addMode(rq.getMode()).addDescription(rq.getDescription())
         .overwriteAttributes(rq.getAttributes()).get();
+    launchAttributeHandlerService.handleLaunchUpdate(launch, user);
     launchRepository.save(launch);
 
     if (!previousMode.equals(launch.getMode())) {

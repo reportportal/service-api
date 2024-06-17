@@ -5,19 +5,22 @@ rp:
     pass: rabbitmq
     apiuser: rabbitmq
     apipass: rabbitmq
-    port: 5673
-    apiport: 15673
+    port: 5672
+    apiport: 15672
   db:
     user: rpuser
     pass: rppass
     host: localhost
   plugins:
-    rootDir: E:/ReportPortal5/data/storage/
+    rootDir: D:\IdeaProjects\ReportPortal\service-api\plguins
   datasource:
     maximumPoolSize: 12
 
 datastore:
   type: minio
-  endpoint: http://localhost:9000
   accessKey: minio
   secretKey: minio123
+  endpoint: http://localhost:9000
+  bucketPrefix: prj-
+  bucketPostfix:
+  defaultBucketName: rp-bucket

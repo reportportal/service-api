@@ -111,7 +111,8 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         saveLogRqEvent.getProjectName());
-    createLogHandler.createLog(saveLogRqEvent.getSaveLogRQ(), null, projectDetails);
+    createLogHandler.createLog(saveLogRqEvent.getSaveLogRQ(), saveLogRqEvent.getFile(),
+        projectDetails);
   }
 
   private Optional<HttpServletRequest> extractCurrentHttpRequest() {

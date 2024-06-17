@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -48,13 +49,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controller implementation for async reporting client API for
- * {@link com.epam.ta.reportportal.entity.launch.Launch} entity
+ * Controller implementation for async reporting client API for {@link
+ * com.epam.ta.reportportal.entity.launch.Launch} entity
  *
  * @author Pavel Bortnik
  */
 @RestController
 @RequestMapping("/v3/{projectName}/launch")
+@Tag(name = "launch-async-controller", description = "Launch Async Controller. Puts events to the queues")
 public class LaunchConsistentHashAsyncController {
 
   private final ProjectExtractor projectExtractor;

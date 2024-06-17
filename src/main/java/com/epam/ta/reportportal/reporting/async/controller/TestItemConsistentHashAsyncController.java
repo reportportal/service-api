@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -54,6 +55,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v3/{projectName}/item")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
+@Tag(name = "test-item-async-controller", description = "Test Item Async Controller")
 public class TestItemConsistentHashAsyncController {
 
   private final ProjectExtractor projectExtractor;

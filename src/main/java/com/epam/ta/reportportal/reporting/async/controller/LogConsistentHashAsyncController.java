@@ -38,6 +38,7 @@ import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Validator;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -59,11 +60,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * @author Konstantin Antipin
+ * @author Pavel Bortnik
  */
 @RestController
 @RequestMapping("/v3/{projectName}/log")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
+@Tag(name = "log-async-controller", description = "Log Async Controller")
 public class LogConsistentHashAsyncController {
 
   private final ProjectExtractor projectExtractor;

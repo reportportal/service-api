@@ -66,7 +66,7 @@ public class ReportingTopologyConfiguration {
   private final Client managementClient;
 
   @Value("${reporting.parkingLot.ttl:14}")
-  private long PARKING_LOT_TTL;
+  private long parkingLotTtl;
 
   @Value("${reporting.queues.count:10}")
   private Integer queuesCount;
@@ -144,7 +144,7 @@ public class ReportingTopologyConfiguration {
   @Bean
   public Queue reportingParkingLot() {
     return QueueBuilder.durable(REPORTING_PARKING_LOT)
-        .ttl((int) TimeUnit.DAYS.toMillis(PARKING_LOT_TTL))
+        .ttl((int) TimeUnit.DAYS.toMillis(parkingLotTtl))
         .build();
   }
 

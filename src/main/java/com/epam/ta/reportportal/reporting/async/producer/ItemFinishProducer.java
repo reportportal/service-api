@@ -19,7 +19,10 @@ package com.epam.ta.reportportal.reporting.async.producer;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.DEFAULT_CONSISTENT_HASH_ROUTING_KEY;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
+import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
@@ -47,12 +50,15 @@ public class ItemFinishProducer implements FinishTestItemHandler {
   @Override
   public OperationCompletionRS finishTestItem(ReportPortalUser user, ProjectDetails projectDetails,
       String testItemId, FinishTestItemRQ request) {
+    final String launchUuid = ofNullable(request.getLaunchUuid()).orElseThrow(
+        () -> new ReportPortalException(
+            ErrorType.BAD_REQUEST_ERROR, "Launch UUID should not be null or empty."));
     amqpTemplate.convertAndSend(REPORTING_EXCHANGE,
         DEFAULT_CONSISTENT_HASH_ROUTING_KEY,
         request,
         message -> {
           Map<String, Object> headers = message.getMessageProperties().getHeaders();
-          headers.put(MessageHeaders.HASH_ON, request.getLaunchUuid());
+          headers.put(MessageHeaders.HASH_ON, launchUuid);
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_TEST);
           headers.put(MessageHeaders.USERNAME, user.getUsername());
           headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());

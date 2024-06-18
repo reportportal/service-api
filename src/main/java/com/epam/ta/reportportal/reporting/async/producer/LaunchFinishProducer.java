@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.reporting.async.producer;
 
+import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateLaunchLink;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.DEFAULT_CONSISTENT_HASH_ROUTING_KEY;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
 
@@ -61,6 +62,7 @@ public class LaunchFinishProducer implements FinishLaunchHandler {
 
     FinishLaunchRS response = new FinishLaunchRS();
     response.setId(launchId);
+    response.setLink(generateLaunchLink(baseUrl, projectDetails.getProjectName(), launchId));
     return response;
   }
 }

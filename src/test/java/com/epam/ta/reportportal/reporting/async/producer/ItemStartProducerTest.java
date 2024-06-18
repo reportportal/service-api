@@ -8,6 +8,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -38,6 +39,7 @@ class ItemStartProducerTest {
   @Test
   void startChildItem() {
     StartTestItemRQ request = new StartTestItemRQ();
+    request.setLaunchUuid(UUID.randomUUID().toString());
     ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
         1L);
 

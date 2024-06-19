@@ -202,12 +202,14 @@ public class ProjectController {
 
   @Transactional(readOnly = true)
   @GetMapping("/{projectKey}/users")
-  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get users assigned on current project")
   public Iterable<UserResource> getProjectUsers(@PathVariable String projectKey,
       @FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return getProjectHandler.getProjectUsers(normalizeId(projectKey), filter, pageable);
+    var membershipDetails = projectExtractor.extractMembershipDetails(user,
+        normalizeId(projectKey));
+    return getProjectHandler.getProjectUsers(membershipDetails, filter, pageable, user);
   }
 
   @Transactional(readOnly = true)

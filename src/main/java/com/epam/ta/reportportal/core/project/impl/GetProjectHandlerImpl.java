@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_KEY;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EMAIL;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER;
@@ -39,6 +39,7 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
@@ -99,18 +100,25 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   }
 
   @Override
-  public Iterable<UserResource> getProjectUsers(String projectKey, Filter filter,
-      Pageable pageable) {
-    Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
+  public Iterable<UserResource> getProjectUsers(MembershipDetails membershipDetails, Filter filter,
+      Pageable pageable, ReportPortalUser user) {
+    Project project = projectRepository.findByKey(membershipDetails.getProjectKey())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
+            membershipDetails.getProjectKey()));
     if (CollectionUtils.isEmpty(project.getUsers())) {
       return Collections.emptyList();
     }
+
+    // exclude email field from the response for non-administrator and non-manager users
+    var isAdminOrManager = user.getUserRole().equals(UserRole.ADMINISTRATOR)
+        || membershipDetails.getOrgRole().equals(OrganizationRole.MANAGER);
+    var excludeFieldsArray = isAdminOrManager ? new String[0] : new String[]{"email"};
+
     filter.withCondition(
-        new FilterCondition(Condition.EQUALS, false, String.valueOf(project.getId()),
-            CRITERIA_PROJECT_ID
-        ));
-    Page<User> users = userRepository.findByFilterExcluding(filter, pageable, "email");
+        new FilterCondition(Condition.EQUALS, false, project.getKey(), CRITERIA_PROJECT_KEY));
+    Page<User> users = userRepository.findProjectUsersByFilterExcluding(project.getKey(), filter,
+        pageable, excludeFieldsArray);
+
     return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(users);
   }
 

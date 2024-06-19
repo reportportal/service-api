@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.project.impl;
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_ROLE;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -64,15 +65,16 @@ class GetProjectHandlerImplTest {
   @Test
   void getUsersOnNotExistProject() {
     long projectId = 1L;
-
+    ReportPortalUser rpUser =
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, projectId);
     String projectKey = TEST_PROJECT_KEY;
+
+    Filter filter = Filter.builder().withTarget(User.class).withCondition(
+        FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build()).build();
     when(projectRepository.findByKey(projectKey)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class, () -> {
-      handler.getProjectUsers(projectKey, Filter.builder().withTarget(User.class).withCondition(
-              FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build()).build(),
-          PageRequest.of(0, 10)
-      );
+      handler.getProjectUsers(rpUserToMembership(rpUser), filter, PageRequest.of(0, 10), rpUser);
     });
 
     assertEquals(
@@ -84,15 +86,18 @@ class GetProjectHandlerImplTest {
   @Test
   void getEmptyUserList() {
     long projectId = 1L;
-
+    ReportPortalUser rpUser =
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, projectId);
     String projectKey = TEST_PROJECT_KEY;
+    Filter filter = Filter.builder()
+        .withTarget(User.class)
+        .withCondition(FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build())
+        .build();
+
     when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(new Project()));
 
     Iterable<UserResource> users =
-        handler.getProjectUsers(projectKey, Filter.builder().withTarget(User.class).withCondition(
-                FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build()).build(),
-            PageRequest.of(0, 10)
-        );
+        handler.getProjectUsers(rpUserToMembership(rpUser), filter, PageRequest.of(0, 10), rpUser);
 
     assertFalse(users.iterator().hasNext());
   }

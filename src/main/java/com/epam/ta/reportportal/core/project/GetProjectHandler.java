@@ -40,12 +40,13 @@ public interface GetProjectHandler {
   /**
    * Get project users info
    *
-   * @param projectKey {@link com.epam.ta.reportportal.entity.project.Project#name}
-   * @param filter      {@link Filter}
-   * @param pageable    {@link Pageable}
+   * @param membershipDetails {@link MembershipDetails}
+   * @param pageable   {@link Pageable}
+   * @param user       {@link ReportPortalUser}
    * @return list of {@link UserResource}
    */
-  Iterable<UserResource> getProjectUsers(String projectKey, Filter filter, Pageable pageable);
+  Iterable<UserResource> getProjectUsers(MembershipDetails membershipDetails, Filter filter, Pageable pageable,
+      ReportPortalUser user);
 
   boolean exists(Long id);
 

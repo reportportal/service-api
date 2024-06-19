@@ -40,7 +40,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +56,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Tag(name = "project-controller", description = "Project Controller")
 @Validated
 public class OrganizationProjectController {
 
@@ -125,7 +123,7 @@ public class OrganizationProjectController {
     }
     if (StringUtils.isNotEmpty(slug)) {
       filter.withCondition(
-          new FilterCondition(Condition.EQUALS, false, name, "slug"));
+          new FilterCondition(Condition.EQUALS, false, slug, "slug"));
     }
 
     return ResponseEntity.status(OK)

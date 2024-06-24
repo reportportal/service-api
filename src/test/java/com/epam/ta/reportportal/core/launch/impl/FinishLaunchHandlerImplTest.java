@@ -136,7 +136,8 @@ class FinishLaunchHandlerImplTest {
         getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
     final OperationCompletionRS response = stopLaunchHandler.stopLaunch(1L, finishExecutionRQ,
-        extractProjectDetails(rpUser, "test_project"), rpUser
+        extractProjectDetails(rpUser, "test_project"), rpUser,
+        "http://example.com"
     );
     assertNotNull(response);
     assertEquals("Launch with ID = '1' successfully stopped.", response.getResultMessage());
@@ -159,8 +160,11 @@ class FinishLaunchHandlerImplTest {
     when(launchRepository.findById(1L)).thenReturn(
         getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-    final List<OperationCompletionRS> response =
-        stopLaunchHandler.stopLaunch(bulkRq, extractProjectDetails(rpUser, "test_project"), rpUser);
+    final List<OperationCompletionRS> response = stopLaunchHandler.stopLaunch(bulkRq,
+        extractProjectDetails(rpUser, "test_project"),
+        rpUser,
+        "http://example.com"
+    );
     assertNotNull(response);
     assertEquals(1, response.size());
   }

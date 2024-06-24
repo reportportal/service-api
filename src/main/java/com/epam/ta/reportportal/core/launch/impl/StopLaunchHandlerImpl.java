@@ -63,9 +63,9 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
     this.eventPublisher = eventPublisher;
   }
 
-	@Override
-	public OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ,
-			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
+  @Override
+  public OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ,
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
     Launch launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 
@@ -74,7 +74,7 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
 
     launch = new LaunchBuilder(launch).addDescription(
             ofNullable(finishLaunchRQ.getDescription()).orElse(
-                ofNullable(launch.getDescription()).orElse("")).concat(LAUNCH_STOP_DESCRIPTION))
+            ofNullable(launch.getDescription()).orElse("")).concat(LAUNCH_STOP_DESCRIPTION))
         .addStatus(ofNullable(finishLaunchRQ.getStatus()).orElse(STOPPED.name()))
         .addEndTime(ofNullable(finishLaunchRQ.getEndTime()).orElse(Instant.now()))
         .addAttributes(finishLaunchRQ.getAttributes())

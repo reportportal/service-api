@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -68,7 +69,9 @@ public class LogProducer implements CreateLogHandler {
       ProjectDetails projectDetails) {
 
     validate(request);
-    request.setUuid(UUID.randomUUID().toString());
+    if (!StringUtils.hasText(request.getUuid())) {
+      request.setUuid(UUID.randomUUID().toString());
+    }
 
     if (file != null) {
       CompletableFuture.supplyAsync(saveLogBinaryDataTask.get()

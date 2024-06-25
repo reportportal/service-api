@@ -35,6 +35,7 @@ import java.util.UUID;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -49,7 +50,9 @@ public class ItemStartProducer implements StartTestItemHandler {
   }
 
   private static void provideItemUuid(StartTestItemRQ request) {
-    request.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
+    if (!StringUtils.hasText(request.getUuid())) {
+      request.setUuid(UUID.randomUUID().toString());
+    }
   }
 
   @Override

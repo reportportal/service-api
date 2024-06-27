@@ -41,9 +41,9 @@ public class IndexingAutoAnalysisStarter implements LaunchAutoAnalysisStarter {
 
   @Override
   @Transactional
-  public void start(StartLaunchAutoAnalysisConfig config) {
+  public void start(StartLaunchAutoAnalysisConfig config, boolean isManual) {
     final Launch launch = getLaunchHandler.get(config.getLaunchId());
     logIndexer.indexLaunchLogs(launch, config.getAnalyzerConfig());
-    launchAutoAnalysisStarter.start(config);
+    launchAutoAnalysisStarter.start(config, isManual);
   }
 }

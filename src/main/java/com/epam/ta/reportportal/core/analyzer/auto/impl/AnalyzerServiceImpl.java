@@ -21,6 +21,8 @@ import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
+import com.epam.ta.reportportal.core.analytics.AnalyticsObjectType;
+import com.epam.ta.reportportal.core.analytics.AnalyticsStrategyFactory;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
@@ -44,6 +46,7 @@ import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -83,13 +86,16 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
   private final Integer itemsBatchSize;
 
+  private final AnalyticsStrategyFactory analyticsStrategyFactory;
+
   @Autowired
   public AnalyzerServiceImpl(
       @Value("${rp.environment.variable.item-analyze.batch-size}") Integer itemsBatchSize,
       AnalyzerStatusCache analyzerStatusCache, LaunchPreparerService launchPreparerService,
       AnalyzerServiceClient analyzerServicesClient, IssueTypeHandler issueTypeHandler,
       TestItemRepository testItemRepository,
-      MessageBus messageBus, LaunchRepository launchRepository) {
+      MessageBus messageBus, LaunchRepository launchRepository,
+      AnalyticsStrategyFactory analyticsStrategyFactory) {
     this.itemsBatchSize = itemsBatchSize;
     this.analyzerStatusCache = analyzerStatusCache;
     this.launchPreparerService = launchPreparerService;
@@ -98,6 +104,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     this.testItemRepository = testItemRepository;
     this.messageBus = messageBus;
     this.launchRepository = launchRepository;
+    this.analyticsStrategyFactory = analyticsStrategyFactory;
   }
 
   @Override
@@ -106,12 +113,14 @@ public class AnalyzerServiceImpl implements AnalyzerService {
   }
 
   @Override
-  public void runAnalyzers(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig) {
+  public void runAnalyzers(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig,
+      boolean isManualStart) {
     try {
       analyzerStatusCache.analyzeStarted(AUTO_ANALYZER_KEY, launch.getId(), launch.getProjectId());
       Optional<Long> previousLaunchId = findPreviousLaunchId(launch, analyzerConfig);
       Iterables.partition(testItemIds, itemsBatchSize)
-          .forEach(partition -> analyzeItemsPartition(launch, partition, analyzerConfig, previousLaunchId));
+          .forEach(partition -> analyzeItemsPartition(launch, partition, analyzerConfig,
+              previousLaunchId, isManualStart));
     } catch (Exception e) {
       LOGGER.error(e.getMessage(), e);
     } finally {
@@ -127,7 +136,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
    * @param analyzerConfig Analyzer config
    */
   private void analyzeItemsPartition(Launch launch, List<Long> testItemIds,
-      AnalyzerConfig analyzerConfig, Optional<Long> previousLaunchId) {
+      AnalyzerConfig analyzerConfig, Optional<Long> previousLaunchId, boolean isManualStart) {
     LOGGER.info("Start analysis of '{}' items for launch with id '{}'", testItemIds.size(),
         launch.getId());
     List<TestItem> toAnalyze = testItemRepository.findAllById(testItemIds);
@@ -136,6 +145,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     rqLaunch.ifPresent(rq -> {
       previousLaunchId.ifPresent(rq::setPreviousLaunchId);
       Map<String, List<AnalyzedItemRs>> analyzedMap = analyzerServicesClient.analyze(rq);
+      saveAnalyticsData(rq, isManualStart);
       if (!MapUtils.isEmpty(analyzedMap)) {
         analyzedMap.forEach(
             (key, value) -> updateTestItems(key, value, toAnalyze, launch.getProjectId()));
@@ -238,5 +248,23 @@ public class AnalyzerServiceImpl implements AnalyzerService {
       return launchRepository.findPreviousLaunchId(launch);
     }
     return Optional.empty();
+  }
+
+
+  private void saveAnalyticsData(IndexLaunch rq, boolean isManualStart) {
+    var metadata = new HashMap<String, Object>();
+
+    if (analyzerServicesClient.hasClients()) {
+      metadata.put("analyzerEnabled", analyzerServicesClient.hasClients());
+      metadata.put("auto_analysis", rq.getAnalyzerConfig().getIsAutoAnalyzerEnabled());
+      if (isManualStart) {
+        metadata.put("manuallyAnalyzed", rq.getTestItems().size());
+      } else {
+        metadata.put("autoAnalyzed", rq.getTestItems().size());
+      }
+    }
+
+    analyticsStrategyFactory.findStrategy(AnalyticsObjectType.ANALYZER_MANUAL_START)
+        .persistAnalyticsData(metadata);
   }
 }

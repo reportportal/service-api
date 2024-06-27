@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.strategy;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -81,7 +82,7 @@ class LaunchAutoAnalysisStrategyTest {
 
     final ArgumentCaptor<StartLaunchAutoAnalysisConfig> configArgumentCaptor =
         ArgumentCaptor.forClass(StartLaunchAutoAnalysisConfig.class);
-    verify(autoAnalysisStarter, times(1)).start(configArgumentCaptor.capture());
+    verify(autoAnalysisStarter, times(1)).start(configArgumentCaptor.capture(), eq(true));
 
     final StartLaunchAutoAnalysisConfig config = configArgumentCaptor.getValue();
     Assertions.assertEquals(launch.getId(), config.getLaunchId());

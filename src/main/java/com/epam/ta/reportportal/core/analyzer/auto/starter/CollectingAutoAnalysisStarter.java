@@ -57,13 +57,13 @@ public class CollectingAutoAnalysisStarter implements LaunchAutoAnalysisStarter 
 
   @Override
   @Transactional
-  public void start(StartLaunchAutoAnalysisConfig config) {
+  public void start(StartLaunchAutoAnalysisConfig config, boolean isManual) {
     final Launch launch = getLaunchHandler.get(config.getLaunchId());
 
     final List<Long> itemIds = collectItemsByModes(launch, config.getAnalyzeItemsModes(),
         config.getUser());
 
-    analyzerService.runAnalyzers(launch, itemIds, config.getAnalyzerConfig());
+    analyzerService.runAnalyzers(launch, itemIds, config.getAnalyzerConfig(), isManual);
     logIndexer.indexItemsLogs(launch.getProjectId(), launch.getId(), itemIds,
         config.getAnalyzerConfig());
   }

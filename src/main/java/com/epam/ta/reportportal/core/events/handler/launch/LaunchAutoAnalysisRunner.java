@@ -49,7 +49,7 @@ public class LaunchAutoAnalysisRunner implements
         Set.of(AnalyzeItemsMode.IGNORE_IMMEDIATE),
         launchFinishedEvent.getUser()
     );
-    autoAnalysisStarter.start(config);
+    autoAnalysisStarter.start(config, true);
   }
 
 }

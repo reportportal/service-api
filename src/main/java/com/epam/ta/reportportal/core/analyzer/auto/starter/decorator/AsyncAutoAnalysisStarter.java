@@ -35,7 +35,7 @@ public class AsyncAutoAnalysisStarter implements LaunchAutoAnalysisStarter {
   }
 
   @Override
-  public void start(StartLaunchAutoAnalysisConfig config) {
-    executor.execute(() -> launchAutoAnalysisStarter.start(config));
+  public void start(StartLaunchAutoAnalysisConfig config, boolean isManual) {
+    executor.execute(() -> launchAutoAnalysisStarter.start(config, isManual));
   }
 }

@@ -34,8 +34,10 @@ public interface AnalyzerService {
    * @param launch         Launch
    * @param testItemIds    Ids of items to be analyzed
    * @param analyzerConfig Analyzer Configuration
+   * @param isManualStart  indicates the way of starting analysis
    */
-  void runAnalyzers(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig);
+  void runAnalyzers(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig,
+      boolean isManualStart);
 
   /**
    * Checks if any analyzer is available

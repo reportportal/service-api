@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 EPAM Systems
+ * Copyright 2024 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer.auto.starter;
+package com.epam.ta.reportportal.core.analytics;
 
-import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
+import java.util.Map;
 
-/**
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
- */
-public interface LaunchAutoAnalysisStarter {
+public interface AnalyticsStrategy {
 
-  void start(StartLaunchAutoAnalysisConfig config, boolean isManual);
+  void persistAnalyticsData(Map<String, Object> map);
 
+  AnalyticsObjectType getStrategyName();
 }

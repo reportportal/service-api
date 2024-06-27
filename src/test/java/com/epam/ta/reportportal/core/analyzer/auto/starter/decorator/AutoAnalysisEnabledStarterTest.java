@@ -53,9 +53,9 @@ class AutoAnalysisEnabledStarterTest {
         user
     );
 
-    autoAnalysisEnabledStarter.start(config);
+    autoAnalysisEnabledStarter.start(config, true);
 
-    verify(delegate, times(1)).start(config);
+    verify(delegate, times(1)).start(config, true);
   }
 
   @Test
@@ -70,9 +70,9 @@ class AutoAnalysisEnabledStarterTest {
         user
     );
 
-    autoAnalysisEnabledStarter.start(config);
+    autoAnalysisEnabledStarter.start(config, true);
 
-    verify(delegate, times(0)).start(config);
+    verify(delegate, times(0)).start(config, true);
   }
 
 }

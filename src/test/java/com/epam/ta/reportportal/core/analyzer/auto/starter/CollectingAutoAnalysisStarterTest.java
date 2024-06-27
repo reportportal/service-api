@@ -25,6 +25,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.analytics.AnalyticsStrategyFactory;
+import com.epam.ta.reportportal.core.analytics.AnalyzerManualStart;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeCollectorFactory;
@@ -58,6 +60,8 @@ class CollectingAutoAnalysisStarterTest {
   private final AnalyzeItemsCollector analyzeItemsCollector = mock(AnalyzeItemsCollector.class);
   private final AnalyzerService analyzerService = mock(AnalyzerService.class);
   private final LogIndexer logIndexer = mock(LogIndexer.class);
+  private AnalyticsStrategyFactory analyticsStrategyFactory = mock(AnalyticsStrategyFactory.class);
+  private AnalyzerManualStart analyzerManualStart = mock(AnalyzerManualStart.class);
 
   private final CollectingAutoAnalysisStarter starter = new CollectingAutoAnalysisStarter(
       getLaunchHandler,
@@ -96,10 +100,10 @@ class CollectingAutoAnalysisStarterTest {
         analyzeItemsCollector.collectItems(launch.getProjectId(), launch.getId(), user)).thenReturn(
         itemIds);
 
-    starter.start(startLaunchAutoAnalysisConfig);
+    starter.start(startLaunchAutoAnalysisConfig, true);
 
     verify(analyzerService, times(1)).runAnalyzers(eq(launch), eq(itemIds),
-        any(AnalyzerConfig.class));
+        any(AnalyzerConfig.class), eq(true));
     verify(logIndexer, times(1)).indexItemsLogs(eq(launch.getProjectId()), eq(launch.getId()),
         eq(itemIds), any(AnalyzerConfig.class));
   }

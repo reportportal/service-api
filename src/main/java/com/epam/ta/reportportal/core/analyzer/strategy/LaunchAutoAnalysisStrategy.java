@@ -79,7 +79,7 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
     final StartLaunchAutoAnalysisConfig autoAnalysisConfig =
         StartLaunchAutoAnalysisConfig.of(launch.getId(), analyzerConfig, analyzeItemsModes, user);
 
-    manualAnalysisStarter.start(autoAnalysisConfig);
+    manualAnalysisStarter.start(autoAnalysisConfig, true);
   }
 
   private LinkedHashSet<AnalyzeItemsMode> getAnalyzeItemsModes(AnalyzeLaunchRQ analyzeRQ) {

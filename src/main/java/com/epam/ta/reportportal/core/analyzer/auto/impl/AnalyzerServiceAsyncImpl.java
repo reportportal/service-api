@@ -42,7 +42,7 @@ public class AnalyzerServiceAsyncImpl implements AnalyzerServiceAsync {
   public CompletableFuture<Void> analyze(Launch launch, List<Long> itemIds,
       AnalyzerConfig analyzerConfig) {
     return CompletableFuture.runAsync(
-        () -> analyzerService.runAnalyzers(launch, itemIds, analyzerConfig));
+        () -> analyzerService.runAnalyzers(launch, itemIds, analyzerConfig, false));
   }
 
   @Override

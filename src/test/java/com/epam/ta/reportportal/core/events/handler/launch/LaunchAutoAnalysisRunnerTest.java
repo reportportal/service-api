@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.events.handler.launch;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -60,7 +61,7 @@ class LaunchAutoAnalysisRunnerTest {
 
     runner.handle(event, projectConfig);
 
-    verify(starter, times(1)).start(any(StartLaunchAutoAnalysisConfig.class));
+    verify(starter, times(1)).start(any(StartLaunchAutoAnalysisConfig.class), eq(true));
 
   }
 

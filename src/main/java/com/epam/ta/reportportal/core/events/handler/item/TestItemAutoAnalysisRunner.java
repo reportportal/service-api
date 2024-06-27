@@ -63,7 +63,7 @@ public class TestItemAutoAnalysisRunner implements
       TestItem testItem = testItemFinishedEvent.getTestItem();
       logIndex(testItem, testItemFinishedEvent.getProjectId(), analyzerConfig);
       Launch launch = getLaunchHandler.get(testItem.getLaunchId());
-      analyzerService.runAnalyzers(launch, List.of(testItem.getItemId()), analyzerConfig);
+      analyzerService.runAnalyzers(launch, List.of(testItem.getItemId()), analyzerConfig, false);
       logIndex(testItem, testItemFinishedEvent.getProjectId(), analyzerConfig);
     }
   }

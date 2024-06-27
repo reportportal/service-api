@@ -38,11 +38,11 @@ public class ExistingAnalyzerStarter implements LaunchAutoAnalysisStarter {
   }
 
   @Override
-  public void start(StartLaunchAutoAnalysisConfig config) {
+  public void start(StartLaunchAutoAnalysisConfig config, boolean isManual) {
     expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(
         ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
         "There are no analyzer services are deployed."
     );
-    launchAutoAnalysisStarter.start(config);
+    launchAutoAnalysisStarter.start(config, isManual);
   }
 }

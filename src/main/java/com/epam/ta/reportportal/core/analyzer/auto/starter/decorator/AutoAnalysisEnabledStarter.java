@@ -31,9 +31,9 @@ public class AutoAnalysisEnabledStarter implements LaunchAutoAnalysisStarter {
   }
 
   @Override
-  public void start(StartLaunchAutoAnalysisConfig config) {
+  public void start(StartLaunchAutoAnalysisConfig config, boolean isManual) {
     if (config.getAnalyzerConfig().getIsAutoAnalyzerEnabled()) {
-      launchAutoAnalysisStarter.start(config);
+      launchAutoAnalysisStarter.start(config, isManual);
     }
   }
 }

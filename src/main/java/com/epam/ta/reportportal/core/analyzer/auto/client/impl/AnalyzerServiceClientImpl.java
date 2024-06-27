@@ -77,13 +77,13 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 
   @Override
   public boolean hasClients() {
-    return rabbitMqManagementClient.getAnalyzerExchangesInfo().size() != 0;
+    return !rabbitMqManagementClient.getAnalyzerExchangesInfo().isEmpty();
   }
 
   @Override
   public Map<String, List<AnalyzedItemRs>> analyze(IndexLaunch rq) {
     List<ExchangeInfo> analyzerExchanges = rabbitMqManagementClient.getAnalyzerExchangesInfo();
-    Map<String, List<AnalyzedItemRs>> resultMap = new HashMap<>(analyzerExchanges.size());
+    Map<String, List<AnalyzedItemRs>> resultMap = HashMap.newHashMap(analyzerExchanges.size());
     analyzerExchanges.forEach(exchange -> analyze(rq, resultMap, exchange));
     return resultMap;
   }

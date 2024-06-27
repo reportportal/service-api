@@ -56,9 +56,9 @@ class AsyncAutoAnalysisStarterTest {
 
     doCallRealMethod().when(taskExecutor).execute(any());
 
-    asyncAutoAnalysisStarter.start(config);
+    asyncAutoAnalysisStarter.start(config, true);
 
-    verify(delegate, times(1)).start(config);
+    verify(delegate, times(1)).start(config, true);
   }
 
 }

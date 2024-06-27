@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 EPAM Systems
+ * Copyright 2024 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,9 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer.auto.starter;
+package com.epam.ta.reportportal.core.analytics;
 
-import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
+public enum AnalyticsObjectType {
 
-/**
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
- */
-public interface LaunchAutoAnalysisStarter {
-
-  void start(StartLaunchAutoAnalysisConfig config, boolean isManual);
-
+  ANALYZER_MANUAL_START
 }

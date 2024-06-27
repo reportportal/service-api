@@ -66,7 +66,7 @@ class IndexingAutoAnalysisStarterTest {
 
     when(getLaunchHandler.get(config.getLaunchId())).thenReturn(launch);
 
-    indexingAutoAnalysisStarter.start(config);
+    indexingAutoAnalysisStarter.start(config, true);
 
     verify(logIndexer, times(1)).indexLaunchLogs(launch, config.getAnalyzerConfig());
   }

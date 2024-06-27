@@ -59,9 +59,9 @@ class ExistingAnalyzerStarterTest {
 
     when(analyzerService.hasAnalyzers()).thenReturn(Boolean.TRUE);
 
-    existingAnalyzerStarter.start(config);
+    existingAnalyzerStarter.start(config, true);
 
-    verify(delegate, times(1)).start(config);
+    verify(delegate, times(1)).start(config, true);
   }
 
   @Test
@@ -76,13 +76,13 @@ class ExistingAnalyzerStarterTest {
     when(analyzerService.hasAnalyzers()).thenReturn(Boolean.FALSE);
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> existingAnalyzerStarter.start(config));
+        () -> existingAnalyzerStarter.start(config, true));
 
     assertEquals(
         "Impossible interact with integration. There are no analyzer services are deployed.",
         exception.getMessage());
 
-    verify(delegate, times(0)).start(config);
+    verify(delegate, times(0)).start(config, true);
   }
 
 }

@@ -133,7 +133,7 @@ public class SpringDocConfiguration {
                         .bearerFormat("JWT")
                 )
         )
-        .addServersItem(new Server().url("/" + pathValue));
+        .addServersItem(new Server().url(pathValue));
   }
 
   /**

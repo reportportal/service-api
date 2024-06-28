@@ -28,6 +28,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
+import com.epam.ta.reportportal.core.analytics.AnalyticsStrategyFactory;
+import com.epam.ta.reportportal.core.analytics.AnalyzerManualStart;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -69,6 +71,8 @@ class AnalyzerServiceServiceTest {
   private TestItemRepository testItemRepository = mock(TestItemRepository.class);
 
   private LaunchRepository launchRepository = mock(LaunchRepository.class);
+  private AnalyticsStrategyFactory analyticsStrategyFactory = mock(AnalyticsStrategyFactory.class);
+  private AnalyzerManualStart analyzerManualStart = mock(AnalyzerManualStart.class);
 
   private MessageBus messageBus = mock(MessageBus.class);
 
@@ -78,7 +82,8 @@ class AnalyzerServiceServiceTest {
 
   private AnalyzerServiceImpl issuesAnalyzer =
       new AnalyzerServiceImpl(100, analyzerStatusCache, launchPreparerService,
-          analyzerServiceClient, issueTypeHandler, testItemRepository, messageBus, launchRepository
+          analyzerServiceClient, issueTypeHandler, testItemRepository, messageBus, launchRepository,
+          analyticsStrategyFactory
       );
 
   @Test
@@ -123,6 +128,8 @@ class AnalyzerServiceServiceTest {
     issuesAnalyzer.runAnalyzers(launch,
         items.stream().map(TestItem::getItemId).collect(Collectors.toList()), analyzerConfig
     );
+    when(analyticsStrategyFactory.findStrategy(any())).thenReturn(analyzerManualStart);
+
 
     verify(analyzerServiceClient, times(1)).analyze(any());
     verify(testItemRepository, times(itemsCount)).save(any());

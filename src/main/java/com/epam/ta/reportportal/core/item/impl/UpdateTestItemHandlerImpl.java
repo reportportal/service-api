@@ -16,26 +16,33 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttribute;
-import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttributeResource;
-import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
-import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.TEST_ITEM_NOT_FOUND;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
+import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttribute;
+import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttributeResource;
+import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
+import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toList;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.epam.reportportal.rules.commons.validation.BusinessRuleViolationException;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.analytics.AnalyticsObjectType;
+import com.epam.ta.reportportal.core.analytics.AnalyticsStrategyFactory;
+import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.LogIndexerService;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -60,7 +67,6 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.model.issue.IssueDefinition;
@@ -74,10 +80,10 @@ import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
 import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.Issue;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -120,13 +126,19 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
   private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
+  private final AnalyticsStrategyFactory analyticsStrategyFactory;
+  private final AnalyzerServiceClient analyzerServicesClient;
+
+
   @Autowired
   public UpdateTestItemHandlerImpl(TestItemService testItemService,
       ProjectRepository projectRepository, TestItemRepository testItemRepository,
       ExternalTicketHandler externalTicketHandler, IssueTypeHandler issueTypeHandler,
       MessageBus messageBus, LogIndexerService logIndexerService,
       IssueEntityRepository issueEntityRepository,
-      Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
+      Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping,
+      AnalyticsStrategyFactory analyticsStrategyFactory,
+      AnalyzerServiceClient analyzerServicesClient) {
     this.testItemService = testItemService;
     this.projectRepository = projectRepository;
     this.testItemRepository = testItemRepository;
@@ -136,6 +148,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     this.logIndexerService = logIndexerService;
     this.issueEntityRepository = issueEntityRepository;
     this.statusChangingStrategyMapping = statusChangingStrategyMapping;
+    this.analyticsStrategyFactory = analyticsStrategyFactory;
+    this.analyzerServicesClient = analyzerServicesClient;
   }
 
   @Override
@@ -152,6 +166,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     List<ItemIssueTypeDefinedEvent> events = new ArrayList<>();
     List<TestItem> itemsForIndexUpdate = new ArrayList<>();
     List<Long> itemsForIndexRemove = new ArrayList<>();
+
+    // save data for analytics
+    saveMakeDecisionStatistics(projectDetails.getProjectId(), definitions.size());
 
     definitions.forEach(issueDefinition -> {
       try {
@@ -211,6 +228,20 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
     events.forEach(messageBus::publishActivity);
     return updated;
+  }
+
+  private void saveMakeDecisionStatistics(Long projectId, int itemsAmount) {
+    Project project = projectRepository.findById(projectId).orElseThrow(
+        () -> new ReportPortalException(PROJECT_NOT_FOUND, projectId));
+    AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
+
+    var analyticsMetadata = new HashMap<String, Object>();
+    analyticsMetadata.put("analyzerEnabled", analyzerServicesClient.hasClients());
+    analyticsMetadata.put("autoAnalysis", analyzerConfig.getIsAutoAnalyzerEnabled());
+    analyticsMetadata.put("manuallySet", itemsAmount);
+
+    analyticsStrategyFactory.findStrategy(AnalyticsObjectType.ANALYZER_MANUAL_START)
+        .persistAnalyticsData(analyticsMetadata);
   }
 
   @Override

@@ -15,7 +15,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.11.0' : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.11.0' : 'develop')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.11.0' : 'EPMRPP-88736')
     //TODO refactor with archive download
     testScriptsSrc = [
             (migrationsUrl + '/migrations/0_extensions.up.sql')                        : 'V001__extensions.sql',
@@ -70,6 +70,7 @@ project.ext {
             (migrationsUrl + '/migrations/84_organization_tables.up.sql')              : 'V084__organization_tables.sql',
             (migrationsUrl + '/migrations/86_notication_update.up.sql')                : 'V086__notication_update.sql',
             (migrationsUrl + '/migrations/88_add_retention_policy_launch.up.sql')      : 'V088__add_retention_policy_launch.sql',
+            (migrationsUrl + '/migrations/90_analytics_data_table.up.sql')             : 'V090__analytics_data_table.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

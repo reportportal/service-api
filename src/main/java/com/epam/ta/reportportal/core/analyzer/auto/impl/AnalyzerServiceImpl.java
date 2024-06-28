@@ -253,9 +253,9 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
   private void saveAnalyticsData(IndexLaunch rq, boolean isManualStart) {
     var metadata = new HashMap<String, Object>();
+    metadata.put("analyzerEnabled", analyzerServicesClient.hasClients());
 
     if (analyzerServicesClient.hasClients()) {
-      metadata.put("analyzerEnabled", analyzerServicesClient.hasClients());
       metadata.put("auto_analysis", rq.getAnalyzerConfig().getIsAutoAnalyzerEnabled());
       if (isManualStart) {
         metadata.put("manuallyAnalyzed", rq.getTestItems().size());

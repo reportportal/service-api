@@ -141,10 +141,10 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     Optional<IndexLaunch> rqLaunch = launchPreparerService.prepare(launch, toAnalyze,
         analyzerConfig);
     rqLaunch.ifPresent(rq -> {
+      var analyticsMetadata = gatherAnalyzerStatistics(rq);
       previousLaunchId.ifPresent(rq::setPreviousLaunchId);
       Map<String, List<AnalyzedItemRs>> analyzedMap = analyzerServicesClient.analyze(rq);
 
-      var analyticsMetadata = gatherAnalyzerStatistics(rq);
 
       if (!MapUtils.isEmpty(analyzedMap)) {
         analyticsMetadata.put("autoAnalyzed", analyzedMap.size());
@@ -161,8 +161,8 @@ public class AnalyzerServiceImpl implements AnalyzerService {
   private Map<String, Object> gatherAnalyzerStatistics(IndexLaunch rq) {
     var metadata = new HashMap<String, Object>();
     metadata.put("analyzerEnabled", analyzerServicesClient.hasClients());
-    metadata.put("autoAnalysis", rq.getAnalyzerConfig().getIsAutoAnalyzerEnabled());
-    metadata.put("toBeAnalyzed", rq.getTestItems().size());
+    metadata.put("autoAnalysisOn", rq.getAnalyzerConfig().getIsAutoAnalyzerEnabled());
+    metadata.put("sentToAnalyze", rq.getTestItems().size());
     return metadata;
   }
 

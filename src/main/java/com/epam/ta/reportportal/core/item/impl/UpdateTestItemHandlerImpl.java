@@ -237,8 +237,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
     var analyticsMetadata = new HashMap<String, Object>();
     analyticsMetadata.put("analyzerEnabled", analyzerServicesClient.hasClients());
-    analyticsMetadata.put("autoAnalysis", analyzerConfig.getIsAutoAnalyzerEnabled());
-    analyticsMetadata.put("manuallySet", itemsAmount);
+    analyticsMetadata.put("autoAnalysisOn", analyzerConfig.getIsAutoAnalyzerEnabled());
+    analyticsMetadata.put("userAnalyzed", itemsAmount);
 
     analyticsStrategyFactory.findStrategy(AnalyticsObjectType.ANALYZER_MANUAL_START)
         .persistAnalyticsData(analyticsMetadata);

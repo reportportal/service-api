@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 public class AnalyzerManualStart implements AnalyticsStrategy {
 
   @Value("${info.build.version:unknown}")
-  private String version;
+  private String buildVersion;
 
   private final AnalyticsDataRepository analyticsDataRepository;
 
@@ -44,7 +44,7 @@ public class AnalyzerManualStart implements AnalyticsStrategy {
     AnalyticsData ad = new AnalyticsData();
     ad.setType("ANALYZER_MANUAL_START");
     ad.setCreatedAt(Instant.now());
-    map.put("version", version);
+    map.put("version", buildVersion);
     ad.setMetadata(new Metadata(map));
     analyticsDataRepository.save(ad);
   }

@@ -20,8 +20,14 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * Factory for creating appropriate AnalyticsStrategy based on AnalyticsObjectType
+ *
+ * @author Siarhei Hrabko
+ */
 @Component
 public class AnalyticsStrategyFactory {
+
   private final Map<AnalyticsObjectType, AnalyticsStrategy> analyticsStrategies;
 
   @Autowired

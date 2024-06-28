@@ -16,6 +16,12 @@
 
 package com.epam.ta.reportportal.core.analytics;
 
+
+/**
+ * Enumeration of analytics data types.<br>
+ *
+ * @author Siarhei Hrabko
+ */
 public enum AnalyticsObjectType {
 
   ANALYZER_MANUAL_START

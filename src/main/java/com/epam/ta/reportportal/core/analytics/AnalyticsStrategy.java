@@ -18,6 +18,12 @@ package com.epam.ta.reportportal.core.analytics;
 
 import java.util.Map;
 
+/**
+ * The interface Analytics strategy. This interface provides methods for persisting analytics data
+ * and getting the strategy name.
+ *
+ * @author Siarhei Hrabko
+ */
 public interface AnalyticsStrategy {
 
   void persistAnalyticsData(Map<String, Object> map);

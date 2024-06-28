@@ -25,6 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * The AnalyticsConfig class holds the configuration for the different analytics strategies. *
+ *
+ * @author Siarhei Hrabko
+ */
 @Configuration
 public class AnalyticsConfig {
 
@@ -35,7 +40,11 @@ public class AnalyticsConfig {
     this.analyzerManualStart = analyzerManualStart;
   }
 
-
+  /**
+   * This method returns a map of AnalyticsObjectType to AnalyticsStrategy.
+   *
+   * @return map of AnalyticsObjectType to AnalyticsStrategy.
+   */
   @Bean
   public Map<AnalyticsObjectType, AnalyticsStrategy> analyticsStrategies() {
     return ImmutableMap.<AnalyticsObjectType, AnalyticsStrategy>builder()

@@ -89,6 +89,7 @@ public class SpringDocConfiguration {
         ReportPortalUser.class, UserRole.class);
   }
 
+
   private static final Set<String> hiddenParams = ImmutableSet.<String>builder()
       .add(CRITERIA_PROJECT_ATTRIBUTE_NAME).build();
 
@@ -102,11 +103,11 @@ public class SpringDocConfiguration {
   @Autowired
   private ServletContext servletContext;
 
-  @Value("${spring.application.name}")
-  private String applicationName;
-
   @Value("${info.build.version}")
   private String buildVersion;
+
+  @Value("${server.servlet.context-path:/api}")
+  private String pathValue;
 
   @Bean
   public OpenAPI openAPI() {
@@ -132,7 +133,7 @@ public class SpringDocConfiguration {
                         .bearerFormat("JWT")
                 )
         )
-        .addServersItem(new Server().url("/" + applicationName));
+        .addServersItem(new Server().url(pathValue));
   }
 
   /**

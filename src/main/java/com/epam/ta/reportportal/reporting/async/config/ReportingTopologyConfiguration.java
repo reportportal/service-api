@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.reporting.async.config;
 
 import com.epam.ta.reportportal.reporting.async.consumer.ReportingConsumer;
 import com.epam.ta.reportportal.reporting.async.exception.ReportingErrorHandler;
+import com.epam.ta.reportportal.reporting.async.exception.ReportingRetryListener;
 import com.epam.ta.reportportal.reporting.async.handler.provider.ReportingHandlerProvider;
 import com.rabbitmq.http.client.Client;
 import java.util.ArrayList;
@@ -65,7 +66,7 @@ public class ReportingTopologyConfiguration {
   private final AmqpAdmin amqpAdmin;
   private final Client managementClient;
 
-  @Value("${reporting.parkingLot.ttl:14}")
+  @Value("${reporting.parkingLot.ttl:7}")
   private long parkingLotTtl;
 
   @Value("${reporting.queues.count:10}")
@@ -121,8 +122,7 @@ public class ReportingTopologyConfiguration {
 
   @Bean
   Queue retryQueue() {
-    return QueueBuilder.durable(RETRY_QUEUE).deadLetterExchange(RETRY_EXCHANGE)
-        .deadLetterRoutingKey(TTL_QUEUE).build();
+    return QueueBuilder.durable(RETRY_QUEUE).build();
   }
 
   @Bean
@@ -168,10 +168,7 @@ public class ReportingTopologyConfiguration {
   }
 
   private Queue buildQueue(String queueName) {
-    Queue queue = QueueBuilder.durable(queueName)
-        .deadLetterExchange(RETRY_EXCHANGE)
-        .deadLetterRoutingKey(TTL_QUEUE)
-        .build();
+    Queue queue = QueueBuilder.durable(queueName).build();
     queue.setShouldDeclare(true);
     queue.setAdminsThatShouldDeclare(amqpAdmin);
     amqpAdmin.declareQueue(queue);
@@ -202,6 +199,18 @@ public class ReportingTopologyConfiguration {
       containers.add(listenerContainer);
     });
     return containers;
+  }
+
+  @Bean("retryListener")
+  public AbstractMessageListenerContainer retryListener(ConnectionFactory connectionFactory,
+      ReportingErrorHandler errorHandler, ReportingRetryListener reportingRetryListener) {
+    SimpleMessageListenerContainer retryListener = new SimpleMessageListenerContainer();
+    retryListener.setConnectionFactory(connectionFactory);
+    retryListener.setQueueNames(RETRY_QUEUE);
+    retryListener.setErrorHandler(errorHandler);
+    retryListener.setupMessageListener(reportingRetryListener);
+    retryListener.afterPropertiesSet();
+    return retryListener;
   }
 
   @Bean

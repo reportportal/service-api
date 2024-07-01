@@ -17,13 +17,14 @@
 package com.epam.ta.reportportal.reporting.async.exception;
 
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_PARKING_LOT;
+import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.RETRY_EXCHANGE;
+import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.TTL_QUEUE;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.google.common.collect.Lists;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
@@ -53,7 +54,8 @@ public class ReportingErrorHandler implements ErrorHandler {
       Message failedMessage = executionFailedException.getFailedMessage();
       if (executionFailedException.getCause() instanceof ReportPortalException reportPortalException) {
         if (RETRYABLE_ERROR_TYPES.contains(reportPortalException.getErrorType())) {
-          throw new AmqpRejectAndDontRequeueException(t);
+          rabbitTemplate.send(RETRY_EXCHANGE, TTL_QUEUE, failedMessage);
+          return;
         }
       }
       log.error(t.getCause().getMessage());

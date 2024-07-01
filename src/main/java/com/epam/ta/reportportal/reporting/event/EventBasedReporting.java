@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.reporting;
+package com.epam.ta.reportportal.reporting.event;
 
 import com.epam.reportportal.events.FinishItemRqEvent;
 import com.epam.reportportal.events.FinishLaunchRqEvent;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.ws.controller;
+package com.epam.ta.reportportal.reporting.async.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
@@ -23,10 +23,11 @@ import static com.epam.ta.reportportal.util.ControllerUtils.getUploadedFiles;
 import static com.epam.ta.reportportal.util.ControllerUtils.validateSaveRQ;
 import static org.springframework.http.HttpStatus.CREATED;
 
-import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.commons.Predicates;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.core.logging.HttpLogging;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -34,7 +35,6 @@ import com.epam.ta.reportportal.ws.reporting.BatchElementCreatedRS;
 import com.epam.ta.reportportal.ws.reporting.BatchSaveOperatingRS;
 import com.epam.ta.reportportal.ws.reporting.Constants;
 import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
@@ -60,7 +60,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * @author Konstantin Antipin
+ * @author Pavel Bortnik
  */
 @RestController
 @RequestMapping("/v2/{projectName}/log")
@@ -74,7 +74,7 @@ public class LogAsyncController {
 
   @Autowired
   public LogAsyncController(ProjectExtractor projectExtractor,
-      @Qualifier("asyncCreateLogHandler") CreateLogHandler createLogHandler, Validator validator) {
+      @Qualifier("logProducer") CreateLogHandler createLogHandler, Validator validator) {
     this.projectExtractor = projectExtractor;
     this.createLogHandler = createLogHandler;
     this.validator = validator;
@@ -82,8 +82,8 @@ public class LogAsyncController {
 
   /**
    * @deprecated in favour of
-   * {@link LogAsyncController#createLogEntry(String, SaveLogRQ, ReportPortalUser)} because of
-   * mapping collisions
+   * {@link LogAsyncController#createLogEntry(String, SaveLogRQ, ReportPortalUser)}
+   * because of mapping collisions
    */
   /* Report client API */
   @Deprecated
@@ -103,7 +103,7 @@ public class LogAsyncController {
   @HttpLogging
   @PostMapping(value = "/entry", consumes = {MediaType.APPLICATION_JSON_VALUE})
   @ResponseStatus(CREATED)
-  @Operation(summary = "Create log")
+  @Operation(description = "Create log")
   @PreAuthorize(ALLOWED_TO_REPORT)
   public EntryCreatedAsyncRS createLogEntry(@PathVariable String projectName,
       @RequestBody SaveLogRQ createLogRQ,
@@ -115,7 +115,7 @@ public class LogAsyncController {
 
   @HttpLogging
   @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-  @Operation(summary = "Create log (batching operation)")
+  @Operation(description = "Create log (batching operation)")
   // Specific handler should be added for springfox in case of similar POST
   // request mappings
   //	@Async
@@ -156,7 +156,6 @@ public class LogAsyncController {
            * stream, try to detect real content type of binary
            * data
            */
-          //noinspection ConstantConditions
           responseItem = createLogHandler.createLog(createLogRq, data,
               projectExtractor.extractProjectDetails(user, projectName));
         }

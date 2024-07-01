@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.ws.rabbit;
+package com.epam.ta.reportportal.reporting.async.config;
 
 /**
- * @author Konstantin Antipin
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public enum RequestType {
-  START_LAUNCH, FINISH_LAUNCH, START_TEST, FINISH_TEST, LOG
+  START_LAUNCH,
+  FINISH_LAUNCH,
+  START_TEST,
+  FINISH_TEST,
+  LOG
 }

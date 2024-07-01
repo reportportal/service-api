@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2023 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,56 +14,55 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.launch.impl;
+package com.epam.ta.reportportal.reporting.async.producer;
 
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
+import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateLaunchLink;
+import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.DEFAULT_CONSISTENT_HASH_ROUTING_KEY;
+import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
-import com.epam.ta.reportportal.util.ReportingQueueService;
-import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
-import com.epam.ta.reportportal.ws.rabbit.RequestType;
+import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
+import com.epam.ta.reportportal.reporting.async.config.RequestType;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import java.util.Map;
 import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /**
- * @author Konstantin Antipin
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
-@Qualifier("finishLaunchHandlerAsync")
-public class FinishLaunchHandlerAsyncImpl implements FinishLaunchHandler {
+public class LaunchFinishProducer implements FinishLaunchHandler {
 
-  @Autowired
-  @Qualifier(value = "rabbitTemplate")
-  AmqpTemplate amqpTemplate;
+  private final AmqpTemplate amqpTemplate;
 
-  @Autowired
-  private ReportingQueueService reportingQueueService;
+  public LaunchFinishProducer(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate) {
+    this.amqpTemplate = amqpTemplate;
+  }
 
   @Override
   public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ request,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
+      ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
 
-    // todo: may be problem - no access to repository, so no possibility to validateRoles() here
-    amqpTemplate.convertAndSend(EXCHANGE_REPORTING,
-        reportingQueueService.getReportingQueueKey(launchId), request, message -> {
+    amqpTemplate.convertAndSend(REPORTING_EXCHANGE, DEFAULT_CONSISTENT_HASH_ROUTING_KEY, request,
+        message -> {
           Map<String, Object> headers = message.getMessageProperties().getHeaders();
+          headers.put(MessageHeaders.HASH_ON, launchId);
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_LAUNCH);
           headers.put(MessageHeaders.USERNAME, user.getUsername());
           headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
           headers.put(MessageHeaders.LAUNCH_ID, launchId);
           headers.put(MessageHeaders.BASE_URL, baseUrl);
           return message;
-        }
-    );
+        });
 
     FinishLaunchRS response = new FinishLaunchRS();
     response.setId(launchId);
+    response.setLink(generateLaunchLink(baseUrl, projectDetails.getProjectName(), launchId));
     return response;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2023 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,49 +14,50 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.launch.impl;
+package com.epam.ta.reportportal.reporting.async.producer;
 
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
+import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.DEFAULT_CONSISTENT_HASH_ROUTING_KEY;
+import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
-import com.epam.ta.reportportal.util.ReportingQueueService;
+import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
+import com.epam.ta.reportportal.reporting.async.config.RequestType;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
-import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
-import com.epam.ta.reportportal.ws.rabbit.RequestType;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /**
- * @author Konstantin Antipin
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
-@Qualifier("startLaunchHandlerAsync")
-public class StartLaunchHandlerAsyncImpl implements StartLaunchHandler {
+public class LaunchStartProducer implements StartLaunchHandler {
 
-  @Autowired
-  @Qualifier(value = "rabbitTemplate")
-  AmqpTemplate amqpTemplate;
+  private final AmqpTemplate amqpTemplate;
 
-  @Autowired
-  private ReportingQueueService reportingQueueService;
+  public LaunchStartProducer(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate) {
+    this.amqpTemplate = amqpTemplate;
+  }
 
   @Override
-  public StartLaunchRS startLaunch(ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ request) {
+  public StartLaunchRS startLaunch(ReportPortalUser user, ProjectDetails projectDetails,
+      StartLaunchRQ request) {
     validateRoles(projectDetails, request);
 
-    if (request.getUuid() == null) {
+    if (!StringUtils.hasText(request.getUuid())) {
       request.setUuid(UUID.randomUUID().toString());
     }
-    amqpTemplate.convertAndSend(EXCHANGE_REPORTING,
-        reportingQueueService.getReportingQueueKey(request.getUuid()), request, message -> {
+
+    amqpTemplate.convertAndSend(REPORTING_EXCHANGE, DEFAULT_CONSISTENT_HASH_ROUTING_KEY, request,
+        message -> {
           Map<String, Object> headers = message.getMessageProperties().getHeaders();
+          headers.put(MessageHeaders.HASH_ON, request.getUuid());
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_LAUNCH);
           headers.put(MessageHeaders.USERNAME, user.getUsername());
           headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2023 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,45 +14,43 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.log.impl;
+package com.epam.ta.reportportal.reporting.async.producer;
 
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
+import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.DEFAULT_CONSISTENT_HASH_ROUTING_KEY;
+import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
+import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.configs.rabbit.DeserializablePair;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
-import com.epam.ta.reportportal.util.ReportingQueueService;
+import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTaskAsync;
+import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
+import com.epam.ta.reportportal.reporting.async.config.RequestType;
 import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
-import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
-import com.epam.ta.reportportal.ws.rabbit.RequestType;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.inject.Provider;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * Asynchronous implementation of {@link CreateLogHandler} using RabbitMQ to defer binding Log to
- * ID(s)
- *
- * @author Andrei Varabyeu
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-@Service("asyncCreateLogHandler")
-public class CreateLogHandlerAsyncImpl implements CreateLogHandler {
+@Service
+public class LogProducer implements CreateLogHandler {
 
-  /**
-   * We are using {@link Provider} there because we need {@link SaveLogBinaryDataTaskAsync} with
-   * scope prototype. Since current class is in singleton scope, we have to find a way to get new
-   * instance of job for new execution
-   */
   @Autowired
   private Provider<SaveLogBinaryDataTaskAsync> saveLogBinaryDataTask;
 
@@ -61,20 +59,19 @@ public class CreateLogHandlerAsyncImpl implements CreateLogHandler {
   private TaskExecutor taskExecutor;
 
   @Autowired
-  private ReportingQueueService reportingQueueService;
-
-  @Autowired
   @Qualifier(value = "rabbitTemplate")
-  AmqpTemplate amqpTemplate;
+  private AmqpTemplate amqpTemplate;
 
-  @Override
+
   @Nonnull
-  public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, MultipartFile file,
-      ReportPortalUser.ProjectDetails projectDetails) {
+  @Override
+  public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, @Nullable MultipartFile file,
+      ProjectDetails projectDetails) {
 
     validate(request);
-
-    request.setUuid(UUID.randomUUID().toString());
+    if (!StringUtils.hasText(request.getUuid())) {
+      request.setUuid(UUID.randomUUID().toString());
+    }
 
     if (file != null) {
       CompletableFuture.supplyAsync(saveLogBinaryDataTask.get()
@@ -91,13 +88,17 @@ public class CreateLogHandlerAsyncImpl implements CreateLogHandler {
     return response;
   }
 
-  protected void sendMessage(SaveLogRQ request, BinaryDataMetaInfo metaInfo, Long projectId) {
+  public void sendMessage(SaveLogRQ request, BinaryDataMetaInfo metaInfo, Long projectId) {
+    final String launchUuid = ofNullable(request.getLaunchUuid()).orElseThrow(
+        () -> new ReportPortalException(
+            ErrorType.BAD_REQUEST_ERROR, "Launch UUID should not be null or empty."));
     amqpTemplate.convertAndSend(
-        EXCHANGE_REPORTING,
-        reportingQueueService.getReportingQueueKey(request.getLaunchUuid()),
+        REPORTING_EXCHANGE,
+        DEFAULT_CONSISTENT_HASH_ROUTING_KEY,
         DeserializablePair.of(request, metaInfo),
         message -> {
           Map<String, Object> headers = message.getMessageProperties().getHeaders();
+          headers.put(MessageHeaders.HASH_ON, launchUuid);
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.LOG);
           headers.put(MessageHeaders.PROJECT_ID, projectId);
           headers.put(MessageHeaders.ITEM_ID, request.getItemUuid());
@@ -106,4 +107,5 @@ public class CreateLogHandlerAsyncImpl implements CreateLogHandler {
     );
 
   }
+
 }

@@ -24,5 +24,5 @@ package com.epam.ta.reportportal.core.analytics;
  */
 public enum AnalyticsObjectType {
 
-  ANALYZER_MANUAL_START
+  DEFECT_UPDATE_STATISTICS
 }

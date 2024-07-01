@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.analytics.AnalyticsObjectType;
 import com.epam.ta.reportportal.core.analytics.AnalyticsStrategy;
-import com.epam.ta.reportportal.core.analytics.AnalyzerManualStart;
+import com.epam.ta.reportportal.core.analytics.DefectUpdateStatistics;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,11 +33,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AnalyticsConfig {
 
-  private final AnalyzerManualStart analyzerManualStart;
+  private final DefectUpdateStatistics defectUpdateStatistics;
 
   @Autowired
-  AnalyticsConfig(AnalyzerManualStart analyzerManualStart) {
-    this.analyzerManualStart = analyzerManualStart;
+  AnalyticsConfig(DefectUpdateStatistics defectUpdateStatistics) {
+    this.defectUpdateStatistics = defectUpdateStatistics;
   }
 
   /**
@@ -48,7 +48,7 @@ public class AnalyticsConfig {
   @Bean
   public Map<AnalyticsObjectType, AnalyticsStrategy> analyticsStrategies() {
     return ImmutableMap.<AnalyticsObjectType, AnalyticsStrategy>builder()
-        .put(AnalyticsObjectType.ANALYZER_MANUAL_START, analyzerManualStart)
+        .put(AnalyticsObjectType.DEFECT_UPDATE_STATISTICS, defectUpdateStatistics)
         .build();
   }
 }

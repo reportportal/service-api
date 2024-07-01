@@ -16,34 +16,51 @@
 
 package com.epam.ta.reportportal.core.analytics;
 
+import static com.epam.ta.reportportal.core.analytics.AnalyticsObjectType.DEFECT_UPDATE_STATISTICS;
+
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.dao.AnalyticsDataRepository;
 import com.epam.ta.reportportal.entity.Metadata;
 import com.epam.ta.reportportal.entity.analytics.AnalyticsData;
 import java.time.Instant;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 
 @Component
-public class AnalyzerManualStart implements AnalyticsStrategy {
+public class DefectUpdateStatistics implements AnalyticsStrategy {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefectUpdateStatistics.class);
 
   @Value("${info.build.version:unknown}")
   private String buildVersion;
 
   private final AnalyticsDataRepository analyticsDataRepository;
+  private final AnalyzerServiceClient analyzerServicesClient;
 
   @Autowired
-  public AnalyzerManualStart(AnalyticsDataRepository analyticsDataRepository) {
+  public DefectUpdateStatistics(AnalyticsDataRepository analyticsDataRepository,
+      AnalyzerServiceClient analyzerServicesClient) {
+    this.analyzerServicesClient = analyzerServicesClient;
     this.analyticsDataRepository = analyticsDataRepository;
   }
 
   @Override
   public void persistAnalyticsData(Map<String, Object> map) {
     AnalyticsData ad = new AnalyticsData();
-    ad.setType("ANALYZER_MANUAL_START");
+    ad.setType(DEFECT_UPDATE_STATISTICS.name());
     ad.setCreatedAt(Instant.now());
+
+    try {
+      map.put("analyzerEnabled", analyzerServicesClient.hasClients());
+    } catch (ReportPortalException rpe) {
+      LOGGER.debug("Analyzer is not enabled", rpe);
+    }
     map.put("version", buildVersion);
     ad.setMetadata(new Metadata(map));
     analyticsDataRepository.save(ad);
@@ -51,6 +68,6 @@ public class AnalyzerManualStart implements AnalyticsStrategy {
 
   @Override
   public AnalyticsObjectType getStrategyName() {
-    return AnalyticsObjectType.ANALYZER_MANUAL_START;
+    return DEFECT_UPDATE_STATISTICS;
   }
 }

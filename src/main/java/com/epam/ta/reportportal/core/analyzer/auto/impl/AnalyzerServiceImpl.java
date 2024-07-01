@@ -147,20 +147,19 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
 
       if (!MapUtils.isEmpty(analyzedMap)) {
-        analyticsMetadata.put("autoAnalyzed", analyzedMap.size());
+        analyticsMetadata.put("analyzed", analyzedMap.size());
 
         analyzedMap.forEach(
             (key, value) -> updateTestItems(key, value, toAnalyze, launch.getProjectId()));
       }
       // save data for analytics
-      analyticsStrategyFactory.findStrategy(AnalyticsObjectType.ANALYZER_MANUAL_START)
+      analyticsStrategyFactory.findStrategy(AnalyticsObjectType.DEFECT_UPDATE_STATISTICS)
           .persistAnalyticsData(analyticsMetadata);
     });
   }
 
   private Map<String, Object> gatherAnalyzerStatistics(IndexLaunch rq) {
     var metadata = new HashMap<String, Object>();
-    metadata.put("analyzerEnabled", analyzerServicesClient.hasClients());
     metadata.put("autoAnalysisOn", rq.getAnalyzerConfig().getIsAutoAnalyzerEnabled());
     metadata.put("sentToAnalyze", rq.getTestItems().size());
     return metadata;

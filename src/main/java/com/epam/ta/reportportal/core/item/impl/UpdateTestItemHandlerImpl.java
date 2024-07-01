@@ -127,8 +127,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
   private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
   private final AnalyticsStrategyFactory analyticsStrategyFactory;
-  private final AnalyzerServiceClient analyzerServicesClient;
-
 
   @Autowired
   public UpdateTestItemHandlerImpl(TestItemService testItemService,
@@ -149,7 +147,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     this.issueEntityRepository = issueEntityRepository;
     this.statusChangingStrategyMapping = statusChangingStrategyMapping;
     this.analyticsStrategyFactory = analyticsStrategyFactory;
-    this.analyzerServicesClient = analyzerServicesClient;
   }
 
   @Override
@@ -236,11 +233,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
 
     var analyticsMetadata = new HashMap<String, Object>();
-    analyticsMetadata.put("analyzerEnabled", analyzerServicesClient.hasClients());
     analyticsMetadata.put("autoAnalysisOn", analyzerConfig.getIsAutoAnalyzerEnabled());
     analyticsMetadata.put("userAnalyzed", itemsAmount);
 
-    analyticsStrategyFactory.findStrategy(AnalyticsObjectType.ANALYZER_MANUAL_START)
+    analyticsStrategyFactory.findStrategy(AnalyticsObjectType.DEFECT_UPDATE_STATISTICS)
         .persistAnalyticsData(analyticsMetadata);
   }
 

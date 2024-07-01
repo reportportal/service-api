@@ -18,7 +18,10 @@ package com.epam.ta.reportportal.reporting.async.producer;
 
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.DEFAULT_CONSISTENT_HASH_ROUTING_KEY;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
+import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.configs.rabbit.DeserializablePair;
@@ -39,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -65,7 +69,9 @@ public class LogProducer implements CreateLogHandler {
       ProjectDetails projectDetails) {
 
     validate(request);
-    request.setUuid(UUID.randomUUID().toString());
+    if (!StringUtils.hasText(request.getUuid())) {
+      request.setUuid(UUID.randomUUID().toString());
+    }
 
     if (file != null) {
       CompletableFuture.supplyAsync(saveLogBinaryDataTask.get()
@@ -82,14 +88,17 @@ public class LogProducer implements CreateLogHandler {
     return response;
   }
 
-  protected void sendMessage(SaveLogRQ request, BinaryDataMetaInfo metaInfo, Long projectId) {
+  public void sendMessage(SaveLogRQ request, BinaryDataMetaInfo metaInfo, Long projectId) {
+    final String launchUuid = ofNullable(request.getLaunchUuid()).orElseThrow(
+        () -> new ReportPortalException(
+            ErrorType.BAD_REQUEST_ERROR, "Launch UUID should not be null or empty."));
     amqpTemplate.convertAndSend(
         REPORTING_EXCHANGE,
         DEFAULT_CONSISTENT_HASH_ROUTING_KEY,
         DeserializablePair.of(request, metaInfo),
         message -> {
           Map<String, Object> headers = message.getMessageProperties().getHeaders();
-          headers.put(MessageHeaders.HASH_ON, request.getLaunchUuid());
+          headers.put(MessageHeaders.HASH_ON, launchUuid);
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.LOG);
           headers.put(MessageHeaders.PROJECT_ID, projectId);
           headers.put(MessageHeaders.ITEM_ID, request.getItemUuid());

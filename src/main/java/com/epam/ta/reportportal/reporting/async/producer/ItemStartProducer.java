@@ -18,7 +18,10 @@ package com.epam.ta.reportportal.reporting.async.producer;
 
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.DEFAULT_CONSISTENT_HASH_ROUTING_KEY;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
+import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
@@ -32,6 +35,7 @@ import java.util.UUID;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -46,7 +50,9 @@ public class ItemStartProducer implements StartTestItemHandler {
   }
 
   private static void provideItemUuid(StartTestItemRQ request) {
-    request.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
+    if (!StringUtils.hasText(request.getUuid())) {
+      request.setUuid(UUID.randomUUID().toString());
+    }
   }
 
   @Override
@@ -58,7 +64,9 @@ public class ItemStartProducer implements StartTestItemHandler {
         request,
         message -> {
           Map<String, Object> headers = message.getMessageProperties().getHeaders();
-          headers.put(MessageHeaders.HASH_ON, request.getLaunchUuid());
+          headers.put(MessageHeaders.HASH_ON,
+              ofNullable(request.getLaunchUuid()).orElseThrow(() -> new ReportPortalException(
+                  ErrorType.BAD_REQUEST_ERROR, "Launch UUID should not be null or empty.")));
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
           headers.put(MessageHeaders.USERNAME, user.getUsername());
           headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
@@ -75,6 +83,9 @@ public class ItemStartProducer implements StartTestItemHandler {
   @Override
   public ItemCreatedRS startChildItem(ReportPortalUser user, ProjectDetails projectDetails,
       StartTestItemRQ request, String parentId) {
+    final String launchUuid = ofNullable(request.getLaunchUuid()).orElseThrow(
+        () -> new ReportPortalException(
+            ErrorType.BAD_REQUEST_ERROR, "Launch UUID should not be null or empty."));
     provideItemUuid(request);
     amqpTemplate.convertAndSend(
         REPORTING_EXCHANGE,
@@ -82,7 +93,7 @@ public class ItemStartProducer implements StartTestItemHandler {
         request,
         message -> {
           Map<String, Object> headers = message.getMessageProperties().getHeaders();
-          headers.put(MessageHeaders.HASH_ON, request.getLaunchUuid());
+          headers.put(MessageHeaders.HASH_ON, launchUuid);
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
           headers.put(MessageHeaders.USERNAME, user.getUsername());
           headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());

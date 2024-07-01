@@ -22,8 +22,7 @@ import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.google.common.collect.Lists;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -34,11 +33,10 @@ import org.springframework.util.ErrorHandler;
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@Slf4j
 @Component
 public class ReportingErrorHandler implements ErrorHandler {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(
-      ReportingErrorHandler.class);
   private static final List<ErrorType> RETRYABLE_ERROR_TYPES = Lists.newArrayList(
       ErrorType.LAUNCH_NOT_FOUND,
       ErrorType.TEST_SUITE_NOT_FOUND,
@@ -52,14 +50,14 @@ public class ReportingErrorHandler implements ErrorHandler {
   @Override
   public void handleError(Throwable t) {
     if (t instanceof ListenerExecutionFailedException executionFailedException) {
+      Message failedMessage = executionFailedException.getFailedMessage();
       if (executionFailedException.getCause() instanceof ReportPortalException reportPortalException) {
         if (RETRYABLE_ERROR_TYPES.contains(reportPortalException.getErrorType())) {
           throw new AmqpRejectAndDontRequeueException(t);
         }
       }
-      Message failedMessage = executionFailedException.getFailedMessage();
-      LOGGER.error(t.getCause().getMessage());
-      LOGGER.error("Message rejected to the parking lot queue: {}",
+      log.error(t.getCause().getMessage());
+      log.error("Message rejected to the parking lot queue: {}",
           new String(failedMessage.getBody()));
       failedMessage.getMessageProperties().getHeaders()
           .put("exception", t.getCause().getMessage());

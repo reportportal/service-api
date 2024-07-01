@@ -31,6 +31,7 @@ import java.util.UUID;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -49,7 +50,7 @@ public class LaunchStartProducer implements StartLaunchHandler {
       StartLaunchRQ request) {
     validateRoles(projectDetails, request);
 
-    if (request.getUuid() == null) {
+    if (!StringUtils.hasText(request.getUuid())) {
       request.setUuid(UUID.randomUUID().toString());
     }
 

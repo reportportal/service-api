@@ -24,20 +24,25 @@ import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
+import com.epam.ta.reportportal.core.launch.MergeLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.core.logging.HttpLogging;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
+import com.epam.ta.reportportal.ws.reporting.LaunchResource;
+import com.epam.ta.reportportal.ws.reporting.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,27 +53,31 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controller implementation for async reporting client API for
- * {@link com.epam.ta.reportportal.entity.launch.Launch} entity
+ * Controller implementation for async reporting client API for {@link
+ * com.epam.ta.reportportal.entity.launch.Launch} entity
  *
  * @author Pavel Bortnik
  */
 @RestController
-@RequestMapping("/v3/{projectName}/launch")
-public class LaunchConsistentHashAsyncController {
+@RequestMapping("/v2/{projectName}/launch")
+@Tag(name = "launch-async-controller", description = "Launch Async Controller. Puts events to the queues")
+public class LaunchAsyncController {
 
   private final ProjectExtractor projectExtractor;
   private final StartLaunchHandler startLaunchHandler;
   private final FinishLaunchHandler finishLaunchHandler;
+  private final MergeLaunchHandler mergeLaunchesHandler;
 
   @Autowired
-  public LaunchConsistentHashAsyncController(ProjectExtractor projectExtractor,
+  public LaunchAsyncController(ProjectExtractor projectExtractor,
       @Qualifier("launchStartProducer") StartLaunchHandler startLaunchHandler,
-      @Qualifier("launchFinishProducer") FinishLaunchHandler finishLaunchHandler) {
+      @Qualifier("launchFinishProducer") FinishLaunchHandler finishLaunchHandler,
+      MergeLaunchHandler mergeLaunchesHandler) {
 
     this.projectExtractor = projectExtractor;
     this.startLaunchHandler = startLaunchHandler;
     this.finishLaunchHandler = finishLaunchHandler;
+    this.mergeLaunchesHandler = mergeLaunchesHandler;
   }
 
   @HttpLogging
@@ -99,6 +108,24 @@ public class LaunchConsistentHashAsyncController {
         projectExtractor.extractProjectDetails(user, normalizeId(projectName)),
         user,
         composeBaseUrl(request)
+    );
+  }
+
+  @HttpLogging
+  @Transactional
+  @PostMapping("/merge")
+  @PreAuthorize(ALLOWED_TO_REPORT)
+  @ResponseStatus(OK)
+  @Operation(summary = "Merge set of specified launches in common one", description =
+      "This operation merges a set of launches into a common one. "
+          + "The IDs of the launches to be merged should be provided in the 'launches' "
+          + "field of the request body.")
+  public LaunchResource mergeLaunches(@PathVariable String projectName,
+      @Parameter(description = "Merge launches request body", required = true) @RequestBody @Validated
+          MergeLaunchesRQ mergeLaunchesRQ, @AuthenticationPrincipal ReportPortalUser user) {
+    return mergeLaunchesHandler.mergeLaunches(
+        projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user,
+        mergeLaunchesRQ
     );
   }
 

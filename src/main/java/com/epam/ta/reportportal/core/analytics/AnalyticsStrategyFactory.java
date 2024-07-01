@@ -21,7 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Factory for creating appropriate AnalyticsStrategy based on AnalyticsObjectType
+ * Factory for creating appropriate AnalyticsStrategy based on AnalyticsObjectType.
  *
  * @author Siarhei Hrabko
  */

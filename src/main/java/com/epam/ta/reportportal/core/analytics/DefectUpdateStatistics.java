@@ -32,6 +32,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 
+/**
+ * DefectUpdateStatistics is an implementation of the AnalyticsStrategy interface. This class is
+ * responsible for persisting the defect update statistics.
+ */
 @Component
 public class DefectUpdateStatistics implements AnalyticsStrategy {
 
@@ -50,6 +54,11 @@ public class DefectUpdateStatistics implements AnalyticsStrategy {
     this.analyticsDataRepository = analyticsDataRepository;
   }
 
+  /**
+   * This method persists analytics data into the database.
+   *
+   * @param map The values to be persisted.
+   */
   @Override
   public void persistAnalyticsData(Map<String, Object> map) {
     AnalyticsData ad = new AnalyticsData();

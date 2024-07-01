@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * The AnalyticsConfig class holds the configuration for the different analytics strategies. *
+ * The AnalyticsConfig class holds the configuration for the different analytics strategies.
  *
  * @author Siarhei Hrabko
  */

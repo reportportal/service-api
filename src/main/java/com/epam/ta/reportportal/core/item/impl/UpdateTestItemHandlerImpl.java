@@ -26,7 +26,6 @@ import static com.epam.reportportal.rules.exception.ErrorType.TEST_ITEM_NOT_FOUN
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
 import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttribute;
 import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttributeResource;
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
@@ -35,13 +34,11 @@ import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toList;
 
-import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.epam.reportportal.rules.commons.validation.BusinessRuleViolationException;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.analytics.AnalyticsObjectType;
-import com.epam.ta.reportportal.core.analytics.AnalyticsStrategyFactory;
+import com.epam.ta.reportportal.core.analytics.DefectUpdateStatisticsService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.LogIndexerService;
@@ -83,7 +80,6 @@ import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.reporting.Issue;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -126,7 +122,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
   private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
-  private final AnalyticsStrategyFactory analyticsStrategyFactory;
+  private final DefectUpdateStatisticsService defectUpdateStatisticsService;
+
 
   @Autowired
   public UpdateTestItemHandlerImpl(TestItemService testItemService,
@@ -135,8 +132,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
       MessageBus messageBus, LogIndexerService logIndexerService,
       IssueEntityRepository issueEntityRepository,
       Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping,
-      AnalyticsStrategyFactory analyticsStrategyFactory,
-      AnalyzerServiceClient analyzerServicesClient) {
+      AnalyzerServiceClient analyzerServicesClient,
+      DefectUpdateStatisticsService defectUpdateStatisticsService) {
     this.testItemService = testItemService;
     this.projectRepository = projectRepository;
     this.testItemRepository = testItemRepository;
@@ -146,7 +143,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     this.logIndexerService = logIndexerService;
     this.issueEntityRepository = issueEntityRepository;
     this.statusChangingStrategyMapping = statusChangingStrategyMapping;
-    this.analyticsStrategyFactory = analyticsStrategyFactory;
+    this.defectUpdateStatisticsService = defectUpdateStatisticsService;
   }
 
   @Override
@@ -165,7 +162,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     List<Long> itemsForIndexRemove = new ArrayList<>();
 
     // save data for analytics
-    saveMakeDecisionStatistics(projectDetails.getProjectId(), definitions.size());
+    defectUpdateStatisticsService.saveAnalyzedDefectStatistics(definitions.size(), 0,
+        definitions.size(), projectDetails.getProjectId());
 
     definitions.forEach(issueDefinition -> {
       try {
@@ -227,18 +225,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     return updated;
   }
 
-  private void saveMakeDecisionStatistics(Long projectId, int itemsAmount) {
-    Project project = projectRepository.findById(projectId).orElseThrow(
-        () -> new ReportPortalException(PROJECT_NOT_FOUND, projectId));
-    AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
-
-    var analyticsMetadata = new HashMap<String, Object>();
-    analyticsMetadata.put("autoAnalysisOn", analyzerConfig.getIsAutoAnalyzerEnabled());
-    analyticsMetadata.put("userAnalyzed", itemsAmount);
-
-    analyticsStrategyFactory.findStrategy(AnalyticsObjectType.DEFECT_UPDATE_STATISTICS)
-        .persistAnalyticsData(analyticsMetadata);
-  }
 
   @Override
   public OperationCompletionRS updateTestItem(ReportPortalUser.ProjectDetails projectDetails,

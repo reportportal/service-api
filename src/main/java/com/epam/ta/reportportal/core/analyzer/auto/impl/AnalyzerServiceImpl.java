@@ -24,8 +24,7 @@ import static java.util.stream.Collectors.toList;
 import com.epam.reportportal.model.analyzer.IndexLaunch;
 import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.ta.reportportal.core.analytics.AnalyticsObjectType;
-import com.epam.ta.reportportal.core.analytics.AnalyticsStrategyFactory;
+import com.epam.ta.reportportal.core.analytics.DefectUpdateStatisticsService;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
@@ -46,7 +45,6 @@ import com.epam.ta.reportportal.model.analyzer.RelevantItemInfo;
 import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -86,7 +84,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
   private final Integer itemsBatchSize;
 
-  private final AnalyticsStrategyFactory analyticsStrategyFactory;
+  private final DefectUpdateStatisticsService defectUpdateStatisticsService;
 
   @Autowired
   public AnalyzerServiceImpl(
@@ -95,7 +93,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
       AnalyzerServiceClient analyzerServicesClient, IssueTypeHandler issueTypeHandler,
       TestItemRepository testItemRepository,
       MessageBus messageBus, LaunchRepository launchRepository,
-      AnalyticsStrategyFactory analyticsStrategyFactory) {
+      DefectUpdateStatisticsService defectUpdateStatisticsService) {
     this.itemsBatchSize = itemsBatchSize;
     this.analyzerStatusCache = analyzerStatusCache;
     this.launchPreparerService = launchPreparerService;
@@ -104,7 +102,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     this.testItemRepository = testItemRepository;
     this.messageBus = messageBus;
     this.launchRepository = launchRepository;
-    this.analyticsStrategyFactory = analyticsStrategyFactory;
+    this.defectUpdateStatisticsService = defectUpdateStatisticsService;
   }
 
   @Override
@@ -141,29 +139,20 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     Optional<IndexLaunch> rqLaunch = launchPreparerService.prepare(launch, toAnalyze,
         analyzerConfig);
     rqLaunch.ifPresent(rq -> {
-      var analyticsMetadata = gatherAnalyzerStatistics(rq);
+      int amountToAnalyze = rq.getTestItems().size();
       previousLaunchId.ifPresent(rq::setPreviousLaunchId);
       Map<String, List<AnalyzedItemRs>> analyzedMap = analyzerServicesClient.analyze(rq);
 
-
       if (!MapUtils.isEmpty(analyzedMap)) {
-        analyticsMetadata.put("analyzed", analyzedMap.size());
-
         analyzedMap.forEach(
             (key, value) -> updateTestItems(key, value, toAnalyze, launch.getProjectId()));
       }
       // save data for analytics
-      analyticsStrategyFactory.findStrategy(AnalyticsObjectType.DEFECT_UPDATE_STATISTICS)
-          .persistAnalyticsData(analyticsMetadata);
+      defectUpdateStatisticsService
+          .saveAnalyzedDefectStatistics(amountToAnalyze, analyzedMap.size(), 0, rq.getProjectId());
     });
   }
 
-  private Map<String, Object> gatherAnalyzerStatistics(IndexLaunch rq) {
-    var metadata = new HashMap<String, Object>();
-    metadata.put("autoAnalysisOn", rq.getAnalyzerConfig().getIsAutoAnalyzerEnabled());
-    metadata.put("sentToAnalyze", rq.getTestItems().size());
-    return metadata;
-  }
 
   /**
    * Update issue types for analyzed items and posted events for updated

@@ -16,17 +16,11 @@
 
 package com.epam.ta.reportportal.core.analytics;
 
-import java.util.Map;
+import com.epam.ta.reportportal.entity.analytics.AnalyticsData;
 
-/**
- * The interface Analytics strategy. This interface provides methods for persisting analytics data
- * and getting the strategy name.
- *
- * @author Siarhei Hrabko
- */
-public interface AnalyticsStrategy {
+public interface DefectUpdateStatisticsService {
 
-  void persistAnalyticsData(Map<String, Object> map);
+  AnalyticsData saveAnalyzedDefectStatistics(int amountToAnalyze, int analyzedAmount, int userAnalyzedAmount,
+      Long projectId);
 
-  AnalyticsObjectType getStrategyName();
 }

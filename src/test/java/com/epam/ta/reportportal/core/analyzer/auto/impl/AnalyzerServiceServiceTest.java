@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl;
 import static com.epam.ta.reportportal.entity.AnalyzeMode.ALL_LAUNCHES;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.PRODUCT_BUG;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyLong;
@@ -28,12 +29,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
+import com.epam.reportportal.model.analyzer.IndexLaunch;
+import com.epam.reportportal.model.analyzer.IndexLog;
+import com.epam.reportportal.model.analyzer.IndexTestItem;
+import com.epam.reportportal.model.project.AnalyzerConfig;
+import com.epam.ta.reportportal.core.analytics.DefectUpdateStatisticsService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.analytics.AnalyticsData;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -43,10 +50,6 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.model.analyzer.AnalyzedItemRs;
-import com.epam.reportportal.model.analyzer.IndexLaunch;
-import com.epam.reportportal.model.analyzer.IndexLog;
-import com.epam.reportportal.model.analyzer.IndexTestItem;
-import com.epam.reportportal.model.project.AnalyzerConfig;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -70,6 +73,8 @@ class AnalyzerServiceServiceTest {
 
   private LaunchRepository launchRepository = mock(LaunchRepository.class);
 
+  private DefectUpdateStatisticsService defectUpdateStatisticsService = mock(DefectUpdateStatisticsService.class);
+
   private MessageBus messageBus = mock(MessageBus.class);
 
   private LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
@@ -78,8 +83,8 @@ class AnalyzerServiceServiceTest {
 
   private AnalyzerServiceImpl issuesAnalyzer =
       new AnalyzerServiceImpl(100, analyzerStatusCache, launchPreparerService,
-          analyzerServiceClient, issueTypeHandler, testItemRepository, messageBus, launchRepository
-      );
+          analyzerServiceClient, issueTypeHandler, testItemRepository, messageBus, launchRepository,
+          defectUpdateStatisticsService);
 
   @Test
   void hasAnalyzers() {
@@ -123,6 +128,9 @@ class AnalyzerServiceServiceTest {
     issuesAnalyzer.runAnalyzers(launch,
         items.stream().map(TestItem::getItemId).collect(Collectors.toList()), analyzerConfig
     );
+    when(defectUpdateStatisticsService.saveAnalyzedDefectStatistics(anyInt(), anyInt(), eq(0),
+        anyLong())).thenReturn(new AnalyticsData());
+
 
     verify(analyzerServiceClient, times(1)).analyze(any());
     verify(testItemRepository, times(itemsCount)).save(any());

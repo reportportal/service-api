@@ -34,10 +34,11 @@ public interface StopLaunchHandler {
    * @param finishLaunchRQ Request data
    * @param projectDetails Project Details
    * @param user           User
+   * @param baseUrl        Application base url
    * @return OperationCompletionRS
    */
   OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl);
 
   /**
    * Bulk stop launches operation.
@@ -45,8 +46,9 @@ public interface StopLaunchHandler {
    * @param bulkRQ         Bulk request
    * @param projectDetails Project Details
    * @param user           User
+   * @param baseUrl        Application base url
    * @return OperationCompletionsRS
    */
   List<OperationCompletionRS> stopLaunch(BulkRQ<Long, FinishExecutionRQ> bulkRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl);
 }

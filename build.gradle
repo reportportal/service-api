@@ -68,9 +68,9 @@ dependencies {
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:plugin-api:5.11.1'
     } else {
-        implementation 'com.github.reportportal:commons-dao:1df352c'
-        implementation 'com.github.reportportal:commons:2f84053dd1'
-        implementation 'com.github.reportportal:plugin-api:17962f8c32'
+        implementation 'com.github.reportportal:commons-dao:b0e00d6b9a'
+        implementation 'com.github.reportportal:commons:916f0f8abd'
+        implementation 'com.github.reportportal:plugin-api:d1c0f0e'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
@@ -111,7 +111,7 @@ dependencies {
     implementation 'xerces:xercesImpl:2.12.2'
     implementation 'com.lowagie:itext:2.1.7.js7'
     // JasperReport's export to XLS uses Apache POI
-    implementation 'org.apache.poi:poi:5.2.3'
+    implementation 'org.apache.poi:poi:4.1.2'
     implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
     implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'com.google.api-client:google-api-client:2.3.0'

@@ -28,6 +28,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
+import com.epam.reportportal.model.analyzer.IndexLaunch;
+import com.epam.reportportal.model.analyzer.IndexLog;
+import com.epam.reportportal.model.analyzer.IndexTestItem;
+import com.epam.reportportal.model.project.AnalyzerConfig;
+import com.epam.ta.reportportal.core.analytics.DefectUpdateStatisticsService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -43,10 +48,6 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.model.analyzer.AnalyzedItemRs;
-import com.epam.reportportal.model.analyzer.IndexLaunch;
-import com.epam.reportportal.model.analyzer.IndexLog;
-import com.epam.reportportal.model.analyzer.IndexTestItem;
-import com.epam.reportportal.model.project.AnalyzerConfig;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -70,6 +71,8 @@ class AnalyzerServiceServiceTest {
 
   private LaunchRepository launchRepository = mock(LaunchRepository.class);
 
+  private DefectUpdateStatisticsService defectUpdateStatisticsService = mock(DefectUpdateStatisticsService.class);
+
   private MessageBus messageBus = mock(MessageBus.class);
 
   private LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
@@ -78,8 +81,8 @@ class AnalyzerServiceServiceTest {
 
   private AnalyzerServiceImpl issuesAnalyzer =
       new AnalyzerServiceImpl(100, analyzerStatusCache, launchPreparerService,
-          analyzerServiceClient, issueTypeHandler, testItemRepository, messageBus, launchRepository
-      );
+          analyzerServiceClient, issueTypeHandler, testItemRepository, messageBus, launchRepository,
+          defectUpdateStatisticsService);
 
   @Test
   void hasAnalyzers() {

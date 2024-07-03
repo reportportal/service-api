@@ -132,7 +132,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
       MessageBus messageBus, LogIndexerService logIndexerService,
       IssueEntityRepository issueEntityRepository,
       Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping,
-      AnalyzerServiceClient analyzerServicesClient,
       DefectUpdateStatisticsService defectUpdateStatisticsService) {
     this.testItemService = testItemService;
     this.projectRepository = projectRepository;

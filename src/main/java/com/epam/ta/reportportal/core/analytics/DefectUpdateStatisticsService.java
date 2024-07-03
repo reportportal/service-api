@@ -16,11 +16,9 @@
 
 package com.epam.ta.reportportal.core.analytics;
 
-import com.epam.ta.reportportal.entity.analytics.AnalyticsData;
-
 public interface DefectUpdateStatisticsService {
 
-  AnalyticsData saveAnalyzedDefectStatistics(int amountToAnalyze, int analyzedAmount, int userAnalyzedAmount,
+  void saveAnalyzedDefectStatistics(int amountToAnalyze, int analyzedAmount, int userAnalyzedAmount,
       Long projectId);
 
 }

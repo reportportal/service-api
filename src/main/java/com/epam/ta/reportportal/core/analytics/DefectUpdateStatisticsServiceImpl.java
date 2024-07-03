@@ -25,6 +25,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.dao.AnalyticsDataRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.Metadata;
 import com.epam.ta.reportportal.entity.analytics.AnalyticsData;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -47,23 +48,27 @@ public class DefectUpdateStatisticsServiceImpl implements DefectUpdateStatistics
 
   private static final Logger LOGGER = LoggerFactory.getLogger(
       DefectUpdateStatisticsServiceImpl.class);
+  public static final String SERVER_ANALYTICS_ALL = "server.analytics.all";
 
   private final String buildVersion;
 
   private final AnalyticsDataRepository analyticsDataRepository;
   private final AnalyzerServiceClient analyzerServicesClient;
   private final ProjectRepository projectRepository;
+  private final ServerSettingsRepository serverSettingsRepository;
+
 
   @Autowired
   public DefectUpdateStatisticsServiceImpl(
       @Value("${info.build.version:unknown}") String buildVersion,
       AnalyticsDataRepository analyticsDataRepository,
       AnalyzerServiceClient analyzerServicesClient,
-      ProjectRepository projectRepository) {
+      ProjectRepository projectRepository, ServerSettingsRepository serverSettingsRepository) {
     this.buildVersion = buildVersion;
     this.analyzerServicesClient = analyzerServicesClient;
     this.analyticsDataRepository = analyticsDataRepository;
     this.projectRepository = projectRepository;
+    this.serverSettingsRepository = serverSettingsRepository;
   }
 
 
@@ -74,21 +79,32 @@ public class DefectUpdateStatisticsServiceImpl implements DefectUpdateStatistics
    * @param analyzedAmount     The amount of items that have been analyzed.
    * @param userAnalyzedAmount The amount of items that have been analyzed by the user.
    * @param projectId          The ID of the project.
-   * @return The saved AnalyticsData instance.
    */
   @Override
-  public AnalyticsData saveAnalyzedDefectStatistics(int amountToAnalyze, int analyzedAmount,
+  public void saveAnalyzedDefectStatistics(int amountToAnalyze, int analyzedAmount,
       int userAnalyzedAmount, Long projectId) {
-    var map = getMapWithCommonParameters(projectId);
-    map.put("sentToAnalyze", amountToAnalyze);
-    map.put("analyzed", analyzedAmount);
-    map.put("userAnalyzed", userAnalyzedAmount);
+    if (isAnalyticsGatheringAllowed()) {
+      var map = getMapWithCommonParameters(projectId);
+      map.put("sentToAnalyze", amountToAnalyze);
+      map.put("analyzed", analyzedAmount);
+      map.put("userAnalyzed", userAnalyzedAmount);
 
-    AnalyticsData ad = new AnalyticsData();
-    ad.setType(DEFECT_UPDATE_STATISTICS.name());
-    ad.setCreatedAt(Instant.now());
-    ad.setMetadata(new Metadata(map));
-    return analyticsDataRepository.save(ad);
+      AnalyticsData ad = new AnalyticsData();
+      ad.setType(DEFECT_UPDATE_STATISTICS.name());
+      ad.setCreatedAt(Instant.now());
+      ad.setMetadata(new Metadata(map));
+      analyticsDataRepository.save(ad);
+    }
+
+  }
+
+  private boolean isAnalyticsGatheringAllowed() {
+    return serverSettingsRepository.selectServerSettings()
+        .stream()
+        .filter(setting -> setting.getKey().equals(SERVER_ANALYTICS_ALL))
+        .findFirst()
+        .map(serverSettings -> Boolean.parseBoolean(serverSettings.getValue()))
+        .orElse(false);
   }
 
   private Map<String, Object> getMapWithCommonParameters(Long projectId) {

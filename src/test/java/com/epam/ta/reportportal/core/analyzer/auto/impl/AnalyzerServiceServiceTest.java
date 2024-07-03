@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl;
 import static com.epam.ta.reportportal.entity.AnalyzeMode.ALL_LAUNCHES;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.PRODUCT_BUG;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyLong;
@@ -40,7 +39,6 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.analytics.AnalyticsData;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -128,9 +126,6 @@ class AnalyzerServiceServiceTest {
     issuesAnalyzer.runAnalyzers(launch,
         items.stream().map(TestItem::getItemId).collect(Collectors.toList()), analyzerConfig
     );
-    when(defectUpdateStatisticsService.saveAnalyzedDefectStatistics(anyInt(), anyInt(), eq(0),
-        anyLong())).thenReturn(new AnalyticsData());
-
 
     verify(analyzerServiceClient, times(1)).analyze(any());
     verify(testItemRepository, times(itemsCount)).save(any());

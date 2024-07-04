@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.project;
+package com.epam.ta.reportportal.core.organization;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.api.model.OrganizationProjectsList;
+import com.epam.ta.reportportal.api.model.OrganizationUsersList;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import org.springframework.data.domain.Pageable;
 
-public interface OrganizationProjectHandler {
+public interface OrganizationUsersHandler {
 
-  OrganizationProjectsList getOrganizationProjectsList(ReportPortalUser user, Long orgId,
-      Filter filter,
-      Pageable pageable);
+  OrganizationUsersList getOrganizationUsers(Queryable filter, Pageable pageable);
+
 }

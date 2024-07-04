@@ -28,8 +28,8 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
-import com.epam.ta.reportportal.model.OrganizationProfile;
-import com.epam.ta.reportportal.model.OrganizationProfilesList;
+import com.epam.ta.reportportal.api.model.OrganizationProfile;
+import com.epam.ta.reportportal.api.model.OrganizationProfilesList;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -63,7 +63,7 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
   public OrganizationProfilesList getOrganizations(Queryable filter, Pageable pageable) {
     var organizationProfilesPage = organizationRepositoryCustom.findByFilter(filter, pageable);
 
-    OrganizationProfilesList organizationProfilesList  =
+    OrganizationProfilesList organizationProfilesList =
         new OrganizationProfilesList()
             .organizationProfilesListItems(organizationProfilesPage.getContent());
 

@@ -9,6 +9,9 @@
     "java.time.OffsetDateTime": "java.time.Instant",
     "ReportPortalUser": "com.epam.ta.reportportal.commons.ReportPortalUser"
   },
+  "interfaceOnly": true,
+  "useTags": true,
+  "java21": true,
   "library": "spring-boot",
   "hideGenerationTimestamp": true
 }

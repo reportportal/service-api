@@ -96,8 +96,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/project")
-@Tag(name = "project-controller-deprecated", description = "Project Controller Deprecated API")
-@Deprecated
+@Tag(name = "project-controller", description = "Project Controller API")
 public class ProjectController {
 
   private final ProjectExtractor projectExtractor;
@@ -312,6 +311,7 @@ public class ProjectController {
     );
   }
 
+  @Deprecated
   @Transactional(readOnly = true)
   @PreAuthorize(IS_ADMIN)
   @GetMapping(value = "/list")

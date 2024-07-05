@@ -38,6 +38,8 @@ import com.epam.reportportal.rules.commons.validation.BusinessRuleViolationExcep
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.analytics.DefectUpdateStatisticsService;
+import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.LogIndexerService;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -122,13 +124,17 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
   private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
+  private final DefectUpdateStatisticsService defectUpdateStatisticsService;
+
+
   @Autowired
   public UpdateTestItemHandlerImpl(TestItemService testItemService,
       ProjectRepository projectRepository, TestItemRepository testItemRepository,
       ExternalTicketHandler externalTicketHandler, IssueTypeHandler issueTypeHandler,
       MessageBus messageBus, LogIndexerService logIndexerService,
       IssueEntityRepository issueEntityRepository,
-      Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
+      Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping,
+      DefectUpdateStatisticsService defectUpdateStatisticsService) {
     this.testItemService = testItemService;
     this.projectRepository = projectRepository;
     this.testItemRepository = testItemRepository;
@@ -138,6 +144,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     this.logIndexerService = logIndexerService;
     this.issueEntityRepository = issueEntityRepository;
     this.statusChangingStrategyMapping = statusChangingStrategyMapping;
+    this.defectUpdateStatisticsService = defectUpdateStatisticsService;
   }
 
   @Override
@@ -154,6 +161,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     List<ItemIssueTypeDefinedEvent> events = new ArrayList<>();
     List<TestItem> itemsForIndexUpdate = new ArrayList<>();
     List<Long> itemsForIndexRemove = new ArrayList<>();
+
+    // save data for analytics
+    defectUpdateStatisticsService.saveAnalyzedDefectStatistics(definitions.size(), 0,
+        definitions.size(), projectDetails.getProjectId());
 
     definitions.forEach(issueDefinition -> {
       try {
@@ -214,6 +225,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     events.forEach(messageBus::publishActivity);
     return updated;
   }
+
 
   @Override
   public OperationCompletionRS updateTestItem(MembershipDetails membershipDetails,

@@ -20,6 +20,8 @@ import static com.epam.ta.reportportal.util.OffsetUtils.withOffsetData;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.api.model.OrganizationProfile;
+import com.epam.ta.reportportal.api.model.OrganizationProfilesList;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -28,8 +30,6 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
-import com.epam.ta.reportportal.api.model.OrganizationProfile;
-import com.epam.ta.reportportal.api.model.OrganizationProfilesList;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;

@@ -20,6 +20,9 @@ import com.epam.ta.reportportal.api.model.OrganizationUsersList;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import org.springframework.data.domain.Pageable;
 
+/**
+ * This is an interface for handling of organization users from the database.
+ */
 public interface OrganizationUsersHandler {
 
   OrganizationUsersList getOrganizationUsers(Queryable filter, Pageable pageable);

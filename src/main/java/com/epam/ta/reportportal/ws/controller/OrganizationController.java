@@ -61,7 +61,6 @@ public class OrganizationController extends BaseController implements Organizati
   public ResponseEntity<OrganizationProfilesList> getOrganizations(Integer offset, Integer limit,
       String order, String name, String slug, String sort) {
     var user = getLoggedUser();
-
     Filter filter = new Filter(OrganizationFilter.class, Lists.newArrayList());
 
     if (UserRole.ADMINISTRATOR != user.getUserRole()) {

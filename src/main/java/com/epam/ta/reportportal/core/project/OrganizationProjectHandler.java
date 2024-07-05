@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.core.project;
 
+import com.epam.ta.reportportal.api.model.OrganizationProjectsList;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.api.model.OrganizationProjectsList;
 import org.springframework.data.domain.Pageable;
 
 public interface OrganizationProjectHandler {

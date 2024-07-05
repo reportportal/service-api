@@ -64,7 +64,6 @@ public class OrganizationProjectController extends BaseController implements Pro
       String name,
       String slug,
       String sort) {
-    var user = getLoggedUser();
 
     organizationRepositoryCustom.findById(orgId).orElseThrow(() -> new ReportPortalException(
         ErrorType.ORGANIZATION_NOT_FOUND, orgId));
@@ -81,7 +80,7 @@ public class OrganizationProjectController extends BaseController implements Pro
       filter.withCondition(
           new FilterCondition(Condition.EQUALS, false, slug, "slug"));
     }
-
+    var user = getLoggedUser();
     return ResponseEntity.status(OK)
         .body(
             organizationProjectHandler.getOrganizationProjectsList(user, orgId, filter, pageable));

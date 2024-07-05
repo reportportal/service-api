@@ -164,7 +164,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
     // save data for analytics
     defectUpdateStatisticsService.saveAnalyzedDefectStatistics(definitions.size(), 0,
-        definitions.size(), projectDetails.getProjectId());
+        definitions.size(), membershipDetails.getProjectId());
 
     definitions.forEach(issueDefinition -> {
       try {

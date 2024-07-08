@@ -19,11 +19,11 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
 import static org.springframework.http.HttpStatus.OK;
 
+import com.epam.reportportal.api.ProjectsApi;
+import com.epam.reportportal.api.model.OrganizationProjectsPage;
+import com.epam.reportportal.api.model.ProjectProfile;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.api.ProjectsApi;
-import com.epam.ta.reportportal.api.model.OrganizationProjectsList;
-import com.epam.ta.reportportal.api.model.ProjectProfile;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -56,13 +56,8 @@ public class OrganizationProjectController extends BaseController implements Pro
   @Transactional(readOnly = true)
   @PreAuthorize(ORGANIZATION_MEMBER)
   @Override
-  public ResponseEntity<OrganizationProjectsList> getOrganizationsOrgIdProjects(
-      Long orgId,
-      Integer limit,
-      Integer offset,
-      String order,
-      String name,
-      String slug,
+  public ResponseEntity<OrganizationProjectsPage> getOrganizationsOrgIdProjects(
+      Long orgId, Integer limit, Integer offset, String order, String name, String slug,
       String sort) {
 
     organizationRepositoryCustom.findById(orgId).orElseThrow(() -> new ReportPortalException(

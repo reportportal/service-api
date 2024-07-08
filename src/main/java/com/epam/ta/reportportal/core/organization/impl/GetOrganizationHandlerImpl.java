@@ -18,10 +18,10 @@ package com.epam.ta.reportportal.core.organization.impl;
 
 import static com.epam.ta.reportportal.util.OffsetUtils.withOffsetData;
 
+import com.epam.reportportal.api.model.OrganizationProfile;
+import com.epam.reportportal.api.model.OrganizationProfilesList;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.api.model.OrganizationProfile;
-import com.epam.ta.reportportal.api.model.OrganizationProfilesList;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -65,7 +65,7 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
 
     OrganizationProfilesList organizationProfilesList =
         new OrganizationProfilesList()
-            .organizationProfilesListItems(organizationProfilesPage.getContent());
+            .items(organizationProfilesPage.getContent());
 
     return withOffsetData(organizationProfilesList, organizationProfilesPage);
   }

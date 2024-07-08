@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.organization;
 
-import com.epam.ta.reportportal.api.model.OrganizationUsersList;
+import com.epam.reportportal.api.model.OrganizationUsersPage;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import org.springframework.data.domain.Pageable;
 
@@ -25,6 +25,6 @@ import org.springframework.data.domain.Pageable;
  */
 public interface OrganizationUsersHandler {
 
-  OrganizationUsersList getOrganizationUsers(Queryable filter, Pageable pageable);
+  OrganizationUsersPage getOrganizationUsers(Queryable filter, Pageable pageable);
 
 }

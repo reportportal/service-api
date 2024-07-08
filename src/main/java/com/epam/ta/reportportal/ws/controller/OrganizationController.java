@@ -19,9 +19,9 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.USER;
 
-import com.epam.ta.reportportal.api.OrganizationsApi;
-import com.epam.ta.reportportal.api.model.OrganizationProfile;
-import com.epam.ta.reportportal.api.model.OrganizationProfilesList;
+import com.epam.reportportal.api.OrganizationsApi;
+import com.epam.reportportal.api.model.OrganizationProfile;
+import com.epam.reportportal.api.model.OrganizationProfilesList;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;

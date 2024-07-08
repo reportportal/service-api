@@ -19,10 +19,10 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MANAGER;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
 
+import com.epam.reportportal.api.UsersApi;
+import com.epam.reportportal.api.model.OrganizationUsersPage;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.api.UsersApi;
-import com.epam.ta.reportportal.api.model.OrganizationUsersList;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -54,7 +54,7 @@ public class OrganizationUsersController extends BaseController implements Users
   @Override
   @PreAuthorize(ORGANIZATION_MANAGER)
   @Transactional(readOnly = true)
-  public ResponseEntity<OrganizationUsersList> getOrganizationsOrgIdUsers(Long orgId, Integer limit,
+  public ResponseEntity<OrganizationUsersPage> getOrganizationsOrgIdUsers(Long orgId, Integer limit,
       Integer offset, String sort, String order) {
     organizationRepositoryCustom.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));

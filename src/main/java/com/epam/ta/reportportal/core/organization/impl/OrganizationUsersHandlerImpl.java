@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.organization.impl;
 
 import static com.epam.ta.reportportal.util.OffsetUtils.withOffsetData;
 
-import com.epam.ta.reportportal.api.model.OrganizationUsersList;
+import com.epam.reportportal.api.model.OrganizationUsersPage;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.organization.OrganizationUsersHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationUsersRepositoryCustom;
@@ -37,13 +37,13 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
   }
 
   @Override
-  public OrganizationUsersList getOrganizationUsers(Queryable filter, Pageable pageable) {
+  public OrganizationUsersPage getOrganizationUsers(Queryable filter, Pageable pageable) {
     var organizationUserProfiles = organizationUsersRepositoryCustom.findByFilter(filter, pageable);
 
-    OrganizationUsersList organizationUsersList =
-        new OrganizationUsersList()
-            .organizationUsersListItems(organizationUserProfiles.getContent());
+    OrganizationUsersPage organizationUsersPage =
+        new OrganizationUsersPage()
+            .items(organizationUserProfiles.getContent());
 
-    return withOffsetData(organizationUsersList, organizationUserProfiles);
+    return withOffsetData(organizationUsersPage, organizationUserProfiles);
   }
 }

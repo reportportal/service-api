@@ -18,10 +18,10 @@ package com.epam.ta.reportportal.core.project.impl;
 
 import static com.epam.ta.reportportal.util.OffsetUtils.withOffsetData;
 
+import com.epam.reportportal.api.model.OrganizationProjectsPage;
+import com.epam.reportportal.api.model.ProjectProfile;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.api.model.OrganizationProjectsList;
-import com.epam.ta.reportportal.api.model.ProjectProfile;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -53,16 +53,16 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
   }
 
   @Override
-  public OrganizationProjectsList getOrganizationProjectsList(ReportPortalUser user, Long orgId,
+  public OrganizationProjectsPage getOrganizationProjectsList(ReportPortalUser user, Long orgId,
       Filter filter,
       Pageable pageable) {
     Page<ProjectProfile> projectProfileList = getProjectProfileList(user, orgId, filter, pageable);
 
-    OrganizationProjectsList organizationProjectsList =
-        new OrganizationProjectsList()
-            .organizationProjectsListItems(projectProfileList.getContent());
+    OrganizationProjectsPage organizationProjectsPage =
+        new OrganizationProjectsPage()
+            .items(projectProfileList.getContent());
 
-    return withOffsetData(organizationProjectsList, projectProfileList);
+    return withOffsetData(organizationProjectsPage, projectProfileList);
   }
 
   Page<ProjectProfile> getProjectProfileList(ReportPortalUser user, Long orgId, Filter filter,

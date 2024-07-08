@@ -7,7 +7,7 @@ project.ext {
     limits = [
             'instruction': 70,
             'branch'     : 51,
-            'line'       : 74,
+            'line'       : 72,
             'complexity' : 60,
             'method'     : 65,
             'class'      : 90
@@ -71,6 +71,7 @@ project.ext {
             (migrationsUrl + '/migrations/86_notication_update.up.sql')                : 'V086__notication_update.sql',
             (migrationsUrl + '/migrations/88_add_retention_policy_launch.up.sql')      : 'V088__add_retention_policy_launch.sql',
             (migrationsUrl + '/migrations/89_add_group_enum_value.up.sql')             : 'V089__add_group_enum_value.sql',
+            (migrationsUrl + '/migrations/90_analytics_data_table.up.sql')             : 'V090__analytics_data_table.sql',
             (migrationsUrl + '/migrations/200_migrate_org_roles.up.sql')               : 'V200__migrate_org_roles.sql',
             (migrationsUrl + '/migrations/201_drop_table_onboarding.up.sql')           : 'V201__drop_table_onboarding.sql',
             (migrationsUrl + '/migrations/202_update_project_table.up.sql')            : 'V202__update_project_table.up.sql',

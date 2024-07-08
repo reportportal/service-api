@@ -115,7 +115,7 @@ dependencies {
     implementation 'xerces:xercesImpl:2.12.2'
     implementation 'com.lowagie:itext:2.1.7.js7'
     // JasperReport's export to XLS uses Apache POI
-    implementation 'org.apache.poi:poi:5.2.3'
+    implementation 'org.apache.poi:poi:4.1.2'
     implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
     implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'com.google.api-client:google-api-client:2.3.0'

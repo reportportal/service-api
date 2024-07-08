@@ -172,10 +172,11 @@ public class LaunchController {
   @Operation(summary = "Force finish launch for specified project")
   public OperationCompletionRS forceFinishLaunch(@PathVariable String projectKey,
       @PathVariable Long launchId, @RequestBody @Validated FinishExecutionRQ finishExecutionRQ,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @AuthenticationPrincipal ReportPortalUser user,
+      HttpServletRequest request) {
     return stopLaunchHandler.stopLaunch(launchId, finishExecutionRQ,
-        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user
-    );
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
+        composeBaseUrl(request));
   }
 
   @Transactional
@@ -185,10 +186,11 @@ public class LaunchController {
   @Operation(summary = "Force finish launch")
   public List<OperationCompletionRS> bulkForceFinish(@PathVariable String projectKey,
       @RequestBody @Validated BulkRQ<Long, FinishExecutionRQ> rq,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @AuthenticationPrincipal ReportPortalUser user,
+      HttpServletRequest request) {
     return stopLaunchHandler.stopLaunch(rq,
-        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user
-    );
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
+        composeBaseUrl(request));
   }
 
   @Transactional

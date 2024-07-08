@@ -66,7 +66,7 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
 
   @Override
   public OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ,
-      MembershipDetails membershipDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user, String baseUrl) {
     Launch launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 
@@ -75,7 +75,7 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
 
     launch = new LaunchBuilder(launch).addDescription(
             ofNullable(finishLaunchRQ.getDescription()).orElse(
-                ofNullable(launch.getDescription()).orElse("")).concat(LAUNCH_STOP_DESCRIPTION))
+            ofNullable(launch.getDescription()).orElse("")).concat(LAUNCH_STOP_DESCRIPTION))
         .addStatus(ofNullable(finishLaunchRQ.getStatus()).orElse(STOPPED.name()))
         .addEndTime(ofNullable(finishLaunchRQ.getEndTime()).orElse(Instant.now()))
         .addAttributes(finishLaunchRQ.getAttributes())
@@ -85,15 +85,15 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
     testItemRepository.interruptInProgressItems(launch.getId());
 
     eventPublisher.publishEvent(
-        new LaunchFinishedEvent(launch, user.getUserId(), user.getUsername(), false));
+        new LaunchFinishedEvent(launch, user.getUserId(), user.getUsername(), baseUrl));
     return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully stopped.");
   }
 
   @Override
   public List<OperationCompletionRS> stopLaunch(BulkRQ<Long, FinishExecutionRQ> bulkRQ,
-      MembershipDetails membershipDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user, String baseUrl) {
     return bulkRQ.getEntities().entrySet().stream()
-        .map(entry -> stopLaunch(entry.getKey(), entry.getValue(), membershipDetails, user))
+        .map(entry -> stopLaunch(entry.getKey(), entry.getValue(), membershipDetails, user, baseUrl))
         .collect(toList());
   }
 }

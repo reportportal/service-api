@@ -17,10 +17,11 @@
 package com.epam.ta.reportportal.reporting.async;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.Queue;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -28,17 +29,22 @@ import org.springframework.stereotype.Component;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Component
-public class ShutdownHook implements DisposableBean {
+public class UnbindQueuesOnShutdown implements DisposableBean {
 
-  @Autowired
-  @Qualifier("reportingConsistentQueues")
-  private List<Queue> queues;
+  private final List<Binding> bindings;
+  private final List<String> queues;
+  private final AmqpAdmin amqpAdmin;
 
-  @Autowired
-  private AmqpAdmin amqpAdmin;
+  public UnbindQueuesOnShutdown(@Qualifier("reportingBindings") List<Binding> bindings,
+      @Qualifier("reportingQueues") List<Queue> queues, AmqpAdmin amqpAdmin) {
+    this.bindings = bindings;
+    this.queues = queues.stream().map(Queue::getName).collect(Collectors.toList());
+    this.amqpAdmin = amqpAdmin;
+  }
 
   @Override
   public void destroy() {
-    queues.forEach(q -> amqpAdmin.deleteQueue(q.getName(), false, true));
+    bindings.forEach(amqpAdmin::removeBinding);
+    queues.forEach(q -> amqpAdmin.deleteQueue(q, true, true));
   }
 }

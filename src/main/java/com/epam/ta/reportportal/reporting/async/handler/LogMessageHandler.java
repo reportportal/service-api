@@ -136,14 +136,16 @@ public class LogMessageHandler implements ReportingMessageHandler {
     Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
     logService.saveLogMessage(logFull, effectiveLaunch.getId());
 
-    saveAttachment(request.getFile().getName(), metaInfo,
-        logFull.getId(),
-        projectId,
-        effectiveLaunch.getId(),
-        item.getItemId(),
-        effectiveLaunch.getUuid(),
-        logFull.getUuid()
-    );
+    if (request.getFile() != null) {
+      saveAttachment(request.getFile().getName(), metaInfo,
+          logFull.getId(),
+          projectId,
+          effectiveLaunch.getId(),
+          item.getItemId(),
+          effectiveLaunch.getUuid(),
+          logFull.getUuid()
+      );
+    }
   }
 
   private void createLaunchLog(SaveLogRQ request, Launch launch, BinaryDataMetaInfo metaInfo,
@@ -155,10 +157,12 @@ public class LogMessageHandler implements ReportingMessageHandler {
     logFull.setId(log.getId());
     logService.saveLogMessage(logFull, launch.getId());
 
-    saveAttachment(request.getFile().getName(), metaInfo, logFull.getId(), projectId,
-        launch.getId(),
-        null, launch.getUuid(),
-        logFull.getUuid());
+    if (request.getFile() != null) {
+      saveAttachment(request.getFile().getName(), metaInfo, logFull.getId(), projectId,
+          launch.getId(),
+          null, launch.getUuid(),
+          logFull.getUuid());
+    }
   }
 
   private void saveAttachment(String fileName, BinaryDataMetaInfo metaInfo, Long logId,

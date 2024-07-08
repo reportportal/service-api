@@ -20,14 +20,12 @@ import com.epam.ta.reportportal.reporting.async.consumer.ReportingConsumer;
 import com.epam.ta.reportportal.reporting.async.exception.ReportingErrorHandler;
 import com.epam.ta.reportportal.reporting.async.exception.ReportingRetryListener;
 import com.epam.ta.reportportal.reporting.async.handler.provider.ReportingHandlerProvider;
-import com.rabbitmq.http.client.Client;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Binding;
@@ -58,22 +56,19 @@ public class ReportingTopologyConfiguration {
   public static final String REPORTING_EXCHANGE = "e.reporting";
   public static final String RETRY_EXCHANGE = "e.reporting.retry";
   public static final String DEFAULT_CONSISTENT_HASH_ROUTING_KEY = "";
+  public static final String DEFAULT_QUEUE_ROUTING_KEY = "1";
   public static final String REPORTING_QUEUE_PREFIX = "q.reporting.";
   public static final String RETRY_QUEUE = "q.retry.reporting";
   public static final String TTL_QUEUE = "q.retry.reporting.ttl";
   public static final String REPORTING_PARKING_LOT = "q.parkingLot.reporting";
 
   private final AmqpAdmin amqpAdmin;
-  private final Client managementClient;
 
   @Value("${reporting.parkingLot.ttl:7}")
   private long parkingLotTtl;
 
   @Value("${reporting.queues.count:10}")
   private Integer queuesCount;
-
-  @Value("${reporting.consumers.reconnect:true}")
-  private Boolean reconnect;
 
   @Bean
   String instanceUniqueId() {
@@ -88,13 +83,10 @@ public class ReportingTopologyConfiguration {
     return new CustomExchange(REPORTING_EXCHANGE, "x-consistent-hash", true, false, args);
   }
 
-  @Bean("reportingConsistentQueues")
-  List<Queue> reportingConsistentQueues() {
+  @Bean("reportingQueues")
+  List<Queue> reportingQueues() {
     List<Queue> queues = new ArrayList<>(queuesCount);
-    if (reconnect) {
-      queues = reconnectToExistedQueues();
-    }
-    for (int i = queues.size(); i < queuesCount; i++) {
+    for (int i = 0; i < queuesCount; i++) {
       String queueName = REPORTING_QUEUE_PREFIX + instanceUniqueId() + "." + i;
       Queue queue = buildQueue(queueName);
       queues.add(queue);
@@ -103,9 +95,8 @@ public class ReportingTopologyConfiguration {
   }
 
 
-  @Bean("reportingConsistentBindings")
-  List<Binding> reportingConsistentBindings(
-      @Qualifier("reportingConsistentQueues") List<Queue> queues) {
+  @Bean("reportingBindings")
+  List<Binding> reportingBindings(@Qualifier("reportingQueues") List<Queue> queues) {
     List<Binding> bindings = new ArrayList<>();
     for (Queue queue : queues) {
       Binding queueBinding = buildQueueBinding(queue);
@@ -126,14 +117,14 @@ public class ReportingTopologyConfiguration {
   }
 
   @Bean
-  Queue ttlQueue() {
-    return QueueBuilder.durable(TTL_QUEUE).deadLetterExchange(RETRY_EXCHANGE)
-        .deadLetterRoutingKey(RETRY_QUEUE).ttl(RETRY_TTL_MILLIS).build();
+  Binding retryQueueBinding() {
+    return BindingBuilder.bind(retryQueue()).to(retryExchange()).with(RETRY_QUEUE);
   }
 
   @Bean
-  Binding retryQueueBinding() {
-    return BindingBuilder.bind(retryQueue()).to(retryExchange()).with(RETRY_QUEUE);
+  Queue ttlQueue() {
+    return QueueBuilder.durable(TTL_QUEUE).deadLetterExchange(RETRY_EXCHANGE)
+        .deadLetterRoutingKey(RETRY_QUEUE).ttl(RETRY_TTL_MILLIS).build();
   }
 
   @Bean
@@ -150,21 +141,11 @@ public class ReportingTopologyConfiguration {
 
 
   private Binding buildQueueBinding(Queue queue) {
-    String defaultRoutingKey = "1";
     Binding queueBinding = BindingBuilder.bind(queue).to(reportingConsistentExchange())
-        .with(defaultRoutingKey).noargs();
+        .with(DEFAULT_QUEUE_ROUTING_KEY).noargs();
     queueBinding.setShouldDeclare(true);
     queueBinding.setAdminsThatShouldDeclare(amqpAdmin);
     return queueBinding;
-  }
-
-
-  private List<Queue> reconnectToExistedQueues() {
-    return managementClient.getQueues().stream()
-        .filter(q -> q.getName().startsWith(REPORTING_QUEUE_PREFIX))
-        .filter(q -> q.getConsumerCount() == 0)
-        .map(q -> buildQueue(q.getName()))
-        .collect(Collectors.toList());
   }
 
   private Queue buildQueue(String queueName) {
@@ -182,7 +163,7 @@ public class ReportingTopologyConfiguration {
       ApplicationEventPublisher applicationEventPublisher,
       ReportingHandlerProvider reportingHandlerProvider,
       ReportingErrorHandler errorHandler,
-      @Qualifier("reportingConsistentQueues") List<Queue> queues) {
+      @Qualifier("reportingQueues") List<Queue> queues) {
     List<AbstractMessageListenerContainer> containers = new ArrayList<>();
     queues.forEach(q -> {
       SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(
@@ -192,10 +173,13 @@ public class ReportingTopologyConfiguration {
       listenerContainer.addQueueNames(q.getName());
       listenerContainer.setErrorHandler(errorHandler);
       listenerContainer.setExclusive(true);
-      listenerContainer.setMissingQueuesFatal(false);
+      listenerContainer.setPrefetchCount(10);
+      listenerContainer.setDefaultRequeueRejected(false);
+      listenerContainer.setMissingQueuesFatal(true);
       listenerContainer.setApplicationEventPublisher(applicationEventPublisher);
       listenerContainer.setupMessageListener(reportingListener(reportingHandlerProvider));
       listenerContainer.afterPropertiesSet();
+      listenerContainer.start();
       containers.add(listenerContainer);
     });
     return containers;
@@ -208,8 +192,10 @@ public class ReportingTopologyConfiguration {
     retryListener.setConnectionFactory(connectionFactory);
     retryListener.setQueueNames(RETRY_QUEUE);
     retryListener.setErrorHandler(errorHandler);
+    retryListener.setDefaultRequeueRejected(false);
     retryListener.setupMessageListener(reportingRetryListener);
     retryListener.afterPropertiesSet();
+    retryListener.start();
     return retryListener;
   }
 

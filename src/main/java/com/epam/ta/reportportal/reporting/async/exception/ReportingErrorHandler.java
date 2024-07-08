@@ -52,17 +52,16 @@ public class ReportingErrorHandler implements ErrorHandler {
   public void handleError(Throwable t) {
     if (t instanceof ListenerExecutionFailedException executionFailedException) {
       Message failedMessage = executionFailedException.getFailedMessage();
+      failedMessage.getMessageProperties().getHeaders()
+          .put("exception", executionFailedException.getCause().getMessage());
       if (executionFailedException.getCause() instanceof ReportPortalException reportPortalException) {
         if (RETRYABLE_ERROR_TYPES.contains(reportPortalException.getErrorType())) {
           rabbitTemplate.send(RETRY_EXCHANGE, TTL_QUEUE, failedMessage);
           return;
         }
       }
-      log.error(t.getCause().getMessage());
       log.error("Message rejected to the parking lot queue: {}",
           new String(failedMessage.getBody()));
-      failedMessage.getMessageProperties().getHeaders()
-          .put("exception", t.getCause().getMessage());
       rabbitTemplate.send(REPORTING_PARKING_LOT, failedMessage);
     }
   }

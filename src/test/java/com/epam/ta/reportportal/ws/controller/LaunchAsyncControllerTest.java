@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.core.launch.MergeLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.reporting.async.controller.LaunchAsyncController;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.reporting.MergeLaunchesRQ;

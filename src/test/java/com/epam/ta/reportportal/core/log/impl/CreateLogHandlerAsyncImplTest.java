@@ -17,16 +17,20 @@
 package com.epam.ta.reportportal.core.log.impl;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.util.ReportingQueueService;
+import com.epam.ta.reportportal.reporting.async.producer.LogProducer;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
+import java.util.UUID;
 import javax.inject.Provider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,16 +52,10 @@ class CreateLogHandlerAsyncImplTest {
   Provider<SaveLogBinaryDataTaskAsync> provider;
 
   @Mock
-  ReportingQueueService reportingQueueService;
-
-  @Mock
   AmqpTemplate amqpTemplate;
 
-  @Mock
-  TaskExecutor taskExecutor;
-
   @InjectMocks
-  CreateLogHandlerAsyncImpl createLogHandlerAsync;
+  LogProducer createLogHandlerAsync;
 
   @Mock
   MultipartFile multipartFile;
@@ -67,6 +65,9 @@ class CreateLogHandlerAsyncImplTest {
 
   @Mock
   BinaryDataMetaInfo binaryDataMetaInfo;
+
+  @Mock
+  TaskExecutor saveLogsTaskExecutor;
 
   @Test
   void createLog() {
@@ -92,10 +93,25 @@ class CreateLogHandlerAsyncImplTest {
   @Test
   void sendMessage() {
     SaveLogRQ request = new SaveLogRQ();
+    request.setLaunchUuid(UUID.randomUUID().toString());
 
     createLogHandlerAsync.sendMessage(request, binaryDataMetaInfo, 0L);
     verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
-    verify(reportingQueueService).getReportingQueueKey(any());
+  }
+
+
+  @Test
+  void sendMessageWithoutLaunchUuid() {
+    SaveLogRQ request = new SaveLogRQ();
+
+    ReportPortalException exception = assertThrows(
+        ReportPortalException.class,
+        () -> createLogHandlerAsync.sendMessage(request, binaryDataMetaInfo, 0L)
+    );
+    assertEquals(
+        "Error in handled Request. Please, check specified parameters: 'Launch UUID should not be null or empty.'",
+        exception.getMessage()
+    );
   }
 
 }

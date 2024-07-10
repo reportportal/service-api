@@ -16,10 +16,10 @@
 
 package com.epam.ta.reportportal.core.organization;
 
+import com.epam.reportportal.api.model.OrganizationProfile;
+import com.epam.reportportal.api.model.OrganizationProfilesList;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
-import com.epam.ta.reportportal.model.OrganizationProfile;
-import com.epam.ta.reportportal.model.OrganizationProfilesList;
 import com.epam.ta.reportportal.model.organization.OrganizationResource;
 import org.springframework.data.domain.Pageable;
 

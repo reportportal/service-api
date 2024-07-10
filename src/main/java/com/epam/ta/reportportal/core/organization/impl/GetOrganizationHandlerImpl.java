@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.core.organization.impl;
 
 import static com.epam.ta.reportportal.util.OffsetUtils.withOffsetData;
 
+import com.epam.reportportal.api.model.OrganizationProfile;
+import com.epam.reportportal.api.model.OrganizationProfilesList;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -28,8 +30,6 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
-import com.epam.ta.reportportal.model.OrganizationProfile;
-import com.epam.ta.reportportal.model.OrganizationProfilesList;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -63,9 +63,9 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
   public OrganizationProfilesList getOrganizations(Queryable filter, Pageable pageable) {
     var organizationProfilesPage = organizationRepositoryCustom.findByFilter(filter, pageable);
 
-    OrganizationProfilesList organizationProfilesList  =
+    OrganizationProfilesList organizationProfilesList =
         new OrganizationProfilesList()
-            .organizationProfilesListItems(organizationProfilesPage.getContent());
+            .items(organizationProfilesPage.getContent());
 
     return withOffsetData(organizationProfilesList, organizationProfilesPage);
   }

@@ -69,8 +69,8 @@ dependencies {
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:plugin-api:5.11.1'
     } else {
-        implementation 'com.github.reportportal:commons-dao:e99ed4e'
-        implementation 'com.github.reportportal:commons:df2369b'
+        implementation 'com.github.reportportal:commons-dao:8af8199'
+        implementation 'com.github.reportportal:commons:a6b1156'
         implementation 'com.github.reportportal:plugin-api:d1c0f0e'
     }
     swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.57'
@@ -205,8 +205,7 @@ swaggerSources {
         code {
             language = 'spring'
             configFile = file("$rootDir/src/main/resources/openapi/config.json")
-            components = ['models'] // 'apis' to be generated later
-
+            components = ['apis']
             jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
             outputDir = file("$buildDir/generated")
             wipeOutputDir = true

@@ -1,6 +1,6 @@
 {
-  "apiPackage": "com.epam.ta.reportportal.api",
-  "modelPackage": "com.epam.ta.reportportal.api.model",
+  "apiPackage": "com.epam.reportportal.api",
+  "modelPackage": "com.epam.reportportal.api.model",
   "dateLibrary": "java8",
   "typeMappings": {
     "OffsetDateTime": "Instant"
@@ -9,6 +9,9 @@
     "java.time.OffsetDateTime": "java.time.Instant",
     "ReportPortalUser": "com.epam.ta.reportportal.commons.ReportPortalUser"
   },
+  "interfaceOnly": true,
+  "useTags": true,
+  "java21": true,
   "library": "spring-boot",
   "hideGenerationTimestamp": true
 }

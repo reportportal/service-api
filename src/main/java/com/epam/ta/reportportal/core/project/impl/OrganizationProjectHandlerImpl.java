@@ -63,8 +63,8 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
   public OrganizationProjectsPage getOrganizationProjectsList(ReportPortalUser user, Long orgId,
       Filter filter, Pageable pageable) {
     addOrganizationMemberFilter(user, filter, orgId);
-    Page<ProjectProfile> projectProfileList = organizationProjectRepository.getProjectProfileListByFilter(
-        filter, pageable);
+    Page<ProjectProfile> projectProfileList =
+        organizationProjectRepository.getProjectProfileListByFilter(filter, pageable);
 
     OrganizationProjectsPage organizationProjectsPage =
         new OrganizationProjectsPage()
@@ -75,10 +75,9 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
 
 
   /**
-   * This method modifies the given filter based on the user's role
-   * <p>
-   * If the user is NOT an ADMINISTRATOR and their role in the organization is MEMBER, the filter is
-   * modified to add a condition that filters by projects that the user is part of.
+   * This method modifies the given filter based on the user's role. If the user is NOT an
+   * ADMINISTRATOR and their role in the organization is MEMBER, the filter is modified to add a
+   * condition that filters by projects that the user is part of.
    *
    * @param user   the {@link ReportPortalUser} logged-in user info
    * @param filter the {@link Filter} that is to be modified

@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.ta.reportportal.util.OffsetUtils.withOffsetData;
+import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
 
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
 import com.epam.reportportal.api.model.ProjectProfile;
@@ -47,43 +47,11 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     this.projectUserRepository = projectUserRepository;
   }
 
-  /**
-   * This method returns a page of projects for a particular organization based on the provided
-   * filter and pagination details.
-   *
-   * @param user     the {@link ReportPortalUser} whose details are used to apply the additional
-   *                 filters
-   * @param orgId    the id of the organization whose projects are queried
-   * @param filter   the {@link Filter} with condition(s) to be applied on the project querying
-   * @param pageable the {@link Pageable} to define the pagination details for the result
-   * @return an {@link OrganizationProjectsPage} representing a page of projects for the provided
-   * organization
-   */
   @Override
   public OrganizationProjectsPage getOrganizationProjectsList(ReportPortalUser user, Long orgId,
       Filter filter, Pageable pageable) {
-    addOrganizationMemberFilter(user, filter, orgId);
-    Page<ProjectProfile> projectProfileList =
-        organizationProjectRepository.getProjectProfileListByFilter(filter, pageable);
+    OrganizationProjectsPage organizationProjectsPage = new OrganizationProjectsPage();
 
-    OrganizationProjectsPage organizationProjectsPage =
-        new OrganizationProjectsPage()
-            .items(projectProfileList.getContent());
-
-    return withOffsetData(organizationProjectsPage, projectProfileList);
-  }
-
-
-  /**
-   * This method modifies the given filter based on the user's role. If the user is NOT an
-   * ADMINISTRATOR and their role in the organization is MEMBER, the filter is modified to add a
-   * condition that filters by projects that the user is part of.
-   *
-   * @param user   the {@link ReportPortalUser} logged-in user info
-   * @param filter the {@link Filter} that is to be modified
-   * @param orgId  the id of the organization that the user is part of
-   */
-  private void addOrganizationMemberFilter(ReportPortalUser user, Filter filter, Long orgId) {
     if (!user.getUserRole().equals(UserRole.ADMINISTRATOR)
         && user.getOrganizationDetails().get(orgId.toString()).getOrgRole()
         .equals(OrganizationRole.MEMBER)) {
@@ -92,10 +60,23 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
           .stream()
           .map(Object::toString)
           .collect(Collectors.joining(","));
-      if (!projectIds.isEmpty()) {
+
+      if (projectIds.isEmpty()) {
+        // return empty response
+        return responseWithPageParameters(organizationProjectsPage, pageable, 0);
+      } else {
         filter.withCondition(
             new FilterCondition(Condition.IN, false, projectIds, CRITERIA_PROJECT_ID));
       }
     }
+
+    Page<ProjectProfile> projectProfilePagedList =
+        organizationProjectRepository.getProjectProfileListByFilter(filter, pageable);
+    organizationProjectsPage.items(projectProfilePagedList.getContent());
+
+    return responseWithPageParameters(organizationProjectsPage, pageable,
+        projectProfilePagedList.getTotalElements());
   }
+
+
 }

@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.organization.impl;
 
-import static com.epam.ta.reportportal.util.OffsetUtils.withOffsetData;
+import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
 
 import com.epam.reportportal.api.model.OrganizationUsersPage;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
@@ -44,6 +44,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
         new OrganizationUsersPage()
             .items(organizationUserProfiles.getContent());
 
-    return withOffsetData(organizationUsersPage, organizationUserProfiles);
+    return responseWithPageParameters(organizationUsersPage, pageable,
+        organizationUserProfiles.getTotalElements());
   }
 }

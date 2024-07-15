@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.ws.controller;
+package com.epam.ta.reportportal.reporting.async.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
@@ -64,8 +64,8 @@ public class TestItemAsyncController {
 
   @Autowired
   public TestItemAsyncController(ProjectExtractor projectExtractor,
-      @Qualifier("startTestItemHandlerAsync") StartTestItemHandler startTestItemHandler,
-      @Qualifier("finishTestItemHandlerAsync") FinishTestItemHandler finishTestItemHandler) {
+      @Qualifier("itemStartProducer") StartTestItemHandler startTestItemHandler,
+      @Qualifier("itemFinishProducer") FinishTestItemHandler finishTestItemHandler) {
     this.projectExtractor = projectExtractor;
     this.startTestItemHandler = startTestItemHandler;
     this.finishTestItemHandler = finishTestItemHandler;
@@ -74,7 +74,7 @@ public class TestItemAsyncController {
   @HttpLogging
   @PostMapping
   @ResponseStatus(CREATED)
-  @Operation(summary = "Start a root test item")
+  @Operation(description = "Start a root test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
   public EntryCreatedAsyncRS startRootItem(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user,
@@ -86,7 +86,7 @@ public class TestItemAsyncController {
   @HttpLogging
   @PostMapping("/{parentItem}")
   @ResponseStatus(CREATED)
-  @Operation(summary = "Start a child test item")
+  @Operation(description = "Start a child test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
   public EntryCreatedAsyncRS startChildItem(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user,
@@ -98,7 +98,7 @@ public class TestItemAsyncController {
   @HttpLogging
   @PutMapping("/{testItemId}")
   @ResponseStatus(OK)
-  @Operation(summary = "Finish test item")
+  @Operation(description = "Finish test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
   public OperationCompletionRS finishTestItem(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user,

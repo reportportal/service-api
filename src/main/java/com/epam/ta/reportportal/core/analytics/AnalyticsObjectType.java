@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2024 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.ws.rabbit;
+package com.epam.ta.reportportal.core.analytics;
+
 
 /**
- * @author Konstantin Antipin
+ * Enumeration of analytics data types.<br>
+ *
+ * @author Siarhei Hrabko
  */
-public enum RequestType {
-  START_LAUNCH, FINISH_LAUNCH, START_TEST, FINISH_TEST, LOG
+public enum AnalyticsObjectType {
+
+  DEFECT_UPDATE_STATISTICS
 }

@@ -34,6 +34,7 @@ public class ExportUtils {
 
   public static int getStatisticsCounter(Set<Statistics> statistics, String statisticsFieldName) {
     return statistics.stream()
+        .filter(it -> !StringUtils.isEmpty(it.getStatisticsField().getName()))
         .filter(it -> it.getStatisticsField().getName().equals(statisticsFieldName))
         .mapToInt(Statistics::getCounter)
         .findAny()

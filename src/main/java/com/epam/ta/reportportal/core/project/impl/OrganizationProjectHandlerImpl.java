@@ -92,8 +92,10 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
           .stream()
           .map(Object::toString)
           .collect(Collectors.joining(","));
-      filter.withCondition(
-          new FilterCondition(Condition.IN, false, projectIds, CRITERIA_PROJECT_ID));
+      if (!projectIds.isEmpty()) {
+        filter.withCondition(
+            new FilterCondition(Condition.IN, false, projectIds, CRITERIA_PROJECT_ID));
+      }
     }
   }
 }

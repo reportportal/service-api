@@ -29,7 +29,6 @@ import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.imprt.ImportLaunchHandler;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.launch.DeleteLaunchHandler;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
@@ -45,7 +44,6 @@ import com.epam.ta.reportportal.model.BulkRQ;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
-import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
 import com.epam.ta.reportportal.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.model.launch.cluster.CreateClustersRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -73,7 +71,6 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,11 +83,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Controller implementation for {@link com.epam.ta.reportportal.entity.launch.Launch} entity
@@ -115,7 +110,6 @@ public class LaunchController {
   private final GetLaunchHandler getLaunchMessageHandler;
   private final UpdateLaunchHandler updateLaunchHandler;
   private final MergeLaunchHandler mergeLaunchesHandler;
-  private final ImportLaunchHandler importLaunchHandler;
   private final GetJasperReportHandler<Launch> getJasperHandler;
 
   @Autowired
@@ -123,7 +117,6 @@ public class LaunchController {
       FinishLaunchHandler finishLaunchHandler, StopLaunchHandler stopLaunchHandler,
       DeleteLaunchHandler deleteLaunchMessageHandler, GetLaunchHandler getLaunchMessageHandler,
       UpdateLaunchHandler updateLaunchHandler, MergeLaunchHandler mergeLaunchesHandler,
-      ImportLaunchHandler importLaunchHandler,
       @Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> getJasperHandler) {
     this.projectExtractor = projectExtractor;
     this.startLaunchHandler = startLaunchHandler;
@@ -133,7 +126,6 @@ public class LaunchController {
     this.getLaunchMessageHandler = getLaunchMessageHandler;
     this.updateLaunchHandler = updateLaunchHandler;
     this.mergeLaunchesHandler = mergeLaunchesHandler;
-    this.importLaunchHandler = importLaunchHandler;
     this.getJasperHandler = getJasperHandler;
   }
 
@@ -354,7 +346,7 @@ public class LaunchController {
   @Operation(summary = "Get launch names of project")
   public List<String> getAllLaunchNames(@PathVariable String projectName,
       @RequestParam(value = "filter." + "cnt." + "name", required = false, defaultValue = "")
-      String value, @AuthenticationPrincipal ReportPortalUser user) {
+          String value, @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLaunchNames(
         projectExtractor.extractProjectDetails(user, normalizeId(projectName)), value);
   }
@@ -426,7 +418,7 @@ public class LaunchController {
   @Operation(summary = "Export specified launch",
       description = "Only following formats are supported: pdf (by default), xls, html.")
   public void getLaunchReport(@PathVariable String projectName, @PathVariable Long launchId,
-      @Parameter(schema = @Schema(allowableValues = { "pdf", "xls", "html" }))
+      @Parameter(schema = @Schema(allowableValues = {"pdf", "xls", "html"}))
       @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
       @AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
 
@@ -457,20 +449,6 @@ public class LaunchController {
       @RequestParam(value = "ids") List<Long> ids, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteLaunchMessageHandler.deleteLaunches(ids,
         projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user
-    );
-  }
-
-  @PostMapping(value = "/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-  @ResponseStatus(OK)
-  @Operation(summary = "Import junit xml report",
-      description = "Only following formats are supported: zip and xml.")
-  public OperationCompletionRS importLaunch(@PathVariable String projectName,
-      @RequestParam("file") MultipartFile file, @AuthenticationPrincipal ReportPortalUser user,
-      HttpServletRequest request,
-      @RequestPart(required = false) @Valid LaunchImportRQ launchImportRq) {
-    return importLaunchHandler.importLaunch(
-        projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user, "XUNIT", file,
-        composeBaseUrl(request), launchImportRq
     );
   }
 }

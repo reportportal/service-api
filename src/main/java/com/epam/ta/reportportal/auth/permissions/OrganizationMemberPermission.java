@@ -21,8 +21,13 @@ import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
+import com.epam.ta.reportportal.entity.organization.Organization;
+import com.epam.ta.reportportal.entity.user.OrganizationUser;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -55,12 +60,31 @@ public class OrganizationMemberPermission implements Permission {
     ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
-    organizationRepositoryCustom.findById((Long) orgId).orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
+    var org = organizationRepositoryCustom.findById((Long) orgId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
-    var ou = organizationUserRepository.findByUserIdAndOrganization_Id(rpUser.getUserId(), (Long) orgId);
+    var organizationUser = organizationUserRepository.findByUserIdAndOrganization_Id(
+        rpUser.getUserId(), (Long) orgId);
+    organizationUser.ifPresent(orgUser -> fillOrganizationDetails(rpUser, org, orgUser));
 
-    return ou.isPresent();
+    return organizationUser.isPresent();
 
+  }
+
+
+  private void fillOrganizationDetails(ReportPortalUser rpUser, Organization organization,
+      OrganizationUser orgUser) {
+    final Map<String, OrganizationDetails> organizationDetailsMap = HashMap.newHashMap(2);
+
+    var orgDetails = new OrganizationDetails(
+        organization.getId(),
+        organization.getName(),
+        orgUser.getOrganizationRole(),
+        new HashMap<>()
+    );
+    organizationDetailsMap.put(organization.getId().toString(), orgDetails);
+
+    rpUser.setOrganizationDetails(organizationDetailsMap);
   }
 
 }

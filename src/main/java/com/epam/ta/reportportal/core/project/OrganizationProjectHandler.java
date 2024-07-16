@@ -23,6 +23,16 @@ import org.springframework.data.domain.Pageable;
 
 public interface OrganizationProjectHandler {
 
+  /**
+   * Returns a page of projects for organization based on the provided filter and pagination.
+   *
+   * @param user     the {@link ReportPortalUser} whose details are used to apply the additional
+   *                 filters
+   * @param orgId    the id of the organization whose projects are queried
+   * @param filter   the {@link Filter} with condition(s) to be applied on the project querying
+   * @param pageable the {@link Pageable} to define the pagination details for the result
+   * @return an {@link OrganizationProjectsPage} represents a page of projects for the organization
+   */
   OrganizationProjectsPage getOrganizationProjectsList(ReportPortalUser user, Long orgId,
       Filter filter,
       Pageable pageable);

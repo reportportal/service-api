@@ -56,7 +56,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
         && user.getOrganizationDetails().get(orgId.toString()).getOrgRole()
         .equals(OrganizationRole.MEMBER)) {
 
-      var projectIds = projectUserRepository.findProjectIdsByUserId(orgId)
+      var projectIds = projectUserRepository.findProjectIdsByUserId(user.getUserId())
           .stream()
           .map(Object::toString)
           .collect(Collectors.joining(","));

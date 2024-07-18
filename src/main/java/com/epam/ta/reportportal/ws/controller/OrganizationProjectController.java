@@ -16,11 +16,14 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MANAGER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
 import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.reportportal.api.ProjectsApi;
+import com.epam.reportportal.api.model.OrganizationProjectInfo;
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
+import com.epam.reportportal.api.model.ProjectDetails;
 import com.epam.reportportal.api.model.ProjectProfile;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -79,6 +82,19 @@ public class OrganizationProjectController extends BaseController implements Pro
     return ResponseEntity.status(OK)
         .body(
             organizationProjectHandler.getOrganizationProjectsList(user, orgId, filter, pageable));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  @PreAuthorize(ORGANIZATION_MANAGER)
+  public ResponseEntity<OrganizationProjectInfo> postOrganizationsOrgIdProjects(Long orgId,
+      ProjectDetails projectDetails
+  ) {
+    var user = getLoggedUser();
+
+    return ResponseEntity
+        .status(OK)
+        .body(organizationProjectHandler.createProject(orgId, projectDetails, user));
   }
 
 }

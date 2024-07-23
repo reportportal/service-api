@@ -28,7 +28,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.util.ReportingQueueService;
+import com.epam.ta.reportportal.reporting.async.producer.ItemFinishProducer;
 import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -48,11 +48,8 @@ class FinishTestItemHandlerAsyncImplTest {
   @Mock
   AmqpTemplate amqpTemplate;
 
-  @Mock
-  ReportingQueueService reportingQueueService;
-
   @InjectMocks
-  FinishTestItemHandlerAsyncImpl finishTestItemHandlerAsync;
+  ItemFinishProducer finishTestItemHandlerAsync;
 
   @Test
   void finishTestItem() {
@@ -64,7 +61,6 @@ class FinishTestItemHandlerAsyncImplTest {
     finishTestItemHandlerAsync.finishTestItem(user, rpUserToMembership(user),
         "123", request);
     verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
-    verify(reportingQueueService).getReportingQueueKey(any());
   }
 
   @Test

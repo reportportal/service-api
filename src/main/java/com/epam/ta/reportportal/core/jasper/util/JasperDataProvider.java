@@ -15,14 +15,12 @@
  */
 package com.epam.ta.reportportal.core.jasper.util;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.epam.ta.reportportal.core.jasper.TestItemPojo;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -30,19 +28,15 @@ import org.springframework.stereotype.Service;
  *
  * @author Andrei_Ramanchuk
  */
+@RequiredArgsConstructor
 @Service("jasperDataProvider")
 public class JasperDataProvider {
 
-  private TestItemRepository testItemRepository;
-
-  @Autowired
-  public JasperDataProvider(TestItemRepository testItemRepository) {
-    this.testItemRepository = checkNotNull(testItemRepository);
-  }
+  private final TestItemRepository testItemRepository;
 
   public List<TestItemPojo> getTestItemsOfLaunch(Launch launch) {
     /* Get launch referred test items with SORT! */
-    return testItemRepository.findTestItemsByLaunchIdOrderByStartTimeAsc(launch.getId())
+    return testItemRepository.selectTestItemsProjection(launch.getId())
         .stream()
         .map(TestItemPojo::new)
         .collect(Collectors.toList());

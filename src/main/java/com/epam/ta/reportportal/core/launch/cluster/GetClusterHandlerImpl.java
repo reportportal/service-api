@@ -16,23 +16,19 @@
 
 package com.epam.ta.reportportal.core.launch.cluster;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
-import static com.epam.ta.reportportal.ws.converter.converters.ClusterConverter.TO_CLUSTER_INFO;
-
 import com.epam.reportportal.extension.event.GetClusterResourcesEvent;
+import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.dao.ClusterRepository;
 import com.epam.ta.reportportal.entity.cluster.Cluster;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
+import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
@@ -60,21 +56,17 @@ public class GetClusterHandlerImpl implements GetClusterHandler {
   @Override
   public Iterable<ClusterInfoResource> getResources(Launch launch, Pageable pageable) {
 
-    final Pageable pageableWithSort = applySort(pageable);
-    final Page<Cluster> clusters =
-        clusterRepository.findAllByLaunchId(launch.getId(), pageableWithSort);
+    Page<ClusterInfoResource> clusters =
+        clusterRepository.findAllByLaunchIdWithCount(launch.getId(), pageable);
 
     return getClusterResources(clusters, launch.getId());
   }
 
-  private Pageable applySort(Pageable pageable) {
-    final Sort idSort = Sort.by(Sort.Order.asc(CRITERIA_ID));
-    return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), idSort);
-  }
-
-  private Iterable<ClusterInfoResource> getClusterResources(Page<Cluster> clusters, Long launchId) {
+  private Iterable<ClusterInfoResource> getClusterResources(Page<ClusterInfoResource> clusters,
+      Long launchId) {
     final com.epam.ta.reportportal.model.Page<ClusterInfoResource> clustersPage =
-        PagedResourcesAssembler.pageConverter(TO_CLUSTER_INFO).apply(clusters);
+        PagedResourcesAssembler.pageConverter(
+            (Function<ClusterInfoResource, ClusterInfoResource>) c -> c).apply(clusters);
     eventPublisher.publishEvent(new GetClusterResourcesEvent(clustersPage.getContent(), launchId));
     return clustersPage;
   }

@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rabbitmq.http.client.Client;
+import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -49,6 +50,7 @@ import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenCo
 @EnableAutoConfiguration(exclude = {QuartzAutoConfiguration.class, RabbitAutoConfiguration.class})
 @ComponentScan(value = {"com.epam.ta.reportportal"}, excludeFilters = {
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.ws.rabbit.*"),
+    @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.reporting.async.*"),
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = {"com.epam.ta.reportportal.job.*"}),
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
         "com.epam.ta.reportportal.core.integration.migration.*"}),
@@ -69,6 +71,9 @@ public class TestConfig {
 
   @MockBean(name = "simpleRabbitListenerContainerFactoryConfigurer")
   protected SimpleRabbitListenerContainerFactoryConfigurer simpleRabbitListenerContainerFactoryConfigurer;
+
+  @MockBean(name = "amqpAdmin")
+  protected AmqpAdmin amqpAdmin;
 
   @MockBean
   protected MessageConverter messageConverter;

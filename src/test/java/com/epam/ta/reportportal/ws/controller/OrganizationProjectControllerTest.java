@@ -17,16 +17,27 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.google.gson.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 
 /**
  * @author Siarhei Hrabko
  */
 class OrganizationProjectControllerTest extends BaseMvcTest {
+
+  private static final String ORG_SLUG = "my-organization";
+
 
   @Test
   void getOrganizationProjectAdmin() throws Exception {
@@ -50,6 +61,32 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.offset").value(0))
         .andExpect(jsonPath("$.limit").value(1));
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+      value = {
+          "Proj Name|proj-name|proj-name",
+          "Proj Name|null|proj-name"
+      },
+      delimiter = '|',
+      nullValues = "null"
+  )
+  void createProject(String name, String slug, String expectSlug) throws Exception {
+    JsonObject jsonBody = new JsonObject();
+    jsonBody.addProperty("name", name);
+    if (StringUtils.isNotEmpty(slug)) {
+      jsonBody.addProperty("slug", slug);
+    }
+
+    mockMvc.perform(post("/organizations/1/projects")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken()))
+            .content(jsonBody.toString()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value(name))
+        .andExpect(jsonPath("$.key").value(ORG_SLUG + "." + expectSlug))
+        .andExpect(jsonPath("$.slug").value(expectSlug));
   }
 
 }

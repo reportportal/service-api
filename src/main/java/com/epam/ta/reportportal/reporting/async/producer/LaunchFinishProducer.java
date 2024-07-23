@@ -21,7 +21,6 @@ import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyC
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
@@ -55,7 +54,7 @@ public class LaunchFinishProducer implements FinishLaunchHandler {
           headers.put(MessageHeaders.HASH_ON, launchId);
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_LAUNCH);
           headers.put(MessageHeaders.USERNAME, user.getUsername());
-          headers.put(MessageHeaders.PROJECT_NAME, membershipDetails.getProjectName());
+          headers.put(MessageHeaders.PROJECT_KEY, membershipDetails.getProjectKey());
           headers.put(MessageHeaders.LAUNCH_ID, launchId);
           headers.put(MessageHeaders.BASE_URL, baseUrl);
           return message;
@@ -63,7 +62,7 @@ public class LaunchFinishProducer implements FinishLaunchHandler {
 
     FinishLaunchRS response = new FinishLaunchRS();
     response.setId(launchId);
-    response.setLink(generateLaunchLink(baseUrl, projectDetails.getProjectName(), launchId));
+    response.setLink(generateLaunchLink(baseUrl, membershipDetails.getProjectKey(), launchId));
     return response;
   }
 }

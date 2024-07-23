@@ -24,7 +24,6 @@ import static java.util.Optional.ofNullable;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
@@ -62,7 +61,7 @@ public class ItemFinishProducer implements FinishTestItemHandler {
           headers.put(MessageHeaders.HASH_ON, launchUuid);
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_TEST);
           headers.put(MessageHeaders.USERNAME, user.getUsername());
-          headers.put(MessageHeaders.PROJECT_NAME, membershipDetails.getProjectName());
+          headers.put(MessageHeaders.PROJECT_KEY, membershipDetails.getProjectKey());
           headers.put(MessageHeaders.ITEM_ID, testItemId);
           return message;
         }

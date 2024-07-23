@@ -56,12 +56,12 @@ public class TestItemFinishMessageHandler implements ReportingMessageHandler {
 
     finishTestItemRQ.ifPresent(rq -> {
       String username = (String) headers.get(MessageHeaders.USERNAME);
-      String projectName = (String) headers.get(MessageHeaders.PROJECT_NAME);
+      String projectName = (String) headers.get(MessageHeaders.PROJECT_KEY);
       String itemId = (String) headers.get(MessageHeaders.ITEM_ID);
       ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
 
       finishTestItemHandler.finishTestItem(user,
-          projectExtractor.extractProjectDetails(user, projectName), itemId, rq);
+          projectExtractor.extractMembershipDetails(user, projectName), itemId, rq);
     });
 
   }

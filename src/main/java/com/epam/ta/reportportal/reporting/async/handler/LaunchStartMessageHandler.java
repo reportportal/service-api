@@ -56,14 +56,14 @@ public class LaunchStartMessageHandler implements
 
     startLaunchRQ.ifPresent(rq -> {
       String projectName = (String) headers
-          .get(MessageHeaders.PROJECT_NAME);
+          .get(MessageHeaders.PROJECT_KEY);
       String username = (String) headers
           .get(MessageHeaders.USERNAME);
       ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(
           username);
 
       startLaunchHandler.startLaunch(user,
-          projectExtractor.extractProjectDetails(user, projectName), rq);
+          projectExtractor.extractMembershipDetails(user, projectName), rq);
     });
   }
 }

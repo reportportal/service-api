@@ -1,10 +1,12 @@
 package com.epam.ta.reportportal.reporting.async.producer;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
@@ -28,11 +30,10 @@ class LaunchStartProducerTest {
   @Test
   void starLaunch() {
     StartLaunchRQ request = new StartLaunchRQ();
-    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER,
-        1L);
+    ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER,
+        ProjectRole.EDITOR, 1L);
 
-    launchStartProducer.startLaunch(user, user.getProjectDetails().get("test_project"),
-        request);
+    launchStartProducer.startLaunch(user, rpUserToMembership(user), request);
     verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
   }
 

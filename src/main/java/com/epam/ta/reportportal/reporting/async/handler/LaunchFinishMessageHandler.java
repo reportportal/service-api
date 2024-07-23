@@ -57,13 +57,13 @@ public class LaunchFinishMessageHandler implements ReportingMessageHandler {
     finishExecutionRQ.ifPresent(rq -> {
 
       String username = (String) headers.get(MessageHeaders.USERNAME);
-      String projectName = (String) headers.get(MessageHeaders.PROJECT_NAME);
+      String projectName = (String) headers.get(MessageHeaders.PROJECT_KEY);
       String launchId = (String) headers.get(MessageHeaders.LAUNCH_ID);
       String baseUrl = (String) headers.get(MessageHeaders.BASE_URL);
 
       ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
       finishLaunchHandler.finishLaunch(launchId, rq,
-          projectExtractor.extractProjectDetails(user, projectName), user, baseUrl);
+          projectExtractor.extractMembershipDetails(user, projectName), user, baseUrl);
 
     });
   }

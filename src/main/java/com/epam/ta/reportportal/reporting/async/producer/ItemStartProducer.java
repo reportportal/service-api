@@ -23,7 +23,6 @@ import static java.util.Optional.ofNullable;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
@@ -31,7 +30,6 @@ import com.epam.ta.reportportal.reporting.async.config.RequestType;
 import com.epam.ta.reportportal.ws.reporting.ItemCreatedRS;
 import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -70,7 +68,7 @@ public class ItemStartProducer implements StartTestItemHandler {
                   ErrorType.BAD_REQUEST_ERROR, "Launch UUID should not be null or empty.")));
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
           headers.put(MessageHeaders.USERNAME, user.getUsername());
-          headers.put(MessageHeaders.PROJECT_NAME, membershipDetails.getProjectName());
+          headers.put(MessageHeaders.PROJECT_KEY, membershipDetails.getProjectKey());
           headers.put(MessageHeaders.PARENT_ITEM_ID, "");
           return message;
         }
@@ -97,7 +95,7 @@ public class ItemStartProducer implements StartTestItemHandler {
           headers.put(MessageHeaders.HASH_ON, launchUuid);
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
           headers.put(MessageHeaders.USERNAME, user.getUsername());
-          headers.put(MessageHeaders.PROJECT_NAME, membershipDetails.getProjectName());
+          headers.put(MessageHeaders.PROJECT_KEY, membershipDetails.getProjectKey());
           headers.put(MessageHeaders.PARENT_ITEM_ID, parentId);
           return message;
         }

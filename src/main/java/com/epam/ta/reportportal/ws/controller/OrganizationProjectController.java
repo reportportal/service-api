@@ -85,7 +85,7 @@ public class OrganizationProjectController extends BaseController implements Pro
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @Transactional
   @PreAuthorize(ORGANIZATION_MANAGER)
   public ResponseEntity<OrganizationProjectInfo> postOrganizationsOrgIdProjects(Long orgId,
       ProjectDetails projectDetails

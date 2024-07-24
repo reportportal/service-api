@@ -63,6 +63,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.ServletContext;
+import org.apache.commons.lang3.StringUtils;
 import org.springdoc.core.SpringDocUtils;
 import org.springdoc.core.customizers.OpenApiCustomiser;
 import org.springdoc.core.customizers.OperationCustomizer;
@@ -133,7 +134,7 @@ public class SpringDocConfiguration {
                         .bearerFormat("JWT")
                 )
         )
-        .addServersItem(new Server().url(pathValue));
+        .addServersItem(new Server().url(getPathValue()));
   }
 
   /**
@@ -287,5 +288,9 @@ public class SpringDocConfiguration {
     for (Parameter parameter : parameters) {
       operation.addParametersItem(parameter);
     }
+  }
+
+  private String getPathValue() {
+    return StringUtils.isEmpty(pathValue) || pathValue.equals("/")  ? "/api" : pathValue;
   }
 }

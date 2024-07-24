@@ -35,7 +35,7 @@ import org.springframework.util.CollectionUtils;
  */
 
 @Slf4j
-@Component
+//@Component
 @RequiredArgsConstructor
 public class ReportingRetryListener implements MessageListener {
 

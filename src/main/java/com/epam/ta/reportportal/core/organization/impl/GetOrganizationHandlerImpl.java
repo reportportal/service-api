@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.organization.impl;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
 
 import com.epam.reportportal.api.model.OrganizationProfile;
-import com.epam.reportportal.api.model.OrganizationProfilesList;
+import com.epam.reportportal.api.model.OrganizationProfilesPage;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -60,11 +60,11 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
   }
 
   @Override
-  public OrganizationProfilesList getOrganizations(Queryable filter, Pageable pageable) {
+  public OrganizationProfilesPage getOrganizations(Queryable filter, Pageable pageable) {
     var organizationProfilesPage = organizationRepositoryCustom.findByFilter(filter, pageable);
 
-    OrganizationProfilesList organizationProfilesList =
-        new OrganizationProfilesList()
+    OrganizationProfilesPage organizationProfilesList =
+        new OrganizationProfilesPage()
             .items(organizationProfilesPage.getContent());
 
     return responseWithPageParameters(organizationProfilesList, pageable,

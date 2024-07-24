@@ -21,7 +21,7 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 
 import com.epam.reportportal.api.OrganizationsApi;
 import com.epam.reportportal.api.model.OrganizationProfile;
-import com.epam.reportportal.api.model.OrganizationProfilesList;
+import com.epam.reportportal.api.model.OrganizationProfilesPage;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -58,7 +58,7 @@ public class OrganizationController extends BaseController implements Organizati
 
   @Transactional(readOnly = true)
   @Override
-  public ResponseEntity<OrganizationProfilesList> getOrganizations(Integer offset, Integer limit,
+  public ResponseEntity<OrganizationProfilesPage> getOrganizations(Integer offset, Integer limit,
       String order, String name, String slug, String sort) {
     var user = getLoggedUser();
     Filter filter = new Filter(OrganizationFilter.class, Lists.newArrayList());

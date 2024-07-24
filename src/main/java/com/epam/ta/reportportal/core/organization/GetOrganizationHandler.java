@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.organization;
 
 import com.epam.reportportal.api.model.OrganizationProfile;
-import com.epam.reportportal.api.model.OrganizationProfilesList;
+import com.epam.reportportal.api.model.OrganizationProfilesPage;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.model.organization.OrganizationResource;
@@ -45,6 +45,6 @@ public interface GetOrganizationHandler {
    * @return An {@link Iterable} of {@link OrganizationResource} containing information about all
    * projects
    */
-  OrganizationProfilesList getOrganizations(Queryable filter, Pageable pageable);
+  OrganizationProfilesPage getOrganizations(Queryable filter, Pageable pageable);
 
 }

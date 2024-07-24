@@ -23,6 +23,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaCon
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
 import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.ta.reportportal.jooq.tables.JProject.PROJECT;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -30,6 +31,7 @@ import com.epam.ta.reportportal.commons.querygen.CompositeFilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.commons.querygen.QueryBuilder;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
@@ -52,6 +54,7 @@ import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.launch.LaunchResourceAttributeLogger;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
@@ -61,6 +64,8 @@ import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.jooq.Operator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -74,6 +79,8 @@ import org.springframework.util.CollectionUtils;
  */
 @Service
 public class GetProjectHandlerImpl implements GetProjectHandler {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(GetProjectHandlerImpl.class);
 
   private static final String LENGTH_LESS_THAN_1_SYMBOL_MSG =
       "Length of the filtering string " + "'{}' is less than 1 symbol";
@@ -116,6 +123,13 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
     filter.withCondition(
         new FilterCondition(Condition.EQUALS, false, project.getKey(), CRITERIA_PROJECT_KEY));
+    String query = QueryBuilder.newBuilder(filter)
+        .with(pageable)
+        .wrapExcludingFields(excludeFieldsArray)
+        .addCondition(PROJECT.KEY.eq(project.getKey()))
+        .withWrapperSort(pageable.getSort())
+        .build().toString();
+    LOGGER.info("bad query: {}", query );
     Page<User> users = userRepository.findProjectUsersByFilterExcluding(project.getKey(), filter,
         pageable, excludeFieldsArray);
 

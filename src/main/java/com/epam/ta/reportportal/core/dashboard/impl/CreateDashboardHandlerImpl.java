@@ -43,7 +43,7 @@ public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
   private final DashboardRepository dashboardRepository;
   private final MessageBus messageBus;
 
-  private final static int DASHBOARD_LIMIT = 300;
+  private final static int DASHBOARD_LIMIT = 3000;
 
   @Autowired
   public CreateDashboardHandlerImpl(DashboardRepository dashboardRepository,

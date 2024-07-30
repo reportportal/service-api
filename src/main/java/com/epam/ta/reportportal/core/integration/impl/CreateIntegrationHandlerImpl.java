@@ -165,7 +165,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
     Integration updatedIntegration =
         integrationService.updateIntegration(integration, updateRequest);
-    integrationService.checkConnection(integration);
+    integrationService.checkConnection(updatedIntegration);
     integrationRepository.save(updatedIntegration);
 
     publishUpdateActivity(user, beforeUpdate, updatedIntegration);
@@ -200,7 +200,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
     Integration updatedIntegration =
         integrationService.updateIntegration(integration, updateRequest);
     updatedIntegration.setProject(project);
-    integrationService.checkConnection(integration);
+    integrationService.checkConnection(updatedIntegration);
 
     integrationRepository.save(updatedIntegration);
 

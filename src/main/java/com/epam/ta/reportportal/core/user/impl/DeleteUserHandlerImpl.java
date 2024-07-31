@@ -121,15 +121,8 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
     List<Project> userProjects = projectRepository.findAllByUserLogin(user.getLogin());
     userProjects.forEach(project -> {
-      // TODO: refactor to use organization type if needed
-      if (false
-        //ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(), user.getLogin()
-      ) {
-        deleteProjectHandler.deleteProject(project.getId(), null);
-      } else {
-        projectRecipientHandler.handle(Lists.newArrayList(user), project);
-        publishUserUnassignEvent(user, loggedInUser, project.getId());
-      }
+      projectRecipientHandler.handle(Lists.newArrayList(user), project);
+      publishUserUnassignEvent(user, loggedInUser, project.getId());
     });
 
     dataStore.deleteUserPhoto(user);

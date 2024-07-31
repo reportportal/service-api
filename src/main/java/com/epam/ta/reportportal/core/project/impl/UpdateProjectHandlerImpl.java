@@ -389,14 +389,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
         formattedSupplier("User '{}' cannot be assigned to project twice.", name)
     );
 
-    // TODO: refactor to use organizations in EPMRPP-91633
-/*    if (ProjectType.UPSA.equals(project.getProjectType()) && UserType.UPSA.equals(
-        modifyingUser.getUserType())) {
-      fail().withError(
-          UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
-          "Please verify user assignment to the project in EPAM internal system: delivery.epam.com"
-      );
-    }*/
     ProjectUser projectUser = new ProjectUser();
     projectUser.setProjectRole(projectRole);
     projectUser.setUser(modifyingUser);
@@ -412,22 +404,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
   private void validateUnassigningUser(User modifier, User userForUnassign, Long projectId,
       Project project) {
-    // TODO: refactor to use organization type if needed
-/*    if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(),
-        userForUnassign.getLogin()
-    )) {
-      fail().withError(
-          UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
-          "Unable to unassign user from his personal project"
-      );
-    }
-    if (ProjectType.UPSA.equals(project.getProjectType()) && UserType.UPSA.equals(
-        userForUnassign.getUserType())) {
-      fail().withError(
-          UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
-          "Please verify user assignment to the project in EPAM internal system: delivery.epam.com"
-      );
-    }*/
     if (!ProjectUtils.doesHaveUser(project, userForUnassign.getLogin())) {
       fail().withError(USER_NOT_FOUND, userForUnassign.getLogin(),
           String.format("User not found in project %s", project.getName())

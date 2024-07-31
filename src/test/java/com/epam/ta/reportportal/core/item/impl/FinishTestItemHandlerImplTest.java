@@ -22,16 +22,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
-import com.epam.ta.reportportal.core.item.impl.status.ChangeStatusHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -46,6 +43,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.time.Instant;
@@ -78,9 +76,6 @@ class FinishTestItemHandlerImplTest {
 
   @Mock
   private StatusChangingStrategy statusChangingStrategy;
-
-  @Mock
-  private ChangeStatusHandler changeStatusHandler;
 
   @Mock
   private IssueEntityRepository issueEntityRepository;
@@ -162,8 +157,6 @@ class FinishTestItemHandlerImplTest {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
     TestItem item = new TestItem();
     item.setItemId(1L);
-    item.setHasChildren(true);
-    item.setStartTime(Instant.now());
     TestItemResults results = new TestItemResults();
     results.setStatus(StatusEnum.IN_PROGRESS);
     item.setItemResults(results);
@@ -172,17 +165,19 @@ class FinishTestItemHandlerImplTest {
     launch.setUserId(1L);
     launch.setProjectId(1L);
     item.setLaunchId(launch.getId());
-    var finishExecutionRQ = new FinishTestItemRQ();
-    finishExecutionRQ.setEndTime(Instant.now());
-
+    item.setHasChildren(false);
     when(repository.findByUuid("1")).thenReturn(Optional.of(item));
     when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
-    doNothing().when(changeStatusHandler).changeParentStatus(any(), any(), any());
-    doNothing().when(changeStatusHandler).changeLaunchStatus(any());
 
-    handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
-        finishExecutionRQ);
-
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+            new FinishTestItemRQ()
+        )
+    );
+    assertEquals(
+        "Test item status is ambiguous. There is no status provided from request and there are no descendants to check statistics for test item id '1'",
+        exception.getMessage()
+    );
   }
 
   @Test

@@ -16,14 +16,9 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
-import static com.epam.reportportal.rules.exception.ErrorType.AMBIGUOUS_TEST_ITEM_STATUS;
-import static com.epam.reportportal.rules.exception.ErrorType.FINISH_ITEM_NOT_ALLOWED;
-import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
-import static com.epam.reportportal.rules.exception.ErrorType.TEST_ITEM_NOT_FOUND;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.hierarchy.AbstractFinishHierarchyHandler.ATTRIBUTE_KEY_STATUS;
 import static com.epam.ta.reportportal.core.hierarchy.AbstractFinishHierarchyHandler.ATTRIBUTE_VALUE_INTERRUPTED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
@@ -39,9 +34,13 @@ import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVEST
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.AMBIGUOUS_TEST_ITEM_STATUS;
+import static com.epam.reportportal.rules.exception.ErrorType.FINISH_ITEM_NOT_ALLOWED;
+import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.TEST_ITEM_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
@@ -66,6 +65,7 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
@@ -129,7 +129,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
   @Autowired
   FinishTestItemHandlerImpl(TestItemRepository testItemRepository,
       IssueTypeHandler issueTypeHandler, @Qualifier("finishTestItemHierarchyHandler")
-      FinishHierarchyHandler<TestItem> finishHierarchyHandler, LogIndexer logIndexer,
+  FinishHierarchyHandler<TestItem> finishHierarchyHandler, LogIndexer logIndexer,
       Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping,
       IssueEntityRepository issueEntityRepository, ChangeStatusHandler changeStatusHandler,
       ApplicationEventPublisher eventPublisher, LaunchRepository launchRepository,
@@ -210,6 +210,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
       FinishTestItemRQ finishTestItemRQ, boolean hasChildren) {
 
     validateRoles(user, projectDetails, launch);
+    verifyTestItem(testItem, fromValue(finishTestItemRQ.getStatus()), testItem.isHasChildren());
 
     TestItemResults testItemResults;
     if (hasChildren) {
@@ -238,6 +239,22 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
         () -> ofNullable(testItem.getParentId()).flatMap(testItemRepository::findById)
             .map(TestItem::getLaunchId).map(launchRepository::findById)
             .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND)));
+  }
+
+  /**
+   * Validation procedure for specified test item
+   *
+   * @param testItem     Test item
+   * @param actualStatus Actual status of item
+   * @param hasChildren  Does item contain children
+   */
+  private void verifyTestItem(TestItem testItem, Optional<StatusEnum> actualStatus,
+      boolean hasChildren) {
+    expect(actualStatus.isEmpty() && !hasChildren, equalTo(Boolean.FALSE)).verify(
+        AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
+            "There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
+            testItem.getItemId()
+        ));
   }
 
   private void validateRoles(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,

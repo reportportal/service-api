@@ -70,7 +70,6 @@ import com.epam.ta.reportportal.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.Prefix;
-import com.epam.ta.reportportal.entity.enums.ProjectType;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -79,7 +78,6 @@ import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.model.activity.ProjectAttributesActivityResource;
 import com.epam.ta.reportportal.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.model.project.AssignUsersRQ;
@@ -390,13 +388,15 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     expect(name, not(in(assignedUsernames))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
         formattedSupplier("User '{}' cannot be assigned to project twice.", name)
     );
-    if (ProjectType.UPSA.equals(project.getProjectType()) && UserType.UPSA.equals(
+
+    // TODO: refactor to use organizations in EPMRPP-91633
+/*    if (ProjectType.UPSA.equals(project.getProjectType()) && UserType.UPSA.equals(
         modifyingUser.getUserType())) {
       fail().withError(
           UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
           "Please verify user assignment to the project in EPAM internal system: delivery.epam.com"
       );
-    }
+    }*/
     ProjectUser projectUser = new ProjectUser();
     projectUser.setProjectRole(projectRole);
     projectUser.setUser(modifyingUser);
@@ -412,7 +412,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
   private void validateUnassigningUser(User modifier, User userForUnassign, Long projectId,
       Project project) {
-    if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(),
+    // TODO: refactor to use organization type if needed
+/*    if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(),
         userForUnassign.getLogin()
     )) {
       fail().withError(
@@ -426,7 +427,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
           UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
           "Please verify user assignment to the project in EPAM internal system: delivery.epam.com"
       );
-    }
+    }*/
     if (!ProjectUtils.doesHaveUser(project, userForUnassign.getLogin())) {
       fail().withError(USER_NOT_FOUND, userForUnassign.getLogin(),
           String.format("User not found in project %s", project.getName())

@@ -62,7 +62,6 @@ public final class UserConverter {
       Map<String, UserResource.AssignedProject> userProjects = user.getProjects().stream()
           .collect(MoreCollectors.toLinkedMap(p -> p.getProject().getKey(), p -> {
             UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-            assignedProject.setEntryType(p.getProject().getProjectType().name());
             assignedProject.setProjectRole(p.getProjectRole().toString());
             assignedProject.setProjectKey(p.getProject().getKey());
             assignedProject.setProjectName(p.getProject().getName());

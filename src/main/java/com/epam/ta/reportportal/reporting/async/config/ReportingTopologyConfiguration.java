@@ -69,6 +69,9 @@ public class ReportingTopologyConfiguration {
   @Value("${reporting.queues.count:10}")
   private Integer queuesCount;
 
+  @Value("${reporting.consumer.prefetchCount:1}")
+  private Integer prefetchCount;
+
   @Bean
   String instanceUniqueId() {
     String instanceId = UUID.randomUUID().toString();
@@ -172,7 +175,7 @@ public class ReportingTopologyConfiguration {
       listenerContainer.addQueueNames(q.getName());
       listenerContainer.setErrorHandler(errorHandler);
       listenerContainer.setExclusive(true);
-      listenerContainer.setPrefetchCount(10);
+      listenerContainer.setPrefetchCount(prefetchCount);
       listenerContainer.setDefaultRequeueRejected(false);
       listenerContainer.setMissingQueuesFatal(true);
       listenerContainer.setApplicationEventPublisher(applicationEventPublisher);
@@ -183,21 +186,6 @@ public class ReportingTopologyConfiguration {
     });
     return containers;
   }
-
-  // Disabled till moving statistics from triggers to code logic
-//  @Bean("retryListener")
-//  public AbstractMessageListenerContainer retryListener(ConnectionFactory connectionFactory,
-//      ReportingErrorHandler errorHandler, ReportingRetryListener reportingRetryListener) {
-//    SimpleMessageListenerContainer retryListener = new SimpleMessageListenerContainer();
-//    retryListener.setConnectionFactory(connectionFactory);
-//    retryListener.setQueueNames(RETRY_QUEUE);
-//    retryListener.setErrorHandler(errorHandler);
-//    retryListener.setDefaultRequeueRejected(false);
-//    retryListener.setupMessageListener(reportingRetryListener);
-//    retryListener.afterPropertiesSet();
-//    retryListener.start();
-//    return retryListener;
-//  }
 
   @Bean
   public MessageListener reportingListener(ReportingHandlerProvider reportingHandlerProvider) {

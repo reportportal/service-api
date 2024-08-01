@@ -56,7 +56,7 @@ public class OutdatedQueuesManagementJob {
   }
 
 
-  @Scheduled(fixedDelay = 60_000, initialDelay = 60_000)
+  @Scheduled(fixedDelay = 300_000, initialDelay = 60_000)
   public void run() {
     var idleQueues = getIdleQueues();
     idleQueues.forEach(

@@ -69,7 +69,7 @@ public class ReportingTopologyConfiguration {
   @Value("${reporting.queues.count:10}")
   private Integer queuesCount;
 
-  @Value("${reporting.consumer.prefetchCount:1}")
+  @Value("${reporting.consumer.prefetchCount:10}")
   private Integer prefetchCount;
 
   @Bean

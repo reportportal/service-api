@@ -112,8 +112,8 @@ rp:
             queue: 1000
           user-email:
             core: 5
-            max: 20
-            queue: 500
+            max: 10
+            queue: 1000
 
   amqp:
     addresses: amqp://${rp.amqp.user}:${rp.amqp.pass}@${rp.amqp.host}:${rp.amqp.port}

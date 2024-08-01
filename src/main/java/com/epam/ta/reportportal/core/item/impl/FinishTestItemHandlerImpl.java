@@ -130,7 +130,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
   @Autowired
   FinishTestItemHandlerImpl(TestItemRepository testItemRepository,
       IssueTypeHandler issueTypeHandler, @Qualifier("finishTestItemHierarchyHandler")
-      FinishHierarchyHandler<TestItem> finishHierarchyHandler, LogIndexer logIndexer,
+  FinishHierarchyHandler<TestItem> finishHierarchyHandler, LogIndexer logIndexer,
       Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping,
       IssueEntityRepository issueEntityRepository, ChangeStatusHandler changeStatusHandler,
       ApplicationEventPublisher eventPublisher, LaunchRepository launchRepository,
@@ -247,7 +247,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
    * @param actualStatus Actual status of item
    */
   private void verifyTestItem(TestItem testItem, Optional<StatusEnum> actualStatus) {
-    expect(actualStatus.isEmpty() && testItem.isHasChildren(), equalTo(Boolean.FALSE)).verify(
+    expect(actualStatus.isEmpty() && !testItem.getType().higherThan(TestItemTypeEnum.STEP),
+        equalTo(Boolean.FALSE)).verify(
         AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
             "There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
             testItem.getItemId()

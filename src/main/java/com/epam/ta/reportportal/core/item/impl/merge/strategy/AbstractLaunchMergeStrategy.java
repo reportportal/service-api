@@ -167,7 +167,7 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
   }
 
   private boolean shouldSkipAttribute(ItemAttribute attribute) {
-    return !attribute.getKey().equals("rp.cluster.lastRun");
+    return !"rp.cluster.lastRun".equals(attribute.getKey());
   }
 
   /**

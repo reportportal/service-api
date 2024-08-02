@@ -150,17 +150,24 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
     if (attributesFromRq == null) {
       mergedAttributes.addAll(
           launchesToMerge.stream().map(Launch::getAttributes).flatMap(Collection::stream)
+              .filter(this::shouldSkipAttribute)
               .peek(it -> it.setLaunch(resultedLaunch)).collect(Collectors.toSet()));
     } else {
       mergedAttributes.addAll(
           launchesToMerge.stream().map(Launch::getAttributes).flatMap(Collection::stream)
-              .filter(ItemAttribute::isSystem).peek(it -> it.setLaunch(resultedLaunch))
+              .filter(ItemAttribute::isSystem)
+              .filter(this::shouldSkipAttribute)
+              .peek(it -> it.setLaunch(resultedLaunch))
               .collect(Collectors.toSet()));
       mergedAttributes.addAll(
           attributesFromRq.stream().map(FROM_RESOURCE).peek(attr -> attr.setLaunch(resultedLaunch))
               .collect(Collectors.toSet()));
     }
     resultedLaunch.setAttributes(mergedAttributes);
+  }
+
+  private boolean shouldSkipAttribute(ItemAttribute attribute) {
+    return !attribute.getKey().equals("rp.cluster.lastRun");
   }
 
   /**

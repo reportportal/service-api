@@ -16,13 +16,11 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import static com.epam.ta.reportportal.OrganizationUtil.TEST_ORG;
 import static com.epam.ta.reportportal.OrganizationUtil.TEST_ORG_ID;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.epam.ta.reportportal.entity.Metadata;
-import com.epam.ta.reportportal.entity.enums.ProjectType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
@@ -83,7 +81,6 @@ class UserConverterTest {
     final Project project1 = new Project();
     project1.setName("project1");
     project1.setKey("project1");
-    project1.setProjectType(ProjectType.INTERNAL);
     project1.setOrganizationId(TEST_ORG_ID);
     final ProjectUser projectUser1 =
         new ProjectUser().withProject(project1).withProjectRole(ProjectRole.EDITOR).withUser(user);
@@ -91,7 +88,6 @@ class UserConverterTest {
     final Project project2 = new Project();
     project2.setName("project2");
     project2.setKey("project2");
-    project2.setProjectType(ProjectType.INTERNAL);
     project2.setOrganizationId(TEST_ORG_ID);
     final ProjectUser projectUser2 =
         new ProjectUser().withProject(project2).withProjectRole(ProjectRole.EDITOR)

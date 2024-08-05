@@ -33,7 +33,6 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
-import com.epam.ta.reportportal.entity.enums.ProjectType;
 import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
@@ -120,14 +119,6 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
     Optional<Project> existProject = projectRepository.findByKey(projectKey);
     expect(existProject, not(isPresent())).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectName);
 
-    ProjectType projectType = ProjectType.findByName(createProjectRQ.getEntryType()).orElseThrow(
-        () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-            createProjectRQ.getEntryType()
-        ));
-    expect(projectType, equalTo(ProjectType.INTERNAL)).verify(ErrorType.BAD_REQUEST_ERROR,
-        "Only internal projects can be created via API"
-    );
-
     User dbUser = userRepository.findRawById(user.getUserId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUsername()));
 
@@ -144,8 +135,6 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
     Set<ProjectAttribute> projectAttributes = ProjectUtils.defaultProjectAttributes(project,
         attributeRepository.getDefaultProjectAttributes()
     );
-
-    project.setProjectType(projectType);
 
     project.setProjectAttributes(projectAttributes);
 

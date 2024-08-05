@@ -337,10 +337,12 @@ public class EmailService extends JavaMailSenderImpl {
     this.send(preparator);
   }
 
-  public void sendConnectionTestEmail(String sendTo) {
+  public void sendConnectionTestEmail(String sendTo, boolean isCreated) {
     MimeMessagePreparator preparator = mimeMessage -> {
       MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
-      message.setSubject("Email server integration creation");
+      String subject =
+          isCreated ? "Email server integration creation" : "Email server integration updated";
+      message.setSubject(subject);
       message.setTo(sendTo);
       setFrom(message);
 

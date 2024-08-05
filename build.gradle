@@ -69,8 +69,8 @@ dependencies {
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:plugin-api:5.11.1'
     } else {
-        implementation 'com.github.reportportal:commons-dao:fc6e7ed'
-        implementation 'com.github.reportportal:commons:2599adc'
+        implementation 'com.github.reportportal:commons-dao:c546468'
+        implementation 'com.github.reportportal:commons:f849258'
         implementation 'com.github.reportportal:plugin-api:d1c0f0e'
     }
     swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.57'

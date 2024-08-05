@@ -102,7 +102,6 @@ class ProjectControllerTest extends BaseMvcTest {
   void createProjectPositive() throws Exception {
 		CreateProjectRQ rq = new CreateProjectRQ();
 		rq.setProjectName("TestProject");
-		rq.setEntryType("INTERNAL");
     rq.setOrganizationId(1L);
 
 		mockMvc.perform(post("/v1/project")
@@ -120,7 +119,6 @@ class ProjectControllerTest extends BaseMvcTest {
   void createProjectWithReservedName() throws Exception {
     CreateProjectRQ rq = new CreateProjectRQ();
     rq.setProjectName("project");
-    rq.setEntryType("INTERNAL");
     mockMvc.perform(post("/v1/project").content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)
         .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
@@ -460,8 +458,7 @@ class ProjectControllerTest extends BaseMvcTest {
         .andExpect(jsonPath("$.id").value(2))
         .andExpect(jsonPath("$.projectName").value("default_personal"))
         .andExpect(jsonPath("$.usersQuantity").value(1))
-        .andExpect(jsonPath("$.launchesQuantity").value(1))
-        .andExpect(jsonPath("$.entryType").value("PERSONAL"));
+        .andExpect(jsonPath("$.launchesQuantity").value(1));
   }
 
   @Sql("/db/test-item/test-item-fill.sql")
@@ -474,8 +471,7 @@ class ProjectControllerTest extends BaseMvcTest {
         .andExpect(jsonPath("$.id").value(1))
         .andExpect(jsonPath("$.projectName").value("superadmin_personal"))
         .andExpect(jsonPath("$.usersQuantity").value(1))
-        .andExpect(jsonPath("$.launchesQuantity").value(0))
-        .andExpect(jsonPath("$.entryType").value("PERSONAL"));
+        .andExpect(jsonPath("$.launchesQuantity").value(0));
   }
 
   @Sql("/db/test-item/test-item-fill.sql")

@@ -51,9 +51,6 @@ public class ProjectResource {
   @JsonProperty(value = "projectSlug")
   private String projectSlug;
 
-  @JsonProperty(value = "entryType", required = true)
-  private String entryType;
-
   @NotNull
   @JsonProperty(value = "configuration", required = true)
   private ProjectConfiguration configuration;

@@ -59,28 +59,6 @@ class CreateProjectHandlerImplTest {
   @InjectMocks
   private CreateProjectHandlerImpl handler;
 
-  @Test
-  void createProjectWithWrongType() {
-    ReportPortalUser rpUser =
-        getRpUser("user", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
-
-    CreateProjectRQ createProjectRQ = new CreateProjectRQ();
-    createProjectRQ.setProjectName(TEST_PROJECT_NAME);
-    createProjectRQ.setOrganizationId(TEST_ORG_ID);
-    createProjectRQ.setEntryType("wrongType");
-
-    when(organizationRepositoryCustom.findById(TEST_ORG_ID)).thenReturn(Optional.of(TEST_ORG));
-    when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(
-        Optional.empty());
-
-    ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.createProject(createProjectRQ, rpUser)
-    );
-
-    assertEquals("Error in handled Request. Please, check specified parameters: 'wrongType'",
-        exception.getMessage()
-    );
-  }
 
   @Test
   void createProjectByNotExistUser() {
@@ -90,7 +68,6 @@ class CreateProjectHandlerImplTest {
     CreateProjectRQ createProjectRQ = new CreateProjectRQ();
     createProjectRQ.setProjectName(TEST_PROJECT_NAME);
     createProjectRQ.setOrganizationId(TEST_ORG_ID);
-    createProjectRQ.setEntryType("internal");
 
     when(organizationRepositoryCustom.findById(TEST_ORG_ID)).thenReturn(Optional.of(TEST_ORG));
     when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.empty());

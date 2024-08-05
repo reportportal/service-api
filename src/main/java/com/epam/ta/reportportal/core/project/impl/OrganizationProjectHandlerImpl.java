@@ -41,7 +41,6 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.dao.project.OrganizationProjectRepository;
-import com.epam.ta.reportportal.entity.enums.ProjectType;
 import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -135,7 +134,6 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
         attributeRepository.getDefaultProjectAttributes()
     );
     projectToSave.setProjectAttributes(projectAttributes);
-    projectToSave.setProjectType(ProjectType.INTERNAL);
     Project createdProject = projectRepository.save(projectToSave);
 
     applicationEventPublisher.publishEvent(new ProjectEvent(createdProject.getId(), CREATE_KEY));

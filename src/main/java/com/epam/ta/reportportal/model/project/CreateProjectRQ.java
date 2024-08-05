@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.model.project;
 
 import static com.epam.reportportal.model.ValidationConstraints.PROJECT_NAME_REGEXP;
 
-import com.epam.reportportal.annotations.In;
 import com.epam.reportportal.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -49,11 +48,6 @@ public class CreateProjectRQ {
 	@Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
 	private String projectName;
 
-	@NotBlank
-	@JsonProperty(value = "entryType", required = true)
-	@In(allowedValues = "internal")
-	@Schema(requiredMode = RequiredMode.REQUIRED, allowableValues = "INTERNAL")
-	private String entryType;
 
   @JsonProperty(value = "organizationId")
   private Long organizationId;

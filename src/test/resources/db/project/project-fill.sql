@@ -1,8 +1,8 @@
 INSERT INTO public.organization (id, name, slug, organization_type)
   VALUES (101, 'test Org', 'org', 'INTERNAL');
 
-insert into project (id, name, project_type, organization, organization_id, key, slug, creation_date)
-values (3, 'test_project', 'INTERNAL', 'org', 101, 'test_project', 'test_project', now());
+insert into project (id, name, organization, organization_id, key, slug, created_at)
+values (3, 'test_project', 'org', 101, 'test_project', 'test_project', now());
 
 INSERT INTO project_attribute (attribute_id, value, project_id)
 VALUES (1, '1 day', 3),

@@ -59,7 +59,6 @@ public final class ProjectConverter {
     projectResource.setProjectSlug(project.getSlug());
     projectResource.setOrganization(project.getOrg());
     projectResource.setOrganizationId(project.getOrganizationId());
-    projectResource.setEntryType(project.getProjectType().name());
     projectResource.setCreationDate(project.getCreationDate());
     projectResource.setAllocatedStorage(project.getAllocatedStorage());
     projectResource.setUsers(project.getUsers().stream().map(user -> {

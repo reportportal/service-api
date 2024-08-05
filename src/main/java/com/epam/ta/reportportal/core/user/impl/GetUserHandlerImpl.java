@@ -161,7 +161,6 @@ public class GetUserHandlerImpl implements GetUserHandler {
     return projectRepository.findUserProjects(userName).stream()
         .collect(toMap(Project::getName, it -> {
           UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-          assignedProject.setEntryType(it.getProjectType().name());
           ProjectUser projectUser = ProjectUtils.findUserConfigByLogin(it, userName);
 
           ofNullable(ofNullable(projectUser).orElseThrow(

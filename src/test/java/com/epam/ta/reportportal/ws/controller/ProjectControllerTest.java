@@ -105,7 +105,8 @@ class ProjectControllerTest extends BaseMvcTest {
 		rq.setEntryType("INTERNAL");
     rq.setOrganizationId(1L);
 
-		mockMvc.perform(post("/v1/project").content(objectMapper.writeValueAsBytes(rq))
+		mockMvc.perform(post("/v1/project")
+        .content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
 		final Optional<Project> createdProjectOptional = projectRepository.findByName("TestProject".toLowerCase());

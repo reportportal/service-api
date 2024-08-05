@@ -17,8 +17,10 @@
 package com.epam.ta.reportportal.core.organization;
 
 import com.epam.reportportal.api.model.OrganizationProfile;
+import com.epam.reportportal.api.model.OrganizationProfilesList;
 import com.epam.reportportal.api.model.OrganizationProfilesPage;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.model.organization.OrganizationResource;
 import org.springframework.data.domain.Pageable;
@@ -47,4 +49,13 @@ public interface GetOrganizationHandler {
    */
   OrganizationProfilesPage getOrganizations(Queryable filter, Pageable pageable);
 
+  /**
+   * Search Organizations by query parameters
+   *
+   * @param filter   Queryable filter to apply on organizations
+   * @param pageable Pagination information for the results
+   * @return An {@link Iterable} of {@link OrganizationResource} containing information about all
+   * projects
+   */
+  OrganizationProfilesList searchOrganizations(Queryable filter, Pageable pageable);
 }

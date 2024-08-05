@@ -37,7 +37,7 @@ public class UserExpirationNotificationStrategy extends AbstractEmailNotificatio
   @Override
   public void sendEmail(String recipient, Map<String, Object> params) {
     try {
-      emailExecutorService.execute(() -> mailServiceFactory.getDefaultEmailService(true)
+      emailExecutorService.execute(() -> mailServiceFactory.getDefaultEmailService(false)
           .sendUserExpirationNotification(recipient, params));
     } catch (Exception e) {
       LOGGER.warn("Unable to send email.", e);

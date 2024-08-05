@@ -98,6 +98,8 @@ public class MailServiceFactory {
               String.valueOf(e))).orElse(false);
 
       Properties javaMailProperties = new Properties();
+      javaMailProperties.put("mail.smtp.timeout", 20000);
+      javaMailProperties.put("mail.smtp.writetimeout", 20000);
       javaMailProperties.put("mail.smtp.connectiontimeout", DEFAULT_CONNECTION_TIMEOUT);
       javaMailProperties.put("mail.smtp.auth", authRequired);
       javaMailProperties.put("mail.smtp.starttls.enable",

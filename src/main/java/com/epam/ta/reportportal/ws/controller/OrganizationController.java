@@ -93,7 +93,7 @@ public class OrganizationController extends BaseController implements Organizati
 
   @Transactional(readOnly = true)
   @Override
-  public ResponseEntity<OrganizationProfilesList> postOrganizationsSearches(
+  public ResponseEntity<OrganizationProfilesPage> postOrganizationsSearches(
       SearchCriteriaRQ searchCriteria) {
     Filter filter = searchCriteriaService
         .createFilterBySearchCriteria(searchCriteria, OrganizationFilter.class);
@@ -112,7 +112,7 @@ public class OrganizationController extends BaseController implements Organizati
 
     return ResponseEntity
         .ok()
-        .body(getOrganizationHandler.searchOrganizations(filter, pageable));
+        .body(getOrganizationHandler.getOrganizations(filter, pageable));
 
   }
 

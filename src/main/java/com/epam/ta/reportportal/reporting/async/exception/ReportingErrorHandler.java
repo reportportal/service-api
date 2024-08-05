@@ -22,13 +22,18 @@ import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyC
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
 import com.google.common.collect.Lists;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ErrorHandler;
 
 /**
@@ -42,7 +47,11 @@ public class ReportingErrorHandler implements ErrorHandler {
       ErrorType.LAUNCH_NOT_FOUND,
       ErrorType.TEST_SUITE_NOT_FOUND,
       ErrorType.TEST_ITEM_NOT_FOUND);
+
   private final RabbitTemplate rabbitTemplate;
+
+  @Value("${reporting.retry.max-count:10}")
+  private Integer maxRetryCount;
 
   public ReportingErrorHandler(RabbitTemplate rabbitTemplate) {
     this.rabbitTemplate = rabbitTemplate;
@@ -54,6 +63,24 @@ public class ReportingErrorHandler implements ErrorHandler {
       Message failedMessage = executionFailedException.getFailedMessage();
       failedMessage.getMessageProperties().getHeaders()
           .put("exception", executionFailedException.getCause().getMessage());
+
+      long retryCount = getRetryCount(failedMessage.getMessageProperties().getXDeathHeader());
+      if (retryCount > 0) {
+        log.warn(
+            "Retrying reporting message. Attempt count is {}. Request Type: {}, Launch UUID: {} ",
+            retryCount,
+            failedMessage.getMessageProperties().getHeader(MessageHeaders.REQUEST_TYPE),
+            failedMessage.getMessageProperties().getHeader(MessageHeaders.HASH_ON));
+      }
+
+      if (checkRetryExceeded(retryCount)) {
+        log.warn("Number of retries exceeded max {} retry count.", maxRetryCount);
+        log.warn("Rejecting message to parking lot queue. Message: {}",
+            new String(failedMessage.getBody()));
+        rabbitTemplate.send(REPORTING_PARKING_LOT, failedMessage);
+        return;
+      }
+
       if (executionFailedException.getCause() instanceof ReportPortalException reportPortalException) {
         if (RETRYABLE_ERROR_TYPES.contains(reportPortalException.getErrorType())) {
           rabbitTemplate.send(RETRY_EXCHANGE, TTL_QUEUE, failedMessage);
@@ -64,5 +91,17 @@ public class ReportingErrorHandler implements ErrorHandler {
           new String(failedMessage.getBody()));
       rabbitTemplate.send(REPORTING_PARKING_LOT, failedMessage);
     }
+  }
+
+  private long getRetryCount(List<Map<String, ?>> xDeathHeaders) {
+    if (!CollectionUtils.isEmpty(xDeathHeaders)) {
+      var xDeath = xDeathHeaders.getFirst();
+      return Optional.ofNullable(xDeath.get("count")).map(count -> (long) count).orElse(0L);
+    }
+    return 0;
+  }
+
+  private boolean checkRetryExceeded(long retries) {
+    return retries >= maxRetryCount;
   }
 }

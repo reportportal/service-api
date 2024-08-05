@@ -16,11 +16,13 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.reportportal.api.model.OffsetRequest.OrderEnum;
+import com.epam.reportportal.api.model.OrganizationProfilesPage;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.api.model.SearchCriteriaSearchCriteria;
 import com.epam.reportportal.api.model.SearchCriteriaSearchCriteria.OperationEnum;
@@ -78,19 +80,21 @@ class OrganizationControllerTest extends BaseMvcTest {
   @ParameterizedTest
   @CsvSource(
       value = {
-          "name|EQ|def",
-          "slug|EQ|qwe",
-          "created_at|GT|qwe",
-          "type|EQ|internal",
-          "updated_at|GT|123",
-          "projects|EQ|123",
-          "launches|EQ|123",
-          "last_launch_occurred|LT|123"
+          "name|EQ|My organization|1",
+          "slug|EQ|my-organization|1",
+          "slug|EQ|notexists|0",
+          "created_at|NE|2024-08-01T12:42:30.758055Z|1",
+          "type|EQ|INTERNAL|1",
+          "updated_at|BTW|2024-08-01T12:42:30.758055Z,2025-08-01T12:42:30.758055Z|1",
+          "projects|EQ|2|1",
+          "launches|EQ|0|1",
+          "last_launch_occurred|BTW|2024-08-01T12:42:30.758055Z,2025-08-01T12:42:30.758055Z|0"
       },
       delimiter = '|',
       nullValues = "null"
   )
-  void searchOrganizationsByParameter(String field, String op, String value) throws Exception {
+  void searchOrganizationsByParameter(String field, String op, String value, int rows)
+      throws Exception {
     SearchCriteriaRQ rq = new SearchCriteriaRQ();
 
     var searchCriteriaSearchCriteria = new SearchCriteriaSearchCriteria()
@@ -108,6 +112,11 @@ class OrganizationControllerTest extends BaseMvcTest {
             .contentType(APPLICATION_JSON)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
+
+    var response = objectMapper.readValue(result.andReturn().getResponse().getContentAsString(),
+        OrganizationProfilesPage.class);
+
+    assertEquals(rows, response.getItems().size());
 
   }
 

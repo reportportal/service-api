@@ -104,10 +104,10 @@ class ProjectControllerTest extends BaseMvcTest {
 		rq.setProjectName("TestProject");
     rq.setOrganizationId(1L);
 
-		mockMvc.perform(post("/v1/project")
+    mockMvc.perform(post("/v1/project")
         .content(objectMapper.writeValueAsBytes(rq))
-				.contentType(APPLICATION_JSON)
-				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
+        .contentType(APPLICATION_JSON)
+        .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
 		final Optional<Project> createdProjectOptional = projectRepository.findByName("TestProject".toLowerCase());
 		assertTrue(createdProjectOptional.isPresent());
 		assertEquals(15, createdProjectOptional.get().getProjectAttributes().size());

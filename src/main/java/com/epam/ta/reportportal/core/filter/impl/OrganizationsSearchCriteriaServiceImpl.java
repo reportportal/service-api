@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 EPAM Systems
+ * Copyright 2024 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.filter.FilterOperation;
 import com.epam.ta.reportportal.core.filter.OrganizationsSearchCriteriaService;
-import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.stream.Collectors;

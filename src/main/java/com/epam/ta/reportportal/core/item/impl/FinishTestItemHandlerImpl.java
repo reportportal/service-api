@@ -16,9 +16,14 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.AMBIGUOUS_TEST_ITEM_STATUS;
+import static com.epam.reportportal.rules.exception.ErrorType.FINISH_ITEM_NOT_ALLOWED;
+import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.TEST_ITEM_NOT_FOUND;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.hierarchy.AbstractFinishHierarchyHandler.ATTRIBUTE_KEY_STATUS;
 import static com.epam.ta.reportportal.core.hierarchy.AbstractFinishHierarchyHandler.ATTRIBUTE_VALUE_INTERRUPTED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
@@ -34,13 +39,9 @@ import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVEST
 
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
-import static com.epam.reportportal.rules.exception.ErrorType.AMBIGUOUS_TEST_ITEM_STATUS;
-import static com.epam.reportportal.rules.exception.ErrorType.FINISH_ITEM_NOT_ALLOWED;
-import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
-import static com.epam.reportportal.rules.exception.ErrorType.TEST_ITEM_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
@@ -59,6 +60,7 @@ import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
@@ -68,7 +70,6 @@ import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
@@ -167,9 +168,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
     final Launch launch = retrieveLaunch(testItem);
 
     final TestItemResults testItemResults =
-        processItemResults(user, membershipDetails, launch, testItem, finishExecutionRQ,
-            testItem.isHasChildren()
-        );
+        processItemResults(user, membershipDetails, launch, testItem, finishExecutionRQ);
 
     final TestItem itemForUpdate =
         new TestItemBuilder(testItem).addDescription(finishExecutionRQ.getDescription())
@@ -210,13 +209,13 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
    */
   private TestItemResults processItemResults(ReportPortalUser user,
       MembershipDetails membershipDetails, Launch launch, TestItem testItem,
-      FinishTestItemRQ finishTestItemRQ, boolean hasChildren) {
+      FinishTestItemRQ finishTestItemRQ) {
 
     validateRoles(user, membershipDetails, launch);
-    verifyTestItem(testItem, fromValue(finishTestItemRQ.getStatus()), testItem.isHasChildren());
+    verifyTestItem(testItem, fromValue(finishTestItemRQ.getStatus()));
 
     TestItemResults testItemResults;
-    if (hasChildren) {
+    if (testItem.isHasChildren() || testItem.getType().higherThan(TestItemTypeEnum.STEP)) {
       testItemResults =
           processParentItemResult(testItem, finishTestItemRQ, launch, user, membershipDetails);
     } else {
@@ -249,11 +248,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
    *
    * @param testItem     Test item
    * @param actualStatus Actual status of item
-   * @param hasChildren  Does item contain children
    */
-  private void verifyTestItem(TestItem testItem, Optional<StatusEnum> actualStatus,
-      boolean hasChildren) {
-    expect(actualStatus.isEmpty() && !hasChildren, equalTo(Boolean.FALSE)).verify(
+  private void verifyTestItem(TestItem testItem, Optional<StatusEnum> actualStatus) {
+    expect(actualStatus.isEmpty() && !testItem.getType().higherThan(TestItemTypeEnum.STEP),
+        equalTo(Boolean.FALSE)).verify(
         AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
             "There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
             testItem.getItemId()

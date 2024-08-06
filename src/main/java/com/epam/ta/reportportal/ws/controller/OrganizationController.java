@@ -21,10 +21,13 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 
 import com.epam.reportportal.api.OrganizationsApi;
 import com.epam.reportportal.api.model.OrganizationProfile;
+import com.epam.reportportal.api.model.OrganizationProfilesList;
 import com.epam.reportportal.api.model.OrganizationProfilesPage;
+import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.core.filter.OrganizationsSearchCriteriaService;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -41,10 +44,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrganizationController extends BaseController implements OrganizationsApi {
 
   private final GetOrganizationHandler getOrganizationHandler;
+  private final OrganizationsSearchCriteriaService searchCriteriaService;
+
 
   @Autowired
-  public OrganizationController(GetOrganizationHandler getOrganizationHandler) {
+  public OrganizationController(GetOrganizationHandler getOrganizationHandler,
+      OrganizationsSearchCriteriaService searchCriteriaService) {
     this.getOrganizationHandler = getOrganizationHandler;
+    this.searchCriteriaService = searchCriteriaService;
   }
 
   @Transactional(readOnly = true)
@@ -81,6 +88,32 @@ public class OrganizationController extends BaseController implements Organizati
     return ResponseEntity
         .ok()
         .body(getOrganizationHandler.getOrganizations(filter, pageable));
+  }
+
+
+  @Transactional(readOnly = true)
+  @Override
+  public ResponseEntity<OrganizationProfilesPage> postOrganizationsSearches(
+      SearchCriteriaRQ searchCriteria) {
+    Filter filter = searchCriteriaService
+        .createFilterBySearchCriteria(searchCriteria, OrganizationFilter.class);
+
+    var user = getLoggedUser();
+    if (UserRole.ADMINISTRATOR != user.getUserRole()) {
+      filter.withCondition(
+          new FilterCondition(Condition.EQUALS, false, user.getUsername(), USER));
+    }
+
+    var pageable = ControllerUtils.getPageable(
+        searchCriteria.getSort(),
+        searchCriteria.getOrder().toString(),
+        searchCriteria.getOffset(),
+        searchCriteria.getLimit());
+
+    return ResponseEntity
+        .ok()
+        .body(getOrganizationHandler.getOrganizations(filter, pageable));
+
   }
 
 }

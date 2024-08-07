@@ -56,7 +56,6 @@ public class ReportingTopologyConfiguration {
   public static final String DEFAULT_CONSISTENT_HASH_ROUTING_KEY = "";
   public static final String DEFAULT_QUEUE_ROUTING_KEY = "1";
   public static final String REPORTING_QUEUE_PREFIX = "q.reporting.";
-  public static final String RETRY_QUEUE = "q.retry.reporting";
   public static final String TTL_QUEUE = "q.retry.reporting.ttl";
   public static final String REPORTING_PARKING_LOT = "q.parkingLot.reporting";
 
@@ -113,16 +112,6 @@ public class ReportingTopologyConfiguration {
   @Bean
   DirectExchange retryExchange() {
     return new DirectExchange(RETRY_EXCHANGE);
-  }
-
-  @Bean
-  Queue retryQueue() {
-    return QueueBuilder.durable(RETRY_QUEUE).build();
-  }
-
-  @Bean
-  Binding retryQueueBinding() {
-    return BindingBuilder.bind(retryQueue()).to(retryExchange()).with(RETRY_QUEUE);
   }
 
   @Bean

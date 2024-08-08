@@ -51,19 +51,20 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class ReportingTopologyConfiguration {
 
-  public static final int RETRY_TTL_MILLIS = 1_000;
   public static final String REPORTING_EXCHANGE = "e.reporting";
   public static final String RETRY_EXCHANGE = "e.reporting.retry";
   public static final String DEFAULT_CONSISTENT_HASH_ROUTING_KEY = "";
   public static final String DEFAULT_QUEUE_ROUTING_KEY = "1";
   public static final String REPORTING_QUEUE_PREFIX = "q.reporting.";
-  public static final String RETRY_QUEUE = "q.retry.reporting";
   public static final String TTL_QUEUE = "q.retry.reporting.ttl";
   public static final String REPORTING_PARKING_LOT = "q.parkingLot.reporting";
 
   private final AmqpAdmin amqpAdmin;
 
-  @Value("${reporting.parkingLot.ttl:7}")
+  @Value("${reporting.retry.ttl.millis:1000}")
+  private int retryTtl;
+
+  @Value("${reporting.parkingLot.ttl.days:7}")
   private long parkingLotTtl;
 
   @Value("${reporting.queues.count:10}")
@@ -114,19 +115,10 @@ public class ReportingTopologyConfiguration {
   }
 
   @Bean
-  Queue retryQueue() {
-    return QueueBuilder.durable(RETRY_QUEUE).build();
-  }
-
-  @Bean
-  Binding retryQueueBinding() {
-    return BindingBuilder.bind(retryQueue()).to(retryExchange()).with(RETRY_QUEUE);
-  }
-
-  @Bean
   Queue ttlQueue() {
     return QueueBuilder.durable(TTL_QUEUE).deadLetterExchange(REPORTING_EXCHANGE)
-        .deadLetterRoutingKey(DEFAULT_CONSISTENT_HASH_ROUTING_KEY).ttl(RETRY_TTL_MILLIS).build();
+        .deadLetterRoutingKey(DEFAULT_CONSISTENT_HASH_ROUTING_KEY)
+        .ttl(retryTtl).build();
   }
 
   @Bean

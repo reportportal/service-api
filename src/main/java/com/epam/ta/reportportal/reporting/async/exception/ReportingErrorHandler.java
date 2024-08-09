@@ -50,7 +50,7 @@ public class ReportingErrorHandler implements ErrorHandler {
 
   private final RabbitTemplate rabbitTemplate;
 
-  @Value("${reporting.retry.max-count:18}")
+  @Value("${reporting.retry.max-count:20}")
   private Integer maxRetryCount;
 
   public ReportingErrorHandler(RabbitTemplate rabbitTemplate) {

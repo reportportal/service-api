@@ -105,7 +105,7 @@ public class OrganizationController extends BaseController implements Organizati
     }
 
     var pageable = ControllerUtils.getPageable(
-        searchCriteria.getSort(),
+        StringUtils.isNotBlank(searchCriteria.getSort()) ? searchCriteria.getSort() : "name",
         searchCriteria.getOrder().toString(),
         searchCriteria.getOffset(),
         searchCriteria.getLimit());

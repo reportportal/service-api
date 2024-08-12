@@ -25,6 +25,8 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.ImportFinishedEvent;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.DeletePluginHandler;
@@ -43,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -67,6 +69,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @RestController
 @RequestMapping(value = "/v1/plugin")
+@RequiredArgsConstructor
 @Tag(name = "plugin-controller", description = "Plugin Controller")
 public class PluginController {
 
@@ -76,19 +79,7 @@ public class PluginController {
   private final DeletePluginHandler deletePluginHandler;
   private final ExecuteIntegrationHandler executeIntegrationHandler;
   private final ProjectExtractor projectExtractor;
-
-  @Autowired
-  public PluginController(CreatePluginHandler createPluginHandler,
-      UpdatePluginHandler updatePluginHandler, GetPluginHandler getPluginHandler,
-      DeletePluginHandler deletePluginHandler, ExecuteIntegrationHandler executeIntegrationHandler,
-      ProjectExtractor projectExtractor) {
-    this.createPluginHandler = createPluginHandler;
-    this.updatePluginHandler = updatePluginHandler;
-    this.getPluginHandler = getPluginHandler;
-    this.deletePluginHandler = deletePluginHandler;
-    this.executeIntegrationHandler = executeIntegrationHandler;
-    this.projectExtractor = projectExtractor;
-  }
+  private final MessageBus messageBus;
 
   @Transactional
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -160,8 +151,15 @@ public class PluginController {
         rq -> executionParams.put(ENTITY_PARAM, launchImportRq),
         () -> executionParams.put(ENTITY_PARAM, new LaunchImportRQ())
     );
-    return executeIntegrationHandler.executeCommand(
-        projectExtractor.extractProjectDetails(user, projectName), pluginName, "import",
+    var projectDetails = projectExtractor.extractProjectDetails(user, projectName);
+    var importResult = executeIntegrationHandler.executeCommand(
+        projectDetails, pluginName, "import",
         executionParams);
+    messageBus.publishActivity(new ImportFinishedEvent(user.getUserId(),
+        user.getUsername(),
+        projectDetails.getProjectId(),
+        file.getOriginalFilename()
+    ));
+    return importResult;
   }
 }

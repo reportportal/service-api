@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MANAGER;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
 
-import com.epam.reportportal.api.UsersApi;
+import com.epam.reportportal.api.OrganizationUserApi;
 import com.epam.reportportal.api.model.OrganizationUsersPage;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -38,7 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class OrganizationUsersController extends BaseController implements UsersApi {
+public class OrganizationUsersController extends BaseController implements OrganizationUserApi {
 
   private final OrganizationRepositoryCustom organizationRepositoryCustom;
 

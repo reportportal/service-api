@@ -20,7 +20,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
 import static org.springframework.http.HttpStatus.OK;
 
-import com.epam.reportportal.api.ProjectsApi;
+import com.epam.reportportal.api.OrganizationProjectApi;
 import com.epam.reportportal.api.model.OrganizationProjectInfo;
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
 import com.epam.reportportal.api.model.ProjectDetails;
@@ -51,7 +51,8 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Siarhei Hrabko
  */
 @RestController
-public class OrganizationProjectController extends BaseController implements ProjectsApi {
+public class OrganizationProjectController extends BaseController implements
+    OrganizationProjectApi {
 
   private final OrganizationProjectHandler organizationProjectHandler;
   private final OrganizationRepositoryCustom organizationRepositoryCustom;

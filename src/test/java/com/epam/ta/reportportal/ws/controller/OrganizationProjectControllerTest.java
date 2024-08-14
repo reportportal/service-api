@@ -16,13 +16,21 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.reportportal.api.model.OffsetRequest.OrderEnum;
+import com.epam.reportportal.api.model.OrganizationProfilesPage;
+import com.epam.reportportal.api.model.OrganizationProjectsPage;
+import com.epam.reportportal.api.model.SearchCriteriaRQ;
+import com.epam.reportportal.api.model.SearchCriteriaSearchCriteria;
+import com.epam.reportportal.api.model.SearchCriteriaSearchCriteria.OperationEnum;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
@@ -30,6 +38,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /**
  * @author Siarhei Hrabko
@@ -38,12 +47,58 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
 
   private static final String ORG_SLUG = "my-organization";
 
+  @Autowired
+  private ObjectMapper objectMapper;
 
   @Test
   void getOrganizationProjectAdmin() throws Exception {
     mockMvc.perform(get("/organizations/1/projects")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
+  }
+
+
+  @ParameterizedTest
+  @CsvSource(
+      value = {
+          "name|EQ|superadmin_personal|1",
+          "slug|EQ|superadmin-personal|1",
+          "key|EQ|superadmin_personal|1",
+          "created_at|NE|2024-08-14T06:01:25.329026Z|2",
+          "updated_at|NE|2024-08-14T06:01:25.329026Z|2",
+          "users|EQ|1|2",
+          "launches|EQ|0|2",
+          "last_launch_occurred|EQ|2024-08-14T06:01:25.329026Z|0"
+      },
+      delimiter = '|',
+      nullValues = "null"
+  )
+  void getOrganizationProjectsByFilter(String field, String op, String value, int rows)
+      throws Exception {
+
+    SearchCriteriaRQ rq = new SearchCriteriaRQ();
+
+    var searchCriteriaSearchCriteria = new SearchCriteriaSearchCriteria()
+        .filterKey(field)
+        .operation(OperationEnum.fromValue(op))
+        .value(value);
+    rq.limit(100)
+        .offset(0)
+        .sort(field)
+        .order(OrderEnum.ASC);
+    rq.addSearchCriteriaItem(searchCriteriaSearchCriteria);
+
+    var result = mockMvc.perform(MockMvcRequestBuilders.post("/organizations/1/projects/searches")
+            .content(objectMapper.writeValueAsBytes(rq))
+            .contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse().getContentAsString();
+
+    var orgProjectsPage = objectMapper.readValue(result, OrganizationProjectsPage.class);
+
+    assertEquals(rows, orgProjectsPage.getItems().size());
   }
 
   @Test

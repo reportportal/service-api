@@ -85,7 +85,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
   }
 
   @Override
-  public OrganizationProjectsPage getOrganizationProjectsList(ReportPortalUser user, Long orgId,
+  public OrganizationProjectsPage getOrganizationProjectsPage(ReportPortalUser user, Long orgId,
       Filter filter, Pageable pageable) {
     OrganizationProjectsPage organizationProjectsPage = new OrganizationProjectsPage();
 

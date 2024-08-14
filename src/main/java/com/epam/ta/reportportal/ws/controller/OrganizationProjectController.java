@@ -25,11 +25,13 @@ import com.epam.reportportal.api.model.OrganizationProjectInfo;
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
 import com.epam.reportportal.api.model.ProjectDetails;
 import com.epam.reportportal.api.model.ProjectProfile;
+import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.core.filter.OrganizationsSearchCriteriaService;
 import com.epam.ta.reportportal.core.project.OrganizationProjectHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.util.ControllerUtils;
@@ -41,19 +43,37 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controller class for handling organization project-related requests. * Extends the BaseController
+ * and implements the ProjectsApi interface. * Provides endpoints for retrieving and managing
+ * organization projects. Controller implementation for working with external systems.
+ *
+ * @author Siarhei Hrabko
+ */
 @RestController
 public class OrganizationProjectController extends BaseController implements ProjectsApi {
 
   private final OrganizationProjectHandler organizationProjectHandler;
   private final OrganizationRepositoryCustom organizationRepositoryCustom;
+  private final OrganizationsSearchCriteriaService searchCriteriaService;
 
 
+  /**
+   * Constructor for OrganizationProjectController.
+   *
+   * @param organizationProjectHandler   the handler for organization project-related operations
+   * @param organizationRepositoryCustom the custom repository for organization-related database
+   *                                     operations
+   * @param searchCriteriaService        the service for creating filters based on search criteria
+   */
   @Autowired
   public OrganizationProjectController(
       OrganizationProjectHandler organizationProjectHandler,
-      OrganizationRepositoryCustom organizationRepositoryCustom) {
+      OrganizationRepositoryCustom organizationRepositoryCustom,
+      OrganizationsSearchCriteriaService searchCriteriaService) {
     this.organizationProjectHandler = organizationProjectHandler;
     this.organizationRepositoryCustom = organizationRepositoryCustom;
+    this.searchCriteriaService = searchCriteriaService;
   }
 
   @Transactional(readOnly = true)
@@ -81,7 +101,7 @@ public class OrganizationProjectController extends BaseController implements Pro
     var user = getLoggedUser();
     return ResponseEntity.status(OK)
         .body(
-            organizationProjectHandler.getOrganizationProjectsList(user, orgId, filter, pageable));
+            organizationProjectHandler.getOrganizationProjectsPage(user, orgId, filter, pageable));
   }
 
   @Override
@@ -95,6 +115,35 @@ public class OrganizationProjectController extends BaseController implements Pro
     return ResponseEntity
         .status(OK)
         .body(organizationProjectHandler.createProject(orgId, projectDetails, user));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  @PreAuthorize(ORGANIZATION_MEMBER)
+  public ResponseEntity<OrganizationProjectsPage> postOrganizationsOrgIdProjectsSearches(
+      Long orgId,
+      SearchCriteriaRQ searchCriteria) {
+
+    organizationRepositoryCustom.findById(orgId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
+
+    Filter filter = searchCriteriaService
+        .createFilterBySearchCriteria(searchCriteria, ProjectProfile.class)
+        .withCondition(
+            new FilterCondition(Condition.EQUALS, false, orgId.toString(), "organization_id"));
+
+    var user = getLoggedUser();
+
+    var pageable = ControllerUtils.getPageable(
+        StringUtils.isNotBlank(searchCriteria.getSort()) ? searchCriteria.getSort() : "name",
+        searchCriteria.getOrder().toString(),
+        searchCriteria.getOffset(),
+        searchCriteria.getLimit());
+
+    return ResponseEntity
+        .ok()
+        .body(
+            organizationProjectHandler.getOrganizationProjectsPage(user, orgId, filter, pageable));
   }
 
 }

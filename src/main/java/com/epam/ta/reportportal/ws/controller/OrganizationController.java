@@ -21,7 +21,6 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 
 import com.epam.reportportal.api.OrganizationsApi;
 import com.epam.reportportal.api.model.OrganizationProfile;
-import com.epam.reportportal.api.model.OrganizationProfilesList;
 import com.epam.reportportal.api.model.OrganizationProfilesPage;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -92,6 +91,7 @@ public class OrganizationController extends BaseController implements Organizati
 
 
   @Transactional(readOnly = true)
+  @PreAuthorize(ORGANIZATION_MEMBER)
   @Override
   public ResponseEntity<OrganizationProfilesPage> postOrganizationsSearches(
       SearchCriteriaRQ searchCriteria) {

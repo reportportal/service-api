@@ -35,7 +35,7 @@ public interface OrganizationProjectHandler {
    * @param pageable the {@link Pageable} to define the pagination details for the result
    * @return an {@link OrganizationProjectsPage} represents a page of projects for the organization
    */
-  OrganizationProjectsPage getOrganizationProjectsList(ReportPortalUser user, Long orgId,
+  OrganizationProjectsPage getOrganizationProjectsPage(ReportPortalUser user, Long orgId,
       Filter filter,
       Pageable pageable);
 

@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.USER;
 
-import com.epam.reportportal.api.OrganizationsApi;
+import com.epam.reportportal.api.OrganizationApi;
 import com.epam.reportportal.api.model.OrganizationProfile;
 import com.epam.reportportal.api.model.OrganizationProfilesPage;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class OrganizationController extends BaseController implements OrganizationsApi {
+public class OrganizationController extends BaseController implements OrganizationApi {
 
   private final GetOrganizationHandler getOrganizationHandler;
   private final OrganizationsSearchCriteriaService searchCriteriaService;

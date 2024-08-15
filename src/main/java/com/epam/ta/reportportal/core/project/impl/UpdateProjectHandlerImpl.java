@@ -36,6 +36,7 @@ import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_PATTERN_ANALYZER_ENABLED;
 import static com.epam.ta.reportportal.entity.enums.SendCase.findByName;
+import static com.epam.ta.reportportal.entity.organization.OrganizationRole.MEMBER;
 import static com.epam.ta.reportportal.ws.converter.converters.ProjectActivityConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -68,6 +69,8 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
+import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.Prefix;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
@@ -75,6 +78,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
+import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -104,6 +108,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -115,6 +120,7 @@ import org.springframework.stereotype.Service;
  * @author Pavel Bortnik
  */
 @Service
+@Log4j2
 public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
   private static final String UPDATE_EVENT = "update";
@@ -130,6 +136,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
   private final UserPreferenceRepository preferenceRepository;
 
   private final ProjectUserRepository projectUserRepository;
+  private final OrganizationUserRepository organizationUserRepository;
+  private final OrganizationRepositoryCustom organizationRepositoryCustom;
 
   private final MessageBus messageBus;
 
@@ -151,7 +159,9 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
   public UpdateProjectHandlerImpl(ProjectExtractor projectExtractor,
       ProjectAttributeValidator projectAttributeValidator, ProjectRepository projectRepository,
       UserRepository userRepository, UserPreferenceRepository preferenceRepository,
+      OrganizationUserRepository organizationUserRepository,
       MessageBus messageBus, ProjectUserRepository projectUserRepository,
+      OrganizationRepositoryCustom organizationRepositoryCustom,
       ApplicationEventPublisher applicationEventPublisher, MailServiceFactory mailServiceFactory,
       AnalyzerStatusCache analyzerStatusCache, IndexerStatusCache indexerStatusCache,
       AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer,
@@ -161,8 +171,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     this.projectRepository = projectRepository;
     this.userRepository = userRepository;
     this.preferenceRepository = preferenceRepository;
+    this.organizationUserRepository = organizationUserRepository;
     this.messageBus = messageBus;
     this.projectUserRepository = projectUserRepository;
+    this.organizationRepositoryCustom = organizationRepositoryCustom;
     this.applicationEventPublisher = applicationEventPublisher;
     this.mailServiceFactory = mailServiceFactory;
     this.analyzerStatusCache = analyzerStatusCache;
@@ -273,9 +285,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
         ProjectRole projectRole = ProjectRole.forName(role)
             .orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, role));
-        ProjectRole modifierRole = membershipDetails.getProjectRole();
-        expect(modifierRole.sameOrHigherThan(projectRole), BooleanUtils::isTrue).verify(
-            ACCESS_DENIED);
+
         assignUser(name, projectRole, assignedUsernames, project, user);
       });
     }
@@ -388,6 +398,22 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     expect(name, not(in(assignedUsernames))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
         formattedSupplier("User '{}' cannot be assigned to project twice.", name)
     );
+
+    // assign user to organization if not assigned yet
+    var organization = organizationRepositoryCustom.findById(project.getOrganizationId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND,
+            project.getOrganizationId()));
+    organizationUserRepository.findByUserIdAndOrganization_Id(modifyingUser.getId(),
+            project.getOrganizationId())
+        .orElseGet(() -> {
+          log.debug("Assigning user {} to organization {}",
+              modifyingUser.getLogin(), organization.getName());
+          var organizationUser = new OrganizationUser();
+          organizationUser.setOrganization(organization);
+          organizationUser.setUser(modifyingUser);
+          organizationUser.setOrganizationRole(MEMBER);
+          return organizationUserRepository.save(organizationUser);
+        });
 
     ProjectUser projectUser = new ProjectUser();
     projectUser.setProjectRole(projectRole);

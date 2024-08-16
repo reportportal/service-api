@@ -201,7 +201,7 @@ tasks.withType(JavaCompile).configureEach {
 
 swaggerSources {
     organizations {
-        inputFile = file("$rootDir/reportportal-common-api/api/openapi/organizations.yaml")
+        inputFile = file("$rootDir/reportportal-common-api/api/openapi/apis/organizations.yaml")
         code {
             language = 'spring'
             configFile = file("$rootDir/src/main/resources/openapi/config.json")

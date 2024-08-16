@@ -28,8 +28,6 @@ import javax.validation.Path;
 import javax.validation.Validator;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
@@ -122,6 +120,7 @@ public class ControllerUtils {
 
   public static Pageable getPageable(String sortBy, String order, int offset, int limit) {
     var sortDirection = parseSortDirection(order);
-    return PageRequest.of(offset, limit, Sort.by(sortDirection, sortBy));
+    //TODO: switch to ScrollPosition after migration to Spring Data 3.1
+    return OffsetRequest.of(offset, limit, Sort.by(sortDirection, sortBy));
   }
 }

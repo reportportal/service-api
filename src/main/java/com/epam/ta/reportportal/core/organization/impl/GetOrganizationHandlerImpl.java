@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.organization.impl;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
 
 import com.epam.reportportal.api.model.OrganizationProfile;
@@ -60,7 +60,7 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
   public OrganizationProfile getOrganizationById(Long organizationId, ReportPortalUser user) {
     Filter filter = new Filter(OrganizationFilter.class, Lists.newArrayList());
     filter.withCondition(
-        new FilterCondition(Condition.EQUALS, false, organizationId.toString(), "id"));
+        new FilterCondition(Condition.EQUALS, false, organizationId.toString(), CRITERIA_ID));
     return organizationRepositoryCustom.findByFilter(filter).stream().findFirst()
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, organizationId));
@@ -82,7 +82,7 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
         return responseWithPageParameters(organizationProfilesPage, pageable, 0);
       } else {
         filter.getFilterConditions().add(
-            new FilterCondition(Condition.IN, false, orgIds, CRITERIA_ORG_ID));
+            new FilterCondition(Condition.IN, false, orgIds, CRITERIA_ID));
       }
     }
 

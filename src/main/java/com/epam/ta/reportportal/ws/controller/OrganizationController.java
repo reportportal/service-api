@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.USER;
 
 import com.epam.reportportal.api.OrganizationApi;
 import com.epam.reportportal.api.model.OrganizationProfile;
@@ -29,7 +28,6 @@ import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.filter.OrganizationsSearchCriteriaService;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
-import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
@@ -69,10 +67,6 @@ public class OrganizationController extends BaseController implements Organizati
     var user = getLoggedUser();
     Filter filter = new Filter(OrganizationFilter.class, Lists.newArrayList());
 
-    if (UserRole.ADMINISTRATOR != user.getUserRole()) {
-      filter.withCondition(
-          new FilterCondition(Condition.EQUALS, false, user.getUsername(), USER));
-    }
     if (StringUtils.isNotEmpty(name)) {
       filter.withCondition(
           new FilterCondition(Condition.CONTAINS, false, name, "name"));
@@ -86,12 +80,11 @@ public class OrganizationController extends BaseController implements Organizati
 
     return ResponseEntity
         .ok()
-        .body(getOrganizationHandler.getOrganizations(filter, pageable));
+        .body(getOrganizationHandler.getOrganizations(user, filter, pageable));
   }
 
 
   @Transactional(readOnly = true)
-  @PreAuthorize(ORGANIZATION_MEMBER)
   @Override
   public ResponseEntity<OrganizationProfilesPage> postOrganizationsSearches(
       SearchCriteriaRQ searchCriteria) {
@@ -99,10 +92,6 @@ public class OrganizationController extends BaseController implements Organizati
         .createFilterBySearchCriteria(searchCriteria, OrganizationFilter.class);
 
     var user = getLoggedUser();
-    if (UserRole.ADMINISTRATOR != user.getUserRole()) {
-      filter.withCondition(
-          new FilterCondition(Condition.EQUALS, false, user.getUsername(), USER));
-    }
 
     var pageable = ControllerUtils.getPageable(
         StringUtils.isNotBlank(searchCriteria.getSort()) ? searchCriteria.getSort() : "name",
@@ -112,7 +101,7 @@ public class OrganizationController extends BaseController implements Organizati
 
     return ResponseEntity
         .ok()
-        .body(getOrganizationHandler.getOrganizations(filter, pageable));
+        .body(getOrganizationHandler.getOrganizations(user, filter, pageable));
 
   }
 

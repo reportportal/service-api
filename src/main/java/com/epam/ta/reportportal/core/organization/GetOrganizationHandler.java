@@ -45,6 +45,6 @@ public interface GetOrganizationHandler {
    * @return An {@link Iterable} of {@link OrganizationResource} containing information about all
    * projects
    */
-  OrganizationProfilesPage getOrganizations(Queryable filter, Pageable pageable);
+  OrganizationProfilesPage getOrganizations(ReportPortalUser rpUser, Queryable filter, Pageable pageable);
 
 }

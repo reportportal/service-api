@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.organization.impl;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
 
 import com.epam.reportportal.api.model.OrganizationProfile;
@@ -29,8 +30,11 @@ import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
+import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -43,32 +47,51 @@ import org.springframework.stereotype.Service;
 public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
 
   private final OrganizationRepositoryCustom organizationRepositoryCustom;
+  private final OrganizationUserRepository organizationUserRepository;
 
   @Autowired
-  public GetOrganizationHandlerImpl(OrganizationRepositoryCustom organizationRepositoryCustom) {
+  public GetOrganizationHandlerImpl(OrganizationRepositoryCustom organizationRepositoryCustom,
+      OrganizationUserRepository organizationUserRepository) {
     this.organizationRepositoryCustom = organizationRepositoryCustom;
+    this.organizationUserRepository = organizationUserRepository;
   }
 
   @Override
   public OrganizationProfile getOrganizationById(Long organizationId, ReportPortalUser user) {
     Filter filter = new Filter(OrganizationFilter.class, Lists.newArrayList());
     filter.withCondition(
-        new FilterCondition(Condition.EQUALS, false, organizationId.toString(), "id"));
+        new FilterCondition(Condition.EQUALS, false, organizationId.toString(), CRITERIA_ID));
     return organizationRepositoryCustom.findByFilter(filter).stream().findFirst()
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, organizationId));
   }
 
   @Override
-  public OrganizationProfilesPage getOrganizations(Queryable filter, Pageable pageable) {
-    var organizationProfilesPage = organizationRepositoryCustom.findByFilter(filter, pageable);
+  public OrganizationProfilesPage getOrganizations(ReportPortalUser rpUser, Queryable filter,
+      Pageable pageable) {
+    OrganizationProfilesPage organizationProfilesPage = new OrganizationProfilesPage();
 
-    OrganizationProfilesPage organizationProfilesList =
-        new OrganizationProfilesPage()
-            .items(organizationProfilesPage.getContent());
+    if (!rpUser.getUserRole().equals(UserRole.ADMINISTRATOR)) {
+      var orgIds = organizationUserRepository.findOrganizationIdsByUserId(rpUser.getUserId())
+          .stream()
+          .map(Object::toString)
+          .collect(Collectors.joining(","));
 
-    return responseWithPageParameters(organizationProfilesList, pageable,
-        organizationProfilesPage.getTotalElements());
+      if (orgIds.isEmpty()) {
+        // return empty response
+        return responseWithPageParameters(organizationProfilesPage, pageable, 0);
+      } else {
+        filter.getFilterConditions().add(
+            new FilterCondition(Condition.IN, false, orgIds, CRITERIA_ID));
+      }
+    }
+
+    var organizationProfiles = organizationRepositoryCustom.findByFilter(filter, pageable);
+
+    organizationProfilesPage.items(organizationProfiles.getContent());
+
+    return responseWithPageParameters(organizationProfilesPage, pageable,
+        organizationProfiles.getTotalElements());
   }
 
 }

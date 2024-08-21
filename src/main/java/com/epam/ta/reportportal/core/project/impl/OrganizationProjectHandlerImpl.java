@@ -177,7 +177,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     expect(project.getOrganizationId(), equalTo(orgId))
         .verify(PROJECT_NOT_FOUND, "Project " + projectId + " not found in organization " + orgId);
 
-    deleteProject(project);
+    deleteProjectWithDependants(project);
 
     publishSpecialProjectDeletedEvent(rpUser, project);
   }
@@ -196,7 +196,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     return project;
   }
 
-  private void deleteProject(Project project) {
+  private void deleteProjectWithDependants(Project project) {
     Set<Long> defaultIssueTypeIds = issueTypeRepository.getDefaultIssueTypes()
         .stream()
         .map(IssueType::getId)

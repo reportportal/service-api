@@ -312,13 +312,25 @@ class ProjectControllerTest extends BaseMvcTest {
   }
 
   @Test
-  @Disabled("waiting for requirements")
-  void deleteProjectPositive() throws Exception {
-    mockMvc.perform(delete("/v1/project/3")
+  void deleteProject() throws Exception {
+    assertTrue(projectRepository.findById(3L).isPresent());
+
+    mockMvc.perform(delete("/organizations/101/projects/3")
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
+        .andExpect(status().isNoContent());
 
     assertFalse(projectRepository.findById(3L).isPresent());
+  }
+
+  @Test
+  void deleteProjectWrongOrganization() throws Exception {
+    assertTrue(projectRepository.findById(3L).isPresent());
+
+    mockMvc.perform(delete("/organizations/1/projects/3")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound());
+
+    assertTrue(projectRepository.findById(3L).isPresent());
   }
 
   @Test

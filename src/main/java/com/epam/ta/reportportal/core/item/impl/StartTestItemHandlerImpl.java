@@ -176,6 +176,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
     return new ItemCreatedRS(item.getUuid(), item.getUniqueId());
   }
+
   private void processRetry(StartTestItemRQ rq, Launch launch, TestItem item, TestItem parentItem) {
     Long retryParentId = Optional.ofNullable(rq.getRetryOf())
         .flatMap(testItemRepository::findIdByUuidForUpdate)

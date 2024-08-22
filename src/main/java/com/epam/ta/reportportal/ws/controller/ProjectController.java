@@ -133,6 +133,7 @@ public class ProjectController {
   @PostMapping
   @ResponseStatus(CREATED)
   @Operation(summary = "Create new project")
+  @Deprecated
   public EntryCreatedRS createProject(@RequestBody @Validated CreateProjectRQ createProjectRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return createProjectHandler.createProject(createProjectRQ, user);
@@ -174,6 +175,7 @@ public class ProjectController {
   @DeleteMapping("/{projectId}")
   @ResponseStatus(OK)
   @PreAuthorize(IS_ADMIN)
+  @Deprecated
   @Operation(summary =  "Delete project", description = "Could be deleted only by users with administrator role")
   public OperationCompletionRS deleteProject(@PathVariable Long projectId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -236,6 +238,7 @@ public class ProjectController {
   @ResponseStatus(OK)
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Assign users")
+  @Deprecated
   public OperationCompletionRS assignProjectUsers(@PathVariable String projectKey,
       @RequestBody @Validated AssignUsersRQ assignUsersRQ,
       @AuthenticationPrincipal ReportPortalUser user) {

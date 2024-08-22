@@ -41,4 +41,6 @@ public interface OrganizationProjectHandler {
 
   OrganizationProjectInfo createProject(Long orgId, ProjectDetails projectDetails,
       ReportPortalUser user);
+
+  void deleteProject(ReportPortalUser user, Long orgId, Long prjId);
 }

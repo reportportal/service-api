@@ -32,12 +32,14 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.filter.OrganizationsSearchCriteriaService;
+import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.core.project.OrganizationProjectHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,7 +59,6 @@ public class OrganizationProjectController extends BaseController implements
   private final OrganizationProjectHandler organizationProjectHandler;
   private final OrganizationRepositoryCustom organizationRepositoryCustom;
   private final OrganizationsSearchCriteriaService searchCriteriaService;
-
 
   /**
    * Constructor for OrganizationProjectController.
@@ -145,6 +146,16 @@ public class OrganizationProjectController extends BaseController implements
         .ok()
         .body(
             organizationProjectHandler.getOrganizationProjectsPage(user, orgId, filter, pageable));
+  }
+
+
+  @Override
+  @Transactional
+  @PreAuthorize(ORGANIZATION_MANAGER)
+  public ResponseEntity<Void> deleteOrganizationsOrgIdProjectsProjectId(Long orgId, Long prjId) {
+    var user = getLoggedUser();
+    organizationProjectHandler.deleteProject(user, orgId, prjId);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
 }

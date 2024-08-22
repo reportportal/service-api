@@ -17,9 +17,12 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.isPresent;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
 import static com.epam.ta.reportportal.ws.converter.converters.OrganizationProjectInfoConverter.TO_ORG_PROJECT_INFO;
 
@@ -30,25 +33,35 @@ import com.epam.reportportal.api.model.ProjectProfile;
 import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.events.activity.ProjectCreatedEvent;
+import com.epam.ta.reportportal.core.events.activity.ProjectDeletedEvent;
 import com.epam.ta.reportportal.core.project.OrganizationProjectHandler;
+import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.dao.AttributeRepository;
+import com.epam.ta.reportportal.dao.IssueTypeRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.dao.project.OrganizationProjectRepository;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
+import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.SlugifyUtils;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -69,19 +82,35 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
   private final OrganizationRepositoryCustom organizationRepositoryCustom;
   private final AttributeRepository attributeRepository;
   private final ApplicationEventPublisher applicationEventPublisher;
+  private final IssueTypeRepository issueTypeRepository;
+  private final ContentRemover<Project> projectContentRemover;
+  private final LogRepository logRepository;
+  private final AttachmentBinaryDataService attachmentBinaryDataService;
+  private final LogIndexer logIndexer;
+  private final AnalyzerServiceClient analyzerServiceClient;
 
 
   public OrganizationProjectHandlerImpl(OrganizationProjectRepository organizationProjectRepository,
       ProjectUserRepository projectUserRepository, ProjectRepository projectRepository,
       OrganizationRepositoryCustom organizationRepositoryCustom,
       AttributeRepository attributeRepository,
-      ApplicationEventPublisher applicationEventPublisher) {
+      ApplicationEventPublisher applicationEventPublisher, IssueTypeRepository issueTypeRepository,
+      ContentRemover<Project> projectContentRemover, LogRepository logRepository,
+      AttachmentBinaryDataService attachmentBinaryDataService, LogIndexer logIndexer,
+      AnalyzerServiceClient analyzerServiceClient) {
     this.organizationProjectRepository = organizationProjectRepository;
     this.projectUserRepository = projectUserRepository;
     this.projectRepository = projectRepository;
     this.organizationRepositoryCustom = organizationRepositoryCustom;
     this.attributeRepository = attributeRepository;
     this.applicationEventPublisher = applicationEventPublisher;
+    this.issueTypeRepository = issueTypeRepository;
+    this.projectContentRemover = projectContentRemover;
+    this.logRepository = logRepository;
+    this.attachmentBinaryDataService = attachmentBinaryDataService;
+
+    this.logIndexer = logIndexer;
+    this.analyzerServiceClient = analyzerServiceClient;
   }
 
   @Override
@@ -137,10 +166,22 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     Project createdProject = projectRepository.save(projectToSave);
 
     applicationEventPublisher.publishEvent(new ProjectEvent(createdProject.getId(), CREATE_KEY));
-    publishProjectCreatedEvent(user.getUserId(), user.getUsername(), createdProject);
+    publishProjectCreatedEvent(user, createdProject);
 
     return TO_ORG_PROJECT_INFO.apply(createdProject);
   }
+
+  @Override
+  public void deleteProject(ReportPortalUser rpUser, Long orgId, Long projectId) {
+    Project project = getProjectById(projectId);
+    expect(project.getOrganizationId(), equalTo(orgId))
+        .verify(PROJECT_NOT_FOUND, "Project " + projectId + " not found in organization " + orgId);
+
+    deleteProjectWithDependants(project);
+
+    publishSpecialProjectDeletedEvent(rpUser, project);
+  }
+
 
   private Project generateProjectBody(Long orgId, ProjectDetails projectDetails,
       String projectKey) {
@@ -155,11 +196,56 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     return project;
   }
 
-  private void publishProjectCreatedEvent(Long userId, String userLogin, Project project) {
-    Long projectId = project.getId();
-    String projectName = project.getName();
-    ProjectCreatedEvent event = new ProjectCreatedEvent(userId, userLogin, projectId, projectName);
+  private void deleteProjectWithDependants(Project project) {
+    Set<Long> defaultIssueTypeIds = issueTypeRepository.getDefaultIssueTypes()
+        .stream()
+        .map(IssueType::getId)
+        .collect(Collectors.toSet());
+
+    Set<IssueType> issueTypesToRemove = project.getProjectIssueTypes()
+        .stream()
+        .map(ProjectIssueType::getIssueType)
+        .filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
+        .collect(Collectors.toSet());
+
+    projectContentRemover.remove(project);
+    projectRepository.delete(project);
+    issueTypeRepository.deleteAll(issueTypesToRemove);
+    logIndexer.deleteIndex(project.getId());
+    analyzerServiceClient.removeSuggest(project.getId());
+    logRepository.deleteByProjectId(project.getId());
+    attachmentBinaryDataService.deleteAllByProjectId(project.getId());
+
+  }
+
+  private void publishProjectCreatedEvent(ReportPortalUser user, Project project) {
+    ProjectCreatedEvent event = new ProjectCreatedEvent(
+        user.getUserId(),
+        user.getUsername(),
+        project.getId(),
+        project.getName());
     applicationEventPublisher.publishEvent(event);
+  }
+
+  private void publishSpecialProjectDeletedEvent(ReportPortalUser user, Project project) {
+    if (Objects.nonNull(user)) {
+      Long userId = user.getUserId();
+      String username = user.getUsername();
+      publishProjectDeletedEvent(userId, username, project.getId(), project.getName());
+    } else {
+      publishProjectDeletedEvent(null, RP_SUBJECT_NAME, project.getId(), "personal_project");
+    }
+  }
+
+  private void publishProjectDeletedEvent(Long userId, String userLogin, Long projectId,
+      String projectName) {
+    ProjectDeletedEvent event = new ProjectDeletedEvent(userId, userLogin, projectId, projectName);
+    applicationEventPublisher.publishEvent(event);
+  }
+
+  private Project getProjectById(Long projectId) {
+    return projectRepository.findById(projectId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
   }
 
 

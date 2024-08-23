@@ -89,7 +89,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
         );
 
     String integrationName =
-        ofNullable(createRequest.getName()).map(String::toLowerCase).map(name -> {
+        ofNullable(createRequest.getName()).map(name -> {
           validateGlobalIntegrationName(name, integrationType);
           return name;
         }).orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_INTEGRATION_NAME,
@@ -122,11 +122,12 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
             this.basicIntegrationService
         );
 
-    String integrationName =
-        ofNullable(createRequest.getName()).map(String::toLowerCase).map(name -> {
+    String integrationName = ofNullable(createRequest.getName())
+        .map(name -> {
           validateProjectIntegrationName(name, integrationType, project);
           return name;
-        }).orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_INTEGRATION_NAME,
+        })
+        .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_INTEGRATION_NAME,
             "Integration name should be not null"
         ));
     createRequest.setName(integrationName);
@@ -151,7 +152,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
     IntegrationActivityResource beforeUpdate = TO_ACTIVITY_RESOURCE.apply(integration);
 
-    ofNullable(updateRequest.getName()).map(String::toLowerCase).ifPresent(name -> {
+    ofNullable(updateRequest.getName()).ifPresent(name -> {
       if (!name.equals(integration.getName())) {
         validateGlobalIntegrationName(name, integration.getType());
       }
@@ -186,7 +187,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
     IntegrationActivityResource beforeUpdate = TO_ACTIVITY_RESOURCE.apply(integration);
 
-    ofNullable(updateRequest.getName()).map(String::toLowerCase).ifPresent(name -> {
+    ofNullable(updateRequest.getName()).ifPresent(name -> {
       if (!name.equals(integration.getName())) {
         validateProjectIntegrationName(name, integration.getType(), project);
       }
@@ -215,7 +216,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
     BusinessRule.expect(integrationName, StringUtils::isNotBlank)
         .verify(ErrorType.INCORRECT_INTEGRATION_NAME, "Integration name should be not empty");
     BusinessRule.expect(
-        integrationRepository.existsByNameAndTypeIdAndProjectIdIsNull(integrationName,
+        integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectIdIsNull(integrationName,
             integrationType.getId()
         ), BooleanUtils::isFalse).verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
         Suppliers.formattedSupplier(
@@ -229,7 +230,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
       IntegrationType integrationType, Project project) {
     BusinessRule.expect(integrationName, StringUtils::isNotBlank)
         .verify(ErrorType.INCORRECT_INTEGRATION_NAME, "Integration name should be not empty");
-    BusinessRule.expect(integrationRepository.existsByNameAndTypeIdAndProjectId(integrationName,
+    BusinessRule.expect(integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectId(integrationName,
         integrationType.getId(), project.getId()
     ), BooleanUtils::isFalse).verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
         Suppliers.formattedSupplier(

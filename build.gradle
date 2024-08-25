@@ -94,8 +94,8 @@ dependencies {
     implementation 'org.springframework.amqp:spring-amqp:2.4.17'
 
     //Fix CVE-2023-40827, CVE-2023-40828, CVE-2023-40826
-    implementation 'org.springframework:spring-webmvc:5.3.33'
-    implementation 'org.springframework:spring-web:5.3.33'
+    implementation 'org.springframework:spring-webmvc:5.3.39'
+    implementation 'org.springframework:spring-web:5.3.39'
 
     implementation 'com.opencsv:opencsv:5.8'
 
@@ -114,10 +114,12 @@ dependencies {
     implementation "com.rabbitmq:http-client:5.2.0"
 
     implementation 'com.sun.mail:javax.mail:1.6.2'
-    // check authentication error response format for versions higher than 6.18.1
-    implementation 'net.sf.jasperreports:jasperreports:6.18.1'
+    // check authentication error response format for versions higher than 6.21.3
+    implementation 'net.sf.jasperreports:jasperreports:6.21.3'
     implementation 'xerces:xercesImpl:2.12.2'
     implementation 'com.lowagie:itext:2.1.7.js7'
+    // Fix CVE-2020-15522 in com.lowagie:itext:2.1.7.js7
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
     // JasperReport's export to XLS uses Apache POI
     implementation 'org.apache.poi:poi:4.1.2'
     implementation 'io.springfox:springfox-swagger2:2.9.2'
@@ -126,9 +128,9 @@ dependencies {
 
     ///// Security
     //https://nvd.nist.gov/vuln/detail/CVE-2020-5407 AND https://nvd.nist.gov/vuln/detail/CVE-2020-5408
-    implementation 'org.springframework.security:spring-security-core:5.8.8'
-    implementation 'org.springframework.security:spring-security-config:5.8.8'
-    implementation 'org.springframework.security:spring-security-web:5.8.8'
+    implementation 'org.springframework.security:spring-security-core:5.8.14'
+    implementation 'org.springframework.security:spring-security-config:5.8.14'
+    implementation 'org.springframework.security:spring-security-web:5.8.14'
     //
 
     // Fix CVE-2022-22969
@@ -140,14 +142,14 @@ dependencies {
     // Fix CVE-2022-22965, CVE-2022-22970
     implementation 'org.springframework:spring-beans:5.3.31'
     // Fix CVE-2021-22060, CVE-2021-22096
-    implementation 'org.springframework:spring-core:5.3.31'
+    implementation 'org.springframework:spring-core:5.3.39'
     // Fix CVE-2022-45685, CVE-2022-40150, CVE-2022-40149
     implementation 'org.codehaus.jettison:jettison:1.5.4'
-    // Fix CVE-2020-15522
-    implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
     // Fix CVE-2024-25710, CVE-2024-26308
     implementation 'org.apache.commons:commons-compress:1.26.0'
-    implementation 'org.yaml:snakeyaml:1.33'
+//    TODO: SnakeYaml 2 can't be used in Spring Boot 2.5.15.
+//    We avoid using application.yaml and user application.properties instead for safe configuration.
+    implementation 'org.yaml:snakeyaml:2.2'
     implementation 'org.hibernate:hibernate-core:5.6.15.Final'
 
     //Fix CVE-2023-6378, CVE-2023-6481, CVE-2023-6378, CVE-2023-6481

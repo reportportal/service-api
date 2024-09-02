@@ -8,8 +8,10 @@ public class SlugifyUtils {
   }
 
   public static String slugify(String inputStr) {
-    var slg = Slugify.builder().build();
-    return slg.slugify(inputStr);
+    var slug = Slugify.builder()
+        .underscoreSeparator(false)
+        .build();
+    return slug.slugify(inputStr);
   }
 
 }

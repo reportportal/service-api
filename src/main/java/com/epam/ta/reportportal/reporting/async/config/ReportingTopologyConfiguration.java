@@ -61,9 +61,6 @@ public class ReportingTopologyConfiguration {
 
   private final AmqpAdmin amqpAdmin;
 
-  @Value("${reporting.retry.ttl.millis:1000}")
-  private int retryTtl;
-
   @Value("${reporting.parkingLot.ttl.days:7}")
   private long parkingLotTtl;
 
@@ -118,7 +115,7 @@ public class ReportingTopologyConfiguration {
   Queue ttlQueue() {
     return QueueBuilder.durable(TTL_QUEUE).deadLetterExchange(REPORTING_EXCHANGE)
         .deadLetterRoutingKey(DEFAULT_CONSISTENT_HASH_ROUTING_KEY)
-        .ttl(retryTtl).build();
+        .build();
   }
 
   @Bean

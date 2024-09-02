@@ -132,10 +132,12 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
     if (null != editUserRq.getEmail() && !editUserRq.getEmail().equals(user.getEmail())) {
       String updEmail = editUserRq.getEmail().toLowerCase().trim();
-      expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED,
-          "Unable to change email for external user");
+      if (!editor.getUserRole().equals(UserRole.ADMINISTRATOR)) {
+        expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED,
+                "Unable to change email for external user");
+      }
       expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR,
-          " wrong email: " + updEmail);
+                " wrong email: " + updEmail);
       final Optional<User> byEmail = userRepository.findByEmail(updEmail);
 
       expect(byEmail, Predicates.not(Optional::isPresent)).verify(USER_ALREADY_EXISTS, updEmail);
@@ -152,8 +154,10 @@ public class EditUserHandlerImpl implements EditUserHandler {
     }
 
     if (null != editUserRq.getFullName()) {
-      expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED,
-          "Unable to change full name for external user");
+      if (!editor.getUserRole().equals(UserRole.ADMINISTRATOR)) {
+        expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED,
+                "Unable to change full name for external user");
+      }
       user.setFullName(editUserRq.getFullName());
     }
 
@@ -192,6 +196,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
     User user = userRepository.findByLogin(loggedInUser.getUsername())
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
+
     expect(user.getUserType(), equalTo(INTERNAL)).verify(FORBIDDEN_OPERATION,
         "Impossible to change password for external users.");
     expect(passwordEncoder.matches(request.getOldPassword(), user.getPassword()),

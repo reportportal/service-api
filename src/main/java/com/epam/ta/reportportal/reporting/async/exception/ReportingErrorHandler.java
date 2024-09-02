@@ -64,7 +64,7 @@ public class ReportingErrorHandler implements ErrorHandler {
       failedMessage.getMessageProperties().getHeaders()
           .put("exception", executionFailedException.getCause().getMessage());
 
-      long retryCount = getRetryCount(failedMessage.getMessageProperties().getXDeathHeader());
+      int retryCount = getRetryCount(failedMessage.getMessageProperties().getXDeathHeader());
       if (retryCount > 0) {
         log.warn(
             "Retrying reporting message. Attempt count is {}. Request Type: {}, Launch UUID: {} ",
@@ -83,6 +83,8 @@ public class ReportingErrorHandler implements ErrorHandler {
 
       if (executionFailedException.getCause() instanceof ReportPortalException reportPortalException) {
         if (RETRYABLE_ERROR_TYPES.contains(reportPortalException.getErrorType())) {
+          failedMessage.getMessageProperties()
+              .setExpiration(String.valueOf(getNextTtl(retryCount)));
           rabbitTemplate.send(RETRY_EXCHANGE, TTL_QUEUE, failedMessage);
           return;
         }
@@ -93,15 +95,22 @@ public class ReportingErrorHandler implements ErrorHandler {
     }
   }
 
-  private long getRetryCount(List<Map<String, ?>> xDeathHeaders) {
+  private int getRetryCount(List<Map<String, ?>> xDeathHeaders) {
     if (!CollectionUtils.isEmpty(xDeathHeaders)) {
       var xDeath = xDeathHeaders.getFirst();
-      return Optional.ofNullable(xDeath.get("count")).map(count -> (long) count).orElse(0L);
+      return Optional.ofNullable(xDeath.get("count")).map(count -> (long) count).orElse(0L)
+          .intValue();
     }
     return 0;
   }
 
   private boolean checkRetryExceeded(long retries) {
     return retries >= maxRetryCount;
+  }
+
+  private int getNextTtl(int retryCount) {
+    int initialTtl = 1000;
+    double res = initialTtl * Math.pow(1.5, retryCount);
+    return (int) res;
   }
 }

@@ -92,7 +92,7 @@ dependencies {
     implementation 'org.springframework:spring-web:5.3.39'
 
     implementation 'com.opencsv:opencsv:5.8'
-    implementation 'com.github.slugify:slugify:3.0.6'
+    implementation 'com.github.slugify:slugify:3.0.7'
 
 
     // Fix CVE-2023-46589, CVE-2024-24549

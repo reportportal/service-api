@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.util;
 
-import com.epam.reportportal.api.model.ProjectDetails;
 import java.lang.reflect.Method;
 import java.util.regex.Matcher;
 import javax.validation.constraints.Pattern;
@@ -30,8 +29,9 @@ public class RegexpAssertionUtil {
   private RegexpAssertionUtil() {
   }
 
-  public static void checkRegexpPattern(String method, String value) throws NoSuchMethodException {
-    Method getSlugMethod = ProjectDetails.class.getMethod(method);
+  public static void checkRegexpPattern(Class<?> clazz, String method, String value)
+      throws NoSuchMethodException {
+    Method getSlugMethod = clazz.getMethod(method);
     Pattern patternAnnotation = getSlugMethod.getAnnotation(Pattern.class);
     String regexp = patternAnnotation.regexp();
 

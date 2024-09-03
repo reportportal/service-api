@@ -9,7 +9,7 @@ public class SlugifyUtils {
 
   public static String slugify(String inputStr) {
     var slug = Slugify.builder()
-        .underscoreSeparator(false)
+        .customReplacement("_", "-")
         .build();
     return slug.slugify(inputStr);
   }

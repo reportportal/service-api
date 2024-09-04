@@ -24,7 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.reportportal.api.model.OffsetRequest.OrderEnum;
-import com.epam.reportportal.api.model.OrganizationProfilesPage;
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.api.model.SearchCriteriaSearchCriteria;
@@ -142,6 +141,25 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
         .andExpect(jsonPath("$.name").value(name))
         .andExpect(jsonPath("$.key").value(ORG_SLUG + "." + expectSlug))
         .andExpect(jsonPath("$.slug").value(expectSlug));
+  }
+
+
+  @Test
+  void createDuplicateProjectFails() throws Exception {
+    JsonObject jsonBody = new JsonObject();
+    jsonBody.addProperty("name", "uniq_name_123");
+
+    mockMvc.perform(post("/organizations/1/projects")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken()))
+            .content(jsonBody.toString()))
+        .andExpect(status().isOk());
+
+    mockMvc.perform(post("/organizations/1/projects")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken()))
+            .content(jsonBody.toString()))
+        .andExpect(status().is4xxClientError());
   }
 
 }

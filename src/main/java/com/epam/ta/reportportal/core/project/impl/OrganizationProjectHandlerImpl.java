@@ -155,7 +155,8 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     }
     var projectKey = organization.getSlug() + "." + projectDetails.getSlug();
 
-    Optional<Project> existProject = projectRepository.findByKey(projectKey);
+    Optional<Project> existProject =
+        projectRepository.findByNameAndOrganizationId(projectDetails.getName(), orgId);
     expect(existProject, not(isPresent())).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectKey);
 
     var projectToSave = generateProjectBody(orgId, projectDetails, projectKey);

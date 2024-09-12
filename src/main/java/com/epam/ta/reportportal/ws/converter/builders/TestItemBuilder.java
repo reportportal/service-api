@@ -136,25 +136,6 @@ public class TestItemBuilder implements Supplier<TestItem> {
     return this;
   }
 
-  public TestItemBuilder overwriteAttributesValues(Set<? extends ItemAttributeResource> attributes) {
-    if (attributes != null) {
-      attributes.forEach(val -> {
-        ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
-        itemAttribute.setTestItem(testItem);
-        Optional<ItemAttribute> existingAttr = testItem.getAttributes().stream()
-            .filter(attr -> Objects.nonNull(attr.getKey()) && attr.getKey()
-                .equals(itemAttribute.getKey()))
-            .findFirst();
-        if (existingAttr.isPresent()) {
-          existingAttr.get().setValue(itemAttribute.getValue());
-        } else {
-          testItem.getAttributes().add(itemAttribute);
-        }
-      });
-    }
-    return this;
-  }
-
   public TestItemBuilder overwriteAttributes(Set<? extends ItemAttributeResource> attributes) {
     if (attributes != null) {
       final Set<ItemAttribute> overwrittenAttributes = testItem.getAttributes()

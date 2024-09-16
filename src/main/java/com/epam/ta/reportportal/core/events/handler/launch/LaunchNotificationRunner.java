@@ -53,6 +53,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +69,7 @@ public class LaunchNotificationRunner
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LaunchNotificationRunner.class);
 
-  private static final String EMAIL_INTEGRATION_NAME = "email server";
+  private static final String EMAIL_INTEGRATION_NAME = "Email Server";
 
   private final static String NOTIFICATION_TYPE = "email";
 
@@ -101,7 +102,7 @@ public class LaunchNotificationRunner
     if (isNotificationsEnabled) {
       getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(
               launchFinishedEvent.getProjectId(), IntegrationGroupEnum.NOTIFICATION)
-          .filter(integration -> EMAIL_INTEGRATION_NAME.equals(integration.getName()))
+          .filter(integration -> EMAIL_INTEGRATION_NAME.equalsIgnoreCase(integration.getName()))
           .flatMap(mailServiceFactory::getDefaultEmailService)
           .ifPresentOrElse(emailService -> sendEmail(launchFinishedEvent, emailService),
               () -> LOGGER.warn("Unable to find {} integration for project {}",

@@ -28,7 +28,9 @@ import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
+import org.hibernate.id.UUIDGenerator;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -71,7 +73,7 @@ public class UserBuilder implements Supplier<User> {
 
   @Override
   public User get() {
-
+    user.setUuid(UUID.randomUUID());
     //TODO check for existing of the default project etc.
     return user;
   }

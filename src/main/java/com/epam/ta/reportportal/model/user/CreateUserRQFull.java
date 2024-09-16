@@ -27,14 +27,24 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+import lombok.Data;
 
 /**
  * Create User request for admin user creation functionality
  *
  * @author Andrei_Ramanchuk
  */
+@Data
 @JsonInclude(Include.NON_NULL)
 public class CreateUserRQFull {
+
+	@JsonProperty(value = "active", defaultValue = "true")
+	@Schema(requiredMode = RequiredMode.NOT_REQUIRED, defaultValue = "true")
+	private boolean active;
+
+	@JsonProperty(value = "externalId")
+	@Schema(requiredMode = RequiredMode.NOT_REQUIRED)
+	private String externalId;
 
 	@NotBlank
 	@Pattern(regexp = "[a-zA-Z0-9-_.]+")
@@ -77,66 +87,4 @@ public class CreateUserRQFull {
 	@JsonProperty(value = "defaultProject", required = true)
 	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String defaultProject;
-
-	public void setLogin(String value) {
-		this.login = value;
-	}
-
-	public String getLogin() {
-		return login;
-	}
-
-	public void setPassword(String value) {
-		this.password = value;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setFullName(String value) {
-		this.fullName = value;
-	}
-
-	public String getFullName() {
-		return fullName;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public String getAccountRole() {
-		return accountRole;
-	}
-
-	public void setAccountRole(String role) {
-		this.accountRole = role;
-	}
-
-	public String getProjectRole() {
-		return projectRole;
-	}
-
-	public void setProjectRole(String role) {
-		this.projectRole = role;
-	}
-
-	public String getDefaultProject() {
-		return defaultProject;
-	}
-
-	public void setDefaultProject(String value) {
-		this.defaultProject = value;
-	}
-
-	@Override
-	public String toString() {
-		return "CreateUserRQFull [login=" + login + ", password=" + password + ", fullName=" + fullName + ", email=" + email
-				+ ", projectRole=" + projectRole + ", defaultProject=" + defaultProject + "]";
-	}
 }

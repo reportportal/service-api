@@ -28,7 +28,9 @@ import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
+import org.hibernate.id.UUIDGenerator;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -47,12 +49,15 @@ public class UserBuilder implements Supplier<User> {
   }
 
   public UserBuilder addCreateUserRQ(CreateUserRQConfirm request) {
-    ofNullable(request).ifPresent(r -> fillUser(r.getLogin(), r.getEmail(), r.getFullName()));
+    ofNullable(request).ifPresent(
+        r -> fillUser(r.getLogin(), r.getEmail(), r.getFullName(), null, true));
     return this;
   }
 
   public UserBuilder addCreateUserFullRQ(CreateUserRQFull request) {
-    ofNullable(request).ifPresent(it -> fillUser(it.getLogin(), it.getEmail(), it.getFullName()));
+    ofNullable(request).ifPresent(
+        it -> fillUser(it.getLogin(), it.getEmail(), it.getFullName(), it.getExternalId(),
+            it.isActive()));
     return this;
   }
 
@@ -68,15 +73,18 @@ public class UserBuilder implements Supplier<User> {
 
   @Override
   public User get() {
-
+    user.setUuid(UUID.randomUUID());
     //TODO check for existing of the default project etc.
     return user;
   }
 
-  private void fillUser(String login, String email, String fullName) {
+  private void fillUser(String login, String email, String fullName, String externalId,
+      boolean active) {
     user.setLogin(EntityUtils.normalizeId(login));
     ofNullable(email).map(String::trim).map(EntityUtils::normalizeId).ifPresent(user::setEmail);
     user.setFullName(fullName);
+    user.setExternalId(externalId);
+    user.setActive(active);
     user.setUserType(UserType.INTERNAL);
     user.setExpired(false);
     Map<String, Object> meta = new HashMap<>();

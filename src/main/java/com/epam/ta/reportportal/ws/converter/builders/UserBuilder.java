@@ -47,12 +47,15 @@ public class UserBuilder implements Supplier<User> {
   }
 
   public UserBuilder addCreateUserRQ(CreateUserRQConfirm request) {
-    ofNullable(request).ifPresent(r -> fillUser(r.getLogin(), r.getEmail(), r.getFullName()));
+    ofNullable(request).ifPresent(
+        r -> fillUser(r.getLogin(), r.getEmail(), r.getFullName(), null, true));
     return this;
   }
 
   public UserBuilder addCreateUserFullRQ(CreateUserRQFull request) {
-    ofNullable(request).ifPresent(it -> fillUser(it.getLogin(), it.getEmail(), it.getFullName()));
+    ofNullable(request).ifPresent(
+        it -> fillUser(it.getLogin(), it.getEmail(), it.getFullName(), it.getExternalId(),
+            it.isActive()));
     return this;
   }
 
@@ -73,10 +76,13 @@ public class UserBuilder implements Supplier<User> {
     return user;
   }
 
-  private void fillUser(String login, String email, String fullName) {
+  private void fillUser(String login, String email, String fullName, String externalId,
+      boolean active) {
     user.setLogin(EntityUtils.normalizeId(login));
     ofNullable(email).map(String::trim).map(EntityUtils::normalizeId).ifPresent(user::setEmail);
     user.setFullName(fullName);
+    user.setExternalId(externalId);
+    user.setActive(active);
     user.setUserType(UserType.INTERNAL);
     user.setExpired(false);
     Map<String, Object> meta = new HashMap<>();

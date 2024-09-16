@@ -3,54 +3,32 @@ package com.epam.ta.reportportal.model.user;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.UUID;
+import lombok.Data;
 
+@Data
 @JsonInclude(Include.NON_NULL)
 public class SearchUserResource {
 
-	@JsonProperty(value = "id", required = true)
-	private Long id;
+  @JsonProperty(value = "id", required = true)
+  private Long id;
 
-	@JsonProperty(value = "login", required = true)
-	private String login;
+  @JsonProperty
+  private UUID uuid;
 
-	@JsonProperty(value = "email", required = true)
-	private String email;
+  @JsonProperty
+  private String externalId;
 
-	@JsonProperty(value = "fullName")
-	private String fullName;
+  @JsonProperty
+  private boolean active;
 
-	public SearchUserResource() {
-	}
+  @JsonProperty(value = "login", required = true)
+  private String login;
 
-	public Long getId() {
-		return id;
-	}
+  @JsonProperty(value = "email", required = true)
+  private String email;
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+  @JsonProperty(value = "fullName")
+  private String fullName;
 
-	public String getLogin() {
-		return login;
-	}
-
-	public void setLogin(String login) {
-		this.login = login;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public String getFullName() {
-		return fullName;
-	}
-
-	public void setFullName(String fullName) {
-		this.fullName = fullName;
-	}
 }

@@ -18,8 +18,6 @@ package com.epam.ta.reportportal.core.user;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.model.YesNoRS;
-import com.epam.ta.reportportal.model.user.CreateUserBidRS;
-import com.epam.ta.reportportal.model.user.CreateUserRQ;
 import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
 import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.model.user.CreateUserRS;
@@ -53,15 +51,6 @@ public interface CreateUserHandler {
    */
   CreateUserRS createUser(CreateUserRQConfirm request, String uuid);
 
-  /**
-   * Create user bid (send invitation)
-   *
-   * @param request    Create Request
-   * @param username   Username/User that creates the request
-   * @param userRegURL User registration url
-   * @return Operation result
-   */
-  CreateUserBidRS createUserBid(CreateUserRQ request, ReportPortalUser username, String userRegURL);
 
   /**
    * Create restore password bid

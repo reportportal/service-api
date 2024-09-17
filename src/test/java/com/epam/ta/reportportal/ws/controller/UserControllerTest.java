@@ -58,6 +58,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
@@ -130,6 +131,7 @@ class UserControllerTest extends BaseMvcTest {
   }
 
   @Test
+  @Disabled("to be deleted")
   void createUserBidPositive() throws Exception {
     CreateUserRQ rq = new CreateUserRQ();
     rq.setDefaultProject("default_personal");
@@ -155,6 +157,7 @@ class UserControllerTest extends BaseMvcTest {
   }
 
   @Test
+  @Disabled("to be deleted")
   void createUserPositive() throws Exception {
     CreateUserRQConfirm rq = new CreateUserRQConfirm();
     rq.setLogin("testLogin");

@@ -15,7 +15,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.11.0' : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.11.0' : 'feature/orgs')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.11.0' : 'EPMRPP-93599-bid')
     //TODO refactor with archive download
     testScriptsSrc = [
             (migrationsUrl + '/migrations/0_extensions.up.sql')                        : 'V001__extensions.sql',
@@ -76,6 +76,7 @@ project.ext {
             (migrationsUrl + '/migrations/201_drop_table_onboarding.up.sql')           : 'V201__drop_table_onboarding.sql',
             (migrationsUrl + '/migrations/202_update_project_table.up.sql')            : 'V202__update_project_table.up.sql',
             (migrationsUrl + '/migrations/203_user_table_extend.up.sql')               : 'V203__user_table_extend.up.sql',
+            (migrationsUrl + '/migrations/204_bid_extend_metadata.up.sql')             : 'V204_bid_extend_metadata.up.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

@@ -327,9 +327,14 @@ public class EmailService extends JavaMailSenderImpl {
       Map<String, Object> email = new HashMap<>();
       email.put("url", getUrl(basicUrl));
       email.put("login", normalizeId(req.getLogin()));
-      email.put("password", req.getPassword());
-      String text = templateEngine.merge("create-user-template.ftl", email);
-      message.setText(text, true);
+
+      if (req.getPassword() != null) {
+        email.put("password", req.getPassword());
+        message.setText(templateEngine.merge("create-user-template.ftl", email), true);
+      } else {
+        message.setText(templateEngine.merge("create-user-identity-provider-template.ftl", email),
+            true);
+      }
 
       message.addInline("create-user.png", emailTemplateResource("create-user.png"));
       attachSocialImages(message);

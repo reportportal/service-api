@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.model.user;
 
 import com.epam.reportportal.annotations.In;
 import com.epam.reportportal.model.ValidationConstraints;
+import com.epam.ta.reportportal.entity.user.UserType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -45,6 +46,10 @@ public class CreateUserRQFull {
   @JsonProperty(value = "externalId")
   @Schema(requiredMode = RequiredMode.NOT_REQUIRED)
   private String externalId;
+
+  @JsonProperty(value = "accountType")
+  @Schema(requiredMode = RequiredMode.NOT_REQUIRED, allowableValues = "INTERNAL, SCIM")
+  private UserType accountType;
 
   @NotBlank
   @Pattern(regexp = "[a-zA-Z0-9-_.]+")

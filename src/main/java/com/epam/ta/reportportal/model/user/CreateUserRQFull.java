@@ -38,53 +38,51 @@ import lombok.Data;
 @JsonInclude(Include.NON_NULL)
 public class CreateUserRQFull {
 
-	@JsonProperty(value = "active", defaultValue = "true")
-	@Schema(requiredMode = RequiredMode.NOT_REQUIRED, defaultValue = "true")
-	private boolean active;
+  @JsonProperty(value = "active", defaultValue = "true")
+  @Schema(requiredMode = RequiredMode.NOT_REQUIRED, defaultValue = "true")
+  private boolean active = true;
 
-	@JsonProperty(value = "externalId")
-	@Schema(requiredMode = RequiredMode.NOT_REQUIRED)
-	private String externalId;
+  @JsonProperty(value = "externalId")
+  @Schema(requiredMode = RequiredMode.NOT_REQUIRED)
+  private String externalId;
 
-	@NotBlank
-	@Pattern(regexp = "[a-zA-Z0-9-_.]+")
-	@Size(min = ValidationConstraints.MIN_LOGIN_LENGTH, max = ValidationConstraints.MAX_LOGIN_LENGTH)
-	@JsonProperty(value = "login", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
-	private String login;
+  @NotBlank
+  @Pattern(regexp = "[a-zA-Z0-9-_.]+")
+  @Size(min = ValidationConstraints.MIN_LOGIN_LENGTH, max = ValidationConstraints.MAX_LOGIN_LENGTH)
+  @JsonProperty(value = "login", required = true)
+  @Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
+  private String login;
 
-	@NotBlank
-	@Size(min = ValidationConstraints.MIN_PASSWORD_LENGTH, max = ValidationConstraints.MAX_PASSWORD_LENGTH)
-	@JsonProperty(value = "password", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED)
-	private String password;
+  @Size(max = ValidationConstraints.MAX_PASSWORD_LENGTH)
+  @JsonProperty(value = "password")
+  @Schema(requiredMode = RequiredMode.NOT_REQUIRED)
+  private String password;
 
-	@NotBlank
-	@Pattern(regexp = "[\\pL0-9-_ \\.]+")
-	@Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)
-	@JsonProperty(value = "fullName", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
-	private String fullName;
+  @NotBlank
+  @Pattern(regexp = "[\\pL0-9-_ \\.]+")
+  @Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)
+  @JsonProperty(value = "fullName", required = true)
+  @Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
+  private String fullName;
 
-	@NotBlank
-	@JsonProperty(value = "email", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED)
-	private String email;
+  @NotBlank
+  @JsonProperty(value = "email", required = true)
+  @Schema(requiredMode = RequiredMode.REQUIRED)
+  private String email;
 
-	@NotNull
-	@JsonProperty(value = "accountRole", required = true)
-	@In(allowedValues = { "user", "administrator" })
-	@Schema(required = true, allowableValues = "USER, ADMINISTRATOR")
-	private String accountRole;
+  @NotNull
+  @JsonProperty(value = "accountRole", required = true)
+  @In(allowedValues = {"user", "administrator"})
+  @Schema(requiredMode = RequiredMode.NOT_REQUIRED, allowableValues = "USER, ADMINISTRATOR")
+  private String accountRole;
 
-	@NotNull
-	@JsonProperty(value = "projectRole", required = true)
-	@In(allowedValues = { "operator", "customer", "member", "project_manager" })
-	@Schema(required = true, allowableValues = "CUSTOMER, MEMBER, PROJECT_MANAGER")
-	private String projectRole;
+  @NotNull
+  @JsonProperty(value = "projectRole")
+  @In(allowedValues = {"operator", "customer", "member", "project_manager"})
+  @Schema(requiredMode = RequiredMode.NOT_REQUIRED, allowableValues = "CUSTOMER, MEMBER, PROJECT_MANAGER")
+  private String projectRole;
 
-	@NotBlank
-	@JsonProperty(value = "defaultProject", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED)
-	private String defaultProject;
+  @JsonProperty(value = "defaultProject")
+  @Schema(requiredMode = RequiredMode.NOT_REQUIRED)
+  private String defaultProject;
 }

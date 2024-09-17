@@ -69,11 +69,11 @@ dependencies {
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:plugin-api:5.11.1'
     } else {
-        implementation 'com.github.reportportal:commons-dao:69da66d'
-        implementation 'com.github.reportportal:commons:7f23a5f'
+        implementation 'com.github.reportportal:commons-dao:d4f1c47'
+        implementation 'com.github.reportportal:commons:59af813d4'
         implementation 'com.github.reportportal:plugin-api:d1c0f0e'
     }
-    swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.57'
+    swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.61'
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -210,7 +210,20 @@ swaggerSources {
             components = ['apis']
             jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
             outputDir = file("$buildDir/generated")
-            wipeOutputDir = true
+            wipeOutputDir = false
+
+        }
+    }
+
+    users {
+        inputFile = file("$rootDir/reportportal-common-api/api/openapi/apis/users.yaml")
+        code {
+            language = 'spring'
+            configFile = file("$rootDir/src/main/resources/openapi/config.json")
+            components = ['apis']
+            jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
+            outputDir = file("$buildDir/generated")
+            wipeOutputDir = false
         }
     }
 }
@@ -241,7 +254,7 @@ test {
 }
 
 swaggerSources.organizations.code.dependsOn updateApiSubmodule
-compileJava.dependsOn swaggerSources.organizations.code
+compileJava.dependsOn swaggerSources.organizations.code, swaggerSources.users.code
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts

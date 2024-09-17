@@ -74,7 +74,6 @@ import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.RestorePasswordBidConverter;
-import com.epam.ta.reportportal.ws.converter.converters.UserCreationBidConverter;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Maps;
@@ -299,76 +298,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     createUserRQFull.setEmail(request.getEmail());
     createUserRQFull.setFullName(request.getFullName());
     createUserRQFull.setPassword(request.getPassword());
-    createUserRQFull.setDefaultProject(bid.getProjectName());
     createUserRQFull.setAccountRole(UserRole.USER.name());
-    createUserRQFull.setProjectRole(bid.getRole());
     return createUserRQFull;
-  }
-
-  @Override
-  public CreateUserBidRS createUserBid(CreateUserRQ request, ReportPortalUser loggedInUser,
-      String emailURL) {
-
-    final Project defaultProject = getProjectHandler.get(normalizeId(request.getDefaultProject()));
-
-    expect(userRepository.existsById(loggedInUser.getUserId()), BooleanUtils::isTrue).verify(
-        USER_NOT_FOUND,
-        loggedInUser.getUsername()
-    );
-
-    Integration integration =
-        getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(
-                defaultProject.getId(),
-                IntegrationGroupEnum.NOTIFICATION
-            )
-            .orElseThrow(() -> new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
-                "Please configure email server in ReportPortal settings."
-            ));
-
-    final String normalizedEmail = normalizeEmail(request.getEmail());
-    request.setEmail(normalizedEmail);
-
-    if (loggedInUser.getUserRole() != UserRole.ADMINISTRATOR) {
-      ProjectUser projectUser = findUserConfigByLogin(defaultProject, loggedInUser.getUsername());
-      expect(projectUser, not(isNull())).verify(ACCESS_DENIED,
-          formattedSupplier("'{}' is not your project", defaultProject.getName())
-      );
-      // TODO FIX ROLE CHECK
-      expect(projectUser.getProjectRole(), Predicate.isEqual(ProjectRole.EDITOR)).verify(
-          ACCESS_DENIED);
-    }
-
-    request.setRole(forName(request.getRole()).orElseThrow(
-        () -> new ReportPortalException(ROLE_NOT_FOUND, request.getRole())).name());
-
-    UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(request, defaultProject);
-    bid.setMetadata(getUserCreationBidMetadata());
-    bid.setInvitingUser(userRepository.getById(loggedInUser.getUserId()));
-    try {
-      userCreationBidRepository.save(bid);
-    } catch (Exception e) {
-      throw new ReportPortalException("Error while user creation bid registering.", e);
-    }
-
-    StringBuilder emailLink =
-        new StringBuilder(emailURL).append("/ui/#registration?uuid=").append(bid.getUuid());
-    emailExecutorService.execute(() -> emailServiceFactory.getEmailService(integration, false)
-        .sendCreateUserConfirmationEmail("User registration confirmation",
-            new String[] {bid.getEmail()}, emailLink.toString()));
-
-    eventPublisher.publishEvent(
-        new CreateInvitationLinkEvent(loggedInUser.getUserId(), loggedInUser.getUsername(),
-            defaultProject.getId()));
-
-    CreateUserBidRS response = new CreateUserBidRS();
-    String msg = "Bid for user creation with email '" + request.getEmail()
-        + "' is successfully registered. Confirmation info will be send on provided email. "
-        + "Expiration: 1 day.";
-
-    response.setMessage(msg);
-    response.setBid(bid.getUuid());
-    response.setBackLink(emailLink.toString());
-    return response;
   }
 
   private Metadata getUserCreationBidMetadata() {

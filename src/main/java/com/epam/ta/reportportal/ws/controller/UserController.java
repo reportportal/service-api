@@ -45,8 +45,6 @@ import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.model.ModelViews;
 import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.user.ChangePasswordRQ;
-import com.epam.ta.reportportal.model.user.CreateUserBidRS;
-import com.epam.ta.reportportal.model.user.CreateUserRQ;
 import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
 import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.model.user.CreateUserRS;
@@ -129,17 +127,6 @@ public class UserController {
     return createUserMessageHandler.createUserByAdmin(rq, currentUser, composeBaseUrl(request));
   }
 
-  @Transactional
-  @PostMapping(value = "/bid")
-  @ResponseStatus(CREATED)
-  @PreAuthorize("(hasPermission(#createUserRQ.getDefaultProject(), 'allowedToEditProject')) || hasRole('ADMINISTRATOR')")
-  @Operation(summary = "Register invitation for user who will be created")
-  public CreateUserBidRS createUserBid(@RequestBody @Validated CreateUserRQ createUserRQ,
-      @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
-    return createUserMessageHandler.createUserBid(createUserRQ, currentUser,
-        composeBaseUrl(request)
-    );
-  }
 
   @PostMapping(value = "/registration")
   @ResponseStatus(CREATED)

@@ -81,7 +81,8 @@ public class InvitationPermission implements Permission {
     ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
-    List<UserOrgInfoWithProjects> orgs = ((CreateInvitationRequest) invitationRequest).getOrganizations();
+    List<UserOrgInfoWithProjects> orgs =
+        ((CreateInvitationRequest) invitationRequest).getOrganizations();
 
     expect(CollectionUtils.isEmpty(orgs), isEqual(false))
         .verify(ACCESS_DENIED, "Only administrators allowed to invite users on instance level");

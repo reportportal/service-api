@@ -207,7 +207,7 @@ swaggerSources {
         code {
             language = 'spring'
             configFile = file("$rootDir/src/main/resources/openapi/config.json")
-            components = ['apis', 'models']
+            components = ['apis']
             jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
             outputDir = file("$buildDir/generated")
             wipeOutputDir = false
@@ -220,7 +220,7 @@ swaggerSources {
         code {
             language = 'spring'
             configFile = file("$rootDir/src/main/resources/openapi/config.json")
-            components = ['apis', 'models']
+            components = ['apis']
             jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
             outputDir = file("$buildDir/generated")
             wipeOutputDir = false

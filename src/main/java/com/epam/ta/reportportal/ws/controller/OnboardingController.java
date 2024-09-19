@@ -16,7 +16,8 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.core.onboarding.OnboardingService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/onboarding")
+@Tag(name = "onboarding-controller", description = "Onboarding Controller")
 public class OnboardingController {
 
   private final OnboardingService onboardingService;
@@ -39,11 +41,11 @@ public class OnboardingController {
    * Provide unstructured onboarding information. Possible json or string(html, js, etc), or
    * something else.
    */
-    @GetMapping(value = { "" })
-    @ApiOperation("Return onboarding information for page if available, -1 otherwise")
-    public Object onBoarding(@RequestParam(value = "page", defaultValue = "GENERAL") String page) {
-        // object because it can be different types of onboarding data
-        Object data = onboardingService.getOnboardingDataForPageIfAvailable(page);
-        return (data != null) ? data : -1;
-    }
+  @GetMapping(value = { "" })
+  @Operation(summary = "Return onboarding information for page if available, -1 otherwise")
+  public Object onBoarding(@RequestParam(value = "page", defaultValue = "GENERAL") String page) {
+    // object because it can be different types of onboarding data
+    Object data = onboardingService.getOnboardingDataForPageIfAvailable(page);
+    return (data != null) ? data : -1;
+  }
 }

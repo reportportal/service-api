@@ -19,19 +19,19 @@ package com.epam.ta.reportportal.ws.converter.builders;
 import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
 import static java.util.Optional.ofNullable;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.enums.RetentionPolicyEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
+import com.epam.ta.reportportal.ws.reporting.Mode;
+import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.google.common.base.Preconditions;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -56,7 +56,7 @@ public class LaunchBuilder implements Supplier<Launch> {
 
   public LaunchBuilder addStartRQ(StartLaunchRQ request) {
     Preconditions.checkNotNull(request, ErrorType.BAD_REQUEST_ERROR);
-    launch.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(request.getStartTime()));
+    launch.setStartTime(request.getStartTime());
     launch.setName(request.getName().trim());
     launch.setStatus(StatusEnum.IN_PROGRESS);
     launch.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
@@ -68,10 +68,10 @@ public class LaunchBuilder implements Supplier<Launch> {
   }
 
   public LaunchBuilder addDescription(String description) {
-    ofNullable(description).ifPresent(it -> launch.setDescription(StringUtils.substring(it.trim(),
-        DESCRIPTION_START_SYMBOL_INDEX,
-        LAUNCH_DESCRIPTION_LENGTH_LIMIT
-    )));
+    ofNullable(description).ifPresent(it -> launch.setDescription(
+        StringUtils.substring(it.trim(), DESCRIPTION_START_SYMBOL_INDEX,
+            LAUNCH_DESCRIPTION_LENGTH_LIMIT
+        )));
     return this;
   }
 
@@ -85,7 +85,8 @@ public class LaunchBuilder implements Supplier<Launch> {
     return this;
   }
 
-  public LaunchBuilder addAttribute(ItemAttributeResource attributeResource) {
+  public LaunchBuilder addAttribute(
+      com.epam.ta.reportportal.ws.reporting.ItemAttributeResource attributeResource) {
     ItemAttribute itemAttribute = FROM_RESOURCE.apply(attributeResource);
     itemAttribute.setLaunch(launch);
     launch.getAttributes().add(itemAttribute);
@@ -103,15 +104,16 @@ public class LaunchBuilder implements Supplier<Launch> {
 
   public LaunchBuilder overwriteAttributes(Set<ItemAttributeResource> attributes) {
     if (attributes != null) {
-      final Set<ItemAttribute> overwrittenAttributes = launch.getAttributes()
-          .stream()
-          .filter(ItemAttribute::isSystem)
-          .collect(Collectors.toSet());
+      final Set<ItemAttribute> overwrittenAttributes =
+          launch.getAttributes().stream().filter(ItemAttribute::isSystem)
+              .collect(Collectors.toSet());
+
       attributes.stream().map(val -> {
         ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
         itemAttribute.setLaunch(launch);
         return itemAttribute;
       }).forEach(overwrittenAttributes::add);
+
       launch.setAttributes(overwrittenAttributes);
     }
     return this;
@@ -128,8 +130,8 @@ public class LaunchBuilder implements Supplier<Launch> {
     return this;
   }
 
-  public LaunchBuilder addEndTime(Date date) {
-    launch.setEndTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(date));
+  public LaunchBuilder addEndTime(Instant date) {
+    launch.setEndTime(date);
     return this;
   }
 

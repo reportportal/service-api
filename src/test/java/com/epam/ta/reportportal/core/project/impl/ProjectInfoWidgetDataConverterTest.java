@@ -30,10 +30,11 @@ import com.epam.ta.reportportal.entity.enums.InfoInterval;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.entity.statistics.StatisticsField;
-import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import com.epam.ta.reportportal.model.widget.ChartObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -44,6 +45,7 @@ import java.time.temporal.IsoFields;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,6 +67,7 @@ class ProjectInfoWidgetDataConverterTest {
 
   @BeforeEach
   void setUp() {
+    Locale.setDefault(Locale.US);
     converter = new ProjectInfoWidgetDataConverter(
         ImmutableMap.<InfoInterval, ProjectInfoWidgetDataConverter.ProjectInfoGroup>builder()
             .put(InfoInterval.ONE_MONTH, ProjectInfoWidgetDataConverter.ProjectInfoGroup.BY_DAY)
@@ -72,11 +75,9 @@ class ProjectInfoWidgetDataConverterTest {
             .put(InfoInterval.SIX_MONTHS, ProjectInfoWidgetDataConverter.ProjectInfoGroup.BY_WEEK)
             .build());
 
-    thisWeekFormattedDate = LocalDate.now(ZoneOffset.UTC)
-        .format(new DateTimeFormatterBuilder().appendValue(IsoFields.WEEK_BASED_YEAR, 4)
-            .appendLiteral("-W")
-            .appendValue(IsoFields.WEEK_OF_WEEK_BASED_YEAR, 2)
-            .toFormatter());
+    thisWeekFormattedDate = LocalDate.now(ZoneOffset.UTC).format(
+        new DateTimeFormatterBuilder().appendValue(IsoFields.WEEK_BASED_YEAR, 4).appendLiteral("-W")
+            .appendValue(IsoFields.WEEK_OF_WEEK_BASED_YEAR, 2).toFormatter());
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -90,20 +91,23 @@ class ProjectInfoWidgetDataConverterTest {
 
   @Test
   void getInvestigatedProjectInfo() {
-    Map<String, List<ChartObject>> investigatedProjectInfo = converter.getInvestigatedProjectInfo(
-        getTestData(),
-        InfoInterval.ONE_MONTH
-    );
+    Locale.setDefault(Locale.US);
+    Map<String, List<ChartObject>> investigatedProjectInfo =
+        converter.getInvestigatedProjectInfo(getTestData(), InfoInterval.ONE_MONTH);
 
     assertEquals("33.33",
-        investigatedProjectInfo.get(yesterdayString).get(0).getValues().get("toInvestigate"));
+        investigatedProjectInfo.get(yesterdayString).get(0).getValues().get("toInvestigate")
+    );
     assertEquals("66.67",
-        investigatedProjectInfo.get(yesterdayString).get(0).getValues().get("investigated"));
+        investigatedProjectInfo.get(yesterdayString).get(0).getValues().get("investigated")
+    );
 
     assertEquals("38.46",
-        investigatedProjectInfo.get(todayString).get(0).getValues().get("toInvestigate"));
+        investigatedProjectInfo.get(todayString).get(0).getValues().get("toInvestigate")
+    );
     assertEquals("61.54",
-        investigatedProjectInfo.get(todayString).get(0).getValues().get("investigated"));
+        investigatedProjectInfo.get(todayString).get(0).getValues().get("investigated")
+    );
   }
 
   @Test
@@ -112,38 +116,43 @@ class ProjectInfoWidgetDataConverterTest {
     launch.setName("test_launch");
     launch.setId(1L);
     launch.setNumber(1L);
-    launch.setStartTime(LocalDateTime.now(ZoneOffset.UTC));
+    launch.setStartTime(Instant.now());
     launch.setStatistics(
         Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 5), getStatistics(EXECUTIONS_PASSED, 5)));
 
-    Map<String, List<ChartObject>> investigatedProjectInfo = converter.getInvestigatedProjectInfo(
-        Collections.singletonList(launch),
-        InfoInterval.THREE_MONTHS
-    );
+    Map<String, List<ChartObject>> investigatedProjectInfo =
+        converter.getInvestigatedProjectInfo(Collections.singletonList(launch),
+            InfoInterval.THREE_MONTHS
+        );
 
     assertEquals("0",
-        investigatedProjectInfo.get(thisWeekFormattedDate).get(0).getValues().get("toInvestigate"));
+        investigatedProjectInfo.get(thisWeekFormattedDate).get(0).getValues().get("toInvestigate")
+    );
     assertEquals("0",
-        investigatedProjectInfo.get(thisWeekFormattedDate).get(0).getValues().get("investigated"));
+        investigatedProjectInfo.get(thisWeekFormattedDate).get(0).getValues().get("investigated")
+    );
   }
 
   @Test
   void getTestCasesStatisticsProjectInfo() {
-    Map<String, List<ChartObject>> testCasesStatisticsProjectInfo = converter.getTestCasesStatisticsProjectInfo(
-        getTestData());
+    Map<String, List<ChartObject>> testCasesStatisticsProjectInfo =
+        converter.getTestCasesStatisticsProjectInfo(getTestData());
 
     assertEquals("18.0",
-        testCasesStatisticsProjectInfo.get("test_launch").get(0).getValues().get("min"));
+        testCasesStatisticsProjectInfo.get("test_launch").get(0).getValues().get("min")
+    );
     assertEquals("19.5",
-        testCasesStatisticsProjectInfo.get("test_launch").get(0).getValues().get("avg"));
+        testCasesStatisticsProjectInfo.get("test_launch").get(0).getValues().get("avg")
+    );
     assertEquals("21.0",
-        testCasesStatisticsProjectInfo.get("test_launch").get(0).getValues().get("max"));
+        testCasesStatisticsProjectInfo.get("test_launch").get(0).getValues().get("max")
+    );
   }
 
   @Test
   void getLaunchesQuantity() {
-    Map<String, List<ChartObject>> launchesQuantity = converter.getLaunchesQuantity(getTestData(),
-        InfoInterval.ONE_MONTH);
+    Map<String, List<ChartObject>> launchesQuantity =
+        converter.getLaunchesQuantity(getTestData(), InfoInterval.ONE_MONTH);
 
     assertEquals("1", launchesQuantity.get(yesterdayString).get(0).getValues().get("count"));
     assertEquals("1", launchesQuantity.get(todayString).get(0).getValues().get("count"));
@@ -151,16 +160,16 @@ class ProjectInfoWidgetDataConverterTest {
 
   @Test
   void getLaunchesQuantityByWeek() {
-    Map<String, List<ChartObject>> launchesQuantity = converter.getLaunchesQuantity(getTestData(),
-        InfoInterval.THREE_MONTHS);
+    Map<String, List<ChartObject>> launchesQuantity =
+        converter.getLaunchesQuantity(getTestData(), InfoInterval.THREE_MONTHS);
 
     assertEquals("2", launchesQuantity.get(thisWeekFormattedDate).get(0).getValues().get("count"));
   }
 
   @Test
   void getLaunchesIssues() {
-    Map<String, List<ChartObject>> launchesIssues = converter.getLaunchesIssues(getTestData(),
-        InfoInterval.ONE_MONTH);
+    Map<String, List<ChartObject>> launchesIssues =
+        converter.getLaunchesIssues(getTestData(), InfoInterval.ONE_MONTH);
 
     assertEquals("3", launchesIssues.get(yesterdayString).get(0).getValues().get("systemIssue"));
     assertEquals("4", launchesIssues.get(yesterdayString).get(0).getValues().get("toInvestigate"));
@@ -175,17 +184,21 @@ class ProjectInfoWidgetDataConverterTest {
 
   @Test
   void getLaunchesIssuesByWeek() {
-    Map<String, List<ChartObject>> launchesIssues = converter.getLaunchesIssues(getTestData(),
-        InfoInterval.THREE_MONTHS);
+    Map<String, List<ChartObject>> launchesIssues =
+        converter.getLaunchesIssues(getTestData(), InfoInterval.THREE_MONTHS);
 
     assertEquals("6",
-        launchesIssues.get(thisWeekFormattedDate).get(0).getValues().get("systemIssue"));
+        launchesIssues.get(thisWeekFormattedDate).get(0).getValues().get("systemIssue")
+    );
     assertEquals("9",
-        launchesIssues.get(thisWeekFormattedDate).get(0).getValues().get("toInvestigate"));
+        launchesIssues.get(thisWeekFormattedDate).get(0).getValues().get("toInvestigate")
+    );
     assertEquals("3",
-        launchesIssues.get(thisWeekFormattedDate).get(0).getValues().get("productBug"));
+        launchesIssues.get(thisWeekFormattedDate).get(0).getValues().get("productBug")
+    );
     assertEquals("7",
-        launchesIssues.get(thisWeekFormattedDate).get(0).getValues().get("automationBug"));
+        launchesIssues.get(thisWeekFormattedDate).get(0).getValues().get("automationBug")
+    );
   }
 
   private List<Launch> getTestData() {
@@ -193,30 +206,28 @@ class ProjectInfoWidgetDataConverterTest {
     launch1.setName("test_launch");
     launch1.setId(1L);
     launch1.setNumber(1L);
-    launch1.setStartTime(LocalDateTime.of(yesterday, LocalTime.now(ZoneOffset.UTC)));
-    launch1.setStatistics(Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 18),
-        getStatistics(EXECUTIONS_PASSED, 5),
-        getStatistics(EXECUTIONS_SKIPPED, 1),
-        getStatistics(EXECUTIONS_FAILED, 12),
-        getStatistics(DEFECTS_AUTOMATION_BUG_TOTAL, 3),
-        getStatistics(DEFECTS_PRODUCT_BUG_TOTAL, 2),
-        getStatistics(DEFECTS_SYSTEM_ISSUE_TOTAL, 3),
-        getStatistics(DEFECTS_TO_INVESTIGATE_TOTAL, 4)
-    ));
+    launch1.setStartTime(LocalDateTime.of(yesterday, LocalTime.now(ZoneOffset.UTC)).toInstant(ZoneOffset.UTC));
+    launch1.setStatistics(
+        Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 18), getStatistics(EXECUTIONS_PASSED, 5),
+            getStatistics(EXECUTIONS_SKIPPED, 1), getStatistics(EXECUTIONS_FAILED, 12),
+            getStatistics(DEFECTS_AUTOMATION_BUG_TOTAL, 3),
+            getStatistics(DEFECTS_PRODUCT_BUG_TOTAL, 2),
+            getStatistics(DEFECTS_SYSTEM_ISSUE_TOTAL, 3),
+            getStatistics(DEFECTS_TO_INVESTIGATE_TOTAL, 4)
+        ));
     Launch launch2 = new Launch();
     launch2.setName("test_launch");
     launch2.setId(2L);
     launch2.setNumber(2L);
-    launch2.setStartTime(LocalDateTime.of(today, LocalTime.now(ZoneOffset.UTC)));
-    launch2.setStatistics(Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 21),
-        getStatistics(EXECUTIONS_PASSED, 6),
-        getStatistics(EXECUTIONS_SKIPPED, 2),
-        getStatistics(EXECUTIONS_FAILED, 13),
-        getStatistics(DEFECTS_AUTOMATION_BUG_TOTAL, 4),
-        getStatistics(DEFECTS_PRODUCT_BUG_TOTAL, 1),
-        getStatistics(DEFECTS_SYSTEM_ISSUE_TOTAL, 3),
-        getStatistics(DEFECTS_TO_INVESTIGATE_TOTAL, 5)
-    ));
+    launch2.setStartTime(LocalDateTime.of(today, LocalTime.now(ZoneOffset.UTC)).toInstant(ZoneOffset.UTC));
+    launch2.setStatistics(
+        Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 21), getStatistics(EXECUTIONS_PASSED, 6),
+            getStatistics(EXECUTIONS_SKIPPED, 2), getStatistics(EXECUTIONS_FAILED, 13),
+            getStatistics(DEFECTS_AUTOMATION_BUG_TOTAL, 4),
+            getStatistics(DEFECTS_PRODUCT_BUG_TOTAL, 1),
+            getStatistics(DEFECTS_SYSTEM_ISSUE_TOTAL, 3),
+            getStatistics(DEFECTS_TO_INVESTIGATE_TOTAL, 5)
+        ));
     return Arrays.asList(launch1, launch2);
   }
 

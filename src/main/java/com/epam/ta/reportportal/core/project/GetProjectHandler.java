@@ -22,9 +22,9 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.ws.model.project.ProjectResource;
-import com.epam.ta.reportportal.ws.model.user.SearchUserResource;
-import com.epam.ta.reportportal.ws.model.user.UserResource;
+import com.epam.ta.reportportal.model.project.ProjectResource;
+import com.epam.ta.reportportal.model.user.SearchUserResource;
+import com.epam.ta.reportportal.model.user.UserResource;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +88,8 @@ public interface GetProjectHandler {
    * @param pageable       {@link Pageable} Page Details
    * @return List of found user resources
    */
-  Iterable<SearchUserResource> getUserNames(String value, UserRole userRole,
+  Iterable<SearchUserResource> getUserNames(String value,
+     UserRole userRole,
       ReportPortalUser.ProjectDetails projectDetails, Pageable pageable);
 
   /**

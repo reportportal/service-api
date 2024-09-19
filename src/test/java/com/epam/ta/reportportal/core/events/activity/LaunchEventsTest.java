@@ -26,8 +26,8 @@ import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
-import java.time.LocalDateTime;
+import com.epam.ta.reportportal.model.activity.LaunchActivityResource;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -46,7 +46,7 @@ class LaunchEventsTest {
     activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
     activity.setObjectId(2L);
-    activity.setCreatedAt(LocalDateTime.now());
+    activity.setCreatedAt(Instant.now());
     activity.setObjectName("name");
     activity.setDetails(new ActivityDetails());
     return activity;

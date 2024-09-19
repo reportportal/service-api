@@ -17,15 +17,16 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.CHILD_START_TIME_EARLIER_THAN_PARENT;
-import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_NOT_FOUND;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.CHILD_START_TIME_EARLIER_THAN_PARENT;
+import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.TEST_ITEM_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
@@ -42,10 +43,10 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.ItemCreatedRS;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -162,15 +163,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
         .addLaunchId(launch.getId()).get();
 
     if (isRetry) {
-      ofNullable(rq.getRetryOf()).flatMap(testItemRepository::findIdByUuidForUpdate)
-          .ifPresentOrElse(retryParentId -> {
-            saveChildItem(launch, item, parentItem);
-            retryHandler.handleRetries(launch, item, retryParentId);
-          }, () -> retrySearcher.findPreviousRetry(launch, item, parentItem)
-              .ifPresentOrElse(previousRetryId -> {
-                saveChildItem(launch, item, parentItem);
-                retryHandler.handleRetries(launch, item, previousRetryId);
-              }, () -> saveChildItem(launch, item, parentItem)));
+      processRetry(rq, launch, item, parentItem);
     } else {
       saveChildItem(launch, item, parentItem);
     }
@@ -182,6 +175,16 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
     }
 
     return new ItemCreatedRS(item.getUuid(), item.getUniqueId());
+  }
+
+  private void processRetry(StartTestItemRQ rq, Launch launch, TestItem item, TestItem parentItem) {
+    Long retryParentId = Optional.ofNullable(rq.getRetryOf())
+        .flatMap(testItemRepository::findIdByUuidForUpdate)
+        .orElseGet(() -> retrySearcher.findPreviousRetry(launch, item, parentItem)
+            .orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, item.getUniqueId())));
+
+    saveChildItem(launch, item, parentItem);
+    retryHandler.handleRetries(launch, item, retryParentId);
   }
 
   private TestItem saveChildItem(Launch launch, TestItem childItem, TestItem parentItem) {

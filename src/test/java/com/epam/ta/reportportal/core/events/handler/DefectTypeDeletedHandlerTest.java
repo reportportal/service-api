@@ -34,9 +34,9 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.activity.IssueTypeActivityResource;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.activity.IssueTypeActivityResource;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
@@ -79,14 +79,13 @@ class DefectTypeDeletedHandlerTest {
 
     when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
-    ReportPortalException exception = assertThrows(
-        ReportPortalException.class,
-        () -> handler.handleDefectTypeDeleted(
-            new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId))
-    );
+    ReportPortalException exception =
+        assertThrows(ReportPortalException.class, () -> handler.handleDefectTypeDeleted(
+            new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId)));
 
     assertEquals("Project '2' not found. Did you use correct project name?",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
@@ -113,13 +112,12 @@ class DefectTypeDeletedHandlerTest {
     when(analyzerStatusCache.getAnalyzeStatus(AnalyzerStatusCache.AUTO_ANALYZER_KEY)).thenReturn(
         Optional.of(cache));
 
-    ReportPortalException exception = assertThrows(
-        ReportPortalException.class,
-        () -> handler.handleDefectTypeDeleted(
-            new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId))
-    );
+    ReportPortalException exception =
+        assertThrows(ReportPortalException.class, () -> handler.handleDefectTypeDeleted(
+            new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId)));
     assertEquals("Forbidden operation. Index can not be removed until auto-analysis proceeds.",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test

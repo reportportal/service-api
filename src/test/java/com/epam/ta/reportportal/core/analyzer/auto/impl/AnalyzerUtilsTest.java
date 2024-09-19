@@ -31,13 +31,14 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
-import com.epam.ta.reportportal.ws.model.analyzer.RelevantItemInfo;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import com.epam.ta.reportportal.ws.model.project.UniqueErrorConfig;
+import com.epam.ta.reportportal.model.analyzer.RelevantItemInfo;
+import com.epam.ta.reportportal.model.project.UniqueErrorConfig;
+import com.epam.reportportal.model.analyzer.IndexLog;
+import com.epam.reportportal.model.analyzer.IndexTestItem;
+import com.epam.reportportal.model.project.AnalyzerConfig;
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -59,9 +60,11 @@ class AnalyzerUtilsTest {
     indexTestItem.setLogs(createSameLogs(5));
     assertEquals(testItem.getItemId(), indexTestItem.getTestItemId());
     assertEquals(testItem.getUniqueId(), indexTestItem.getUniqueId());
-    assertEquals(testItem.getStartTime(), indexTestItem.getStartTime());
+    assertEquals(LocalDateTime.ofInstant(testItem.getStartTime(), ZoneId.systemDefault()),
+        indexTestItem.getStartTime());
     assertEquals(testItem.getItemResults().getIssue().getIssueType().getLocator(),
-        indexTestItem.getIssueTypeLocator());
+        indexTestItem.getIssueTypeLocator()
+    );
     assertEquals(1, indexTestItem.getLogs().size());
     assertFalse(indexTestItem.isAutoAnalyzed());
   }
@@ -79,30 +82,39 @@ class AnalyzerUtilsTest {
   void testAnalyzerConfig() {
     AnalyzerConfig config = AnalyzerUtils.getAnalyzerConfig(project());
     assertEquals(String.valueOf(config.getIsAutoAnalyzerEnabled()),
-        ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getDefaultValue());
+        ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getDefaultValue()
+    );
     assertEquals(String.valueOf(config.getNumberOfLogLines()),
-        ProjectAttributeEnum.NUMBER_OF_LOG_LINES.getDefaultValue());
+        ProjectAttributeEnum.NUMBER_OF_LOG_LINES.getDefaultValue()
+    );
     assertEquals(config.getAnalyzerMode(),
-        ProjectAttributeEnum.AUTO_ANALYZER_MODE.getDefaultValue());
+        ProjectAttributeEnum.AUTO_ANALYZER_MODE.getDefaultValue()
+    );
     assertEquals(String.valueOf(config.getMinShouldMatch()),
-        ProjectAttributeEnum.MIN_SHOULD_MATCH.getDefaultValue());
+        ProjectAttributeEnum.MIN_SHOULD_MATCH.getDefaultValue()
+    );
     assertEquals(String.valueOf(config.getSearchLogsMinShouldMatch()),
-        ProjectAttributeEnum.SEARCH_LOGS_MIN_SHOULD_MATCH.getDefaultValue());
+        ProjectAttributeEnum.SEARCH_LOGS_MIN_SHOULD_MATCH.getDefaultValue()
+    );
     assertEquals(String.valueOf(config.isIndexingRunning()),
-        ProjectAttributeEnum.INDEXING_RUNNING.getDefaultValue());
+        ProjectAttributeEnum.INDEXING_RUNNING.getDefaultValue()
+    );
     assertEquals(String.valueOf(config.isAllMessagesShouldMatch()),
-        ProjectAttributeEnum.ALL_MESSAGES_SHOULD_MATCH.getDefaultValue());
+        ProjectAttributeEnum.ALL_MESSAGES_SHOULD_MATCH.getDefaultValue()
+    );
   }
 
   @Test
   void testUniqueErrorConfig() {
-    final Map<String, String> configParameters = ProjectUtils.getConfigParameters(
-        project().getProjectAttributes());
+    final Map<String, String> configParameters =
+        ProjectUtils.getConfigParameters(project().getProjectAttributes());
     final UniqueErrorConfig config = AnalyzerUtils.getUniqueErrorConfig(configParameters);
     assertEquals(ProjectAttributeEnum.AUTO_UNIQUE_ERROR_ANALYZER_ENABLED.getDefaultValue(),
-        String.valueOf(config.isEnabled()));
+        String.valueOf(config.isEnabled())
+    );
     assertEquals(ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getDefaultValue(),
-        String.valueOf(config.isRemoveNumbers()));
+        String.valueOf(config.isRemoveNumbers())
+    );
   }
 
   @Test
@@ -137,7 +149,7 @@ class AnalyzerUtilsTest {
   private TestItem createTest() {
     TestItem testItem = new TestItem();
     testItem.setItemId(1L);
-    testItem.setStartTime(LocalDateTime.now(ZoneOffset.UTC));
+    testItem.setStartTime(Instant.now());
     testItem.setUniqueId("uniqueId");
     testItem.setItemResults(new TestItemResults());
     return testItem;
@@ -171,7 +183,8 @@ class AnalyzerUtilsTest {
           Attribute attribute = new Attribute();
           attribute.setName(it.getAttribute());
           return attribute;
-        }).collect(Collectors.toSet())));
+        }).collect(Collectors.toSet())
+    ));
     return project;
   }
 

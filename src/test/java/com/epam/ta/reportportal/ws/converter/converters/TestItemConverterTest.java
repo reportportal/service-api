@@ -35,12 +35,11 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.entity.statistics.StatisticsField;
-import com.epam.ta.reportportal.ws.model.TestItemResource;
-import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
+import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
+import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import com.google.common.collect.Sets;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
@@ -52,7 +51,8 @@ class TestItemConverterTest {
   @Test
   void toActivityResourceNullTest() {
     assertThrows(NullPointerException.class,
-        () -> TestItemConverter.TO_ACTIVITY_RESOURCE.apply(null, null));
+        () -> TestItemConverter.TO_ACTIVITY_RESOURCE.apply(null, null)
+    );
   }
 
   @Test
@@ -63,30 +63,30 @@ class TestItemConverterTest {
   @Test
   void toActivityResource() {
     final TestItem item = getItem(true);
-    final TestItemActivityResource activityResource = TestItemConverter.TO_ACTIVITY_RESOURCE.apply(
-        item, 4L);
+    final TestItemActivityResource activityResource =
+        TestItemConverter.TO_ACTIVITY_RESOURCE.apply(item, 4L);
 
     assertEquals(activityResource.getId(), item.getItemId());
     assertEquals(activityResource.getName(), item.getName());
     assertEquals((long) activityResource.getProjectId(), 4L);
     assertEquals(activityResource.getIssueDescription(),
-        item.getItemResults().getIssue().getIssueDescription());
+        item.getItemResults().getIssue().getIssueDescription()
+    );
     assertEquals(activityResource.getIssueTypeLongName(),
-        item.getItemResults().getIssue().getIssueType().getLongName());
+        item.getItemResults().getIssue().getIssueType().getLongName()
+    );
     assertEquals(activityResource.getStatus(), item.getItemResults().getStatus().name());
-    assertEquals(
-        activityResource.getTickets(),
-        item.getItemResults()
-            .getIssue()
-            .getTickets()
-            .stream()
+    assertEquals(activityResource.getTickets(),
+        item.getItemResults().getIssue().getTickets().stream()
             .map(it -> it.getTicketId().concat(":").concat(it.getUrl()))
             .collect(Collectors.joining(", "))
     );
     assertEquals(activityResource.isIgnoreAnalyzer(),
-        item.getItemResults().getIssue().getIgnoreAnalyzer());
+        item.getItemResults().getIssue().getIgnoreAnalyzer()
+    );
     assertEquals(activityResource.isAutoAnalyzed(),
-        item.getItemResults().getIssue().getAutoAnalyzed());
+        item.getItemResults().getIssue().getAutoAnalyzed()
+    );
   }
 
   @Test
@@ -103,30 +103,29 @@ class TestItemConverterTest {
     assertEquals(resource.getPath(), item.getPath());
     assertEquals(resource.getStatus(), item.getItemResults().getStatus().name());
     assertEquals(resource.getType(), item.getType().name());
-    assertEquals(resource.getStartTime(),
-        Date.from(item.getStartTime().atZone(ZoneId.of("UTC")).toInstant()));
-    assertEquals(resource.getEndTime(),
-        Date.from(item.getItemResults().getEndTime().atZone(ZoneId.of("UTC")).toInstant()));
+    assertEquals(resource.getStartTime().truncatedTo(ChronoUnit.SECONDS),
+        Instant.now().truncatedTo(ChronoUnit.SECONDS));
+    assertEquals(resource.getEndTime().truncatedTo(ChronoUnit.SECONDS),
+        Instant.now().truncatedTo(ChronoUnit.SECONDS));
     assertEquals(resource.getUniqueId(), item.getUniqueId());
-    assertThat(resource.getAttributes()
-        .stream()
-        .map(ItemAttributeConverter.FROM_RESOURCE)
+    assertThat(resource.getAttributes().stream().map(ItemAttributeConverter.FROM_RESOURCE)
         .collect(Collectors.toSet())).containsExactlyElementsOf(item.getAttributes());
-    assertThat(resource.getParameters()
-        .stream()
-        .map(ParametersConverter.TO_MODEL)
+    assertThat(resource.getParameters().stream().map(ParametersConverter.TO_MODEL)
         .collect(Collectors.toSet())).containsExactlyElementsOf(item.getParameters());
     assertThat(resource.getStatisticsResource()).isEqualToComparingFieldByField(
-        StatisticsConverter.TO_RESOURCE.apply(item.getItemResults()
-            .getStatistics()));
+        StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getStatistics()));
     assertEquals(resource.getIssue().getComment(),
-        item.getItemResults().getIssue().getIssueDescription());
-    assertEquals(resource.getIssue().getAutoAnalyzed(),
-        item.getItemResults().getIssue().getAutoAnalyzed());
+        item.getItemResults().getIssue().getIssueDescription()
+    );
+    assertEquals(resource.getIssue().isIgnoreAnalyzer(),
+        item.getItemResults().getIssue().getAutoAnalyzed()
+    );
     assertEquals(resource.getIssue().getIssueType(),
-        item.getItemResults().getIssue().getIssueType().getLocator());
-    assertEquals(resource.getIssue().getIgnoreAnalyzer(),
-        item.getItemResults().getIssue().getIgnoreAnalyzer());
+        item.getItemResults().getIssue().getIssueType().getLocator()
+    );
+    assertEquals(resource.getIssue().isIgnoreAnalyzer(),
+        item.getItemResults().getIssue().getIgnoreAnalyzer()
+    );
   }
 
   @Test
@@ -143,22 +142,17 @@ class TestItemConverterTest {
     assertEquals(resource.getPath(), item.getPath());
     assertEquals(resource.getStatus(), item.getItemResults().getStatus().name());
     assertEquals(resource.getType(), item.getType().name());
-    assertEquals(resource.getStartTime(),
-        Date.from(item.getStartTime().atZone(ZoneId.of("UTC")).toInstant()));
-    assertEquals(resource.getEndTime(),
-        Date.from(item.getItemResults().getEndTime().atZone(ZoneId.of("UTC")).toInstant()));
+    assertEquals(resource.getStartTime().truncatedTo(ChronoUnit.SECONDS),
+        Instant.now().truncatedTo(ChronoUnit.SECONDS));
+    assertEquals(resource.getEndTime().truncatedTo(ChronoUnit.SECONDS),
+        Instant.now().truncatedTo(ChronoUnit.SECONDS));
     assertEquals(resource.getUniqueId(), item.getUniqueId());
-    assertThat(resource.getAttributes()
-        .stream()
-        .map(ItemAttributeConverter.FROM_RESOURCE)
+    assertThat(resource.getAttributes().stream().map(ItemAttributeConverter.FROM_RESOURCE)
         .collect(Collectors.toSet())).containsExactlyElementsOf(item.getAttributes());
-    assertThat(resource.getParameters()
-        .stream()
-        .map(ParametersConverter.TO_MODEL)
+    assertThat(resource.getParameters().stream().map(ParametersConverter.TO_MODEL)
         .collect(Collectors.toSet())).containsExactlyElementsOf(item.getParameters());
     assertThat(resource.getStatisticsResource()).isEqualToComparingFieldByField(
-        StatisticsConverter.TO_RESOURCE.apply(item.getItemResults()
-            .getStatistics()));
+        StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getStatistics()));
     assertNull(resource.getIssue());
   }
 
@@ -166,7 +160,7 @@ class TestItemConverterTest {
     TestItem item = new TestItem();
     item.setName("name");
     item.setDescription("description");
-    item.setStartTime(LocalDateTime.now());
+    item.setStartTime(Instant.now());
     item.setUniqueId("uniqueId");
     item.setUuid("uuid");
     item.setItemId(1L);
@@ -177,7 +171,8 @@ class TestItemConverterTest {
     parameter.setValue("value");
     item.setParameters(Sets.newHashSet(parameter));
     item.setAttributes(Sets.newHashSet(new ItemAttribute("key1", "value1", false),
-        new ItemAttribute("key2", "value2", false)));
+        new ItemAttribute("key2", "value2", false)
+    ));
     final Launch launch = new Launch();
     launch.setProjectId(4L);
     launch.setId(2L);
@@ -188,13 +183,14 @@ class TestItemConverterTest {
     item.setParentId(parent.getItemId());
     final TestItemResults itemResults = new TestItemResults();
     itemResults.setStatus(StatusEnum.FAILED);
-    itemResults.setEndTime(LocalDateTime.now());
+    itemResults.setEndTime(Instant.now());
     if (hasIssue) {
       final IssueEntity issue = new IssueEntity();
       issue.setIssueId(3L);
       issue.setIssueType(
           new IssueType(new IssueGroup(TestItemIssueGroup.PRODUCT_BUG), "locator", "long name",
-              "SNA", "color"));
+              "SNA", "color"
+          ));
       issue.setIgnoreAnalyzer(false);
       issue.setAutoAnalyzed(false);
       issue.setIssueDescription("issue description");

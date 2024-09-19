@@ -27,9 +27,9 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
-import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.project.config.UpdateIssueSubTypeRQ;
+import com.epam.ta.reportportal.model.project.config.UpdateOneIssueSubTypeRQ;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -61,14 +61,15 @@ class UpdateProjectSettingsHandlerImplTest {
         () -> handler.updateProjectIssueSubType("test_project", user, updateIssueSubTypeRQ)
     );
     assertEquals("Forbidden operation. Please specify at least one item data for update.",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
   void updateSubtypeOnNotExistProject() {
     long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
-        projectId);
+    ReportPortalUser user =
+        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
     UpdateIssueSubTypeRQ updateIssueSubTypeRQ = new UpdateIssueSubTypeRQ();
     updateIssueSubTypeRQ.setIds(Collections.singletonList(new UpdateOneIssueSubTypeRQ()));
@@ -79,14 +80,15 @@ class UpdateProjectSettingsHandlerImplTest {
         () -> handler.updateProjectIssueSubType(TEST_PROJECT_NAME, user, updateIssueSubTypeRQ)
     );
     assertEquals("Project 'test_project' not found. Did you use correct project name?",
-        exception.getMessage());
+        exception.getMessage()
+    );
   }
 
   @Test
   void updateSubtypeWithIncorrectGroup() {
     long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
-        projectId);
+    ReportPortalUser user =
+        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
     UpdateIssueSubTypeRQ updateIssueSubTypeRQ = new UpdateIssueSubTypeRQ();
     UpdateOneIssueSubTypeRQ oneIssueSubTypeRQ = new UpdateOneIssueSubTypeRQ();
@@ -104,8 +106,8 @@ class UpdateProjectSettingsHandlerImplTest {
   @Test
   void updateNotExistSubtype() {
     long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
-        projectId);
+    ReportPortalUser user =
+        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
     UpdateIssueSubTypeRQ updateIssueSubTypeRQ = new UpdateIssueSubTypeRQ();
     UpdateOneIssueSubTypeRQ oneIssueSubTypeRQ = new UpdateOneIssueSubTypeRQ();

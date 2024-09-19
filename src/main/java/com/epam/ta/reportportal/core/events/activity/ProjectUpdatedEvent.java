@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.events.activity;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processParameter;
@@ -29,49 +30,40 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
-import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
+import com.epam.ta.reportportal.model.activity.ProjectAttributesActivityResource;
 
 /**
  * Being triggered on after project update
  *
  * @author Andrei Varabyeu
  */
-public class ProjectUpdatedEvent extends AroundEvent<ProjectAttributesActivityResource> implements
-    ActivityEvent {
+public class ProjectUpdatedEvent extends AroundEvent<ProjectAttributesActivityResource>
+    implements ActivityEvent {
 
   public ProjectUpdatedEvent() {
   }
 
   public ProjectUpdatedEvent(ProjectAttributesActivityResource before,
-      ProjectAttributesActivityResource after, Long userId,
-      String userLogin) {
+      ProjectAttributesActivityResource after, Long userId, String userLogin) {
     super(userId, userLogin, before, after);
   }
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow()
-            .addAction(EventAction.UPDATE)
-            .addEventName(ActivityAction.UPDATE_PROJECT.getValue())
-            .addPriority(EventPriority.HIGH)
-            .addObjectId(getBefore().getProjectId())
-            .addObjectName(getBefore().getProjectName())
-            .addObjectType(EventObject.PROJECT)
-            .addProjectId(getBefore().getProjectId())
-            .addSubjectId(getUserId())
-            .addSubjectName(getUserLogin())
-            .addSubjectType(EventSubject.USER)
-            .addHistoryField(processParameter(getBefore().getConfig(),
-                getAfter().getConfig(),
-                INTERRUPT_JOB_TIME.getAttribute()
-            ))
-            .addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(),
-                KEEP_SCREENSHOTS.getAttribute()))
-            .addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(),
-                KEEP_LOGS.getAttribute()))
-            .addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(),
-                KEEP_LAUNCHES.getAttribute()))
-            .get();
+    return new ActivityBuilder().addCreatedNow().addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_PROJECT.getValue()).addPriority(EventPriority.HIGH)
+        .addObjectId(getBefore().getProjectId()).addObjectName(getBefore().getProjectName())
+        .addObjectType(EventObject.PROJECT).addProjectId(getBefore().getProjectId())
+        .addSubjectId(getUserId()).addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER)
+        .addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(),
+            INTERRUPT_JOB_TIME.getAttribute()
+        )).addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(),
+            KEEP_SCREENSHOTS.getAttribute()
+        )).addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(),
+            KEEP_LOGS.getAttribute()
+        )).addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(),
+            KEEP_LAUNCHES.getAttribute()
+        )).get();
   }
 
 }

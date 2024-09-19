@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.extension.CommonPluginCommand;
@@ -27,10 +27,10 @@ import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.integration.IntegrationRQ;
 import com.epam.ta.reportportal.ws.converter.builders.IntegrationBuilder;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,19 +60,18 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
   @Override
   public Integration createIntegration(IntegrationRQ integrationRq,
       IntegrationType integrationType) {
-    return new IntegrationBuilder().withCreationDate(LocalDateTime.now())
-        .withType(integrationType)
-        .withEnabled(integrationRq.getEnabled())
-        .withName(integrationRq.getName())
-        .withParams(new IntegrationParams(
-            retrieveCreateParams(integrationType.getName(), integrationRq.getIntegrationParams())))
-        .get();
+    return new IntegrationBuilder().withCreationDate(Instant.now()).withType(integrationType)
+        .withEnabled(integrationRq.getEnabled()).withName(integrationRq.getName()).withParams(
+            new IntegrationParams(retrieveCreateParams(integrationType.getName(),
+                integrationRq.getIntegrationParams()
+            ))).get();
   }
 
   @Override
   public Integration updateIntegration(Integration integration, IntegrationRQ integrationRQ) {
     Map<String, Object> validParams = retrieveUpdatedParams(integration.getType().getName(),
-        integrationRQ.getIntegrationParams());
+        integrationRQ.getIntegrationParams()
+    );
     IntegrationParams combinedParams = getCombinedParams(integration, validParams);
     integration.setParams(combinedParams);
     ofNullable(integrationRQ.getEnabled()).ifPresent(integration::setEnabled);
@@ -83,8 +82,8 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
   @Override
   public Map<String, Object> retrieveCreateParams(String integrationType,
       Map<String, Object> integrationParams) {
-    final Optional<CommonPluginCommand<?>> pluginCommand = getCommonCommand(integrationType,
-        RETRIEVE_CREATE_PARAMS);
+    final Optional<CommonPluginCommand<?>> pluginCommand =
+        getCommonCommand(integrationType, RETRIEVE_CREATE_PARAMS);
     if (pluginCommand.isPresent()) {
       return (Map<String, Object>) pluginCommand.get().executeCommand(integrationParams);
     }
@@ -94,8 +93,8 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
   @Override
   public Map<String, Object> retrieveUpdatedParams(String integrationType,
       Map<String, Object> integrationParams) {
-    final Optional<CommonPluginCommand<?>> pluginCommand = getCommonCommand(integrationType,
-        RETRIEVE_UPDATED_PARAMS);
+    final Optional<CommonPluginCommand<?>> pluginCommand =
+        getCommonCommand(integrationType, RETRIEVE_UPDATED_PARAMS);
     if (pluginCommand.isPresent()) {
       return (Map<String, Object>) pluginCommand.get().executeCommand(integrationParams);
     }
@@ -104,8 +103,8 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 
   @Override
   public boolean checkConnection(Integration integration) {
-    final Optional<PluginCommand<?>> pluginCommand = getIntegrationCommand(
-        integration.getType().getName(), TEST_CONNECTION_COMMAND);
+    final Optional<PluginCommand<?>> pluginCommand =
+        getIntegrationCommand(integration.getType().getName(), TEST_CONNECTION_COMMAND);
     if (pluginCommand.isPresent()) {
       return (Boolean) pluginCommand.get()
           .executeCommand(integration, integration.getParams().getParams());
@@ -114,21 +113,21 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
   }
 
   private Optional<PluginCommand<?>> getIntegrationCommand(String integration, String commandName) {
-    ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(integration,
-            ReportPortalExtensionPoint.class)
-        .orElseThrow(
+    ReportPortalExtensionPoint pluginInstance =
+        pluginBox.getInstance(integration, ReportPortalExtensionPoint.class).orElseThrow(
             () -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed",
-                integration));
+                integration
+            ));
     return ofNullable(pluginInstance.getIntegrationCommand(commandName));
   }
 
   private Optional<CommonPluginCommand<?>> getCommonCommand(String integration,
       String commandName) {
-    ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(integration,
-            ReportPortalExtensionPoint.class)
-        .orElseThrow(
+    ReportPortalExtensionPoint pluginInstance =
+        pluginBox.getInstance(integration, ReportPortalExtensionPoint.class).orElseThrow(
             () -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed",
-                integration));
+                integration
+            ));
     return ofNullable(pluginInstance.getCommonCommand(commandName));
   }
 

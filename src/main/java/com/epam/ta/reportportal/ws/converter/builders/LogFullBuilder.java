@@ -18,12 +18,11 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import static java.util.Optional.ofNullable;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.LogFull;
-import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -41,7 +40,7 @@ public class LogFullBuilder implements Supplier<LogFull> {
   public LogFullBuilder addSaveLogRq(SaveLogRQ createLogRQ) {
     logFull.setLogLevel(LogLevel.toCustomLogLevel(createLogRQ.getLevel()));
     logFull.setLogMessage(ofNullable(createLogRQ.getMessage()).orElse("NULL"));
-    logFull.setLogTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(createLogRQ.getLogTime()));
+    logFull.setLogTime(createLogRQ.getLogTime());
     logFull.setUuid(ofNullable(createLogRQ.getUuid()).orElse(UUID.randomUUID().toString()));
     return this;
   }

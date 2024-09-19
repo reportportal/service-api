@@ -4,13 +4,12 @@ ARG APP_VERSION
 WORKDIR /usr/app
 COPY . /usr/app
 RUN if [ "${RELEASE_MODE}" = true ]; then \
-    gradle build --exclude-task test \
+    gradle build --no-build-cache --exclude-task test \
         -PreleaseMode=true \
         -Dorg.gradle.project.version=${APP_VERSION}; \
-    else gradle build --exclude-task test -Dorg.gradle.project.version=${APP_VERSION}; fi
+    else gradle build --no-build-cache --exclude-task test -Dorg.gradle.project.version=${APP_VERSION}; fi
 
-# For ARM build use flag: `--platform linux/arm64`
-FROM --platform=$BUILDPLATFORM amazoncorretto:21.0.4
+FROM amazoncorretto:21.0.4
 LABEL version=${APP_VERSION} description="EPAM Report portal. Main API Service" maintainer="Andrei Varabyeu <andrei_varabyeu@epam.com>, Hleb Kanonik <hleb_kanonik@epam.com>"
 ARG APP_VERSION=${APP_VERSION}
 ENV APP_DIR=/usr/app
@@ -19,4 +18,5 @@ WORKDIR $APP_DIR
 COPY --from=build $APP_DIR/build/libs/service-api-*exec.jar .
 VOLUME ["/tmp"]
 EXPOSE 8080
-ENTRYPOINT exec java ${JAVA_OPTS} -jar ${APP_DIR}/service-api-*exec.jar
+# ENTRYPOINT exec java ${JAVA_OPTS} -jar ${APP_DIR}/service-api-*exec.jar
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar ${APP_DIR}/service-api-*exec.jar"]

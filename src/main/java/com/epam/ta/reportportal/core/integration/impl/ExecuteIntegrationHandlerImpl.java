@@ -16,21 +16,21 @@
 
 package com.epam.ta.reportportal.core.integration.impl;
 
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
+import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.INTEGRATION_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Map;
 import java.util.function.Supplier;
 import org.springframework.scheduling.annotation.Async;
@@ -40,12 +40,14 @@ import org.springframework.stereotype.Service;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
+@SuppressWarnings("unchecked")
 public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler {
 
   private static final String ASYNC_MODE = "async";
 
   //Required field for user authorization in plugin
   private static final String PROJECT_ID = "projectId";
+  private static final String PROJECT_NAME = "projectName";
   private static final String PUBLIC_COMMAND_PREFIX = "public_";
 
   private final IntegrationRepository integrationRepository;
@@ -60,14 +62,14 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
   @Override
   public Object executeCommand(ReportPortalUser.ProjectDetails projectDetails, String pluginName,
-      String command,
-      Map<String, Object> executionParams) {
+      String command, Map<String, Object> executionParams) {
     ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(pluginName,
             ReportPortalExtensionPoint.class)
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
             formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
         ));
     executionParams.put(PROJECT_ID, projectDetails.getProjectId());
+    executionParams.put(PROJECT_NAME, projectDetails.getProjectName());
     return ofNullable(pluginInstance.getCommonCommand(command)).map(
             it -> it.executeCommand(executionParams))
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
@@ -109,12 +111,10 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
                 integration.getType().getName()).get()
         ));
 
-    Boolean asyncMode = ofNullable((Boolean) executionParams.get(ASYNC_MODE)).orElse(false);
-
     executionParams.put(PROJECT_ID, projectDetails.getProjectId());
 
     return ofNullable(pluginInstance.getIntegrationCommand(command)).map(it -> {
-      if (asyncMode) {
+      if (isAsyncMode(executionParams)) {
         supplyAsync(() -> it.executeCommand(integration, executionParams));
         return new OperationCompletionRS(
             formattedSupplier("Command '{}' accepted for processing in plugin",
@@ -130,8 +130,14 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
   }
 
   @Async
+  @Deprecated
   //need for security context sharing into plugin
+  //it doesn't work as expected
   public <U> void supplyAsync(Supplier<U> supplier) {
     supplier.get();
+  }
+
+  private boolean isAsyncMode(Map<String, Object> executionParams) {
+    return ofNullable((Boolean) executionParams.get(ASYNC_MODE)).orElse(false);
   }
 }

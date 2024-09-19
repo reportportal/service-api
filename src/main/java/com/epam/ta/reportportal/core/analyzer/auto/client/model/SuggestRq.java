@@ -15,8 +15,8 @@
  */
 package com.epam.ta.reportportal.core.analyzer.auto.client.model;
 
-import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.epam.reportportal.model.analyzer.IndexLog;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Set;
 

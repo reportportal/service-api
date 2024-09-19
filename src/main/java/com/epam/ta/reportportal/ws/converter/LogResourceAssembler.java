@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.entity.log.LogFull;
+import com.epam.ta.reportportal.model.log.LogResource;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
-import com.epam.ta.reportportal.ws.model.log.LogResource;
 import org.springframework.stereotype.Service;
 
 /**

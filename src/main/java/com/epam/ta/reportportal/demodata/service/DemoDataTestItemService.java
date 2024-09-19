@@ -29,9 +29,9 @@ import com.epam.ta.reportportal.demodata.model.RootMetaData;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
-import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import java.util.Date;
+import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
+import java.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,7 +59,7 @@ public class DemoDataTestItemService {
     rq.setName(metadata.getName());
     rq.setCodeRef(PACKAGE + metadata.getName());
     rq.setLaunchUuid(rootMetaData.getLaunchUuid());
-    rq.setStartTime(new Date());
+    rq.setStartTime(Instant.now());
     rq.setType(metadata.getType().name());
     if (metadata.getType().sameLevel(SUITE)) {
       rq.setAttributes(ContentUtils.getAttributesInRange(ATTRIBUTES_COUNT));
@@ -74,7 +74,7 @@ public class DemoDataTestItemService {
   public void finishRootItem(String rootItemId, ReportPortalUser user,
       ReportPortalUser.ProjectDetails projectDetails) {
     FinishTestItemRQ rq = new FinishTestItemRQ();
-    rq.setEndTime(new Date());
+    rq.setEndTime(Instant.now());
     finishTestItemHandler.finishTestItem(user, projectDetails, rootItemId, rq);
   }
 
@@ -93,7 +93,7 @@ public class DemoDataTestItemService {
     rq.setCodeRef(PACKAGE + metadata.getName());
     rq.setRetry(metadata.isRetry());
     rq.setLaunchUuid(rootMetaData.getLaunchUuid());
-    rq.setStartTime(new Date());
+    rq.setStartTime(Instant.now());
     rq.setName(metadata.getName());
     rq.setType(metadata.getType().name());
 
@@ -105,7 +105,7 @@ public class DemoDataTestItemService {
   @Transactional
   public void finishTestItem(String testItemId, StatusEnum status, RootMetaData rootMetaData) {
     FinishTestItemRQ rq = new FinishTestItemRQ();
-    rq.setEndTime(new Date());
+    rq.setEndTime(Instant.now());
     rq.setStatus(status.name());
     finishTestItemHandler.finishTestItem(rootMetaData.getUser(), rootMetaData.getProjectDetails(),
         testItemId, rq);
@@ -115,7 +115,7 @@ public class DemoDataTestItemService {
   public void finishTestItem(String testItemId, StatusEnum status, RootMetaData rootMetaData,
       String issue) {
     FinishTestItemRQ rq = new FinishTestItemRQ();
-    rq.setEndTime(new Date());
+    rq.setEndTime(Instant.now());
     rq.setStatus(status.name());
     TestItemIssueGroup.fromValue(issue)
         .ifPresent(group -> rq.setIssue(ContentUtils.getIssue(group)));

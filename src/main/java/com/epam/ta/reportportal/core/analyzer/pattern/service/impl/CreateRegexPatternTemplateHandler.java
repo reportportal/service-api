@@ -16,12 +16,12 @@
 
 package com.epam.ta.reportportal.core.analyzer.pattern.service.impl;
 
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.dao.PatternTemplateRepository;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.project.config.pattern.CreatePatternTemplateRQ;
+import com.epam.reportportal.rules.exception.ErrorType;
 import javax.persistence.PersistenceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,7 +45,8 @@ public class CreateRegexPatternTemplateHandler extends CreatePatternTemplateHand
     } catch (PersistenceException ex) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           Suppliers.formattedSupplier("Provided regex pattern - '{}' is invalid",
-              createPatternTemplateRQ.getValue()).get()
+              createPatternTemplateRQ.getValue()
+          ).get()
       );
     }
     return super.createPatternTemplate(projectId, createPatternTemplateRQ);

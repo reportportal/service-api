@@ -16,6 +16,20 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -24,33 +38,30 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
+import com.epam.ta.reportportal.model.DeleteBulkRQ;
+import com.epam.ta.reportportal.model.Page;
+import com.epam.ta.reportportal.model.user.ChangePasswordRQ;
+import com.epam.ta.reportportal.model.user.CreateUserBidRS;
+import com.epam.ta.reportportal.model.user.CreateUserRQ;
+import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
+import com.epam.ta.reportportal.model.user.CreateUserRQFull;
+import com.epam.ta.reportportal.model.user.CreateUserRS;
+import com.epam.ta.reportportal.model.user.EditUserRQ;
+import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
+import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
-import com.epam.ta.reportportal.ws.model.Page;
-import com.epam.ta.reportportal.ws.model.ValidationConstraints;
-import com.epam.ta.reportportal.ws.model.user.*;
+import com.epam.reportportal.model.ValidationConstraints;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -82,7 +93,7 @@ class UserControllerTest extends BaseMvcTest {
     rq.setDefaultProject("default_personal");
 
     MvcResult mvcResult = mockMvc.perform(
-            post("/v1/user").with(token(oAuthHelper.getSuperadminToken()))
+            post("/users").with(token(oAuthHelper.getSuperadminToken()))
                 .contentType(APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated())
         .andReturn();
@@ -130,7 +141,7 @@ class UserControllerTest extends BaseMvcTest {
     doNothing().when(emailService).sendCreateUserConfirmationEmail(any(), any(), any());
 
     MvcResult mvcResult = mockMvc.perform(
-            post("/v1/user/bid").with(token(oAuthHelper.getDefaultToken()))
+            post("/users/bid").with(token(oAuthHelper.getDefaultToken()))
                 .contentType(APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated())
         .andReturn();
@@ -151,7 +162,7 @@ class UserControllerTest extends BaseMvcTest {
     rq.setFullName("Test User");
     rq.setEmail("test@domain.com");
     MvcResult mvcResult = mockMvc.perform(
-            post("/v1/user/registration?uuid=e5f98deb-8966-4b2d-ba2f-35bc69d30c06").contentType(
+            post("/users/registration?uuid=e5f98deb-8966-4b2d-ba2f-35bc69d30c06").contentType(
                 APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
         .andExpect(status().isCreated()).andReturn();
 
@@ -165,20 +176,20 @@ class UserControllerTest extends BaseMvcTest {
 
   @Test
   void getUserBidInfoPositive() throws Exception {
-    mockMvc.perform(get("/v1/user/registration?uuid=e5f98deb-8966-4b2d-ba2f-35bc69d30c06"))
+    mockMvc.perform(get("/users/registration?uuid=e5f98deb-8966-4b2d-ba2f-35bc69d30c06"))
         .andExpect(status().isOk());
   }
 
   @Test
   void deleteUserNegative() throws Exception {
     /* Administrator cannot remove him/her-self */
-    mockMvc.perform(delete("/v1/user/1").with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(delete("/users/1").with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isForbidden());
   }
 
   @Test
   void deleteUserPositive() throws Exception {
-    mockMvc.perform(delete("/v1/user/2").with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(delete("/users/2").with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
   }
 
@@ -188,9 +199,10 @@ class UserControllerTest extends BaseMvcTest {
     DeleteBulkRQ deleteBulkRQ = new DeleteBulkRQ();
     deleteBulkRQ.setIds(Lists.newArrayList(2L));
 
-    mockMvc.perform(delete("/v1/user").with(token(oAuthHelper.getSuperadminToken()))
-        .contentType(APPLICATION_JSON)
-        .content(objectMapper.writeValueAsBytes(deleteBulkRQ))).andExpect(status().isOk());
+    mockMvc.perform(delete("/users").with(token(oAuthHelper.getSuperadminToken()))
+            .contentType(APPLICATION_JSON)
+            .param("ids", "1", "2"))
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -199,7 +211,7 @@ class UserControllerTest extends BaseMvcTest {
     rq.setFullName("Vasya Pupkin");
     rq.setEmail("defaultemail@domain.com");
     rq.setRole("USER");
-    mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
+    mockMvc.perform(put("/users/default").with(token(oAuthHelper.getSuperadminToken()))
         .contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
   }
@@ -209,7 +221,7 @@ class UserControllerTest extends BaseMvcTest {
     EditUserRQ editUserRQ = new EditUserRQ();
     editUserRQ.setEmail("defaltemail@domain.com");
     editUserRQ.setFullName("1");
-    mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
+    mockMvc.perform(put("/users/default").with(token(oAuthHelper.getSuperadminToken()))
         .contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isBadRequest());
   }
@@ -219,7 +231,7 @@ class UserControllerTest extends BaseMvcTest {
     EditUserRQ editUserRQ = new EditUserRQ();
     editUserRQ.setEmail("defaltemail@domain.com");
     editUserRQ.setFullName(RandomStringUtils.randomAlphabetic(257));
-    mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
+    mockMvc.perform(put("/users/default").with(token(oAuthHelper.getSuperadminToken()))
         .contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isBadRequest());
   }
@@ -229,7 +241,7 @@ class UserControllerTest extends BaseMvcTest {
     EditUserRQ editUserRQ = new EditUserRQ();
     editUserRQ.setFullName("Vasya Pupkin");
     editUserRQ.setEmail("superadminemail@domain.com");
-    mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
+    mockMvc.perform(put("/users/default").with(token(oAuthHelper.getSuperadminToken()))
         .contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().is(409));
   }
@@ -239,33 +251,33 @@ class UserControllerTest extends BaseMvcTest {
     EditUserRQ editUserRQ = new EditUserRQ();
     editUserRQ.setFullName("Vasya Pupkin");
     editUserRQ.setEmail("user1uniquemail@epam.com");
-    mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
+    mockMvc.perform(put("/users/default").with(token(oAuthHelper.getSuperadminToken()))
         .contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isOk());
   }
 
   @Test
   void getUserPositive() throws Exception {
-    mockMvc.perform(get("/v1/user/default").with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(get("/users/default").with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
   }
 
   @Test
   void getUserPositiveUsingApiToken() throws Exception {
-    mockMvc.perform(get("/v1/user/default").with(
+    mockMvc.perform(get("/users/default").with(
             token("test__ET4Byc1QUqO8VV8kiCGSP3O4SERb5MJWIowQQ3SiEqHO6hjicoPw-vm1tnrQI5V")))
         .andExpect(status().isOk());
   }
 
   @Test
   void getUsersPositive() throws Exception {
-    mockMvc.perform(get("/v1/user/all").with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(get("/users/all").with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
   }
 
   @Test
   void validateUserInfoUsernamePositive() throws Exception {
-    mockMvc.perform(get("/v1/user/registration/info?username=default").with(
+    mockMvc.perform(get("/users/registration/info?username=default").with(
             token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
   }
@@ -275,7 +287,7 @@ class UserControllerTest extends BaseMvcTest {
     ChangePasswordRQ rq = new ChangePasswordRQ();
     rq.setOldPassword("password");
     rq.setNewPassword("12345");
-    mockMvc.perform(post("/v1/user/password/change").with(token(oAuthHelper.getDefaultToken()))
+    mockMvc.perform(post("/users/password/change").with(token(oAuthHelper.getDefaultToken()))
         .content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest());
   }
@@ -289,7 +301,7 @@ class UserControllerTest extends BaseMvcTest {
     when(mailServiceFactory.getDefaultEmailService(true)).thenReturn(emailService);
     doNothing().when(emailService).sendChangePasswordConfirmation(any(), any(), any());
 
-    mockMvc.perform(post("/v1/user/password/change").with(token(oAuthHelper.getDefaultToken()))
+    mockMvc.perform(post("/users/password/change").with(token(oAuthHelper.getDefaultToken()))
         .content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)).andExpect(status().isOk());
   }
@@ -300,7 +312,7 @@ class UserControllerTest extends BaseMvcTest {
     rq.setOldPassword("1q2w3e");
     rq.setNewPassword(
         RandomStringUtils.randomAlphabetic(ValidationConstraints.MAX_PASSWORD_LENGTH + 1));
-    mockMvc.perform(post("/v1/user/password/change").with(token(oAuthHelper.getDefaultToken()))
+    mockMvc.perform(post("/users/password/change").with(token(oAuthHelper.getDefaultToken()))
         .content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest());
   }
@@ -311,7 +323,7 @@ class UserControllerTest extends BaseMvcTest {
     rq.setOldPassword("1q2w3e");
     rq.setNewPassword(
         RandomStringUtils.randomAlphabetic(ValidationConstraints.MIN_PASSWORD_LENGTH - 1));
-    mockMvc.perform(post("/v1/user/password/change").with(token(oAuthHelper.getDefaultToken()))
+    mockMvc.perform(post("/users/password/change").with(token(oAuthHelper.getDefaultToken()))
         .content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest());
   }
@@ -324,7 +336,7 @@ class UserControllerTest extends BaseMvcTest {
     when(mailServiceFactory.getDefaultEmailService(true)).thenReturn(emailService);
     doNothing().when(emailService).sendRestorePasswordEmail(any(), any(), any(), any());
 
-    mockMvc.perform(post("/v1/user/password/restore").with(token(oAuthHelper.getDefaultToken()))
+    mockMvc.perform(post("/users/password/restore").with(token(oAuthHelper.getDefaultToken()))
         .contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(restorePasswordRQ))).andExpect(status().isOk());
   }
@@ -334,34 +346,34 @@ class UserControllerTest extends BaseMvcTest {
     final ResetPasswordRQ resetPasswordRQ = new ResetPasswordRQ();
     resetPasswordRQ.setPassword("password");
     resetPasswordRQ.setUuid("e5f98deb-8966-4b2d-ba2f-35bc69d30c06");
-    mockMvc.perform(post("/v1/user/password/reset").with(token(oAuthHelper.getDefaultToken()))
+    mockMvc.perform(post("/users/password/reset").with(token(oAuthHelper.getDefaultToken()))
         .contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(resetPasswordRQ))).andExpect(status().isOk());
   }
 
   @Test
   void isRestorePasswordBidExist() throws Exception {
-    mockMvc.perform(get("/v1/user/password/reset/e5f98deb-8966-4b2d-ba2f-35bc69d30c06").with(
+    mockMvc.perform(get("/users/password/reset/e5f98deb-8966-4b2d-ba2f-35bc69d30c06").with(
             token(oAuthHelper.getDefaultToken()))
         .contentType(APPLICATION_JSON)).andExpect(status().isOk());
   }
 
   @Test
   void getUserProjects() throws Exception {
-    mockMvc.perform(get("/v1/user/default/projects").with(token(oAuthHelper.getDefaultToken())))
+    mockMvc.perform(get("/users/default/projects").with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk());
   }
 
   @Test
   void getMyself() throws Exception {
-    mockMvc.perform(get("/v1/user").with(token(oAuthHelper.getDefaultToken())))
+    mockMvc.perform(get("/users").with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk());
   }
 
   @Test
   void findUsers() throws Exception {
     MvcResult mvcResult = mockMvc.perform(
-            get("/v1/user/search?term=e").with(token(oAuthHelper.getSuperadminToken())))
+            get("/users/search?term=e").with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andReturn();
     Page userResources = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
@@ -373,7 +385,7 @@ class UserControllerTest extends BaseMvcTest {
 
   @Test
   void exportUsers() throws Exception {
-    mockMvc.perform(get("/v1/user/export").with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(get("/users/export").with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
   }
 }

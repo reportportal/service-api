@@ -26,10 +26,10 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
-import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
+import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
+import com.epam.reportportal.model.externalsystem.Ticket;
 import com.google.common.collect.Lists;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
@@ -39,7 +39,8 @@ import org.junit.jupiter.api.Test;
  */
 class TicketPostedEventTest {
 
-  private static final String EXISTED_TICKETS = "1:http:/example.com/ticket/1,2:http:/example.com/ticket/2";
+  private static final String EXISTED_TICKETS =
+      "1:http:/example.com/ticket/1,2:http:/example.com/ticket/2";
   private static final String NEW_TICKET_ID = "125";
   private static final String NEW_TICKET_URL = "http:/example.com/ticket/125";
 
@@ -54,12 +55,11 @@ class TicketPostedEventTest {
     activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
     activity.setObjectId(2L);
-    activity.setCreatedAt(LocalDateTime.now());
+    activity.setCreatedAt(Instant.now());
     activity.setObjectName("name");
     activity.setDetails(new ActivityDetails());
-    activity.getDetails()
-        .setHistory(getExpectedHistory(Pair.of(EXISTED_TICKETS,
-            EXISTED_TICKETS + "," + NEW_TICKET_ID + ":" + NEW_TICKET_URL)));
+    activity.getDetails().setHistory(getExpectedHistory(
+        Pair.of(EXISTED_TICKETS, EXISTED_TICKETS + "," + NEW_TICKET_ID + ":" + NEW_TICKET_URL)));
     return activity;
   }
 
@@ -88,8 +88,8 @@ class TicketPostedEventTest {
 
   @Test
   void toActivity() {
-    final Activity actual = new TicketPostedEvent(getTicket(), 1L, "user",
-        getTestItem()).toActivity();
+    final Activity actual =
+        new TicketPostedEvent(getTicket(), 1L, "user", getTestItem()).toActivity();
     final Activity expected = getExpectedActivity();
     checkActivity(expected, actual);
   }

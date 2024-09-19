@@ -32,7 +32,7 @@ import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.google.common.collect.Lists;
 import java.io.File;
 import java.io.IOException;
@@ -65,19 +65,24 @@ class Pf4jPluginManagerTest {
   public static final String NEW_JIRA_PLUGIN_VERSION = "1.0";
 
   private final PluginLoader pluginLoader = mock(PluginLoader.class);
-  private final IntegrationTypeRepository integrationTypeRepository =
-      mock(IntegrationTypeRepository.class);
+  private final IntegrationTypeRepository integrationTypeRepository = mock(
+      IntegrationTypeRepository.class);
   private final AutowireCapableBeanFactory beanFactory = mock(AutowireCapableBeanFactory.class);
   private final PluginManager pluginManager = mock(PluginManager.class);
   private final PluginWrapper previousPlugin = mock(PluginWrapper.class);
   private final PluginWrapper newPlugin = mock(PluginWrapper.class);
-  private final ApplicationEventPublisher applicationEventPublisher =
-      mock(ApplicationEventPublisher.class);
+  private final ApplicationEventPublisher applicationEventPublisher = mock(
+      ApplicationEventPublisher.class);
 
-  private final Pf4jPluginManager pluginBox =
-      new Pf4jPluginManager(PLUGINS_PATH, PLUGINS_TEMP_PATH, RESOURCES_PATH, pluginLoader,
-          integrationTypeRepository, pluginManager, beanFactory, applicationEventPublisher
-      );
+  private final Pf4jPluginManager pluginBox = new Pf4jPluginManager(PLUGINS_PATH,
+      PLUGINS_TEMP_PATH,
+      RESOURCES_PATH,
+      pluginLoader,
+      integrationTypeRepository,
+      pluginManager,
+      beanFactory,
+      applicationEventPublisher
+  );
 
   private final InputStream fileStream = mock(InputStream.class);
 
@@ -174,8 +179,7 @@ class Pf4jPluginManagerTest {
     );
     assertEquals(
         "Error during plugin uploading: 'Failed to load new plugin from file = 'plugin.jar''",
-        exception.getMessage()
-    );
+        exception.getMessage());
   }
 
   @Test
@@ -209,8 +213,8 @@ class Pf4jPluginManagerTest {
   void uploadPluginWithPluginException() throws PluginRuntimeException {
 
     when(pluginLoader.extractPluginInfo(
-        Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenThrow(
-        new PluginRuntimeException("Manifest not found"));
+        Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenThrow(new PluginRuntimeException(
+        "Manifest not found"));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> pluginBox.uploadPlugin(NEW_PLUGIN_FILE_NAME, fileStream)
@@ -230,7 +234,7 @@ class Pf4jPluginManagerTest {
     );
     assertEquals("Error during plugin uploading: 'Plugin version should be specified.'",
         exception.getMessage()
-    );
+  );
   }
 
   @Test

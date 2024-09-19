@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.epam.ta.reportportal.entity.ItemAttribute;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import org.junit.jupiter.api.Test;
 
 /**

@@ -20,9 +20,10 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandler;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
-import io.swagger.annotations.ApiOperation;
+import com.epam.ta.reportportal.model.settings.AnalyticsResource;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -44,6 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/settings")
 @PreAuthorize(ADMIN_ONLY)
+@Tag(name = "settings-controller", description = "Settings Controller")
 public class SettingsController {
 
   private final ServerAdminHandler serverHandler;
@@ -54,9 +56,9 @@ public class SettingsController {
   }
 
   @Transactional
-  @RequestMapping(value = "/analytics", method = {RequestMethod.PUT, RequestMethod.POST})
+  @RequestMapping(value = "/analytics", method = { RequestMethod.PUT, RequestMethod.POST })
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation(value = "Update analytics settings")
+  @Operation(summary =  "Update analytics settings")
   public OperationCompletionRS saveAnalyticsSettings(
       @RequestBody @Validated AnalyticsResource request,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -66,7 +68,7 @@ public class SettingsController {
   @Transactional(readOnly = true)
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  @ApiOperation(value = "Get server settings")
+  @Operation(summary =  "Get server settings")
   public Map<String, String> getServerSettings(@AuthenticationPrincipal ReportPortalUser user) {
     return serverHandler.getServerSettings();
   }

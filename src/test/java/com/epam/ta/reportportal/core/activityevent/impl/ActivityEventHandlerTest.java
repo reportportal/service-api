@@ -28,9 +28,10 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
-import com.epam.ta.reportportal.ws.model.ActivityEventResource;
-import com.epam.ta.reportportal.ws.model.PagedResponse;
+import com.epam.ta.reportportal.model.ActivityEventResource;
+import com.epam.ta.reportportal.model.PagedResponse;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,7 +47,6 @@ import org.springframework.data.domain.Sort.Direction;
 
 @ExtendWith(MockitoExtension.class)
 class ActivityEventHandlerTest {
-
 
   @Mock
   private ActivityRepository activityRepository;
@@ -77,7 +77,8 @@ class ActivityEventHandlerTest {
   private Activity createActivity(Long id) {
     final Activity activity = new Activity();
     activity.setId(id);
-    activity.setCreatedAt(LocalDateTime.of(2023, 7, 4, 23, 30));
+    activity.setCreatedAt(LocalDateTime.of(2023, 7, 4, 23, 30)
+        .toInstant(ZoneOffset.UTC));
     activity.setAction(EventAction.CREATE);
     activity.setEventName("createDashboard");
     activity.setPriority(EventPriority.LOW);

@@ -16,27 +16,28 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.model.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.fail;
+import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.exception.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
+import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static java.util.Optional.ofNullable;
 
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandlerImpl;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Maps;
 import com.mchange.lang.IntegerUtils;
 import java.util.Map;
 import java.util.Optional;
 import javax.mail.MessagingException;
+import javax.mail.Transport;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -144,25 +145,23 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
         );
       }
 
-      // if an email integration is new and not saved at db yet - try to send a creation integration message
-      if (integration.getId() == null) {
-        try {
-          EmailSettingsEnum.AUTH_ENABLED.getAttribute(integration.getParams().getParams())
-              .ifPresent(authEnabled -> {
-                if (BooleanUtils.toBoolean(authEnabled)) {
-                  String sendTo = EmailSettingsEnum.USERNAME.getAttribute(
-                          integration.getParams().getParams())
-                      .orElseThrow(() -> new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
-                          "Email server username is not specified."
-                      ));
-                  emailService.get().sendConnectionTestEmail(sendTo);
-                }
-              });
-        } catch (Exception ex) {
-          fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
-              formattedSupplier("Unable to send connection test email. " + ex.getMessage())
-          );
-        }
+      final boolean isIntegrationCreated = integration.getId() == null;
+      try {
+        EmailSettingsEnum.AUTH_ENABLED.getAttribute(integration.getParams().getParams())
+            .ifPresent(authEnabled -> {
+              if (BooleanUtils.toBoolean(authEnabled)) {
+                String sendTo = EmailSettingsEnum.USERNAME.getAttribute(
+                        integration.getParams().getParams())
+                    .orElseThrow(() -> new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
+                        "Email server username is not specified."
+                    ));
+                emailService.get().sendConnectionTestEmail(sendTo, isIntegrationCreated);
+              }
+            });
+      } catch (Exception ex) {
+        fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
+            formattedSupplier("Unable to send connection test email. " + ex.getMessage())
+        );
       }
 
     } else {

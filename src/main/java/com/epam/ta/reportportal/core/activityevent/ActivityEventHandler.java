@@ -18,11 +18,10 @@ package com.epam.ta.reportportal.core.activityevent;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
-import com.epam.ta.reportportal.ws.model.ActivityEventResource;
-import com.epam.ta.reportportal.ws.model.PagedResponse;
+import com.epam.ta.reportportal.model.ActivityEventResource;
+import com.epam.ta.reportportal.model.PagedResponse;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
-
 
 /**
  * Activity Event Handler.

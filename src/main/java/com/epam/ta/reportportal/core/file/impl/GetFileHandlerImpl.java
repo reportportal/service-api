@@ -15,9 +15,11 @@
  */
 package com.epam.ta.reportportal.core.file.impl;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.binary.UserBinaryDataService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -27,17 +29,19 @@ import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.Optional;
 import java.util.function.Predicate;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class GetFileHandlerImpl implements GetFileHandler {
 
   private final UserRepository userRepository;
@@ -47,16 +51,6 @@ public class GetFileHandlerImpl implements GetFileHandler {
   private final AttachmentBinaryDataService attachmentBinaryDataService;
 
   private final ProjectExtractor projectExtractor;
-
-  @Autowired
-  public GetFileHandlerImpl(UserRepository userRepository,
-      UserBinaryDataService userDataStoreService,
-      AttachmentBinaryDataService attachmentBinaryDataService, ProjectExtractor projectExtractor) {
-    this.userRepository = userRepository;
-    this.userDataStoreService = userDataStoreService;
-    this.attachmentBinaryDataService = attachmentBinaryDataService;
-    this.projectExtractor = projectExtractor;
-  }
 
   @Override
   public BinaryData getUserPhoto(ReportPortalUser loggedInUser, boolean loadThumbnail) {
@@ -69,8 +63,12 @@ public class GetFileHandlerImpl implements GetFileHandler {
   @Override
   public BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, String projectName,
       boolean loadThumbnail) {
-    User user = userRepository.findByLogin(username)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
+    Optional<User> userOptional = userRepository.findByLogin(username);
+    if (userOptional.isEmpty()) {
+      log.warn("User '{}' not found", username);
+      return new BinaryData("", 0L, null);
+    }
+    User user = userOptional.get();
     ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetailsAdmin(
         loggedInUser, projectName);
     if (loggedInUser.getUserRole() != UserRole.ADMINISTRATOR) {

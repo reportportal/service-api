@@ -20,24 +20,24 @@ import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.isNull;
 import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.fail;
+import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
 import static com.epam.ta.reportportal.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
-import static com.epam.ta.reportportal.ws.model.ErrorType.RESOURCE_ALREADY_EXISTS;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ROLE_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.USER_ALREADY_EXISTS;
-import static com.epam.ta.reportportal.ws.model.ErrorType.USER_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
+import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
+import static com.epam.reportportal.rules.exception.ErrorType.RESOURCE_ALREADY_EXISTS;
+import static com.epam.reportportal.rules.exception.ErrorType.ROLE_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_EXISTS;
+import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
 
 import com.epam.ta.reportportal.auth.authenticator.UserAuthenticator;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.activity.CreateInvitationLinkEvent;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
@@ -59,24 +59,24 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.YesNoRS;
+import com.epam.ta.reportportal.model.activity.UserActivityResource;
+import com.epam.ta.reportportal.model.user.CreateUserBidRS;
+import com.epam.ta.reportportal.model.user.CreateUserRQ;
+import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
+import com.epam.ta.reportportal.model.user.CreateUserRQFull;
+import com.epam.ta.reportportal.model.user.CreateUserRS;
+import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
+import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
 import com.epam.ta.reportportal.util.Predicates;
 import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.RestorePasswordBidConverter;
 import com.epam.ta.reportportal.ws.converter.converters.UserCreationBidConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.YesNoRS;
-import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
-import com.epam.ta.reportportal.ws.model.user.CreateUserBidRS;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQ;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRS;
-import com.epam.ta.reportportal.ws.model.user.ResetPasswordRQ;
-import com.epam.ta.reportportal.ws.model.user.RestorePasswordRQ;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.Optional;
@@ -321,7 +321,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
                 IntegrationGroupEnum.NOTIFICATION
             )
             .orElseThrow(() -> new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
-                "Please configure email server in Report Portal settings."
+                "Please configure email server in ReportPortal settings."
             ));
 
     final String normalizedEmail = normalizeEmail(request.getEmail());

@@ -27,9 +27,9 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
+import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 import com.google.common.collect.Lists;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ class TestItemStatusChangedEventTest {
     activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
     activity.setObjectId(2L);
-    activity.setCreatedAt(LocalDateTime.now());
+    activity.setCreatedAt(Instant.now());
     activity.setObjectName("name");
     activity.setDetails(new ActivityDetails());
     return activity;
@@ -75,11 +75,10 @@ class TestItemStatusChangedEventTest {
 
     final String beforeStatus = "PASSED";
     final String afterStatus = "FAILED";
-    final Activity actual = new TestItemStatusChangedEvent(getTestItem(beforeStatus),
-        getTestItem(afterStatus),
-        1L,
-        "user"
-    ).toActivity();
+    final Activity actual =
+        new TestItemStatusChangedEvent(getTestItem(beforeStatus), getTestItem(afterStatus), 1L,
+            "user"
+        ).toActivity();
     final Activity expected = getExpectedActivity();
     expected.getDetails().setHistory(getExpectedHistory(Pair.of(beforeStatus, afterStatus)));
     checkActivity(expected, actual);

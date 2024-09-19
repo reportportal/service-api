@@ -42,11 +42,10 @@ logging:
     org.elasticsearch.client.RestClient: error
 
 
-springfox:
-  documentation:
-    swagger:
-      v2:
-        path: /v1/api-docs
+springdoc:
+  api-docs:
+    path: /v1/api-docs
+  writer-with-order-by-keys: true
 
 
 #### Custom ReportPortal Properties ######
@@ -113,8 +112,8 @@ rp:
             queue: 1000
           user-email:
             core: 5
-            max: 20
-            queue: 500
+            max: 10
+            queue: 1000
 
   amqp:
     addresses: amqp://${rp.amqp.user}:${rp.amqp.pass}@${rp.amqp.host}:${rp.amqp.port}
@@ -129,7 +128,6 @@ rp:
     apiuser:
     apipass:
     queues: 10
-    queuesPerPod: 10
     #TODO currently we wait for log clusterization finish that may last for ~20 mins
     reply-timeout: 1200000 #milliseconds
 

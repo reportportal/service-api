@@ -18,21 +18,21 @@ package com.epam.ta.reportportal.util.email;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.entity.project.ProjectUtils.getOwner;
 import static com.epam.ta.reportportal.util.UserUtils.isEmailValid;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.USER_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_LOGIN_LENGTH;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_NAME_LENGTH;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_LOGIN_LENGTH;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
+import static com.epam.reportportal.model.ValidationConstraints.MAX_LOGIN_LENGTH;
+import static com.epam.reportportal.model.ValidationConstraints.MAX_NAME_LENGTH;
+import static com.epam.reportportal.model.ValidationConstraints.MIN_LOGIN_LENGTH;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import org.apache.commons.lang3.StringUtils;
 
 /**

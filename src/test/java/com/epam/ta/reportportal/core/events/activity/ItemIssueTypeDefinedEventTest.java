@@ -28,9 +28,9 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
+import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 import com.google.common.collect.Lists;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
@@ -49,16 +49,15 @@ class ItemIssueTypeDefinedEventTest {
     final String newDescription = "newDescription";
     final String newName = "newName";
 
-    final Activity actual = new ItemIssueTypeDefinedEvent(
-        getTestItem(oldName, oldDescription, oldIgnoreAnalyzer),
-        getTestItem(newName, newDescription, newIgnoreAnalyzer), 1L, "user"
-    ).toActivity();
+    final Activity actual =
+        new ItemIssueTypeDefinedEvent(getTestItem(oldName, oldDescription, oldIgnoreAnalyzer),
+            getTestItem(newName, newDescription, newIgnoreAnalyzer), 1L, "user"
+        ).toActivity();
     final Activity expected = getExpectedActivity();
-    expected.getDetails().setHistory(getExpectedHistory(
-        Pair.of(oldDescription, newDescription),
-        Pair.of(oldName, newName),
-        Pair.of(String.valueOf(oldIgnoreAnalyzer), String.valueOf(newIgnoreAnalyzer))
-    ));
+    expected.getDetails().setHistory(
+        getExpectedHistory(Pair.of(oldDescription, newDescription), Pair.of(oldName, newName),
+            Pair.of(String.valueOf(oldIgnoreAnalyzer), String.valueOf(newIgnoreAnalyzer))
+        ));
     checkActivity(expected, actual);
   }
 
@@ -89,14 +88,13 @@ class ItemIssueTypeDefinedEventTest {
     activity.setProjectId(3L);
     activity.setObjectId(2L);
     activity.setObjectName("name");
-    activity.setCreatedAt(LocalDateTime.now());
+    activity.setCreatedAt(Instant.now());
     activity.setDetails(new ActivityDetails());
     return activity;
   }
 
   private static List<HistoryField> getExpectedHistory(Pair<String, String> description,
-      Pair<String, String> issueType,
-      Pair<String, String> ignoreAnalyzer) {
+      Pair<String, String> issueType, Pair<String, String> ignoreAnalyzer) {
     return Lists.newArrayList(
         HistoryField.of(COMMENT, description.getLeft(), description.getRight()),
         HistoryField.of(ISSUE_TYPE, issueType.getLeft(), issueType.getRight()),

@@ -18,13 +18,12 @@ plugins {
     id "io.spring.dependency-management" version "1.1.4"
     id 'org.springframework.boot' version '2.5.15'
     id 'java'
-    id "org.owasp.dependencycheck" version "8.2.1"
+    id "org.owasp.dependencycheck" version "9.0.9"
 }
 
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
-//apply from: "$scriptsUrl/build-docker.gradle"
 apply from: "$scriptsUrl/build-commons.gradle"
 apply from: "$scriptsUrl/build-info.gradle"
 apply from: "$scriptsUrl/release-service.gradle"
@@ -58,28 +57,20 @@ ext['spring-boot.version'] = '2.5.15'
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.11.7' : 'com.epam.reportportal:commons-bom:5.11.7')
-        mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:12.9.0')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.12.1' : 'com.epam.reportportal:commons-bom:5.12.1')
+        mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
     }
 }
 
 dependencies {
     if (releaseMode) {
-        implementation 'com.epam.reportportal:commons-events'
         implementation 'com.epam.reportportal:commons-dao'
-        implementation 'com.epam.reportportal:commons-rules'
-        implementation 'com.epam.reportportal:commons-model'
         implementation 'com.epam.reportportal:commons'
-        implementation 'com.epam.reportportal:commons-fonts'
-        implementation 'com.epam.reportportal:plugin-api:5.11.1'
+        implementation 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.epam.reportportal:commons-events'
-        implementation 'com.epam.reportportal:commons-dao'
-        implementation 'com.epam.reportportal:commons-rules'
-        implementation 'com.epam.reportportal:commons-model'
-        implementation 'com.epam.reportportal:commons'
-        implementation 'com.epam.reportportal:commons-fonts'
-        implementation 'com.epam.reportportal:plugin-api:5.11.1'
+        implementation 'com.github.reportportal:commons-dao:acf1ec7'
+        implementation 'com.github.reportportal:commons:c8ef09c'
+        implementation 'com.github.reportportal:plugin-api:188792e'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
@@ -90,6 +81,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
 
+    implementation 'org.springframework:spring-jdbc:6.1.5'
     //Fix CVE-2023-34050
     implementation 'org.springframework.amqp:spring-amqp:2.4.17'
 
@@ -114,17 +106,18 @@ dependencies {
     implementation "com.rabbitmq:http-client:5.2.0"
 
     implementation 'com.sun.mail:javax.mail:1.6.2'
-    // check authentication error response format for versions higher than 6.21.3
-    implementation 'net.sf.jasperreports:jasperreports:6.21.3'
+    implementation('net.sf.jasperreports:jasperreports:6.21.3') {
+        exclude group: 'com.fasterxml.jackson.dataformat', module: 'jackson-dataformat-xml'
+    }
     implementation 'xerces:xercesImpl:2.12.2'
     implementation 'com.lowagie:itext:2.1.7.js7'
     // Fix CVE-2020-15522 in com.lowagie:itext:2.1.7.js7
     implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
     // JasperReport's export to XLS uses Apache POI
     implementation 'org.apache.poi:poi:4.1.2'
-    implementation 'io.springfox:springfox-swagger2:2.9.2'
+    implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
     implementation 'com.google.code.gson:gson:2.8.9'
-
+    implementation 'com.google.api-client:google-api-client:2.3.0'
 
     ///// Security
     //https://nvd.nist.gov/vuln/detail/CVE-2020-5407 AND https://nvd.nist.gov/vuln/detail/CVE-2020-5408
@@ -194,7 +187,8 @@ dependencyCheck {
 }
 
 bootJar {
-    project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('exec')
+    project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('' +
+            'exec')
 }
 jar.enabled(true)
 jar.archiveClassifier.set('')

@@ -16,13 +16,13 @@
 
 package com.epam.ta.reportportal.core.widget.util;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static java.util.Optional.ofNullable;
 
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +72,16 @@ public final class WidgetOptionUtil {
     return ofNullable(widgetOptions).map(
             wo -> MapUtils.isNotEmpty(wo.getOptions()) && ofNullable(wo.getOptions()
                 .get(key)).map(v -> BooleanUtils.toBoolean(String.valueOf(v))).orElse(false))
+        .orElse(false);
+  }
+
+  public static boolean isBooleanPresent(String key, WidgetOptions widgetOptions) {
+    return ofNullable(widgetOptions)
+        .map(wo -> MapUtils.isNotEmpty(wo.getOptions()) &&
+            ofNullable(wo.getOptions().get(key))
+                .map(String::valueOf)
+                .map(BooleanUtils::toBooleanObject)
+                .isPresent())
         .orElse(false);
   }
 

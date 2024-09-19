@@ -21,7 +21,7 @@ import static java.util.Optional.ofNullable;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
-import com.epam.ta.reportportal.ws.model.TestItemResource;
+import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -39,10 +39,8 @@ public class RetriesUpdater implements ResourceUpdater<TestItemResource> {
 
   @Override
   public void updateResource(TestItemResource resource) {
-    ofNullable(retriesMapping.get(resource.getItemId())).ifPresent(
-        retries -> resource.setRetries(retries.stream()
-            .map(TestItemConverter.TO_RESOURCE)
-            .collect(Collectors.toList())));
+    ofNullable(retriesMapping.get(resource.getItemId())).ifPresent(retries -> resource.setRetries(
+        retries.stream().map(TestItemConverter.TO_RESOURCE).collect(Collectors.toList())));
   }
 
   public static RetriesUpdater of(Map<Long, List<TestItem>> retriesMapping) {

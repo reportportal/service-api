@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
+import com.epam.ta.reportportal.model.integration.IntegrationRQ;
 import java.util.Map;
 
 /**

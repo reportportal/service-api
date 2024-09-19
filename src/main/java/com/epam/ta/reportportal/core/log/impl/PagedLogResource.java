@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.log.impl;
 
-import com.epam.ta.reportportal.ws.model.log.LogResource;
+import com.epam.ta.reportportal.model.log.LogResource;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;

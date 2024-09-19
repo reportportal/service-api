@@ -19,13 +19,12 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.log.impl.PagedLogResource;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
-import com.epam.ta.reportportal.ws.model.log.LogResource;
-import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
+import com.epam.ta.reportportal.model.log.LogResource;
+import com.epam.ta.reportportal.model.log.SearchLogRs;
 import com.google.common.base.Preconditions;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -52,7 +51,7 @@ public final class LogConverter {
     resource.setId(model.getId());
     resource.setUuid(model.getUuid());
     resource.setMessage(ofNullable(model.getLogMessage()).orElse("NULL"));
-    resource.setLogTime(EntityUtils.TO_DATE.apply(model.getLogTime()));
+    resource.setLogTime(model.getLogTime());
 
     if (isBinaryDataExists(model)) {
 

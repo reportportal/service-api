@@ -19,12 +19,12 @@ package com.epam.ta.reportportal.core.project.impl;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.isPresent;
 import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 
 import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.activity.ProjectCreatedEvent;
 import com.epam.ta.reportportal.core.project.CreateProjectHandler;
 import com.epam.ta.reportportal.dao.AttributeRepository;
@@ -39,12 +39,12 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.project.CreateProjectRQ;
 import com.epam.ta.reportportal.util.PersonalProjectService;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
-import java.util.Date;
+import com.epam.reportportal.rules.exception.ErrorType;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,18 +98,20 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
     );
 
     expect(projectName,
-        com.epam.ta.reportportal.util.Predicates.SPECIAL_CHARS_ONLY.negate()).verify(
-        ErrorType.INCORRECT_REQUEST,
+        com.epam.ta.reportportal.util.Predicates.SPECIAL_CHARS_ONLY.negate()
+    ).verify(ErrorType.INCORRECT_REQUEST,
         Suppliers.formattedSupplier("Project name '{}' consists only of special characters",
-            projectName)
+            projectName
+        )
     );
 
     Optional<Project> existProject = projectRepository.findByName(projectName);
     expect(existProject, not(isPresent())).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectName);
 
-    ProjectType projectType = ProjectType.findByName(createProjectRQ.getEntryType())
-        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-            createProjectRQ.getEntryType()));
+    ProjectType projectType = ProjectType.findByName(createProjectRQ.getEntryType()).orElseThrow(
+        () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            createProjectRQ.getEntryType()
+        ));
     expect(projectType, equalTo(ProjectType.INTERNAL)).verify(ErrorType.BAD_REQUEST_ERROR,
         "Only internal projects can be created via API"
     );
@@ -119,7 +121,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 
     Project project = new Project();
     project.setName(projectName);
-    project.setCreationDate(new Date());
+    project.setCreationDate(Instant.now());
 
     project.setProjectIssueTypes(
         ProjectUtils.defaultIssueTypes(project, issueTypeRepository.getDefaultIssueTypes()));

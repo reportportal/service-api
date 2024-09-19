@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.events.activity;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processParameter;
@@ -26,22 +27,20 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
-import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
+import com.epam.ta.reportportal.model.activity.ProjectAttributesActivityResource;
 import java.util.Map;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class ProjectPatternAnalyzerUpdateEvent extends
-    AroundEvent<ProjectAttributesActivityResource> implements
-    ActivityEvent {
+public class ProjectPatternAnalyzerUpdateEvent
+    extends AroundEvent<ProjectAttributesActivityResource> implements ActivityEvent {
 
   public ProjectPatternAnalyzerUpdateEvent() {
   }
 
   public ProjectPatternAnalyzerUpdateEvent(ProjectAttributesActivityResource before,
-      ProjectAttributesActivityResource after, Long userId,
-      String userLogin) {
+      ProjectAttributesActivityResource after, Long userId, String userLogin) {
     super(userId, userLogin, before, after);
   }
 
@@ -52,20 +51,14 @@ public class ProjectPatternAnalyzerUpdateEvent extends
     final Map<String, String> oldConfig = before.getConfig();
     final Map<String, String> newConfig = after.getConfig();
 
-    final ActivityBuilder activityBuilder = new ActivityBuilder()
-        .addCreatedNow()
-        .addAction(EventAction.UPDATE)
-        .addEventName(ActivityAction.UPDATE_PATTERN_ANALYZER.getValue())
-        .addPriority(EventPriority.LOW)
-        .addObjectId(before.getProjectId())
-        .addObjectName("pattern")
-        .addObjectType(EventObject.PROJECT)
-        .addProjectId(before.getProjectId())
-        .addSubjectId(getUserId())
-        .addSubjectName(getUserLogin())
-        .addSubjectType(EventSubject.USER)
-        .addHistoryField(
-            processParameter(oldConfig, newConfig, AUTO_PATTERN_ANALYZER_ENABLED.getAttribute()));
+    final ActivityBuilder activityBuilder =
+        new ActivityBuilder().addCreatedNow().addAction(EventAction.UPDATE)
+            .addEventName(ActivityAction.UPDATE_PATTERN_ANALYZER.getValue())
+            .addPriority(EventPriority.LOW).addObjectId(before.getProjectId())
+            .addObjectName("pattern").addObjectType(EventObject.PROJECT)
+            .addProjectId(before.getProjectId()).addSubjectId(getUserId())
+            .addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER).addHistoryField(
+                processParameter(oldConfig, newConfig, AUTO_PATTERN_ANALYZER_ENABLED.getAttribute()));
     return activityBuilder.get();
   }
 }

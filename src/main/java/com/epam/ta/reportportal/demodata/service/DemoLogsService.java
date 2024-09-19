@@ -16,6 +16,18 @@
 
 package com.epam.ta.reportportal.demodata.service;
 
+import static com.epam.ta.reportportal.entity.enums.LogLevel.DEBUG;
+import static com.epam.ta.reportportal.entity.enums.LogLevel.ERROR;
+import static com.epam.ta.reportportal.entity.enums.LogLevel.FATAL;
+import static com.epam.ta.reportportal.entity.enums.LogLevel.INFO;
+import static com.epam.ta.reportportal.entity.enums.LogLevel.TRACE;
+import static com.epam.ta.reportportal.entity.enums.LogLevel.WARN;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
+import static com.epam.ta.reportportal.util.MultipartFileUtils.getMultipartFile;
+import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.LOG_FULL_TO_LOG;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
 import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -28,27 +40,18 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import java.util.HashMap;
-import java.util.Map;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SplittableRandom;
 import java.util.UUID;
 import java.util.stream.IntStream;
-
-import static com.epam.ta.reportportal.entity.enums.LogLevel.*;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
-import static com.epam.ta.reportportal.util.MultipartFileUtils.getMultipartFile;
-import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.LOG_FULL_TO_LOG;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 @Service
 public class DemoLogsService {
@@ -98,7 +101,7 @@ public class DemoLogsService {
 	private LogFull getLogFull(Launch launch, String message, LogLevel logLevel) {
 		LogFull logFull = new LogFull();
 		logFull.setLogLevel(logLevel.toInt());
-		logFull.setLogTime(LocalDateTime.now());
+		logFull.setLogTime(Instant.now());
 		logFull.setLaunch(launch);
 		logFull.setProjectId(launch.getProjectId());
 		logFull.setLogMessage(message);
@@ -129,7 +132,7 @@ public class DemoLogsService {
 			String logMessage) {
 		LogFull logFull = new LogFull();
 		logFull.setLogLevel(logLevel.toInt());
-		logFull.setLogTime(LocalDateTime.now());
+		logFull.setLogTime(Instant.now());
 		logFull.setTestItem(testItem);
 		logFull.setProjectId(projectId);
 		logFull.setLogMessage(logMessage);
@@ -194,7 +197,7 @@ public class DemoLogsService {
 							.withLaunchUuid(launchUuid)
 							.withLogUuid(it.getUuid())
 							.withFileName(attachment.getName())
-							.withCreationDate(LocalDateTime.now(ZoneOffset.UTC))
+							.withCreationDate(Instant.now())
 							.build()
 			);
 		} catch (IOException e) {

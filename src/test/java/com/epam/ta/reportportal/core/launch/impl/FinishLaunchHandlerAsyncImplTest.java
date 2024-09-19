@@ -23,8 +23,8 @@ import static org.mockito.Mockito.verify;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.util.ReportingQueueService;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
+import com.epam.ta.reportportal.reporting.async.producer.LaunchFinishProducer;
+import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -42,11 +42,8 @@ class FinishLaunchHandlerAsyncImplTest {
   @Mock
   AmqpTemplate amqpTemplate;
 
-  @Mock
-  ReportingQueueService reportingQueueService;
-
   @InjectMocks
-  FinishLaunchHandlerAsyncImpl finishLaunchHandlerAsync;
+  LaunchFinishProducer finishLaunchHandlerAsync;
 
   @Test
   void finishLaunch() {
@@ -57,6 +54,5 @@ class FinishLaunchHandlerAsyncImplTest {
     finishLaunchHandlerAsync.finishLaunch("0", request,
         user.getProjectDetails().get("test_project"), user, "http://base");
     verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
-    verify(reportingQueueService).getReportingQueueKey(any());
   }
 }

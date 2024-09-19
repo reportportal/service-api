@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.analyzer.pattern.service.impl;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.analyzer.pattern.service.CreatePatternTemplateHandler;
 import com.epam.ta.reportportal.dao.PatternTemplateRepository;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
+import com.epam.ta.reportportal.model.project.config.pattern.CreatePatternTemplateRQ;
 import com.epam.ta.reportportal.ws.converter.builders.PatternTemplateBuilder;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
+import com.epam.reportportal.rules.exception.ErrorType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -44,14 +45,12 @@ public class CreatePatternTemplateHandlerImpl implements CreatePatternTemplateHa
       CreatePatternTemplateRQ createPatternTemplateRQ) {
     final String name = StringUtils.trim(createPatternTemplateRQ.getName());
     BusinessRule.expect(
-            patternTemplateRepository.existsByProjectIdAndNameIgnoreCase(projectId, name),
-            equalTo(false))
-        .verify(ErrorType.RESOURCE_ALREADY_EXISTS, name);
-    PatternTemplate patternTemplate = new PatternTemplateBuilder().withCreateRequest(
-            createPatternTemplateRQ)
-        .withName(name)
-        .withProjectId(projectId)
-        .get();
+        patternTemplateRepository.existsByProjectIdAndNameIgnoreCase(projectId, name),
+        equalTo(false)
+    ).verify(ErrorType.RESOURCE_ALREADY_EXISTS, name);
+    PatternTemplate patternTemplate =
+        new PatternTemplateBuilder().withCreateRequest(createPatternTemplateRQ).withName(name)
+            .withProjectId(projectId).get();
     return patternTemplateRepository.save(patternTemplate);
   }
 }

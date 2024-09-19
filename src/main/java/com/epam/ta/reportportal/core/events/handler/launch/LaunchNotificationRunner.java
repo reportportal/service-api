@@ -39,12 +39,12 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Map;
 import java.util.Objects;
@@ -53,6 +53,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +67,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class LaunchNotificationRunner
     implements ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
 
-  public static final Logger LOGGER = LoggerFactory.getLogger(LaunchNotificationRunner.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(LaunchNotificationRunner.class);
+
+  private static final String EMAIL_INTEGRATION_NAME = "Email Server";
+
+  private final static String NOTIFICATION_TYPE = "email";
 
   private final GetProjectHandler getProjectHandler;
   private final GetLaunchHandler getLaunchHandler;
@@ -90,27 +95,26 @@ public class LaunchNotificationRunner
   public void handle(LaunchFinishedEvent launchFinishedEvent, Map<String, String> projectConfig) {
 
     boolean isNotificationsEnabled = BooleanUtils.toBoolean(
-        projectConfig.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()));
+        projectConfig.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()))
+        && BooleanUtils.toBoolean(
+        projectConfig.get(ProjectAttributeEnum.NOTIFICATIONS_EMAIL_ENABLED.getAttribute()));
 
     if (isNotificationsEnabled) {
       getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(
               launchFinishedEvent.getProjectId(), IntegrationGroupEnum.NOTIFICATION)
+          .filter(integration -> EMAIL_INTEGRATION_NAME.equalsIgnoreCase(integration.getName()))
           .flatMap(mailServiceFactory::getDefaultEmailService)
           .ifPresentOrElse(emailService -> sendEmail(launchFinishedEvent, emailService),
               () -> LOGGER.warn("Unable to find {} integration for project {}",
                   IntegrationGroupEnum.NOTIFICATION, launchFinishedEvent.getProjectId()
               )
           );
-
     }
-
   }
 
   /**
    * Try to send email when it is needed
    *
-   * @param launch       Launch to be used
-   * @param project      Project
    * @param emailService Mail Service
    */
   private void sendEmail(LaunchFinishedEvent launchFinishedEvent, EmailService emailService) {
@@ -118,7 +122,8 @@ public class LaunchNotificationRunner
     final Launch launch = getLaunchHandler.get(launchFinishedEvent.getId());
     final Project project = getProjectHandler.get(launch.getProjectId());
 
-    project.getSenderCases().stream().filter(SenderCase::isEnabled).forEach(ec -> {
+    project.getSenderCases().stream().filter(SenderCase::isEnabled)
+        .filter(senderCase -> senderCase.getType().equals(NOTIFICATION_TYPE)).forEach(ec -> {
       SendCase sendCase = ec.getSendCase();
       boolean successRate = isSuccessRateEnough(launch, sendCase);
       boolean matchedNames = isLaunchNameMatched(launch, ec);

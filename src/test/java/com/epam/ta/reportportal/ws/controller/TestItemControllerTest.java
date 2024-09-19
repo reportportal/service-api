@@ -37,29 +37,27 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.issue.DefineIssueRQ;
+import com.epam.ta.reportportal.model.issue.IssueDefinition;
+import com.epam.ta.reportportal.model.item.LinkExternalIssueRQ;
+import com.epam.ta.reportportal.model.item.UnlinkExternalIssueRQ;
+import com.epam.ta.reportportal.model.item.UpdateTestItemRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
-import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
-import com.epam.ta.reportportal.ws.model.ParameterResource;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
-import com.epam.ta.reportportal.ws.model.attribute.UpdateItemAttributeRQ;
-import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
-import com.epam.ta.reportportal.ws.model.issue.Issue;
-import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
-import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
-import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRQ;
-import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
+import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.Issue;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.ParameterResource;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.UpdateItemAttributeRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -91,7 +89,7 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setType("SUITE");
     rq.setParameters(getParameters());
     rq.setUniqueId(UUID.randomUUID().toString());
-    rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setStartTime(Instant.now());
     mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/item").contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsBytes(rq)).with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isCreated());
@@ -104,7 +102,7 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setName("RootItem");
     rq.setType("SUITE");
     rq.setParameters(getParameters());
-    rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setStartTime(Instant.now());
     mockMvc.perform(post(SUPERADMIN_PROJECT_BASE_URL + "/item").contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsBytes(rq)).with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isCreated());
@@ -118,7 +116,7 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setType("TEST");
     rq.setUniqueId(UUID.randomUUID().toString());
     rq.setParameters(getParameters());
-    rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setStartTime(Instant.now());
     mockMvc.perform(
         post(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(
                 objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
@@ -132,7 +130,7 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setName("ChildItem");
     rq.setType("TEST");
     rq.setParameters(getParameters());
-    rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setStartTime(Instant.now());
     mockMvc.perform(
         post(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(
                 objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
@@ -143,7 +141,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemPositive() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid(UUID.randomUUID().toString());
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(Instant.now());
     rq.setStatus("PASSED");
     mockMvc.perform(
         put(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(
@@ -155,7 +153,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishRootTestItemWithoutStatus() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid(UUID.randomUUID().toString());
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(Instant.now());
     mockMvc.perform(
         put(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(
                 objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
@@ -166,7 +164,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemWithFailedStatus() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid(UUID.randomUUID().toString());
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(Instant.now());
     rq.setStatus("FAILED");
     Issue issue = new Issue();
     issue.setIssueType("pb001");
@@ -181,7 +179,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemWithoutIssueType() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid(UUID.randomUUID().toString());
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(Instant.now());
     rq.setStatus("FAILED");
     mockMvc.perform(
         put(SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(
@@ -426,7 +424,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemWithLinkedTicketsBadTicketId() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(Instant.now());
     rq.setStatus("FAILED");
 
     Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
@@ -451,7 +449,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemWithLinkedTicketsBadBtsUrl() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(Instant.now());
     rq.setStatus("FAILED");
 
     Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
@@ -476,7 +474,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemWithLinkedTicketsBadBtsProject() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(Instant.now());
     rq.setStatus("FAILED");
 
     Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
@@ -501,7 +499,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemWithLinkedTicketsBadUrl() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(Instant.now());
     rq.setStatus("FAILED");
 
     Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
@@ -526,7 +524,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemWithEmptyLinkedTickets() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(Instant.now());
     rq.setStatus("FAILED");
 
     Issue issue = new Issue();
@@ -546,7 +544,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishTestItemWithLinkedTickets() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(Instant.now());
     rq.setStatus("FAILED");
 
     Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
@@ -722,7 +720,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void finishChildTestItemWithFailedStatusWithFinishedParentWithPassedStatus() throws Exception {
     FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setLaunchUuid(UUID.randomUUID().toString());
-    rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    rq.setEndTime(Instant.now());
     rq.setStatus("FAILED");
     Issue issue = new Issue();
     issue.setIssueType("pb001");

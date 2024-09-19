@@ -16,20 +16,19 @@
 
 package com.epam.ta.reportportal.core.launch.util;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.SKIPPED;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FINISH_LAUNCH_NOT_ALLOWED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_FINISH_STATUS;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.FINISH_LAUNCH_NOT_ALLOWED;
+import static com.epam.reportportal.rules.exception.ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME;
+import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_FINISH_STATUS;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -37,7 +36,7 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
+import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import java.util.function.Predicate;
 
 /**
@@ -64,7 +63,7 @@ public class LaunchValidator {
     expect(finishExecutionRQ.getEndTime(),
         Preconditions.sameTimeOrLater(launch.getStartTime())).verify(
         FINISH_TIME_EARLIER_THAN_START_TIME,
-        TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()),
+        finishExecutionRQ.getEndTime(),
         launch.getStartTime(),
         launch.getId()
     );

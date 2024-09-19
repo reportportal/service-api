@@ -16,27 +16,27 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.FIELD_NAME_IS_BLANK_MESSAGE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.FIELD_NAME_IS_NULL_MESSAGE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.FIELD_NAME_SIZE_MESSAGE_WITH_FORMAT;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.INCORRECT_REQUEST_MESSAGE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.WHITESPACES_NAME_VALUE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
-import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.reportportal.rules.exception.ErrorRS;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.ErrorRS;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
+import com.epam.ta.reportportal.ws.reporting.MergeLaunchesRQ;
+import com.epam.ta.reportportal.ws.reporting.Mode;
+import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashSet;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,8 +147,8 @@ public class LaunchControllerValidationTest extends BaseMvcTest {
   private StartLaunchRQ prepareLaunch() {
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
     startLaunchRQ.setDescription("some description");
-    startLaunchRQ.setStartTime(new Date());
-    startLaunchRQ.setMode(DEFAULT);
+    startLaunchRQ.setStartTime(Instant.now());
+    startLaunchRQ.setMode(Mode.DEFAULT);
     startLaunchRQ.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
     return startLaunchRQ;
   }
@@ -245,8 +245,8 @@ public class LaunchControllerValidationTest extends BaseMvcTest {
 
     mergeLaunchesRQ.setLaunches(set);
     mergeLaunchesRQ.setMergeStrategyType("BASIC");
-    mergeLaunchesRQ.setStartTime(new Date());
-    mergeLaunchesRQ.setEndTime(new Date());
+    mergeLaunchesRQ.setStartTime(Instant.now());
+    mergeLaunchesRQ.setEndTime(Instant.now());
 
     return mergeLaunchesRQ;
   }

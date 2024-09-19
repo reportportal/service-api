@@ -16,6 +16,14 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_ROLE;
+import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -24,8 +32,9 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.user.UserResource;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.user.UserResource;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,14 +44,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.TestPropertySource;
 
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_ROLE;
-import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
-
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
@@ -50,78 +51,82 @@ import static org.mockito.Mockito.when;
 @TestPropertySource(properties = {"rp.environment.variable.user.suggestions=true"})
 class GetProjectHandlerImplTest {
 
-	@Mock
-	private ProjectRepository projectRepository;
+  @Mock
+  private ProjectRepository projectRepository;
 
   @Spy
   @InjectMocks
   private GetProjectHandlerImpl handler;
 
-	@Test
-	void getUsersOnNotExistProject() {
-		long projectId = 1L;
+  @Test
+  void getUsersOnNotExistProject() {
+    long projectId = 1L;
 
-		String projectName = "test_project";
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
+    String projectName = "test_project";
+    when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> {
-					handler.getProjectUsers(projectName,
-							Filter.builder()
-									.withTarget(User.class)
-									.withCondition(FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build())
-									.build(),
-							PageRequest.of(0, 10)
-					);
-				}
-		);
+    ReportPortalException exception = assertThrows(ReportPortalException.class, () -> {
+      handler.getProjectUsers(projectName, Filter.builder().withTarget(User.class).withCondition(
+              FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build()).build(),
+          PageRequest.of(0, 10)
+      );
+    });
 
-		assertEquals("Project 'test_project' not found. Did you use correct project name?", exception.getMessage());
-	}
+    assertEquals(
+        "Project 'test_project' not found. Did you use correct project name?",
+        exception.getMessage()
+    );
+  }
 
-	@Test
-	void getEmptyUserList() {
-		long projectId = 1L;
+  @Test
+  void getEmptyUserList() {
+    long projectId = 1L;
 
-		String projectName = "test_project";
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(new Project()));
+    String projectName = "test_project";
+    when(projectRepository.findByName(projectName)).thenReturn(Optional.of(new Project()));
 
-		Iterable<UserResource> users = handler.getProjectUsers(projectName,
-				Filter.builder()
-						.withTarget(User.class)
-						.withCondition(FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build())
-						.build(),
-				PageRequest.of(0, 10)
-		);
+    Iterable<UserResource> users =
+        handler.getProjectUsers(projectName, Filter.builder().withTarget(User.class).withCondition(
+                FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build()).build(),
+            PageRequest.of(0, 10)
+        );
 
-		assertFalse(users.iterator().hasNext());
-	}
+    assertFalse(users.iterator().hasNext());
+  }
 
-	@Test
-	void getNotExistProject() {
-		String projectName = "not_exist";
-		long projectId = 1L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+  @Test
+  void getNotExistProject() {
+    String projectName = "not_exist";
+    long projectId = 1L;
+    ReportPortalUser user =
+        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
+    when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.getResource(projectName, user));
+    ReportPortalException exception =
+        assertThrows(ReportPortalException.class, () -> handler.getResource(projectName, user));
 
-		assertEquals("Project '" + projectName + "' not found. Did you use correct project name?", exception.getMessage());
-	}
+    assertEquals(
+        "Project '" + projectName + "' not found. Did you use correct project name?",
+        exception.getMessage()
+    );
+  }
 
-	@Test
-	void getUserNamesByIncorrectTerm() {
-		long projectId = 1L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
+  @Test
+  void getUserNamesByIncorrectTerm() {
+    long projectId = 1L;
+    ReportPortalUser user =
+        getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getUserNames(extractProjectDetails(user, "test_project"), "")
-		);
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.getUserNames(extractProjectDetails(user, "test_project"), "")
+    );
 
-		assertEquals(
-				"Incorrect filtering parameters. Length of the filtering string '' is less than 1 symbol",
-				exception.getMessage());
-	}
+    assertEquals(
+        "Incorrect filtering parameters. Length of the filtering string '' is less than 1 symbol",
+        exception.getMessage()
+    );
+  }
 
 	@Test
 	void getUserNamesNegative() {

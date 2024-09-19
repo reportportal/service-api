@@ -5,9 +5,9 @@ import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration
 
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.api.client.util.Lists;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;

@@ -1,12 +1,13 @@
 package com.epam.ta.reportportal.core.widget.content.updater.validator;
 
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTE_KEYS;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.EXCLUDE_SKIPPED;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.MIN_PASSING_RATE;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,7 +40,7 @@ class ComponentHealthCheckContentValidatorTest {
         )
     );
 
-    String expectedMessage = "Current level key should be not blank";
+    String expectedMessage = "Unable to load widget content. Widget properties contain errors: Exclude skipped tests option was not specified";
     String actualMessage = exception.getMessage();
     assertTrue(actualMessage.contains(expectedMessage));
 
@@ -58,6 +59,7 @@ class ComponentHealthCheckContentValidatorTest {
 
     content.put(ATTRIBUTE_KEYS, Lists.newArrayList("k1", "k2"));
     content.put(MIN_PASSING_RATE, 50);
+    content.put(EXCLUDE_SKIPPED, true);
 
     return content;
 

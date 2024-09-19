@@ -26,7 +26,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.validator.parent.ParentItemValidator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -36,13 +36,12 @@ import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -98,11 +97,10 @@ class StartTestItemHandlerImplTest {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
-    startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    startTestItemRQ.setStartTime(Instant.now());
 
     final Launch launch = getLaunch(2L, StatusEnum.IN_PROGRESS);
-    launch.setStartTime(LocalDateTime.now().minusHours(1));
+    launch.setStartTime(Instant.now().minus(1, ChronoUnit.HOURS));
     when(launchRepository.findByUuid("1")).thenReturn(Optional.of(launch));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -135,11 +133,10 @@ class StartTestItemHandlerImplTest {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
-    startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    startTestItemRQ.setStartTime(Instant.now());
 
     final Launch launch = getLaunch(1L, StatusEnum.IN_PROGRESS);
-    launch.setStartTime(LocalDateTime.now().plusHours(1));
+    launch.setStartTime(Instant.now().plus(1, ChronoUnit.HOURS));
     when(launchRepository.findByUuid("1")).thenReturn(Optional.of(launch));
 
     assertThrows(ReportPortalException.class,
@@ -172,11 +169,10 @@ class StartTestItemHandlerImplTest {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
-    startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    startTestItemRQ.setStartTime(Instant.now());
 
     TestItem item = new TestItem();
-    item.setStartTime(LocalDateTime.now().plusHours(1));
+    item.setStartTime(Instant.now().plus(1, ChronoUnit.HOURS));
     when(launchRepository.findByUuid("1")).thenReturn(
         Optional.of(getLaunch(1L, StatusEnum.IN_PROGRESS)));
     when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
@@ -194,15 +190,14 @@ class StartTestItemHandlerImplTest {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
-    startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    startTestItemRQ.setStartTime(Instant.now());
 
     TestItem item = new TestItem();
     item.setItemId(1L);
     TestItemResults results = new TestItemResults();
     results.setStatus(StatusEnum.FAILED);
     item.setItemResults(results);
-    item.setStartTime(LocalDateTime.now().minusHours(1));
+    item.setStartTime(Instant.now());
     when(launchRepository.findByUuid("1")).thenReturn(
         Optional.of(getLaunch(1L, StatusEnum.IN_PROGRESS)));
     when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
@@ -227,8 +222,7 @@ class StartTestItemHandlerImplTest {
     ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
-    startTestItemRQ.setStartTime(
-        Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+    startTestItemRQ.setStartTime(Instant.now());
     startTestItemRQ.setLaunchUuid("1");
 
     when(launchRepository.findByUuid("1")).thenReturn(Optional.empty());

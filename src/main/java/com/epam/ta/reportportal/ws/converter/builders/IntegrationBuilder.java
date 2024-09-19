@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.function.Supplier;
 
 /**
@@ -38,7 +38,7 @@ public class IntegrationBuilder implements Supplier<Integration> {
     this.integration = integration;
   }
 
-  public IntegrationBuilder withCreationDate(LocalDateTime date) {
+  public IntegrationBuilder withCreationDate(Instant date) {
     this.integration.setCreationDate(date);
     return this;
   }

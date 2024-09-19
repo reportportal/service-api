@@ -18,11 +18,11 @@ package com.epam.ta.reportportal.core.configs;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
-import com.epam.ta.reportportal.commons.ExceptionMappings;
-import com.epam.ta.reportportal.commons.exception.forwarding.ClientResponseForwardingExceptionHandler;
-import com.epam.ta.reportportal.commons.exception.rest.DefaultErrorResolver;
-import com.epam.ta.reportportal.commons.exception.rest.ReportPortalExceptionResolver;
-import com.epam.ta.reportportal.commons.exception.rest.RestExceptionHandler;
+import com.epam.reportportal.rules.commons.ExceptionMappings;
+import com.epam.reportportal.rules.commons.exception.forwarding.ClientResponseForwardingExceptionHandler;
+import com.epam.reportportal.rules.commons.exception.rest.DefaultErrorResolver;
+import com.epam.reportportal.rules.commons.exception.rest.ReportPortalExceptionResolver;
+import com.epam.reportportal.rules.commons.exception.rest.RestExceptionHandler;
 import com.epam.ta.reportportal.ws.resolver.ActiveUserWebArgumentResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.JsonViewSupportFactoryBean;
@@ -45,6 +45,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -120,6 +121,7 @@ public class MvcConfig implements WebMvcConfigurer {
   @Override
   public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
     converters.clear();
+    converters.add(byteArrayConverter());
     converters.add(jsonConverter());
     converters.add(openMetricsTextStringConverter());
     converters.add(stringConverter());
@@ -177,6 +179,11 @@ public class MvcConfig implements WebMvcConfigurer {
     converter.setSupportedMediaTypes(Collections.singletonList(
         new MediaType("application", "openmetrics-text", StandardCharsets.UTF_8)));
     return converter;
+  }
+
+  @Bean
+  public ByteArrayHttpMessageConverter byteArrayConverter() {
+    return new ByteArrayHttpMessageConverter();
   }
 
   @Bean

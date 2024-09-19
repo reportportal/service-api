@@ -43,10 +43,10 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
-import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.cluster.CreateClustersRQ;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.launch.UpdateLaunchRQ;
+import com.epam.ta.reportportal.model.launch.cluster.CreateClustersRQ;
+import com.epam.ta.reportportal.ws.reporting.Mode;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -92,7 +92,8 @@ class UpdateLaunchHandlerImplTest {
         getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.updateLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser,
-            new UpdateLaunchRQ())
+            new UpdateLaunchRQ()
+        )
     );
     assertEquals("You do not have enough permissions.", exception.getMessage());
   }
@@ -110,7 +111,8 @@ class UpdateLaunchHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.updateLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser,
-            updateLaunchRQ)
+            updateLaunchRQ
+        )
     );
     assertEquals("You do not have enough permissions.", exception.getMessage());
   }
@@ -128,11 +130,13 @@ class UpdateLaunchHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.createClusters(createClustersRQ,
-            extractProjectDetails(rpUser, "test_project"), rpUser)
+            extractProjectDetails(rpUser, "test_project"), rpUser
+        )
     );
     assertEquals("Incorrect Request. Cannot analyze launch in progress.", exception.getMessage());
     verify(launchAccessValidator, times(1)).validate(any(Launch.class),
-        any(ReportPortalUser.ProjectDetails.class), eq(rpUser));
+        any(ReportPortalUser.ProjectDetails.class), eq(rpUser)
+    );
   }
 
   @Test
@@ -156,10 +160,11 @@ class UpdateLaunchHandlerImplTest {
     handler.createClusters(createClustersRQ, extractProjectDetails(rpUser, "test_project"), rpUser);
 
     verify(launchAccessValidator, times(1)).validate(any(Launch.class),
-        any(ReportPortalUser.ProjectDetails.class), eq(rpUser));
+        any(ReportPortalUser.ProjectDetails.class), eq(rpUser)
+    );
 
-    final ArgumentCaptor<ClusterEntityContext> contextCaptor = ArgumentCaptor.forClass(
-        ClusterEntityContext.class);
+    final ArgumentCaptor<ClusterEntityContext> contextCaptor =
+        ArgumentCaptor.forClass(ClusterEntityContext.class);
     final ArgumentCaptor<Map<String, String>> mapCaptor = ArgumentCaptor.forClass(Map.class);
     verify(starter, times(1)).start(contextCaptor.capture(), mapCaptor.capture());
 

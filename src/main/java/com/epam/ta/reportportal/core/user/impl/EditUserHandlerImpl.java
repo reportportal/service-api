@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.user.impl;
 import com.epam.ta.reportportal.binary.UserBinaryDataService;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.events.activity.ChangeRoleEvent;
 import com.epam.ta.reportportal.core.events.activity.ChangeUserTypeEvent;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
@@ -31,14 +31,13 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.user.ChangePasswordRQ;
+import com.epam.ta.reportportal.model.user.EditUserRQ;
 import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
-import com.epam.ta.reportportal.ws.model.user.ChangePasswordRQ;
-import com.epam.ta.reportportal.ws.model.user.EditUserRQ;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
@@ -63,11 +62,11 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.entity.user.UserType.INTERNAL;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
+import static com.epam.reportportal.rules.exception.ErrorType.*;
+import static com.epam.reportportal.model.ValidationConstraints.*;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -133,10 +132,12 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
     if (null != editUserRq.getEmail() && !editUserRq.getEmail().equals(user.getEmail())) {
       String updEmail = editUserRq.getEmail().toLowerCase().trim();
-      expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED,
-          "Unable to change email for external user");
+      if (!editor.getUserRole().equals(UserRole.ADMINISTRATOR)) {
+        expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED,
+                "Unable to change email for external user");
+      }
       expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR,
-          " wrong email: " + updEmail);
+                " wrong email: " + updEmail);
       final Optional<User> byEmail = userRepository.findByEmail(updEmail);
 
       expect(byEmail, Predicates.not(Optional::isPresent)).verify(USER_ALREADY_EXISTS, updEmail);
@@ -153,8 +154,10 @@ public class EditUserHandlerImpl implements EditUserHandler {
     }
 
     if (null != editUserRq.getFullName()) {
-      expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED,
-          "Unable to change full name for external user");
+      if (!editor.getUserRole().equals(UserRole.ADMINISTRATOR)) {
+        expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED,
+                "Unable to change full name for external user");
+      }
       user.setFullName(editUserRq.getFullName());
     }
 
@@ -193,6 +196,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
     User user = userRepository.findByLogin(loggedInUser.getUsername())
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
+
     expect(user.getUserType(), equalTo(INTERNAL)).verify(FORBIDDEN_OPERATION,
         "Impossible to change password for external users.");
     expect(passwordEncoder.matches(request.getOldPassword(), user.getPassword()),

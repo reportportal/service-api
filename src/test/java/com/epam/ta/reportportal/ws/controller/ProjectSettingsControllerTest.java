@@ -31,14 +31,14 @@ import com.epam.ta.reportportal.entity.enums.LogicalOperator;
 import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
+import com.epam.ta.reportportal.model.project.config.CreateIssueSubTypeRQ;
+import com.epam.ta.reportportal.model.project.config.ProjectSettingsResource;
+import com.epam.ta.reportportal.model.project.config.UpdateIssueSubTypeRQ;
+import com.epam.ta.reportportal.model.project.config.UpdateOneIssueSubTypeRQ;
+import com.epam.ta.reportportal.model.project.config.pattern.CreatePatternTemplateRQ;
+import com.epam.ta.reportportal.model.project.config.pattern.UpdatePatternTemplateRQ;
+import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
-import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
-import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
-import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
-import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
-import com.epam.ta.reportportal.ws.model.project.config.pattern.UpdatePatternTemplateRQ;
-import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collection;
@@ -76,21 +76,20 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
     rq.setLongName("LongName");
     rq.setShortName("name");
     mockMvc.perform(
-        post(DEFAULT_PROJECT_BASE_URL + "/settings/sub-type").contentType(APPLICATION_JSON)
-            .with(token(oAuthHelper.getDefaultToken()))
-            .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated());
+            post(DEFAULT_PROJECT_BASE_URL + "/settings/sub-type").contentType(APPLICATION_JSON)
+                .with(token(oAuthHelper.getDefaultToken())).content(objectMapper.writeValueAsBytes(rq)))
+        .andExpect(status().isCreated());
   }
 
   @Test
   void getProjectSettings() throws Exception {
     final MvcResult mvcResult = mockMvc.perform(
             get(DEFAULT_PROJECT_BASE_URL + "/settings").with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk())
-        .andReturn();
-    final ProjectSettingsResource projectSettingsResource = objectMapper.readValue(
-        mvcResult.getResponse().getContentAsString(),
-        ProjectSettingsResource.class
-    );
+        .andExpect(status().isOk()).andReturn();
+    final ProjectSettingsResource projectSettingsResource =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
+            ProjectSettingsResource.class
+        );
     assertEquals(8,
         projectSettingsResource.getSubTypes().values().stream().flatMap(Collection::stream)
             .collect(Collectors.toList()).size()
@@ -100,8 +99,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
   @Test
   void deleteSubType() throws Exception {
     mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/settings/sub-type/6").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 
     Optional<IssueType> byId = issueTypeRepository.findById(6L);
     assertFalse(byId.isPresent());
@@ -119,8 +117,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
     updateOneIssueSubTypeRQ.setTypeRef("TO_INVESTIGATE");
     request.setIds(Collections.singletonList(updateOneIssueSubTypeRQ));
     mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/settings/sub-type").with(
-            token(oAuthHelper.getDefaultToken()))
-        .contentType(APPLICATION_JSON)
+            token(oAuthHelper.getDefaultToken())).contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
   }
 
@@ -132,8 +129,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
     createPatternTemplateRQ.setType("string");
     createPatternTemplateRQ.setValue("qwe");
     mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/settings/pattern").with(
-                token(oAuthHelper.getDefaultToken()))
-            .contentType(APPLICATION_JSON)
+                token(oAuthHelper.getDefaultToken())).contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsBytes(createPatternTemplateRQ)))
         .andExpect(status().isCreated());
   }
@@ -146,8 +142,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
     createPatternTemplateRQ.setType("dd");
     createPatternTemplateRQ.setValue("qwe");
     mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/settings/pattern").with(
-                token(oAuthHelper.getDefaultToken()))
-            .contentType(APPLICATION_JSON)
+                token(oAuthHelper.getDefaultToken())).contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsBytes(createPatternTemplateRQ)))
         .andExpect(status().isBadRequest());
   }
@@ -161,8 +156,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
     createPatternTemplateRQ.setValue("qwe");
 
     mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/settings/pattern").with(
-                token(oAuthHelper.getDefaultToken()))
-            .contentType(APPLICATION_JSON)
+                token(oAuthHelper.getDefaultToken())).contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsBytes(createPatternTemplateRQ)))
         .andExpect(status().isConflict());
   }
@@ -175,8 +169,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
     updatePatternTemplateRQ.setEnabled(true);
 
     mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/settings/pattern/1").with(
-                token(oAuthHelper.getDefaultToken()))
-            .contentType(APPLICATION_JSON)
+                token(oAuthHelper.getDefaultToken())).contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsBytes(updatePatternTemplateRQ)))
         .andExpect(status().isOk());
   }
@@ -189,8 +182,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
     updatePatternTemplateRQ.setEnabled(true);
 
     mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/settings/pattern/1").with(
-                token(oAuthHelper.getDefaultToken()))
-            .contentType(APPLICATION_JSON)
+                token(oAuthHelper.getDefaultToken())).contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsBytes(updatePatternTemplateRQ)))
         .andExpect(status().isOk());
   }
@@ -203,23 +195,19 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
     updatePatternTemplateRQ.setEnabled(true);
 
     mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/settings/pattern/2").with(
-                token(oAuthHelper.getDefaultToken()))
-            .contentType(APPLICATION_JSON)
+                token(oAuthHelper.getDefaultToken())).contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsBytes(updatePatternTemplateRQ)))
         .andExpect(status().isConflict());
   }
 
   @Test
   void getNotifications() throws Exception {
-    final MvcResult mvcResult = mockMvc.perform(get(
-            DEFAULT_PROJECT_BASE_URL + NOTIFICATION_URL).with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk())
-        .andReturn();
-    final List<SenderCaseDTO> senderCaseDTOS = objectMapper.readValue(
-        mvcResult.getResponse().getContentAsString(),
-        new TypeReference<>() {
-        }
-    );
+    final MvcResult mvcResult = mockMvc.perform(
+            get(DEFAULT_PROJECT_BASE_URL + NOTIFICATION_URL).with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk()).andReturn();
+    final List<SenderCaseDTO> senderCaseDTOS =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
     assertEquals(4, senderCaseDTOS.size());
   }
 
@@ -228,6 +216,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 
     SenderCaseDTO senderCaseDTO = new SenderCaseDTO();
     senderCaseDTO.setId(5L);
+    senderCaseDTO.setType("email");
     senderCaseDTO.setSendCase(SendCase.MORE_20.getCaseString());
     senderCaseDTO.setEnabled(true);
     senderCaseDTO.setRuleName("rule #5");
@@ -236,8 +225,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 
     mockMvc.perform(
             post(DEFAULT_PROJECT_BASE_URL + NOTIFICATION_URL).with(token(oAuthHelper.getDefaultToken()))
-                .contentType(APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(senderCaseDTO)))
+                .contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(senderCaseDTO)))
         .andExpect(status().isCreated());
   }
 
@@ -246,6 +234,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 
     SenderCaseDTO senderCaseDTO = new SenderCaseDTO();
     senderCaseDTO.setId(5L);
+    senderCaseDTO.setType("email");
     senderCaseDTO.setSendCase(SendCase.MORE_20.getCaseString());
     senderCaseDTO.setEnabled(true);
     senderCaseDTO.setRuleName("rule #2");
@@ -254,8 +243,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 
     mockMvc.perform(
             post(DEFAULT_PROJECT_BASE_URL + NOTIFICATION_URL).with(token(oAuthHelper.getDefaultToken()))
-                .contentType(APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(senderCaseDTO)))
+                .contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(senderCaseDTO)))
         .andExpect(status().isConflict());
   }
 
@@ -268,12 +256,13 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
     updateRq.setSendCase(SendCase.ALWAYS.getCaseString());
     updateRq.setRecipients(List.of("test1@email.com", "test2@email.com"));
     updateRq.setLaunchNames(List.of("launch"));
+    updateRq.setType("email");
     updateRq.setAttributesOperator(LogicalOperator.AND.getOperator());
 
     mockMvc.perform(
-        put(DEFAULT_PROJECT_BASE_URL + NOTIFICATION_URL).with(token(oAuthHelper.getDefaultToken()))
-            .contentType(APPLICATION_JSON)
-            .content(objectMapper.writeValueAsBytes(updateRq))).andExpect(status().isCreated());
+            put(DEFAULT_PROJECT_BASE_URL + NOTIFICATION_URL).with(token(oAuthHelper.getDefaultToken()))
+                .contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(updateRq)))
+        .andExpect(status().isCreated());
   }
 
   @Test
@@ -281,8 +270,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
     Long id = 1L;
 
     mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + NOTIFICATION_URL + id).with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+        token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 
     List<SenderCase> senderCases = senderCaseRepository.findAll();
 

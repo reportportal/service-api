@@ -19,37 +19,35 @@ package com.epam.ta.reportportal.core.launch.impl;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.ta.reportportal.entity.user.UserRole.ADMINISTRATOR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
-import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_IS_NOT_FINISHED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.UNSUPPORTED_MERGE_STRATEGY_TYPE;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_IS_NOT_FINISHED;
+import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.UNSUPPORTED_MERGE_STRATEGY_TYPE;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
-import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.LaunchMergeFactory;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.MergeStrategyType;
 import com.epam.ta.reportportal.core.launch.MergeLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.LaunchResource;
+import com.epam.ta.reportportal.ws.reporting.MergeLaunchesRQ;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.collections.CollectionUtils;
@@ -66,46 +64,36 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
 
   private final LaunchRepository launchRepository;
 
-  private final TestItemRepository testItemRepository;
-
   private final ProjectRepository projectRepository;
 
   private final LaunchMergeFactory launchMergeFactory;
 
   private final LaunchConverter launchConverter;
 
-  private final LaunchPreparerService launchPreparerService;
-
   private final LogIndexer logIndexer;
 
   @Autowired
   public MergeLaunchHandlerImpl(LaunchRepository launchRepository,
-      TestItemRepository testItemRepository,
-      ProjectRepository projectRepository, LaunchMergeFactory launchMergeFactory,
-      LaunchConverter launchConverter,
-      LaunchPreparerService launchPreparerService, LogIndexer logIndexer) {
+      ProjectRepository projectRepository,
+      LaunchMergeFactory launchMergeFactory, LaunchConverter launchConverter,
+      LogIndexer logIndexer) {
     this.launchRepository = launchRepository;
-    this.testItemRepository = testItemRepository;
     this.projectRepository = projectRepository;
     this.launchMergeFactory = launchMergeFactory;
     this.launchConverter = launchConverter;
-    this.launchPreparerService = launchPreparerService;
     this.logIndexer = logIndexer;
   }
 
   @Override
   public LaunchResource mergeLaunches(ReportPortalUser.ProjectDetails projectDetails,
       ReportPortalUser user, MergeLaunchesRQ rq) {
-    Project project = projectRepository.findById(projectDetails.getProjectId())
-        .orElseThrow(
-            () -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectName()));
+    Project project = projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
+        () -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectName()));
 
     Set<Long> launchesIds = rq.getLaunches();
 
     expect(CollectionUtils.isNotEmpty(launchesIds), equalTo(true)).verify(
-        ErrorType.BAD_REQUEST_ERROR,
-        "At least one launch id should be  specified for merging"
-    );
+        ErrorType.BAD_REQUEST_ERROR, "At least one launch id should be  specified for merging");
 
     expect(launchesIds.size() > 0, equalTo(true)).verify(ErrorType.BAD_REQUEST_ERROR,
         "At least 1 launch id should be provided for merging"
@@ -147,9 +135,9 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
      * ADMINISTRATOR and PROJECT_MANAGER+ users have permission to merge not-only-own
      * launches
      */
-    boolean isUserValidate = !(user.getUserRole().equals(ADMINISTRATOR)
-        || projectDetails.getProjectRole()
-        .sameOrHigherThan(ProjectRole.PROJECT_MANAGER));
+    boolean isUserValidate =
+        !(user.getUserRole().equals(ADMINISTRATOR) || projectDetails.getProjectRole()
+            .sameOrHigherThan(ProjectRole.PROJECT_MANAGER));
 
     launches.forEach(launch -> {
       expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launch);
@@ -157,16 +145,16 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
       expect(launch.getStatus(), not(Preconditions.statusIn(IN_PROGRESS))).verify(
           LAUNCH_IS_NOT_FINISHED,
           Suppliers.formattedSupplier("Cannot merge launch '{}' with status '{}'", launch.getId(),
-              launch.getStatus())
+              launch.getStatus()
+          )
       );
 
       expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
-          FORBIDDEN_OPERATION,
-          "Impossible to merge launches from different projects."
-      );
+          FORBIDDEN_OPERATION, "Impossible to merge launches from different projects.");
 
       if (isUserValidate) {
-        expect(launch.getUserId(), equalTo(user.getUserId())).verify(ACCESS_DENIED,
+        expect(launch.getUserId(), equalTo(user.getUserId())).verify(
+            ACCESS_DENIED,
             "You are not an owner of launches or have less than PROJECT_MANAGER project role."
         );
       }

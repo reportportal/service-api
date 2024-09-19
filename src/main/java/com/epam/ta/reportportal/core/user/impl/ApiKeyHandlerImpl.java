@@ -16,31 +16,27 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.NOT_FOUND;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.bts.handler.GetTicketHandler;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.user.ApiKeyHandler;
 import com.epam.ta.reportportal.dao.ApiKeyRepository;
 import com.epam.ta.reportportal.entity.user.ApiKey;
-import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.model.ApiKeyRS;
+import com.epam.ta.reportportal.model.ApiKeysRS;
 import com.epam.ta.reportportal.ws.converter.converters.ApiKeyConverter;
-import com.epam.ta.reportportal.ws.model.ApiKeyRS;
-import com.epam.ta.reportportal.ws.model.ApiKeysRS;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.annotations.VisibleForTesting;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -83,7 +79,7 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
 
     ApiKey apiKey = new ApiKey();
     apiKey.setName(name);
-    apiKey.setCreatedAt(LocalDateTime.now());
+    apiKey.setCreatedAt(Instant.now());
     apiKey.setUserId(userId);
     apiKey.setHash(hashedApiToken);
 
@@ -106,7 +102,7 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
     List<ApiKey> apiKeys = apiKeyRepository.findByUserId(userId);
     ApiKeysRS apiKeysRS = new ApiKeysRS();
     apiKeysRS.setApiKeys(
-        apiKeys.stream().map(ApiKeyConverter.TO_RESOURCE).collect(Collectors.toList()));
+        apiKeys.stream().map(ApiKeyConverter.TO_RESOURCE).toList());
     return apiKeysRS;
   }
 

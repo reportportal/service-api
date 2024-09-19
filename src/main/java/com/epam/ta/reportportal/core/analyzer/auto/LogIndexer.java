@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.analyzer.auto;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;

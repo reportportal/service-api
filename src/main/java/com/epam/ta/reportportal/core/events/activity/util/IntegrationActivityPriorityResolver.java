@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.events.activity.util;
 
 import com.epam.ta.reportportal.entity.activity.EventPriority;
-import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
+import com.epam.ta.reportportal.model.activity.IntegrationActivityResource;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>

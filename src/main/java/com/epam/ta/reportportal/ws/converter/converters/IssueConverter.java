@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
-import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.epam.ta.reportportal.ws.reporting.Issue;
 import com.google.common.base.Preconditions;
 import java.util.Optional;
 import java.util.function.Function;
@@ -35,8 +35,8 @@ public final class IssueConverter {
 
   public static final Function<Issue, IssueEntity> TO_ISSUE = from -> {
     IssueEntity issue = new IssueEntity();
-    issue.setAutoAnalyzed(from.getAutoAnalyzed());
-    issue.setIgnoreAnalyzer(from.getIgnoreAnalyzer());
+    issue.setAutoAnalyzed(from.isAutoAnalyzed());
+    issue.setIgnoreAnalyzer(from.isIgnoreAnalyzer());
     issue.setIssueDescription(from.getComment());
     return issue;
   };

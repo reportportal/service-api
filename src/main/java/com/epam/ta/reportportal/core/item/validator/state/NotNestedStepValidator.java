@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.validator.state;
 
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Service;

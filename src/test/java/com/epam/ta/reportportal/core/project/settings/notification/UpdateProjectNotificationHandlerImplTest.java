@@ -33,10 +33,11 @@ import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
-import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.List;
@@ -56,12 +57,13 @@ class UpdateProjectNotificationHandlerImplTest {
   private final SenderCaseRepository senderCaseRepository = mock(SenderCaseRepository.class);
   private final MessageBus messageBus = mock(MessageBus.class);
   private final ProjectConverter projectConverter = mock(ProjectConverter.class);
-  private final ProjectNotificationValidator projectNotificationValidator = new ProjectNotificationValidator(
-      senderCaseRepository);
+  private final ProjectNotificationValidator projectNotificationValidator =
+      new ProjectNotificationValidator(senderCaseRepository);
 
-  private final UpdateProjectNotificationHandlerImpl service = new UpdateProjectNotificationHandlerImpl(
-      senderCaseRepository, messageBus,
-      projectConverter, projectNotificationValidator);
+  private final UpdateProjectNotificationHandlerImpl service =
+      new UpdateProjectNotificationHandlerImpl(senderCaseRepository, messageBus, projectConverter,
+          projectNotificationValidator
+      );
 
   private SenderCaseDTO updateNotificationRQ;
   private Project project;
@@ -74,6 +76,7 @@ class UpdateProjectNotificationHandlerImplTest {
     updateNotificationRQ.setSendCase("always");
     updateNotificationRQ.setAttributesOperator(LogicalOperator.AND.getOperator());
     updateNotificationRQ.setRuleName(DEFAULT_RULE_NAME);
+    updateNotificationRQ.setType("email");
     updateNotificationRQ.setRecipients(Collections.singletonList("OWNER"));
     updateNotificationRQ.setLaunchNames(Collections.singletonList("test launch"));
     updateNotificationRQ.setEnabled(true);
@@ -90,11 +93,9 @@ class UpdateProjectNotificationHandlerImplTest {
 
   @Test
   public void updateNonExistingNotificationTest() {
-    Assertions.assertTrue(
-        assertThrows(ReportPortalException.class,
-            () -> service.updateNotification(project, updateNotificationRQ, rpUser))
-            .getMessage().contains("Did you use correct Notification ID?")
-    );
+    Assertions.assertTrue(assertThrows(ReportPortalException.class,
+        () -> service.updateNotification(project, updateNotificationRQ, rpUser)
+    ).getMessage().contains("Did you use correct Notification ID?"));
   }
 
   @Test
@@ -106,11 +107,9 @@ class UpdateProjectNotificationHandlerImplTest {
     when(sc.getProject()).thenReturn(scProject);
     when(senderCaseRepository.findById(any())).thenReturn(Optional.of(sc));
 
-    Assertions.assertTrue(
-        assertThrows(ReportPortalException.class,
-            () -> service.updateNotification(project, updateNotificationRQ, rpUser))
-            .getMessage().contains("Did you use correct Notification ID?")
-    );
+    Assertions.assertTrue(assertThrows(ReportPortalException.class,
+        () -> service.updateNotification(project, updateNotificationRQ, rpUser)
+    ).getMessage().contains("Did you use correct Notification ID?"));
   }
 
   @Test
@@ -123,11 +122,9 @@ class UpdateProjectNotificationHandlerImplTest {
     when(senderCaseRepository.findById(any())).thenReturn(Optional.of(sc));
 
     updateNotificationRQ.setSendCase("NonExistingSendCase");
-    Assertions.assertTrue(
-        assertThrows(ReportPortalException.class,
-            () -> service.updateNotification(project, updateNotificationRQ, rpUser))
-            .getMessage().contains(updateNotificationRQ.getSendCase())
-    );
+    Assertions.assertTrue(assertThrows(ReportPortalException.class,
+        () -> service.updateNotification(project, updateNotificationRQ, rpUser)
+    ).getMessage().contains(updateNotificationRQ.getSendCase()));
   }
 
   @Test
@@ -141,17 +138,15 @@ class UpdateProjectNotificationHandlerImplTest {
 
     updateNotificationRQ.setRecipients(null);
     String s = assertThrows(ReportPortalException.class,
-        () -> service.updateNotification(project, updateNotificationRQ, rpUser))
-        .getMessage();
+        () -> service.updateNotification(project, updateNotificationRQ, rpUser)
+    ).getMessage();
     Assertions.assertTrue(s.contains("Recipients list should not be null"));
 
     updateNotificationRQ.setRecipients(Collections.emptyList());
 
-    Assertions.assertTrue(
-        assertThrows(ReportPortalException.class,
-            () -> service.updateNotification(project, updateNotificationRQ, rpUser))
-            .getMessage().contains("Empty recipients list for email case")
-    );
+    Assertions.assertTrue(assertThrows(ReportPortalException.class,
+        () -> service.updateNotification(project, updateNotificationRQ, rpUser)
+    ).getMessage().contains("Empty recipients list for email case"));
   }
 
   @Test
@@ -167,6 +162,7 @@ class UpdateProjectNotificationHandlerImplTest {
     when(modelForUpdate.getId()).thenReturn(1L);
     when(modelForUpdate.getSendCase()).thenReturn(SendCase.ALWAYS);
     when(modelForUpdate.getRuleName()).thenReturn("Rule2");
+    when(modelForUpdate.getType()).thenReturn("email");
     when(modelForUpdate.getAttributesOperator()).thenReturn(LogicalOperator.AND);
     when(modelForUpdate.getRecipients()).thenReturn(Collections.singleton("OWNER"));
     when(modelForUpdate.getLaunchNames()).thenReturn(Collections.singleton("test launch1"));
@@ -177,6 +173,7 @@ class UpdateProjectNotificationHandlerImplTest {
     when(dupeUpdateNotification.getId()).thenReturn(2L);
     when(dupeUpdateNotification.getSendCase()).thenReturn(SendCase.ALWAYS);
     when(dupeUpdateNotification.getRuleName()).thenReturn("Rule3");
+    when(dupeUpdateNotification.getType()).thenReturn("email");
     when(dupeUpdateNotification.getAttributesOperator()).thenReturn(LogicalOperator.AND);
     when(dupeUpdateNotification.getRecipients()).thenReturn(Collections.singleton("OWNER"));
     when(dupeUpdateNotification.getLaunchNames()).thenReturn(Collections.singleton("test launch"));
@@ -192,11 +189,9 @@ class UpdateProjectNotificationHandlerImplTest {
     when(senderCaseRepository.findAllByProjectId(DEFAULT_PROJECT_ID)).thenReturn(
         List.of(modelForUpdate, dupeUpdateNotification));
 
-    assertTrue(
-        assertThrows(ReportPortalException.class,
-            () -> service.updateNotification(project, updateNotificationRQ, rpUser))
-            .getMessage().contains("Project email settings contain duplicate cases")
-    );
+    assertTrue(assertThrows(ReportPortalException.class,
+        () -> service.updateNotification(project, updateNotificationRQ, rpUser)
+    ).getMessage().contains("Project notification settings contain duplicate cases for this communication channel"));
   }
 
 }

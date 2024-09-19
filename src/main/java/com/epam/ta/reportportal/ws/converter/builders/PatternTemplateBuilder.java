@@ -16,12 +16,12 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.project.config.pattern.CreatePatternTemplateRQ;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.function.Supplier;
 import org.apache.commons.lang3.StringUtils;
 
@@ -38,10 +38,10 @@ public class PatternTemplateBuilder implements Supplier<PatternTemplate> {
 
   public PatternTemplateBuilder withCreateRequest(CreatePatternTemplateRQ createRequest) {
     patternTemplate.setTemplateType(PatternTemplateType.fromString(createRequest.getType())
-        .orElseThrow(() -> new ReportPortalException(
-            ErrorType.BAD_REQUEST_ERROR,
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
             Suppliers.formattedSupplier("Unknown pattern template type - '{}'",
-                createRequest.getType()).get()
+                createRequest.getType()
+            ).get()
         )));
     patternTemplate.setName(StringUtils.trim(createRequest.getName()));
     patternTemplate.setValue(createRequest.getValue());

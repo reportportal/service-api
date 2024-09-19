@@ -26,9 +26,9 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
+import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 import com.google.common.collect.Lists;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -36,7 +36,8 @@ import org.junit.jupiter.api.Test;
  */
 class LinkTicketEventTest {
 
-  private static final String EXISTED_TICKETS = "1:http:/example.com/ticket/1,2:http:/example.com/ticket/2";
+  private static final String EXISTED_TICKETS =
+      "1:http:/example.com/ticket/1,2:http:/example.com/ticket/2";
   private static final String LINKED_TICKET = "125:http:/example.com/ticket/125";
 
   private static Activity getExpectedActivity() {
@@ -51,7 +52,7 @@ class LinkTicketEventTest {
     activity.setProjectId(3L);
     activity.setObjectId(2L);
     activity.setObjectName("name");
-    activity.setCreatedAt(LocalDateTime.now());
+    activity.setCreatedAt(Instant.now());
     activity.setDetails(new ActivityDetails(Lists.newArrayList(
         HistoryField.of(TICKET_ID, EXISTED_TICKETS, EXISTED_TICKETS + "," + LINKED_TICKET))));
     return activity;
@@ -73,12 +74,8 @@ class LinkTicketEventTest {
 
   @Test
   void toActivity() {
-    final Activity actual = new LinkTicketEvent(
-        getTestItem(EXISTED_TICKETS),
-        getTestItem(EXISTED_TICKETS + "," + LINKED_TICKET),
-        1L,
-        "user",
-        false
+    final Activity actual = new LinkTicketEvent(getTestItem(EXISTED_TICKETS),
+        getTestItem(EXISTED_TICKETS + "," + LINKED_TICKET), 1L, "user", false
     ).toActivity();
     final Activity expected = getExpectedActivity();
     checkActivity(expected, actual);

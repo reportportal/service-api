@@ -16,19 +16,19 @@
 package com.epam.ta.reportportal.util.email;
 
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.ws.model.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
+import static com.epam.reportportal.rules.exception.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.commons.template.TemplateEngine;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -98,6 +98,8 @@ public class MailServiceFactory {
               String.valueOf(e))).orElse(false);
 
       Properties javaMailProperties = new Properties();
+      javaMailProperties.put("mail.smtp.timeout", 20000);
+      javaMailProperties.put("mail.smtp.writetimeout", 20000);
       javaMailProperties.put("mail.smtp.connectiontimeout", DEFAULT_CONNECTION_TIMEOUT);
       javaMailProperties.put("mail.smtp.auth", authRequired);
       javaMailProperties.put("mail.smtp.starttls.enable",
@@ -226,7 +228,7 @@ public class MailServiceFactory {
       LOGGER.error("Cannot send email to user", e);
     }
     return new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
-        "Please configure email server in Report Portal settings.");
+        "Please configure email server in ReportPortal settings.");
   }
 
 }

@@ -21,7 +21,7 @@ import static com.epam.reportportal.extension.common.IntegrationTypeProperties.F
 import static com.epam.reportportal.extension.common.IntegrationTypeProperties.VERSION;
 
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;

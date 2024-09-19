@@ -22,13 +22,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
+import com.epam.ta.reportportal.core.item.impl.status.ChangeStatusHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -43,11 +46,9 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import java.time.LocalDateTime;
-import java.util.Date;
+import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -77,6 +78,9 @@ class FinishTestItemHandlerImplTest {
 
   @Mock
   private StatusChangingStrategy statusChangingStrategy;
+
+  @Mock
+  private ChangeStatusHandler changeStatusHandler;
 
   @Mock
   private IssueEntityRepository issueEntityRepository;
@@ -158,6 +162,8 @@ class FinishTestItemHandlerImplTest {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
     TestItem item = new TestItem();
     item.setItemId(1L);
+    item.setStartTime(Instant.now());
+    item.setType(TestItemTypeEnum.SUITE);
     TestItemResults results = new TestItemResults();
     results.setStatus(StatusEnum.IN_PROGRESS);
     item.setItemResults(results);
@@ -169,16 +175,13 @@ class FinishTestItemHandlerImplTest {
     item.setHasChildren(false);
     when(repository.findByUuid("1")).thenReturn(Optional.of(item));
     when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
+    doNothing().when(changeStatusHandler).changeLaunchStatus(any());
+    doNothing().when(changeStatusHandler).changeParentStatus(any(), any(), any());
 
-    final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
-            new FinishTestItemRQ()
-        )
-    );
-    assertEquals(
-        "Test item status is ambiguous. There is no status provided from request and there are no descendants to check statistics for test item id '1'",
-        exception.getMessage()
-    );
+    final FinishTestItemRQ rq = new FinishTestItemRQ();
+    rq.setEndTime(Instant.now());
+    handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+        rq);
   }
 
   @Test
@@ -193,7 +196,7 @@ class FinishTestItemHandlerImplTest {
     launch.setId(1L);
     launch.setUserId(1L);
     launch.setProjectId(1L);
-    item.setStartTime(LocalDateTime.now().minusSeconds(5L));
+    item.setStartTime(Instant.now().minusSeconds(5L));
     item.setLaunchId(launch.getId());
     item.setType(TestItemTypeEnum.STEP);
     item.setHasStats(true);
@@ -216,7 +219,7 @@ class FinishTestItemHandlerImplTest {
 
     FinishTestItemRQ finishExecutionRQ = new FinishTestItemRQ();
     finishExecutionRQ.setStatus("FAILED");
-    finishExecutionRQ.setEndTime(new Date());
+    finishExecutionRQ.setEndTime(Instant.now());
 
     OperationCompletionRS operationCompletionRS =
         handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",

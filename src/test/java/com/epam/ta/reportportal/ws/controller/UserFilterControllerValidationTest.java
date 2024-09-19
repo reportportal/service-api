@@ -24,7 +24,7 @@ import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsCo
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.LONG_NAME_VALUE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.SHORT_NAME_VALUE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.WHITESPACES_NAME_VALUE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -32,11 +32,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.ta.reportportal.model.filter.Order;
+import com.epam.ta.reportportal.model.filter.UpdateUserFilterRQ;
+import com.epam.ta.reportportal.model.filter.UserFilterCondition;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.ErrorRS;
-import com.epam.ta.reportportal.ws.model.filter.Order;
-import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
-import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
+import com.epam.reportportal.rules.exception.ErrorRS;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -51,8 +51,8 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
 
   private static final String FILTER_PATH = "/filter";
 
-  private static final String FIELD_NAME_SIZE_MESSAGE = String.format(
-      FIELD_NAME_SIZE_MESSAGE_WITH_FORMAT, 3, 128);
+  private static final String FIELD_NAME_SIZE_MESSAGE =
+      String.format(FIELD_NAME_SIZE_MESSAGE_WITH_FORMAT, 3, 128);
 
   @Autowired
   private ObjectMapper objectMapper;
@@ -63,15 +63,14 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
     UpdateUserFilterRQ userFilterRQ = prepareFilter();
 
     //WHEN
-    MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH)
-            .with(token(oAuthHelper.getDefaultToken()))
-            .content(objectMapper.writeValueAsBytes(userFilterRQ))
-            .contentType(APPLICATION_JSON))
+    MvcResult mvcResult = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH).with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
         .andExpect(status().isBadRequest()).andReturn();
 
     //THEN
-    ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-        ErrorRS.class);
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
     assertEquals(INCORRECT_REQUEST, error.getErrorType());
     assertEquals(INCORRECT_REQUEST_MESSAGE + FIELD_NAME_IS_NULL_MESSAGE, error.getMessage());
   }
@@ -83,15 +82,14 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
     userFilterRQ.setName(EMPTY);
 
     //WHEN
-    MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH)
-            .with(token(oAuthHelper.getDefaultToken()))
-            .content(objectMapper.writeValueAsBytes(userFilterRQ))
-            .contentType(APPLICATION_JSON))
+    MvcResult mvcResult = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH).with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
         .andExpect(status().isBadRequest()).andReturn();
 
     //THEN
-    ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-        ErrorRS.class);
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
     assertEquals(INCORRECT_REQUEST, error.getErrorType());
     assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_IS_BLANK_MESSAGE + " "
         + FIELD_NAME_SIZE_MESSAGE + "] ", error.getMessage());
@@ -104,15 +102,14 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
     userFilterRQ.setName(WHITESPACES_NAME_VALUE);
 
     //WHEN
-    MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH)
-            .with(token(oAuthHelper.getDefaultToken()))
-            .content(objectMapper.writeValueAsBytes(userFilterRQ))
-            .contentType(APPLICATION_JSON))
+    MvcResult mvcResult = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH).with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
         .andExpect(status().isBadRequest()).andReturn();
 
     //THEN
-    ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-        ErrorRS.class);
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
     assertEquals(INCORRECT_REQUEST, error.getErrorType());
     assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_IS_BLANK_MESSAGE + " "
         + FIELD_NAME_SIZE_MESSAGE + "] ", error.getMessage());
@@ -125,18 +122,18 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
     userFilterRQ.setName(SHORT_NAME_VALUE);
 
     //WHEN
-    MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH)
-            .with(token(oAuthHelper.getDefaultToken()))
-            .content(objectMapper.writeValueAsBytes(userFilterRQ))
-            .contentType(APPLICATION_JSON))
+    MvcResult mvcResult = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH).with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
         .andExpect(status().isBadRequest()).andReturn();
 
     //THEN
-    ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-        ErrorRS.class);
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
     assertEquals(INCORRECT_REQUEST, error.getErrorType());
     assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_SIZE_MESSAGE + "] ",
-        error.getMessage());
+        error.getMessage()
+    );
   }
 
   @Test
@@ -147,18 +144,18 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
     userFilterRQ.setName(LONG_NAME_VALUE);
 
     //WHEN
-    MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH)
-            .with(token(oAuthHelper.getDefaultToken()))
-            .content(objectMapper.writeValueAsBytes(userFilterRQ))
-            .contentType(APPLICATION_JSON))
+    MvcResult mvcResult = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH).with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
         .andExpect(status().isBadRequest()).andReturn();
 
     //THEN
-    ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-        ErrorRS.class);
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
     assertEquals(INCORRECT_REQUEST, error.getErrorType());
     assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_SIZE_MESSAGE + "] ",
-        error.getMessage());
+        error.getMessage()
+    );
   }
 
   @Test
@@ -167,15 +164,15 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
     UpdateUserFilterRQ userFilterRQ = prepareFilter();
 
     //WHEN
-    MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH)
-            .with(token(oAuthHelper.getDefaultToken()))
-            .content(objectMapper.writeValueAsBytes(userFilterRQ))
-            .contentType(APPLICATION_JSON))
+    MvcResult mvcResult = mockMvc.perform(
+            put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH).with(
+                    token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
         .andExpect(status().isBadRequest()).andReturn();
 
     //THEN
-    ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-        ErrorRS.class);
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
     assertEquals(INCORRECT_REQUEST, error.getErrorType());
     assertEquals(INCORRECT_REQUEST_MESSAGE + FIELD_NAME_IS_NULL_MESSAGE, error.getMessage());
   }
@@ -187,15 +184,15 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
     userFilterRQ.setName(EMPTY);
 
     //WHEN
-    MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH)
-            .with(token(oAuthHelper.getDefaultToken()))
-            .content(objectMapper.writeValueAsBytes(userFilterRQ))
-            .contentType(APPLICATION_JSON))
+    MvcResult mvcResult = mockMvc.perform(
+            put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH).with(
+                    token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
         .andExpect(status().isBadRequest()).andReturn();
 
     //THEN
-    ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-        ErrorRS.class);
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
     assertEquals(INCORRECT_REQUEST, error.getErrorType());
     assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_IS_BLANK_MESSAGE + " "
         + FIELD_NAME_SIZE_MESSAGE + "] ", error.getMessage());
@@ -208,15 +205,15 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
     userFilterRQ.setName(WHITESPACES_NAME_VALUE);
 
     //WHEN
-    MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH)
-            .with(token(oAuthHelper.getDefaultToken()))
-            .content(objectMapper.writeValueAsBytes(userFilterRQ))
-            .contentType(APPLICATION_JSON))
+    MvcResult mvcResult = mockMvc.perform(
+            put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH).with(
+                    token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
         .andExpect(status().isBadRequest()).andReturn();
 
     //THEN
-    ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-        ErrorRS.class);
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
     assertEquals(INCORRECT_REQUEST, error.getErrorType());
     assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_IS_BLANK_MESSAGE + " "
         + FIELD_NAME_SIZE_MESSAGE + "] ", error.getMessage());
@@ -229,18 +226,19 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
     userFilterRQ.setName(SHORT_NAME_VALUE);
 
     //WHEN
-    MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH)
-            .with(token(oAuthHelper.getDefaultToken()))
-            .content(objectMapper.writeValueAsBytes(userFilterRQ))
-            .contentType(APPLICATION_JSON))
+    MvcResult mvcResult = mockMvc.perform(
+            put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH).with(
+                    token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
         .andExpect(status().isBadRequest()).andReturn();
 
     //THEN
-    ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-        ErrorRS.class);
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
     assertEquals(INCORRECT_REQUEST, error.getErrorType());
     assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_SIZE_MESSAGE + "] ",
-        error.getMessage());
+        error.getMessage()
+    );
   }
 
   @Test
@@ -251,18 +249,19 @@ public class UserFilterControllerValidationTest extends BaseMvcTest {
     userFilterRQ.setName(LONG_NAME_VALUE);
 
     //WHEN
-    MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH)
-            .with(token(oAuthHelper.getDefaultToken()))
-            .content(objectMapper.writeValueAsBytes(userFilterRQ))
-            .contentType(APPLICATION_JSON))
+    MvcResult mvcResult = mockMvc.perform(
+            put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH).with(
+                    token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
         .andExpect(status().isBadRequest()).andReturn();
 
     //THEN
-    ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-        ErrorRS.class);
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
     assertEquals(INCORRECT_REQUEST, error.getErrorType());
     assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_SIZE_MESSAGE + "] ",
-        error.getMessage());
+        error.getMessage()
+    );
   }
 
   private UpdateUserFilterRQ prepareFilter() {

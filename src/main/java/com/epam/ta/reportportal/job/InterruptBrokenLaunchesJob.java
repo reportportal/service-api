@@ -20,6 +20,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofSeconds;
 
+import com.epam.reportportal.extension.event.LaunchFinishedPluginEvent;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
@@ -30,8 +31,8 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.quartz.Job;
@@ -91,7 +92,7 @@ public class InterruptBrokenLaunchesJob implements Job {
                 try (Stream<Long> ids = launchRepository.streamIdsWithStatusAndStartTimeBefore(
                     project.getId(),
                     StatusEnum.IN_PROGRESS,
-                    LocalDateTime.now(ZoneOffset.UTC).minus(maxDuration)
+                    Instant.now().minus(maxDuration.toSeconds(), ChronoUnit.SECONDS)
                 )) {
                   ids.forEach(launchId -> {
                     if (!testItemRepository.hasItemsInStatusByLaunch(launchId,
@@ -144,15 +145,17 @@ public class InterruptBrokenLaunchesJob implements Job {
   private void interruptLaunch(Long launchId) {
     launchRepository.findById(launchId).ifPresent(launch -> {
       launch.setStatus(StatusEnum.INTERRUPTED);
-      launch.setEndTime(LocalDateTime.now(ZoneOffset.UTC));
+      launch.setEndTime(Instant.now());
       launchRepository.save(launch);
       publishFinishEvent(launch);
     });
   }
 
   private void publishFinishEvent(Launch launch) {
-    final LaunchFinishedEvent event = new LaunchFinishedEvent(launch);
-    eventPublisher.publishEvent(event);
+    final LaunchFinishedEvent launchFinishedEvent = new LaunchFinishedEvent(launch);
+    final LaunchFinishedPluginEvent finishedPluginEvent = new LaunchFinishedPluginEvent(launch.getId(), launch.getProjectId());
+    eventPublisher.publishEvent(launchFinishedEvent);
+    eventPublisher.publishEvent(finishedPluginEvent);
   }
 
   private void interruptItems(Long launchId) {

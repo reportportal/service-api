@@ -19,18 +19,17 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.item.NestedStep;
 import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
-import com.epam.ta.reportportal.ws.model.NestedStepResource;
-import com.epam.ta.reportportal.ws.model.TestItemResource;
-import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
-import com.epam.ta.reportportal.ws.model.item.ItemPathName;
-import com.epam.ta.reportportal.ws.model.item.LaunchPathName;
-import com.epam.ta.reportportal.ws.model.item.PathNameResource;
+import com.epam.ta.reportportal.model.NestedStepResource;
+import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.reporting.ItemPathName;
+import com.epam.ta.reportportal.ws.reporting.LaunchPathName;
+import com.epam.ta.reportportal.ws.reporting.PathNameResource;
+import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -60,7 +59,7 @@ public final class TestItemConverter {
         .filter(it -> !it.isSystem())
         .map(it -> new ItemAttributeResource(it.getKey(), it.getValue()))
         .collect(toSet()));
-    resource.setEndTime(EntityUtils.TO_DATE.apply(item.getItemResults().getEndTime()));
+    resource.setEndTime(item.getItemResults().getEndTime());
     resource.setItemId(item.getItemId());
     if (null != item.getParameters()) {
       resource.setParameters(item.getParameters().stream().map(ParametersConverter.TO_RESOURCE)
@@ -72,7 +71,7 @@ public final class TestItemConverter {
       }
     });
     resource.setName(item.getName());
-    resource.setStartTime(EntityUtils.TO_DATE.apply(item.getStartTime()));
+    resource.setStartTime(item.getStartTime());
     resource.setStatus(
         item.getItemResults().getStatus() != null ? item.getItemResults().getStatus().toString()
             : null);
@@ -117,8 +116,8 @@ public final class TestItemConverter {
     resource.setId(item.getId());
     resource.setName(item.getName());
     resource.setUuid(item.getUuid());
-    resource.setStartTime(EntityUtils.TO_DATE.apply(item.getStartTime()));
-    resource.setEndTime(EntityUtils.TO_DATE.apply(item.getEndTime()));
+    resource.setStartTime(item.getStartTime());
+    resource.setEndTime(item.getEndTime());
     resource.setStatus(item.getStatus() != null ? item.getStatus().toString() : null);
     resource.setType(item.getType() != null ? item.getType().name() : null);
     resource.setHasContent(item.isHasContent());

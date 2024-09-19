@@ -21,10 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQ;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
+import com.epam.ta.reportportal.model.user.CreateUserRQ;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,7 +39,7 @@ class UserCreationBidConverterTest {
     request.setRole(role);
     final Project project = new Project();
     project.setName("projectName");
-    final Date creationDate = Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant());
+    final Instant creationDate = Instant.now();
     project.setCreationDate(creationDate);
 
     final UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(request, project);

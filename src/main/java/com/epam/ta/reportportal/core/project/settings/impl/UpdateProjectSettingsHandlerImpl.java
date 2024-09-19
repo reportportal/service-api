@@ -19,21 +19,21 @@ package com.epam.ta.reportportal.core.project.settings.impl;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.in;
 import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.AUTOMATION_BUG;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NO_DEFECT;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.PRODUCT_BUG;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.SYSTEM_ISSUE;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ISSUE_TYPE_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.reportportal.rules.exception.ErrorType.ISSUE_TYPE_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeUpdatedEvent;
 import com.epam.ta.reportportal.core.events.activity.PatternUpdatedEvent;
@@ -45,15 +45,15 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.activity.IssueTypeActivityResource;
+import com.epam.ta.reportportal.model.activity.PatternTemplateActivityResource;
+import com.epam.ta.reportportal.model.project.config.UpdateIssueSubTypeRQ;
+import com.epam.ta.reportportal.model.project.config.UpdateOneIssueSubTypeRQ;
+import com.epam.ta.reportportal.model.project.config.pattern.UpdatePatternTemplateRQ;
 import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.activity.IssueTypeActivityResource;
-import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
-import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
-import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
-import com.epam.ta.reportportal.ws.model.project.config.pattern.UpdatePatternTemplateRQ;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -77,8 +77,7 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 
   @Autowired
   public UpdateProjectSettingsHandlerImpl(ProjectRepository projectRepository,
-      PatternTemplateRepository patternTemplateRepository,
-      MessageBus messageBus) {
+      PatternTemplateRepository patternTemplateRepository, MessageBus messageBus) {
     this.projectRepository = projectRepository;
     this.patternTemplateRepository = patternTemplateRepository;
     this.messageBus = messageBus;
@@ -94,61 +93,56 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
     Project project = projectRepository.findByName(projectName)
         .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 
-    List<IssueTypeActivityResource> issueTypeActivityResources = updateIssueSubTypeRQ.getIds()
-        .stream()
-        .map(subTypeRQ -> TO_ACTIVITY_RESOURCE.apply(validateAndUpdate(subTypeRQ,
-            project.getProjectIssueTypes().stream().map(ProjectIssueType::getIssueType)
-                .collect(Collectors.toList())
-        )))
-        .collect(Collectors.toList());
+    List<IssueTypeActivityResource> issueTypeActivityResources =
+        updateIssueSubTypeRQ.getIds().stream().map(subTypeRQ -> TO_ACTIVITY_RESOURCE.apply(
+            validateAndUpdate(subTypeRQ,
+                project.getProjectIssueTypes().stream().map(ProjectIssueType::getIssueType)
+                    .collect(Collectors.toList())
+            ))).collect(Collectors.toList());
 
     projectRepository.save(project);
-    issueTypeActivityResources.forEach(
-        it -> messageBus.publishActivity(new DefectTypeUpdatedEvent(it,
-            user.getUserId(),
-            user.getUsername(),
-            project.getId()
-        )));
+    issueTypeActivityResources.forEach(it -> messageBus.publishActivity(
+        new DefectTypeUpdatedEvent(it, user.getUserId(), user.getUsername(), project.getId())));
     return new OperationCompletionRS("Issue sub-type(s) was updated successfully.");
   }
 
   @Override
   public OperationCompletionRS updatePatternTemplate(Long id, String projectName,
-      UpdatePatternTemplateRQ updatePatternTemplateRQ,
-      ReportPortalUser user) {
+      UpdatePatternTemplateRQ updatePatternTemplateRQ, ReportPortalUser user) {
 
     Project project = projectRepository.findByName(projectName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
-    PatternTemplate patternTemplate = patternTemplateRepository.findById(id)
-        .orElseThrow(
-            () -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT, id,
-                project.getId()));
+    PatternTemplate patternTemplate = patternTemplateRepository.findById(id).orElseThrow(
+        () -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT, id,
+            project.getId()
+        ));
 
     final String name = StringUtils.trim(updatePatternTemplateRQ.getName());
 
     if (!patternTemplate.getName().equalsIgnoreCase(name)) {
-      BusinessRule.expect(patternTemplateRepository.existsByProjectIdAndNameIgnoreCase(
-          project.getId(), name
-      ), equalTo(false)).verify(ErrorType.RESOURCE_ALREADY_EXISTS, name);
+      BusinessRule.expect(
+          patternTemplateRepository.existsByProjectIdAndNameIgnoreCase(project.getId(), name),
+          equalTo(false)
+      ).verify(ErrorType.RESOURCE_ALREADY_EXISTS, name);
     }
 
-    PatternTemplateActivityResource before = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(
-        patternTemplate);
+    PatternTemplateActivityResource before =
+        PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate);
 
     patternTemplate.setName(name);
     patternTemplate.setEnabled(updatePatternTemplateRQ.getEnabled());
 
-    PatternTemplateActivityResource after = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(
-        patternTemplate);
+    PatternTemplateActivityResource after =
+        PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate);
 
     messageBus.publishActivity(
         new PatternUpdatedEvent(user.getUserId(), user.getUsername(), before, after));
 
     return new OperationCompletionRS(
         Suppliers.formattedSupplier("Pattern template with ID = '{}' has been successfully updated",
-                id)
-            .get());
+            id
+        ).get());
 
   }
 
@@ -161,23 +155,17 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 
     IssueType exist = issueTypes.stream()
         .filter(issueType -> issueType.getLocator().equalsIgnoreCase(issueSubTypeRQ.getLocator()))
-        .findFirst()
-        .orElseThrow(
+        .findFirst().orElseThrow(
             () -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, issueSubTypeRQ.getLocator()));
 
     expect(exist.getIssueGroup().getTestItemIssueGroup().equals(expectedGroup),
-        equalTo(true)).verify(FORBIDDEN_OPERATION,
-        "You cannot change sub-type references to global type."
-    );
+        equalTo(true)
+    ).verify(FORBIDDEN_OPERATION, "You cannot change sub-type references to global type.");
 
-    expect(exist.getLocator(),
-        not(in(Sets.newHashSet(AUTOMATION_BUG.getLocator(),
-            PRODUCT_BUG.getLocator(),
-            SYSTEM_ISSUE.getLocator(),
-            NO_DEFECT.getLocator(),
-            TO_INVESTIGATE.getLocator()
-        )))
-    ).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
+    expect(exist.getLocator(), not(in(
+        Sets.newHashSet(AUTOMATION_BUG.getLocator(), PRODUCT_BUG.getLocator(),
+            SYSTEM_ISSUE.getLocator(), NO_DEFECT.getLocator(), TO_INVESTIGATE.getLocator()
+        )))).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
 
     ofNullable(issueSubTypeRQ.getLongName()).ifPresent(exist::setLongName);
     ofNullable(issueSubTypeRQ.getShortName()).ifPresent(exist::setShortName);

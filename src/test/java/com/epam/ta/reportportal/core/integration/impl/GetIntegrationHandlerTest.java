@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
+import com.epam.ta.reportportal.model.integration.IntegrationResource;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -44,20 +44,17 @@ class GetIntegrationHandlerTest {
   private final Map integrationServiceMapming = mock(Map.class);
   private final IntegrationService basicIntegrationService = mock(IntegrationService.class);
   private final IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
-  private final IntegrationTypeRepository integrationTypeRepository = mock(
-      IntegrationTypeRepository.class);
+  private final IntegrationTypeRepository integrationTypeRepository =
+      mock(IntegrationTypeRepository.class);
   private final ProjectRepository projectRepository = mock(ProjectRepository.class);
-  private final GetBugTrackingSystemHandler getBugTrackingSystemHandler = mock(
-      GetBugTrackingSystemHandler.class);
+  private final GetBugTrackingSystemHandler getBugTrackingSystemHandler =
+      mock(GetBugTrackingSystemHandler.class);
 
-  private final GetIntegrationHandler getIntegrationHandler = new GetIntegrationHandlerImpl(
-      integrationServiceMapming,
-      basicIntegrationService,
-      integrationRepository,
-      integrationTypeRepository,
-      projectRepository,
-      getBugTrackingSystemHandler
-  );
+  private final GetIntegrationHandler getIntegrationHandler =
+      new GetIntegrationHandlerImpl(integrationServiceMapming, basicIntegrationService,
+          integrationRepository, integrationTypeRepository, projectRepository,
+          getBugTrackingSystemHandler
+      );
 
   @Test
   void getProjectIntegrationById() {
@@ -71,15 +68,11 @@ class GetIntegrationHandlerTest {
 
     when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(project));
 
-    when(integrationRepository.findByIdAndProjectId(emailIntegrationId,
-        projectId
-    )).thenReturn(Optional.of(IntegrationTestUtil.getProjectEmailIntegration(
-        emailIntegrationId,
-        projectId
-    )));
+    when(integrationRepository.findByIdAndProjectId(emailIntegrationId, projectId)).thenReturn(
+        Optional.of(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId, projectId)));
 
-    IntegrationResource integrationResource = getIntegrationHandler.getProjectIntegrationById(
-        emailIntegrationId, TEST_PROJECT_NAME);
+    IntegrationResource integrationResource =
+        getIntegrationHandler.getProjectIntegrationById(emailIntegrationId, TEST_PROJECT_NAME);
 
     assertNotNull(integrationResource);
     assertEquals(emailIntegrationId, (long) integrationResource.getId());
@@ -95,11 +88,10 @@ class GetIntegrationHandlerTest {
 
     final long emailIntegrationId = 1L;
     when(integrationRepository.findGlobalById(emailIntegrationId)).thenReturn(
-        Optional.of(IntegrationTestUtil.getGlobalEmailIntegration(
-            emailIntegrationId)));
+        Optional.of(IntegrationTestUtil.getGlobalEmailIntegration(emailIntegrationId)));
 
-    IntegrationResource integrationResource = getIntegrationHandler.getGlobalIntegrationById(
-        emailIntegrationId);
+    IntegrationResource integrationResource =
+        getIntegrationHandler.getGlobalIntegrationById(emailIntegrationId);
 
     assertNotNull(integrationResource);
     assertEquals("superadmin", integrationResource.getCreator());

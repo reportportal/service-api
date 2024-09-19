@@ -17,9 +17,10 @@
 package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
-import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.model.DeleteBulkRQ;
+import com.epam.ta.reportportal.model.DeleteBulkRS;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
+import java.util.List;
 
 /**
  * Delete Launch request handler
@@ -42,13 +43,13 @@ public interface DeleteLaunchHandler {
       ReportPortalUser user);
 
   /**
-   * Bul launches delete.
+   * Bulk launches delete.
    *
-   * @param deleteBulkRQ   {@link DeleteBulkRQ}
+   * @param ids   list of launch ids
    * @param projectDetails Project Details
    * @param user           User
    * @return DeleteLaunchesRS
    */
-  DeleteBulkRS deleteLaunches(DeleteBulkRQ deleteBulkRQ,
+  DeleteBulkRS deleteLaunches(List<Long> ids,
       ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 }

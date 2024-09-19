@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.preference.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.preference.GetPreferenceHandler;
 import com.epam.ta.reportportal.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.entity.preference.UserPreference;
+import com.epam.ta.reportportal.model.filter.UserFilterResource;
+import com.epam.ta.reportportal.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
-import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
-import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,10 +46,10 @@ public class GetPreferenceHandlerImpl implements GetPreferenceHandler {
   @Override
   public PreferenceResource getPreference(ReportPortalUser.ProjectDetails projectDetails,
       ReportPortalUser user) {
-    List<UserPreference> userPreferences = userPreferenceRepository.findByProjectIdAndUserId(
-        projectDetails.getProjectId(),
-        user.getUserId()
-    );
+    List<UserPreference> userPreferences =
+        userPreferenceRepository.findByProjectIdAndUserId(projectDetails.getProjectId(),
+            user.getUserId()
+        );
     PreferenceResource preferenceResource = new PreferenceResource();
     preferenceResource.setUserId(user.getUserId());
     preferenceResource.setProjectId(projectDetails.getProjectId());

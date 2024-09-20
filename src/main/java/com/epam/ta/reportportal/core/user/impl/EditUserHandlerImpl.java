@@ -45,6 +45,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.model.user.ChangePasswordRQ;
 import com.epam.ta.reportportal.model.user.EditUserRQ;
 import com.epam.ta.reportportal.util.UserUtils;
@@ -117,21 +118,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
     User user = userRepository.findByLogin(username)
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
 
-    if (null != editUserRq.getRole()) {
-
-      BusinessRule.expect(editor.getUserRole(), equalTo(UserRole.ADMINISTRATOR))
-          .verify(ACCESS_DENIED, "Current Account Role can't update roles.");
-
-      BusinessRule.expect(user, u -> !u.getLogin().equalsIgnoreCase(editor.getUsername()))
-          .verify(ErrorType.ACCESS_DENIED, "You cannot update your role.");
-
-      UserRole newRole = UserRole.findByName(editUserRq.getRole())
-          .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-              "Incorrect specified Account Role parameter."));
-
-      publishChangeUserTypeEvent(user, editor, newRole);
-      user.setRole(newRole);
-    }
+    updateRestrictedFields(editor, user, editUserRq);
 
     if (null != editUserRq.getEmail() && !editUserRq.getEmail().equals(user.getEmail())) {
       String updEmail = editUserRq.getEmail().toLowerCase().trim();
@@ -164,8 +151,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
       user.setFullName(editUserRq.getFullName());
     }
 
-    Optional.ofNullable(editUserRq.getActive()).ifPresent(user::setActive);
-    Optional.ofNullable(editUserRq.getExternalId()).ifPresent(user::setExternalId);
+    ofNullable(editUserRq.getExternalId()).ifPresent(user::setExternalId);
 
     try {
       userRepository.save(user);
@@ -223,6 +209,25 @@ public class EditUserHandlerImpl implements EditUserHandler {
     }
 
     return new OperationCompletionRS("Password has been changed successfully");
+  }
+
+  private void updateRestrictedFields(ReportPortalUser editor, User user, EditUserRQ editUserRq) {
+    ofNullable(editUserRq.getRole()).ifPresent(role -> {
+      checkPossibilityToEdit(editor, user, "role");
+      UserRole newRole = UserRole.findByName(role)
+          .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+              "Incorrect specified Account Role parameter."));
+      publishChangeUserTypeEvent(user, editor, newRole);
+      user.setRole(newRole);
+    });
+    ofNullable(editUserRq.getActive()).ifPresent(isActive -> {
+      checkPossibilityToEdit(editor, user, "active");
+      user.setActive(isActive);
+    });
+    ofNullable(editUserRq.getAccountType()).ifPresent(accountType -> {
+      checkPossibilityToEdit(editor, user, "accountType");
+      user.setUserType(UserType.valueOf(accountType));
+    });
   }
 
   private void validatePhoto(MultipartFile file) {
@@ -288,5 +293,12 @@ public class EditUserHandlerImpl implements EditUserHandler {
     eventPublisher.publishEvent(
         new ChangeUserTypeEvent(user.getId(), user.getLogin(),
             user.getRole(), newRole, editor.getUserId(), editor.getUsername()));
+  }
+
+  private void checkPossibilityToEdit(ReportPortalUser editor, User user, String fieldName) {
+    BusinessRule.expect(editor.getUserRole(), equalTo(UserRole.ADMINISTRATOR))
+        .verify(ACCESS_DENIED, "Current Account Role can't update " + fieldName);
+    BusinessRule.expect(user, u -> !u.getLogin().equalsIgnoreCase(editor.getUsername()))
+        .verify(ErrorType.ACCESS_DENIED, "You cannot update your " + fieldName);
   }
 }

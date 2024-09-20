@@ -59,7 +59,7 @@ public class UserBuilder implements Supplier<User> {
   public UserBuilder addCreateUserFullRQ(CreateUserRQFull request) {
     ofNullable(request).ifPresent(
         it -> fillUser(it.getLogin(), it.getEmail(), it.getFullName(), it.getExternalId(),
-            it.isActive(), request.getAccountType()));
+            it.isActive(), UserType.valueOf(request.getAccountType())));
     return this;
   }
 

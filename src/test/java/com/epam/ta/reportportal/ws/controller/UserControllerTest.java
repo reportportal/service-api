@@ -42,6 +42,7 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.user.ChangePasswordRQ;
@@ -92,7 +93,9 @@ class UserControllerTest extends BaseMvcTest {
     rq.setFullName("Test User");
     rq.setEmail("test@test.com");
     rq.setAccountRole("USER");
-    rq.setProjectRole("MEMBER");
+    rq.setProjectRole("EDITOR");
+    rq.setActive(true);
+    rq.setAccountType(UserType.INTERNAL);
 
     MvcResult mvcResult = mockMvc.perform(
             post("/users").with(token(oAuthHelper.getSuperadminToken()))
@@ -126,6 +129,8 @@ class UserControllerTest extends BaseMvcTest {
     rq.setAccountRole("USER");
     rq.setProjectRole("EDITOR");
     rq.setDefaultProject("default_personal");
+    rq.setActive(true);
+    rq.setAccountType(UserType.INTERNAL);
 
     MvcResult mvcResult = mockMvc.perform(
             post("/users").with(token(oAuthHelper.getSuperadminToken()))
@@ -140,7 +145,8 @@ class UserControllerTest extends BaseMvcTest {
     assertEquals(normalizeId(rq.getLogin()), createUserRS.getLogin());
     assertTrue(userRepository.findById(createUserRS.getId()).isPresent());
 
-    final Optional<Project> projectOptional = projectRepository.findByName("default_personal");
+    // TODO: move to the new organization endpoints test
+    /*final Optional<Project> projectOptional = projectRepository.findByName("default_personal");
     assertTrue(projectOptional.isPresent());
     assertTrue(projectOptional.get().getUsers().stream()
         .anyMatch(config -> config.getUser().getLogin().equals("testlogin")));
@@ -161,7 +167,7 @@ class UserControllerTest extends BaseMvcTest {
     assertTrue(defaultIssueTypes.containsAll(project.getProjectIssueTypes()
         .stream()
         .map(ProjectIssueType::getIssueType)
-        .collect(Collectors.toList())));
+        .collect(Collectors.toList())));*/
   }
 
   @Test

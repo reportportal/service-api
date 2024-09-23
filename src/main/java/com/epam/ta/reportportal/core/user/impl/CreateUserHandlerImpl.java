@@ -237,7 +237,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     userAuthenticator.authenticate(user);
 
     // TODO: assign organization
-    projectUserHandler.assign(user, projectToAssign, projectRole, creator, false);
     final Project personalProject = createProjectHandler.createPersonal(user);
     projectUserHandler.assign(user, personalProject, ProjectRole.EDITOR, creator,
         isSystemEvent);

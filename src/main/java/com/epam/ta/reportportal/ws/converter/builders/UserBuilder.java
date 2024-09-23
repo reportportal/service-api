@@ -18,8 +18,6 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.Metadata;
 import com.epam.ta.reportportal.entity.user.User;
@@ -29,7 +27,6 @@ import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
 import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -52,7 +49,8 @@ public class UserBuilder implements Supplier<User> {
 
   public UserBuilder addCreateUserRQ(CreateUserRQConfirm request) {
     ofNullable(request).ifPresent(
-        r -> fillUser(r.getLogin(), r.getEmail(), r.getFullName(), null, true, UserType.INTERNAL));
+        r -> fillUser(r.getLogin(), r.getEmail(), r.getFullName(), null, true,
+            UserType.INTERNAL.name()));
     return this;
   }
 
@@ -80,27 +78,16 @@ public class UserBuilder implements Supplier<User> {
   }
 
   private void fillUser(String login, String email, String fullName, String externalId,
-      boolean active, UserType type) {
+      boolean active, String type) {
     user.setLogin(EntityUtils.normalizeId(login));
     ofNullable(email).map(String::trim).map(EntityUtils::normalizeId).ifPresent(user::setEmail);
     user.setFullName(fullName);
     user.setExternalId(externalId);
     user.setActive(active);
-    user.setUserType(resolveUserType(type));
+    user.setUserType(UserType.valueOf(ofNullable(type).orElse("INTERNAL")));
     user.setExpired(false);
     Map<String, Object> meta = new HashMap<>();
     meta.put(USER_LAST_LOGIN, new Date());
     user.setMetadata(new Metadata(meta));
-  }
-
-  private UserType resolveUserType(UserType type) {
-    return ofNullable(type).map(t -> {
-      if (List.of(UserType.INTERNAL, UserType.SCIM).contains(t)) {
-        return t;
-      } else {
-        throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-            "User can be created only with account types: INTERNAL, SCIM");
-      }
-    }).orElse(UserType.INTERNAL);
   }
 }

@@ -164,6 +164,10 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
         attributeRepository.getDefaultProjectAttributes()
     );
     projectToSave.setProjectAttributes(projectAttributes);
+
+    projectToSave.setProjectIssueTypes(
+        ProjectUtils.defaultIssueTypes(projectToSave, issueTypeRepository.getDefaultIssueTypes()));
+
     Project createdProject = projectRepository.save(projectToSave);
 
     applicationEventPublisher.publishEvent(new ProjectEvent(createdProject.getId(), CREATE_KEY));

@@ -26,7 +26,7 @@ import static com.epam.ta.reportportal.entity.organization.OrganizationRole.MEMB
 import static com.epam.ta.reportportal.entity.project.ProjectUtils.findUserConfigByLogin;
 import static java.util.function.Predicate.isEqual;
 
-import com.epam.reportportal.api.model.CreateInvitationRequest;
+import com.epam.reportportal.api.model.InvitationRequest;
 import com.epam.reportportal.api.model.UserOrgInfoWithProjects;
 import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
@@ -82,7 +82,7 @@ public class InvitationPermission implements Permission {
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
     List<UserOrgInfoWithProjects> orgs =
-        ((CreateInvitationRequest) invitationRequest).getOrganizations();
+        ((InvitationRequest) invitationRequest).getOrganizations();
 
     expect(CollectionUtils.isEmpty(orgs), isEqual(false))
         .verify(ACCESS_DENIED, "Only administrators allowed to invite users on instance level");

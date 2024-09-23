@@ -21,9 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.reportportal.api.model.CreateInvitationRequest;
 import com.epam.reportportal.api.model.Invitation;
 import com.epam.reportportal.api.model.Invitation.StatusEnum;
+import com.epam.reportportal.api.model.InvitationRequest;
 import com.epam.reportportal.api.model.UserOrgInfo.OrgRoleEnum;
 import com.epam.reportportal.api.model.UserOrgInfoWithProjects;
 import com.epam.reportportal.api.model.UserProjectInfo;
@@ -60,7 +60,7 @@ class InvitationControllerTest extends BaseMvcTest {
 
     organizations.add(orgInfo);
 
-    var rq = new CreateInvitationRequest();
+    var rq = new InvitationRequest();
 
     rq.setEmail("invitation@example.com");
     rq.setOrganizations(organizations);
@@ -99,7 +99,7 @@ class InvitationControllerTest extends BaseMvcTest {
 
     organizations.add(orgInfo);
 
-    var rq = new CreateInvitationRequest();
+    var rq = new InvitationRequest();
 
     rq.setEmail("invitation@example.com");
     rq.setOrganizations(organizations);

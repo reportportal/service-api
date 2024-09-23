@@ -23,8 +23,8 @@ import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_EXISTS;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 
-import com.epam.reportportal.api.model.CreateInvitationRequest;
 import com.epam.reportportal.api.model.Invitation;
+import com.epam.reportportal.api.model.InvitationRequest;
 import com.epam.reportportal.api.model.UserOrgInfoWithProjects;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -76,7 +76,7 @@ public class UserInvitationHandlerImpl implements UserInvitationHandler {
     this.eventPublisher = eventPublisher;
   }
 
-  public Invitation createUserInvitation(CreateInvitationRequest request, ReportPortalUser rpUser,
+  public Invitation createUserInvitation(InvitationRequest request, ReportPortalUser rpUser,
       String baseUrl) {
     log.debug("User '{}' is trying to create invitation for user '{}'",
         rpUser.getUsername(),
@@ -131,7 +131,7 @@ public class UserInvitationHandlerImpl implements UserInvitationHandler {
     return response;
   }
 
-  private void validateInvitationRequest(CreateInvitationRequest request) {
+  private void validateInvitationRequest(InvitationRequest request) {
     expect(UserUtils.isEmailValid(request.getEmail().trim()), equalTo(true))
         .verify(BAD_REQUEST_ERROR, formattedSupplier("email='{}'", request.getEmail()));
 

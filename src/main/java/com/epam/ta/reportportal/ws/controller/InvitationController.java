@@ -21,8 +21,8 @@ import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBas
 import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.reportportal.api.InvitationApi;
-import com.epam.reportportal.api.model.CreateInvitationRequest;
 import com.epam.reportportal.api.model.Invitation;
+import com.epam.reportportal.api.model.InvitationRequest;
 import com.epam.ta.reportportal.core.user.UserInvitationHandler;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
@@ -45,7 +45,7 @@ public class InvitationController extends BaseController implements InvitationAp
   @Transactional
   @Override
   @PreAuthorize(INVITATION_ALLOWED)
-  public ResponseEntity<Invitation> postInvitations(CreateInvitationRequest invitationRequest) {
+  public ResponseEntity<Invitation> postInvitations(InvitationRequest invitationRequest) {
     var rpUser = getLoggedUser();
 
     // TODO: remove invitationRequest.getOrganizations duplicates?

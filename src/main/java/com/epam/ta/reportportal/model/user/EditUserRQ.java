@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+import lombok.Data;
 
 /**
  * Edit User request model
@@ -33,55 +34,29 @@ import javax.validation.constraints.Size;
  * @author Aliaksandr_Kazantsau
  * @author Andrei_Ramanchuk
  */
+@Data
 @JsonInclude(Include.NON_NULL)
 public class EditUserRQ {
 
-	@NotBlankString
-	@JsonProperty(value = "email")
-	private String email;
+  @NotBlankString
+  @JsonProperty(value = "email")
+  private String email;
 
-	@In(allowedValues = { "user", "administrator" })
-	@JsonProperty(value = "role")
-	private String role;
+  @JsonProperty(value = "externalId")
+  private String externalId;
 
-	@NotBlankString
-	@Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)
-	@Pattern(regexp = "(\\s*[\\pL0-9-_\\.]+\\s*)+")
-	@JsonProperty(value = "fullName")
-	@Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
-	private String fullName;
+  @JsonProperty(value = "active")
+  private Boolean active;
 
-	public String getEmail() {
-		return email;
-	}
+  @In(allowedValues = {"user", "administrator"})
+  @JsonProperty(value = "role")
+  private String role;
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+  @NotBlankString
+  @Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)
+  @Pattern(regexp = "(\\s*[\\pL0-9-_\\.]+\\s*)+")
+  @JsonProperty(value = "fullName")
+  @Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
+  private String fullName;
 
-	public String getRole() {
-		return role;
-	}
-
-	public void setRole(String role) {
-		this.role = role;
-	}
-
-	public void setFullName(String value) {
-		this.fullName = value;
-	}
-
-	public String getFullName() {
-		return fullName;
-	}
-
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder("EditUserRQ{");
-		sb.append("email='").append(email).append('\'');
-		sb.append(", role='").append(role).append('\'');
-		sb.append(", fullName='").append(fullName).append('\'');
-		sb.append('}');
-		return sb.toString();
-	}
 }

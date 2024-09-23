@@ -40,13 +40,12 @@ import org.apache.commons.collections.CollectionUtils;
  */
 public final class UserConverter {
 
-  private UserConverter() {
-    //static only
-  }
-
   public static final Function<User, UserResource> TO_RESOURCE = user -> {
     UserResource resource = new UserResource();
     resource.setId(user.getId());
+    resource.setUuid(user.getUuid());
+    resource.setExternalId(user.getExternalId());
+    resource.setActive(user.isActive());
     resource.setUserId(user.getLogin());
     resource.setEmail(user.getEmail());
     resource.setPhotoId(user.getAttachment());
@@ -90,16 +89,17 @@ public final class UserConverter {
 
     return resource;
   };
-
   public static final Function<User, SearchUserResource> TO_SEARCH_RESOURCE = user -> {
     final SearchUserResource resource = new SearchUserResource();
     resource.setId(user.getId());
+    resource.setUuid(user.getUuid());
+    resource.setExternalId(user.getExternalId());
+    resource.setActive(user.isActive());
     resource.setLogin(user.getLogin());
     resource.setEmail(user.getEmail());
     resource.setFullName(user.getFullName());
     return resource;
   };
-
   public static final BiFunction<User, Long, UserActivityResource> TO_ACTIVITY_RESOURCE =
       (user, projectId) -> {
         UserActivityResource resource = new UserActivityResource();
@@ -108,5 +108,9 @@ public final class UserConverter {
         resource.setFullName(user.getLogin());
         return resource;
       };
+
+  private UserConverter() {
+    //static only
+  }
 
 }

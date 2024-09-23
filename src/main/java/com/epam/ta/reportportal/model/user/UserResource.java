@@ -21,16 +21,19 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.Data;
 
 /**
  * User resource representation for responses
  *
  * @author Andrei_Ramanchuk
  */
+@Data
 @JsonInclude(Include.NON_NULL)
 @Getter
 @Setter
@@ -40,6 +43,15 @@ public class UserResource {
   @NotNull
   @JsonProperty(value = "id", required = true)
   private Long id;
+
+  @JsonProperty
+  private UUID uuid;
+
+  @JsonProperty
+  private String externalId;
+
+  @JsonProperty
+  private boolean active;
 
   @NotNull
   @JsonProperty(value = "userId", required = true)

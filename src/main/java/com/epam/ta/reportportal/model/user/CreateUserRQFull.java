@@ -82,7 +82,6 @@ public class CreateUserRQFull {
   @Schema(requiredMode = RequiredMode.NOT_REQUIRED, allowableValues = "USER, ADMINISTRATOR")
   private String accountRole;
 
-  @NotNull
   @JsonProperty(value = "projectRole")
   @In(allowedValues = {"operator", "customer", "member", "project_manager"})
   @Schema(requiredMode = RequiredMode.NOT_REQUIRED, allowableValues = "CUSTOMER, MEMBER, PROJECT_MANAGER")

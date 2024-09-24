@@ -51,10 +51,8 @@ public class PluginStartUpService {
   public void loadPlugins() {
     pluginBox.startUp();
     UpdateManager updateManager = new UpdateManager(pluginManager, getDefaultPluginRepositories());
-    pluginBox.getPlugins().forEach(plugin -> log.info("Loaded plugin with id {}", plugin.getId()));
-    pluginManager.getPlugins().forEach(plugin -> log.info("pluginManager plugin with id {}", plugin.getPluginId()));
-    pluginBox.deletePlugin("JUnit");
-
+    pluginBox.getPlugins().forEach(plugin -> pluginBox.deletePlugin(plugin.getId()));
+    pluginManager.getPlugins().forEach(plugin -> pluginManager.deletePlugin(plugin.getPluginId()));
     if (updateManager.hasAvailablePlugins()) {
       updateManager.getAvailablePlugins()
           .forEach(pluginInfo -> loadLatestVersion(updateManager, pluginInfo));
@@ -78,7 +76,7 @@ public class PluginStartUpService {
           "plugin-import-junit", URI.create(
               "https://raw.githubusercontent.com/reportportal/plugin-import-junit/main/jars/plugins.json")
           .toURL()));
-    } catch (Exception e) {
+    } catch (IOException e) {
       log.error(e.getMessage());
     }
     return Collections.emptyList();

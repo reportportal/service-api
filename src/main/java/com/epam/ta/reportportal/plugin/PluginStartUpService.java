@@ -52,6 +52,9 @@ public class PluginStartUpService {
     pluginBox.startUp();
     UpdateManager updateManager = new UpdateManager(pluginManager, getDefaultPluginRepositories());
     pluginBox.getPlugins().forEach(plugin -> log.info("Loaded plugin with id {}", plugin.getId()));
+    pluginManager.getPlugins().forEach(plugin -> log.info("pluginManager plugin with id {}", plugin.getPluginId()));
+    pluginBox.deletePlugin("JUnit");
+
     if (updateManager.hasAvailablePlugins()) {
       updateManager.getAvailablePlugins()
           .forEach(pluginInfo -> loadLatestVersion(updateManager, pluginInfo));

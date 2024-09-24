@@ -51,6 +51,7 @@ public class PluginStartUpService {
   public void loadPlugins() {
     pluginBox.startUp();
     UpdateManager updateManager = new UpdateManager(pluginManager, getDefaultPluginRepositories());
+    pluginBox.getPlugins().forEach(plugin -> log.info("Loaded plugin with id {}", plugin.getId()));
     if (updateManager.hasAvailablePlugins()) {
       updateManager.getAvailablePlugins()
           .forEach(pluginInfo -> loadLatestVersion(updateManager, pluginInfo));
@@ -62,7 +63,7 @@ public class PluginStartUpService {
       PluginRelease lastRelease = updateManager.getLastPluginRelease(pluginInfo.id);
       Path path = new SimpleFileDownloader().downloadFile(URI.create(lastRelease.url).toURL());
       pluginBox.uploadPlugin(path.getFileName().toString(), Files.newInputStream(path));
-    } catch (IOException e) {
+    } catch (Exception e) {
       log.warn("Can't load default remote plugin with id {}. Error: {}", pluginInfo.id,
           e.getMessage());
     }

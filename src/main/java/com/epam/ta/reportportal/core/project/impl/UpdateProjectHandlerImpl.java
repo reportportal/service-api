@@ -36,6 +36,7 @@ import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_PATTERN_ANALYZER_ENABLED;
 import static com.epam.ta.reportportal.entity.enums.SendCase.findByName;
+import static com.epam.ta.reportportal.entity.organization.OrganizationRole.MANAGER;
 import static com.epam.ta.reportportal.entity.organization.OrganizationRole.MEMBER;
 import static com.epam.ta.reportportal.ws.converter.converters.ProjectActivityConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
@@ -399,24 +400,30 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
         formattedSupplier("User '{}' cannot be assigned to project twice.", name)
     );
 
-    // assign user to organization if not assigned yet
     var organization = organizationRepositoryCustom.findById(project.getOrganizationId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND,
             project.getOrganizationId()));
+
+    ProjectUser projectUser = new ProjectUser();
+    projectUser.setProjectRole(projectRole);
+    // assign user to organization if not assigned yet
     organizationUserRepository.findByUserIdAndOrganization_Id(modifyingUser.getId(),
             project.getOrganizationId())
-        .orElseGet(() -> {
+        .ifPresentOrElse(orgUser -> {
+          if (authorizedUser.getUserRole() == UserRole.ADMINISTRATOR
+              || orgUser.getOrganizationRole().sameOrHigherThan(MANAGER)) {
+            projectUser.setProjectRole(ProjectRole.EDITOR);
+          }
+        }, () -> {
           log.debug("Assigning user {} to organization {}",
               modifyingUser.getLogin(), organization.getName());
           var organizationUser = new OrganizationUser();
           organizationUser.setOrganization(organization);
           organizationUser.setUser(modifyingUser);
           organizationUser.setOrganizationRole(MEMBER);
-          return organizationUserRepository.save(organizationUser);
+          organizationUserRepository.save(organizationUser);
         });
 
-    ProjectUser projectUser = new ProjectUser();
-    projectUser.setProjectRole(projectRole);
     projectUser.setUser(modifyingUser);
     projectUser.setProject(project);
     project.getUsers().add(projectUser);

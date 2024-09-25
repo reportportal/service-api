@@ -405,6 +405,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
             project.getOrganizationId()));
 
     ProjectUser projectUser = new ProjectUser();
+    projectUser.setProjectRole(projectRole);
     // assign user to organization if not assigned yet
     organizationUserRepository.findByUserIdAndOrganization_Id(modifyingUser.getId(),
             project.getOrganizationId())
@@ -412,8 +413,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
           if (authorizedUser.getUserRole() == UserRole.ADMINISTRATOR
               || orgUser.getOrganizationRole().sameOrHigherThan(MANAGER)) {
             projectUser.setProjectRole(ProjectRole.EDITOR);
-          } else {
-            projectUser.setProjectRole(projectRole);
           }
         }, () -> {
           log.debug("Assigning user {} to organization {}",

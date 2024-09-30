@@ -54,8 +54,9 @@ public class OrganizationUsersController extends BaseController implements Organ
   @Override
   @PreAuthorize(ORGANIZATION_MANAGER)
   @Transactional(readOnly = true)
-  public ResponseEntity<OrganizationUsersPage> getOrganizationsOrgIdUsers(Long orgId, Integer limit,
-      Integer offset, String sort, String order) {
+  public ResponseEntity<OrganizationUsersPage> getOrganizationsOrgIdUsers(Long orgId,
+      Integer offset,
+      Integer limit, String order, String sort) {
     organizationRepositoryCustom.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 

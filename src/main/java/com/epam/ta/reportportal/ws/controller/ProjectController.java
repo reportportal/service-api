@@ -238,7 +238,6 @@ public class ProjectController {
   @ResponseStatus(OK)
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Assign users")
-  @Deprecated
   public OperationCompletionRS assignProjectUsers(@PathVariable String projectKey,
       @RequestBody @Validated AssignUsersRQ assignUsersRQ,
       @AuthenticationPrincipal ReportPortalUser user) {

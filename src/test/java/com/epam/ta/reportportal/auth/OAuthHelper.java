@@ -68,7 +68,7 @@ public class OAuthHelper {
         customerToken;
   }
 
-  private OAuth2AccessToken createAccessToken(String username, String password, UserRole... roles) {
+  public OAuth2AccessToken createAccessToken(String username, String password, UserRole... roles) {
     Collection<GrantedAuthority> authorities = Arrays.stream(roles)
         .map(it -> new SimpleGrantedAuthority(it.getAuthority()))
         .collect(Collectors.toList());

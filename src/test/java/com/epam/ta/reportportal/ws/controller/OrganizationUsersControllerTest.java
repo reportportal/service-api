@@ -24,8 +24,10 @@ import com.epam.reportportal.api.model.OrganizationUserBase.OrgRoleEnum;
 import com.epam.reportportal.api.model.UserAssignmentRequest;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
 import com.epam.reportportal.api.model.UserProjectInfo;
+import com.epam.reportportal.api.model.UserProjectInfo.ProjectRoleEnum;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.ProjectUserId;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
@@ -43,10 +45,15 @@ import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @Log4j2
-@Sql("/db/organization/all_tests_samples.sql")
+@Sql("/db/organization/full_organization_samples.sql")
 class OrganizationUsersControllerTest extends BaseMvcTest {
 
   private static final String BASE_URL = "/organizations/%s/users";
+  public static final Long ORG_ID_1 = 201L;
+  public static final Long ORG_ID_2 = 202L;
+  public static final Long ORG_ID_3 = 203L;
+  public static final Long PRJ_ID_1 = 301L;
+  public static final Long PRJ_ID_2 = 302L;
 
   @Autowired
   private ObjectMapper objectMapper;
@@ -60,6 +67,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   private String editorToken;
   private String viewerToken;
   private String noOrgUser;
+  private String noProjectsUser;
 
   @BeforeEach
   void beforeEach() {
@@ -75,7 +83,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
     viewerToken =
         oAuthHelper.createAccessToken("user-member-viewer", "erebus", UserRole.USER)
             .getValue();
-    viewerToken =
+    noProjectsUser =
         oAuthHelper.createAccessToken("no-projects-user", "erebus", UserRole.USER)
             .getValue();
     noOrgUser =
@@ -107,11 +115,11 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
         .projects(projects)
         .id(userId);
 
-    performAssignUserSuccess(201L, rq, adminToken);
+    performAssignUserSuccess(ORG_ID_1, rq, adminToken);
+    validateAssignedRoles(ORG_ID_1, userId, projects);
 
-    performAssignUserSuccess(202L, rq, managerToken);
-
-    validateAssignedRoles(201L, userId, projects);
+    performAssignUserSuccess(ORG_ID_2, rq, managerToken);
+    validateAssignedRoles(ORG_ID_2, userId, projects);
   }
 
   @Test
@@ -137,27 +145,31 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
         .projects(projects)
         .id(userId);
 
-    performAssignUserSuccess(201L, rq, adminToken);
-    performAssignUserSuccess(202L, rq, managerToken);
-    validateAssignedRoles(201L, userId, projects);
+    performAssignUserSuccess(ORG_ID_1, rq, adminToken);
+    validateAssignedRoles(ORG_ID_1, userId, projects);
+
+    performAssignUserSuccess(ORG_ID_2, rq, managerToken);
+    validateAssignedRoles(ORG_ID_2, userId, projects);
   }
 
   @Test
   @DisplayName("Admin, Manager sends request to assign NOT UPSA user to organization and project in this organization")
   void Test_4() throws Exception {
-    Long orgId = 201L;
     Long userId = 108L;
-    List<UserProjectInfo> projects = new ArrayList<>();
+    UserProjectInfo project1 = new UserProjectInfo()
+        .projectRole(UserProjectInfo.ProjectRoleEnum.EDITOR)
+        .id(302L);
+    UserProjectInfo project2 = new UserProjectInfo()
+        .projectRole(UserProjectInfo.ProjectRoleEnum.EDITOR)
+        .id(303L);
+    List<UserProjectInfo> projects = new ArrayList<>(List.of(project1, project2));
 
     UserAssignmentRequest rq = new UserAssignmentRequest()
-        .projects(projects) //TODO: add project
+        .projects(projects)
         .id(userId);
 
-    performAssignUserSuccess(201L, rq, adminToken);
-    validateAssignedRoles(201L, userId, projects);
-
-    performAssignUserSuccess(202L, rq, managerToken);
-    validateAssignedRoles(202L, userId, projects);
+    performAssignUserSuccess(ORG_ID_2, rq, managerToken);
+    validateAssignedRoles(ORG_ID_2, userId, projects);
 
   }
 
@@ -210,65 +222,95 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
     performAssignUserFailed(nonExistentOrgId, rq, adminToken, status().isNotFound());
   }
 
-  @Test
-  @DisplayName("Admin, Manager sends request to assign user to organization with invalid data (user_id, organization_id, organization role, project_id, project role)\tcode 400")
-  void Test_9() throws Exception {
-    // TODO ???
-  }
 
   @Test
   @DisplayName("Admin, Manager can assign user with Manager role in organization, in case any projects assignment - 'Editor' role is set by default to the Manager")
-  void Test_10() throws Exception {
+  void Test_9() throws Exception {
     Long userId = 108L;
-    List<UserProjectInfo> projects = new ArrayList<>();//TODO: add project
+    UserProjectInfo project1 = new UserProjectInfo()
+        .projectRole(ProjectRoleEnum.VIEWER)
+        .id(302L);
+
+    List<UserProjectInfo> projects = new ArrayList<>(List.of(project1));
+
     UserAssignmentRequest rq = new UserAssignmentRequest()
-        .id(userId)
-        .projects(projects);
+        .projects(projects)
+        .id(userId);
     rq.setOrgRole(OrgRoleEnum.MANAGER);
 
-    performAssignUserSuccess(201L, rq, adminToken);
-    performAssignUserSuccess(202L, rq, managerToken);
-    // TODO check project role
-    validateAssignedRoles(201L, userId, projects);
+    performAssignUserSuccess(ORG_ID_2, rq, managerToken);
+    validateAssignedRoles(ORG_ID_2, userId, projects);
+
+    var prUser = projectUserRepository
+        .findProjectUserByUserIdAndProjectId(rq.getId(), 302L);
+    Assertions.assertTrue(prUser.isPresent());
+    prUser.map(pru -> {
+      Assertions.assertEquals(ProjectRole.EDITOR, pru.getProjectRole());
+      return pru;
+    });
   }
 
 
   @Test
-  @DisplayName("Admin, Manager sends request to assign user to organization with duplicate projects and project roles (ex. id=1, project_role=Viewer - twice mentioned in response)")
-  void Test_11() throws Exception {
+  @DisplayName("Admin, Manager sends request to assign user to organization with duplicate projects and project roles")
+  void Test_10() throws Exception {
     Long userId = 108L;
-    List<UserProjectInfo> projects = new ArrayList<>();//TODO: add project
+    UserProjectInfo project1 = new UserProjectInfo()
+        .projectRole(ProjectRoleEnum.VIEWER)
+        .id(302L);
+
+    List<UserProjectInfo> projects = new ArrayList<>(List.of(project1, project1, project1));
+
     UserAssignmentRequest rq = new UserAssignmentRequest()
-        .id(userId)
-        .projects(projects);
-    rq.setOrgRole(OrgRoleEnum.MANAGER);
+        .projects(projects)
+        .id(userId);
+    rq.setOrgRole(OrgRoleEnum.MEMBER);
 
-    performAssignUserSuccess(201L, rq, adminToken);
-    validateAssignedRoles(201L, userId, projects);
+    performAssignUserSuccess(ORG_ID_2, rq, managerToken);
+    validateAssignedRoles(ORG_ID_2, userId, projects);
 
-    performAssignUserSuccess(202L, rq, managerToken);
-    validateAssignedRoles(202L, userId, projects);
+    var prUser = projectUserRepository
+        .findProjectUserByUserIdAndProjectId(rq.getId(), 302L);
+    Assertions.assertTrue(prUser.isPresent());
+    prUser.map(pru -> {
+      Assertions.assertEquals(ProjectRole.VIEWER, pru.getProjectRole());
+      return pru;
+    });
   }
 
   @Test
   @DisplayName("Admin, Manager sends request to assign user to organization with duplicate projects and different project roles")
-  void Test_12() throws Exception {
+  void Test_11() throws Exception {
     Long userId = 108L;
-    List<UserProjectInfo> projects = new ArrayList<>();//TODO: add project
-    UserAssignmentRequest rq = new UserAssignmentRequest()
-        .id(userId)
-        .projects(projects);
-    rq.setOrgRole(OrgRoleEnum.MANAGER);
+    UserProjectInfo project1 = new UserProjectInfo()
+        .projectRole(ProjectRoleEnum.VIEWER)
+        .id(302L);
+    UserProjectInfo project2 = new UserProjectInfo()
+        .projectRole(ProjectRoleEnum.EDITOR)
+        .id(302L);
 
-    performAssignUserSuccess(201L, rq, adminToken);
-    performAssignUserSuccess(202L, rq, managerToken);
-    // TODO check project role DITOR
-    validateAssignedRoles(201L, userId, projects);
+    List<UserProjectInfo> projects = new ArrayList<>(List.of(project1, project2, project1));
+
+    UserAssignmentRequest rq = new UserAssignmentRequest()
+        .projects(projects)
+        .id(userId);
+    rq.setOrgRole(OrgRoleEnum.MEMBER);
+
+    performAssignUserSuccess(ORG_ID_2, rq, managerToken);
+    validateAssignedRoles(ORG_ID_2, userId, projects);
+
+    var prUser = projectUserRepository
+        .findProjectUserByUserIdAndProjectId(rq.getId(), 302L);
+    Assertions.assertTrue(prUser.isPresent());
+    prUser.map(pru -> {
+      Assertions.assertEquals(ProjectRole.EDITOR, pru.getProjectRole());
+      return pru;
+    });
   }
 
   @Test
   @DisplayName("Admin, Manager sends request to assign user who is already assigned to this organization")
-  void Test_13() throws Exception {
+  void Test_12() throws Exception {
     Long orgId = 201L;
     Long userId = 107L;
     UserAssignmentRequest rq = new UserAssignmentRequest()

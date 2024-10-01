@@ -172,6 +172,8 @@ insert into organization_user (user_id, organization_id, organization_role)
 values (104, 201, 'MANAGER');
 insert into organization_user (user_id, organization_id, organization_role)
 values (104, 202, 'MANAGER');
+insert into organization_user (user_id, organization_id, organization_role)
+values (104, 203, 'MANAGER');
 
 -- assign user-member-editor
 insert into organization_user (user_id, organization_id, organization_role)

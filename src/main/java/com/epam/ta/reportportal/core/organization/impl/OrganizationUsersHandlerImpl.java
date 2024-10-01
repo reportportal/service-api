@@ -18,12 +18,13 @@ package com.epam.ta.reportportal.core.organization.impl;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.RESOURCE_ALREADY_EXISTS;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.isNull;
 import static com.epam.ta.reportportal.entity.organization.OrganizationRole.MEMBER;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
+import static java.util.function.Predicate.isEqual;
 
 import com.epam.reportportal.api.model.OrganizationUserBase.OrgRoleEnum;
 import com.epam.reportportal.api.model.OrganizationUsersPage;
@@ -47,7 +48,6 @@ import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
-import com.epam.ta.reportportal.entity.user.ProjectUserId;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserType;
 import java.util.List;
@@ -124,25 +124,20 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
       var projectEntity = projectRepository.findById(project.getId())
           .orElseThrow(
               () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, project.getId()));
-      expect(projectEntity.getOrganizationId(), equalTo(orgId)).verify(RESOURCE_ALREADY_EXISTS,
+      expect(projectEntity.getOrganizationId(), equalTo(orgId)).verify(BAD_REQUEST_ERROR,
           formattedSupplier("Project '{}' does not belong to organization {}", request.getId(),
               orgId)
       );
 
-      var projectUserId = new ProjectUserId();
-      projectUserId.setProjectId(project.getId());
-      projectUserId.setUserId(request.getId());
+      var projectUser = projectUserRepository
+          .findProjectUserByUserIdAndProjectId(request.getId(), project.getId());
+      expect(projectUser.isPresent(), isEqual(false))
+          .verify(ErrorType.PROJECT_ALREADY_EXISTS, projectEntity.getKey());
 
-      var projectUser = projectUserRepository.getById(projectUserId);
-      expect(projectUser, isNull()).verify(ErrorType.PROJECT_ALREADY_EXISTS,
-          projectEntity.getKey());
-
-      projectUser = new ProjectUser()
+      projectUserRepository.save(new ProjectUser()
           .withProject(projectEntity)
           .withProjectRole(ProjectRole.valueOf(project.getProjectRole().name()))
-          .withUser(assignedUser);
-
-      projectUserRepository.save(projectUser);
+          .withUser(assignedUser));
     });
 
     return new UserAssignmentResponse()

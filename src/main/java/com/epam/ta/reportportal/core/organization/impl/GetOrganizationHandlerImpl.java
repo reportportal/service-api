@@ -19,8 +19,8 @@ package com.epam.ta.reportportal.core.organization.impl;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
 
-import com.epam.reportportal.api.model.OrganizationProfile;
-import com.epam.reportportal.api.model.OrganizationProfilesPage;
+import com.epam.reportportal.api.model.OrganizationInfo;
+import com.epam.reportportal.api.model.OrganizationPage;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.collect.Lists;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -57,7 +58,7 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
   }
 
   @Override
-  public OrganizationProfile getOrganizationById(Long organizationId, ReportPortalUser user) {
+  public OrganizationInfo getOrganizationById(Long organizationId, ReportPortalUser user) {
     Filter filter = new Filter(OrganizationFilter.class, Lists.newArrayList());
     filter.withCondition(
         new FilterCondition(Condition.EQUALS, false, organizationId.toString(), CRITERIA_ID));
@@ -67,9 +68,9 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
   }
 
   @Override
-  public OrganizationProfilesPage getOrganizations(ReportPortalUser rpUser, Queryable filter,
+  public OrganizationPage getOrganizations(ReportPortalUser rpUser, Queryable filter,
       Pageable pageable) {
-    OrganizationProfilesPage organizationProfilesPage = new OrganizationProfilesPage();
+    OrganizationPage organizationPage = new OrganizationPage();
 
     if (!rpUser.getUserRole().equals(UserRole.ADMINISTRATOR)) {
       var orgIds = organizationUserRepository.findOrganizationIdsByUserId(rpUser.getUserId())
@@ -79,19 +80,18 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
 
       if (orgIds.isEmpty()) {
         // return empty response
-        return responseWithPageParameters(organizationProfilesPage, pageable, 0);
+        return responseWithPageParameters(organizationPage, pageable, 0);
       } else {
         filter.getFilterConditions().add(
             new FilterCondition(Condition.IN, false, orgIds, CRITERIA_ID));
       }
     }
 
-    var organizationProfiles = organizationRepositoryCustom.findByFilter(filter, pageable);
+    Page<OrganizationInfo> orgsInfo = organizationRepositoryCustom.findByFilter(filter, pageable);
 
-    organizationProfilesPage.items(organizationProfiles.getContent());
+    organizationPage.items(orgsInfo.getContent());
 
-    return responseWithPageParameters(organizationProfilesPage, pageable,
-        organizationProfiles.getTotalElements());
+    return responseWithPageParameters(organizationPage, pageable, orgsInfo.getTotalElements());
   }
 
 }

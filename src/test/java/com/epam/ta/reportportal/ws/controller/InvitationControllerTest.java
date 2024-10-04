@@ -24,10 +24,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.epam.reportportal.api.model.Invitation;
 import com.epam.reportportal.api.model.Invitation.StatusEnum;
 import com.epam.reportportal.api.model.InvitationRequest;
-import com.epam.reportportal.api.model.UserOrgInfo.OrgRoleEnum;
-import com.epam.reportportal.api.model.UserOrgInfoWithProjects;
+import com.epam.reportportal.api.model.InvitationRequestOrganizationsInner;
+import com.epam.reportportal.api.model.UserOrgRole;
+import com.epam.reportportal.api.model.UserOrgRole.OrgRoleEnum;
 import com.epam.reportportal.api.model.UserProjectInfo;
-import com.epam.reportportal.api.model.UserProjectInfo.ProjectRoleEnum;
+import com.epam.reportportal.api.model.UserProjectRole.ProjectRoleEnum;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
@@ -45,9 +46,9 @@ class InvitationControllerTest extends BaseMvcTest {
 
   @Test
   void createInvitationByAdmin() throws Exception {
-    List<UserOrgInfoWithProjects> organizations = new ArrayList<>();
+    List<InvitationRequestOrganizationsInner> organizations = new ArrayList<>();
     List<UserProjectInfo> projects = new ArrayList<>();
-    UserOrgInfoWithProjects orgInfo = new UserOrgInfoWithProjects();
+    InvitationRequestOrganizationsInner orgInfo = new InvitationRequestOrganizationsInner();
     UserProjectInfo projectInfo = new UserProjectInfo()
         .id(1L)
         .projectRole(ProjectRoleEnum.VIEWER);
@@ -55,7 +56,7 @@ class InvitationControllerTest extends BaseMvcTest {
     projects.add(projectInfo);
 
     orgInfo.setId(1L);
-    orgInfo.setOrgRole(OrgRoleEnum.MANAGER);
+    orgInfo.setOrgRole(UserOrgRole.OrgRoleEnum.MANAGER);
     orgInfo.setProjects(projects);
 
     organizations.add(orgInfo);
@@ -84,9 +85,9 @@ class InvitationControllerTest extends BaseMvcTest {
 
   @Test
   void createInvitationNotEnoughPermissions() throws Exception {
-    List<UserOrgInfoWithProjects> organizations = new ArrayList<>();
+    List<InvitationRequestOrganizationsInner> organizations = new ArrayList<>();
     List<UserProjectInfo> projects = new ArrayList<>();
-    UserOrgInfoWithProjects orgInfo = new UserOrgInfoWithProjects();
+    InvitationRequestOrganizationsInner orgInfo = new InvitationRequestOrganizationsInner();
     UserProjectInfo projectInfo = new UserProjectInfo()
         .id(1L)
         .projectRole(ProjectRoleEnum.VIEWER);

@@ -26,8 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.epam.reportportal.api.model.OffsetRequest.OrderEnum;
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
-import com.epam.reportportal.api.model.SearchCriteriaSearchCriteria;
-import com.epam.reportportal.api.model.SearchCriteriaSearchCriteria.OperationEnum;
+import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
+import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner.OperationEnum;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
@@ -77,7 +77,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
 
     SearchCriteriaRQ rq = new SearchCriteriaRQ();
 
-    var searchCriteriaSearchCriteria = new SearchCriteriaSearchCriteria()
+    var searchCriteriaSearchCriteria = new SearchCriteriaSearchCriteriaInner()
         .filterKey(field)
         .operation(OperationEnum.fromValue(op))
         .value(value);

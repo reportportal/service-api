@@ -18,10 +18,12 @@ package com.epam.ta.reportportal.core.organization.impl;
 
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
 
+import com.epam.reportportal.api.model.OrganizationUser;
 import com.epam.reportportal.api.model.OrganizationUsersPage;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.organization.OrganizationUsersHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationUsersRepositoryCustom;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +40,8 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
 
   @Override
   public OrganizationUsersPage getOrganizationUsers(Queryable filter, Pageable pageable) {
-    var organizationUserProfiles = organizationUsersRepositoryCustom.findByFilter(filter, pageable);
+    Page<OrganizationUser> organizationUserProfiles = organizationUsersRepositoryCustom.findByFilter(
+        filter, pageable);
 
     OrganizationUsersPage organizationUsersPage =
         new OrganizationUsersPage()
@@ -47,4 +50,6 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     return responseWithPageParameters(organizationUsersPage, pageable,
         organizationUserProfiles.getTotalElements());
   }
+
+
 }

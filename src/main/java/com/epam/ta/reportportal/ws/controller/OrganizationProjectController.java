@@ -21,10 +21,9 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION
 import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.reportportal.api.OrganizationProjectApi;
-import com.epam.reportportal.api.model.OrganizationProjectInfo;
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
-import com.epam.reportportal.api.model.ProjectDetails;
-import com.epam.reportportal.api.model.ProjectProfile;
+import com.epam.reportportal.api.model.ProjectBase;
+import com.epam.reportportal.api.model.ProjectInfo;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -32,7 +31,6 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.filter.OrganizationsSearchCriteriaService;
-import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.core.project.OrganizationProjectHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.util.ControllerUtils;
@@ -81,15 +79,14 @@ public class OrganizationProjectController extends BaseController implements
   @Transactional(readOnly = true)
   @PreAuthorize(ORGANIZATION_MEMBER)
   @Override
-  public ResponseEntity<OrganizationProjectsPage> getOrganizationsOrgIdProjects(
-      Long orgId, Integer limit, Integer offset, String order, String name, String slug,
-      String sort) {
+  public ResponseEntity<OrganizationProjectsPage> getOrganizationsOrgIdProjects(Long orgId,
+      Integer offset, Integer limit, String order, String name, String slug, String sort) {
 
     organizationRepositoryCustom.findById(orgId).orElseThrow(() -> new ReportPortalException(
         ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
     var pageable = ControllerUtils.getPageable(sort, order, offset, limit);
-    Filter filter = new Filter(ProjectProfile.class, Lists.newArrayList())
+    Filter filter = new Filter(ProjectInfo.class, Lists.newArrayList())
         .withCondition(
             new FilterCondition(Condition.EQUALS, false, orgId.toString(), "organization_id"));
     if (StringUtils.isNotEmpty(name)) {
@@ -109,14 +106,14 @@ public class OrganizationProjectController extends BaseController implements
   @Override
   @Transactional
   @PreAuthorize(ORGANIZATION_MANAGER)
-  public ResponseEntity<OrganizationProjectInfo> postOrganizationsOrgIdProjects(Long orgId,
-      ProjectDetails projectDetails
+  public ResponseEntity<ProjectInfo> postOrganizationsOrgIdProjects(Long orgId,
+      ProjectBase projectBase
   ) {
     var user = getLoggedUser();
 
     return ResponseEntity
         .status(OK)
-        .body(organizationProjectHandler.createProject(orgId, projectDetails, user));
+        .body(organizationProjectHandler.createProject(orgId, projectBase, user));
   }
 
   @Override
@@ -130,7 +127,7 @@ public class OrganizationProjectController extends BaseController implements
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
     Filter filter = searchCriteriaService
-        .createFilterBySearchCriteria(searchCriteria, ProjectProfile.class)
+        .createFilterBySearchCriteria(searchCriteria, ProjectInfo.class)
         .withCondition(
             new FilterCondition(Condition.EQUALS, false, orgId.toString(), "organization_id"));
 

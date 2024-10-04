@@ -25,7 +25,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 
 import com.epam.reportportal.api.model.Invitation;
 import com.epam.reportportal.api.model.InvitationRequest;
-import com.epam.reportportal.api.model.UserOrgInfoWithProjects;
+import com.epam.reportportal.api.model.InvitationRequestOrganizationsInner;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
@@ -38,6 +38,7 @@ import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.google.common.collect.Maps;
+import java.net.URI;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -108,15 +109,13 @@ public class UserInvitationHandlerImpl implements UserInvitationHandler {
       throw new ReportPortalException("Error while user creation bid registering.", e);
     }
 
-    StringBuilder emailLink = new StringBuilder(baseUrl)
-        .append("/ui/#registration?uuid=")
-        .append(userBid.getUuid());
+    String emailLink = baseUrl + "/ui/#registration?uuid=" + userBid.getUuid();
 
     var response = new Invitation();
     response.setCreatedAt(now);
     response.setExpiresAt(now.plus(1, ChronoUnit.DAYS));
     response.setId(UUID.fromString(userBid.getUuid()));
-    response.setLink(emailLink.toString());
+    response.setLink(URI.create(emailLink));
     response.setStatus(PENDING);
 
     /*
@@ -141,7 +140,7 @@ public class UserInvitationHandlerImpl implements UserInvitationHandler {
         formattedSupplier("email='{}'", request.getEmail()));
   }
 
-  private Metadata getUserCreationBidMetadata(List<UserOrgInfoWithProjects> organizations) {
+  private Metadata getUserCreationBidMetadata(List<InvitationRequestOrganizationsInner> organizations) {
     final Map<String, Object> meta = Maps.newHashMapWithExpectedSize(1);
     meta.put(BID_TYPE, INTERNAL_BID_TYPE);
     meta.put("organizations", getOrganizationsMetadata(organizations));
@@ -151,7 +150,7 @@ public class UserInvitationHandlerImpl implements UserInvitationHandler {
   }
 
   private List<Map<String, Object>> getProjectsMetadata(
-      List<UserOrgInfoWithProjects> organizations) {
+      List<InvitationRequestOrganizationsInner> organizations) {
     return organizations.stream()
         .flatMap(org -> org.getProjects().stream())
         .map(project -> {
@@ -164,7 +163,7 @@ public class UserInvitationHandlerImpl implements UserInvitationHandler {
 
 
   private List<Map<String, Object>> getOrganizationsMetadata(
-      List<UserOrgInfoWithProjects> organizations) {
+      List<InvitationRequestOrganizationsInner> organizations) {
     return organizations.stream()
         .map(org -> {
           Map<String, Object> obj = new HashMap<>();

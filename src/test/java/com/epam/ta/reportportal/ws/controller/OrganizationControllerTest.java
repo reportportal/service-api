@@ -22,10 +22,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.reportportal.api.model.OffsetRequest.OrderEnum;
-import com.epam.reportportal.api.model.OrganizationProfilesPage;
+import com.epam.reportportal.api.model.OrganizationPage;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
-import com.epam.reportportal.api.model.SearchCriteriaSearchCriteria;
-import com.epam.reportportal.api.model.SearchCriteriaSearchCriteria.OperationEnum;
+import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
+import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner.OperationEnum;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -97,7 +97,7 @@ class OrganizationControllerTest extends BaseMvcTest {
       throws Exception {
     SearchCriteriaRQ rq = new SearchCriteriaRQ();
 
-    var searchCriteriaSearchCriteria = new SearchCriteriaSearchCriteria()
+    var searchCriteriaSearchCriteria = new SearchCriteriaSearchCriteriaInner()
         .filterKey(field)
         .operation(OperationEnum.fromValue(op))
         .value(value);
@@ -113,8 +113,8 @@ class OrganizationControllerTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
-    var response = objectMapper.readValue(result.andReturn().getResponse().getContentAsString(),
-        OrganizationProfilesPage.class);
+    var response = objectMapper.readValue(
+        result.andReturn().getResponse().getContentAsString(), OrganizationPage.class);
 
     assertEquals(rows, response.getItems().size());
 

@@ -17,6 +17,9 @@
 package com.epam.ta.reportportal.core.organization;
 
 import com.epam.reportportal.api.model.OrganizationUsersPage;
+import com.epam.reportportal.api.model.UserAssignmentRequest;
+import com.epam.reportportal.api.model.UserAssignmentResponse;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import org.springframework.data.domain.Pageable;
 
@@ -27,4 +30,6 @@ public interface OrganizationUsersHandler {
 
   OrganizationUsersPage getOrganizationUsers(Queryable filter, Pageable pageable);
 
+  UserAssignmentResponse assignUser(Long orgId, UserAssignmentRequest request,
+      ReportPortalUser user);
 }

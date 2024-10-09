@@ -19,9 +19,11 @@ package com.epam.ta.reportportal.auth.permissions;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails;
 import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails.ProjectDetails;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
@@ -39,10 +41,14 @@ import org.springframework.stereotype.Component;
 public class OrganizationManagerPermission implements Permission {
 
   private final OrganizationUserRepository organizationUserRepository;
+  private final OrganizationRepositoryCustom organizationRepositoryCustom;
+
 
   @Autowired
-  OrganizationManagerPermission(OrganizationUserRepository organizationUserRepository) {
+  OrganizationManagerPermission(OrganizationUserRepository organizationUserRepository,
+      OrganizationRepositoryCustom organizationRepositoryCustom) {
     this.organizationUserRepository = organizationUserRepository;
+    this.organizationRepositoryCustom = organizationRepositoryCustom;
   }
 
   @Override
@@ -54,6 +60,9 @@ public class OrganizationManagerPermission implements Permission {
     OAuth2Authentication oauth = (OAuth2Authentication) authentication;
     ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
+
+    var org = organizationRepositoryCustom.findById((Long) orgId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
     var ou = organizationUserRepository.findByUserIdAndOrganization_Id(rpUser.getUserId(),
         (Long) orgId);

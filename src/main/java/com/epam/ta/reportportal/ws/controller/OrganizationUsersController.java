@@ -18,9 +18,12 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MANAGER;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
+import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.reportportal.api.OrganizationUserApi;
 import com.epam.reportportal.api.model.OrganizationUsersPage;
+import com.epam.reportportal.api.model.UserAssignmentRequest;
+import com.epam.reportportal.api.model.UserAssignmentResponse;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -35,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -71,5 +75,16 @@ public class OrganizationUsersController extends BaseController implements Organ
         .ok()
         .body(organizationUsersHandler.getOrganizationUsers(filter, pageable));
 
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  @PreAuthorize(ORGANIZATION_MANAGER)
+  public ResponseEntity<UserAssignmentResponse> postOrganizationsOrgIdUsers(
+      @PathVariable("org_id") Long orgId, UserAssignmentRequest request) {
+    var user = getLoggedUser();
+    return ResponseEntity
+        .status(OK)
+        .body(organizationUsersHandler.assignUser(orgId, request, user));
   }
 }

@@ -108,7 +108,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
   @Test
   @DisplayName("Admin/Manager sends request to assign Internal user to organization")
-  void Test_1() throws Exception {
+  void assignInternalUser() throws Exception {
     Long userId = 108L;
     List<UserProjectInfo> projects = new ArrayList<>();
     UserAssignmentRequest rq = new UserAssignmentRequest()
@@ -124,7 +124,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
   @Test
   @DisplayName("Admin, Manager sends request to assign UPSA user to External organization")
-  void Test_2() throws Exception {
+  void assignUpsaToExternalOrg() throws Exception {
     Long orgId = 204L;
     Long userId = 109L;
     List<UserProjectInfo> projects = new ArrayList<>();
@@ -138,7 +138,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
   @Test
   @DisplayName("Admin, Manager sends request to assign UPSA user to NOT External organization")
-  void Test_3() throws Exception {
+  void assignInternalUserToExternalOrg() throws Exception {
     Long userId = 109L;
     List<UserProjectInfo> projects = new ArrayList<>();
     UserAssignmentRequest rq = new UserAssignmentRequest()
@@ -154,7 +154,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
   @Test
   @DisplayName("Admin, Manager sends request to assign NOT UPSA user to organization and project in this organization")
-  void Test_4() throws Exception {
+  void assignInternalUserWithProjects() throws Exception {
     Long userId = 108L;
     UserProjectInfo project1 = new UserProjectInfo()
         .projectRole(UserProjectInfo.ProjectRoleEnum.EDITOR)
@@ -175,7 +175,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
   @Test
   @DisplayName("Non admin user sends request to assign user to an organization (no assignment to this organization)")
-  void Test_5() throws Exception {
+  void assignUserByNobody() throws Exception {
     Long orgId = 204L;
     Long userId = 108L;
     UserAssignmentRequest rq = new UserAssignmentRequest()
@@ -187,7 +187,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
   @Test
   @DisplayName("Member of organization sends request to assign user to an organization")
-  void Test_6() throws Exception {
+  void assignUserByMember() throws Exception {
     Long userId = 108L;
     UserAssignmentRequest rq = new UserAssignmentRequest()
         .projects(new ArrayList<>())
@@ -199,7 +199,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
   @Test
   @DisplayName("Member of organization sends request to assign user to an organization and project")
-  void Test_7() throws Exception {
+  void assignUserByMemberWithProjects() throws Exception {
     Long orgId = 204L;
     Long userId = 108L;
     UserAssignmentRequest rq = new UserAssignmentRequest()
@@ -211,7 +211,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
   @Test
   @DisplayName("Admin, Manager sends request to assign user to non-existent organization")
-  void Test_8() throws Exception {
+  void organizationNotFound() throws Exception {
     Long nonExistentOrgId = 999L;
     Long userId = 108L;
     UserAssignmentRequest rq = new UserAssignmentRequest()
@@ -225,7 +225,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
   @Test
   @DisplayName("Admin, Manager can assign user with Manager role in organization, in case any projects assignment - 'Editor' role is set by default to the Manager")
-  void Test_9() throws Exception {
+  void assignWithManagerAndSetEditorRole() throws Exception {
     Long userId = 108L;
     UserProjectInfo project1 = new UserProjectInfo()
         .projectRole(ProjectRoleEnum.VIEWER)
@@ -253,7 +253,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
   @Test
   @DisplayName("Admin, Manager sends request to assign user to organization with duplicate projects and project roles")
-  void Test_10() throws Exception {
+  void duplicateProjectRoles() throws Exception {
     Long userId = 108L;
     UserProjectInfo project1 = new UserProjectInfo()
         .projectRole(ProjectRoleEnum.VIEWER)
@@ -280,7 +280,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
   @Test
   @DisplayName("Admin, Manager sends request to assign user to organization with duplicate projects and different project roles")
-  void Test_11() throws Exception {
+  void duplicatePorjectsWithDifferentRoles() throws Exception {
     Long userId = 108L;
     UserProjectInfo project1 = new UserProjectInfo()
         .projectRole(ProjectRoleEnum.VIEWER)
@@ -310,7 +310,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
   @Test
   @DisplayName("Admin, Manager sends request to assign user who is already assigned to this organization")
-  void Test_12() throws Exception {
+  void alreadyAssigned() throws Exception {
     Long orgId = 201L;
     Long userId = 107L;
     UserAssignmentRequest rq = new UserAssignmentRequest()

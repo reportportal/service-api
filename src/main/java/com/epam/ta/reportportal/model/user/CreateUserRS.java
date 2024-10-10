@@ -23,6 +23,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 /**
  * @author Aliaksandr_Kazantsau
  */
@@ -35,7 +37,10 @@ public class CreateUserRS extends WarningAwareRS {
   private Long id;
 
   @JsonProperty("uuid")
-  private String uuid;
+  private UUID uuid;
+
+  @JsonProperty("login")
+  private String login;
 
   @JsonProperty("email")
   private String email;
@@ -48,9 +53,6 @@ public class CreateUserRS extends WarningAwareRS {
 
   @JsonProperty("active")
   private boolean active;
-
-  @JsonProperty("login")
-  private String login;
 
   @JsonProperty("externalId")
   private String externalId;

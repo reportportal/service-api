@@ -50,6 +50,9 @@ public class CreateUserRS extends WarningAwareRS {
   @JsonProperty("accountRole")
   private String accountRole;
 
+  @JsonProperty("accountType")
+  private String accountType;
+
   @JsonProperty("active")
   private boolean active;
 

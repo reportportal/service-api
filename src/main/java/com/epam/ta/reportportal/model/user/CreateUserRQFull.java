@@ -47,9 +47,10 @@ public class CreateUserRQFull {
   @Schema(requiredMode = RequiredMode.NOT_REQUIRED)
   private String externalId;
 
+  @In(allowedValues = {"INTERNAL", "SCIM"})
   @JsonProperty(value = "accountType")
   @Schema(requiredMode = RequiredMode.NOT_REQUIRED, allowableValues = "INTERNAL, SCIM")
-  private UserType accountType;
+  private String accountType;
 
   @NotBlank
   @Pattern(regexp = "[a-zA-Z0-9-_.]+")
@@ -81,7 +82,6 @@ public class CreateUserRQFull {
   @Schema(requiredMode = RequiredMode.NOT_REQUIRED, allowableValues = "USER, ADMINISTRATOR")
   private String accountRole;
 
-  @NotNull
   @JsonProperty(value = "projectRole")
   @In(allowedValues = {"operator", "customer", "member", "project_manager"})
   @Schema(requiredMode = RequiredMode.NOT_REQUIRED, allowableValues = "CUSTOMER, MEMBER, PROJECT_MANAGER")

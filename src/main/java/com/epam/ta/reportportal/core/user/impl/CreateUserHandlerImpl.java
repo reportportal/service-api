@@ -246,8 +246,14 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
     final CreateUserRS response = new CreateUserRS();
     response.setId(user.getId());
+    response.setUuid(user.getUuid());
+    response.setExternalId(user.getExternalId());
     response.setLogin(user.getLogin());
-
+    response.setEmail(user.getEmail());
+    response.setFullName(user.getFullName());
+    response.setAccountRole(user.getRole().toString());
+    response.setAccountType(user.getUserType().toString());
+    response.setActive(user.isActive());
     return Pair.of(TO_ACTIVITY_RESOURCE.apply(user, personalProject.getId()), response);
   }
 

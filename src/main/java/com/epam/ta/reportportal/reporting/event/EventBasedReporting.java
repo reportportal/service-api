@@ -23,12 +23,12 @@ import com.epam.reportportal.events.StartChildItemRqEvent;
 import com.epam.reportportal.events.StartLaunchRqEvent;
 import com.epam.reportportal.events.StartRootItemRqEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
-import com.epam.ta.reportportal.core.item.StartTestItemHandler;
-import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
-import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
-import com.epam.ta.reportportal.core.log.CreateLogHandler;
+import com.epam.ta.reportportal.reporting.async.producer.ItemFinishProducer;
+import com.epam.ta.reportportal.reporting.async.producer.ItemStartProducer;
+import com.epam.ta.reportportal.reporting.async.producer.LaunchFinishProducer;
+import com.epam.ta.reportportal.reporting.async.producer.LaunchStartProducer;
+import com.epam.ta.reportportal.reporting.async.producer.LogProducer;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
@@ -49,24 +49,25 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @RequiredArgsConstructor
 public class EventBasedReporting {
 
-  private final StartLaunchHandler startLaunchHandler;
-
-  private final FinishLaunchHandler finishLaunchHandler;
-
-  private final StartTestItemHandler startTestItemHandler;
-
-  private final FinishTestItemHandler finishTestItemHandler;
-
-  private final CreateLogHandler createLogHandler;
-
   private final ProjectExtractor projectExtractor;
+
+  private final LaunchStartProducer launchStartProducer;
+
+  private final LaunchFinishProducer launchFinishProducer;
+
+  private final ItemStartProducer itemStartProducer;
+
+  private final ItemFinishProducer itemFinishProducer;
+
+  private final LogProducer logProducer;
+
 
   @EventListener
   public void handleStartLaunch(StartLaunchRqEvent startLaunchRqEvent) {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         startLaunchRqEvent.getProjectName());
-    startLaunchHandler.startLaunch(user, projectDetails, startLaunchRqEvent.getStartLaunchRQ());
+    launchStartProducer.startLaunch(user, projectDetails, startLaunchRqEvent.getStartLaunchRQ());
   }
 
   @EventListener
@@ -74,7 +75,7 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         finishLaunchRqEvent.getProjectName());
-    finishLaunchHandler.finishLaunch(finishLaunchRqEvent.getLaunchUuid(),
+    launchFinishProducer.finishLaunch(finishLaunchRqEvent.getLaunchUuid(),
         finishLaunchRqEvent.getFinishExecutionRQ(), projectDetails, user,
         extractCurrentHttpRequest().map(LinkGenerator::composeBaseUrl).orElse(""));
   }
@@ -84,7 +85,7 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         startRootItemRqEvent.getProjectName());
-    startTestItemHandler.startRootItem(user, projectDetails,
+    itemStartProducer.startRootItem(user, projectDetails,
         startRootItemRqEvent.getStartTestItemRQ());
   }
 
@@ -93,7 +94,7 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         startChildItemRqEvent.getProjectName());
-    startTestItemHandler.startChildItem(user, projectDetails,
+    itemStartProducer.startChildItem(user, projectDetails,
         startChildItemRqEvent.getStartTestItemRQ(), startChildItemRqEvent.getParentUuid());
   }
 
@@ -102,7 +103,7 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         finishItemRqEvent.getProjectName());
-    finishTestItemHandler.finishTestItem(user, projectDetails, finishItemRqEvent.getItemUuid(),
+    itemFinishProducer.finishTestItem(user, projectDetails, finishItemRqEvent.getItemUuid(),
         finishItemRqEvent.getFinishTestItemRQ());
   }
 
@@ -111,7 +112,7 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         saveLogRqEvent.getProjectName());
-    createLogHandler.createLog(saveLogRqEvent.getSaveLogRQ(), saveLogRqEvent.getFile(),
+    logProducer.createLog(saveLogRqEvent.getSaveLogRQ(), saveLogRqEvent.getFile(),
         projectDetails);
   }
 

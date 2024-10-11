@@ -19,9 +19,10 @@ plugins {
     id 'org.springframework.boot' version '2.5.15'
     id 'java'
     id "org.owasp.dependencycheck" version "9.0.9"
-    id 'org.hidetake.swagger.generator' version '2.19.2'
+    id "org.openapi.generator" version "7.8.0"
 }
 
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
@@ -69,11 +70,10 @@ dependencies {
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:plugin-api:5.11.1'
     } else {
-        implementation 'com.github.reportportal:commons-dao:920d089'
-        implementation 'com.github.reportportal:commons:1fa3eb2'
+        implementation 'com.github.reportportal:commons-dao:f83cdcd'
+        implementation 'com.github.reportportal:commons:c769d96'
         implementation 'com.github.reportportal:plugin-api:d1c0f0e'
     }
-    swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.61'
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -82,6 +82,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
+
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
 
     implementation 'org.springframework:spring-jdbc:6.1.5'
     //Fix CVE-2023-34050
@@ -177,11 +179,17 @@ sourceSets {
 }
 
 tasks.register('updateApiSubmodule', Exec) {
-    commandLine 'git', 'submodule', 'update', '--init' , "--recursive"
+    commandLine 'git', 'submodule', 'update', '--init', "--recursive"
 }
 
-tasks.register('updateApiSubmoduleLatestCommit', Exec) {
-    commandLine 'git', 'submodule', 'update', '--init' , "--recursive", "--remote"
+tasks.register('generateOrganizationsApi', GenerateTask) {
+    generatorName.set("spring")
+    inputSpec.set("$rootDir/reportportal-common-api/api/openapi/reportportal-api.yaml")
+    outputDir.set("$buildDir/generated")
+    configFile.set("$rootDir/src/main/resources/openapi/config.json")
+    skipOverwrite.set(false)
+    cleanupOutput.set(true)
+    // verbose.set(true)
 }
 
 processResources {
@@ -198,34 +206,6 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-parameters"
     options.debug = true
     options.debugOptions.debugLevel = "source,lines,vars"
-}
-
-
-swaggerSources {
-    organizations {
-        inputFile = file("$rootDir/reportportal-common-api/api/openapi/apis/organizations.yaml")
-        code {
-            language = 'spring'
-            configFile = file("$rootDir/src/main/resources/openapi/config.json")
-            components = ['apis']
-            jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
-            outputDir = file("$buildDir/generated")
-            wipeOutputDir = false
-
-        }
-    }
-
-    users {
-        inputFile = file("$rootDir/reportportal-common-api/api/openapi/apis/users.yaml")
-        code {
-            language = 'spring'
-            configFile = file("$rootDir/src/main/resources/openapi/config.json")
-            components = ['apis']
-            jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
-            outputDir = file("$buildDir/generated")
-            wipeOutputDir = false
-        }
-    }
 }
 
 dependencyCheck {
@@ -253,8 +233,8 @@ test {
     }
 }
 
-swaggerSources.organizations.code.dependsOn updateApiSubmodule
-compileJava.dependsOn swaggerSources.organizations.code, swaggerSources.users.code
+generateOrganizationsApi.dependsOn updateApiSubmodule
+compileJava.dependsOn generateOrganizationsApi
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts

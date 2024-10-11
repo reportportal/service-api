@@ -19,8 +19,8 @@ package com.epam.ta.reportportal.core.organization.impl;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
 
-import com.epam.reportportal.api.model.OrganizationProfile;
-import com.epam.reportportal.api.model.OrganizationProfilesPage;
+import com.epam.reportportal.api.model.OrganizationInfo;
+import com.epam.reportportal.api.model.OrganizationPage;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -57,19 +57,22 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
   }
 
   @Override
-  public OrganizationProfile getOrganizationById(Long organizationId, ReportPortalUser user) {
+  public OrganizationInfo getOrganizationById(Long organizationId, ReportPortalUser user) {
     Filter filter = new Filter(OrganizationFilter.class, Lists.newArrayList());
     filter.withCondition(
         new FilterCondition(Condition.EQUALS, false, organizationId.toString(), CRITERIA_ID));
-    return organizationRepositoryCustom.findByFilter(filter).stream().findFirst()
+    return organizationRepositoryCustom.findByFilter(filter)
+        .stream()
+        .map()// CONVERT TO OrganizationInfo
+        .findFirst()
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, organizationId));
   }
 
   @Override
-  public OrganizationProfilesPage getOrganizations(ReportPortalUser rpUser, Queryable filter,
+  public OrganizationPage getOrganizations(ReportPortalUser rpUser, Queryable filter,
       Pageable pageable) {
-    OrganizationProfilesPage organizationProfilesPage = new OrganizationProfilesPage();
+    OrganizationPage organizationProfilesPage = new OrganizationPage();
 
     if (!rpUser.getUserRole().equals(UserRole.ADMINISTRATOR)) {
       var orgIds = organizationUserRepository.findOrganizationIdsByUserId(rpUser.getUserId())

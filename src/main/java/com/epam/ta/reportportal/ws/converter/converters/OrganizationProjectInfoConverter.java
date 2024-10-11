@@ -16,8 +16,10 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.reportportal.api.model.OrganizationProjectInfo;
+import com.epam.reportportal.api.model.OrganizationInfo;
+import com.epam.reportportal.api.model.ProjectInfo;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectProfile;
 import java.util.function.Function;
 
 /**
@@ -31,18 +33,18 @@ public final class OrganizationProjectInfoConverter {
     //static only
   }
 
-  public static Function<Project, OrganizationProjectInfo> TO_ORG_PROJECT_INFO = project -> {
+  public static Function<ProjectProfile, ProjectInfo> TO_ORG_PROJECT_INFO = project -> {
     if (project == null) {
       return null;
     }
-    OrganizationProjectInfo projectInfo = new OrganizationProjectInfo();
+    ProjectInfo projectInfo = new ProjectInfo();
 
     projectInfo.setId(project.getId());
     projectInfo.setName(project.getName());
     projectInfo.setSlug(project.getSlug());
     projectInfo.setKey(project.getKey());
     projectInfo.setOrganizationId(project.getOrganizationId());
-    projectInfo.setCreatedAt(project.getCreationDate());
+    projectInfo.setCreatedAt(project.getCreatedAt());
     projectInfo.setUpdatedAt(project.getUpdatedAt());
     return projectInfo;
   };

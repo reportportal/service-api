@@ -26,12 +26,13 @@ import static com.epam.ta.reportportal.entity.organization.OrganizationRole.MEMB
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
 import static java.util.function.Predicate.isEqual;
 
-import com.epam.reportportal.api.model.OrganizationUserBase.OrgRoleEnum;
+import com.epam.reportportal.api.model.AccountType;
+import com.epam.reportportal.api.model.InstanceRole;
+import com.epam.reportportal.api.model.OrgRole;
+import com.epam.reportportal.api.model.OrgUserAssignment;
 import com.epam.reportportal.api.model.OrganizationUsersPage;
-import com.epam.reportportal.api.model.UserAssignmentRequest;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
 import com.epam.reportportal.api.model.UserProjectInfo;
-import com.epam.reportportal.api.model.UserProjectInfo.ProjectRoleEnum;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -45,6 +46,7 @@ import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationUsersRepositoryCustom;
 import com.epam.ta.reportportal.entity.enums.OrganizationType;
 import com.epam.ta.reportportal.entity.organization.Organization;
+import com.epam.ta.reportportal.entity.organization.OrganizationUserAccount;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
@@ -54,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -90,18 +93,36 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
 
   @Override
   public OrganizationUsersPage getOrganizationUsers(Queryable filter, Pageable pageable) {
-    var organizationUserProfiles = organizationUsersRepositoryCustom.findByFilter(filter, pageable);
+    Page<OrganizationUserAccount> organizationUserAccounts = organizationUsersRepositoryCustom.findByFilter(filter, pageable);
+// TODO: Implement the converter
+    List<com.epam.reportportal.api.model.OrganizationUser> items = organizationUserAccounts.getContent()
+        .stream()
+        .map(orgUserAccount -> {
+          return new com.epam.reportportal.api.model.OrganizationUser()
+              .id(orgUserAccount.getId())
+              .fullName(orgUserAccount.getFullName())
+              .createdAt(orgUserAccount.getCreatedAt())
+              .updatedAt(orgUserAccount.getUpdatedAt())
+              .instanceRole(InstanceRole.fromValue(orgUserAccount.getInstanceRole().toString()))
+              .orgRole(OrgRole.fromValue(orgUserAccount.getOrgRole().toString()))
+              .accountType(AccountType.fromValue(orgUserAccount.getAuthProvider().toString()))
+              .email(orgUserAccount.getEmail())
+              .lastLoginAt(orgUserAccount.getLastLoginAt())
+              .externalId(orgUserAccount.getExternalId())
+              .uuid(orgUserAccount.getUuid());
+        })
+        .toList();
 
     OrganizationUsersPage organizationUsersPage =
         new OrganizationUsersPage()
-            .items(organizationUserProfiles.getContent());
+            .items(organizationUserAccounts.getContent());
 
     return responseWithPageParameters(organizationUsersPage, pageable,
         organizationUserProfiles.getTotalElements());
   }
 
   @Override
-  public UserAssignmentResponse assignUser(Long orgId, UserAssignmentRequest request,
+  public UserAssignmentResponse assignUser(Long orgId, OrgUserAssignment request,
       ReportPortalUser rpUser) {
     User assignedUser = userRepository.findById(request.getId())
         .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, orgId));
@@ -152,12 +173,12 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     organizationUserRepository.save(organizationUser);
   }
 
-  private List<UserProjectInfo> getDeduplicatedProjectList(UserAssignmentRequest request) {
-    Map<Long, ProjectRoleEnum> projectRoleMap = new ConcurrentHashMap<>();
+  private List<UserProjectInfo> getDeduplicatedProjectList(OrgUserAssignment request) {
+    Map<Long, com.epam.reportportal.api.model.ProjectRole> projectRoleMap = new ConcurrentHashMap<>();
     request.getProjects().stream()
         .map(project -> {
-          if (request.getOrgRole().equals(OrgRoleEnum.MANAGER)) {
-            return project.projectRole(ProjectRoleEnum.EDITOR);
+          if (request.getOrgRole().equals(OrgRole.MANAGER)) {
+            return project.projectRole(ProjectRole.EDITOR);
           }
           return project;
         })

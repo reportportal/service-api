@@ -21,8 +21,9 @@ import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaCon
 import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.reportportal.api.OrganizationUserApi;
+import com.epam.reportportal.api.model.Order;
+import com.epam.reportportal.api.model.OrgUserAssignment;
 import com.epam.reportportal.api.model.OrganizationUsersPage;
-import com.epam.reportportal.api.model.UserAssignmentRequest;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -60,7 +61,7 @@ public class OrganizationUsersController extends BaseController implements Organ
   @Transactional(readOnly = true)
   public ResponseEntity<OrganizationUsersPage> getOrganizationsOrgIdUsers(Long orgId,
       Integer offset,
-      Integer limit, String order, String sort) {
+      Integer limit, Order order, String sort) {
     organizationRepositoryCustom.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
@@ -81,7 +82,7 @@ public class OrganizationUsersController extends BaseController implements Organ
   @Transactional(readOnly = true)
   @PreAuthorize(ORGANIZATION_MANAGER)
   public ResponseEntity<UserAssignmentResponse> postOrganizationsOrgIdUsers(
-      @PathVariable("org_id") Long orgId, UserAssignmentRequest request) {
+      @PathVariable("org_id") Long orgId, OrgUserAssignment request) {
     var user = getLoggedUser();
     return ResponseEntity
         .status(OK)

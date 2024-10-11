@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.filter.impl;
 
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
-import com.epam.reportportal.api.model.SearchCriteriaSearchCriteria;
+import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -57,7 +57,8 @@ public class OrganizationsSearchCriteriaServiceImpl implements OrganizationsSear
         .collect(Collectors.toList());
   }
 
-  private ConvertibleCondition mapCriteriaToCondition(SearchCriteriaSearchCriteria searchCriteria) {
+  private ConvertibleCondition mapCriteriaToCondition(
+      SearchCriteriaSearchCriteriaInner searchCriteria) {
     return FilterOperation.fromString(searchCriteria.getOperation().toString())
         .map(operation -> operation.getConditionBuilder()
             .withSearchCriteria(searchCriteria.getFilterKey())

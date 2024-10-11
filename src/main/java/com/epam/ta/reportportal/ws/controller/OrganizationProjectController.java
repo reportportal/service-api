@@ -21,10 +21,10 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION
 import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.reportportal.api.OrganizationProjectApi;
-import com.epam.reportportal.api.model.OrganizationProjectInfo;
+import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
-import com.epam.reportportal.api.model.ProjectDetails;
-import com.epam.reportportal.api.model.ProjectProfile;
+import com.epam.reportportal.api.model.ProjectBase;
+import com.epam.reportportal.api.model.ProjectInfo;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -35,14 +35,23 @@ import com.epam.ta.reportportal.core.filter.OrganizationsSearchCriteriaService;
 import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.core.project.OrganizationProjectHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
+import com.epam.ta.reportportal.entity.project.ProjectProfile;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.google.common.collect.Lists;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -82,8 +91,14 @@ public class OrganizationProjectController extends BaseController implements
   @PreAuthorize(ORGANIZATION_MEMBER)
   @Override
   public ResponseEntity<OrganizationProjectsPage> getOrganizationsOrgIdProjects(
-      Long orgId, Integer limit, Integer offset, String order, String name, String slug,
-      String sort) {
+      Long orgId,
+      Integer offset,
+      Integer limit,
+      Order order,
+      @Parameter(name = "name", description = "Filter projects by containing name.", in = ParameterIn.QUERY) @Valid @RequestParam(value = "name", required = false) String name,
+      @Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$") @Parameter(name = "slug", description = "Filter projects by slug.", in = ParameterIn.QUERY) @Valid @RequestParam(value = "slug", required = false) String slug,
+      @Parameter(name = "sort", description = "Indicate sort by field.", in = ParameterIn.QUERY) @Valid @RequestParam(value = "sort", required = false, defaultValue = "name") String sort
+  ) {
 
     organizationRepositoryCustom.findById(orgId).orElseThrow(() -> new ReportPortalException(
         ErrorType.ORGANIZATION_NOT_FOUND, orgId));
@@ -109,14 +124,14 @@ public class OrganizationProjectController extends BaseController implements
   @Override
   @Transactional
   @PreAuthorize(ORGANIZATION_MANAGER)
-  public ResponseEntity<OrganizationProjectInfo> postOrganizationsOrgIdProjects(Long orgId,
-      ProjectDetails projectDetails
+  public ResponseEntity<ProjectInfo> postOrganizationsOrgIdProjects(Long orgId,
+      ProjectBase projectBase
   ) {
     var user = getLoggedUser();
 
     return ResponseEntity
         .status(OK)
-        .body(organizationProjectHandler.createProject(orgId, projectDetails, user));
+        .body(organizationProjectHandler.createProject(orgId, projectBase, user));
   }
 
   @Override

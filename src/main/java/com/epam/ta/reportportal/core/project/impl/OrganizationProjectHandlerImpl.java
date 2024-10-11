@@ -26,10 +26,11 @@ import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetails
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
 import static com.epam.ta.reportportal.ws.converter.converters.OrganizationProjectInfoConverter.TO_ORG_PROJECT_INFO;
 
-import com.epam.reportportal.api.model.OrganizationProjectInfo;
+
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
-import com.epam.reportportal.api.model.ProjectDetails;
-import com.epam.reportportal.api.model.ProjectProfile;
+import com.epam.reportportal.api.model.ProjectBase;
+import com.epam.reportportal.api.model.ProjectInfo;
+import com.epam.ta.reportportal.entity.project.ProjectProfile;
 import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -138,28 +139,32 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
 
     Page<ProjectProfile> projectProfilePagedList =
         organizationProjectRepository.getProjectProfileListByFilter(filter, pageable);
-    organizationProjectsPage.items(projectProfilePagedList.getContent());
+
+    organizationProjectsPage.items(projectProfilePagedList.getContent()
+        .stream()
+        .map(TO_ORG_PROJECT_INFO)
+        .collect(Collectors.toList()));
 
     return responseWithPageParameters(organizationProjectsPage, pageable,
         projectProfilePagedList.getTotalElements());
   }
 
   @Override
-  public OrganizationProjectInfo createProject(Long orgId, ProjectDetails projectDetails,
+  public ProjectInfo createProject(Long orgId, ProjectBase projectBase,
       ReportPortalUser user) {
     Organization organization = organizationRepositoryCustom.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
-    if (StringUtils.isEmpty(projectDetails.getSlug())) {
-      projectDetails.setSlug(SlugifyUtils.slugify(projectDetails.getName()));
+    if (StringUtils.isEmpty(projectBase.getSlug())) {
+      projectBase.setSlug(SlugifyUtils.slugify(projectBase.getName()));
     }
-    var projectKey = organization.getSlug() + "." + projectDetails.getSlug();
+    var projectKey = organization.getSlug() + "." + projectBase.getSlug();
 
     Optional<Project> existProject =
-        projectRepository.findByNameAndOrganizationId(projectDetails.getName(), orgId);
+        projectRepository.findByNameAndOrganizationId(projectBase.getName(), orgId);
     expect(existProject, not(isPresent())).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectKey);
 
-    var projectToSave = generateProjectBody(orgId, projectDetails, projectKey);
+    var projectToSave = generateProjectBody(orgId, projectBase, projectKey);
     Set<ProjectAttribute> projectAttributes = ProjectUtils.defaultProjectAttributes(projectToSave,
         attributeRepository.getDefaultProjectAttributes()
     );
@@ -173,7 +178,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     applicationEventPublisher.publishEvent(new ProjectEvent(createdProject.getId(), CREATE_KEY));
     publishProjectCreatedEvent(user, createdProject);
 
-    return TO_ORG_PROJECT_INFO.apply(createdProject);
+    return TO_ORG_PROJECT_INFO.apply(createdProject); // backward convert to ProjectInfo
   }
 
   @Override
@@ -188,7 +193,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
   }
 
 
-  private Project generateProjectBody(Long orgId, ProjectDetails projectDetails,
+  private Project generateProjectBody(Long orgId, ProjectBase projectDetails,
       String projectKey) {
     var project = new Project();
     var now = Instant.now();

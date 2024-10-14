@@ -95,7 +95,7 @@ class UserControllerTest extends BaseMvcTest {
     rq.setAccountRole("USER");
     rq.setProjectRole("EDITOR");
     rq.setActive(true);
-    rq.setAccountType(UserType.INTERNAL);
+    rq.setAccountType(UserType.INTERNAL.toString());
     rq.setAccountType("SCIM");
 
     MvcResult mvcResult = mockMvc.perform(
@@ -132,7 +132,7 @@ class UserControllerTest extends BaseMvcTest {
     rq.setProjectRole("EDITOR");
     rq.setDefaultProject("default_personal");
     rq.setActive(true);
-    rq.setAccountType(UserType.INTERNAL);
+    rq.setAccountType(UserType.INTERNAL.toString());
 
     MvcResult mvcResult = mockMvc.perform(
             post("/users").with(token(oAuthHelper.getSuperadminToken()))

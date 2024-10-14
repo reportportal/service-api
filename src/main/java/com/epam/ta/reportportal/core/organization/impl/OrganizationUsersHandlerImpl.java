@@ -92,13 +92,14 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
 
   @Override
   public OrganizationUsersPage getOrganizationUsers(Queryable filter, Pageable pageable) {
-    Page<OrganizationUserAccount> organizationUserAccounts = organizationUsersRepositoryCustom.findByFilter(
-        filter, pageable);
+    Page<OrganizationUserAccount> organizationUserAccounts =
+        organizationUsersRepositoryCustom.findByFilter(filter, pageable);
 
-    List<com.epam.reportportal.api.model.OrganizationUser> items = organizationUserAccounts.getContent()
-        .stream()
-        .map(orgUserAccount -> ORG_USER_ACCOUNT_TO_ORG_USER.apply(orgUserAccount))
-        .toList();
+    List<com.epam.reportportal.api.model.OrganizationUser> items =
+        organizationUserAccounts.getContent()
+            .stream()
+            .map(orgUserAccount -> ORG_USER_ACCOUNT_TO_ORG_USER.apply(orgUserAccount))
+            .toList();
 
     OrganizationUsersPage organizationUsersPage =
         new OrganizationUsersPage()

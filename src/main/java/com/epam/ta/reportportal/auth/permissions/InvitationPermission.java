@@ -94,7 +94,8 @@ public class InvitationPermission implements Permission {
 
   }
 
-  private void checkOrganizationAccess(ReportPortalUser rpUser, InvitationRequestOrganizationsInner orgInfo) {
+  private void checkOrganizationAccess(ReportPortalUser rpUser,
+      InvitationRequestOrganizationsInner orgInfo) {
 
     var org = organizationRepositoryCustom.findById(orgInfo.getId())
         .orElseThrow(

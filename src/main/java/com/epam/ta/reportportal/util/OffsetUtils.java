@@ -20,6 +20,13 @@ public class OffsetUtils {
         .order(getOrderEnum(pageable));
   }
 
+  /**
+   * Retrieves the sort fields from the given pageable object.
+   *
+   * @param pageable the pageable object containing sort information
+   * @return a comma-separated string of sort fields, or an empty string if no sort fields are
+   * present
+   */
   public static String getSortFields(Pageable pageable) {
     return pageable.getSort().stream()
         .map(Order::getProperty)
@@ -27,6 +34,12 @@ public class OffsetUtils {
         .orElse("");
   }
 
+  /**
+   * Retrieves the sort order direction from the given pageable object.
+   *
+   * @param pageable the pageable object containing sort information
+   * @return the sort direction, either ASC or DESC, defaults to ASC if no sort direction is present
+   */
   public static Direction getOrderEnum(Pageable pageable) {
     return pageable.getSort().stream()
         .map(Order::getDirection)

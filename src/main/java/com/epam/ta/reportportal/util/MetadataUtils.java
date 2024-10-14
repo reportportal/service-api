@@ -28,6 +28,12 @@ public class MetadataUtils {
     //static only
   }
 
+  /**
+   * Retrieves the last login time from the given metadata.
+   *
+   * @param meta the metadata object containing user information
+   * @return the last login time as an {@link Instant}, or null if not present
+   */
   public static Instant getLastLogin(Metadata meta) {
     return ofNullable(meta)
         .map(Metadata::getMetadata)

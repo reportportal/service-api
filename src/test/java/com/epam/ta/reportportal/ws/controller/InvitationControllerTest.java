@@ -45,7 +45,6 @@ class InvitationControllerTest extends BaseMvcTest {
 
   @Test
   void createInvitationByAdmin() throws Exception {
-    List<InvitationRequestOrganizationsInner> organizations = new ArrayList<>();
     List<UserProjectInfo> projects = new ArrayList<>();
     InvitationRequestOrganizationsInner orgInfo = new InvitationRequestOrganizationsInner();
     UserProjectInfo projectInfo = new UserProjectInfo()
@@ -58,6 +57,7 @@ class InvitationControllerTest extends BaseMvcTest {
     orgInfo.setOrgRole(OrgRole.MANAGER);
     orgInfo.setProjects(projects);
 
+    List<InvitationRequestOrganizationsInner> organizations = new ArrayList<>();
     organizations.add(orgInfo);
 
     var rq = new InvitationRequest();
@@ -84,7 +84,6 @@ class InvitationControllerTest extends BaseMvcTest {
 
   @Test
   void createInvitationNotEnoughPermissions() throws Exception {
-    List<InvitationRequestOrganizationsInner> organizations = new ArrayList<>();
     List<UserProjectInfo> projects = new ArrayList<>();
     var orgInfo = new InvitationRequestOrganizationsInner();
     UserProjectInfo projectInfo = new UserProjectInfo()
@@ -97,6 +96,7 @@ class InvitationControllerTest extends BaseMvcTest {
     orgInfo.setOrgRole(OrgRole.MANAGER);
     orgInfo.setProjects(projects);
 
+    List<InvitationRequestOrganizationsInner> organizations = new ArrayList<>();
     organizations.add(orgInfo);
 
     var rq = new InvitationRequest();

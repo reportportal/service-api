@@ -98,24 +98,6 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
       }
     }
 
-/*    List<OrganizationUser> items = organizationUserAccounts.getContent()
-        .stream()
-        .map(orgUserAccount ->
-            new com.epam.reportportal.api.model.OrganizationUser()
-                .id(orgUserAccount.getId())
-                .fullName(orgUserAccount.getFullName())
-                .createdAt(orgUserAccount.getCreatedAt())
-                .updatedAt(orgUserAccount.getUpdatedAt())
-                .instanceRole(InstanceRole.fromValue(orgUserAccount.getInstanceRole().toString()))
-                .orgRole(OrgRole.fromValue(orgUserAccount.getOrgRole().toString()))
-                .accountType(AccountType.fromValue(orgUserAccount.getAuthProvider().toString()))
-                .email(orgUserAccount.getEmail())
-                .lastLoginAt(orgUserAccount.getLastLoginAt())
-                .externalId(orgUserAccount.getExternalId())
-                .uuid(orgUserAccount.getUuid())
-        )
-        .toList();*/
-
     var organizationProfiles = organizationRepositoryCustom.findByFilter(filter, pageable);
     var items = organizationProfiles.getContent()
         .stream()

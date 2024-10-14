@@ -20,14 +20,13 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.reportportal.api.model.OrganizationUserBase.OrgRoleEnum;
-import com.epam.reportportal.api.model.UserAssignmentRequest;
+import com.epam.reportportal.api.model.OrgRole;
+import com.epam.reportportal.api.model.OrgUserAssignment;
+import com.epam.reportportal.api.model.ProjectRole;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
 import com.epam.reportportal.api.model.UserProjectInfo;
-import com.epam.reportportal.api.model.UserProjectInfo.ProjectRoleEnum;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.ProjectUserId;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
@@ -111,7 +110,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   void assignInternalUser() throws Exception {
     Long userId = 108L;
     List<UserProjectInfo> projects = new ArrayList<>();
-    UserAssignmentRequest rq = new UserAssignmentRequest()
+    OrgUserAssignment rq = new OrgUserAssignment()
         .projects(projects)
         .id(userId);
 
@@ -128,7 +127,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
     Long orgId = 204L;
     Long userId = 109L;
     List<UserProjectInfo> projects = new ArrayList<>();
-    UserAssignmentRequest rq = new UserAssignmentRequest()
+    OrgUserAssignment rq = new OrgUserAssignment()
         .projects(projects)
         .id(userId);
 
@@ -141,7 +140,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   void assignInternalUserToExternalOrg() throws Exception {
     Long userId = 109L;
     List<UserProjectInfo> projects = new ArrayList<>();
-    UserAssignmentRequest rq = new UserAssignmentRequest()
+    OrgUserAssignment rq = new OrgUserAssignment()
         .projects(projects)
         .id(userId);
 
@@ -157,14 +156,14 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   void assignInternalUserWithProjects() throws Exception {
     Long userId = 108L;
     UserProjectInfo project1 = new UserProjectInfo()
-        .projectRole(UserProjectInfo.ProjectRoleEnum.EDITOR)
+        .projectRole(ProjectRole.EDITOR)
         .id(302L);
     UserProjectInfo project2 = new UserProjectInfo()
-        .projectRole(UserProjectInfo.ProjectRoleEnum.EDITOR)
+        .projectRole(ProjectRole.EDITOR)
         .id(303L);
     List<UserProjectInfo> projects = new ArrayList<>(List.of(project1, project2));
 
-    UserAssignmentRequest rq = new UserAssignmentRequest()
+    OrgUserAssignment rq = new OrgUserAssignment()
         .projects(projects)
         .id(userId);
 
@@ -178,7 +177,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   void assignUserByNobody() throws Exception {
     Long orgId = 204L;
     Long userId = 108L;
-    UserAssignmentRequest rq = new UserAssignmentRequest()
+    OrgUserAssignment rq = new OrgUserAssignment()
         .projects(new ArrayList<>())
         .id(userId);
 
@@ -189,7 +188,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   @DisplayName("Member of organization sends request to assign user to an organization")
   void assignUserByMember() throws Exception {
     Long userId = 108L;
-    UserAssignmentRequest rq = new UserAssignmentRequest()
+    OrgUserAssignment rq = new OrgUserAssignment()
         .projects(new ArrayList<>())
         .id(userId);
 
@@ -202,7 +201,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   void assignUserByMemberWithProjects() throws Exception {
     Long orgId = 204L;
     Long userId = 108L;
-    UserAssignmentRequest rq = new UserAssignmentRequest()
+    OrgUserAssignment rq = new OrgUserAssignment()
         .projects(new ArrayList<>())
         .id(userId);
 
@@ -214,7 +213,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   void organizationNotFound() throws Exception {
     Long nonExistentOrgId = 999L;
     Long userId = 108L;
-    UserAssignmentRequest rq = new UserAssignmentRequest()
+    OrgUserAssignment rq = new OrgUserAssignment()
         .projects(new ArrayList<>())
         .id(userId);
 
@@ -228,15 +227,15 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   void assignWithManagerAndSetEditorRole() throws Exception {
     Long userId = 108L;
     UserProjectInfo project1 = new UserProjectInfo()
-        .projectRole(ProjectRoleEnum.VIEWER)
+        .projectRole(ProjectRole.VIEWER)
         .id(302L);
 
     List<UserProjectInfo> projects = new ArrayList<>(List.of(project1));
 
-    UserAssignmentRequest rq = new UserAssignmentRequest()
+    OrgUserAssignment rq = new OrgUserAssignment()
         .projects(projects)
         .id(userId);
-    rq.setOrgRole(OrgRoleEnum.MANAGER);
+    rq.setOrgRole(OrgRole.MANAGER);
 
     performAssignUserSuccess(ORG_ID_2, rq, managerToken);
     validateAssignedRoles(ORG_ID_2, userId, projects);
@@ -245,7 +244,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
         .findProjectUserByUserIdAndProjectId(rq.getId(), 302L);
     Assertions.assertTrue(prUser.isPresent());
     prUser.map(pru -> {
-      Assertions.assertEquals(ProjectRole.EDITOR, pru.getProjectRole());
+      Assertions.assertEquals(ProjectRole.EDITOR.toString(), pru.getProjectRole().toString());
       return pru;
     });
   }
@@ -256,15 +255,15 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   void duplicateProjectRoles() throws Exception {
     Long userId = 108L;
     UserProjectInfo project1 = new UserProjectInfo()
-        .projectRole(ProjectRoleEnum.VIEWER)
+        .projectRole(ProjectRole.VIEWER)
         .id(302L);
 
     List<UserProjectInfo> projects = new ArrayList<>(List.of(project1, project1, project1));
 
-    UserAssignmentRequest rq = new UserAssignmentRequest()
+    OrgUserAssignment rq = new OrgUserAssignment()
         .projects(projects)
         .id(userId);
-    rq.setOrgRole(OrgRoleEnum.MEMBER);
+    rq.setOrgRole(OrgRole.MEMBER);
 
     performAssignUserSuccess(ORG_ID_2, rq, managerToken);
     validateAssignedRoles(ORG_ID_2, userId, projects);
@@ -273,7 +272,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
         .findProjectUserByUserIdAndProjectId(rq.getId(), 302L);
     Assertions.assertTrue(prUser.isPresent());
     prUser.map(pru -> {
-      Assertions.assertEquals(ProjectRole.VIEWER, pru.getProjectRole());
+      Assertions.assertEquals(ProjectRole.VIEWER.toString(), pru.getProjectRole().toString());
       return pru;
     });
   }
@@ -283,18 +282,18 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   void duplicatePorjectsWithDifferentRoles() throws Exception {
     Long userId = 108L;
     UserProjectInfo project1 = new UserProjectInfo()
-        .projectRole(ProjectRoleEnum.VIEWER)
+        .projectRole(ProjectRole.VIEWER)
         .id(302L);
     UserProjectInfo project2 = new UserProjectInfo()
-        .projectRole(ProjectRoleEnum.EDITOR)
+        .projectRole(ProjectRole.EDITOR)
         .id(302L);
 
     List<UserProjectInfo> projects = new ArrayList<>(List.of(project1, project2, project1));
 
-    UserAssignmentRequest rq = new UserAssignmentRequest()
+    OrgUserAssignment rq = new OrgUserAssignment()
         .projects(projects)
         .id(userId);
-    rq.setOrgRole(OrgRoleEnum.MEMBER);
+    rq.setOrgRole(OrgRole.MEMBER);
 
     performAssignUserSuccess(ORG_ID_2, rq, managerToken);
     validateAssignedRoles(ORG_ID_2, userId, projects);
@@ -303,7 +302,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
         .findProjectUserByUserIdAndProjectId(rq.getId(), 302L);
     Assertions.assertTrue(prUser.isPresent());
     prUser.map(pru -> {
-      Assertions.assertEquals(ProjectRole.EDITOR, pru.getProjectRole());
+      Assertions.assertEquals(ProjectRole.EDITOR.toString(), pru.getProjectRole().toString());
       return pru;
     });
   }
@@ -313,7 +312,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   void alreadyAssigned() throws Exception {
     Long orgId = 201L;
     Long userId = 107L;
-    UserAssignmentRequest rq = new UserAssignmentRequest()
+    OrgUserAssignment rq = new OrgUserAssignment()
         .projects(new ArrayList<>())
         .id(userId);
 
@@ -321,7 +320,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   }
 
 
-  private UserAssignmentResponse performAssignUserSuccess(Long orgId, UserAssignmentRequest rq,
+  private UserAssignmentResponse performAssignUserSuccess(Long orgId, OrgUserAssignment rq,
       String token)
       throws Exception {
     var result = performAssignUserRequest(BASE_URL.formatted(orgId), rq, token, status().isOk());
@@ -329,7 +328,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
     return objectMapper.readValue(result, UserAssignmentResponse.class);
   }
 
-  private String performAssignUserRequest(String url, UserAssignmentRequest rq, String token,
+  private String performAssignUserRequest(String url, OrgUserAssignment rq, String token,
       ResultMatcher status) throws Exception {
     return mockMvc.perform(MockMvcRequestBuilders
             .post(url)
@@ -343,7 +342,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   }
 
 
-  private UserAssignmentResponse performAssignUserFailed(Long orgId, UserAssignmentRequest rq,
+  private UserAssignmentResponse performAssignUserFailed(Long orgId, OrgUserAssignment rq,
       String token, ResultMatcher status)
       throws Exception {
     var result = performAssignUserRequest(BASE_URL.formatted(orgId), rq, token, status);

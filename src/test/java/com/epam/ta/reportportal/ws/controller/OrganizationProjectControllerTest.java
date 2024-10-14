@@ -23,11 +23,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.reportportal.api.model.OffsetRequest.OrderEnum;
+import com.epam.reportportal.api.model.FilterOperation;
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
-import com.epam.reportportal.api.model.SearchCriteriaSearchCriteria;
-import com.epam.reportportal.api.model.SearchCriteriaSearchCriteria.OperationEnum;
+import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
@@ -36,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -77,14 +77,14 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
 
     SearchCriteriaRQ rq = new SearchCriteriaRQ();
 
-    var searchCriteriaSearchCriteria = new SearchCriteriaSearchCriteria()
+    var searchCriteriaSearchCriteria = new SearchCriteriaSearchCriteriaInner()
         .filterKey(field)
-        .operation(OperationEnum.fromValue(op))
+        .operation(FilterOperation.fromValue(op))
         .value(value);
     rq.limit(100)
         .offset(0)
         .sort(field)
-        .order(OrderEnum.ASC);
+        .order(Direction.ASC);
     rq.addSearchCriteriaItem(searchCriteriaSearchCriteria);
 
     var result = mockMvc.perform(MockMvcRequestBuilders.post("/organizations/1/projects/searches")

@@ -21,17 +21,17 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.reportportal.api.model.OffsetRequest.OrderEnum;
-import com.epam.reportportal.api.model.OrganizationProfilesPage;
+import com.epam.reportportal.api.model.FilterOperation;
+import com.epam.reportportal.api.model.OrganizationPage;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
-import com.epam.reportportal.api.model.SearchCriteriaSearchCriteria;
-import com.epam.reportportal.api.model.SearchCriteriaSearchCriteria.OperationEnum;
+import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /**
@@ -97,14 +97,14 @@ class OrganizationControllerTest extends BaseMvcTest {
       throws Exception {
     SearchCriteriaRQ rq = new SearchCriteriaRQ();
 
-    var searchCriteriaSearchCriteria = new SearchCriteriaSearchCriteria()
+    var searchCriteriaSearchCriteria = new SearchCriteriaSearchCriteriaInner()
         .filterKey(field)
-        .operation(OperationEnum.fromValue(op))
+        .operation(FilterOperation.fromValue(op))
         .value(value);
     rq.limit(1)
         .offset(0)
         .sort(field)
-        .order(OrderEnum.ASC);
+        .order(Direction.ASC);
     rq.addSearchCriteriaItem(searchCriteriaSearchCriteria);
 
     var result = mockMvc.perform(MockMvcRequestBuilders.post("/organizations/searches")
@@ -114,7 +114,7 @@ class OrganizationControllerTest extends BaseMvcTest {
         .andExpect(status().isOk());
 
     var response = objectMapper.readValue(result.andReturn().getResponse().getContentAsString(),
-        OrganizationProfilesPage.class);
+        OrganizationPage.class);
 
     assertEquals(rows, response.getItems().size());
 

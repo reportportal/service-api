@@ -27,7 +27,7 @@ import static com.epam.ta.reportportal.entity.project.ProjectUtils.findUserConfi
 import static java.util.function.Predicate.isEqual;
 
 import com.epam.reportportal.api.model.InvitationRequest;
-import com.epam.reportportal.api.model.UserOrgInfoWithProjects;
+import com.epam.reportportal.api.model.InvitationRequestOrganizationsInner;
 import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -81,7 +81,7 @@ public class InvitationPermission implements Permission {
     ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
-    List<UserOrgInfoWithProjects> orgs =
+    List<InvitationRequestOrganizationsInner> orgs =
         ((InvitationRequest) invitationRequest).getOrganizations();
 
     expect(CollectionUtils.isEmpty(orgs), isEqual(false))
@@ -94,7 +94,8 @@ public class InvitationPermission implements Permission {
 
   }
 
-  private void checkOrganizationAccess(ReportPortalUser rpUser, UserOrgInfoWithProjects orgInfo) {
+  private void checkOrganizationAccess(ReportPortalUser rpUser,
+      InvitationRequestOrganizationsInner orgInfo) {
 
     var org = organizationRepositoryCustom.findById(orgInfo.getId())
         .orElseThrow(

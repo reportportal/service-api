@@ -21,10 +21,10 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION
 import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.reportportal.api.OrganizationProjectApi;
-import com.epam.reportportal.api.model.OrganizationProjectInfo;
+import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
-import com.epam.reportportal.api.model.ProjectDetails;
-import com.epam.reportportal.api.model.ProjectProfile;
+import com.epam.reportportal.api.model.ProjectBase;
+import com.epam.reportportal.api.model.ProjectInfo;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -32,9 +32,9 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.filter.OrganizationsSearchCriteriaService;
-import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.core.project.OrganizationProjectHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
+import com.epam.ta.reportportal.entity.project.ProjectProfile;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
@@ -81,9 +81,9 @@ public class OrganizationProjectController extends BaseController implements
   @Transactional(readOnly = true)
   @PreAuthorize(ORGANIZATION_MEMBER)
   @Override
-  public ResponseEntity<OrganizationProjectsPage> getOrganizationsOrgIdProjects(
-      Long orgId, Integer limit, Integer offset, String order, String name, String slug,
-      String sort) {
+  public ResponseEntity<OrganizationProjectsPage> getOrganizationsOrgIdProjects(Long orgId,
+      Integer offset, Integer limit, Order order, String name, String slug, String sort
+  ) {
 
     organizationRepositoryCustom.findById(orgId).orElseThrow(() -> new ReportPortalException(
         ErrorType.ORGANIZATION_NOT_FOUND, orgId));
@@ -109,14 +109,14 @@ public class OrganizationProjectController extends BaseController implements
   @Override
   @Transactional
   @PreAuthorize(ORGANIZATION_MANAGER)
-  public ResponseEntity<OrganizationProjectInfo> postOrganizationsOrgIdProjects(Long orgId,
-      ProjectDetails projectDetails
+  public ResponseEntity<ProjectInfo> postOrganizationsOrgIdProjects(Long orgId,
+      ProjectBase projectBase
   ) {
     var user = getLoggedUser();
 
     return ResponseEntity
         .status(OK)
-        .body(organizationProjectHandler.createProject(orgId, projectDetails, user));
+        .body(organizationProjectHandler.createProject(orgId, projectBase, user));
   }
 
   @Override
@@ -138,7 +138,7 @@ public class OrganizationProjectController extends BaseController implements
 
     var pageable = ControllerUtils.getPageable(
         StringUtils.isNotBlank(searchCriteria.getSort()) ? searchCriteria.getSort() : "name",
-        searchCriteria.getOrder().toString(),
+        Order.fromValue(searchCriteria.getOrder().toString()),
         searchCriteria.getOffset(),
         searchCriteria.getLimit());
 

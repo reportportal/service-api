@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.core.project;
 
-import com.epam.reportportal.api.model.OrganizationProjectInfo;
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
-import com.epam.reportportal.api.model.ProjectDetails;
+import com.epam.reportportal.api.model.ProjectBase;
+import com.epam.reportportal.api.model.ProjectInfo;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import org.springframework.data.domain.Pageable;
@@ -39,7 +39,7 @@ public interface OrganizationProjectHandler {
       Filter filter,
       Pageable pageable);
 
-  OrganizationProjectInfo createProject(Long orgId, ProjectDetails projectDetails,
+  ProjectInfo createProject(Long orgId, ProjectBase projectDetails,
       ReportPortalUser user);
 
   void deleteProject(ReportPortalUser user, Long orgId, Long prjId);

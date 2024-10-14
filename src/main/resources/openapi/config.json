@@ -2,16 +2,26 @@
   "apiPackage": "com.epam.reportportal.api",
   "modelPackage": "com.epam.reportportal.api.model",
   "dateLibrary": "java8",
-  "typeMappings": {
-    "OffsetDateTime": "Instant"
-  },
-  "importMappings": {
-    "java.time.OffsetDateTime": "java.time.Instant"
-  },
+  "generateBuilders": true,
+  "generateConstructorWithAllArgs": true,
+  "generatedConstructorWithRequiredArgs": true,
+  "hideGenerationTimestamp": true,
   "interfaceOnly": true,
-  "useTags": true,
+  "skipOperationExample": true,
   "java21": true,
   "library": "spring-boot",
-  "hideGenerationTimestamp": true,
-  "skipOverwrite": true
+  "openapiNormalizer": {
+    "REF_AS_PARENT_IN_ALLOF": true
+  },
+  "openApiNullable": false,
+  "skipOverwrite": true,
+  "useTags": true,
+  "typeMappings": {
+    "OffsetDateTime": "Instant",
+    "Order": "Sort.Direction"
+  },
+  "importMappings": {
+    "java.time.OffsetDateTime": "java.time.Instant",
+    "com.epam.reportportal.api.model.Order": "org.springframework.data.domain.Sort"
+  }
 }

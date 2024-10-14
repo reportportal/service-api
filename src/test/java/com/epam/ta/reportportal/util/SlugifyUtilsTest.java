@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.util;
 
 import static com.epam.ta.reportportal.util.RegexpAssertionUtil.checkRegexpPattern;
 
-import com.epam.reportportal.api.model.ProjectDetails;
+import com.epam.reportportal.api.model.ProjectBase;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -43,8 +43,7 @@ class SlugifyUtilsTest {
   void slugify(String prjName) throws NoSuchMethodException {
     var slug = SlugifyUtils.slugify(prjName);
 
-    checkRegexpPattern(ProjectDetails.class, "getSlug", slug);
+    checkRegexpPattern(ProjectBase.class, "getSlug", slug);
   }
-
 
 }

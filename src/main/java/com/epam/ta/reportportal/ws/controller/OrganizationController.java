@@ -19,8 +19,9 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
 
 import com.epam.reportportal.api.OrganizationApi;
-import com.epam.reportportal.api.model.OrganizationProfile;
-import com.epam.reportportal.api.model.OrganizationProfilesPage;
+import com.epam.reportportal.api.model.Order;
+import com.epam.reportportal.api.model.OrganizationInfo;
+import com.epam.reportportal.api.model.OrganizationPage;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -54,7 +55,7 @@ public class OrganizationController extends BaseController implements Organizati
   @Transactional(readOnly = true)
   @PreAuthorize(ORGANIZATION_MEMBER)
   @Override
-  public ResponseEntity<OrganizationProfile> getOrganizationsOrgId(Long orgId) {
+  public ResponseEntity<OrganizationInfo> getOrganizationsOrgId(Long orgId) {
     return ResponseEntity.ok()
         .body(getOrganizationHandler.getOrganizationById(orgId, getLoggedUser()));
   }
@@ -62,8 +63,8 @@ public class OrganizationController extends BaseController implements Organizati
 
   @Transactional(readOnly = true)
   @Override
-  public ResponseEntity<OrganizationProfilesPage> getOrganizations(Integer offset, Integer limit,
-      String order, String name, String slug, String sort) {
+  public ResponseEntity<OrganizationPage> getOrganizations(Integer offset, Integer limit,
+      Order order, String name, String slug, String sort) {
     var user = getLoggedUser();
     Filter filter = new Filter(OrganizationFilter.class, Lists.newArrayList());
 
@@ -86,7 +87,7 @@ public class OrganizationController extends BaseController implements Organizati
 
   @Transactional(readOnly = true)
   @Override
-  public ResponseEntity<OrganizationProfilesPage> postOrganizationsSearches(
+  public ResponseEntity<OrganizationPage> postOrganizationsSearches(
       SearchCriteriaRQ searchCriteria) {
     Filter filter = searchCriteriaService
         .createFilterBySearchCriteria(searchCriteria, OrganizationFilter.class);
@@ -95,7 +96,7 @@ public class OrganizationController extends BaseController implements Organizati
 
     var pageable = ControllerUtils.getPageable(
         StringUtils.isNotBlank(searchCriteria.getSort()) ? searchCriteria.getSort() : "name",
-        searchCriteria.getOrder().toString(),
+        Order.fromValue(searchCriteria.getOrder().toString()),
         searchCriteria.getOffset(),
         searchCriteria.getLimit());
 

@@ -18,9 +18,18 @@ package com.epam.ta.reportportal.core.organization.impl;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
+import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.ORG_PROFILE_TO_ORG_INFO;
 
-import com.epam.reportportal.api.model.OrganizationProfile;
-import com.epam.reportportal.api.model.OrganizationProfilesPage;
+import com.epam.reportportal.api.model.OrgType;
+import com.epam.reportportal.api.model.OrganizationInfo;
+import com.epam.reportportal.api.model.OrganizationPage;
+import com.epam.reportportal.api.model.OrganizationStatsRelationships;
+import com.epam.reportportal.api.model.OrganizationStatsRelationshipsLaunches;
+import com.epam.reportportal.api.model.OrganizationStatsRelationshipsLaunchesMeta;
+import com.epam.reportportal.api.model.OrganizationStatsRelationshipsProjects;
+import com.epam.reportportal.api.model.OrganizationStatsRelationshipsProjectsMeta;
+import com.epam.reportportal.api.model.OrganizationStatsRelationshipsUsers;
+import com.epam.reportportal.api.model.OrganizationStatsRelationshipsUsersMeta;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -57,19 +66,22 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
   }
 
   @Override
-  public OrganizationProfile getOrganizationById(Long organizationId, ReportPortalUser user) {
+  public OrganizationInfo getOrganizationById(Long organizationId, ReportPortalUser user) {
     Filter filter = new Filter(OrganizationFilter.class, Lists.newArrayList());
     filter.withCondition(
         new FilterCondition(Condition.EQUALS, false, organizationId.toString(), CRITERIA_ID));
-    return organizationRepositoryCustom.findByFilter(filter).stream().findFirst()
+    return organizationRepositoryCustom.findByFilter(filter)
+        .stream()
+        .map(orgProfile -> ORG_PROFILE_TO_ORG_INFO.apply(orgProfile))
+        .findFirst()
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, organizationId));
   }
 
   @Override
-  public OrganizationProfilesPage getOrganizations(ReportPortalUser rpUser, Queryable filter,
+  public OrganizationPage getOrganizations(ReportPortalUser rpUser, Queryable filter,
       Pageable pageable) {
-    OrganizationProfilesPage organizationProfilesPage = new OrganizationProfilesPage();
+    OrganizationPage organizationProfilesPage = new OrganizationPage();
 
     if (!rpUser.getUserRole().equals(UserRole.ADMINISTRATOR)) {
       var orgIds = organizationUserRepository.findOrganizationIdsByUserId(rpUser.getUserId())
@@ -87,8 +99,30 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
     }
 
     var organizationProfiles = organizationRepositoryCustom.findByFilter(filter, pageable);
+    var items = organizationProfiles.getContent()
+        .stream()
+        .map(orgProfile -> new OrganizationInfo()
+            .id(orgProfile.getId())
+            .createdAt(orgProfile.getCreatedAt())
+            .name(orgProfile.getName())
+            .updatedAt(orgProfile.getUpdatedAt())
+            .slug(orgProfile.getSlug())
+            .type(OrgType.fromValue(orgProfile.getType()))
+            .externalId(orgProfile.getExternalId())
+            .relationships(new OrganizationStatsRelationships()
+                .users(new OrganizationStatsRelationshipsUsers()
+                    .meta(new OrganizationStatsRelationshipsUsersMeta()
+                        .count(orgProfile.getUsersQuantity())))
+                .projects(new OrganizationStatsRelationshipsProjects()
+                    .meta(new OrganizationStatsRelationshipsProjectsMeta()
+                        .count(orgProfile.getProjectsQuantity())))
+                .launches(new OrganizationStatsRelationshipsLaunches()
+                    .meta(new OrganizationStatsRelationshipsLaunchesMeta()
+                        .count(orgProfile.getLaunchesQuantity())
+                        .lastOccurredAt(orgProfile.getLastRun())))))
+        .toList();
 
-    organizationProfilesPage.items(organizationProfiles.getContent());
+    organizationProfilesPage.items(items);
 
     return responseWithPageParameters(organizationProfilesPage, pageable,
         organizationProfiles.getTotalElements());

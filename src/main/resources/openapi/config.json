@@ -1,7 +1,6 @@
 {
   "apiPackage": "com.epam.reportportal.api",
   "modelPackage": "com.epam.reportportal.api.model",
-
   "dateLibrary": "java8",
   "generateBuilders": true,
   "generateConstructorWithAllArgs": true,
@@ -17,7 +16,6 @@
   "openApiNullable": false,
   "skipOverwrite": true,
   "useTags": true,
-
   "typeMappings": {
     "OffsetDateTime": "Instant",
     "Order": "Sort.Direction"

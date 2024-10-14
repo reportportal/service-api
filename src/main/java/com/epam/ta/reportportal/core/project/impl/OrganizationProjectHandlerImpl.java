@@ -24,13 +24,12 @@ import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
-import static com.epam.ta.reportportal.ws.converter.converters.OrganizationProjectInfoConverter.TO_ORG_PROJECT_INFO;
-
+import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.PROJECT_PROFILE_TO_ORG_PROJECT_INFO;
+import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.PROJECT_TO_ORG_PROJECT_INFO;
 
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
 import com.epam.reportportal.api.model.ProjectBase;
 import com.epam.reportportal.api.model.ProjectInfo;
-import com.epam.ta.reportportal.entity.project.ProjectProfile;
 import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -58,6 +57,7 @@ import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
+import com.epam.ta.reportportal.entity.project.ProjectProfile;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.SlugifyUtils;
@@ -142,7 +142,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
 
     organizationProjectsPage.items(projectProfilePagedList.getContent()
         .stream()
-        .map(TO_ORG_PROJECT_INFO)
+        .map(PROJECT_PROFILE_TO_ORG_PROJECT_INFO)
         .collect(Collectors.toList()));
 
     return responseWithPageParameters(organizationProjectsPage, pageable,
@@ -178,7 +178,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     applicationEventPublisher.publishEvent(new ProjectEvent(createdProject.getId(), CREATE_KEY));
     publishProjectCreatedEvent(user, createdProject);
 
-    return TO_ORG_PROJECT_INFO.apply(createdProject); // backward convert to ProjectInfo
+    return PROJECT_TO_ORG_PROJECT_INFO.apply(createdProject); // backward convert to ProjectInfo
   }
 
   @Override

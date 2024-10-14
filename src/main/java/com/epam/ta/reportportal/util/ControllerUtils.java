@@ -16,8 +16,9 @@
 
 package com.epam.ta.reportportal.util;
 
-import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import java.util.Iterator;
 import java.util.List;
@@ -114,11 +115,15 @@ public class ControllerUtils {
     return uploadedFiles;
   }
 
-  public static Direction parseSortDirection(String order) {
-    return order.equalsIgnoreCase(Direction.DESC.name()) ? Direction.DESC : Direction.ASC;
+  public static Direction parseSortDirection(Order order) {
+    if (order == null) {
+      return Direction.ASC;
+    }
+    return order.toString().equalsIgnoreCase(Direction.DESC.name()) ? Direction.DESC
+        : Direction.ASC;
   }
 
-  public static Pageable getPageable(String sortBy, String order, int offset, int limit) {
+  public static Pageable getPageable(String sortBy, Order order, int offset, int limit) {
     var sortDirection = parseSortDirection(order);
     //TODO: switch to ScrollPosition after migration to Spring Data 3.1
     return OffsetRequest.of(offset, limit, Sort.by(sortDirection, sortBy));

@@ -18,9 +18,18 @@ package com.epam.ta.reportportal.core.organization.impl;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
+import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.ORG_PROFILE_TO_ORG_INFO;
 
+import com.epam.reportportal.api.model.OrgType;
 import com.epam.reportportal.api.model.OrganizationInfo;
 import com.epam.reportportal.api.model.OrganizationPage;
+import com.epam.reportportal.api.model.OrganizationStatsRelationships;
+import com.epam.reportportal.api.model.OrganizationStatsRelationshipsLaunches;
+import com.epam.reportportal.api.model.OrganizationStatsRelationshipsLaunchesMeta;
+import com.epam.reportportal.api.model.OrganizationStatsRelationshipsProjects;
+import com.epam.reportportal.api.model.OrganizationStatsRelationshipsProjectsMeta;
+import com.epam.reportportal.api.model.OrganizationStatsRelationshipsUsers;
+import com.epam.reportportal.api.model.OrganizationStatsRelationshipsUsersMeta;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -63,7 +72,7 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
         new FilterCondition(Condition.EQUALS, false, organizationId.toString(), CRITERIA_ID));
     return organizationRepositoryCustom.findByFilter(filter)
         .stream()
-        .map()// CONVERT TO OrganizationInfo
+        .map(orgProfile -> ORG_PROFILE_TO_ORG_INFO.apply(orgProfile))
         .findFirst()
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, organizationId));
@@ -89,9 +98,49 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
       }
     }
 
-    var organizationProfiles = organizationRepositoryCustom.findByFilter(filter, pageable);
+/*    List<OrganizationUser> items = organizationUserAccounts.getContent()
+        .stream()
+        .map(orgUserAccount ->
+            new com.epam.reportportal.api.model.OrganizationUser()
+                .id(orgUserAccount.getId())
+                .fullName(orgUserAccount.getFullName())
+                .createdAt(orgUserAccount.getCreatedAt())
+                .updatedAt(orgUserAccount.getUpdatedAt())
+                .instanceRole(InstanceRole.fromValue(orgUserAccount.getInstanceRole().toString()))
+                .orgRole(OrgRole.fromValue(orgUserAccount.getOrgRole().toString()))
+                .accountType(AccountType.fromValue(orgUserAccount.getAuthProvider().toString()))
+                .email(orgUserAccount.getEmail())
+                .lastLoginAt(orgUserAccount.getLastLoginAt())
+                .externalId(orgUserAccount.getExternalId())
+                .uuid(orgUserAccount.getUuid())
+        )
+        .toList();*/
 
-    organizationProfilesPage.items(organizationProfiles.getContent());
+    var organizationProfiles = organizationRepositoryCustom.findByFilter(filter, pageable);
+    var items = organizationProfiles.getContent()
+        .stream()
+        .map(orgProfile -> new OrganizationInfo()
+            .id(orgProfile.getId())
+            .createdAt(orgProfile.getCreatedAt())
+            .name(orgProfile.getName())
+            .updatedAt(orgProfile.getUpdatedAt())
+            .slug(orgProfile.getSlug())
+            .type(OrgType.fromValue(orgProfile.getType()))
+            .externalId(orgProfile.getExternalId())
+            .relationships(new OrganizationStatsRelationships()
+                .users(new OrganizationStatsRelationshipsUsers()
+                    .meta(new OrganizationStatsRelationshipsUsersMeta()
+                        .count(orgProfile.getUsersQuantity())))
+                .projects(new OrganizationStatsRelationshipsProjects()
+                    .meta(new OrganizationStatsRelationshipsProjectsMeta()
+                        .count(orgProfile.getProjectsQuantity())))
+                .launches(new OrganizationStatsRelationshipsLaunches()
+                    .meta(new OrganizationStatsRelationshipsLaunchesMeta()
+                        .count(orgProfile.getLaunchesQuantity())
+                        .lastOccurredAt(orgProfile.getLastRun())))))
+        .toList();
+
+    organizationProfilesPage.items(items);
 
     return responseWithPageParameters(organizationProfilesPage, pageable,
         organizationProfiles.getTotalElements());

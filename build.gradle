@@ -19,7 +19,7 @@ plugins {
     id 'org.springframework.boot' version '2.5.15'
     id 'java'
     id "org.owasp.dependencycheck" version "9.0.9"
-    id "org.openapi.generator" version "7.8.0"
+    id "org.openapi.generator" version "7.9.0"
 }
 
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
@@ -70,7 +70,7 @@ dependencies {
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:plugin-api:5.11.1'
     } else {
-        implementation 'com.github.reportportal:commons-dao:f83cdcd'
+        implementation 'com.github.reportportal:commons-dao:fc8e704'
         implementation 'com.github.reportportal:commons:c769d96'
         implementation 'com.github.reportportal:plugin-api:d1c0f0e'
     }

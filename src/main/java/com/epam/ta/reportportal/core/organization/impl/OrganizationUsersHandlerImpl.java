@@ -24,13 +24,13 @@ import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.entity.organization.OrganizationRole.MEMBER;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
+import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.ORG_USER_ACCOUNT_TO_ORG_USER;
 import static java.util.function.Predicate.isEqual;
 
-import com.epam.reportportal.api.model.AccountType;
-import com.epam.reportportal.api.model.InstanceRole;
 import com.epam.reportportal.api.model.OrgRole;
 import com.epam.reportportal.api.model.OrgUserAssignment;
 import com.epam.reportportal.api.model.OrganizationUsersPage;
+import com.epam.reportportal.api.model.ProjectRole;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
 import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -47,7 +47,6 @@ import com.epam.ta.reportportal.dao.organization.OrganizationUsersRepositoryCust
 import com.epam.ta.reportportal.entity.enums.OrganizationType;
 import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.entity.organization.OrganizationUserAccount;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
@@ -93,32 +92,20 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
 
   @Override
   public OrganizationUsersPage getOrganizationUsers(Queryable filter, Pageable pageable) {
-    Page<OrganizationUserAccount> organizationUserAccounts = organizationUsersRepositoryCustom.findByFilter(filter, pageable);
-// TODO: Implement the converter
+    Page<OrganizationUserAccount> organizationUserAccounts = organizationUsersRepositoryCustom.findByFilter(
+        filter, pageable);
+
     List<com.epam.reportportal.api.model.OrganizationUser> items = organizationUserAccounts.getContent()
         .stream()
-        .map(orgUserAccount -> {
-          return new com.epam.reportportal.api.model.OrganizationUser()
-              .id(orgUserAccount.getId())
-              .fullName(orgUserAccount.getFullName())
-              .createdAt(orgUserAccount.getCreatedAt())
-              .updatedAt(orgUserAccount.getUpdatedAt())
-              .instanceRole(InstanceRole.fromValue(orgUserAccount.getInstanceRole().toString()))
-              .orgRole(OrgRole.fromValue(orgUserAccount.getOrgRole().toString()))
-              .accountType(AccountType.fromValue(orgUserAccount.getAuthProvider().toString()))
-              .email(orgUserAccount.getEmail())
-              .lastLoginAt(orgUserAccount.getLastLoginAt())
-              .externalId(orgUserAccount.getExternalId())
-              .uuid(orgUserAccount.getUuid());
-        })
+        .map(orgUserAccount -> ORG_USER_ACCOUNT_TO_ORG_USER.apply(orgUserAccount))
         .toList();
 
     OrganizationUsersPage organizationUsersPage =
         new OrganizationUsersPage()
-            .items(organizationUserAccounts.getContent());
+            .items(items);
 
     return responseWithPageParameters(organizationUsersPage, pageable,
-        organizationUserProfiles.getTotalElements());
+        organizationUserAccounts.getTotalElements());
   }
 
   @Override
@@ -157,7 +144,8 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
 
       projectUserRepository.save(new ProjectUser()
           .withProject(projectEntity)
-          .withProjectRole(ProjectRole.valueOf(project.getProjectRole().name()))
+          .withProjectRole(com.epam.ta.reportportal.entity.project.ProjectRole
+              .valueOf(project.getProjectRole().toString()))
           .withUser(assignedUser));
     });
 
@@ -177,7 +165,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     Map<Long, com.epam.reportportal.api.model.ProjectRole> projectRoleMap = new ConcurrentHashMap<>();
     request.getProjects().stream()
         .map(project -> {
-          if (request.getOrgRole().equals(OrgRole.MANAGER)) {
+          if (request.getOrgRole() != null && request.getOrgRole().equals(OrgRole.MANAGER)) {
             return project.projectRole(ProjectRole.EDITOR);
           }
           return project;
@@ -186,8 +174,8 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
           if (projectRoleMap.get(project.getId()) == null) {
             projectRoleMap.put(project.getId(), project.getProjectRole());
           } else {
-            if (project.getProjectRole().equals(ProjectRoleEnum.EDITOR)) {
-              projectRoleMap.replace(project.getId(), ProjectRoleEnum.EDITOR);
+            if (project.getProjectRole().equals(ProjectRole.EDITOR)) {
+              projectRoleMap.replace(project.getId(), ProjectRole.EDITOR);
             }
           }
         });

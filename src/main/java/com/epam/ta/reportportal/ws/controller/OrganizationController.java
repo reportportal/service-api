@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
 
 import com.epam.reportportal.api.OrganizationApi;
-
 import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.api.model.OrganizationInfo;
 import com.epam.reportportal.api.model.OrganizationPage;
@@ -97,7 +96,7 @@ public class OrganizationController extends BaseController implements Organizati
 
     var pageable = ControllerUtils.getPageable(
         StringUtils.isNotBlank(searchCriteria.getSort()) ? searchCriteria.getSort() : "name",
-        searchCriteria.getOrder().toString(),
+        Order.fromValue(searchCriteria.getOrder().toString()),
         searchCriteria.getOffset(),
         searchCriteria.getLimit());
 

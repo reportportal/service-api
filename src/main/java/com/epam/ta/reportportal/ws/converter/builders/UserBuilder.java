@@ -73,7 +73,6 @@ public class UserBuilder implements Supplier<User> {
 
   @Override
   public User get() {
-    user.setUuid(UUID.randomUUID());
     return user;
   }
 

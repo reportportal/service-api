@@ -20,34 +20,44 @@ import com.epam.ta.reportportal.model.WarningAwareRS;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Aliaksandr_Kazantsau
  */
+
+@Getter
+@Setter
 @JsonInclude(Include.NON_NULL)
 public class CreateUserRS extends WarningAwareRS {
-
   @JsonProperty("id")
   private Long id;
+
+  @JsonProperty("uuid")
+  private UUID uuid;
 
   @JsonProperty("login")
   private String login;
 
-  public Long getId() {
-    return id;
-  }
+  @JsonProperty("email")
+  private String email;
 
-  public void setId(Long id) {
-    this.id = id;
-  }
+  @JsonProperty("fullName")
+  private String fullName;
 
-  public String getLogin() {
-    return login;
-  }
+  @JsonProperty("accountRole")
+  private String accountRole;
 
-  public void setLogin(String login) {
-    this.login = login;
-  }
+  @JsonProperty("accountType")
+  private String accountType;
+
+  @JsonProperty("active")
+  private boolean active;
+
+  @JsonProperty("externalId")
+  private String externalId;
 
   @Override
   public String toString() {

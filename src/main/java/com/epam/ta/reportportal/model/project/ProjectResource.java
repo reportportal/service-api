@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.model.integration.IntegrationResource;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -79,11 +80,17 @@ public class ProjectResource {
   @ToString
   public static class ProjectUser {
 
+    @JsonProperty("uuid")
+    private UUID uuid;
+
     @JsonProperty(value = "login")
     private String login;
 
     @JsonProperty(value = "projectRole")
     private String projectRole;
+
+    @JsonProperty(value = "email")
+    private String email;
 
   }
 }

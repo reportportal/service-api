@@ -96,6 +96,7 @@ class UserControllerTest extends BaseMvcTest {
     rq.setProjectRole("EDITOR");
     rq.setActive(true);
     rq.setAccountType(UserType.INTERNAL);
+    rq.setAccountType("SCIM");
 
     MvcResult mvcResult = mockMvc.perform(
             post("/users").with(token(oAuthHelper.getSuperadminToken()))
@@ -110,6 +111,7 @@ class UserControllerTest extends BaseMvcTest {
     assertEquals(normalizeId(rq.getLogin()), createUserRS.getLogin());
     var user = userRepository.findById(createUserRS.getId());
     assertTrue(user.isPresent());
+    assertEquals(user.get().getUserType(), UserType.SCIM);
     assertNull(user.get().getPassword());
 
     var projectOptional = projectRepository.findByName("default_personal");
@@ -295,6 +297,60 @@ class UserControllerTest extends BaseMvcTest {
     editUserRQ.setFullName("Vasya Pupkin");
     editUserRQ.setEmail("user1uniquemail@epam.com");
     mockMvc.perform(put("/users/default").with(token(oAuthHelper.getSuperadminToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isOk());
+  }
+
+  @Test
+  void editAccountTypeByAdmin() throws Exception {
+    EditUserRQ editUserRQ = new EditUserRQ();
+    editUserRQ.setAccountType("INTERNAL");
+    mockMvc.perform(put("/users/default").with(token(oAuthHelper.getSuperadminToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isOk());
+  }
+
+  @Test
+  void editAccountTypeByAdminNegative() throws Exception {
+    EditUserRQ editUserRQ = new EditUserRQ();
+    editUserRQ.setAccountType("GITHUB");
+    mockMvc.perform(put("/users/default").with(token(oAuthHelper.getSuperadminToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void editActiveByAdmin() throws Exception {
+    EditUserRQ editUserRQ = new EditUserRQ();
+    editUserRQ.setActive(false);
+    mockMvc.perform(put("/users/default").with(token(oAuthHelper.getSuperadminToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isOk());
+  }
+
+  @Test
+  void editAccountTypeByNotAdmin() throws Exception {
+    EditUserRQ editUserRQ = new EditUserRQ();
+    editUserRQ.setAccountType("INTERNAL");
+    mockMvc.perform(put("/users/default").with(token(oAuthHelper.getDefaultToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isForbidden());
+  }
+
+  @Test
+  void editActiveByNotAdmin() throws Exception {
+    EditUserRQ editUserRQ = new EditUserRQ();
+    editUserRQ.setActive(false);
+    mockMvc.perform(put("/users/default").with(token(oAuthHelper.getDefaultToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isForbidden());
+  }
+
+  @Test
+  void editExternalIdByNotAdmin() throws Exception {
+    EditUserRQ editUserRQ = new EditUserRQ();
+    editUserRQ.setExternalId("test");
+    mockMvc.perform(put("/users/default").with(token(oAuthHelper.getDefaultToken()))
         .contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isOk());
   }

@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.model.user;
 import com.epam.reportportal.annotations.In;
 import com.epam.reportportal.annotations.NotBlankString;
 import com.epam.reportportal.model.ValidationConstraints;
+import com.epam.ta.reportportal.entity.user.UserType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -51,6 +52,11 @@ public class EditUserRQ {
   @In(allowedValues = {"user", "administrator"})
   @JsonProperty(value = "role")
   private String role;
+
+  @In(allowedValues = {"INTERNAL", "SCIM"})
+  @JsonProperty(value = "accountType")
+  @Schema(requiredMode = RequiredMode.NOT_REQUIRED, allowableValues = "INTERNAL, SCIM")
+  private String accountType;
 
   @NotBlankString
   @Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)

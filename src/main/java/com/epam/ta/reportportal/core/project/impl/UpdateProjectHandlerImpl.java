@@ -72,6 +72,7 @@ import com.epam.ta.reportportal.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
+import com.epam.ta.reportportal.entity.enums.OrganizationType;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.Prefix;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
@@ -83,6 +84,7 @@ import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.model.activity.ProjectAttributesActivityResource;
 import com.epam.ta.reportportal.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.model.project.AssignUsersRQ;
@@ -403,6 +405,14 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     var organization = organizationRepositoryCustom.findById(project.getOrganizationId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND,
             project.getOrganizationId()));
+
+    if (OrganizationType.EXTERNAL == organization.getOrganizationType()
+        && UserType.UPSA.equals(modifyingUser.getUserType())) {
+      fail().withError(
+          UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+          "Please verify organization user assignment in EPAM internal system: delivery.epam.com"
+      );
+    }
 
     ProjectUser projectUser = new ProjectUser();
     projectUser.setProjectRole(projectRole);

@@ -29,6 +29,8 @@ import com.epam.reportportal.api.model.OrganizationStatsRelationshipsProjectsMet
 import com.epam.reportportal.api.model.OrganizationStatsRelationshipsUsers;
 import com.epam.reportportal.api.model.OrganizationStatsRelationshipsUsersMeta;
 import com.epam.reportportal.api.model.OrganizationUser;
+import com.epam.reportportal.api.model.OrganizationUserAllOfStats;
+import com.epam.reportportal.api.model.OrganizationUserAllOfStatsProjectStats;
 import com.epam.reportportal.api.model.ProjectInfo;
 import com.epam.reportportal.api.model.ProjectStats;
 import com.epam.reportportal.api.model.ProjectStatsLaunchStats;
@@ -102,7 +104,11 @@ public final class OrganizationConverter {
           .email(orgUserAccount.getEmail())
           .lastLoginAt(orgUserAccount.getLastLoginAt())
           .externalId(orgUserAccount.getExternalId())
-          .uuid(orgUserAccount.getUuid());
+          .uuid(orgUserAccount.getUuid())
+          .stats(new OrganizationUserAllOfStats()
+              .projectStats(new OrganizationUserAllOfStatsProjectStats()
+                  .totalCount(orgUserAccount.getProjectCount()))
+          );
 
   public static Function<OrganizationProfile, OrganizationInfo> ORG_PROFILE_TO_ORG_INFO =
       orgProfile -> new OrganizationInfo()

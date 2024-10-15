@@ -30,6 +30,9 @@ import com.epam.reportportal.api.model.OrganizationStatsRelationshipsUsers;
 import com.epam.reportportal.api.model.OrganizationStatsRelationshipsUsersMeta;
 import com.epam.reportportal.api.model.OrganizationUser;
 import com.epam.reportportal.api.model.ProjectInfo;
+import com.epam.reportportal.api.model.ProjectStats;
+import com.epam.reportportal.api.model.ProjectStatsLaunchStats;
+import com.epam.reportportal.api.model.ProjectStatsUserStats;
 import com.epam.ta.reportportal.entity.organization.OrganizationProfile;
 import com.epam.ta.reportportal.entity.organization.OrganizationUserAccount;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -77,6 +80,12 @@ public final class OrganizationConverter {
     projectInfo.setOrganizationId(project.getOrganizationId());
     projectInfo.setCreatedAt(project.getCreatedAt());
     projectInfo.setUpdatedAt(project.getUpdatedAt());
+    projectInfo.stats(new ProjectStats()
+        .userStats(new ProjectStatsUserStats()
+            .totalCount(project.getUsersQuantity()))
+        .launchStats(new ProjectStatsLaunchStats()
+            .totalCount(project.getLaunchesQuantity())
+            .lastOccurredAt(project.getLastRun())));
     return projectInfo;
   };
 

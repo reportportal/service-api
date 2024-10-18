@@ -31,6 +31,10 @@ import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +53,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @RequiredArgsConstructor
 public class EventBasedReporting {
 
+  private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
   private final StartLaunchHandler startLaunchHandler;
 
   private final FinishLaunchHandler finishLaunchHandler;
@@ -66,7 +72,9 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         startLaunchRqEvent.getProjectName());
-    startLaunchHandler.startLaunch(user, projectDetails, startLaunchRqEvent.getStartLaunchRQ());
+    executorService.submit(() -> {
+      startLaunchHandler.startLaunch(user, projectDetails, startLaunchRqEvent.getStartLaunchRQ());
+    });
   }
 
   @EventListener
@@ -74,9 +82,11 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         finishLaunchRqEvent.getProjectName());
-    finishLaunchHandler.finishLaunch(finishLaunchRqEvent.getLaunchUuid(),
-        finishLaunchRqEvent.getFinishExecutionRQ(), projectDetails, user,
-        extractCurrentHttpRequest().map(LinkGenerator::composeBaseUrl).orElse(""));
+    executorService.submit(() -> {
+      finishLaunchHandler.finishLaunch(finishLaunchRqEvent.getLaunchUuid(),
+          finishLaunchRqEvent.getFinishExecutionRQ(), projectDetails, user,
+          extractCurrentHttpRequest().map(LinkGenerator::composeBaseUrl).orElse(""));
+    });
   }
 
   @EventListener
@@ -84,8 +94,10 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         startRootItemRqEvent.getProjectName());
-    startTestItemHandler.startRootItem(user, projectDetails,
-        startRootItemRqEvent.getStartTestItemRQ());
+    executorService.submit(() -> {
+      startTestItemHandler.startRootItem(user, projectDetails,
+          startRootItemRqEvent.getStartTestItemRQ());
+    });
   }
 
   @EventListener
@@ -93,8 +105,10 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         startChildItemRqEvent.getProjectName());
-    startTestItemHandler.startChildItem(user, projectDetails,
-        startChildItemRqEvent.getStartTestItemRQ(), startChildItemRqEvent.getParentUuid());
+    executorService.submit(() -> {
+      startTestItemHandler.startChildItem(user, projectDetails,
+          startChildItemRqEvent.getStartTestItemRQ(), startChildItemRqEvent.getParentUuid());
+    });
   }
 
   @EventListener
@@ -102,8 +116,10 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         finishItemRqEvent.getProjectName());
-    finishTestItemHandler.finishTestItem(user, projectDetails, finishItemRqEvent.getItemUuid(),
-        finishItemRqEvent.getFinishTestItemRQ());
+    executorService.submit(() -> {
+      finishTestItemHandler.finishTestItem(user, projectDetails, finishItemRqEvent.getItemUuid(),
+          finishItemRqEvent.getFinishTestItemRQ());
+    });
   }
 
   @EventListener
@@ -111,8 +127,10 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         saveLogRqEvent.getProjectName());
-    createLogHandler.createLog(saveLogRqEvent.getSaveLogRQ(), saveLogRqEvent.getFile(),
-        projectDetails);
+    executorService.submit(() -> {
+      createLogHandler.createLog(saveLogRqEvent.getSaveLogRQ(), saveLogRqEvent.getFile(),
+          projectDetails);
+    });
   }
 
   private Optional<HttpServletRequest> extractCurrentHttpRequest() {
@@ -129,4 +147,16 @@ public class EventBasedReporting {
         .getAuthentication().getPrincipal();
   }
 
+  @PreDestroy
+  public void shutdownExecutorService() {
+    executorService.shutdown();
+    try {
+      if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+        executorService.shutdownNow();
+      }
+    } catch (InterruptedException ex) {
+      executorService.shutdownNow();
+      Thread.currentThread().interrupt();
+    }
+  }
 }

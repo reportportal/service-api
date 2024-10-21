@@ -79,7 +79,7 @@ public class OrganizationUsersController extends BaseController implements Organ
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @Transactional
   @PreAuthorize(ORGANIZATION_MANAGER)
   public ResponseEntity<UserAssignmentResponse> postOrganizationsOrgIdUsers(
       @PathVariable("org_id") Long orgId, OrgUserAssignment request) {

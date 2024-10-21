@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.reporting.event;
 
+import com.epam.reportportal.events.BaseReportingEvent;
 import com.epam.reportportal.events.FinishItemRqEvent;
 import com.epam.reportportal.events.FinishLaunchRqEvent;
 import com.epam.reportportal.events.SaveLogRqEvent;
@@ -62,6 +63,22 @@ public class EventBasedReporting {
   private final ProjectExtractor projectExtractor;
 
   @EventListener
+  public void handleReportingEvent(BaseReportingEvent event) {
+    if (event instanceof StartLaunchRqEvent) {
+      handleStartLaunch((StartLaunchRqEvent) event);
+    } else if (event instanceof FinishLaunchRqEvent) {
+      handleFinishLaunch((FinishLaunchRqEvent) event);
+    } else if (event instanceof StartRootItemRqEvent) {
+      handleStartRootItem((StartRootItemRqEvent) event);
+    } else if (event instanceof StartChildItemRqEvent) {
+      handleStartItem((StartChildItemRqEvent) event);
+    } else if (event instanceof FinishItemRqEvent) {
+      handleFinishItem((FinishItemRqEvent) event);
+    } else if (event instanceof SaveLogRqEvent) {
+      handleLogCreation((SaveLogRqEvent) event);
+    }
+  }
+
   public void handleStartLaunch(StartLaunchRqEvent startLaunchRqEvent) {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
@@ -69,7 +86,6 @@ public class EventBasedReporting {
     startLaunchHandler.startLaunch(user, projectDetails, startLaunchRqEvent.getStartLaunchRQ());
   }
 
-  @EventListener
   public void handleFinishLaunch(FinishLaunchRqEvent finishLaunchRqEvent) {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
@@ -79,7 +95,6 @@ public class EventBasedReporting {
         extractCurrentHttpRequest().map(LinkGenerator::composeBaseUrl).orElse(""));
   }
 
-  @EventListener
   public void handleStartRootItem(StartRootItemRqEvent startRootItemRqEvent) {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
@@ -88,7 +103,6 @@ public class EventBasedReporting {
         startRootItemRqEvent.getStartTestItemRQ());
   }
 
-  @EventListener
   public void handleStartItem(StartChildItemRqEvent startChildItemRqEvent) {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
@@ -97,8 +111,7 @@ public class EventBasedReporting {
         startChildItemRqEvent.getStartTestItemRQ(), startChildItemRqEvent.getParentUuid());
   }
 
-  @EventListener
-  public void handleFinishRootItem(FinishItemRqEvent finishItemRqEvent) {
+  public void handleFinishItem(FinishItemRqEvent finishItemRqEvent) {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         finishItemRqEvent.getProjectName());
@@ -106,7 +119,6 @@ public class EventBasedReporting {
         finishItemRqEvent.getFinishTestItemRQ());
   }
 
-  @EventListener
   public void handleLogCreation(SaveLogRqEvent saveLogRqEvent) {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,

@@ -41,6 +41,8 @@ public class UserBuilder implements Supplier<User> {
 
   public UserBuilder() {
     user = new User();
+    user.setActive(Boolean.TRUE);
+    user.setUuid(UUID.randomUUID());
   }
 
   public UserBuilder(User user) {
@@ -73,7 +75,6 @@ public class UserBuilder implements Supplier<User> {
 
   @Override
   public User get() {
-    user.setUuid(UUID.randomUUID());
     return user;
   }
 
@@ -83,7 +84,6 @@ public class UserBuilder implements Supplier<User> {
     ofNullable(email).map(String::trim).map(EntityUtils::normalizeId).ifPresent(user::setEmail);
     user.setFullName(fullName);
     user.setExternalId(externalId);
-    user.setActive(active);
     user.setUserType(UserType.valueOf(ofNullable(type).orElse("INTERNAL")));
     user.setExpired(false);
     Map<String, Object> meta = new HashMap<>();

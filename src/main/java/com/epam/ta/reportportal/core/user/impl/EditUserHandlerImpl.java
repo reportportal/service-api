@@ -120,7 +120,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
     updateRestrictedFields(editor, user, editUserRq);
 
-    if (null != editUserRq.getEmail() && !editUserRq.getEmail().equals(user.getEmail())) {
+    if (null != editUserRq.getEmail() && !editUserRq.getEmail().equalsIgnoreCase(user.getEmail())) {
       String updEmail = editUserRq.getEmail().toLowerCase().trim();
       if (!editor.getUserRole().equals(UserRole.ADMINISTRATOR)) {
         expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED,

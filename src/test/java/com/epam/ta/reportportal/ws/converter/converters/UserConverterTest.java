@@ -46,7 +46,7 @@ class UserConverterTest {
     assertEquals(resource.getEmail(), user.getEmail());
     assertEquals(resource.getUuid(), user.getUuid());
     assertEquals(resource.getExternalId(), user.getExternalId());
-    assertEquals(resource.isActive(), user.isActive());
+    assertEquals(resource.isActive(), user.getActive());
     assertEquals(resource.getFullName(), user.getFullName());
     assertEquals(resource.getUserId(), user.getLogin());
     assertEquals(resource.getUserRole(), user.getRole().name());

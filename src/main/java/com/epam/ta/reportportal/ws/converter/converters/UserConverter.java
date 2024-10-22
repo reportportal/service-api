@@ -45,7 +45,7 @@ public final class UserConverter {
     resource.setId(user.getId());
     resource.setUuid(user.getUuid());
     resource.setExternalId(user.getExternalId());
-    resource.setActive(user.isActive());
+    resource.setActive(user.getActive());
     resource.setUserId(user.getLogin());
     resource.setEmail(user.getEmail());
     resource.setPhotoId(user.getAttachment());
@@ -94,7 +94,7 @@ public final class UserConverter {
     resource.setId(user.getId());
     resource.setUuid(user.getUuid());
     resource.setExternalId(user.getExternalId());
-    resource.setActive(user.isActive());
+    resource.setActive(user.getActive());
     resource.setLogin(user.getLogin());
     resource.setEmail(user.getEmail());
     resource.setFullName(user.getFullName());

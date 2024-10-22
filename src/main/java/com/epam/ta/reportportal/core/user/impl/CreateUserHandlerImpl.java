@@ -250,7 +250,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     response.setFullName(user.getFullName());
     response.setAccountRole(user.getRole().toString());
     response.setAccountType(user.getUserType().toString());
-    response.setActive(user.isActive());
+    response.setActive(user.getActive());
     return Pair.of(TO_ACTIVITY_RESOURCE.apply(user, personalProject.getId()), response);
   }
 

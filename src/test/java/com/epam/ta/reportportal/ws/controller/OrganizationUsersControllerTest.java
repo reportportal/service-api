@@ -122,6 +122,24 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   }
 
   @Test
+  @DisplayName("Admin/Manager sends request to assign Internal user to organization as manager")
+  void assignInternalUserAsMember() throws Exception {
+    Long userId = 108L;
+    List<UserProjectInfo> projects = new ArrayList<>();
+    OrgUserAssignment rq = new OrgUserAssignment()
+        .orgRole(OrgRole.MANAGER)
+        .projects(projects)
+        .id(userId);
+
+    performAssignUserSuccess(ORG_ID_1, rq, adminToken);
+    validateAssignedRoles(ORG_ID_1, userId, projects);
+    var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(userId, ORG_ID_1);
+
+    orgUser.get().getOrganizationRole().equals(OrgRole.MANAGER);
+
+  }
+
+  @Test
   @DisplayName("Admin, Manager sends request to assign UPSA user to External organization")
   void assignUpsaToExternalOrg() throws Exception {
     Long orgId = 204L;

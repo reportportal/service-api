@@ -46,6 +46,7 @@ import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationUsersRepositoryCustom;
 import com.epam.ta.reportportal.entity.enums.OrganizationType;
 import com.epam.ta.reportportal.entity.organization.Organization;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.organization.OrganizationUserAccount;
 import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
@@ -124,7 +125,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
         formattedSupplier("User '{}' cannot be assigned to organization twice.", request.getId())
     );
 
-    saveOrganizationUser(organization, assignedUser);
+    saveOrganizationUser(organization, assignedUser, request);
 
     var projects = getDeduplicatedProjectList(request);
 
@@ -154,11 +155,12 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
         .message("User %s has been successfully assigned".formatted(assignedUser.getLogin()));
   }
 
-  private void saveOrganizationUser(Organization organization, User assignedUser) {
+  private void saveOrganizationUser(Organization organization, User assignedUser,
+      OrgUserAssignment request) {
     var organizationUser = new OrganizationUser();
     organizationUser.setOrganization(organization);
     organizationUser.setUser(assignedUser);
-    organizationUser.setOrganizationRole(MEMBER);
+    organizationUser.setOrganizationRole(OrganizationRole.valueOf(request.getOrgRole().getValue()));
     organizationUserRepository.save(organizationUser);
   }
 

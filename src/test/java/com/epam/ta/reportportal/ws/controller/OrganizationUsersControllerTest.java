@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -135,7 +137,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
     validateAssignedRoles(ORG_ID_1, userId, projects);
     var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(userId, ORG_ID_1);
 
-    orgUser.get().getOrganizationRole().equals(OrgRole.MANAGER);
+    assertEquals(orgUser.get().getOrganizationRole().toString(), OrgRole.MANAGER.toString());
 
   }
 
@@ -260,7 +262,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
     var prUser = projectUserRepository
         .findProjectUserByUserIdAndProjectId(rq.getId(), 302L);
-    Assertions.assertTrue(prUser.isPresent());
+    assertTrue(prUser.isPresent());
     prUser.map(pru -> {
       Assertions.assertEquals(ProjectRole.EDITOR.toString(), pru.getProjectRole().toString());
       return pru;
@@ -288,7 +290,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
     var prUser = projectUserRepository
         .findProjectUserByUserIdAndProjectId(rq.getId(), 302L);
-    Assertions.assertTrue(prUser.isPresent());
+    assertTrue(prUser.isPresent());
     prUser.map(pru -> {
       Assertions.assertEquals(ProjectRole.VIEWER.toString(), pru.getProjectRole().toString());
       return pru;
@@ -318,7 +320,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
     var prUser = projectUserRepository
         .findProjectUserByUserIdAndProjectId(rq.getId(), 302L);
-    Assertions.assertTrue(prUser.isPresent());
+    assertTrue(prUser.isPresent());
     prUser.map(pru -> {
       Assertions.assertEquals(ProjectRole.EDITOR.toString(), pru.getProjectRole().toString());
       return pru;
@@ -370,7 +372,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
   private void validateAssignedRoles(long orgId, Long userId, List<UserProjectInfo> projects) {
     var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(userId, orgId);
-    Assertions.assertTrue(orgUser.isPresent());
+    assertTrue(orgUser.isPresent());
 
     projects.forEach(project -> {
       var projectUserId = new ProjectUserId();

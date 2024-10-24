@@ -22,6 +22,7 @@ package com.epam.ta.reportportal.reporting.async.config;
 public final class MessageHeaders {
 
   public static final String HASH_ON = "hash-on";
+  public static final String REQUEST_TIME = "requestTime";
   public static final String REQUEST_TYPE = "requestType";
   public static final String USERNAME = "username";
   public static final String PROJECT_NAME = "projectName";

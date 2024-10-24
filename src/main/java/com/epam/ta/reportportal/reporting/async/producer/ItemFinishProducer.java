@@ -60,6 +60,7 @@ public class ItemFinishProducer implements FinishTestItemHandler {
           Map<String, Object> headers = message.getMessageProperties().getHeaders();
           headers.put(MessageHeaders.HASH_ON, launchUuid);
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_TEST);
+          headers.put(MessageHeaders.REQUEST_TIME, request.getEndTime().toEpochMilli());
           headers.put(MessageHeaders.USERNAME, user.getUsername());
           headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
           headers.put(MessageHeaders.ITEM_ID, testItemId);

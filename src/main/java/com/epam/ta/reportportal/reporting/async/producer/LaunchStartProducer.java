@@ -59,6 +59,7 @@ public class LaunchStartProducer implements StartLaunchHandler {
           Map<String, Object> headers = message.getMessageProperties().getHeaders();
           headers.put(MessageHeaders.HASH_ON, request.getUuid());
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_LAUNCH);
+          headers.put(MessageHeaders.REQUEST_TIME, request.getStartTime().toEpochMilli());
           headers.put(MessageHeaders.USERNAME, user.getUsername());
           headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
           return message;

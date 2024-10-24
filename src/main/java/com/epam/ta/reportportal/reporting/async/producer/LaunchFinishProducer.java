@@ -53,6 +53,7 @@ public class LaunchFinishProducer implements FinishLaunchHandler {
           Map<String, Object> headers = message.getMessageProperties().getHeaders();
           headers.put(MessageHeaders.HASH_ON, launchId);
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_LAUNCH);
+          headers.put(MessageHeaders.REQUEST_TIME, request.getEndTime().toEpochMilli());
           headers.put(MessageHeaders.USERNAME, user.getUsername());
           headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
           headers.put(MessageHeaders.LAUNCH_ID, launchId);

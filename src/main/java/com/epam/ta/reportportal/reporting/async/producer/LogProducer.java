@@ -100,6 +100,7 @@ public class LogProducer implements CreateLogHandler {
           Map<String, Object> headers = message.getMessageProperties().getHeaders();
           headers.put(MessageHeaders.HASH_ON, launchUuid);
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.LOG);
+          headers.put(MessageHeaders.REQUEST_TIME, request.getLogTime().toEpochMilli());
           headers.put(MessageHeaders.PROJECT_ID, projectId);
           headers.put(MessageHeaders.ITEM_ID, request.getItemUuid());
           return message;

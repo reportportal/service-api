@@ -67,7 +67,7 @@ public class ReportingTopologyConfiguration {
   @Value("${reporting.queues.count:10}")
   private Integer queuesCount;
 
-  @Value("${reporting.consumer.prefetchCount:10}")
+  @Value("${reporting.consumer.prefetchCount:250}")
   private Integer prefetchCount;
 
   @Bean
@@ -165,6 +165,9 @@ public class ReportingTopologyConfiguration {
       listenerContainer.setErrorHandler(errorHandler);
       listenerContainer.setExclusive(true);
       listenerContainer.setPrefetchCount(prefetchCount);
+      listenerContainer.setConsumerBatchEnabled(true); // Enable consumption in batches
+      listenerContainer.setBatchSize(prefetchCount); // Specify the number of messages to process in a batch
+      listenerContainer.setReceiveTimeout(5000L); //
       listenerContainer.setDefaultRequeueRejected(false);
       listenerContainer.setMissingQueuesFatal(true);
       listenerContainer.setApplicationEventPublisher(applicationEventPublisher);

@@ -68,6 +68,7 @@ public class ItemStartProducer implements StartTestItemHandler {
               ofNullable(request.getLaunchUuid()).orElseThrow(() -> new ReportPortalException(
                   ErrorType.BAD_REQUEST_ERROR, "Launch UUID should not be null or empty.")));
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
+          headers.put(MessageHeaders.REQUEST_TIME, request.getStartTime());
           headers.put(MessageHeaders.USERNAME, user.getUsername());
           headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
           headers.put(MessageHeaders.PARENT_ITEM_ID, "");
@@ -95,6 +96,7 @@ public class ItemStartProducer implements StartTestItemHandler {
           Map<String, Object> headers = message.getMessageProperties().getHeaders();
           headers.put(MessageHeaders.HASH_ON, launchUuid);
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
+          headers.put(MessageHeaders.REQUEST_TIME, request.getStartTime().toEpochMilli());
           headers.put(MessageHeaders.USERNAME, user.getUsername());
           headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
           headers.put(MessageHeaders.PARENT_ITEM_ID, parentId);

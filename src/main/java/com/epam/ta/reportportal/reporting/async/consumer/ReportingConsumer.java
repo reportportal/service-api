@@ -20,16 +20,17 @@ import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
 import com.epam.ta.reportportal.reporting.async.config.RequestType;
 import com.epam.ta.reportportal.reporting.async.handler.ReportingMessageHandler;
 import com.epam.ta.reportportal.reporting.async.handler.provider.ReportingHandlerProvider;
+import java.util.List;
 import java.util.Optional;
+import org.springframework.amqp.core.BatchMessageListener;
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageListener;
 import org.springframework.stereotype.Component;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Component
-public class ReportingConsumer implements MessageListener {
+public class ReportingConsumer implements BatchMessageListener {
 
   private final ReportingHandlerProvider handlerProvider;
 
@@ -38,10 +39,14 @@ public class ReportingConsumer implements MessageListener {
   }
 
   @Override
-  public void onMessage(Message message) {
-    RequestType requestType = getRequestType(message);
-    Optional<ReportingMessageHandler> messageHandler = handlerProvider.provideHandler(requestType);
-    messageHandler.ifPresent(handler -> handler.handleMessage(message));
+  public void onMessageBatch(List<Message> messages) {
+    messages.stream().sorted(new MessageComparator()).forEach(message -> {
+          RequestType requestType = getRequestType(message);
+          Optional<ReportingMessageHandler> messageHandler = handlerProvider.provideHandler(
+              requestType);
+          messageHandler.ifPresent(handler -> handler.handleMessage(message));
+        }
+    );
   }
 
   private RequestType getRequestType(Message message) {

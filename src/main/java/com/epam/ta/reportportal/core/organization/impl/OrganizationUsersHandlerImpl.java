@@ -20,9 +20,9 @@ import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.RESOURCE_ALREADY_EXISTS;
+import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_ASSIGNED;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.entity.organization.OrganizationRole.MEMBER;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
 import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.ORG_USER_ACCOUNT_TO_ORG_USER;
 import static java.util.function.Predicate.isEqual;
@@ -114,15 +114,16 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
   public UserAssignmentResponse assignUser(Long orgId, OrgUserAssignment request,
       ReportPortalUser rpUser) {
     User assignedUser = userRepository.findById(request.getId())
-        .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, orgId));
+        .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, request.getId()));
     var organization = organizationRepositoryCustom.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
     validateUserType(organization, assignedUser);
 
     var orgUserExists = organizationUserRepository.findByUserIdAndOrganization_Id(
         assignedUser.getId(), orgId).isPresent();
-    expect(orgUserExists, equalTo(false)).verify(RESOURCE_ALREADY_EXISTS,
-        formattedSupplier("User '{}' cannot be assigned to organization twice.", request.getId())
+    expect(orgUserExists, equalTo(false)).verify(USER_ALREADY_ASSIGNED,
+        request.getId(),
+        formattedSupplier("organization '{}'", orgId)
     );
 
     saveOrganizationUser(organization, assignedUser, request);
@@ -135,7 +136,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
           .orElseThrow(
               () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, project.getId()));
       expect(projectEntity.getOrganizationId(), equalTo(orgId)).verify(BAD_REQUEST_ERROR,
-          formattedSupplier("Project '{}' does not belong to organization {}", request.getId(),
+          formattedSupplier("Project '{}' does not belong to organization {}", project.getId(),
               orgId)
       );
 
@@ -193,7 +194,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
   private void validateUserType(Organization organization, User assignedUser) {
     if (organization.getOrganizationType().equals(OrganizationType.EXTERNAL)
         && assignedUser.getUserType().equals(UserType.UPSA)) {
-      throw new ReportPortalException(ErrorType.ACCESS_DENIED, assignedUser.getLogin());
+      throw new ReportPortalException(ErrorType.ACCESS_DENIED);
     }
   }
 

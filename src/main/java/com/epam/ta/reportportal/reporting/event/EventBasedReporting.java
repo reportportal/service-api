@@ -29,12 +29,9 @@ import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
+import com.epam.ta.reportportal.reporting.async.producer.*;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,17 +50,15 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @RequiredArgsConstructor
 public class EventBasedReporting {
 
-  private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+  private final LaunchStartProducer startLaunchHandler;
 
-  private final StartLaunchHandler startLaunchHandler;
+  private final LaunchFinishProducer finishLaunchHandler;
 
-  private final FinishLaunchHandler finishLaunchHandler;
+  private final ItemStartProducer startTestItemHandler;
 
-  private final StartTestItemHandler startTestItemHandler;
+  private final ItemFinishProducer finishTestItemHandler;
 
-  private final FinishTestItemHandler finishTestItemHandler;
-
-  private final CreateLogHandler createLogHandler;
+  private final LogProducer createLogHandler;
 
   private final ProjectExtractor projectExtractor;
 
@@ -72,9 +67,7 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         startLaunchRqEvent.getProjectName());
-    executorService.submit(() -> {
-      startLaunchHandler.startLaunch(user, projectDetails, startLaunchRqEvent.getStartLaunchRQ());
-    });
+    startLaunchHandler.startLaunch(user, projectDetails, startLaunchRqEvent.getStartLaunchRQ());
   }
 
   @EventListener
@@ -82,11 +75,9 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         finishLaunchRqEvent.getProjectName());
-    executorService.submit(() -> {
-      finishLaunchHandler.finishLaunch(finishLaunchRqEvent.getLaunchUuid(),
-          finishLaunchRqEvent.getFinishExecutionRQ(), projectDetails, user,
-          extractCurrentHttpRequest().map(LinkGenerator::composeBaseUrl).orElse(""));
-    });
+    finishLaunchHandler.finishLaunch(finishLaunchRqEvent.getLaunchUuid(),
+        finishLaunchRqEvent.getFinishExecutionRQ(), projectDetails, user,
+        extractCurrentHttpRequest().map(LinkGenerator::composeBaseUrl).orElse(""));
   }
 
   @EventListener
@@ -94,10 +85,8 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         startRootItemRqEvent.getProjectName());
-    executorService.submit(() -> {
-      startTestItemHandler.startRootItem(user, projectDetails,
-          startRootItemRqEvent.getStartTestItemRQ());
-    });
+    startTestItemHandler.startRootItem(user, projectDetails,
+        startRootItemRqEvent.getStartTestItemRQ());
   }
 
   @EventListener
@@ -105,10 +94,8 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         startChildItemRqEvent.getProjectName());
-    executorService.submit(() -> {
-      startTestItemHandler.startChildItem(user, projectDetails,
-          startChildItemRqEvent.getStartTestItemRQ(), startChildItemRqEvent.getParentUuid());
-    });
+    startTestItemHandler.startChildItem(user, projectDetails,
+        startChildItemRqEvent.getStartTestItemRQ(), startChildItemRqEvent.getParentUuid());
   }
 
   @EventListener
@@ -116,10 +103,8 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         finishItemRqEvent.getProjectName());
-    executorService.submit(() -> {
-      finishTestItemHandler.finishTestItem(user, projectDetails, finishItemRqEvent.getItemUuid(),
-          finishItemRqEvent.getFinishTestItemRQ());
-    });
+    finishTestItemHandler.finishTestItem(user, projectDetails, finishItemRqEvent.getItemUuid(),
+        finishItemRqEvent.getFinishTestItemRQ());
   }
 
   @EventListener
@@ -127,10 +112,8 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractProjectDetails(user,
         saveLogRqEvent.getProjectName());
-    executorService.submit(() -> {
-      createLogHandler.createLog(saveLogRqEvent.getSaveLogRQ(), saveLogRqEvent.getFile(),
-          projectDetails);
-    });
+    createLogHandler.createLog(saveLogRqEvent.getSaveLogRQ(), saveLogRqEvent.getFile(),
+        projectDetails);
   }
 
   private Optional<HttpServletRequest> extractCurrentHttpRequest() {
@@ -147,16 +130,4 @@ public class EventBasedReporting {
         .getAuthentication().getPrincipal();
   }
 
-  @PreDestroy
-  public void shutdownExecutorService() {
-    executorService.shutdown();
-    try {
-      if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
-        executorService.shutdownNow();
-      }
-    } catch (InterruptedException ex) {
-      executorService.shutdownNow();
-      Thread.currentThread().interrupt();
-    }
-  }
 }

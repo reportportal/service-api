@@ -79,7 +79,6 @@ public class LaunchConverter {
     resource.setStatus(db.getStatus() == null ? null : db.getStatus().toString());
     resource.setStartTime(db.getStartTime() == null ? null : db.getStartTime());
     resource.setEndTime(db.getEndTime() == null ? null : db.getEndTime());
-    ofNullable(db.getLastModified()).ifPresent(resource::setLastModified);
     ofNullable(db.getAttributes()).ifPresent(attributes -> updateAttributes(resource, attributes));
     ofNullable(resource.getAttributes()).ifPresentOrElse(a -> {
     }, () -> resource.setAttributes(Collections.emptySet()));

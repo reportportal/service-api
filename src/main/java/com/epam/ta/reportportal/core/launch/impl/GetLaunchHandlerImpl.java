@@ -82,6 +82,7 @@ import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import java.io.OutputStream;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -151,7 +152,10 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   @Override
   public LaunchResource getLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails) {
     final Launch launch = findLaunch(launchId, projectDetails);
-    return getLaunchResource(launch);
+    var launchResource =  getLaunchResource(launch);
+    launchResource.setStartTime(launchResource.getStartTime().truncatedTo(ChronoUnit.MILLIS));
+    launchResource.setLastModified(launchResource.getLastModified().truncatedTo(ChronoUnit.MILLIS));
+    return launchResource;
   }
 
   private Launch findLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails) {

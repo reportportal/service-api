@@ -348,7 +348,13 @@ public class EmailService extends JavaMailSenderImpl {
       String subject =
           isCreated ? "Email server integration creation" : "Email server integration updated";
       message.setSubject(subject);
-      message.setTo(sendTo);
+      if (UserUtils.isEmailValid(sendTo) && isAddressValid(sendTo)) {
+        message.setTo(sendTo);
+      } else if (UserUtils.isEmailValid(this.from) && isAddressValid(this.from)) {
+        message.setTo(this.from);
+      } else {
+        message.setTo("test@example.com");
+      }
       setFrom(message);
 
       Map<String, Object> data = Collections.emptyMap();

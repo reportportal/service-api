@@ -31,6 +31,8 @@ import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.google.common.collect.Maps;
 import com.mchange.lang.IntegerUtils;
+
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.Optional;
 import javax.mail.MessagingException;
@@ -167,31 +169,24 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
     if (emailService.isPresent()) {
       try {
         emailService.get().testConnection();
-
-      } catch (MessagingException ex) {
+        if (BooleanUtils.toBoolean(
+            EmailSettingsEnum.AUTH_ENABLED
+                .getAttribute(integration.getParams().getParams())
+                .orElse("false"))) {
+          emailService.get().sendConnectionTestEmail(isIntegrationCreated);
+        }
+      } catch (MessagingException | UnsupportedEncodingException ex) {
         LOGGER.error("Cannot send email to user", ex);
         fail()
             .withError(
                 FORBIDDEN_OPERATION,
                 "Email configuration is incorrect. Please, check your configuration. "
                     + ex.getMessage());
-      }
-
-      EmailSettingsEnum.AUTH_ENABLED
-          .getAttribute(integration.getParams().getParams())
-          .ifPresent(
-              authEnabled -> {
-                if (BooleanUtils.toBoolean(authEnabled)) {
-                  try {
-                    emailService.get().sendConnectionTestEmail(isIntegrationCreated);
-                  } catch (Exception ex) {
-                    LOGGER.error("Cannot send connection test email to user", ex);
-                  }
-                }
-              });
+        }
     } else {
       return false;
     }
+
     return true;
   }
 }

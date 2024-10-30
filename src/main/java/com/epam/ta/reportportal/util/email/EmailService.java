@@ -71,7 +71,6 @@ import org.springframework.web.util.UriComponentsBuilder;
  *
  * @author Andrei_Ramanchuk
  */
-@Setter
 public class EmailService extends JavaMailSenderImpl {
 
   private static final String FINISH_LAUNCH_EMAIL_SUBJECT =
@@ -80,10 +79,10 @@ public class EmailService extends JavaMailSenderImpl {
   private static final String COMPOSITE_ATTRIBUTE_FILTER_FORMAT =
       "%s?launchesParams=filter.has.compositeAttribute=%s";
   private static final String TEMPLATE_IMAGES_PREFIX = "templates/email/images/";
-  private TemplateEngine templateEngine;
+  @Setter private TemplateEngine templateEngine;
+  @Setter private String rpHost;
   /* Default value for FROM project notifications field */
   private InternetAddress from;
-  private String rpHost;
 
   /**
    * Constructs an EmailService with the specified JavaMail properties.
@@ -346,38 +345,47 @@ public class EmailService extends JavaMailSenderImpl {
 
   /**
    * Sets the sender's email address. Check if the string contains "&lt;" to determine if the email
-   * address is in the format "from &lt;email>". If it is, create a new InternetAddress object with
-   * the email address. If it is not, create a new InternetAddress object with personal name only.
+   * address is in the format "from &lt;email>".
    *
    * @param from the sender's email address
    */
   public void setFrom(String from) {
     try {
-      if (from.contains("<")) {
-        this.from = new InternetAddress(from);
-      } else {
-        this.from = new InternetAddress(null, from);
+      switch (from) {
+        case String s when s.contains("<") -> this.from = new InternetAddress(from);
+        case String s when UserUtils.isEmailValid(s) -> this.from = new InternetAddress(from, null);
+        default -> this.from = null;
       }
     } catch (AddressException | UnsupportedEncodingException e) {
       this.from = null;
     }
   }
 
-  /** Builds FROM field for the email message. */
+  /**
+   * Builds FROM field for the email message. Supports old integrations, if FROM field is not set,
+   * it will be set from username.
+   */
   private void setFrom(MimeMessageHelper message)
       throws MessagingException, UnsupportedEncodingException {
-    InternetAddress sender =
-        getSender().orElseThrow(() -> new AddressException("Invalid email address"));
-    message.setFrom(sender);
+    if (getFrom().isPresent()) {
+      message.setFrom(getFrom().get());
+    } else if (UserUtils.isEmailValid(getUsername())) {
+      message.setFrom(getUsername());
+    }
   }
 
   /**
-   * Gets the sender's email address.
+   * Gets the sender's email address. If sender is not set, it will be set from username.
    *
    * @return the sender's email address
    */
-  public Optional<InternetAddress> getFrom() {
-    return Optional.ofNullable(from);
+  public Optional<InternetAddress> getFrom() throws UnsupportedEncodingException {
+    if (from != null) {
+      return Optional.of(from);
+    } else if (UserUtils.isEmailValid(getUsername())) {
+      return Optional.of(new InternetAddress(getUsername(), null));
+    }
+    return Optional.empty();
   }
 
   /**
@@ -447,15 +455,14 @@ public class EmailService extends JavaMailSenderImpl {
    * @param isCreated - flag that indicates if integration was created or updated. Used to determine
    *     email subject.
    * @throws AddressException - if email address is not valid.
-   * @throws UnsupportedEncodingException - if internet address cannot be created.
+   * @throws UnsupportedEncodingException - if email address is not valid.
    */
   public void sendConnectionTestEmail(boolean isCreated)
       throws AddressException, UnsupportedEncodingException {
     InternetAddress sender =
-        getSender().orElseThrow(() -> new AddressException("Invalid email address"));
+        getFrom().orElseThrow(() -> new AddressException("Email address is not valid"));
     String subject =
         isCreated ? "Email server integration creation" : "Email server integration updated";
-
     MimeMessagePreparator preparator =
         mimeMessage -> {
           MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
@@ -469,27 +476,6 @@ public class EmailService extends JavaMailSenderImpl {
           attachSocialImages(message);
         };
     this.send(preparator);
-  }
-
-  /**
-   * Provide sender internet address. If address in from field is valid, it will be used. Otherwise,
-   * username will be used if it is valid email address.
-   *
-   * @throws AddressException - if email address is not valid.
-   * @throws UnsupportedEncodingException - if internet address cannot be created.
-   */
-  private Optional<InternetAddress> getSender()
-      throws UnsupportedEncodingException, AddressException {
-    if (getFrom().isPresent()) {
-      if (UserUtils.isEmailValid(getFrom().get().getAddress())) {
-        return Optional.of(getFrom().get());
-      } else if (UserUtils.isEmailValid(getUsername())) {
-        return Optional.of(new InternetAddress(getUsername(), getFrom().get().getPersonal()));
-      }
-    } else if (UserUtils.isEmailValid(getUsername())) {
-      return Optional.of(new InternetAddress(Objects.requireNonNull(getUsername())));
-    }
-    return Optional.empty();
   }
 
   private void attachSocialImages(MimeMessageHelper message) throws MessagingException {

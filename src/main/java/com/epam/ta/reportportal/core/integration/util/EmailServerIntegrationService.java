@@ -38,6 +38,8 @@ import java.util.Map;
 import java.util.Optional;
 import javax.mail.MessagingException;
 import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -135,9 +137,12 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
   @Override
   public boolean checkConnection(Integration integration) {
     Optional<EmailService> emailService = emailServiceFactory.getEmailService(integration);
+    final boolean isIntegrationCreated = integration.getId() == null;
+
     if (emailService.isPresent()) {
       try {
         emailService.get().testConnection();
+
       } catch (MessagingException ex) {
         LOGGER.error("Cannot send email to user", ex);
         fail().withError(FORBIDDEN_OPERATION,
@@ -145,25 +150,16 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
         );
       }
 
-      final boolean isIntegrationCreated = integration.getId() == null;
-      try {
-        EmailSettingsEnum.AUTH_ENABLED.getAttribute(integration.getParams().getParams())
-            .ifPresent(authEnabled -> {
-              if (BooleanUtils.toBoolean(authEnabled)) {
-                String sendTo = EmailSettingsEnum.USERNAME.getAttribute(
-                        integration.getParams().getParams())
-                    .orElseThrow(() -> new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
-                        "Email server username is not specified."
-                    ));
-                emailService.get().sendConnectionTestEmail(sendTo, isIntegrationCreated);
+    EmailSettingsEnum.AUTH_ENABLED.getAttribute(integration.getParams().getParams())
+        .ifPresent(authEnabled -> {
+          if (BooleanUtils.toBoolean(authEnabled)) {
+              try {
+                  emailService.get().sendConnectionTestEmail(isIntegrationCreated);
+              } catch (Exception ex) {
+                  LOGGER.error("Cannot send connection test email to user", ex);
               }
-            });
-      } catch (Exception ex) {
-        fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
-            formattedSupplier("Unable to send connection test email. " + ex.getMessage())
-        );
-      }
-
+          }
+        });
     } else {
       return false;
     }

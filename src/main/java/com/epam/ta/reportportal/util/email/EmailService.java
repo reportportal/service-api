@@ -54,6 +54,8 @@ import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+
+import lombok.Setter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.FileUrlResource;
@@ -70,6 +72,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  *
  * @author Andrei_Ramanchuk
  */
+@Setter
 public class EmailService extends JavaMailSenderImpl {
 
   private static final String FINISH_LAUNCH_EMAIL_SUBJECT =
@@ -80,7 +83,7 @@ public class EmailService extends JavaMailSenderImpl {
   private static final String TEMPLATE_IMAGES_PREFIX = "templates/email/images/";
   private TemplateEngine templateEngine;
   /* Default value for FROM project notifications field */
-  private String from;
+  private InternetAddress from;
   private String rpHost;
 
   public EmailService(Properties javaMailProperties) {
@@ -189,7 +192,7 @@ public class EmailService extends JavaMailSenderImpl {
     Map<String, String> locatorsMapping = projectIssueTypes.stream().collect(
         toMap(it -> it.getIssueType().getLocator(), it -> it.getIssueType().getLongName()));
 
-    /* Launch issue statistics custom sub-types */
+    /* Launch issue statistics custom subtypes */
     fillEmail(email, "pbInfo", statistics, locatorsMapping,
         IssueRegexConstant.PRODUCT_BUG_ISSUE_REGEX
     );
@@ -305,16 +308,24 @@ public class EmailService extends JavaMailSenderImpl {
     this.send(preparator);
   }
 
-  public void setTemplateEngine(TemplateEngine templateEngine) {
-    this.templateEngine = templateEngine;
-  }
-
   public void setFrom(String from) {
-    this.from = from;
+    if (from.contains("<")) {
+        try {
+            this.from = new InternetAddress(from);
+        } catch (AddressException e) {
+            this.from = null;
+        }
+    } else {
+        try {
+            this.from = new InternetAddress(null, from);
+        } catch (UnsupportedEncodingException e) {
+            this.from = null;
+        }
+    }
   }
 
-  public void setRpHost(String rpHost) {
-    this.rpHost = rpHost;
+  public Optional<InternetAddress> getFrom() {
+    return Optional.ofNullable(from);
   }
 
   public void sendCreateUserConfirmationEmail(CreateUserRQFull req, String basicUrl) {
@@ -342,20 +353,24 @@ public class EmailService extends JavaMailSenderImpl {
     this.send(preparator);
   }
 
-  public void sendConnectionTestEmail(String sendTo, boolean isCreated) {
+
+  /**
+   * Send email to user with connection test result. If email address is not valid, exception will be thrown.
+   *
+   * @param isCreated - flag that indicates if integration was created or updated. Used to determine email subject.
+   * @throws AddressException - if email address is not valid.
+   * @throws UnsupportedEncodingException - if internet address cannot be created.
+   */
+  public void sendConnectionTestEmail(boolean isCreated) throws AddressException, UnsupportedEncodingException {
+    InternetAddress sender = getSender().orElseThrow(() -> new AddressException("Invalid email address"));
+    String subject =
+            isCreated ? "Email server integration creation" : "Email server integration updated";
+
     MimeMessagePreparator preparator = mimeMessage -> {
       MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
-      String subject =
-          isCreated ? "Email server integration creation" : "Email server integration updated";
       message.setSubject(subject);
-      if (UserUtils.isEmailValid(sendTo) && isAddressValid(sendTo)) {
-        message.setTo(sendTo);
-      } else if (UserUtils.isEmailValid(this.from) && isAddressValid(this.from)) {
-        message.setTo(this.from);
-      } else {
-        message.setTo("test@example.com");
-      }
-      setFrom(message);
+      message.setTo(sender);
+      message.setFrom(sender);
 
       Map<String, Object> data = Collections.emptyMap();
       String text = templateEngine.merge("email-connection.ftl", data);
@@ -366,29 +381,32 @@ public class EmailService extends JavaMailSenderImpl {
   }
 
   /**
-   * Builds FROM field If username is email, format will be "from \<email\>"
+   * Provide sender email address.
+   * If address in from field is valid, it will be used. Otherwise, username will be used.
+   *
+   * @return Optional of sender email address.
+   * @throws AddressException - if email address is not valid.
+   * @throws UnsupportedEncodingException - if internet address cannot be created.
    */
-  private void setFrom(MimeMessageHelper message)
-      throws MessagingException, UnsupportedEncodingException {
-    if (StringUtils.isNotBlank(this.from)) {
-      if (UserUtils.isEmailValid(this.from) && isAddressValid(this.from)) {
-        message.setFrom(this.from);
+  private Optional<InternetAddress> getSender() throws UnsupportedEncodingException, AddressException {
+    if (getFrom().isPresent()) {
+      if (UserUtils.isEmailValid(getFrom().get().getAddress())) {
+        return Optional.of(getFrom().get());
       } else if (UserUtils.isEmailValid(getUsername())) {
-        message.setFrom(getUsername(), this.from);
+        return Optional.of(new InternetAddress(getUsername(), getFrom().get().getPersonal()));
       }
     } else if (UserUtils.isEmailValid(getUsername())) {
-      message.setFrom(getUsername());
+      return Optional.of(new InternetAddress(Objects.requireNonNull(getUsername())));
     }
-    //otherwise generate automatically
+    return Optional.empty();
   }
 
-  private boolean isAddressValid(String from) {
-    try {
-      InternetAddress.parse(from);
-      return true;
-    } catch (AddressException e) {
-      return false;
-    }
+  /**
+   * Builds FROM field If username is email, format will be "from \<email\>"
+   */
+  private  void  setFrom(MimeMessageHelper message) throws MessagingException, UnsupportedEncodingException {
+    InternetAddress sender = getSender().orElseThrow(() -> new AddressException("Invalid email address"));
+    message.setFrom(sender);
   }
 
   private void attachSocialImages(MimeMessageHelper message) throws MessagingException {

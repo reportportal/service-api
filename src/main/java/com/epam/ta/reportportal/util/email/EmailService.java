@@ -41,7 +41,6 @@ import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.constant.IssueRegexConstant;
 import com.google.common.annotations.VisibleForTesting;
-
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,7 +54,6 @@ import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-
 import lombok.Setter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -69,7 +67,7 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
- * Email Sending Service based on {@link JavaMailSender}
+ * Email Sending Service based on {@link JavaMailSender}.
  *
  * @author Andrei_Ramanchuk
  */
@@ -87,40 +85,17 @@ public class EmailService extends JavaMailSenderImpl {
   private InternetAddress from;
   private String rpHost;
 
+  /**
+   * Constructs an EmailService with the specified JavaMail properties.
+   *
+   * @param javaMailProperties the properties for configuring the JavaMailSender
+   */
   public EmailService(Properties javaMailProperties) {
     super.setJavaMailProperties(javaMailProperties);
   }
 
   /**
-   * User creation confirmation email
-   *
-   * @param subject Letter's subject
-   * @param recipients Letter's recipients
-   * @param url ReportPortal URL
-   */
-  public void sendCreateUserConfirmationEmail(
-      final String subject, final String[] recipients, final String url) {
-    MimeMessagePreparator preparator =
-        mimeMessage -> {
-          MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
-          message.setSubject(subject);
-          message.setTo(recipients);
-          setFrom(message);
-
-          Map<String, Object> email = new HashMap<>();
-          email.put("url", getUrl(url));
-          String text = templateEngine.merge("registration-template.ftl", email);
-          message.setText(text, true);
-
-          message.addInline("create-user.png", emailTemplateResource("create-user.png"));
-
-          attachSocialImages(message);
-        };
-    this.send(preparator);
-  }
-
-  /**
-   * Finish launch notification
+   * Finish launch notification.
    *
    * @param recipients List of recipients
    * @param project {@link Project}
@@ -289,7 +264,7 @@ public class EmailService extends JavaMailSenderImpl {
   }
 
   /**
-   * Restore password email
+   * Restore password email.
    *
    * @param subject Letter's subject
    * @param recipients Letter's recipients
@@ -370,9 +345,9 @@ public class EmailService extends JavaMailSenderImpl {
   }
 
   /**
-   * Sets the sender's email address. Check if the string contains "<" to determine if the email
-   * address is in the format "from <email>". If it is, create a new InternetAddress object with the
-   * email address. If it is not, create a new InternetAddress object with personal name only.
+   * Sets the sender's email address. Check if the string contains "&lt;" to determine if the email
+   * address is in the format "from &lt;email>". If it is, create a new InternetAddress object with
+   * the email address. If it is not, create a new InternetAddress object with personal name only.
    *
    * @param from the sender's email address
    */
@@ -388,7 +363,7 @@ public class EmailService extends JavaMailSenderImpl {
     }
   }
 
-  /** Builds FROM field If username is email, format will be "from \<email\>" */
+  /** Builds FROM field for the email message. */
   private void setFrom(MimeMessageHelper message)
       throws MessagingException, UnsupportedEncodingException {
     InternetAddress sender =
@@ -403,6 +378,34 @@ public class EmailService extends JavaMailSenderImpl {
    */
   public Optional<InternetAddress> getFrom() {
     return Optional.ofNullable(from);
+  }
+
+  /**
+   * User creation confirmation email.
+   *
+   * @param subject Letter's subject
+   * @param recipients Letter's recipients
+   * @param url ReportPortal URL
+   */
+  public void sendCreateUserConfirmationEmail(
+      final String subject, final String[] recipients, final String url) {
+    MimeMessagePreparator preparator =
+        mimeMessage -> {
+          MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+          message.setSubject(subject);
+          message.setTo(recipients);
+          setFrom(message);
+
+          Map<String, Object> email = new HashMap<>();
+          email.put("url", getUrl(url));
+          String text = templateEngine.merge("registration-template.ftl", email);
+          message.setText(text, true);
+
+          message.addInline("create-user.png", emailTemplateResource("create-user.png"));
+
+          attachSocialImages(message);
+        };
+    this.send(preparator);
   }
 
   /**
@@ -504,6 +507,11 @@ public class EmailService extends JavaMailSenderImpl {
             EmailService.class.getClassLoader().getResource(TEMPLATE_IMAGES_PREFIX + resource)));
   }
 
+  /**
+   * Sends an email notification to the user about their account self-deletion.
+   *
+   * @param recipient the recipient's email address
+   */
   public void sendAccountSelfDeletionNotification(String recipient) {
     MimeMessagePreparator preparator =
         mimeMessage -> {
@@ -524,6 +532,11 @@ public class EmailService extends JavaMailSenderImpl {
     this.send(preparator);
   }
 
+  /**
+   * Sends an email notification to the user about their account deletion by retention policy.
+   *
+   * @param recipient the recipient's email address
+   */
   public void sendAccountDeletionByRetentionNotification(String recipient) {
     MimeMessagePreparator preparator =
         mimeMessage -> {
@@ -544,6 +557,11 @@ public class EmailService extends JavaMailSenderImpl {
     this.send(preparator);
   }
 
+  /**
+   * Sends an email notification to the user about their account deletion by retention policy.
+   *
+   * @param recipient the recipient's email address
+   */
   public void sendUserExpirationNotification(String recipient, Map<String, Object> params) {
     MimeMessagePreparator preparator =
         mimeMessage -> {

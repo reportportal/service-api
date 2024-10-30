@@ -41,6 +41,7 @@ import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.constant.IssueRegexConstant;
 import com.google.common.annotations.VisibleForTesting;
+
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -93,27 +94,28 @@ public class EmailService extends JavaMailSenderImpl {
   /**
    * User creation confirmation email
    *
-   * @param subject    Letter's subject
+   * @param subject Letter's subject
    * @param recipients Letter's recipients
-   * @param url        ReportPortal URL
+   * @param url ReportPortal URL
    */
-  public void sendCreateUserConfirmationEmail(final String subject, final String[] recipients,
-      final String url) {
-    MimeMessagePreparator preparator = mimeMessage -> {
-      MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
-      message.setSubject(subject);
-      message.setTo(recipients);
-      setFrom(message);
+  public void sendCreateUserConfirmationEmail(
+      final String subject, final String[] recipients, final String url) {
+    MimeMessagePreparator preparator =
+        mimeMessage -> {
+          MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+          message.setSubject(subject);
+          message.setTo(recipients);
+          setFrom(message);
 
-      Map<String, Object> email = new HashMap<>();
-      email.put("url", getUrl(url));
-      String text = templateEngine.merge("registration-template.ftl", email);
-      message.setText(text, true);
+          Map<String, Object> email = new HashMap<>();
+          email.put("url", getUrl(url));
+          String text = templateEngine.merge("registration-template.ftl", email);
+          message.setText(text, true);
 
-      message.addInline("create-user.png", emailTemplateResource("create-user.png"));
+          message.addInline("create-user.png", emailTemplateResource("create-user.png"));
 
-      attachSocialImages(message);
-    };
+          attachSocialImages(message);
+        };
     this.send(preparator);
   }
 
@@ -121,27 +123,30 @@ public class EmailService extends JavaMailSenderImpl {
    * Finish launch notification
    *
    * @param recipients List of recipients
-   * @param project    {@link Project}
-   * @param url        ReportPortal URL
-   * @param launch     Launch
+   * @param project {@link Project}
+   * @param url ReportPortal URL
+   * @param launch Launch
    */
-  public void sendLaunchFinishNotification(final String[] recipients, final String url,
-      final Project project, final Launch launch) {
+  public void sendLaunchFinishNotification(
+      final String[] recipients, final String url, final Project project, final Launch launch) {
     String subject =
-        format(FINISH_LAUNCH_EMAIL_SUBJECT, project.getName().toUpperCase(), launch.getName(),
-            launch.getNumber()
-        );
-    MimeMessagePreparator preparator = mimeMessage -> {
-      MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
-      message.setSubject(subject);
-      message.setTo(recipients);
-      setFrom(message);
+        format(
+            FINISH_LAUNCH_EMAIL_SUBJECT,
+            project.getName().toUpperCase(),
+            launch.getName(),
+            launch.getNumber());
+    MimeMessagePreparator preparator =
+        mimeMessage -> {
+          MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+          message.setSubject(subject);
+          message.setTo(recipients);
+          setFrom(message);
 
-      String text = mergeFinishLaunchText(getUrl(url), launch, project.getProjectIssueTypes());
-      message.setText(text, true);
+          String text = mergeFinishLaunchText(getUrl(url), launch, project.getProjectIssueTypes());
+          message.setText(text, true);
 
-      attachSocialImages(message);
-    };
+          attachSocialImages(message);
+        };
     this.send(preparator);
   }
 
@@ -157,21 +162,33 @@ public class EmailService extends JavaMailSenderImpl {
 
     /* Tags with links */
     if (!CollectionUtils.isEmpty(launch.getAttributes())) {
-      email.put("attributes", launch.getAttributes().stream().filter(it -> !it.isSystem()).collect(
-          toMap(attribute -> ofNullable(attribute.getKey()).map(it -> it.concat(":")).orElse("")
-                  .concat(attribute.getValue()),
-              attribute -> buildAttributesLink(basicUrl, attribute)
-          )));
+      email.put(
+          "attributes",
+          launch.getAttributes().stream()
+              .filter(it -> !it.isSystem())
+              .collect(
+                  toMap(
+                      attribute ->
+                          ofNullable(attribute.getKey())
+                              .map(it -> it.concat(":"))
+                              .orElse("")
+                              .concat(attribute.getValue()),
+                      attribute -> buildAttributesLink(basicUrl, attribute))));
     }
 
     /* Launch execution statistics */
 
-    Map<String, Integer> statistics = launch.getStatistics().stream().filter(
-        s -> ofNullable(s.getStatisticsField()).isPresent() && StringUtils.isNotEmpty(
-            s.getStatisticsField().getName())).collect(
-        Collectors.toMap(s -> s.getStatisticsField().getName(), Statistics::getCounter,
-            (prev, curr) -> prev
-        ));
+    Map<String, Integer> statistics =
+        launch.getStatistics().stream()
+            .filter(
+                s ->
+                    ofNullable(s.getStatisticsField()).isPresent()
+                        && StringUtils.isNotEmpty(s.getStatisticsField().getName()))
+            .collect(
+                Collectors.toMap(
+                    s -> s.getStatisticsField().getName(),
+                    Statistics::getCounter,
+                    (prev, curr) -> prev));
 
     email.put("total", ofNullable(statistics.get(EXECUTIONS_TOTAL)).orElse(0));
     email.put("passed", ofNullable(statistics.get(EXECUTIONS_PASSED)).orElse(0));
@@ -180,66 +197,93 @@ public class EmailService extends JavaMailSenderImpl {
 
     /* Launch issue statistics global counters */
     email.put("productBugTotal", ofNullable(statistics.get(DEFECTS_PRODUCT_BUG_TOTAL)).orElse(0));
-    email.put("automationBugTotal",
-        ofNullable(statistics.get(DEFECTS_AUTOMATION_BUG_TOTAL)).orElse(0)
-    );
+    email.put(
+        "automationBugTotal", ofNullable(statistics.get(DEFECTS_AUTOMATION_BUG_TOTAL)).orElse(0));
     email.put("systemIssueTotal", ofNullable(statistics.get(DEFECTS_SYSTEM_ISSUE_TOTAL)).orElse(0));
     email.put("noDefectTotal", ofNullable(statistics.get(DEFECTS_NO_DEFECT_TOTAL)).orElse(0));
-    email.put("toInvestigateTotal",
-        ofNullable(statistics.get(DEFECTS_TO_INVESTIGATE_TOTAL)).orElse(0)
-    );
+    email.put(
+        "toInvestigateTotal", ofNullable(statistics.get(DEFECTS_TO_INVESTIGATE_TOTAL)).orElse(0));
 
-    Map<String, String> locatorsMapping = projectIssueTypes.stream().collect(
-        toMap(it -> it.getIssueType().getLocator(), it -> it.getIssueType().getLongName()));
+    Map<String, String> locatorsMapping =
+        projectIssueTypes.stream()
+            .collect(
+                toMap(it -> it.getIssueType().getLocator(), it -> it.getIssueType().getLongName()));
 
     /* Launch issue statistics custom subtypes */
-    fillEmail(email, "pbInfo", statistics, locatorsMapping,
-        IssueRegexConstant.PRODUCT_BUG_ISSUE_REGEX
-    );
-    fillEmail(email, "abInfo", statistics, locatorsMapping,
-        IssueRegexConstant.AUTOMATION_BUG_ISSUE_REGEX
-    );
+    fillEmail(
+        email, "pbInfo", statistics, locatorsMapping, IssueRegexConstant.PRODUCT_BUG_ISSUE_REGEX);
+    fillEmail(
+        email,
+        "abInfo",
+        statistics,
+        locatorsMapping,
+        IssueRegexConstant.AUTOMATION_BUG_ISSUE_REGEX);
     fillEmail(email, "siInfo", statistics, locatorsMapping, IssueRegexConstant.SYSTEM_ISSUE_REGEX);
-    fillEmail(email, "ndInfo", statistics, locatorsMapping,
-        IssueRegexConstant.NO_DEFECT_ISSUE_REGEX
-    );
-    fillEmail(email, "tiInfo", statistics, locatorsMapping,
-        IssueRegexConstant.TO_INVESTIGATE_ISSUE_REGEX
-    );
+    fillEmail(
+        email, "ndInfo", statistics, locatorsMapping, IssueRegexConstant.NO_DEFECT_ISSUE_REGEX);
+    fillEmail(
+        email,
+        "tiInfo",
+        statistics,
+        locatorsMapping,
+        IssueRegexConstant.TO_INVESTIGATE_ISSUE_REGEX);
 
     return templateEngine.merge("finish-launch-template.ftl", email);
   }
 
   private String getUrl(String baseUrl) {
-    return ofNullable(rpHost).map(rh -> {
-      final UriComponents rpHostUri = UriComponentsBuilder.fromUriString(rh).build();
-      return UriComponentsBuilder.fromUriString(baseUrl).scheme(rpHostUri.getScheme())
-          .host(rpHostUri.getHost()).port(rpHostUri.getPort()).build().toUri().toASCIIString();
-    }).orElse(baseUrl);
+    return ofNullable(rpHost)
+        .map(
+            rh -> {
+              final UriComponents rpHostUri = UriComponentsBuilder.fromUriString(rh).build();
+              return UriComponentsBuilder.fromUriString(baseUrl)
+                  .scheme(rpHostUri.getScheme())
+                  .host(rpHostUri.getHost())
+                  .port(rpHostUri.getPort())
+                  .build()
+                  .toUri()
+                  .toASCIIString();
+            })
+        .orElse(baseUrl);
   }
 
   private String buildAttributesLink(String basicUrl, ItemAttribute attribute) {
     if (null != attribute.getKey()) {
-      return format(COMPOSITE_ATTRIBUTE_FILTER_FORMAT, basicUrl,
-          urlPathSegmentEscaper().escape(attribute.getKey()) + ":" + urlPathSegmentEscaper().escape(
-              attribute.getValue())
-      );
+      return format(
+          COMPOSITE_ATTRIBUTE_FILTER_FORMAT,
+          basicUrl,
+          urlPathSegmentEscaper().escape(attribute.getKey())
+              + ":"
+              + urlPathSegmentEscaper().escape(attribute.getValue()));
     } else {
-      return format(COMPOSITE_ATTRIBUTE_FILTER_FORMAT, basicUrl,
-          urlPathSegmentEscaper().escape(attribute.getValue())
-      );
+      return format(
+          COMPOSITE_ATTRIBUTE_FILTER_FORMAT,
+          basicUrl,
+          urlPathSegmentEscaper().escape(attribute.getValue()));
     }
   }
 
-  private void fillEmail(Map<String, Object> email, String statisticsName,
-      Map<String, Integer> statistics, Map<String, String> locatorsMapping, String regex) {
-    Optional<Map<String, Integer>> pb = Optional.of(statistics.entrySet().stream().filter(entry -> {
-      Pattern pattern = Pattern.compile(regex);
-      return pattern.matcher(entry.getKey()).matches();
-    }).collect(Collectors.toMap(
-        entry -> locatorsMapping.get(StringUtils.substringAfterLast(entry.getKey(), "$")),
-        entry -> ofNullable(entry.getValue()).orElse(0), (prev, curr) -> prev
-    )));
+  private void fillEmail(
+      Map<String, Object> email,
+      String statisticsName,
+      Map<String, Integer> statistics,
+      Map<String, String> locatorsMapping,
+      String regex) {
+    Optional<Map<String, Integer>> pb =
+        Optional.of(
+            statistics.entrySet().stream()
+                .filter(
+                    entry -> {
+                      Pattern pattern = Pattern.compile(regex);
+                      return pattern.matcher(entry.getKey()).matches();
+                    })
+                .collect(
+                    Collectors.toMap(
+                        entry ->
+                            locatorsMapping.get(
+                                StringUtils.substringAfterLast(entry.getKey(), "$")),
+                        entry -> ofNullable(entry.getValue()).orElse(0),
+                        (prev, curr) -> prev)));
 
     pb.ifPresent(stats -> email.put(statisticsName, stats));
   }
@@ -247,80 +291,83 @@ public class EmailService extends JavaMailSenderImpl {
   /**
    * Restore password email
    *
-   * @param subject    Letter's subject
+   * @param subject Letter's subject
    * @param recipients Letter's recipients
-   * @param url        ReportPortal URL
-   * @param login      User's login
+   * @param url ReportPortal URL
+   * @param login User's login
    */
-  public void sendRestorePasswordEmail(final String subject, final String[] recipients,
-      final String url, final String login) {
-    MimeMessagePreparator preparator = mimeMessage -> {
-      MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
-      message.setSubject(subject);
-      message.setTo(recipients);
+  public void sendRestorePasswordEmail(
+      final String subject, final String[] recipients, final String url, final String login) {
+    MimeMessagePreparator preparator =
+        mimeMessage -> {
+          MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+          message.setSubject(subject);
+          message.setTo(recipients);
 
-      setFrom(message);
+          setFrom(message);
 
-      Map<String, Object> email = new HashMap<>();
-      email.put("login", login);
-      email.put("url", getUrl(url));
-      String text = templateEngine.merge("restore-password-template.ftl", email);
-      message.setText(text, true);
+          Map<String, Object> email = new HashMap<>();
+          email.put("login", login);
+          email.put("url", getUrl(url));
+          String text = templateEngine.merge("restore-password-template.ftl", email);
+          message.setText(text, true);
 
-      message.addInline("restore-password.png", emailTemplateResource("restore-password.png"));
-      attachSocialImages(message);
-    };
+          message.addInline("restore-password.png", emailTemplateResource("restore-password.png"));
+          attachSocialImages(message);
+        };
     this.send(preparator);
   }
 
-  public void sendChangePasswordConfirmation(final String subject, final String[] recipients,
-      final String login) {
-    MimeMessagePreparator preparator = mimeMessage -> {
-      MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
-      message.setSubject(subject);
-      message.setTo(recipients);
+  public void sendChangePasswordConfirmation(
+      final String subject, final String[] recipients, final String login) {
+    MimeMessagePreparator preparator =
+        mimeMessage -> {
+          MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+          message.setSubject(subject);
+          message.setTo(recipients);
 
-      setFrom(message);
+          setFrom(message);
 
-      Map<String, Object> email = new HashMap<>();
-      email.put("user_name", login);
-      String text = templateEngine.merge("change-password-template.ftl", email);
-      message.setText(text, true);
+          Map<String, Object> email = new HashMap<>();
+          email.put("user_name", login);
+          String text = templateEngine.merge("change-password-template.ftl", email);
+          message.setText(text, true);
 
-      message.addInline("illustration.png", emailTemplateResource("illustration.png"));
-      attachSocialImages(message);
-    };
+          message.addInline("illustration.png", emailTemplateResource("illustration.png"));
+          attachSocialImages(message);
+        };
     this.send(preparator);
   }
 
-  public void sendIndexFinishedEmail(final String subject, final String recipient,
-      final Long indexedLogsCount) {
-    MimeMessagePreparator preparator = mimeMessage -> {
-      MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
-      message.setSubject(subject);
-      message.setTo(recipient);
-      Map<String, Object> email = new HashMap<>();
-      email.put("indexedLogsCount", ofNullable(indexedLogsCount).orElse(0L));
-      setFrom(message);
-      String text = templateEngine.merge("index-finished-template.ftl", email);
-      message.setText(text, true);
-    };
+  public void sendIndexFinishedEmail(
+      final String subject, final String recipient, final Long indexedLogsCount) {
+    MimeMessagePreparator preparator =
+        mimeMessage -> {
+          MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+          message.setSubject(subject);
+          message.setTo(recipient);
+          Map<String, Object> email = new HashMap<>();
+          email.put("indexedLogsCount", ofNullable(indexedLogsCount).orElse(0L));
+          setFrom(message);
+          String text = templateEngine.merge("index-finished-template.ftl", email);
+          message.setText(text, true);
+        };
     this.send(preparator);
   }
 
   public void setFrom(String from) {
     if (from.contains("<")) {
-        try {
-            this.from = new InternetAddress(from);
-        } catch (AddressException e) {
-            this.from = null;
-        }
+      try {
+        this.from = new InternetAddress(from);
+      } catch (AddressException e) {
+        this.from = null;
+      }
     } else {
-        try {
-            this.from = new InternetAddress(null, from);
-        } catch (UnsupportedEncodingException e) {
-            this.from = null;
-        }
+      try {
+        this.from = new InternetAddress(null, from);
+      } catch (UnsupportedEncodingException e) {
+        this.from = null;
+      }
     }
   }
 
@@ -329,66 +376,72 @@ public class EmailService extends JavaMailSenderImpl {
   }
 
   public void sendCreateUserConfirmationEmail(CreateUserRQFull req, String basicUrl) {
-    MimeMessagePreparator preparator = mimeMessage -> {
-      MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
-      message.setSubject("Welcome to ReportPortal");
-      message.setTo(req.getEmail());
-      setFrom(message);
+    MimeMessagePreparator preparator =
+        mimeMessage -> {
+          MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+          message.setSubject("Welcome to ReportPortal");
+          message.setTo(req.getEmail());
+          setFrom(message);
 
-      Map<String, Object> email = new HashMap<>();
-      email.put("url", getUrl(basicUrl));
-      email.put("login", normalizeId(req.getLogin()));
+          Map<String, Object> email = new HashMap<>();
+          email.put("url", getUrl(basicUrl));
+          email.put("login", normalizeId(req.getLogin()));
 
-      if (req.getPassword() != null) {
-        email.put("password", req.getPassword());
-        message.setText(templateEngine.merge("create-user-template.ftl", email), true);
-      } else {
-        message.setText(templateEngine.merge("create-user-identity-provider-template.ftl", email),
-            true);
-      }
+          if (req.getPassword() != null) {
+            email.put("password", req.getPassword());
+            message.setText(templateEngine.merge("create-user-template.ftl", email), true);
+          } else {
+            message.setText(
+                templateEngine.merge("create-user-identity-provider-template.ftl", email), true);
+          }
 
-      message.addInline("create-user.png", emailTemplateResource("create-user.png"));
-      attachSocialImages(message);
-    };
+          message.addInline("create-user.png", emailTemplateResource("create-user.png"));
+          attachSocialImages(message);
+        };
     this.send(preparator);
   }
 
-
   /**
-   * Send email to user with connection test result. If email address is not valid, exception will be thrown.
+   * Send email to user with connection test result. If email address is not valid, exception will
+   * be thrown.
    *
-   * @param isCreated - flag that indicates if integration was created or updated. Used to determine email subject.
+   * @param isCreated - flag that indicates if integration was created or updated. Used to determine
+   *     email subject.
    * @throws AddressException - if email address is not valid.
    * @throws UnsupportedEncodingException - if internet address cannot be created.
    */
-  public void sendConnectionTestEmail(boolean isCreated) throws AddressException, UnsupportedEncodingException {
-    InternetAddress sender = getSender().orElseThrow(() -> new AddressException("Invalid email address"));
+  public void sendConnectionTestEmail(boolean isCreated)
+      throws AddressException, UnsupportedEncodingException {
+    InternetAddress sender =
+        getSender().orElseThrow(() -> new AddressException("Invalid email address"));
     String subject =
-            isCreated ? "Email server integration creation" : "Email server integration updated";
+        isCreated ? "Email server integration creation" : "Email server integration updated";
 
-    MimeMessagePreparator preparator = mimeMessage -> {
-      MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
-      message.setSubject(subject);
-      message.setTo(sender);
-      message.setFrom(sender);
+    MimeMessagePreparator preparator =
+        mimeMessage -> {
+          MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+          message.setSubject(subject);
+          message.setTo(sender);
+          message.setFrom(sender);
 
-      Map<String, Object> data = Collections.emptyMap();
-      String text = templateEngine.merge("email-connection.ftl", data);
-      message.setText(text, true);
-      attachSocialImages(message);
-    };
+          Map<String, Object> data = Collections.emptyMap();
+          String text = templateEngine.merge("email-connection.ftl", data);
+          message.setText(text, true);
+          attachSocialImages(message);
+        };
     this.send(preparator);
   }
 
   /**
-   * Provide sender email address.
-   * If address in from field is valid, it will be used. Otherwise, username will be used.
+   * Provide sender email address. If address in from field is valid, it will be used. Otherwise,
+   * username will be used.
    *
    * @return Optional of sender email address.
    * @throws AddressException - if email address is not valid.
    * @throws UnsupportedEncodingException - if internet address cannot be created.
    */
-  private Optional<InternetAddress> getSender() throws UnsupportedEncodingException, AddressException {
+  private Optional<InternetAddress> getSender()
+      throws UnsupportedEncodingException, AddressException {
     if (getFrom().isPresent()) {
       if (UserUtils.isEmailValid(getFrom().get().getAddress())) {
         return Optional.of(getFrom().get());
@@ -401,11 +454,11 @@ public class EmailService extends JavaMailSenderImpl {
     return Optional.empty();
   }
 
-  /**
-   * Builds FROM field If username is email, format will be "from \<email\>"
-   */
-  private  void  setFrom(MimeMessageHelper message) throws MessagingException, UnsupportedEncodingException {
-    InternetAddress sender = getSender().orElseThrow(() -> new AddressException("Invalid email address"));
+  /** Builds FROM field If username is email, format will be "from \<email\>" */
+  private void setFrom(MimeMessageHelper message)
+      throws MessagingException, UnsupportedEncodingException {
+    InternetAddress sender =
+        getSender().orElseThrow(() -> new AddressException("Invalid email address"));
     message.setFrom(sender);
   }
 
@@ -419,70 +472,73 @@ public class EmailService extends JavaMailSenderImpl {
   }
 
   private Resource emailTemplateResource(String resource) {
-    return new FileUrlResource(Objects.requireNonNull(
-        EmailService.class.getClassLoader().getResource(TEMPLATE_IMAGES_PREFIX + resource)));
+    return new FileUrlResource(
+        Objects.requireNonNull(
+            EmailService.class.getClassLoader().getResource(TEMPLATE_IMAGES_PREFIX + resource)));
   }
 
   public void sendAccountSelfDeletionNotification(String recipient) {
-    MimeMessagePreparator preparator = mimeMessage -> {
-      MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
-      message.setSubject("Account Deletion Notification");
-      message.setTo(recipient);
+    MimeMessagePreparator preparator =
+        mimeMessage -> {
+          MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+          message.setSubject("Account Deletion Notification");
+          message.setTo(recipient);
 
-      setFrom(message);
+          setFrom(message);
 
-      Map<String, Object> data = Collections.emptyMap();
-      String text = templateEngine.merge("self-delete-account-template.ftl", data);
-      message.setText(text, true);
+          Map<String, Object> data = Collections.emptyMap();
+          String text = templateEngine.merge("self-delete-account-template.ftl", data);
+          message.setText(text, true);
 
-      message.addInline("new-logo.png", emailTemplateResource("new-logo.png"));
-      message.addInline("deleted-account.png", emailTemplateResource("deleted-account.png"));
-      attachNewSocialImages(message);
-    };
+          message.addInline("new-logo.png", emailTemplateResource("new-logo.png"));
+          message.addInline("deleted-account.png", emailTemplateResource("deleted-account.png"));
+          attachNewSocialImages(message);
+        };
     this.send(preparator);
   }
 
   public void sendAccountDeletionByRetentionNotification(String recipient) {
-    MimeMessagePreparator preparator = mimeMessage -> {
-      MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
-      message.setSubject("Account Deletion Notification");
-      message.setTo(recipient);
+    MimeMessagePreparator preparator =
+        mimeMessage -> {
+          MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+          message.setSubject("Account Deletion Notification");
+          message.setTo(recipient);
 
-      setFrom(message);
+          setFrom(message);
 
-      Map<String, Object> data = Collections.emptyMap();
-      String text = templateEngine.merge("delete-account-template.ftl", data);
-      message.setText(text, true);
+          Map<String, Object> data = Collections.emptyMap();
+          String text = templateEngine.merge("delete-account-template.ftl", data);
+          message.setText(text, true);
 
-      message.addInline("new-logo.png", emailTemplateResource("new-logo.png"));
-      message.addInline("deleted-account.png", emailTemplateResource("deleted-account.png"));
-      attachNewSocialImages(message);
-    };
+          message.addInline("new-logo.png", emailTemplateResource("new-logo.png"));
+          message.addInline("deleted-account.png", emailTemplateResource("deleted-account.png"));
+          attachNewSocialImages(message);
+        };
     this.send(preparator);
   }
 
   public void sendUserExpirationNotification(String recipient, Map<String, Object> params) {
-    MimeMessagePreparator preparator = mimeMessage -> {
-      MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
-      message.setSubject("Account Deletion Notification");
-      message.setTo(recipient);
+    MimeMessagePreparator preparator =
+        mimeMessage -> {
+          MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+          message.setSubject("Account Deletion Notification");
+          message.setTo(recipient);
 
-      setFrom(message);
+          setFrom(message);
 
-      Map<String, Object> data = new HashMap<>();
-      data.put("remainingTime", params.get("remainingTime"));
-      data.put("inactivityPeriod", params.get("inactivityPeriod"));
-      data.put("deadlineDate", params.get("deadlineDate"));
-      String text = templateEngine.merge("delete-account-notification-template.ftl", data);
-      message.setText(text, true);
+          Map<String, Object> data = new HashMap<>();
+          data.put("remainingTime", params.get("remainingTime"));
+          data.put("inactivityPeriod", params.get("inactivityPeriod"));
+          data.put("deadlineDate", params.get("deadlineDate"));
+          String text = templateEngine.merge("delete-account-notification-template.ftl", data);
+          message.setText(text, true);
 
-      message.addInline("new-logo.png", emailTemplateResource("new-logo.png"));
-      message.addInline(
-          "delete-account-notification.png",
-          emailTemplateResource("delete-account-notification.png")
-      );
-      attachNewSocialImages(message);
-    };
+          message.addInline("new-logo.png", emailTemplateResource("new-logo.png"));
+          message.addInline(
+              "delete-account-notification.png",
+              emailTemplateResource("delete-account-notification.png"));
+          attachNewSocialImages(message);
+        };
     this.send(preparator);
   }
 
@@ -494,5 +550,4 @@ public class EmailService extends JavaMailSenderImpl {
     message.addInline("new-ic-facebook.png", emailTemplateResource("new-ic-facebook.png"));
     message.addInline("new-ic-github.png", emailTemplateResource("new-ic-github.png"));
   }
-
 }

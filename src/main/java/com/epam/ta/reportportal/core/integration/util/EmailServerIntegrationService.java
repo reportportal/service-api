@@ -31,7 +31,6 @@ import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.google.common.collect.Maps;
 import com.mchange.lang.IntegerUtils;
-
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.Optional;
@@ -182,7 +181,7 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
                 FORBIDDEN_OPERATION,
                 "Email configuration is incorrect. Please, check your configuration. "
                     + ex.getMessage());
-        }
+      }
     } else {
       return false;
     }

@@ -61,6 +61,14 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 
   private final MailServiceFactory emailServiceFactory;
 
+  /**
+ * Constructs an EmailServerIntegrationService with the specified dependencies.
+ *
+ * @param integrationRepository the repository for integration entities
+ * @param pluginBox the plugin box for managing plugins
+ * @param basicTextEncryptor the text encryptor for encrypting sensitive data
+ * @param emailServiceFactory the factory for creating email services
+ */
   public EmailServerIntegrationService(
       IntegrationRepository integrationRepository,
       PluginBox pluginBox,

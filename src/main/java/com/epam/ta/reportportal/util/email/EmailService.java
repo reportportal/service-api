@@ -318,6 +318,13 @@ public class EmailService extends JavaMailSenderImpl {
     this.send(preparator);
   }
 
+  /**
+   * Sends a confirmation email to the user after changing the password.
+   *
+   * @param subject the subject of the email
+   * @param recipients the recipients of the email
+   * @param login the login of the user
+   */
   public void sendChangePasswordConfirmation(
       final String subject, final String[] recipients, final String login) {
     MimeMessagePreparator preparator =
@@ -339,6 +346,13 @@ public class EmailService extends JavaMailSenderImpl {
     this.send(preparator);
   }
 
+  /**
+   * Sends an email notification when the indexing process is finished.
+   *
+   * @param subject the subject of the email
+   * @param recipient the recipient of the email
+   * @param indexedLogsCount the number of logs that were indexed
+   */
   public void sendIndexFinishedEmail(
       final String subject, final String recipient, final Long indexedLogsCount) {
     MimeMessagePreparator preparator =
@@ -355,26 +369,48 @@ public class EmailService extends JavaMailSenderImpl {
     this.send(preparator);
   }
 
+  /**
+   * Sets the sender's email address. Check if the string contains "<" to determine if the email
+   * address is in the format "from <email>". If it is, create a new InternetAddress object with the
+   * email address. If it is not, create a new InternetAddress object with personal name only.
+   *
+   * @param from the sender's email address
+   */
   public void setFrom(String from) {
-    if (from.contains("<")) {
-      try {
+    try {
+      if (from.contains("<")) {
         this.from = new InternetAddress(from);
-      } catch (AddressException e) {
-        this.from = null;
-      }
-    } else {
-      try {
+      } else {
         this.from = new InternetAddress(null, from);
-      } catch (UnsupportedEncodingException e) {
-        this.from = null;
       }
+    } catch (AddressException | UnsupportedEncodingException e) {
+      this.from = null;
     }
   }
 
+  /** Builds FROM field If username is email, format will be "from \<email\>" */
+  private void setFrom(MimeMessageHelper message)
+      throws MessagingException, UnsupportedEncodingException {
+    InternetAddress sender =
+        getSender().orElseThrow(() -> new AddressException("Invalid email address"));
+    message.setFrom(sender);
+  }
+
+  /**
+   * Gets the sender's email address.
+   *
+   * @return the sender's email address
+   */
   public Optional<InternetAddress> getFrom() {
     return Optional.ofNullable(from);
   }
 
+  /**
+   * Sends an email to the user with a confirmation link to create an account.
+   *
+   * @param req the request to create a user
+   * @param basicUrl the basic URL of the ReportPortal
+   */
   public void sendCreateUserConfirmationEmail(CreateUserRQFull req, String basicUrl) {
     MimeMessagePreparator preparator =
         mimeMessage -> {
@@ -433,10 +469,9 @@ public class EmailService extends JavaMailSenderImpl {
   }
 
   /**
-   * Provide sender email address. If address in from field is valid, it will be used. Otherwise,
-   * username will be used.
+   * Provide sender internet address. If address in from field is valid, it will be used. Otherwise,
+   * username will be used if it is valid email address.
    *
-   * @return Optional of sender email address.
    * @throws AddressException - if email address is not valid.
    * @throws UnsupportedEncodingException - if internet address cannot be created.
    */
@@ -452,14 +487,6 @@ public class EmailService extends JavaMailSenderImpl {
       return Optional.of(new InternetAddress(Objects.requireNonNull(getUsername())));
     }
     return Optional.empty();
-  }
-
-  /** Builds FROM field If username is email, format will be "from \<email\>" */
-  private void setFrom(MimeMessageHelper message)
-      throws MessagingException, UnsupportedEncodingException {
-    InternetAddress sender =
-        getSender().orElseThrow(() -> new AddressException("Invalid email address"));
-    message.setFrom(sender);
   }
 
   private void attachSocialImages(MimeMessageHelper message) throws MessagingException {

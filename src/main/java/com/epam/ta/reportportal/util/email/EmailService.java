@@ -351,10 +351,12 @@ public class EmailService extends JavaMailSenderImpl {
    */
   public void setFrom(String from) {
     try {
-      switch (from) {
-        case String s when s.contains("<") -> this.from = new InternetAddress(from);
-        case String s when UserUtils.isEmailValid(s) -> this.from = new InternetAddress(from, null);
-        default -> this.from = null;
+      if (from.contains("<")) {
+        this.from = new InternetAddress(from);
+      } else if (UserUtils.isEmailValid(from)) {
+        this.from = new InternetAddress(from, null);
+      } else {
+        this.from = null;
       }
     } catch (AddressException | UnsupportedEncodingException e) {
       this.from = null;

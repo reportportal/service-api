@@ -17,30 +17,23 @@
 package com.epam.ta.reportportal.core.integration.util;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.fail;
-import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.reportportal.rules.exception.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
 import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandlerImpl;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Maps;
 import com.mchange.lang.IntegerUtils;
-
 import java.util.Map;
 import java.util.Optional;
 import javax.mail.MessagingException;
-import javax.mail.Transport;
-import javax.mail.internet.AddressException;
-
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -50,6 +43,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
+ * Service for integration with email server.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
@@ -62,13 +57,13 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
   private final MailServiceFactory emailServiceFactory;
 
   /**
- * Constructs an EmailServerIntegrationService with the specified dependencies.
- *
- * @param integrationRepository the repository for integration entities
- * @param pluginBox the plugin box for managing plugins
- * @param basicTextEncryptor the text encryptor for encrypting sensitive data
- * @param emailServiceFactory the factory for creating email services
- */
+   * Constructs an EmailServerIntegrationService with the specified dependencies.
+   *
+   * @param integrationRepository the repository for integration entities
+   * @param pluginBox the plugin box for managing plugins
+   * @param basicTextEncryptor the text encryptor for encrypting sensitive data
+   * @param emailServiceFactory the factory for creating email services
+   */
   public EmailServerIntegrationService(
       IntegrationRepository integrationRepository,
       PluginBox pluginBox,

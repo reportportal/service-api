@@ -368,7 +368,7 @@ public class EmailService extends JavaMailSenderImpl {
    * it will be set from username.
    */
   private void setFrom(MimeMessageHelper message)
-      throws MessagingException, UnsupportedEncodingException {
+      throws MessagingException {
     if (getFrom().isPresent()) {
       message.setFrom(getFrom().get());
     } else if (UserUtils.isEmailValid(getUsername())) {
@@ -377,17 +377,13 @@ public class EmailService extends JavaMailSenderImpl {
   }
 
   /**
-   * Gets the sender's email address. If sender is not set, it will be set from username.
+   * Gets the sender's email address.
    *
-   * @return the sender's email address
+   * @return the sender's email address if it is set.
+   * @see InternetAddress
    */
-  public Optional<InternetAddress> getFrom() throws UnsupportedEncodingException {
-    if (from != null) {
-      return Optional.of(from);
-    } else if (UserUtils.isEmailValid(getUsername())) {
-      return Optional.of(new InternetAddress(getUsername(), null));
-    }
-    return Optional.empty();
+  public Optional<InternetAddress> getFrom() {
+    return Optional.ofNullable(from);
   }
 
   /**
@@ -456,13 +452,12 @@ public class EmailService extends JavaMailSenderImpl {
    *
    * @param isCreated - flag that indicates if integration was created or updated. Used to determine
    *     email subject.
-   * @throws AddressException - if email address is not valid.
-   * @throws UnsupportedEncodingException - if email address is not valid.
+   * @throws AddressException - if email address is not valid or not exist.
    */
   public void sendConnectionTestEmail(boolean isCreated)
-      throws AddressException, UnsupportedEncodingException {
+      throws AddressException {
     InternetAddress sender =
-        getFrom().orElseThrow(() -> new AddressException("Email address is not valid"));
+        getFrom().orElseThrow(() -> new AddressException("Sender email address is not exist"));
     String subject =
         isCreated ? "Email server integration creation" : "Email server integration updated";
     MimeMessagePreparator preparator =

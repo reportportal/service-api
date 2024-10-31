@@ -174,7 +174,7 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
                 .orElse("false"))) {
           emailService.get().sendConnectionTestEmail(isIntegrationCreated);
         }
-      } catch (MessagingException | UnsupportedEncodingException ex) {
+      } catch (MessagingException ex) {
         LOGGER.error("Cannot send email to user", ex);
         fail()
             .withError(

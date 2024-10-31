@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.integration.util;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.fail;
-import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.reportportal.rules.exception.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
@@ -31,7 +31,6 @@ import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.google.common.collect.Maps;
 import com.mchange.lang.IntegerUtils;
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.Optional;
 import javax.mail.MessagingException;
@@ -178,7 +177,7 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
         LOGGER.error("Cannot send email to user", ex);
         fail()
             .withError(
-                FORBIDDEN_OPERATION,
+                EMAIL_CONFIGURATION_IS_INCORRECT,
                 "Email configuration is incorrect. Please, check your configuration. "
                     + ex.getMessage());
       }

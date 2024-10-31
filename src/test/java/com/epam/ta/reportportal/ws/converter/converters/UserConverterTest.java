@@ -44,6 +44,9 @@ class UserConverterTest {
     final UserResource resource = UserConverter.TO_RESOURCE.apply(user);
 
     assertEquals(resource.getEmail(), user.getEmail());
+    assertEquals(resource.getUuid(), user.getUuid());
+    assertEquals(resource.getExternalId(), user.getExternalId());
+    assertEquals(resource.isActive(), user.getActive());
     assertEquals(resource.getFullName(), user.getFullName());
     assertEquals(resource.getUserId(), user.getLogin());
     assertEquals(resource.getUserRole(), user.getRole().name());
@@ -68,6 +71,8 @@ class UserConverterTest {
   private static User getUser() {
     final User user = new User();
     user.setLogin("login");
+    user.setExternalId("1234");
+    user.setActive(true);
     user.setUserType(UserType.INTERNAL);
     user.setRole(UserRole.USER);
     user.setAttachment("attachmentId");

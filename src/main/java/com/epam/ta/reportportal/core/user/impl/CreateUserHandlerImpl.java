@@ -16,16 +16,9 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.isNull;
-import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.fail;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
-import static com.epam.ta.reportportal.entity.project.ProjectUtils.findUserConfigByLogin;
-import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
@@ -34,10 +27,20 @@ import static com.epam.reportportal.rules.exception.ErrorType.RESOURCE_ALREADY_E
 import static com.epam.reportportal.rules.exception.ErrorType.ROLE_NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_EXISTS;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.isNull;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
+import static com.epam.ta.reportportal.entity.project.ProjectUtils.findUserConfigByLogin;
+import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
+import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.auth.authenticator.UserAuthenticator;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.activity.CreateInvitationLinkEvent;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
@@ -59,7 +62,6 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.model.user.CreateUserBidRS;
@@ -75,9 +77,9 @@ import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.RestorePasswordBidConverter;
 import com.epam.ta.reportportal.ws.converter.converters.UserCreationBidConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Maps;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -214,13 +216,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   private Pair<UserActivityResource, CreateUserRS> saveUser(CreateUserRQFull request,
       User creator, boolean isSystemEvent) {
 
-    final Project projectToAssign =
-        getProjectHandler.getRaw(normalizeId(request.getDefaultProject()));
-    final ProjectRole projectRole = forName(request.getProjectRole()).orElseThrow(
-        () -> new ReportPortalException(ROLE_NOT_FOUND,
-            request.getProjectRole()
-        ));
-
     final User user = convert(request);
 
     try {
@@ -241,15 +236,33 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
     userAuthenticator.authenticate(user);
 
-    projectUserHandler.assign(user, projectToAssign, projectRole, creator, false);
+    ofNullable(request.getDefaultProject()).ifPresent(
+        defaultProject -> assignDefaultProject(creator, user, defaultProject,
+            request.getProjectRole()));
+
     final Project personalProject = createProjectHandler.createPersonal(user);
-    projectUserHandler.assign(user, personalProject, ProjectRole.PROJECT_MANAGER, creator, isSystemEvent);
+    projectUserHandler.assign(user, personalProject, ProjectRole.PROJECT_MANAGER, creator,
+        isSystemEvent);
 
     final CreateUserRS response = new CreateUserRS();
     response.setId(user.getId());
+    response.setUuid(user.getUuid());
+    response.setExternalId(user.getExternalId());
     response.setLogin(user.getLogin());
+    response.setEmail(user.getEmail());
+    response.setFullName(user.getFullName());
+    response.setAccountRole(user.getRole().toString());
+    response.setAccountType(user.getUserType().toString());
+    response.setActive(user.getActive());
+    return Pair.of(TO_ACTIVITY_RESOURCE.apply(user, personalProject.getId()), response);
+  }
 
-    return Pair.of(TO_ACTIVITY_RESOURCE.apply(user, projectToAssign.getId()), response);
+  private void assignDefaultProject(User creator, User user,
+      String defaultProject, String role) {
+    var projectToAssign = getProjectHandler.getRaw(normalizeId(defaultProject));
+    var projectRole = forName(role).orElseThrow(
+        () -> new ReportPortalException(ROLE_NOT_FOUND, role));
+    projectUserHandler.assign(user, projectToAssign, projectRole, creator, false);
   }
 
   private UserActivityResource getUserActivityResource(User user) {
@@ -263,10 +276,12 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     final UserRole userRole = UserRole.findByName(request.getAccountRole())
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
             "Incorrect specified Account Role parameter."));
-    return new UserBuilder().addCreateUserFullRQ(request)
+    User user = new UserBuilder().addCreateUserFullRQ(request)
         .addUserRole(userRole)
-        .addPassword(passwordEncoder.encode(request.getPassword()))
         .get();
+    ofNullable(request.getPassword()).ifPresent(
+        password -> user.setPassword(passwordEncoder.encode(password)));
+    return user;
   }
 
   @Override
@@ -284,7 +299,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
         "Email from bid not match.");
 
     User invitingUser = bid.getInvitingUser();
-    final Pair<UserActivityResource, CreateUserRS> pair = saveUser(createUserRQFull, invitingUser, true);
+    final Pair<UserActivityResource, CreateUserRS> pair = saveUser(createUserRQFull, invitingUser,
+        true);
 
     userCreationBidRepository.deleteAllByEmail(createUserRQFull.getEmail());
 
@@ -352,7 +368,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
         new StringBuilder(emailURL).append("/ui/#registration?uuid=").append(bid.getUuid());
     emailExecutorService.execute(() -> emailServiceFactory.getEmailService(integration, false)
         .sendCreateUserConfirmationEmail("User registration confirmation",
-            new String[] {bid.getEmail()}, emailLink.toString()));
+            new String[]{bid.getEmail()}, emailLink.toString()));
 
     eventPublisher.publishEvent(
         new CreateInvitationLinkEvent(loggedInUser.getUserId(), loggedInUser.getUsername(),
@@ -397,7 +413,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
     emailServiceFactory.getDefaultEmailService(true)
         .sendRestorePasswordEmail("Password recovery",
-            new String[] {email},
+            new String[]{email},
             baseUrl + "#login?reset=" + bid.getUuid(),
             user.getLogin()
         );

@@ -57,7 +57,8 @@ public class LaunchPatternAnalysisRunner implements
     if (isPatternAnalysisEnabled) {
       final Launch launch = getLaunchHandler.get(launchFinishedEvent.getId());
       launchPatternAnalyzer.analyzeLaunch(launch,
-          Sets.newHashSet(AnalyzeItemsMode.TO_INVESTIGATE, AnalyzeItemsMode.IGNORE_IMMEDIATE));
+          Sets.newHashSet(AnalyzeItemsMode.TO_INVESTIGATE, AnalyzeItemsMode.AUTO_ANALYZED,
+              AnalyzeItemsMode.IGNORE_IMMEDIATE));
     }
   }
 

@@ -48,7 +48,6 @@ public class ProjectConfigDelegatingSubscriber<T extends ProjectIdAwareEvent> im
     final Map<String, String> projectConfig = projectConfigProvider.provide(event.getProjectId());
     eventHandlers.forEach(h -> {
       try {
-        LOGGER.error("Handle event: " + event);
         h.handle(event, projectConfig);
       } catch (Exception e) {
         LOGGER.debug("Error while processing event: " +e.getMessage() );

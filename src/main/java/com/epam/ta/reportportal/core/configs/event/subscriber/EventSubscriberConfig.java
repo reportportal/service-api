@@ -49,9 +49,9 @@ public class EventSubscriberConfig {
       LaunchPatternAnalysisRunner patternAnalysisEventHandler,
       LaunchNotificationRunner notificationEventHandler) {
     return new ProjectConfigDelegatingSubscriber<>(projectConfigProvider,
-        List.of(autoAnalysisEventHandler,
+        List.of(patternAnalysisEventHandler,
+            autoAnalysisEventHandler,
             uniqueErrorAnalysisEventHandler,
-            patternAnalysisEventHandler,
             launchAnalysisFinishEventPublisher,
             notificationEventHandler
         )

@@ -50,7 +50,7 @@ public class ProjectConfigDelegatingSubscriber<T extends ProjectIdAwareEvent> im
       try {
         h.handle(event, projectConfig);
       } catch (Exception e) {
-        LOGGER.debug("Error while processing event: " +e.getMessage() );
+        LOGGER.debug("Error while processing event: " + e.getMessage());
       }
     });
   }

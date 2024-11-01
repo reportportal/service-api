@@ -67,7 +67,8 @@ class LaunchPatternAnalysisRunnerTest {
     runner.handle(event, mapping);
 
     verify(launchPatternAnalyzer, times(1)).analyzeLaunch(launch,
-        Sets.newHashSet(AnalyzeItemsMode.TO_INVESTIGATE, AnalyzeItemsMode.AUTO_ANALYZED, AnalyzeItemsMode.IGNORE_IMMEDIATE));
+        Sets.newHashSet(AnalyzeItemsMode.TO_INVESTIGATE, AnalyzeItemsMode.AUTO_ANALYZED,
+            AnalyzeItemsMode.IGNORE_IMMEDIATE));
 
   }
 

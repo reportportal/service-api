@@ -420,8 +420,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     organizationUserRepository.findByUserIdAndOrganization_Id(modifyingUser.getId(),
             project.getOrganizationId())
         .ifPresentOrElse(orgUser -> {
-          if (modifyingUser.getRole() == UserRole.ADMINISTRATOR
-              || orgUser.getOrganizationRole().sameOrHigherThan(MANAGER)) {
+          if (orgUser.getOrganizationRole().sameOrHigherThan(MANAGER)) {
             projectUser.setProjectRole(ProjectRole.EDITOR);
           }
         }, () -> {

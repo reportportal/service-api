@@ -67,6 +67,8 @@ public final class ProjectConverter {
       projectUser.setLogin(user.getUser().getLogin());
       projectUser.setProjectRole(user.getProjectRole().toString());
       projectUser.setEmail(user.getUser().getEmail());
+      projectUser.setAccountRole(user.getUser().getRole().toString());
+      projectUser.setAccountType(user.getUser().getUserType().toString());
       return projectUser;
     }).collect(Collectors.toList()));
 

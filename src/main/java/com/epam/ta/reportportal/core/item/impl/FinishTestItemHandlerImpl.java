@@ -283,6 +283,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
     testItemResults.setStatus(actualStatus.orElseGet(() -> resolveStatus(testItem.getItemId())));
 
+    if (Objects.nonNull(testItemResults.getIssue()) && testItemResults.getStatus().equals(PASSED)) {
+      removeItemIssue(testItemResults);
+    }
+
     testItem.getAttributes().removeIf(
         attribute -> ATTRIBUTE_KEY_STATUS.equalsIgnoreCase(attribute.getKey())
             && ATTRIBUTE_VALUE_INTERRUPTED.equalsIgnoreCase(attribute.getValue()));
@@ -412,6 +416,14 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
               Collections.singletonList(testItem.getItemId())
           ));
     }
+  }
+
+  private void removeItemIssue(TestItemResults testItemResults) {
+    issueEntityRepository.findById(testItemResults.getItemId()).ifPresent(issueEntity -> {
+      issueEntity.setTestItemResults(null);
+      issueEntityRepository.delete(issueEntity);
+      testItemResults.setIssue(null);
+    });
   }
 
   private void updateItemIssue(TestItemResults testItemResults, IssueEntity resolvedIssue) {

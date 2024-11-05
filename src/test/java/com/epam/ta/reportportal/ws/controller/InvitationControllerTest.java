@@ -111,4 +111,34 @@ class InvitationControllerTest extends BaseMvcTest {
         .andExpect(status().isForbidden());
 
   }
+
+  @Test
+  void activateInvitation() throws Exception {
+    List<UserProjectInfo> projects = new ArrayList<>();
+    var orgInfo = new InvitationRequestOrganizationsInner();
+    UserProjectInfo projectInfo = new UserProjectInfo()
+        .id(1L)
+        .projectRole(ProjectRole.VIEWER);
+
+    projects.add(projectInfo);
+
+    orgInfo.setId(1L);
+    orgInfo.setOrgRole(OrgRole.MANAGER);
+    orgInfo.setProjects(projects);
+
+    List<InvitationRequestOrganizationsInner> organizations = new ArrayList<>();
+    organizations.add(orgInfo);
+
+    var rq = new InvitationRequest();
+
+    rq.setEmail("invitation@example.com");
+    rq.setOrganizations(organizations);
+
+    mockMvc.perform(MockMvcRequestBuilders.post(INVITATIONS_ENDPOINT)
+            .content(objectMapper.writeValueAsBytes(rq))
+            .contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isForbidden());
+
+  }
 }

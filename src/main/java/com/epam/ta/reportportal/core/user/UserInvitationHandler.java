@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.user;
 
 import com.epam.reportportal.api.model.Invitation;
+import com.epam.reportportal.api.model.InvitationActivation;
 import com.epam.reportportal.api.model.InvitationRequest;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 
@@ -34,4 +35,5 @@ public interface UserInvitationHandler {
   Invitation createUserInvitation(InvitationRequest request, ReportPortalUser username,
       String userRegURL);
 
+  Invitation activateUserInvitation(String invitationId, InvitationActivation invitationActivation);
 }

@@ -16,14 +16,18 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
+import static com.epam.reportportal.api.model.InvitationStatus.ACTIVATED;
 import static com.epam.reportportal.api.model.InvitationStatus.PENDING;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_EXISTS;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.ws.converter.builders.UserBuilder.USER_LAST_LOGIN;
 
 import com.epam.reportportal.api.model.Invitation;
+import com.epam.reportportal.api.model.InvitationActivation;
 import com.epam.reportportal.api.model.InvitationRequest;
 import com.epam.reportportal.api.model.InvitationRequestOrganizationsInner;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -35,12 +39,15 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.Metadata;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
+import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.google.common.collect.Maps;
 import java.net.URI;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +57,7 @@ import javax.validation.Valid;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Log4j2
@@ -65,19 +73,23 @@ public class UserInvitationHandlerImpl implements UserInvitationHandler {
   private final UserRepository userRepository;
   private final GetIntegrationHandler getIntegrationHandler;
   private final ApplicationEventPublisher eventPublisher;
+  private final PasswordEncoder passwordEncoder;
+
 
   public UserInvitationHandlerImpl(UserCreationBidRepository userCreationBidRepository,
       ThreadPoolTaskExecutor emailExecutorService, MailServiceFactory emailServiceFactory,
       UserRepository userRepository, GetIntegrationHandler getIntegrationHandler,
-      ApplicationEventPublisher eventPublisher) {
+      ApplicationEventPublisher eventPublisher, PasswordEncoder passwordEncoder) {
     this.userCreationBidRepository = userCreationBidRepository;
     this.emailExecutorService = emailExecutorService;
     this.emailServiceFactory = emailServiceFactory;
     this.userRepository = userRepository;
     this.getIntegrationHandler = getIntegrationHandler;
     this.eventPublisher = eventPublisher;
+    this.passwordEncoder = passwordEncoder;
   }
 
+  @Override
   public Invitation createUserInvitation(InvitationRequest request, ReportPortalUser rpUser,
       String baseUrl) {
     log.debug("User '{}' is trying to create invitation for user '{}'",
@@ -110,15 +122,13 @@ public class UserInvitationHandlerImpl implements UserInvitationHandler {
       throw new ReportPortalException("Error while user creation bid registering.", e);
     }
 
-    StringBuilder emailLink = new StringBuilder(baseUrl)
-        .append("/ui/#registration?uuid=")
-        .append(userBid.getUuid());
+    String emailLink = buildEmailLink(baseUrl, userBid);
 
     var response = new Invitation();
     response.setCreatedAt(now);
     response.setExpiresAt(now.plus(1, ChronoUnit.DAYS));
     response.setId(UUID.fromString(userBid.getUuid()));
-    response.setLink(URI.create(emailLink.toString()));
+    response.setLink(URI.create(emailLink));
     response.setStatus(PENDING);
 
     /*
@@ -131,6 +141,82 @@ public class UserInvitationHandlerImpl implements UserInvitationHandler {
     */
 
     return response;
+  }
+
+  private String buildEmailLink(String baseUrl, UserCreationBid userBid) {
+    return baseUrl
+        + "/ui/#registration?uuid="
+        + userBid.getUuid();
+  }
+
+  @Override
+  public Invitation activateUserInvitation(String invitationId,
+      InvitationActivation invitationActivation) {
+
+    final UserCreationBid bid = userCreationBidRepository.findByUuidAndType(invitationId,
+            INTERNAL_BID_TYPE)
+        .orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST,
+            "Impossible to register user. UUID expired or already registered."
+        ));
+
+    var user = createInvitedUser(invitationActivation, bid);
+
+    assignToOrgs(user.getId(), bid.getMetadata());
+
+    // assign to projects if any
+    assignToProjects(user.getId(), bid.getMetadata());
+
+    // remove form db
+    userCreationBidRepository.deleteById(invitationId);
+
+    var now = Instant.now().truncatedTo(ChronoUnit.MICROS);
+    return new Invitation()
+        .id(UUID.fromString(invitationId))
+        .userId(user.getId())
+        .status(ACTIVATED)
+        .email(user.getEmail())
+        .createdAt(now)
+        .expiresAt(now.plus(1, ChronoUnit.DAYS))
+        .fullName(user.getFullName())
+        //.link(buildEmailLink(baseUrl, bid))
+        ;
+  }
+
+  private void assignToProjects(Long id, Metadata metadata) {
+    try {
+      System.out.println("Assigning user to projects");
+
+    } catch (Exception e) {
+      log.debug("Error while assigning user {} to projects", id, e);
+    }
+  }
+
+  private void assignToOrgs(Long id, Metadata meta) {
+    try {
+      var asd = Optional.ofNullable(meta.getMetadata())
+              .map(m -> m.get("organizations"))
+              .map(List.class::cast);
+
+      System.out.println("Assigning user to organizations");
+
+    } catch (Exception e) {
+      log.debug("Error while assigning user {} to organizations", id, e);
+    }
+  }
+
+  private User createInvitedUser(InvitationActivation activation, UserCreationBid bid) {
+    var newUser = new User();
+    newUser.setEmail(bid.getEmail());
+    newUser.setUserType(UserType.INTERNAL);
+    newUser.setActive(true);
+    newUser.setFullName(activation.getFullName());
+    newUser.setPassword(passwordEncoder.encode(activation.getPassword()));
+    newUser.setRole(UserRole.USER);
+
+    Map<String, Object> meta = new HashMap<>();
+    meta.put(USER_LAST_LOGIN, new Date());
+    newUser.setMetadata(new Metadata(meta));
+    return userRepository.save(newUser);
   }
 
   private void validateInvitationRequest(InvitationRequest request) {

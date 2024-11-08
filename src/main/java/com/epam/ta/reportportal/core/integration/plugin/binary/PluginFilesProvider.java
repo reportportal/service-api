@@ -25,7 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
-import javax.activation.FileTypeMap;
+import jakarta.activation.FileTypeMap;
 import org.apache.commons.io.FileUtils;
 
 /**

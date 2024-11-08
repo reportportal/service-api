@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.model.dashboard;
 
 import com.epam.ta.reportportal.model.BaseEntityRQ;
-import com.epam.reportportal.annotations.NotBlankWithSize;
+import com.epam.ta.reportportal.ws.annotations.NotBlankWithSize;
 import com.epam.reportportal.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import java.util.List;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 /**
  * Domain object for updating widget positions.

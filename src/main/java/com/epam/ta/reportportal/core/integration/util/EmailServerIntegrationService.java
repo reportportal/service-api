@@ -33,7 +33,7 @@ import com.google.common.collect.Maps;
 import com.mchange.lang.IntegerUtils;
 import java.util.Map;
 import java.util.Optional;
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.validator.routines.UrlValidator;

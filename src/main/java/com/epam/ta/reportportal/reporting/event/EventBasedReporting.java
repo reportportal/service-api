@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import java.util.Optional;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -117,8 +117,8 @@ public class EventBasedReporting {
 
   private Optional<HttpServletRequest> extractCurrentHttpRequest() {
     RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-    if (requestAttributes instanceof ServletRequestAttributes) {
-      return Optional.of(((ServletRequestAttributes) requestAttributes).getRequest());
+    if (requestAttributes instanceof ServletRequestAttributes servletRequestAttributes) {
+      return Optional.of(servletRequestAttributes.getRequest());
     }
     log.debug("Not called in the context of an HTTP request");
     return Optional.empty();

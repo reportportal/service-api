@@ -16,13 +16,14 @@
 
 package com.epam.ta.reportportal.util;
 
+import java.io.FileInputStream;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.Tika;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.web.multipart.commons.CommonsMultipartFile;
-
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,8 +38,7 @@ public class MultipartFileUtils {
 	private MultipartFileUtils() {
 		//static only
 	}
-
-	public static CommonsMultipartFile getMultipartFile(String path) throws IOException {
+	public static MultipartFile getMultipartFile(String path) throws IOException {
 		ClassPathResource resource = new ClassPathResource(path);
 		//TODO investigate stream closing requirement
 		try (InputStream bufferedInputStream = new BufferedInputStream(resource.getInputStream())) {
@@ -50,7 +50,7 @@ public class MultipartFileUtils {
 					null
 			);
 			IOUtils.copy(bufferedInputStream, fileItem.getOutputStream());
-			return new CommonsMultipartFile(fileItem);
+			return new MockMultipartFile(resource.getFilename(), resource.getFilename(), tika.detect(bufferedInputStream), resource.getInputStream().readAllBytes());
 		}
 	}
 }

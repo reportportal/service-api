@@ -79,11 +79,10 @@ import com.epam.ta.reportportal.ws.converter.converters.RestorePasswordBidConver
 import com.epam.ta.reportportal.ws.converter.converters.UserCreationBidConverter;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Maps;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
-import javax.persistence.PersistenceException;
+import jakarta.persistence.PersistenceException;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.exception.ConstraintViolationException;
@@ -225,9 +224,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
           creator.getId(), creator.getLogin(), isSystemEvent);
       eventPublisher.publishEvent(userCreatedEvent);
     } catch (PersistenceException pe) {
-      if (pe.getCause() instanceof ConstraintViolationException) {
-        fail().withError(RESOURCE_ALREADY_EXISTS,
-            ((ConstraintViolationException) pe.getCause()).getConstraintName());
+      if (pe.getCause() instanceof ConstraintViolationException cve) {
+        fail().withError(RESOURCE_ALREADY_EXISTS, cve.getConstraintName());
       }
       throw new ReportPortalException("Error while User creating: " + pe.getMessage(), pe);
     } catch (Exception exp) {

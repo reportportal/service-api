@@ -78,8 +78,7 @@ public class RabbitMessageLoggingAspect {
       Object arg = args[i];
 
       if (arg != null) {
-        if (arg instanceof Message) {
-          Message message = (Message) arg;
+        if (arg instanceof Message message) {
           body = messageConverter.fromMessage(message);
           headers.putAll(message.getMessageProperties().getHeaders());
           break;

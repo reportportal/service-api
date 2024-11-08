@@ -15,10 +15,11 @@
  */
 
 plugins {
-    id "io.spring.dependency-management" version "1.1.4"
-    id 'org.springframework.boot' version '2.5.15'
+    id 'io.spring.dependency-management' version '1.1.6'
     id 'java'
-    id "org.owasp.dependencycheck" version "9.0.9"
+    id 'java-library'
+    id 'org.owasp.dependencycheck' version '10.0.4'
+    id 'org.springframework.boot' version "${springBootVersion}"
 }
 
 import org.owasp.dependencycheck.reporting.ReportGenerator
@@ -35,25 +36,20 @@ apply plugin: 'jacoco'
 project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
 
 repositories {
-    mavenCentral { url "https://repo1.maven.org/maven2" }
-
     if (!releaseMode) {
         maven { url 'https://jitpack.io' }
     }
-    maven { url "https://jaspersoft.jfrog.io/artifactory/third-party-ce-artifacts" }
+    mavenCentral { url "https://repo1.maven.org/maven2" }
 }
 
-//https://nvd.nist.gov/vuln/detail/CVE-2020-10683 (dom4j 2.1.3 version dependency) AND https://nvd.nist.gov/vuln/detail/CVE-2019-14900
-ext['hibernate.version'] = '5.6.15.Final'
-//https://nvd.nist.gov/vuln/detail/CVE-2020-10693
-ext['hibernate-validator.version'] = '6.2.5.Final'
-//https://nvd.nist.gov/vuln/detail/CVE-2020-13692
-//ext['postgresql.version'] = '42.2.13'
-//https://nvd.nist.gov/vuln/detail/CVE-2020-9488 and https://nvd.nist.gov/vuln/detail/CVE-2021-44228 and https://nvd.nist.gov/vuln/detail/CVE-2021-45046
-ext['log4j2.version'] = '2.21.1'
-ext['log4j-to-slf4j.version'] = '2.21.1'
-//https://nvd.nist.gov/vuln/detail/cve-2022-22965
-ext['spring-boot.version'] = '2.5.15'
+java {
+    targetCompatibility = JavaVersion.VERSION_21
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+ext['spring-boot.version'] = "${springBootVersion}"
 
 dependencyManagement {
     imports {
@@ -68,9 +64,9 @@ dependencies {
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:plugin-api:5.11.1'
     } else {
-        implementation 'com.github.reportportal:commons-dao:develop-SNAPSHOT'
-        implementation 'com.github.reportportal:commons:develop-SNAPSHOT'
-        implementation 'com.github.reportportal:plugin-api:develop-SNAPSHOT'
+        implementation 'com.github.reportportal:commons-dao:43dce52'
+        implementation 'com.github.reportportal:commons:e55b9e6'
+        implementation 'com.github.reportportal:plugin-api:bffdccf'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
@@ -80,78 +76,46 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework:spring-context-support'
+    implementation 'org.springframework.security:spring-security-jwt:1.1.1.RELEASE'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 
-    implementation 'org.springframework:spring-jdbc:6.1.5'
-    //Fix CVE-2023-34050
-    implementation 'org.springframework.amqp:spring-amqp:2.4.17'
-
-    //Fix CVE-2023-40827, CVE-2023-40828, CVE-2023-40826
-    implementation 'org.springframework:spring-webmvc:5.3.39'
-    implementation 'org.springframework:spring-web:5.3.39'
-
-    implementation 'com.opencsv:opencsv:5.8'
-
-    // Fix CVE-2023-46589, CVE-2024-24549
-    implementation 'org.apache.tomcat.embed:tomcat-embed-core:9.0.86'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-el:9.0.86'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:9.0.86'
-    //
-
-    //https://nvd.nist.gov/vuln/detail/CVE-2020-5411
-    implementation('org.springframework.batch:spring-batch-core:4.3.9')
-    implementation('org.springframework.batch:spring-batch-infrastructure:4.3.9')
-
+    implementation 'com.opencsv:opencsv:5.9'
+    implementation "org.jooq:jooq:${jooqVersion}"
 
     // Optional for spring-boot-starter-amqp
     implementation "com.rabbitmq:http-client:5.2.0"
 
-    implementation 'com.sun.mail:javax.mail:1.6.2'
     // check authentication error response format for versions higher than 6.21.3
     implementation('net.sf.jasperreports:jasperreports:6.21.3') {
         exclude group: 'com.fasterxml.jackson.dataformat', module: 'jackson-dataformat-xml'
     }
+    implementation 'jakarta.inject:jakarta.inject-api:2.0.1'
+    implementation 'com.sun.mail:jakarta.mail:2.0.1'
+
     implementation 'xerces:xercesImpl:2.12.2'
     implementation 'com.lowagie:itext:4.2.2'
-    // Fix CVE-2020-15522 in com.lowagie:itext:2.1.7.js7
-    implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
     // JasperReport's export to XLS uses Apache POI
     implementation 'org.apache.poi:poi:4.1.2'
-    implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
-    implementation 'com.google.code.gson:gson:2.8.9'
-    implementation 'com.google.api-client:google-api-client:2.3.0'
+    implementation 'com.google.api-client:google-api-client:2.6.0'
 
-    ///// Security
-    //https://nvd.nist.gov/vuln/detail/CVE-2020-5407 AND https://nvd.nist.gov/vuln/detail/CVE-2020-5408
-    implementation 'org.springframework.security:spring-security-core:5.8.14'
-    implementation 'org.springframework.security:spring-security-config:5.8.14'
-    implementation 'org.springframework.security:spring-security-web:5.8.14'
-    //
-
-    // Fix CVE-2022-22969
-    implementation 'org.springframework.security.oauth:spring-security-oauth2:2.5.2.RELEASE'
-    implementation 'org.springframework.security:spring-security-jwt:1.1.1.RELEASE'
+    implementation('commons-validator:commons-validator:1.9.0') {
+        exclude group: 'commons-beanutils', module: 'commons-beanutils'
+    }
     implementation 'org.springframework.security:spring-security-acl'
-    implementation 'com.github.ben-manes.caffeine:caffeine:2.9.3'
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+    implementation 'commons-fileupload:commons-fileupload:1.5' // TODO to delete
 
-    // Fix CVE-2022-22965, CVE-2022-22970
-    implementation 'org.springframework:spring-beans:5.3.31'
-    // Fix CVE-2021-22060, CVE-2021-22096
-    implementation 'org.springframework:spring-core:5.3.39'
-    // Fix CVE-2022-45685, CVE-2022-40150, CVE-2022-40149
-    implementation 'org.codehaus.jettison:jettison:1.5.4'
-    // Fix CVE-2024-25710, CVE-2024-26308
-    implementation 'org.apache.commons:commons-compress:1.26.0'
-//    TODO: SnakeYaml 2 can't be used in Spring Boot 2.5.15.
-//    We avoid using application.yaml and user application.properties instead for safe configuration.
-    implementation 'org.yaml:snakeyaml:2.2'
-    implementation 'org.hibernate:hibernate-core:5.6.15.Final'
+    implementation "org.apache.jclouds.api:filesystem:${jcloudsVersion}"
 
-    //Fix CVE-2023-6378, CVE-2023-6481, CVE-2023-6378, CVE-2023-6481
-    implementation 'ch.qos.logback:logback-classic:1.2.13'
-    implementation 'ch.qos.logback:logback-core:1.2.13'
+    implementation 'org.apache.commons:commons-compress:1.27.1'
+
+    implementation "org.hibernate.validator:hibernate-validator:${hibernateValidatorVersion}"
 
     // Metrics
-    implementation 'io.micrometer:micrometer-registry-prometheus:1.8.13'
+    implementation 'io.micrometer:micrometer-registry-prometheus:1.13.2'
 
     // add lombok support
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
@@ -161,9 +125,10 @@ dependencies {
 
     //  Tests
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.mockito:mockito-core:5.7.0'
-    testImplementation 'net.bytebuddy:byte-buddy:1.14.9'
-    testImplementation 'org.flywaydb.flyway-test-extensions:flyway-spring-test:9.5.0'
+    implementation 'org.springframework:spring-web'
+    implementation 'org.springframework:spring-test'
+    testImplementation 'net.bytebuddy:byte-buddy:1.14.17'
+    testImplementation 'org.flywaydb.flyway-test-extensions:flyway-spring-test:10.0.0'
 }
 
 processResources {
@@ -188,6 +153,7 @@ dependencyCheck {
 }
 
 bootJar {
+    duplicatesStrategy = duplicatesStrategy.EXCLUDE
     project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('' +
             'exec')
 }

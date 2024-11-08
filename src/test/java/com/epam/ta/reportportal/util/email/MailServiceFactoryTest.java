@@ -38,7 +38,7 @@ import com.google.common.collect.Lists;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

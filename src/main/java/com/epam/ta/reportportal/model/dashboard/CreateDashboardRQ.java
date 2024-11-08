@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.model.dashboard;
 
 import com.epam.ta.reportportal.model.BaseEntityRQ;
-import com.epam.reportportal.annotations.NotBlankWithSize;
 import com.epam.reportportal.model.ValidationConstraints;
+import com.epam.ta.reportportal.ws.annotations.NotBlankWithSize;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;

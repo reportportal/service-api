@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.ws.resolver.PredefinedFilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.SortArgumentResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
@@ -51,9 +52,12 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.validation.beanvalidation.BeanValidationPostProcessor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.MultipartFilter;
+import org.springframework.web.multipart.support.StandardMultipartHttpServletRequest;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
@@ -77,7 +81,7 @@ public class MvcConfig implements WebMvcConfigurer {
   private List<HttpMessageConverter<?>> converters;
 
   private static final String[] CLASSPATH_RESOURCE_LOCATIONS =
-      { "classpath:/public/", "classpath:/META-INF/resources/", "classpath:/resources/" };
+      {"classpath:/public/", "classpath:/META-INF/resources/", "classpath:/resources/"};
 
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -202,13 +206,12 @@ public class MvcConfig implements WebMvcConfigurer {
 
   @Profile("!unittest")
   @Bean(name = DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME)
-  public CommonsMultipartResolver multipartResolver(MultipartConfig multipartConfig) {
-    CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver() {
+  public StandardServletMultipartResolver multipartResolver(MultipartConfig multipartConfig) {
+    StandardServletMultipartResolver resolver = new StandardServletMultipartResolver() {
       @Override
-      protected DiskFileItemFactory newFileItemFactory() {
-        DiskFileItemFactory diskFileItemFactory = super.newFileItemFactory();
-        diskFileItemFactory.setFileCleaningTracker(null);
-        return diskFileItemFactory;
+      public MultipartHttpServletRequest resolveMultipart(HttpServletRequest request)
+          throws MultipartException {
+        return new StandardMultipartHttpServletRequest(request, true);
       }
 
       @Override
@@ -219,11 +222,11 @@ public class MvcConfig implements WebMvcConfigurer {
 
     //Lazy resolving gives a way to process file limits inside a controller
     //level and handle exceptions in proper way. Fixes reportportal/reportportal#19
-    commonsMultipartResolver.setResolveLazily(true);
+    resolver.setResolveLazily(true);
 
-    commonsMultipartResolver.setMaxUploadSize(multipartConfig.maxUploadSize);
-    commonsMultipartResolver.setMaxUploadSizePerFile(multipartConfig.maxFileSize);
-    return commonsMultipartResolver;
+/*    commonsMultipartResolver.setMaxUploadSize(multipartConfig.maxUploadSize);
+    commonsMultipartResolver.setMaxUploadSizePerFile(multipartConfig.maxFileSize);*/
+    return resolver;
   }
 
   @ConfigurationProperties("rp.upload")

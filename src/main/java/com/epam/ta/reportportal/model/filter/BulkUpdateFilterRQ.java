@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.model.filter;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * @deprecated use {@link UpdateUserFilterRQ} in conjunction with

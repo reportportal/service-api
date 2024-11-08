@@ -19,15 +19,9 @@ package com.epam.ta.reportportal.model.widget;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
-
-import static com.epam.reportportal.model.ValidationConstraints.MAX_WIDGET_LIMIT;
-import static com.epam.reportportal.model.ValidationConstraints.MIN_WIDGET_LIMIT;
 
 /**
  * Part of widget domain object. Describe chart parameters

@@ -22,8 +22,8 @@ import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
-import javax.validation.Valid;
-import javax.validation.constraints.Size;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 
 /**
  * @author Dzmitry_Kavalets

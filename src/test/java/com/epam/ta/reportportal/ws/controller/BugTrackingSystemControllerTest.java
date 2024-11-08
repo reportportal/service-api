@@ -214,8 +214,8 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
     PostTicketRQ postTicketRQ = new PostTicketRQ();
     postTicketRQ.setFields(getPostFormFields());
     postTicketRQ.setNumberOfLogs(10);
-    postTicketRQ.setIsIncludeScreenshots(false);
-    postTicketRQ.setIsIncludeComments(false);
+    postTicketRQ.setIncludeScreenshots(false);
+    postTicketRQ.setIncludeScreenshots(false);
     postTicketRQ.setTestItemId(1L);
 
     return postTicketRQ;

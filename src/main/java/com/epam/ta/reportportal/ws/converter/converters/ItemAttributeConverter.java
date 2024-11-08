@@ -49,8 +49,8 @@ public class ItemAttributeConverter {
 		itemAttribute.setKey(key);
 		itemAttribute.setValue(value);
 
-		if (it instanceof ItemAttributesRQ) {
-			itemAttribute.setSystem(((ItemAttributesRQ) it).isSystem());
+		if (it instanceof ItemAttributesRQ itemAttributesRQ) {
+			itemAttribute.setSystem(itemAttributesRQ.isSystem());
 		} else {
 			itemAttribute.setSystem(false);
 		}

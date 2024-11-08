@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.ws.reporting.LaunchResource;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Pageable;
 
 //import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;

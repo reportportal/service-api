@@ -18,8 +18,8 @@ package com.epam.ta.reportportal.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * @param <K> Type of Key

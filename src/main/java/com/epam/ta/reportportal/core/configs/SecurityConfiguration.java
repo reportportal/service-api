@@ -41,6 +41,7 @@ import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
@@ -182,7 +183,7 @@ class SecurityConfiguration {
     public void configure(HttpSecurity http) throws Exception {
       http.authorizeRequests()
           .accessDecisionManager(webAccessDecisionManager())
-          .antMatchers("/**/user**/registration/info*",
+          .requestMatchers("/**/user**/registration/info*",
               "/**/user**/registration**",
               "/**/user**/password/reset/*",
               "/**/user**/password/reset**",
@@ -194,9 +195,9 @@ class SecurityConfiguration {
           )
           .permitAll()
           /* set of special endpoints for another microservices from RP ecosystem */
-          .antMatchers("/api-internal/**")
+          .requestMatchers("/api-internal/**")
           .hasRole("COMPONENT")
-          .antMatchers("/v2/**", "/swagger-resources", "/certificate/**", "/api/**", "/**")
+          .requestMatchers("/v2/**", "/swagger-resources", "/certificate/**", "/api/**", "/**")
           .hasRole("USER")
           .anyRequest()
           .authenticated()

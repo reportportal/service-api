@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Set;
-import javax.activation.FileTypeMap;
+import jakarta.activation.FileTypeMap;
 
 import org.pf4j.DefaultExtensionFinder;
 import org.pf4j.DefaultPluginManager;

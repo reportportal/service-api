@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.reporting.async.producer.LogProducer;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import java.util.UUID;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

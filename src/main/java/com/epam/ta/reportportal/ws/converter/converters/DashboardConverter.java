@@ -37,7 +37,7 @@ public final class DashboardConverter {
     resource.setName(dashboard.getName());
     resource.setDescription(dashboard.getDescription());
     resource.setWidgets(
-        dashboard.getDashboardWidgets().stream().map(WidgetConverter.TO_OBJECT_MODEL)
+        dashboard.getWidgets().stream().map(WidgetConverter.TO_OBJECT_MODEL)
             .collect(Collectors.toList()));
     resource.setOwner(dashboard.getOwner());
     return resource;

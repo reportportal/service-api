@@ -26,7 +26,6 @@ import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.Objects;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 
 /**
  * Base logic for project-related permissions. Validates project exists and there is provided in

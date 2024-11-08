@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.google.common.collect.Maps;
 import java.time.Instant;
 import java.util.function.Supplier;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>

@@ -21,7 +21,7 @@ import static com.epam.reportportal.model.ValidationConstraints.MAX_ENTITY_DESCR
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 
 /**
  * Base entity for manipulating sharable resources

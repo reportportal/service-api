@@ -36,7 +36,7 @@ import com.epam.ta.reportportal.ws.reporting.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.google.common.collect.Lists;
 import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.job;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -41,6 +42,11 @@ class SelfCancelableJobTest {
   @Test
   void selfCancelableJobTest() {
     SelfCancelableJob selfCancelableJob = new SelfCancelableJob(triggerDelegate) {
+      @Override
+      public Instant nextExecution(TriggerContext triggerContext) {
+        return null;
+      }
+
       @Override
       public void run() {
       }

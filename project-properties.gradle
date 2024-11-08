@@ -84,7 +84,3 @@ project.ext {
                     '**/model/**'
     ]
 }
-
-wrapper {
-    gradleVersion = '8.10'
-}

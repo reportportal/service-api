@@ -1,7 +1,7 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.util.BinaryDataResponseWriter;
-import javax.activation.MimetypesFileTypeMap;
+import jakarta.activation.MimetypesFileTypeMap;
 import org.apache.tika.parser.AutoDetectParser;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

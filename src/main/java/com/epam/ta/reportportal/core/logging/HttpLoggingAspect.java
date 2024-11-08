@@ -25,7 +25,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicLong;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -103,14 +103,14 @@ public class HttpLoggingAspect {
       Object arg = args[i];
 
       if (arg != null) {
-        if (arg instanceof MultipartHttpServletRequest) {
+        if (arg instanceof MultipartHttpServletRequest request) {
           body = BODY_BINARY_MARK;
           break;
         } else if (parameters[i].isAnnotationPresent(RequestBody.class)) {
           body = arg;
           break;
-        } else if (arg instanceof HttpEntity) {
-          body = ((HttpEntity) arg).getBody();
+        } else if (arg instanceof HttpEntity httpEntity) {
+          body = httpEntity.getBody();
           break;
         }
       }
@@ -171,13 +171,13 @@ public class HttpLoggingAspect {
       record.append(" (").append(executionTime).append(" ms)");
     }
 
-    if (response instanceof ResponseEntity) {
-      HttpStatus status = ((ResponseEntity) response).getStatusCode();
+    if (response instanceof ResponseEntity responseEntity) {
+      HttpStatus status = HttpStatus.resolve(responseEntity.getStatusCode().value());
       record.append(NEWLINE).append(' ').append(status).append(" - ")
           .append(status.getReasonPhrase());
 
       if (annotation.logHeaders()) {
-        HttpHeaders headers = ((ResponseEntity) response).getHeaders();
+        HttpHeaders headers = responseEntity.getHeaders();
         for (String name : headers.keySet()) {
           record.append(NEWLINE).append(' ').append(name).append(':');
           boolean comma = false;

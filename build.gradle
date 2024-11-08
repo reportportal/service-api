@@ -57,7 +57,7 @@ ext['spring-boot.version'] = '2.5.15'
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.12.1' : 'com.epam.reportportal:commons-bom:5.12.1')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.12.3' : 'com.epam.reportportal:commons-bom:5.12.3')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
     }
 }
@@ -69,7 +69,7 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         implementation 'com.github.reportportal:commons-dao:acf1ec7'
-        implementation 'com.github.reportportal:commons:c8ef09c'
+        implementation 'com.github.reportportal:commons:7762418'
         implementation 'com.github.reportportal:plugin-api:188792e'
     }
 

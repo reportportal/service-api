@@ -94,6 +94,6 @@ abstract class BaseProjectPermission implements Permission {
    * @param membershipDetails user's organization and project details
    * @return TRUE if access allowed
    */
-  abstract protected boolean checkAllowed(ReportPortalUser user,
+  protected abstract boolean checkAllowed(ReportPortalUser user,
       MembershipDetails membershipDetails);
 }

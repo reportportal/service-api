@@ -23,8 +23,6 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails;
 import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails.ProjectDetails;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
-import com.epam.ta.reportportal.entity.organization.OrganizationRole;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +38,7 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
  */
 abstract class BaseProjectPermission implements Permission {
 
-  private final ProjectExtractor projectExtractor;
+  protected final ProjectExtractor projectExtractor;
 
   protected BaseProjectPermission(ProjectExtractor projectExtractor) {
     this.projectExtractor = projectExtractor;
@@ -64,13 +62,12 @@ abstract class BaseProjectPermission implements Permission {
     final MembershipDetails membershipDetails =
         projectExtractor.findMembershipDetails(rpUser, resolvedProjectKey)
             .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED));
-    fillProjectDetails(rpUser, resolvedProjectKey, membershipDetails);
+    fillProjectDetails(rpUser, membershipDetails);
 
-    return checkAllowed(rpUser, projectKey.toString(), membershipDetails.getOrgRole(), membershipDetails.getProjectRole());
+    return checkAllowed(rpUser, membershipDetails);
   }
 
-  private void fillProjectDetails(ReportPortalUser rpUser, String resolvedProjectName,
-      MembershipDetails membershipDetails) {
+  private void fillProjectDetails(ReportPortalUser rpUser, MembershipDetails membershipDetails) {
     final Map<String, OrganizationDetails> organizationDetails = HashMap.newHashMap(2);
 
     var prjDetailsMap = new HashMap<String, ProjectDetails>();
@@ -86,19 +83,17 @@ abstract class BaseProjectPermission implements Permission {
         membershipDetails.getOrgName(),
         membershipDetails.getOrgRole(), prjDetailsMap);
 
-    organizationDetails.put(resolvedProjectName, od);
+    organizationDetails.put(membershipDetails.getOrgName(), od);
     rpUser.setOrganizationDetails(organizationDetails);
   }
 
   /**
    * Validates permission
    *
-   * @param user    ReportPortal user object
-   * @param project ReportPortal's Project name
-   * @param orgRole
-   * @param role    User role
+   * @param user              ReportPortal user object
+   * @param membershipDetails user's organization and project details
    * @return TRUE if access allowed
    */
-  abstract protected boolean checkAllowed(ReportPortalUser user, String project,
-      OrganizationRole orgRole, ProjectRole role);
+  abstract protected boolean checkAllowed(ReportPortalUser user,
+      MembershipDetails membershipDetails);
 }

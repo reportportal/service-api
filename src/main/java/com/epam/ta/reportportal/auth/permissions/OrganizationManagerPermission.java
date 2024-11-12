@@ -21,14 +21,9 @@ import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails;
-import com.epam.ta.reportportal.commons.ReportPortalUser.OrganizationDetails.ProjectDetails;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
-import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +56,7 @@ public class OrganizationManagerPermission implements Permission {
     ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
-    var org = organizationRepositoryCustom.findById((Long) orgId)
+    organizationRepositoryCustom.findById((Long) orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
     var ou = organizationUserRepository.findByUserIdAndOrganization_Id(rpUser.getUserId(),
@@ -74,26 +69,4 @@ public class OrganizationManagerPermission implements Permission {
 
   }
 
-  private void fillProjectDetails(ReportPortalUser rpUser, String resolvedProjectName,
-      MembershipDetails membershipDetails) {
-    final Map<String, OrganizationDetails> organizationDetails = HashMap.newHashMap(2);
-
-    var prjDetailsMap = new HashMap<String, ProjectDetails>();
-
-    var prjDetails = new ProjectDetails(membershipDetails.getProjectId(),
-        membershipDetails.getProjectName(),
-        membershipDetails.getProjectKey(),
-        membershipDetails.getProjectRole(),
-        membershipDetails.getOrgId());
-    prjDetailsMap.put(membershipDetails.getProjectKey(), prjDetails);
-
-    var od = new OrganizationDetails(
-        membershipDetails.getOrgId(),
-        membershipDetails.getOrgName(),
-        membershipDetails.getOrgRole(),
-        prjDetailsMap);
-
-    organizationDetails.put(resolvedProjectName, od);
-    rpUser.setOrganizationDetails(organizationDetails);
-  }
 }

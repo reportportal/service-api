@@ -70,6 +70,7 @@ project.ext {
             (migrationsUrl + '/migrations/86_add_retention_policy_launch.up.sql')      : 'V086__add_retention_policy_launch.sql',
             (migrationsUrl + '/migrations/88_analytics_data_table.up.sql')             : 'V088__analytics_data_table.sql',
             (migrationsUrl + '/migrations/90_add_user_fields.up.sql')                  : 'V090__scim_user_fields.sql',
+            (migrationsUrl + '/migrations/91_settings_users_sso.up.sql')               : 'V091__settings_users_sso.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

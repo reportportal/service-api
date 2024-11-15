@@ -147,7 +147,8 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   @Test
   void createDuplicateProjectFails() throws Exception {
     JsonObject jsonBody = new JsonObject();
-    jsonBody.addProperty("name", "uniq_name_123");
+    String name = "uniq_name_123";
+    jsonBody.addProperty("name", name);
 
     mockMvc.perform(post("/organizations/1/projects")
             .contentType(MediaType.APPLICATION_JSON)
@@ -155,6 +156,13 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
             .content(jsonBody.toString()))
         .andExpect(status().isOk());
 
+    mockMvc.perform(post("/organizations/1/projects")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken()))
+            .content(jsonBody.toString()))
+        .andExpect(status().is4xxClientError());
+
+    jsonBody.addProperty("name", name.toUpperCase());
     mockMvc.perform(post("/organizations/1/projects")
             .contentType(MediaType.APPLICATION_JSON)
             .with(token(oAuthHelper.getSuperadminToken()))

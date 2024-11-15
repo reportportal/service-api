@@ -20,9 +20,12 @@ import static com.epam.ta.reportportal.entity.ServerSettingsConstants.ANALYTICS_
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.model.settings.AnalyticsResource;
+import com.epam.ta.reportportal.model.settings.UpdateSettingsRq;
 import com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Map;
@@ -70,6 +73,16 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
         String.valueOf((ofNullable(analyticsResource.getEnabled()).orElse(false))));
 
     serverSettingsRepository.save(analyticsDetails);
+    return new OperationCompletionRS("Server Settings were successfully updated.");
+  }
+
+  @Override
+  public OperationCompletionRS updateServerSettings(UpdateSettingsRq request) {
+    ServerSettings serverSettings = serverSettingsRepository.findByKey(request.getKey())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.SERVER_SETTINGS_NOT_FOUND,
+            request.getKey()));
+    serverSettings.setValue(request.getValue());
+    serverSettingsRepository.save(serverSettings);
     return new OperationCompletionRS("Server Settings were successfully updated.");
   }
 

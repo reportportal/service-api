@@ -22,6 +22,7 @@ import static com.epam.reportportal.rules.commons.validation.Suppliers.formatted
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
+import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.reportportal.rules.exception.ErrorType.RESOURCE_ALREADY_EXISTS;
 import static com.epam.reportportal.rules.exception.ErrorType.ROLE_NOT_FOUND;
@@ -33,6 +34,7 @@ import static com.epam.ta.reportportal.commons.Predicates.isNull;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
 import static com.epam.ta.reportportal.entity.project.ProjectUtils.findUserConfigByLogin;
+import static com.epam.ta.reportportal.model.settings.SettingsKeyConstants.SERVER_USERS_SSO;
 import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
 
@@ -49,9 +51,11 @@ import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.core.project.ProjectUserHandler;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.dao.RestorePasswordBidRepository;
+import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.Metadata;
+import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -79,15 +83,14 @@ import com.epam.ta.reportportal.ws.converter.converters.RestorePasswordBidConver
 import com.epam.ta.reportportal.ws.converter.converters.UserCreationBidConverter;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Maps;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import javax.persistence.PersistenceException;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -100,10 +103,13 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Andrei_Ramanchuk
  */
 @Service
+@RequiredArgsConstructor
 public class CreateUserHandlerImpl implements CreateUserHandler {
 
   public static final String BID_TYPE = "type";
   public static final String INTERNAL_BID_TYPE = "internal";
+
+  private final ServerSettingsRepository settingsRepository;
 
   private final UserRepository userRepository;
 
@@ -116,6 +122,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   private final RestorePasswordBidRepository restorePasswordBidRepository;
 
   private final CreateProjectHandler createProjectHandler;
+
   private final GetProjectHandler getProjectHandler;
 
   private final ProjectUserHandler projectUserHandler;
@@ -125,30 +132,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   private final ThreadPoolTaskExecutor emailExecutorService;
 
   private final PasswordEncoder passwordEncoder;
-  private final ApplicationEventPublisher eventPublisher;
 
-  @Autowired
-  public CreateUserHandlerImpl(PasswordEncoder passwordEncoder, UserRepository userRepository,
-      UserAuthenticator userAuthenticator,
-      MailServiceFactory emailServiceFactory, UserCreationBidRepository userCreationBidRepository,
-      RestorePasswordBidRepository restorePasswordBidRepository,
-      CreateProjectHandler createProjectHandler,
-      GetProjectHandler getProjectHandler, ProjectUserHandler projectUserHandler,
-      GetIntegrationHandler getIntegrationHandler,
-      ThreadPoolTaskExecutor emailExecutorService, ApplicationEventPublisher eventPublisher) {
-    this.passwordEncoder = passwordEncoder;
-    this.userRepository = userRepository;
-    this.createProjectHandler = createProjectHandler;
-    this.projectUserHandler = projectUserHandler;
-    this.userAuthenticator = userAuthenticator;
-    this.emailServiceFactory = emailServiceFactory;
-    this.userCreationBidRepository = userCreationBidRepository;
-    this.restorePasswordBidRepository = restorePasswordBidRepository;
-    this.getProjectHandler = getProjectHandler;
-    this.getIntegrationHandler = getIntegrationHandler;
-    this.emailExecutorService = emailExecutorService;
-    this.eventPublisher = eventPublisher;
-  }
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   @Transactional
@@ -171,6 +156,158 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
         .sendCreateUserConfirmationEmail(request, basicUrl));
     return pair.getValue();
 
+  }
+
+  @Override
+  @Transactional
+  public CreateUserRS createUser(CreateUserRQConfirm request, String uuid) {
+    final UserCreationBid bid = userCreationBidRepository.findByUuidAndType(uuid, INTERNAL_BID_TYPE)
+        .orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST,
+            "Impossible to register user. UUID expired or already registered."
+        ));
+
+    final CreateUserRQFull createUserRQFull = convertToCreateRequest(request, bid);
+
+    normalize(createUserRQFull);
+    expect(createUserRQFull.getEmail(), Predicate.isEqual(bid.getEmail())).verify(INCORRECT_REQUEST,
+        "Email from bid not match.");
+
+    User invitingUser = bid.getInvitingUser();
+    final Pair<UserActivityResource, CreateUserRS> pair = saveUser(createUserRQFull, invitingUser,
+        true);
+
+    userCreationBidRepository.deleteAllByEmail(createUserRQFull.getEmail());
+
+    return pair.getValue();
+  }
+
+  @Override
+  public CreateUserBidRS createUserBid(CreateUserRQ request, ReportPortalUser loggedInUser,
+      String emailURL) {
+
+    if (isSsoEnabled()) {
+      throw new ReportPortalException(FORBIDDEN_OPERATION, "Cannot invite user while SSO enabled.");
+    }
+
+    final Project defaultProject = getProjectHandler.get(normalizeId(request.getDefaultProject()));
+
+    expect(userRepository.existsById(loggedInUser.getUserId()), BooleanUtils::isTrue).verify(
+        USER_NOT_FOUND,
+        loggedInUser.getUsername()
+    );
+
+    Integration integration =
+        getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(
+                defaultProject.getId(),
+                IntegrationGroupEnum.NOTIFICATION
+            )
+            .orElseThrow(() -> new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
+                "Please configure email server in ReportPortal settings."
+            ));
+
+    final String normalizedEmail = normalizeEmail(request.getEmail());
+    request.setEmail(normalizedEmail);
+
+    if (loggedInUser.getUserRole() != UserRole.ADMINISTRATOR) {
+      ProjectUser projectUser = findUserConfigByLogin(defaultProject, loggedInUser.getUsername());
+      expect(projectUser, not(isNull())).verify(ACCESS_DENIED,
+          formattedSupplier("'{}' is not your project", defaultProject.getName())
+      );
+      expect(projectUser.getProjectRole(), Predicate.isEqual(ProjectRole.PROJECT_MANAGER)).verify(
+          ACCESS_DENIED);
+    }
+
+    request.setRole(forName(request.getRole()).orElseThrow(
+        () -> new ReportPortalException(ROLE_NOT_FOUND, request.getRole())).name());
+
+    UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(request, defaultProject);
+    bid.setMetadata(getUserCreationBidMetadata());
+    bid.setInvitingUser(userRepository.getById(loggedInUser.getUserId()));
+    try {
+      userCreationBidRepository.save(bid);
+    } catch (Exception e) {
+      throw new ReportPortalException("Error while user creation bid registering.", e);
+    }
+
+    StringBuilder emailLink =
+        new StringBuilder(emailURL).append("/ui/#registration?uuid=").append(bid.getUuid());
+    emailExecutorService.execute(() -> emailServiceFactory.getEmailService(integration, false)
+        .sendCreateUserConfirmationEmail("User registration confirmation",
+            new String[]{bid.getEmail()}, emailLink.toString()));
+
+    eventPublisher.publishEvent(
+        new CreateInvitationLinkEvent(loggedInUser.getUserId(), loggedInUser.getUsername(),
+            defaultProject.getId()));
+
+    CreateUserBidRS response = new CreateUserBidRS();
+    String msg = "Bid for user creation with email '" + request.getEmail()
+        + "' is successfully registered. Confirmation info will be send on provided email. "
+        + "Expiration: 1 day.";
+
+    response.setMessage(msg);
+    response.setBid(bid.getUuid());
+    response.setBackLink(emailLink.toString());
+    return response;
+  }
+
+  @Override
+  public OperationCompletionRS createRestorePasswordBid(RestorePasswordRQ rq, String baseUrl) {
+    String email = normalizeId(rq.getEmail());
+    expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
+
+    User user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, email));
+    Optional<RestorePasswordBid> bidOptional =
+        restorePasswordBidRepository.findByEmail(rq.getEmail());
+
+    RestorePasswordBid bid;
+    if (bidOptional.isEmpty()) {
+      expect(user.getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR,
+          "Unable to change password for external user");
+      bid = RestorePasswordBidConverter.TO_BID.apply(rq);
+      restorePasswordBidRepository.save(bid);
+    } else {
+      bid = bidOptional.get();
+    }
+
+    emailServiceFactory.getDefaultEmailService(true)
+        .sendRestorePasswordEmail("Password recovery",
+            new String[]{email},
+            baseUrl + "#login?reset=" + bid.getUuid(),
+            user.getLogin()
+        );
+
+    return new OperationCompletionRS("Email has been sent");
+  }
+
+  @Override
+  public OperationCompletionRS resetPassword(ResetPasswordRQ request) {
+    RestorePasswordBid bid = restorePasswordBidRepository.findById(request.getUuid())
+        .orElseThrow(() -> new ReportPortalException(ACCESS_DENIED,
+            "The password change link is no longer valid."));
+    String email = bid.getEmail();
+    expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
+    User byEmail = userRepository.findByEmail(email)
+        .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND));
+    expect(byEmail.getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR,
+        "Unable to change password for external user");
+    byEmail.setPassword(passwordEncoder.encode(request.getPassword()));
+    userRepository.save(byEmail);
+    restorePasswordBidRepository.deleteById(request.getUuid());
+    OperationCompletionRS rs = new OperationCompletionRS();
+    rs.setResultMessage("Password has been changed");
+    return rs;
+  }
+
+  @Override
+  public YesNoRS isResetPasswordBidExist(String uuid) {
+    Optional<RestorePasswordBid> bid = restorePasswordBidRepository.findById(uuid);
+    return new YesNoRS(bid.isPresent());
+  }
+
+  private boolean isSsoEnabled() {
+    return settingsRepository.findByKey(SERVER_USERS_SSO).map(ServerSettings::getValue)
+        .map(Boolean::parseBoolean).orElse(false);
   }
 
   private void normalize(CreateUserRQFull request) {
@@ -284,29 +421,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     return user;
   }
 
-  @Override
-  @Transactional
-  public CreateUserRS createUser(CreateUserRQConfirm request, String uuid) {
-    final UserCreationBid bid = userCreationBidRepository.findByUuidAndType(uuid, INTERNAL_BID_TYPE)
-        .orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST,
-            "Impossible to register user. UUID expired or already registered."
-        ));
-
-    final CreateUserRQFull createUserRQFull = convertToCreateRequest(request, bid);
-
-    normalize(createUserRQFull);
-    expect(createUserRQFull.getEmail(), Predicate.isEqual(bid.getEmail())).verify(INCORRECT_REQUEST,
-        "Email from bid not match.");
-
-    User invitingUser = bid.getInvitingUser();
-    final Pair<UserActivityResource, CreateUserRS> pair = saveUser(createUserRQFull, invitingUser,
-        true);
-
-    userCreationBidRepository.deleteAllByEmail(createUserRQFull.getEmail());
-
-    return pair.getValue();
-  }
-
   private CreateUserRQFull convertToCreateRequest(CreateUserRQConfirm request,
       UserCreationBid bid) {
     CreateUserRQFull createUserRQFull = new CreateUserRQFull();
@@ -320,130 +434,9 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     return createUserRQFull;
   }
 
-  @Override
-  public CreateUserBidRS createUserBid(CreateUserRQ request, ReportPortalUser loggedInUser,
-      String emailURL) {
-
-    final Project defaultProject = getProjectHandler.get(normalizeId(request.getDefaultProject()));
-
-    expect(userRepository.existsById(loggedInUser.getUserId()), BooleanUtils::isTrue).verify(
-        USER_NOT_FOUND,
-        loggedInUser.getUsername()
-    );
-
-    Integration integration =
-        getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(
-                defaultProject.getId(),
-                IntegrationGroupEnum.NOTIFICATION
-            )
-            .orElseThrow(() -> new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
-                "Please configure email server in ReportPortal settings."
-            ));
-
-    final String normalizedEmail = normalizeEmail(request.getEmail());
-    request.setEmail(normalizedEmail);
-
-    if (loggedInUser.getUserRole() != UserRole.ADMINISTRATOR) {
-      ProjectUser projectUser = findUserConfigByLogin(defaultProject, loggedInUser.getUsername());
-      expect(projectUser, not(isNull())).verify(ACCESS_DENIED,
-          formattedSupplier("'{}' is not your project", defaultProject.getName())
-      );
-      expect(projectUser.getProjectRole(), Predicate.isEqual(ProjectRole.PROJECT_MANAGER)).verify(
-          ACCESS_DENIED);
-    }
-
-    request.setRole(forName(request.getRole()).orElseThrow(
-        () -> new ReportPortalException(ROLE_NOT_FOUND, request.getRole())).name());
-
-    UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(request, defaultProject);
-    bid.setMetadata(getUserCreationBidMetadata());
-    bid.setInvitingUser(userRepository.getById(loggedInUser.getUserId()));
-    try {
-      userCreationBidRepository.save(bid);
-    } catch (Exception e) {
-      throw new ReportPortalException("Error while user creation bid registering.", e);
-    }
-
-    StringBuilder emailLink =
-        new StringBuilder(emailURL).append("/ui/#registration?uuid=").append(bid.getUuid());
-    emailExecutorService.execute(() -> emailServiceFactory.getEmailService(integration, false)
-        .sendCreateUserConfirmationEmail("User registration confirmation",
-            new String[]{bid.getEmail()}, emailLink.toString()));
-
-    eventPublisher.publishEvent(
-        new CreateInvitationLinkEvent(loggedInUser.getUserId(), loggedInUser.getUsername(),
-            defaultProject.getId()));
-
-    CreateUserBidRS response = new CreateUserBidRS();
-    String msg = "Bid for user creation with email '" + request.getEmail()
-        + "' is successfully registered. Confirmation info will be send on provided email. "
-        + "Expiration: 1 day.";
-
-    response.setMessage(msg);
-    response.setBid(bid.getUuid());
-    response.setBackLink(emailLink.toString());
-    return response;
-  }
-
   private Metadata getUserCreationBidMetadata() {
     final Map<String, Object> meta = Maps.newHashMapWithExpectedSize(1);
     meta.put(BID_TYPE, INTERNAL_BID_TYPE);
     return new Metadata(meta);
   }
-
-  @Override
-  public OperationCompletionRS createRestorePasswordBid(RestorePasswordRQ rq, String baseUrl) {
-    String email = normalizeId(rq.getEmail());
-    expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
-
-    User user = userRepository.findByEmail(email)
-        .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, email));
-    Optional<RestorePasswordBid> bidOptional =
-        restorePasswordBidRepository.findByEmail(rq.getEmail());
-
-    RestorePasswordBid bid;
-    if (bidOptional.isEmpty()) {
-      expect(user.getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR,
-          "Unable to change password for external user");
-      bid = RestorePasswordBidConverter.TO_BID.apply(rq);
-      restorePasswordBidRepository.save(bid);
-    } else {
-      bid = bidOptional.get();
-    }
-
-    emailServiceFactory.getDefaultEmailService(true)
-        .sendRestorePasswordEmail("Password recovery",
-            new String[]{email},
-            baseUrl + "#login?reset=" + bid.getUuid(),
-            user.getLogin()
-        );
-
-    return new OperationCompletionRS("Email has been sent");
-  }
-
-  @Override
-  public OperationCompletionRS resetPassword(ResetPasswordRQ request) {
-    RestorePasswordBid bid = restorePasswordBidRepository.findById(request.getUuid())
-        .orElseThrow(() -> new ReportPortalException(ACCESS_DENIED,
-            "The password change link is no longer valid."));
-    String email = bid.getEmail();
-    expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
-    User byEmail = userRepository.findByEmail(email)
-        .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND));
-    expect(byEmail.getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR,
-        "Unable to change password for external user");
-    byEmail.setPassword(passwordEncoder.encode(request.getPassword()));
-    userRepository.save(byEmail);
-    restorePasswordBidRepository.deleteById(request.getUuid());
-    OperationCompletionRS rs = new OperationCompletionRS();
-    rs.setResultMessage("Password has been changed");
-    return rs;
-  }
-
-  @Override
-  public YesNoRS isResetPasswordBidExist(String uuid) {
-    Optional<RestorePasswordBid> bid = restorePasswordBidRepository.findById(uuid);
-    return new YesNoRS(bid.isPresent());
-  }
-
 }

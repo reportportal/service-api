@@ -19,6 +19,8 @@ package com.epam.ta.reportportal.core.user.impl;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.BID_TYPE;
 import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
+import static com.epam.ta.reportportal.model.settings.SettingsKeyConstants.SERVER_USERS_SSO;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -30,12 +32,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.CreateInvitationLinkEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
+import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -43,11 +49,9 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.user.CreateUserRQ;
 import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
 import com.epam.ta.reportportal.model.user.CreateUserRQFull;
-import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,6 +70,9 @@ class CreateUserHandlerImplTest {
 
   @Mock
   private UserRepository userRepository;
+
+  @Mock
+  private ServerSettingsRepository settingsRepository;
 
   @Mock
   private GetProjectHandler getProjectHandler;
@@ -259,6 +266,18 @@ class CreateUserHandlerImplTest {
 
     assertEquals(INTERNAL_BID_TYPE, String.valueOf(bid.getMetadata().getMetadata().get(BID_TYPE)));
 
+  }
+
+  @Test
+  public void testInviteUserWithSsoEnabledThrowsException() {
+    // Arrange
+    ServerSettings serverSettings = new ServerSettings();
+    serverSettings.setValue("true");
+    when(settingsRepository.findByKey(SERVER_USERS_SSO)).thenReturn(Optional.of(serverSettings));
+
+    // Act & Assert
+    assertThrows(ReportPortalException.class, () -> handler.createUserBid(new CreateUserRQ(),
+        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.MEMBER, 1L), "test"));
   }
 
   @Test

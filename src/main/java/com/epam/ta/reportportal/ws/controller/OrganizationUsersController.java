@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.organization.OrganizationUserFilter;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -60,14 +61,17 @@ public class OrganizationUsersController extends BaseController implements Organ
   @PreAuthorize(ORGANIZATION_MANAGER)
   @Transactional(readOnly = true)
   public ResponseEntity<OrganizationUsersPage> getOrganizationsOrgIdUsers(Long orgId,
-      Integer offset,
-      Integer limit, Order order, String sort) {
+      Integer offset, Integer limit, Order order, String sort, String fullName) {
     organizationRepositoryCustom.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
     Filter filter = new Filter(OrganizationUserFilter.class, Lists.newArrayList());
     filter.withCondition(
         new FilterCondition(Condition.EQUALS, false, orgId.toString(), "organization_id"));
+    if (StringUtils.isNotEmpty(fullName)) {
+      filter.withCondition(
+          new FilterCondition(Condition.CONTAINS, false, fullName, CRITERIA_FULL_NAME));
+    }
 
     // sort by name only for now
     var pageable = ControllerUtils.getPageable(CRITERIA_FULL_NAME, order, offset, limit);

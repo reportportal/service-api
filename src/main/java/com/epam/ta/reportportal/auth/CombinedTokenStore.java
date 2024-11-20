@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.ApiKeyRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.user.ApiKey;
+import com.google.auth.oauth2.TokenStore;
 import com.google.common.collect.Maps;
 import java.time.LocalDate;
 import java.util.Collections;
@@ -34,16 +35,13 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.web.server.ServerHttpSecurity.OAuth2ResourceServerSpec.JwtSpec;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.SpringSecurityMessageSource;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.core.DefaultOAuth2AccessToken;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,7 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component(value = "combinedTokenStore")
 @Transactional(readOnly = true)
-public class CombinedTokenStore extends JwtTokenStore {
+public class CombinedTokenStore {
 
   @Autowired
   private ApiKeyRepository apiKeyRepository;
@@ -60,7 +58,7 @@ public class CombinedTokenStore extends JwtTokenStore {
   @Autowired
   private UserRepository userRepository;
 
-  @Autowired
+/*  @Autowired
   public CombinedTokenStore(JwtAccessTokenConverter jwtTokenEnhancer) {
     super(jwtTokenEnhancer);
   }
@@ -151,5 +149,5 @@ public class CombinedTokenStore extends JwtTokenStore {
         .withAuthorities(AuthUtils.AS_AUTHORITIES.apply(user.getUserRole()))
         .withUserId(user.getUserId()).withUserRole(user.getUserRole())
         .withProjectDetails(Maps.newHashMapWithExpectedSize(1)).withEmail(user.getEmail()).build();
-  }
+  }*/
 }

@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 /**
@@ -58,8 +59,8 @@ class AssignedToProjectPermission implements Permission {
       return false;
     }
 
-    OAuth2Authentication oauth = (OAuth2Authentication) authentication;
-    ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
+    OAuth2LoginAuthenticationToken oauth = (OAuth2LoginAuthenticationToken) authentication;
+    ReportPortalUser rpUser = (ReportPortalUser) oauth.getPrincipal();
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
     final String resolvedProjectName = String.valueOf(targetDomainObject);

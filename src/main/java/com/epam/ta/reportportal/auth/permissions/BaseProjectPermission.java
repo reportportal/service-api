@@ -26,6 +26,7 @@ import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.Objects;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 
 /**
  * Base logic for project-related permissions. Validates project exists and there is provided in
@@ -51,8 +52,8 @@ abstract class BaseProjectPermission implements Permission {
       return false;
     }
 
-    OAuth2Authentication oauth = (OAuth2Authentication) authentication;
-    ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
+    OAuth2LoginAuthenticationToken oauth = (OAuth2LoginAuthenticationToken) authentication;
+    ReportPortalUser rpUser = (ReportPortalUser) oauth.getPrincipal();
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
     final String resolvedProjectName = String.valueOf(projectName);

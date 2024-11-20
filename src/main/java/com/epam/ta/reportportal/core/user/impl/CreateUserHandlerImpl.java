@@ -237,9 +237,9 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     userAuthenticator.authenticate(user);
 
     // TODO: assign organization
-    final Project personalProject = createProjectHandler.createPersonal(user);
+/*    final Project personalProject = createProjectHandler.createPersonal(user);
     projectUserHandler.assign(user, personalProject, ProjectRole.EDITOR, creator,
-        isSystemEvent);
+        isSystemEvent);*/
 
     final CreateUserRS response = new CreateUserRS();
     response.setId(user.getId());
@@ -251,7 +251,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     response.setAccountRole(user.getRole().toString());
     response.setAccountType(user.getUserType().toString());
     response.setActive(user.getActive());
-    return Pair.of(TO_ACTIVITY_RESOURCE.apply(user, personalProject.getId()), response);
+    return Pair.of(TO_ACTIVITY_RESOURCE.apply(user, null), response);
   }
 
   private void assignDefaultProject(User creator, User user,

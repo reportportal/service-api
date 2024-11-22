@@ -49,7 +49,7 @@ public class SettingsUpdatedEvent extends AroundEvent<ServerSettings> implements
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)
-        .addHistoryField(VALUE, getBefore().getValue(), getAfter().getValue());
+        .addHistoryField(getAfter().getKey(), getBefore().getValue(), getAfter().getValue());
     return builder.get();
   }
 }

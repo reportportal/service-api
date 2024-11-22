@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.admin;
 
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.model.settings.ServerSettingsResource;
 import com.epam.ta.reportportal.model.settings.UpdateSettingsRq;
@@ -50,5 +51,5 @@ public interface ServerAdminHandler {
    * @param request {@link UpdateSettingsRq}
    * @return Operation results
    */
-  OperationCompletionRS updateServerSettings(UpdateSettingsRq request);
+  OperationCompletionRS updateServerSettings(UpdateSettingsRq request, ReportPortalUser user);
 }

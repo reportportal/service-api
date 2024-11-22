@@ -22,6 +22,9 @@ import static java.util.stream.Collectors.toMap;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.SettingsUpdatedEvent;
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.model.settings.AnalyticsResource;
@@ -30,7 +33,7 @@ import com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -39,14 +42,12 @@ import org.springframework.stereotype.Service;
  * @author Andrei_Ramanchuk
  */
 @Service
+@RequiredArgsConstructor
 public class ServerAdminHandlerImpl implements ServerAdminHandler {
 
   private final ServerSettingsRepository serverSettingsRepository;
 
-  @Autowired
-  public ServerAdminHandlerImpl(ServerSettingsRepository serverSettingsRepository) {
-    this.serverSettingsRepository = serverSettingsRepository;
-  }
+  private final MessageBus messageBus;
 
   @Override
   public Map<String, String> getServerSettings() {
@@ -77,12 +78,15 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
   }
 
   @Override
-  public OperationCompletionRS updateServerSettings(UpdateSettingsRq request) {
+  public OperationCompletionRS updateServerSettings(UpdateSettingsRq request,
+      ReportPortalUser user) {
     ServerSettings serverSettings = serverSettingsRepository.findByKey(request.getKey())
         .orElseThrow(() -> new ReportPortalException(ErrorType.SERVER_SETTINGS_NOT_FOUND,
             request.getKey()));
     serverSettings.setValue(request.getValue());
-    serverSettingsRepository.save(serverSettings);
+    ServerSettings saved = serverSettingsRepository.save(serverSettings);
+    messageBus.publishActivity(new SettingsUpdatedEvent(serverSettings, saved,
+        user.getUserId(), user.getUsername()));
     return new OperationCompletionRS("Server Settings were successfully updated.");
   }
 

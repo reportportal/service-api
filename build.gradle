@@ -122,9 +122,9 @@ dependencies {
 
     ///// Security
     //https://nvd.nist.gov/vuln/detail/CVE-2020-5407 AND https://nvd.nist.gov/vuln/detail/CVE-2020-5408
-    implementation 'org.springframework.security:spring-security-core:5.8.14'
-    implementation 'org.springframework.security:spring-security-config:5.8.14'
-    implementation 'org.springframework.security:spring-security-web:5.8.14'
+    implementation 'org.springframework.security:spring-security-core:5.8.16'
+    implementation 'org.springframework.security:spring-security-config:5.8.16'
+    implementation 'org.springframework.security:spring-security-web:5.8.16'
     //
 
     // Fix CVE-2022-22969

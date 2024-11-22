@@ -74,7 +74,7 @@ public class SettingsController {
   public OperationCompletionRS updateServerSettings(
       @RequestBody @Validated UpdateSettingsRq request,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return serverHandler.updateServerSettings(request);
+    return serverHandler.updateServerSettings(request, user);
   }
 
   @Transactional(readOnly = true)

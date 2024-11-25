@@ -45,7 +45,7 @@ public class SettingsUpdatedEvent extends AroundEvent<ServerSettingsResource> im
         .addAction(EventAction.UPDATE)
         .addEventName(ActivityAction.UPDATE_INSTANCE.getValue())
         .addPriority(EventPriority.HIGH)
-        .addObjectName(getAfter().getKey())
+        .addObjectName("instanceSetting")
         .addObjectType(EventObject.INSTANCE)
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())

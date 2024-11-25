@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.admin;
 
 import static com.epam.ta.reportportal.entity.ServerSettingsConstants.ANALYTICS_CONFIG_PREFIX;
+import static com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter.TO_RESOURCE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 
@@ -28,6 +29,7 @@ import com.epam.ta.reportportal.core.events.activity.SettingsUpdatedEvent;
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.model.settings.AnalyticsResource;
+import com.epam.ta.reportportal.model.settings.ServerSettingsResource;
 import com.epam.ta.reportportal.model.settings.UpdateSettingsRq;
 import com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
@@ -51,7 +53,7 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 
   @Override
   public Map<String, String> getServerSettings() {
-    return ServerSettingsConverter.TO_RESOURCE.apply(
+    return ServerSettingsConverter.TO_RESOURCES.apply(
         serverSettingsRepository.selectServerSettings());
   }
 
@@ -83,9 +85,12 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
     ServerSettings serverSettings = serverSettingsRepository.findByKey(request.getKey())
         .orElseThrow(() -> new ReportPortalException(ErrorType.SERVER_SETTINGS_NOT_FOUND,
             request.getKey()));
+    ServerSettingsResource before = TO_RESOURCE.apply(serverSettings);
+
     serverSettings.setValue(request.getValue());
-    ServerSettings saved = serverSettingsRepository.save(serverSettings);
-    messageBus.publishActivity(new SettingsUpdatedEvent(serverSettings, saved,
+    serverSettingsRepository.save(serverSettings);
+
+    messageBus.publishActivity(new SettingsUpdatedEvent(before, TO_RESOURCE.apply(serverSettings),
         user.getUserId(), user.getUsername()));
     return new OperationCompletionRS("Server Settings were successfully updated.");
   }

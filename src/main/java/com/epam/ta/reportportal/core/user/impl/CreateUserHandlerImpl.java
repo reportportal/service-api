@@ -186,7 +186,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
       String emailURL) {
 
     if (isSsoEnabled()) {
-      throw new ReportPortalException(FORBIDDEN_OPERATION, "Cannot invite user while SSO enabled.");
+      throw new ReportPortalException(ACCESS_DENIED, "Cannot invite user if SSO enabled.");
     }
 
     final Project defaultProject = getProjectHandler.get(normalizeId(request.getDefaultProject()));

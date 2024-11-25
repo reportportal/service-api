@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.admin;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.model.settings.AnalyticsResource;
-import com.epam.ta.reportportal.model.settings.ServerSettingsResource;
 import com.epam.ta.reportportal.model.settings.UpdateSettingsRq;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Map;
@@ -33,7 +32,7 @@ public interface ServerAdminHandler {
   /**
    * Get all server settings
    *
-   * @return {@link ServerSettingsResource}
+   * @return {@link Map}
    */
   Map<String, String> getServerSettings();
 

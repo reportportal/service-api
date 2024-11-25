@@ -26,13 +26,14 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
+import com.epam.ta.reportportal.model.settings.ServerSettingsResource;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class SettingsUpdatedEvent extends AroundEvent<ServerSettings> implements ActivityEvent {
+public class SettingsUpdatedEvent extends AroundEvent<ServerSettingsResource> implements ActivityEvent {
 
-  public SettingsUpdatedEvent(ServerSettings before, ServerSettings after, Long userId,
+  public SettingsUpdatedEvent(ServerSettingsResource before, ServerSettingsResource after, Long userId,
       String userLogin) {
     super(userId, userLogin, before, after);
   }

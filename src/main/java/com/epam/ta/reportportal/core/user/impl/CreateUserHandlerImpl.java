@@ -21,8 +21,6 @@ import static com.epam.reportportal.rules.commons.validation.BusinessRule.fail;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.reportportal.rules.exception.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
-import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.reportportal.rules.exception.ErrorType.RESOURCE_ALREADY_EXISTS;
 import static com.epam.reportportal.rules.exception.ErrorType.ROLE_NOT_FOUND;
@@ -30,10 +28,7 @@ import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_EXIST
 import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.isNull;
-import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
-import static com.epam.ta.reportportal.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.model.settings.SettingsKeyConstants.SERVER_USERS_SSO;
 import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
@@ -43,7 +38,6 @@ import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.auth.authenticator.UserAuthenticator;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.events.activity.CreateInvitationLinkEvent;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.project.CreateProjectHandler;
@@ -56,11 +50,6 @@ import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.Metadata;
 import com.epam.ta.reportportal.entity.ServerSettings;
-import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
-import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.RestorePasswordBid;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
@@ -68,8 +57,6 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.activity.UserActivityResource;
-import com.epam.ta.reportportal.model.user.CreateUserBidRS;
-import com.epam.ta.reportportal.model.user.CreateUserRQ;
 import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
 import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.model.user.CreateUserRS;
@@ -80,7 +67,6 @@ import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.RestorePasswordBidConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Maps;
 import java.util.Map;
@@ -88,7 +74,6 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import javax.persistence.PersistenceException;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.context.ApplicationEventPublisher;
@@ -181,7 +166,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     return pair.getValue();
   }
 
-  @Override
+  // TODO: for delete. Deprecated in favor of UserInvitationHandlerImpl.createUserInvitation
+/*  @Override
   public CreateUserBidRS createUserBid(CreateUserRQ request, ReportPortalUser loggedInUser,
       String emailURL) {
 
@@ -213,7 +199,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
       expect(projectUser, not(isNull())).verify(ACCESS_DENIED,
           formattedSupplier("'{}' is not your project", defaultProject.getName())
       );
-      expect(projectUser.getProjectRole(), Predicate.isEqual(ProjectRole.PROJECT_MANAGER)).verify(
+      expect(projectUser.getProjectRole(), Predicate.isEqual(ProjectRole.EDITOR)).verify(
           ACCESS_DENIED);
     }
 
@@ -248,7 +234,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     response.setBid(bid.getUuid());
     response.setBackLink(emailLink.toString());
     return response;
-  }
+  }*/
 
   @Override
   public OperationCompletionRS createRestorePasswordBid(RestorePasswordRQ rq, String baseUrl) {

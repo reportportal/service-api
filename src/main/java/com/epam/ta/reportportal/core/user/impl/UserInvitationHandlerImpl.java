@@ -19,9 +19,11 @@ package com.epam.ta.reportportal.core.user.impl;
 import static com.epam.reportportal.api.model.InvitationStatus.PENDING;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_EXISTS;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.model.settings.SettingsKeyConstants.SERVER_USERS_SSO;
 
 import com.epam.reportportal.api.model.Invitation;
 import com.epam.reportportal.api.model.InvitationRequest;
@@ -30,9 +32,11 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.user.UserInvitationHandler;
+import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.Metadata;
+import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.util.UserUtils;
@@ -65,21 +69,29 @@ public class UserInvitationHandlerImpl implements UserInvitationHandler {
   private final UserRepository userRepository;
   private final GetIntegrationHandler getIntegrationHandler;
   private final ApplicationEventPublisher eventPublisher;
+  private final ServerSettingsRepository settingsRepository;
+
 
   public UserInvitationHandlerImpl(UserCreationBidRepository userCreationBidRepository,
       ThreadPoolTaskExecutor emailExecutorService, MailServiceFactory emailServiceFactory,
       UserRepository userRepository, GetIntegrationHandler getIntegrationHandler,
-      ApplicationEventPublisher eventPublisher) {
+      ApplicationEventPublisher eventPublisher, ServerSettingsRepository settingsRepository) {
     this.userCreationBidRepository = userCreationBidRepository;
     this.emailExecutorService = emailExecutorService;
     this.emailServiceFactory = emailServiceFactory;
     this.userRepository = userRepository;
     this.getIntegrationHandler = getIntegrationHandler;
     this.eventPublisher = eventPublisher;
+    this.settingsRepository = settingsRepository;
   }
 
   public Invitation createUserInvitation(InvitationRequest request, ReportPortalUser rpUser,
       String baseUrl) {
+
+    if (isSsoEnabled()) {
+      throw new ReportPortalException(ACCESS_DENIED, "Cannot invite user if SSO enabled.");
+    }
+
     log.debug("User '{}' is trying to create invitation for user '{}'",
         rpUser.getUsername(),
         request.getEmail());
@@ -175,5 +187,10 @@ public class UserInvitationHandlerImpl implements UserInvitationHandler {
           obj.put("role", org.getOrgRole().name());
           return obj;
         }).toList();
+  }
+
+  private boolean isSsoEnabled() {
+    return settingsRepository.findByKey(SERVER_USERS_SSO).map(ServerSettings::getValue)
+        .map(Boolean::parseBoolean).orElse(false);
   }
 }

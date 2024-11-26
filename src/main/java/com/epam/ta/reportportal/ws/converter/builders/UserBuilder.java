@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
 import com.epam.ta.reportportal.model.user.CreateUserRQFull;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -87,7 +88,7 @@ public class UserBuilder implements Supplier<User> {
     user.setUserType(UserType.valueOf(ofNullable(type).orElse("INTERNAL")));
     user.setExpired(false);
     Map<String, Object> meta = new HashMap<>();
-    meta.put(USER_LAST_LOGIN, new Date());
+    meta.put(USER_LAST_LOGIN, Instant.now().toEpochMilli());
     user.setMetadata(new Metadata(meta));
   }
 }

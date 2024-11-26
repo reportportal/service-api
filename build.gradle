@@ -59,7 +59,7 @@ ext['spring-boot.version'] = '2.5.15'
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.11.7' : 'com.epam.reportportal:commons-bom:5.11.7')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.12.3' : 'com.epam.reportportal:commons-bom:5.12.3')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
     }
 }
@@ -68,10 +68,10 @@ dependencies {
     if (releaseMode) {
         implementation 'com.epam.reportportal:commons-dao'
         implementation 'com.epam.reportportal:commons'
-        implementation 'com.epam.reportportal:plugin-api:5.11.1'
+        implementation 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.github.reportportal:commons-dao:a072e00'
-        implementation 'com.github.reportportal:commons:3aaf677'
+        implementation 'com.github.reportportal:commons-dao:215668f'
+        implementation 'com.github.reportportal:commons:287df6c'
         implementation 'com.github.reportportal:plugin-api:925a550'
     }
 
@@ -128,9 +128,9 @@ dependencies {
 
     ///// Security
     //https://nvd.nist.gov/vuln/detail/CVE-2020-5407 AND https://nvd.nist.gov/vuln/detail/CVE-2020-5408
-    implementation 'org.springframework.security:spring-security-core:5.8.14'
-    implementation 'org.springframework.security:spring-security-config:5.8.14'
-    implementation 'org.springframework.security:spring-security-web:5.8.14'
+    implementation 'org.springframework.security:spring-security-core:5.8.16'
+    implementation 'org.springframework.security:spring-security-config:5.8.16'
+    implementation 'org.springframework.security:spring-security-web:5.8.16'
     //
 
     // Fix CVE-2022-22969

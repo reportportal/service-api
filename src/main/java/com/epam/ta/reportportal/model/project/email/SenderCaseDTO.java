@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.model.project.email;
 
-import com.epam.reportportal.annotations.In;
+import com.epam.ta.reportportal.ws.annotations.In;
 import com.epam.reportportal.annotations.NotBlankStringCollection;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import com.fasterxml.jackson.annotation.JsonInclude;

@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,6 +31,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -37,7 +39,6 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.model.item.LinkExternalIssueRQ;
@@ -226,10 +227,24 @@ class TestItemControllerTest extends BaseMvcTest {
   }
 
   @Test
+  void getTestItemUuidPositiveTimestamp() throws Exception {
+    mockMvc.perform(
+            get(DEFAULT_PROJECT_BASE_URL + "/item/uuid/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").with(
+                token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk())
+        .andExpect(jsonPath("$.startTime").exists())
+        .andExpect(jsonPath("$.startTime").isNumber());
+  }
+
+  @Test
   void getTestItemUuidPositive() throws Exception {
     mockMvc.perform(
-        get(DEFAULT_PROJECT_BASE_URL + "/item/uuid/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").with(
-            token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+            get(DEFAULT_PROJECT_BASE_URL + "/item/uuid/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").with(
+                    token(oAuthHelper.getDefaultToken()))
+                .header("Accept", "application/x.reportportal.test.v2+json"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.startTime").exists())
+        .andExpect(jsonPath("$.startTime").value(matchesPattern(
+            "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$")));
   }
 
   @Test

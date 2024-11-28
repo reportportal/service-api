@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ItemAttr
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ResourceAttributeHandler;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.resolver.ItemAttributeTypeResolver;
 import com.epam.ta.reportportal.ws.reporting.LaunchResource;
+import com.epam.ta.reportportal.ws.reporting.LaunchResourceOld;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.reporting.RetentionPolicy;
 import com.google.common.base.Preconditions;
@@ -96,6 +97,30 @@ public class LaunchConverter {
     resource.setRerun(db.isRerun());
     return resource;
   };
+
+  public Function<LaunchResource, LaunchResourceOld> TO_RESOURCE_OLD = resource -> {
+    LaunchResourceOld old = new LaunchResourceOld();
+    old.setLaunchId(resource.getLaunchId());
+    old.setUuid(resource.getUuid());
+    old.setName(resource.getName());
+    old.setNumber(resource.getNumber());
+    old.setDescription(resource.getDescription());
+    old.setStatus(resource.getStatus());
+    old.setStartTime(resource.getStartTime());
+    old.setEndTime(resource.getEndTime());
+    old.setLastModified(resource.getLastModified());
+    old.setAttributes(resource.getAttributes());
+    old.setMode(resource.getMode());
+    old.setRetentionPolicy(resource.getRetentionPolicy());
+    old.setAnalyzers(resource.getAnalyzers());
+    old.setStatisticsResource(resource.getStatisticsResource());
+    old.setApproximateDuration(resource.getApproximateDuration());
+    old.setHasRetries(resource.isHasRetries());
+    old.setOwner(resource.getOwner());
+    old.setRerun(resource.isRerun());
+    return old;
+  };
+
 
   private void updateAttributes(LaunchResource resource, Set<ItemAttribute> attributes) {
     final Map<ItemAttributeType, Set<ItemAttribute>> attributeMapping =

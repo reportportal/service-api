@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.reportportal.extension.util.CommandParamUtils.ENTITY_PARAM;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
@@ -125,7 +126,7 @@ public class PluginController {
       value = "{projectKey}/{pluginName}/common/{command}",
       consumes = {APPLICATION_JSON_VALUE})
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Execute command to the plugin instance")
   public Object executePluginCommand(@PathVariable String projectKey,
       @PathVariable("pluginName") String pluginName, @PathVariable("command") String command,

@@ -25,7 +25,7 @@ services:
       - "5432:5432"
 
   opensearch:
-    image: opensearchproject/opensearch:2.11.0
+    image: opensearchproject/opensearch:2.16.0
     restart: always
     volumes:
       - opensearch:/usr/share/opensearch/data

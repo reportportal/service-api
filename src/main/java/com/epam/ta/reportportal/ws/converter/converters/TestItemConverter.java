@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.ws.reporting.ItemPathName;
 import com.epam.ta.reportportal.ws.reporting.LaunchPathName;
 import com.epam.ta.reportportal.ws.reporting.PathNameResource;
 import com.epam.ta.reportportal.ws.reporting.TestItemResource;
+import com.epam.ta.reportportal.ws.reporting.TestItemResourceOld;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -89,6 +90,33 @@ public final class TestItemConverter {
     resource.setPath(item.getPath());
     resource.setStatisticsResource(
         StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getStatistics()));
+    return resource;
+  };
+
+  public static final Function<TestItemResource, TestItemResourceOld> TO_RESOURCE_TIMESTAMP = item -> {
+    TestItemResourceOld resource = new TestItemResourceOld();
+    resource.setDescription(item.getDescription());
+    resource.setUniqueId(item.getUniqueId());
+    resource.setTestCaseId(item.getTestCaseId());
+    resource.setTestCaseHash(item.getTestCaseHash());
+    resource.setUuid(item.getUuid());
+    resource.setAttributes(item.getAttributes());
+    resource.setEndTime(item.getEndTime());
+    resource.setItemId(item.getItemId());
+    resource.setParameters(item.getParameters());
+    resource.setIssue(item.getIssue());
+    resource.setName(item.getName());
+    resource.setStartTime(item.getStartTime());
+    resource.setStatus(item.getStatus());
+    resource.setType(item.getType());
+    resource.setHasChildren(item.isHasChildren());
+    resource.setHasStats(item.isHasStats());
+    resource.setCodeRef(item.getCodeRef());
+    resource.setParent(item.getParent());
+    resource.setLaunchId(item.getLaunchId());
+    resource.setPatternTemplates(item.getPatternTemplates());
+    resource.setPath(item.getPath());
+    resource.setStatisticsResource(item.getStatisticsResource());
     return resource;
   };
 

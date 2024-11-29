@@ -17,11 +17,13 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.AUTHENTICATED;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
+import com.epam.reportportal.api.UserApi;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.EntityUtils;
@@ -29,6 +31,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.core.file.GetFileHandler;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.user.ApiKeyHandler;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
@@ -71,7 +74,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,7 +97,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/users")
 @Tag(name = "user-controller", description = "User Controller")
-public class UserController {
+public class UserController extends BaseController implements UserApi {
 
   private final CreateUserHandler createUserMessageHandler;
 
@@ -104,18 +111,22 @@ public class UserController {
 
   private final GetJasperReportHandler<User> jasperReportHandler;
 
+  private final GetFileHandler getFileHandler;
+
+
   @Autowired
   public UserController(CreateUserHandler createUserMessageHandler,
       EditUserHandler editUserMessageHandler, DeleteUserHandler deleteUserHandler,
       GetUserHandler getUserHandler,
       @Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler,
-      ApiKeyHandler apiKeyHandler) {
+      ApiKeyHandler apiKeyHandler, GetFileHandler getFileHandler) {
     this.createUserMessageHandler = createUserMessageHandler;
     this.editUserMessageHandler = editUserMessageHandler;
     this.deleteUserHandler = deleteUserHandler;
     this.getUserHandler = getUserHandler;
     this.jasperReportHandler = jasperReportHandler;
     this.apiKeyHandler = apiKeyHandler;
+    this.getFileHandler = getFileHandler;
   }
 
   @PostMapping
@@ -308,4 +319,20 @@ public class UserController {
       @PathVariable Long userId) {
     return apiKeyHandler.getAllUsersApiKeys(currentUser.getUserId());
   }
+
+  @Override
+  @PreAuthorize(AUTHENTICATED)
+  @Transactional(readOnly = true)
+  public ResponseEntity<Resource> getUsersUserIdAvatar(Long userId, Boolean thumbnail) {
+    var user = getLoggedUser();
+
+    var binaryData = getFileHandler.getUserPhoto(user, thumbnail);
+    Resource resource = new InputStreamResource(binaryData.getInputStream());
+
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=\"" + binaryData.getFileName() + "\"")
+        .body(resource);
+  }
+
 }

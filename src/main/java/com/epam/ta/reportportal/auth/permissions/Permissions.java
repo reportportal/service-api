@@ -44,6 +44,8 @@ public final class Permissions {
   public static final String ALLOWED_TO_VIEW_PROJECT =
       "hasPermission(#projectKey.toLowerCase(), 'allowedToViewProject')" + "||" + IS_ADMIN;
 
+  public static final String AUTHENTICATED = IS_ADMIN + "||" + "hasPermission(#userId, 'authenticated')";
+
   public static final String INVITATION_ALLOWED = IS_ADMIN + "||"
       + "hasPermission(#invitationRequest, 'invitationAllowed')";
 }

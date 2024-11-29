@@ -187,7 +187,8 @@ class LaunchControllerTest extends BaseMvcTest {
             .header("Accept", "application/x.reportportal.launch.v2+json")
             .content(objectMapper.writeValueAsBytes(rq)))
         .andExpect(status().is(200)).andExpect(jsonPath("$.startTime").exists())
-        .andExpect(jsonPath("$.startTime").isNumber());
+        .andExpect(jsonPath("$.startTime").value(matchesPattern(
+            "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$")));
   }
 
   @Test
@@ -205,8 +206,7 @@ class LaunchControllerTest extends BaseMvcTest {
             .with(token(oAuthHelper.getDefaultToken())).content(objectMapper.writeValueAsBytes(rq)))
         .andExpect(status().is(200))
         .andExpect(jsonPath("$.startTime").exists())
-        .andExpect(jsonPath("$.startTime").value(matchesPattern(
-            "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$")));
+        .andExpect(jsonPath("$.startTime").isNumber());
   }
 
 

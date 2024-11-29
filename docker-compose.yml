@@ -18,7 +18,6 @@ services:
     volumes:
       - reportportal-database:/var/lib/postgresql/data
     restart: on-failure
-    # If you need to access the DB locally. Could be a security risk to expose DB.
     ports:
       - "5432:5432"
 

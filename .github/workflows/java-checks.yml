@@ -23,5 +23,4 @@ jobs:
     with:
       runs-on: 'rp-beta-runner-set'
       drill-agent-enabled: 'true'
-      drill-api-url: ${{ secrets.DRILL_API_URL }}
-      drill-api-key: ${{ secrets.DRILL_API_KEY }}
+

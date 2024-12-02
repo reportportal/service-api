@@ -23,4 +23,5 @@ jobs:
     with:
       runs-on: 'rp-beta-runner-set'
       drill-agent-enabled: 'true'
+    secrets: inherit
 

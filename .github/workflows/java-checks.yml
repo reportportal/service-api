@@ -19,4 +19,10 @@ on:
 jobs:
   call-java-cheks:
     name: Call Java checks
+    env:
+      DRILL_AGENT_ENABLED: true
+      DRILL_API_URL: ${{ secrets.DRILL_API_URL }}
+      DRILL_API_KEY: ${{ secrets.DRILL_API_KEY }}
     uses: reportportal/.github/.github/workflows/java-checks.yaml@main
+    with:
+      runs-on: rp-beta-runner-set

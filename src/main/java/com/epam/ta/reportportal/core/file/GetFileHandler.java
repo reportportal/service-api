@@ -35,9 +35,9 @@ public interface GetFileHandler {
   BinaryData getUserPhoto(ReportPortalUser loggedInUser, boolean loadThumbnail);
 
   /**
-   * Returns {@link InputStream} for current logged-in user photo
+   * Returns {@link InputStream} for current logged-in user photo.
    *
-   * @param userId  requested user Id {@link Long}
+   * @param userId        requested user Id {@link Long}
    * @param loadThumbnail true if needed to load thumbnail
    * @return {@link BinaryData}
    */

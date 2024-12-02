@@ -83,7 +83,7 @@ class UserControllerTest extends BaseMvcTest {
   @Autowired
   private IssueTypeRepository issueTypeRepository;
 
-  private final String USERS_URL = "/v1/users";
+  private static final String USERS_URL = "/v1/users";
 
   @Test
   void createdUserByIdentityProvider() throws Exception  {
@@ -184,7 +184,7 @@ class UserControllerTest extends BaseMvcTest {
     doNothing().when(emailService).sendCreateUserConfirmationEmail(any(), any(), any());
 
     MvcResult mvcResult = mockMvc.perform(
-            post(USERS_URL+"/bid").with(token(oAuthHelper.getDefaultToken()))
+            post(USERS_URL + "/bid").with(token(oAuthHelper.getDefaultToken()))
                 .contentType(APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated())
         .andReturn();

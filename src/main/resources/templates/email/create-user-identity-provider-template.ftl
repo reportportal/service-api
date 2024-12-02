@@ -103,7 +103,7 @@
               </tbody>
             </table>
             <p style="font-size: 14px; color: #777777;">New to ReportPortal? Check out the <a
-                  href="https://reportportal.io/docs/reportportal-tutorial/?utm_source=trigger&utm_medium=email&utm_campaign=tutorial&utm_content=invitation"
+                  href="https://reportportal.io/docs/tutorial/?utm_source=trigger&utm_medium=email&utm_campaign=tutorial&utm_content=invitation"
                   target="_blank">ReportPortal Tutorial</a>.</p>
             <br>
             <p style="font-size: 14px; line-height: 1.7; color: #777777;">Thanks,<br>

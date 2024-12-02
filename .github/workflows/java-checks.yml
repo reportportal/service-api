@@ -19,7 +19,7 @@ on:
 jobs:
   call-java-checks:
     name: Call Java Checks
-    uses: reportportal/.github/.github/workflows/java-checks.yml@main
+    uses: reportportal/.github/.github/workflows/java-checks.yaml@main
     with:
       runs-on: rp-beta-runner-set
     env:

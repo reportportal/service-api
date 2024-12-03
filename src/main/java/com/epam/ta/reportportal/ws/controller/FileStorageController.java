@@ -86,6 +86,7 @@ public class FileStorageController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/photo")
   @Operation(summary = "Get photo of current user")
+  @Deprecated(forRemoval = true)
   public void getMyPhoto(@AuthenticationPrincipal ReportPortalUser user,
       HttpServletResponse response,
       @RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail) {
@@ -96,6 +97,7 @@ public class FileStorageController {
   @GetMapping(value = "/{projectKey}/userphoto")
   @Operation(summary = "Get user's photo")
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
+  @Deprecated(forRemoval = true)
   public void getUserPhoto(@PathVariable String projectKey,
       @RequestParam(value = "login") String username,
       @RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail,

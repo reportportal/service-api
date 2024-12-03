@@ -62,6 +62,15 @@ public class GetFileHandlerImpl implements GetFileHandler {
   }
 
   @Override
+  public BinaryData getUserPhoto(Long userId, boolean loadThumbnail) {
+    var user = userRepository.findById(userId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
+
+    return userDataStoreService.loadUserPhoto(user, loadThumbnail);
+  }
+
+
+  @Override
   public BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, String projectKey,
       boolean loadThumbnail) {
     Optional<User> userOptional = userRepository.findByLogin(username);

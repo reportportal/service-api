@@ -24,6 +24,8 @@ import java.time.Instant;
 
 public class MetadataUtils {
 
+  public static final String ATTACHMENT_CONTENT_TYPE = "attachmentContentType";
+
   private MetadataUtils() {
     //static only
   }
@@ -37,8 +39,18 @@ public class MetadataUtils {
   public static Instant getLastLogin(Metadata meta) {
     return ofNullable(meta)
         .map(Metadata::getMetadata)
-        .map(metadata -> (Long) metadata.get(USER_LAST_LOGIN))
+        .map(metadata -> metadata.get(USER_LAST_LOGIN))
+        .map(String::valueOf)
+        .map(Long::parseLong)
         .map(Instant::ofEpochMilli)
+        .orElse(null);
+  }
+
+  public static String getMediaType(Metadata meta) {
+    return ofNullable(meta)
+        .map(Metadata::getMetadata)
+        .map(metadata -> metadata.get(ATTACHMENT_CONTENT_TYPE))
+        .map(String::valueOf)
         .orElse(null);
   }
 }

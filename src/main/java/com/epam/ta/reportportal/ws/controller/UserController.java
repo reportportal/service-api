@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.AUTHENTICATED;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.withAbsBaseUrl;
 
@@ -97,7 +96,6 @@ public class UserController extends BaseController implements UserApi {
   }
 
   @Override
-  @PreAuthorize(AUTHENTICATED)
   @Transactional(readOnly = true)
   public ResponseEntity<Resource> getUsersUserIdAvatar(Long userId, Boolean thumbnail) {
     var binaryData = getFileHandler.getUserPhoto(userId, thumbnail);

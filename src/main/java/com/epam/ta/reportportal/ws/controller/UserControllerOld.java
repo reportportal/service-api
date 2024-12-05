@@ -180,26 +180,6 @@ public class UserControllerOld {
   }
 
   @Transactional(readOnly = true)
-  @GetMapping(value = { "", "/" })
-  @Operation(summary = "Return information about current logged-in user")
-  public UserResource getMyself(@AuthenticationPrincipal ReportPortalUser currentUser) {
-    return getUserHandler.getUser(currentUser);
-  }
-
-  @Transactional(readOnly = true)
-  @GetMapping(value = "/all")
-  @ResponseView(ModelViews.FullUserView.class)
-  @PreAuthorize(IS_ADMIN)
-  @Operation(summary =  "Return information about all users", description = "Allowable only for users with administrator role")
-  public Iterable<UserResource> getUsers(@FilterFor(User.class) Filter filter,
-      @SortFor(User.class) Pageable pageable, @FilterFor(User.class) Queryable queryable,
-      @AuthenticationPrincipal ReportPortalUser currentUser) {
-    return getUserHandler.getAllUsers(new CompositeFilter(Operator.AND, filter, queryable),
-        pageable
-    );
-  }
-
-  @Transactional(readOnly = true)
   @GetMapping(value = "/registration/info")
   public YesNoRS validateInfo(@RequestParam(value = "username", required = false) String username,
       @RequestParam(value = "email", required = false) String email) {

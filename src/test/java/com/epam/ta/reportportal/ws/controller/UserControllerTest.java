@@ -32,6 +32,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.reportportal.api.model.InstanceUser;
+import com.epam.reportportal.api.model.InstanceUserPage;
 import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -370,8 +372,31 @@ class UserControllerTest extends BaseMvcTest {
 
   @Test
   void getUsersPositive() throws Exception {
-    mockMvc.perform(get(USERS_URL + "/all").with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
+    var responseString = mockMvc.perform(get("/users").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
+    var users = objectMapper.readValue(responseString, InstanceUserPage.class);
+
+    assertFalse(users.getItems().isEmpty());
+
+  }
+
+  @Test
+  void getUsersPositiveExcludeFields() throws Exception {
+    var responseString = mockMvc.perform(get("/users?exclude_fields=full_name,email,role")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
+
+    var users = objectMapper.readValue(responseString, InstanceUserPage.class);
+
+    assertNull(users.getItems().get(0).getFullName());
+    assertNull(users.getItems().get(0).getEmail());
+    assertNull(users.getItems().get(0).getInstanceRole());
   }
 
   @Test
@@ -465,8 +490,25 @@ class UserControllerTest extends BaseMvcTest {
 
   @Test
   void getMyself() throws Exception {
-    mockMvc.perform(get(USERS_URL).with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+    mockMvc.perform(get("/users/me")
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
+
+    var responseString = mockMvc.perform(get("/users/me")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
+
+    var user = objectMapper.readValue(responseString, InstanceUser.class);
+
+    assertNotNull(user.getFullName());
+    assertNotNull(user.getEmail());
+    assertNotNull(user.getInstanceRole());
   }
 
   @Test

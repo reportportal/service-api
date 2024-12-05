@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.converter.builders;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -53,6 +54,8 @@ class UserBuilderTest {
     assertEquals(role, user.getRole());
     assertEquals(UserType.INTERNAL, user.getUserType());
     assertNotNull(user.getMetadata());
+    assertNotNull(user.getUuid());
+    assertTrue(user.getActive());
     assertFalse(user.isExpired());
   }
 }

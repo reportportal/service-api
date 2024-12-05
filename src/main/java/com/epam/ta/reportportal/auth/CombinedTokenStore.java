@@ -32,8 +32,10 @@ import java.util.Set;
 import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.SpringSecurityMessageSource;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -82,7 +84,7 @@ public class CombinedTokenStore extends JwtTokenStore {
       ApiKey apiKey = apiKeyRepository.findByHash(hashedKey);
       if (apiKey != null) {
         Optional<ReportPortalUser> user = userRepository.findReportPortalUser(apiKey.getUserId());
-        if (user.isPresent()) {
+        if (user.isPresent() && user.get().isEnabled()) {
           LocalDate today = LocalDate.now();
           if (apiKey.getLastUsedAt() == null || !apiKey.getLastUsedAt().equals(today)) {
             apiKeyRepository.updateLastUsedAt(apiKey.getId(), hashedKey, today);

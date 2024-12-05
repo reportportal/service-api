@@ -45,7 +45,7 @@ public class ServerSettingsInfoContributor implements ExtensionContributor {
   public Map<String, ?> contribute() {
     Map<String, Object> info = new HashMap<>();
     List<ServerSettings> all = settingsRepository.selectServerSettings();
-    Map<String, String> result = ServerSettingsConverter.TO_RESOURCE.apply(all);
+    Map<String, String> result = ServerSettingsConverter.TO_RESOURCES.apply(all);
     info.put("result", result);
     return info;
 

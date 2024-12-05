@@ -21,6 +21,7 @@ import static com.epam.ta.reportportal.ws.reporting.Mode.DEBUG;
 import static com.epam.ta.reportportal.ws.reporting.Mode.DEFAULT;
 import static java.util.stream.Collectors.toMap;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -32,13 +33,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.BulkRQ;
 import com.epam.ta.reportportal.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
@@ -138,10 +139,24 @@ class LaunchControllerTest extends BaseMvcTest {
   }
 
   @Test
+  void getLaunchUuidPositiveTimestamp() throws Exception {
+    mockMvc.perform(
+            get(DEFAULT_PROJECT_BASE_URL + "/launch/uuid/4850a659-ac26-4a65-8ea4-a6756a57fb92").with(
+                token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200))
+        .andExpect(jsonPath("$.startTime").exists())
+        .andExpect(jsonPath("$.startTime").isNumber());
+  }
+
+  @Test
   void getLaunchUuidPositive() throws Exception {
     mockMvc.perform(
-        get(DEFAULT_PROJECT_BASE_URL + "/launch/uuid/4850a659-ac26-4a65-8ea4-a6756a57fb92").with(
-            token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
+            get(DEFAULT_PROJECT_BASE_URL + "/launch/uuid/4850a659-ac26-4a65-8ea4-a6756a57fb92").with(
+                    token(oAuthHelper.getDefaultToken()))
+                .header("Accept", "application/x.reportportal.launch.v2+json"))
+        .andExpect(status().is(200))
+        .andExpect(jsonPath("$.startTime").exists())
+        .andExpect(jsonPath("$.startTime").value(matchesPattern(
+            "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$")));
   }
 
   @Test
@@ -157,6 +172,26 @@ class LaunchControllerTest extends BaseMvcTest {
   }
 
   @Test
+  void mergeLaunchesPositiveTimestamp() throws Exception {
+    MergeLaunchesRQ rq = new MergeLaunchesRQ();
+    HashSet<Long> set = new HashSet<>();
+    set.add(1L);
+    set.add(2L);
+    rq.setLaunches(set);
+    rq.setName("Merged");
+    rq.setMergeStrategyType("BASIC");
+    rq.setStartTime(Instant.now());
+    rq.setEndTime(Instant.now());
+    mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/launch/merge").contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getDefaultToken()))
+            .header("Accept", "application/x.reportportal.launch.v2+json")
+            .content(objectMapper.writeValueAsBytes(rq)))
+        .andExpect(status().is(200)).andExpect(jsonPath("$.startTime").exists())
+        .andExpect(jsonPath("$.startTime").value(matchesPattern(
+            "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$")));
+  }
+
+  @Test
   void mergeLaunchesPositive() throws Exception {
     MergeLaunchesRQ rq = new MergeLaunchesRQ();
     HashSet<Long> set = new HashSet<>();
@@ -169,8 +204,11 @@ class LaunchControllerTest extends BaseMvcTest {
     rq.setEndTime(Instant.now());
     mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/launch/merge").contentType(APPLICATION_JSON)
             .with(token(oAuthHelper.getDefaultToken())).content(objectMapper.writeValueAsBytes(rq)))
-        .andExpect(status().is(200));
+        .andExpect(status().is(200))
+        .andExpect(jsonPath("$.startTime").exists())
+        .andExpect(jsonPath("$.startTime").isNumber());
   }
+
 
   @Test
   void deleteLaunchPositive() throws Exception {
@@ -250,8 +288,8 @@ class LaunchControllerTest extends BaseMvcTest {
     List<Long> ids = Lists.newArrayList(1L, 2L);
     deleteBulkRQ.setIds(ids);
     mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/launch").contentType(APPLICATION_JSON)
-        .with(token(oAuthHelper.getDefaultToken()))
-        .param("ids" , "1", "2"))
+            .with(token(oAuthHelper.getDefaultToken()))
+            .param("ids", "1", "2"))
         .andExpect(status().is(200));
     List<Launch> launches = launchRepository.findAllById(ids);
     assertTrue(launches.isEmpty());

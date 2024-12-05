@@ -75,7 +75,7 @@
         <tr>
           <td height="130">
             <img class="mainimg" src="cid:create-user.png" border="0" width="540" height="130"
-                 alt="You’ve been invited to join ReportPortal">
+                 alt="You have been successfully registered on ReportPortal">
           </td>
         </tr>
         </tbody>
@@ -87,18 +87,16 @@
           <td align="left" height="170">
             <h2 style="font-size: 20px; color: #777777;" align="center">Welcome to
               ReportPortal!</h2>
-            <p style="font-size: 14px; color: #777777;">You’ve been invited to join
-              ReportPortal.</p>
-            <p style="font-size: 14px; line-height: 1.7; color: #777777">Click the link below to
-              create your account and get
-              started.</p>
+            <p style="font-size: 14px; color: #777777;">You have been successfully registered on
+              ReportPortal with login: <b>${login}</b></p>
+            <p style="font-size: 14px; line-height: 1.7; color: #777777">Please, use your Identity Provider to login.</p>
             <table border="0" cellspacing="8" cellpadding="0" align="center">
               <tbody>
               <tr>
                 <td width="130" height="35" align="center" bgcolor="#a3c644">
                   <a href="${url}"
                      style="font-size: 14px; text-decoration: none; color: #ffffff; display: inline-block; padding: 10px 15px; width: 100px;">
-                    Get Started
+                    Login
                   </a>
                 </td>
               </tr>
@@ -173,7 +171,7 @@
       <table width="100%" border="0" cellspacing="0" cellpadding="0" class="footerwrapper">
         <tbody>
         <tr>
-          <td align="center" height="52" class="footercontent" style="padding: 4px;">
+          <td align="center" height="85" class="footercontent" style="padding: 4px;">
             <p style="font-size: 11px; line-height: 1.5; color: #6d6d6d">
               <b>ReportPortal Notification Center</b><br>
               This is an automatically generated notification - please do not reply to this message.

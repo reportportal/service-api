@@ -16,28 +16,33 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.isNull;
-import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.fail;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
-import static com.epam.ta.reportportal.entity.project.ProjectUtils.findUserConfigByLogin;
-import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
+import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.reportportal.rules.exception.ErrorType.RESOURCE_ALREADY_EXISTS;
 import static com.epam.reportportal.rules.exception.ErrorType.ROLE_NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_EXISTS;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.isNull;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
+import static com.epam.ta.reportportal.entity.project.ProjectUtils.findUserConfigByLogin;
+import static com.epam.ta.reportportal.model.settings.SettingsKeyConstants.SERVER_USERS_SSO;
+import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
+import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.auth.authenticator.UserAuthenticator;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.activity.CreateInvitationLinkEvent;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
@@ -46,9 +51,11 @@ import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.core.project.ProjectUserHandler;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.dao.RestorePasswordBidRepository;
+import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.Metadata;
+import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -59,7 +66,6 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.model.user.CreateUserBidRS;
@@ -75,17 +81,16 @@ import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.RestorePasswordBidConverter;
 import com.epam.ta.reportportal.ws.converter.converters.UserCreationBidConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import javax.persistence.PersistenceException;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -98,10 +103,13 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Andrei_Ramanchuk
  */
 @Service
+@RequiredArgsConstructor
 public class CreateUserHandlerImpl implements CreateUserHandler {
 
   public static final String BID_TYPE = "type";
   public static final String INTERNAL_BID_TYPE = "internal";
+
+  private final ServerSettingsRepository settingsRepository;
 
   private final UserRepository userRepository;
 
@@ -114,6 +122,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   private final RestorePasswordBidRepository restorePasswordBidRepository;
 
   private final CreateProjectHandler createProjectHandler;
+
   private final GetProjectHandler getProjectHandler;
 
   private final ProjectUserHandler projectUserHandler;
@@ -123,30 +132,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   private final ThreadPoolTaskExecutor emailExecutorService;
 
   private final PasswordEncoder passwordEncoder;
-  private final ApplicationEventPublisher eventPublisher;
 
-  @Autowired
-  public CreateUserHandlerImpl(PasswordEncoder passwordEncoder, UserRepository userRepository,
-      UserAuthenticator userAuthenticator,
-      MailServiceFactory emailServiceFactory, UserCreationBidRepository userCreationBidRepository,
-      RestorePasswordBidRepository restorePasswordBidRepository,
-      CreateProjectHandler createProjectHandler,
-      GetProjectHandler getProjectHandler, ProjectUserHandler projectUserHandler,
-      GetIntegrationHandler getIntegrationHandler,
-      ThreadPoolTaskExecutor emailExecutorService, ApplicationEventPublisher eventPublisher) {
-    this.passwordEncoder = passwordEncoder;
-    this.userRepository = userRepository;
-    this.createProjectHandler = createProjectHandler;
-    this.projectUserHandler = projectUserHandler;
-    this.userAuthenticator = userAuthenticator;
-    this.emailServiceFactory = emailServiceFactory;
-    this.userCreationBidRepository = userCreationBidRepository;
-    this.restorePasswordBidRepository = restorePasswordBidRepository;
-    this.getProjectHandler = getProjectHandler;
-    this.getIntegrationHandler = getIntegrationHandler;
-    this.emailExecutorService = emailExecutorService;
-    this.eventPublisher = eventPublisher;
-  }
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   @Transactional
@@ -171,104 +158,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
   }
 
-  private void normalize(CreateUserRQFull request) {
-    final String login = normalizeLogin(request.getLogin());
-    final String email = normalizeEmail(request.getEmail());
-    request.setLogin(login);
-    request.setEmail(email);
-  }
-
-  private String normalizeLogin(String login) {
-    final String normalizedLogin = getNormalized(login);
-    validateLogin(login, normalizedLogin);
-    return normalizedLogin;
-  }
-
-  private void validateLogin(String original, String normalized) {
-    Optional<User> user = userRepository.findByLogin(normalized);
-    expect(user.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS,
-        formattedSupplier("login='{}'", original));
-    expect(normalized, Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
-        formattedSupplier("Username '{}' consists only of special characters", original)
-    );
-  }
-
-  private String normalizeEmail(String email) {
-    final String normalizedEmail = getNormalized(email);
-    validateEmail(email, normalizedEmail);
-    return normalizedEmail;
-  }
-
-  private void validateEmail(String original, String normalized) {
-    expect(UserUtils.isEmailValid(normalized), equalTo(true)).verify(BAD_REQUEST_ERROR,
-        formattedSupplier("email='{}'", original));
-    Optional<User> emailUser = userRepository.findByEmail(normalized);
-    expect(emailUser.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS,
-        formattedSupplier("email='{}'", original));
-  }
-
-  private String getNormalized(String original) {
-    return normalizeId(original.trim());
-  }
-
-  private Pair<UserActivityResource, CreateUserRS> saveUser(CreateUserRQFull request,
-      User creator, boolean isSystemEvent) {
-
-    final Project projectToAssign =
-        getProjectHandler.getRaw(normalizeId(request.getDefaultProject()));
-    final ProjectRole projectRole = forName(request.getProjectRole()).orElseThrow(
-        () -> new ReportPortalException(ROLE_NOT_FOUND,
-            request.getProjectRole()
-        ));
-
-    final User user = convert(request);
-
-    try {
-      userRepository.save(user);
-      UserActivityResource userActivityResource = getUserActivityResource(user);
-      UserCreatedEvent userCreatedEvent = new UserCreatedEvent(userActivityResource,
-          creator.getId(), creator.getLogin(), isSystemEvent);
-      eventPublisher.publishEvent(userCreatedEvent);
-    } catch (PersistenceException pe) {
-      if (pe.getCause() instanceof ConstraintViolationException) {
-        fail().withError(RESOURCE_ALREADY_EXISTS,
-            ((ConstraintViolationException) pe.getCause()).getConstraintName());
-      }
-      throw new ReportPortalException("Error while User creating: " + pe.getMessage(), pe);
-    } catch (Exception exp) {
-      throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
-    }
-
-    userAuthenticator.authenticate(user);
-
-    projectUserHandler.assign(user, projectToAssign, projectRole, creator, false);
-    final Project personalProject = createProjectHandler.createPersonal(user);
-    projectUserHandler.assign(user, personalProject, ProjectRole.PROJECT_MANAGER, creator, isSystemEvent);
-
-    final CreateUserRS response = new CreateUserRS();
-    response.setId(user.getId());
-    response.setLogin(user.getLogin());
-
-    return Pair.of(TO_ACTIVITY_RESOURCE.apply(user, projectToAssign.getId()), response);
-  }
-
-  private UserActivityResource getUserActivityResource(User user) {
-    UserActivityResource userActivityResource = new UserActivityResource();
-    userActivityResource.setId(user.getId());
-    userActivityResource.setFullName(user.getLogin());
-    return userActivityResource;
-  }
-
-  private User convert(CreateUserRQFull request) {
-    final UserRole userRole = UserRole.findByName(request.getAccountRole())
-        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-            "Incorrect specified Account Role parameter."));
-    return new UserBuilder().addCreateUserFullRQ(request)
-        .addUserRole(userRole)
-        .addPassword(passwordEncoder.encode(request.getPassword()))
-        .get();
-  }
-
   @Override
   @Transactional
   public CreateUserRS createUser(CreateUserRQConfirm request, String uuid) {
@@ -284,29 +173,21 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
         "Email from bid not match.");
 
     User invitingUser = bid.getInvitingUser();
-    final Pair<UserActivityResource, CreateUserRS> pair = saveUser(createUserRQFull, invitingUser, true);
+    final Pair<UserActivityResource, CreateUserRS> pair = saveUser(createUserRQFull, invitingUser,
+        true);
 
     userCreationBidRepository.deleteAllByEmail(createUserRQFull.getEmail());
 
     return pair.getValue();
   }
 
-  private CreateUserRQFull convertToCreateRequest(CreateUserRQConfirm request,
-      UserCreationBid bid) {
-    CreateUserRQFull createUserRQFull = new CreateUserRQFull();
-    createUserRQFull.setLogin(request.getLogin());
-    createUserRQFull.setEmail(request.getEmail());
-    createUserRQFull.setFullName(request.getFullName());
-    createUserRQFull.setPassword(request.getPassword());
-    createUserRQFull.setDefaultProject(bid.getProjectName());
-    createUserRQFull.setAccountRole(UserRole.USER.name());
-    createUserRQFull.setProjectRole(bid.getRole());
-    return createUserRQFull;
-  }
-
   @Override
   public CreateUserBidRS createUserBid(CreateUserRQ request, ReportPortalUser loggedInUser,
       String emailURL) {
+
+    if (isSsoEnabled()) {
+      throw new ReportPortalException(ACCESS_DENIED, "Cannot invite user if SSO enabled.");
+    }
 
     final Project defaultProject = getProjectHandler.get(normalizeId(request.getDefaultProject()));
 
@@ -352,7 +233,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
         new StringBuilder(emailURL).append("/ui/#registration?uuid=").append(bid.getUuid());
     emailExecutorService.execute(() -> emailServiceFactory.getEmailService(integration, false)
         .sendCreateUserConfirmationEmail("User registration confirmation",
-            new String[] {bid.getEmail()}, emailLink.toString()));
+            new String[]{bid.getEmail()}, emailLink.toString()));
 
     eventPublisher.publishEvent(
         new CreateInvitationLinkEvent(loggedInUser.getUserId(), loggedInUser.getUsername(),
@@ -367,12 +248,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     response.setBid(bid.getUuid());
     response.setBackLink(emailLink.toString());
     return response;
-  }
-
-  private Metadata getUserCreationBidMetadata() {
-    final Map<String, Object> meta = Maps.newHashMapWithExpectedSize(1);
-    meta.put(BID_TYPE, INTERNAL_BID_TYPE);
-    return new Metadata(meta);
   }
 
   @Override
@@ -397,7 +272,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
     emailServiceFactory.getDefaultEmailService(true)
         .sendRestorePasswordEmail("Password recovery",
-            new String[] {email},
+            new String[]{email},
             baseUrl + "#login?reset=" + bid.getUuid(),
             user.getLogin()
         );
@@ -430,4 +305,138 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     return new YesNoRS(bid.isPresent());
   }
 
+  private boolean isSsoEnabled() {
+    return settingsRepository.findByKey(SERVER_USERS_SSO).map(ServerSettings::getValue)
+        .map(Boolean::parseBoolean).orElse(false);
+  }
+
+  private void normalize(CreateUserRQFull request) {
+    final String login = normalizeLogin(request.getLogin());
+    final String email = normalizeEmail(request.getEmail());
+    request.setLogin(login);
+    request.setEmail(email);
+  }
+
+  private String normalizeLogin(String login) {
+    final String normalizedLogin = getNormalized(login);
+    validateLogin(login, normalizedLogin);
+    return normalizedLogin;
+  }
+
+  private void validateLogin(String original, String normalized) {
+    Optional<User> user = userRepository.findByLogin(normalized);
+    expect(user.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS,
+        formattedSupplier("login='{}'", original));
+    expect(normalized, Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
+        formattedSupplier("Username '{}' consists only of special characters", original)
+    );
+  }
+
+  private String normalizeEmail(String email) {
+    final String normalizedEmail = getNormalized(email);
+    validateEmail(email, normalizedEmail);
+    return normalizedEmail;
+  }
+
+  private void validateEmail(String original, String normalized) {
+    expect(UserUtils.isEmailValid(normalized), equalTo(true)).verify(BAD_REQUEST_ERROR,
+        formattedSupplier("email='{}'", original));
+    Optional<User> emailUser = userRepository.findByEmail(normalized);
+    expect(emailUser.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS,
+        formattedSupplier("email='{}'", original));
+  }
+
+  private String getNormalized(String original) {
+    return normalizeId(original.trim());
+  }
+
+  private Pair<UserActivityResource, CreateUserRS> saveUser(CreateUserRQFull request,
+      User creator, boolean isSystemEvent) {
+
+    final User user = convert(request);
+
+    try {
+      userRepository.save(user);
+      UserActivityResource userActivityResource = getUserActivityResource(user);
+      UserCreatedEvent userCreatedEvent = new UserCreatedEvent(userActivityResource,
+          creator.getId(), creator.getLogin(), isSystemEvent);
+      eventPublisher.publishEvent(userCreatedEvent);
+    } catch (PersistenceException pe) {
+      if (pe.getCause() instanceof ConstraintViolationException) {
+        fail().withError(RESOURCE_ALREADY_EXISTS,
+            ((ConstraintViolationException) pe.getCause()).getConstraintName());
+      }
+      throw new ReportPortalException("Error while User creating: " + pe.getMessage(), pe);
+    } catch (Exception exp) {
+      throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
+    }
+
+    userAuthenticator.authenticate(user);
+
+    ofNullable(request.getDefaultProject()).ifPresent(
+        defaultProject -> assignDefaultProject(creator, user, defaultProject,
+            request.getProjectRole()));
+
+    final Project personalProject = createProjectHandler.createPersonal(user);
+    projectUserHandler.assign(user, personalProject, ProjectRole.PROJECT_MANAGER, creator,
+        isSystemEvent);
+
+    final CreateUserRS response = new CreateUserRS();
+    response.setId(user.getId());
+    response.setUuid(user.getUuid());
+    response.setExternalId(user.getExternalId());
+    response.setLogin(user.getLogin());
+    response.setEmail(user.getEmail());
+    response.setFullName(user.getFullName());
+    response.setAccountRole(user.getRole().toString());
+    response.setAccountType(user.getUserType().toString());
+    response.setActive(user.getActive());
+    return Pair.of(TO_ACTIVITY_RESOURCE.apply(user, personalProject.getId()), response);
+  }
+
+  private void assignDefaultProject(User creator, User user,
+      String defaultProject, String role) {
+    var projectToAssign = getProjectHandler.getRaw(normalizeId(defaultProject));
+    var projectRole = forName(role).orElseThrow(
+        () -> new ReportPortalException(ROLE_NOT_FOUND, role));
+    projectUserHandler.assign(user, projectToAssign, projectRole, creator, false);
+  }
+
+  private UserActivityResource getUserActivityResource(User user) {
+    UserActivityResource userActivityResource = new UserActivityResource();
+    userActivityResource.setId(user.getId());
+    userActivityResource.setFullName(user.getLogin());
+    return userActivityResource;
+  }
+
+  private User convert(CreateUserRQFull request) {
+    final UserRole userRole = UserRole.findByName(request.getAccountRole())
+        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+            "Incorrect specified Account Role parameter."));
+    User user = new UserBuilder().addCreateUserFullRQ(request)
+        .addUserRole(userRole)
+        .get();
+    ofNullable(request.getPassword()).ifPresent(
+        password -> user.setPassword(passwordEncoder.encode(password)));
+    return user;
+  }
+
+  private CreateUserRQFull convertToCreateRequest(CreateUserRQConfirm request,
+      UserCreationBid bid) {
+    CreateUserRQFull createUserRQFull = new CreateUserRQFull();
+    createUserRQFull.setLogin(request.getLogin());
+    createUserRQFull.setEmail(request.getEmail());
+    createUserRQFull.setFullName(request.getFullName());
+    createUserRQFull.setPassword(request.getPassword());
+    createUserRQFull.setDefaultProject(bid.getProjectName());
+    createUserRQFull.setAccountRole(UserRole.USER.name());
+    createUserRQFull.setProjectRole(bid.getRole());
+    return createUserRQFull;
+  }
+
+  private Metadata getUserCreationBidMetadata() {
+    final Map<String, Object> meta = Maps.newHashMapWithExpectedSize(1);
+    meta.put(BID_TYPE, INTERNAL_BID_TYPE);
+    return new Metadata(meta);
+  }
 }

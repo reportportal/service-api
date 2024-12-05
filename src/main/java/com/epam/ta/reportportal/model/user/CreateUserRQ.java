@@ -16,19 +16,21 @@
 
 package com.epam.ta.reportportal.model.user;
 
-import com.epam.reportportal.annotations.In;
+import com.epam.ta.reportportal.ws.annotations.In;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import javax.validation.constraints.NotBlank;
+import lombok.Data;
 
 /**
  * Request model for user creation (confirmation will be send on email)
  *
  * @author Andrei_Ramanchuk
  */
+@Data
 @JsonInclude(Include.NON_NULL)
 public class CreateUserRQ {
 
@@ -48,37 +50,4 @@ public class CreateUserRQ {
 	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String defaultProject;
 
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public String getRole() {
-		return role;
-	}
-
-	public void setRole(String role) {
-		this.role = role;
-	}
-
-	public String getDefaultProject() {
-		return defaultProject;
-	}
-
-	public void setDefaultProject(String value) {
-		this.defaultProject = value;
-	}
-
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder("CreateUserRQ{");
-		sb.append("email='").append(email).append('\'');
-		sb.append(", role='").append(role).append('\'');
-		sb.append(", defaultProject='").append(defaultProject).append('\'');
-		sb.append('}');
-		return sb.toString();
-	}
 }

@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.ta.reportportal.model.settings.AnalyticsResource;
+import com.epam.ta.reportportal.model.settings.UpdateSettingsRq;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,28 @@ class SettingsControllerTest extends BaseMvcTest {
   @Test
   void getServerSettings() throws Exception {
     mockMvc.perform(get("/v1/settings").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void updateSettingsNegative() throws Exception {
+    UpdateSettingsRq mockRequest = new UpdateSettingsRq();
+    mockRequest.setKey("invalid_key");
+    mockRequest.setValue("true");
+    mockMvc.perform(put("/v1/settings").with(token(oAuthHelper.getSuperadminToken()))
+            .contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(mockRequest)))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void updateSettings() throws Exception {
+    UpdateSettingsRq mockRequest = new UpdateSettingsRq();
+    mockRequest.setKey("server.users.sso");
+    mockRequest.setValue("true");
+
+    mockMvc.perform(put("/v1/settings").with(token(oAuthHelper.getSuperadminToken()))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(mockRequest)))
         .andExpect(status().isOk());
   }
 

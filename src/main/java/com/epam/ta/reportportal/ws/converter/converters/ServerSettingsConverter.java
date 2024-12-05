@@ -18,8 +18,9 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 
-import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.entity.ServerSettings;
+import com.epam.ta.reportportal.model.settings.ServerSettingsResource;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -33,15 +34,18 @@ import org.apache.commons.collections4.CollectionUtils;
  */
 public final class ServerSettingsConverter {
 
-  private ServerSettingsConverter() {
-    //static only
-  }
+  public static final Function<ServerSettings, ServerSettingsResource> TO_RESOURCE = serverSettings -> new ServerSettingsResource(
+      serverSettings.getKey(), serverSettings.getValue());
 
-  public static final Function<List<ServerSettings>, Map<String, String>> TO_RESOURCE = serverSettings -> {
+  public static final Function<List<ServerSettings>, Map<String, String>> TO_RESOURCES = serverSettings -> {
     expect(serverSettings, CollectionUtils::isNotEmpty).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND,
         "default");
     return serverSettings.stream()
         .collect(Collectors.toMap(ServerSettings::getKey, ServerSettings::getValue));
   };
+
+  private ServerSettingsConverter() {
+    //static only
+  }
 
 }

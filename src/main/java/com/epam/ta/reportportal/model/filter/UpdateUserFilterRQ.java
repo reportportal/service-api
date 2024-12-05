@@ -22,8 +22,8 @@ import static com.epam.reportportal.model.ValidationConstraints.MIN_COLLECTION_S
 import static com.epam.reportportal.model.ValidationConstraints.MIN_NAME_LENGTH;
 
 import com.epam.ta.reportportal.model.BaseEntityRQ;
-import com.epam.reportportal.annotations.In;
-import com.epam.reportportal.annotations.NotBlankWithSize;
+import com.epam.ta.reportportal.ws.annotations.In;
+import com.epam.ta.reportportal.ws.annotations.NotBlankWithSize;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;

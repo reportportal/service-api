@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.launch.util;
 
-import java.net.URI;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -64,13 +63,5 @@ public final class LinkGenerator {
         .build()
         .toUri()
         .toASCIIString();
-  }
-
-  public static URI withAbsBaseUrl(HttpServletRequest request, String path) {
-    return UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
-        .replaceQuery(null)
-        .path(path)
-        .build()
-        .toUri();
   }
 }

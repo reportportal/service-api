@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.withAbsBaseUrl;
 
 import com.epam.reportportal.api.UserApi;
 import com.epam.reportportal.api.model.AccountType;
@@ -25,13 +24,11 @@ import com.epam.reportportal.api.model.InstanceRole;
 import com.epam.reportportal.api.model.InstanceUser;
 import com.epam.reportportal.api.model.InstanceUserPage;
 import com.epam.reportportal.api.model.Order;
-import com.epam.reportportal.api.model.UserInfo;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.epam.ta.reportportal.util.DefaultUserFilter;
-import java.util.Optional;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.core.io.InputStreamResource;
@@ -71,21 +68,10 @@ public class UserController extends BaseController implements UserApi {
     var pageable = ControllerUtils.getPageable(sort, order, offset, limit);
 
     InstanceUserPage users = getUserHandler.getUsersExcluding(filter, pageable, excludeArray);
-    enrichLinksWithAbsPath(users);
     return new ResponseEntity<>(users, HttpStatus.OK);
 
   }
 
-  private void enrichLinksWithAbsPath(InstanceUserPage users) {
-    users.getItems().stream()
-        .map(UserInfo::getLinks)
-        .forEach(userLink -> {
-            userLink.getSelf()
-                .setHref(withAbsBaseUrl(httpServletRequest, userLink.getSelf().getHref().toASCIIString()));
-            Optional.ofNullable(userLink.getAvatar())
-                .ifPresent(link -> link.setHref(withAbsBaseUrl(httpServletRequest, link.getHref().toASCIIString())));
-        });
-  }
 
   @Override
   @Transactional(readOnly = true)

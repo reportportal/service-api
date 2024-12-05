@@ -165,11 +165,11 @@ public final class UserConverter {
     UserLinksLinks links = new UserLinksLinks();
     String mediaType = getMediaType(user.getMetadata());
 
-    links.self(new Link(new URI("/" + user.getId()), null, null));
+    links.self(new Link(new URI("/users/" + user.getId()), null, null));
 
     if (null != user.getAttachmentThumbnail() && StringUtils.isNotEmpty(mediaType)) {
       links.avatar(
-          new Link(new URI("/" + user.getId() + "/avatar"), mediaType, "User's profile picture"));
+          new Link(new URI("/users/" + user.getId() + "/avatar"), mediaType, "User's profile picture"));
       return links;
     }
     return links;

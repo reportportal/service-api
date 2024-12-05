@@ -32,6 +32,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.reportportal.api.model.InstanceUser;
 import com.epam.reportportal.api.model.InstanceUserPage;
 import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
@@ -489,8 +490,25 @@ class UserControllerTest extends BaseMvcTest {
 
   @Test
   void getMyself() throws Exception {
-    mockMvc.perform(get("/users/me").with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+    mockMvc.perform(get("/users/me")
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
+
+    var responseString = mockMvc.perform(get("/users/me")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
+
+    var user = objectMapper.readValue(responseString, InstanceUser.class);
+
+    assertNotNull(user.getFullName());
+    assertNotNull(user.getEmail());
+    assertNotNull(user.getInstanceRole());
   }
 
   @Test

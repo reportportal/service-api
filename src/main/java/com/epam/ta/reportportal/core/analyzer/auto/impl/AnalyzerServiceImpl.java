@@ -17,6 +17,9 @@
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.SKIPPED;
+import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -147,9 +150,22 @@ public class AnalyzerServiceImpl implements AnalyzerService {
         analyzedMap.forEach(
             (key, value) -> updateTestItems(key, value, toAnalyze, launch.getProjectId()));
       }
+
       // save data for analytics
+      int skipped = (int) toAnalyze.stream()
+          .filter(ti -> rq.getTestItems().stream()
+              .anyMatch(idxTi -> idxTi.getTestItemId().equals(ti.getItemResults().getItemId())))
+          .filter(ti -> ti.getItemResults().getStatus().equals(SKIPPED))
+          .count();
+      int passed = (int) toAnalyze.stream()
+          .filter(ti -> rq.getTestItems().stream()
+              .anyMatch(idxTi -> idxTi.getTestItemId().equals(ti.getItemResults().getItemId())))
+          .filter(ITEM_CAN_BE_INDEXED)
+          .filter(ti -> ti.getItemResults().getStatus().equals(PASSED))
+          .count();
+
       defectUpdateStatisticsService
-          .saveAnalyzedDefectStatistics(amountToAnalyze, analyzedMap.size(), 0, rq.getProjectId());
+          .saveAutoAnalyzedDefectStatistics(amountToAnalyze, analyzedMap.size(), skipped, passed, rq.getProjectId());
     });
   }
 

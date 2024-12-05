@@ -19,6 +19,10 @@ package com.epam.ta.reportportal.core.analytics;
 public interface DefectUpdateStatisticsService {
 
   void saveAnalyzedDefectStatistics(int amountToAnalyze, int analyzedAmount, int userAnalyzedAmount,
+      int skipped, int passed,
       Long projectId);
 
+  void saveAutoAnalyzedDefectStatistics(int amountToAnalyze, int analyzedAmount, int skipped, int passed, Long projectId);
+
+  void saveUserAnalyzedDefectStatistics(int size, Long projectId);
 }

@@ -39,7 +39,6 @@ import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analytics.DefectUpdateStatisticsService;
-import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.LogIndexerService;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -161,8 +160,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     List<Long> itemsForIndexRemove = new ArrayList<>();
 
     // save data for analytics
-    defectUpdateStatisticsService.saveAnalyzedDefectStatistics(definitions.size(), 0,
-        definitions.size(), projectDetails.getProjectId());
+    defectUpdateStatisticsService.saveUserAnalyzedDefectStatistics(definitions.size(), projectDetails.getProjectId());
 
     definitions.forEach(issueDefinition -> {
       try {

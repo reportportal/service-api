@@ -21,6 +21,4 @@ jobs:
     name: Call Java Checks
     uses: reportportal/.github/.github/workflows/java-checks.yaml@main
     with:
-      runs-on: 'rp-beta-runner-set'
-      drill-agent-enabled: 'true'
     secrets: inherit

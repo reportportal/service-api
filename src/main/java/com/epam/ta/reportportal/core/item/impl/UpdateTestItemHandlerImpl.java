@@ -160,7 +160,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     List<Long> itemsForIndexRemove = new ArrayList<>();
 
     // save data for analytics
-    defectUpdateStatisticsService.saveUserAnalyzedDefectStatistics(definitions.size(), projectDetails.getProjectId());
+    defectUpdateStatisticsService.saveUserAnalyzedDefectStatistics(definitions.size(),
+        projectDetails.getProjectId());
 
     definitions.forEach(issueDefinition -> {
       try {

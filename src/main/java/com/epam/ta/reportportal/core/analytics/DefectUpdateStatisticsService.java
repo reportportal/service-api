@@ -22,7 +22,8 @@ public interface DefectUpdateStatisticsService {
       int skipped, int passed,
       Long projectId);
 
-  void saveAutoAnalyzedDefectStatistics(int amountToAnalyze, int analyzedAmount, int skipped, int passed, Long projectId);
+  void saveAutoAnalyzedDefectStatistics(int amountToAnalyze, int analyzedAmount, int skipped,
+      int passed, Long projectId);
 
   void saveUserAnalyzedDefectStatistics(int size, Long projectId);
 }

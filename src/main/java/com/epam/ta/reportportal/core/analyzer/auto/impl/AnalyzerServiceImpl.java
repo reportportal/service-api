@@ -165,7 +165,8 @@ public class AnalyzerServiceImpl implements AnalyzerService {
           .count();
 
       defectUpdateStatisticsService
-          .saveAutoAnalyzedDefectStatistics(amountToAnalyze, analyzedMap.size(), skipped, passed, rq.getProjectId());
+          .saveAutoAnalyzedDefectStatistics(amountToAnalyze, analyzedMap.size(), skipped, passed,
+              rq.getProjectId());
     });
   }
 

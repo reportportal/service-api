@@ -82,12 +82,14 @@ public class DefectUpdateStatisticsServiceImpl implements DefectUpdateStatistics
    */
   @Override
   public void saveAnalyzedDefectStatistics(int amountToAnalyze, int analyzedAmount,
-      int userAnalyzedAmount, Long projectId) {
+      int userAnalyzedAmount, int skipped, int passed, Long projectId) {
     if (isAnalyticsGatheringAllowed()) {
       var map = getMapWithCommonParameters(projectId);
       map.put("sentToAnalyze", amountToAnalyze);
       map.put("analyzed", analyzedAmount);
       map.put("userAnalyzed", userAnalyzedAmount);
+      map.put("skipped", skipped);
+      map.put("passed", passed);
 
       AnalyticsData ad = new AnalyticsData();
       ad.setType(DEFECT_UPDATE_STATISTICS.name());
@@ -96,6 +98,18 @@ public class DefectUpdateStatisticsServiceImpl implements DefectUpdateStatistics
       analyticsDataRepository.save(ad);
     }
 
+  }
+
+  @Override
+  public void saveAutoAnalyzedDefectStatistics(int amountToAnalyze, int analyzedAmount, int skipped,
+      int passed, Long projectId) {
+    this.saveAnalyzedDefectStatistics(amountToAnalyze, analyzedAmount, 0, skipped, passed,
+        projectId);
+  }
+
+  @Override
+  public void saveUserAnalyzedDefectStatistics(int userAnalyzed, Long projectId) {
+    this.saveAnalyzedDefectStatistics(userAnalyzed, 0, userAnalyzed, 0, 0, projectId);
   }
 
   private boolean isAnalyticsGatheringAllowed() {

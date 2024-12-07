@@ -35,4 +35,5 @@ jobs:
       version: ${{ needs.variables-setup.outputs.tag }}
       branch: ${{ github.head_ref }}
       date: ${{ needs.variables-setup.outputs.date }}
+      runs-on: ubuntu-latest
     secrets: inherit

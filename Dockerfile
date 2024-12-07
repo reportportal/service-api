@@ -9,7 +9,7 @@ RUN if [ "${RELEASE_MODE}" = true ]; then \
         -Dorg.gradle.project.version=${APP_VERSION}; \
     else gradle build --no-build-cache --exclude-task test -Dorg.gradle.project.version=${APP_VERSION}; fi
 
-FROM amazoncorretto:21.0.4
+FROM amazoncorretto:21.0.5
 LABEL version=${APP_VERSION} description="EPAM Report portal. Main API Service" maintainer="Andrei Varabyeu <andrei_varabyeu@epam.com>, Hleb Kanonik <hleb_kanonik@epam.com>"
 ARG APP_VERSION=${APP_VERSION}
 ENV APP_DIR=/usr/app

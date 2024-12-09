@@ -1,5 +1,3 @@
-version: '2.4'
-
 services:
 
   rabbitmq:
@@ -20,12 +18,11 @@ services:
     volumes:
       - reportportal-database:/var/lib/postgresql/data
     restart: on-failure
-    # If you need to access the DB locally. Could be a security risk to expose DB.
     ports:
       - "5432:5432"
 
   opensearch:
-    image: opensearchproject/opensearch:2.11.0
+    image: opensearchproject/opensearch:2.16.0
     restart: always
     volumes:
       - opensearch:/usr/share/opensearch/data

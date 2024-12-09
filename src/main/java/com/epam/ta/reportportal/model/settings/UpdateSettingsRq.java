@@ -15,20 +15,18 @@
  */
 package com.epam.ta.reportportal.model.settings;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import javax.validation.constraints.NotEmpty;
 import lombok.Data;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Data
-@Builder
-@AllArgsConstructor
-public class ServerSettingsResource {
+public class UpdateSettingsRq {
 
+  @NotEmpty
   private String key;
-
+  @NotEmpty
   private String value;
 
 }

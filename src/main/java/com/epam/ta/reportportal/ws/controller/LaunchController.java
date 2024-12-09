@@ -47,9 +47,11 @@ import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.model.launch.cluster.CreateClustersRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.reporting.LaunchResource;
+import com.epam.ta.reportportal.ws.reporting.LaunchResourceOld;
 import com.epam.ta.reportportal.ws.reporting.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
@@ -59,7 +61,9 @@ import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.net.HttpHeaders;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -111,13 +115,15 @@ public class LaunchController {
   private final UpdateLaunchHandler updateLaunchHandler;
   private final MergeLaunchHandler mergeLaunchesHandler;
   private final GetJasperReportHandler<Launch> getJasperHandler;
+  private final LaunchConverter launchConverter;
 
   @Autowired
   public LaunchController(ProjectExtractor projectExtractor, StartLaunchHandler startLaunchHandler,
       FinishLaunchHandler finishLaunchHandler, StopLaunchHandler stopLaunchHandler,
       DeleteLaunchHandler deleteLaunchMessageHandler, GetLaunchHandler getLaunchMessageHandler,
       UpdateLaunchHandler updateLaunchHandler, MergeLaunchHandler mergeLaunchesHandler,
-      @Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> getJasperHandler) {
+      @Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> getJasperHandler,
+      LaunchConverter launchConverter) {
     this.projectExtractor = projectExtractor;
     this.startLaunchHandler = startLaunchHandler;
     this.finishLaunchHandler = finishLaunchHandler;
@@ -127,6 +133,7 @@ public class LaunchController {
     this.updateLaunchHandler = updateLaunchHandler;
     this.mergeLaunchesHandler = mergeLaunchesHandler;
     this.getJasperHandler = getJasperHandler;
+    this.launchConverter = launchConverter;
   }
 
   /* Report client API */
@@ -236,7 +243,7 @@ public class LaunchController {
   }
 
   @Transactional(readOnly = true)
-  @GetMapping("/uuid/{launchId}")
+  @GetMapping(value = "/uuid/{launchId}", produces = "application/x.reportportal.launch.v2+json")
   @ResponseStatus(OK)
   @Operation(summary = "Get specified launch by UUID")
   public LaunchResource getLaunchByUuid(@PathVariable String projectName,
@@ -244,6 +251,25 @@ public class LaunchController {
     return getLaunchMessageHandler.getLaunch(launchId,
         projectExtractor.extractProjectDetails(user, normalizeId(projectName))
     );
+  }
+
+  @Transactional(readOnly = true)
+  @GetMapping(value = "/uuid/{launchId}")
+  @ResponseStatus(OK)
+  @Operation(summary = "Get specified launch by UUID")
+  @ApiResponse(
+      responseCode = "200",
+      description = "Successful response with dates in timestamp format. "
+          + "Response with dates in ISO-8601 format if the custom header "
+          + "'Accept: application/x.reportportal.launch.v2+json' is used.",
+      content = @Content(mediaType = "application/json", schema = @Schema(implementation = LaunchResourceOld.class))
+  )
+  public LaunchResourceOld getLaunchByUuidOldTimestamp(@PathVariable String projectName,
+      @PathVariable String launchId, @AuthenticationPrincipal ReportPortalUser user) {
+    LaunchResource launch = getLaunchMessageHandler.getLaunch(launchId,
+        projectExtractor.extractProjectDetails(user, normalizeId(projectName))
+    );
+    return launchConverter.TO_RESOURCE_OLD.apply(launch);
   }
 
   @Transactional(readOnly = true)
@@ -362,7 +388,7 @@ public class LaunchController {
   }
 
   @Transactional
-  @PostMapping("/merge")
+  @PostMapping(value = "/merge", produces = "application/x.reportportal.launch.v2+json")
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(OK)
   @Operation(summary = "Merge set of specified launches in common one", description =
@@ -376,6 +402,31 @@ public class LaunchController {
         projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user,
         mergeLaunchesRQ
     );
+  }
+
+  @Transactional
+  @PostMapping(value = "/merge")
+  @PreAuthorize(ALLOWED_TO_REPORT)
+  @ResponseStatus(OK)
+  @Operation(summary = "Merge set of specified launches in common one", description =
+      "This operation merges a set of launches into a common one. "
+          + "The IDs of the launches to be merged should be provided in the 'launches' "
+          + "field of the request body.")
+  @ApiResponse(
+      responseCode = "200",
+      description = "Successful response with dates in timestamp format. "
+          + "Response with dates in ISO-8601 format if the custom header "
+          + "'Accept: application/x.reportportal.launch.v2+json' is used.",
+      content = @Content(mediaType = "application/json", schema = @Schema(implementation = LaunchResourceOld.class))
+  )
+  public LaunchResourceOld mergeLaunchesOldUuid(@PathVariable String projectName,
+      @Parameter(description = "Merge launches request body", required = true) @RequestBody
+      @Validated MergeLaunchesRQ mergeLaunchesRQ, @AuthenticationPrincipal ReportPortalUser user) {
+    var launchResource = mergeLaunchesHandler.mergeLaunches(
+        projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user,
+        mergeLaunchesRQ
+    );
+    return launchConverter.TO_RESOURCE_OLD.apply(launchResource);
   }
 
   @Transactional

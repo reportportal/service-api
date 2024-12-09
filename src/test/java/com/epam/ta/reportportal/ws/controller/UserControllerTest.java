@@ -18,7 +18,9 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -38,6 +40,8 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
+import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.user.ChangePasswordRQ;
@@ -80,6 +84,39 @@ class UserControllerTest extends BaseMvcTest {
 
   @Autowired
   private IssueTypeRepository issueTypeRepository;
+
+  @Test
+  void createdUserByIdentityProvider() throws Exception  {
+    CreateUserRQFull rq = new CreateUserRQFull();
+    rq.setLogin("testLogin");
+    rq.setFullName("Test User");
+    rq.setEmail("test@test.com");
+    rq.setAccountRole("USER");
+    rq.setProjectRole("MEMBER");
+    rq.setAccountType("SCIM");
+
+    MvcResult mvcResult = mockMvc.perform(
+            post("/users").with(token(oAuthHelper.getSuperadminToken()))
+                .contentType(APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated())
+        .andReturn();
+
+    CreateUserRS createUserRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
+        CreateUserRS.class);
+
+    assertNotNull(createUserRS.getId());
+    assertEquals(normalizeId(rq.getLogin()), createUserRS.getLogin());
+    var user = userRepository.findById(createUserRS.getId());
+    assertTrue(user.isPresent());
+    assertEquals(user.get().getUserType(), UserType.SCIM);
+    assertNull(user.get().getPassword());
+
+    var projectOptional = projectRepository.findByName("default_personal");
+    assertTrue(projectOptional.isPresent());
+    assertFalse(projectOptional.get().getUsers().stream()
+        .anyMatch(config -> config.getUser().getLogin().equals("testlogin")));
+
+  }
 
   @Test
   void createUserByAdminPositive() throws Exception {
@@ -252,6 +289,60 @@ class UserControllerTest extends BaseMvcTest {
     editUserRQ.setFullName("Vasya Pupkin");
     editUserRQ.setEmail("user1uniquemail@epam.com");
     mockMvc.perform(put("/users/default").with(token(oAuthHelper.getSuperadminToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isOk());
+  }
+
+  @Test
+  void editAccountTypeByAdmin() throws Exception {
+    EditUserRQ editUserRQ = new EditUserRQ();
+    editUserRQ.setAccountType("INTERNAL");
+    mockMvc.perform(put("/users/default").with(token(oAuthHelper.getSuperadminToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isOk());
+  }
+
+  @Test
+  void editAccountTypeByAdminNegative() throws Exception {
+    EditUserRQ editUserRQ = new EditUserRQ();
+    editUserRQ.setAccountType("GITHUB");
+    mockMvc.perform(put("/users/default").with(token(oAuthHelper.getSuperadminToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void editActiveByAdmin() throws Exception {
+    EditUserRQ editUserRQ = new EditUserRQ();
+    editUserRQ.setActive(false);
+    mockMvc.perform(put("/users/default").with(token(oAuthHelper.getSuperadminToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isOk());
+  }
+
+  @Test
+  void editAccountTypeByNotAdmin() throws Exception {
+    EditUserRQ editUserRQ = new EditUserRQ();
+    editUserRQ.setAccountType("INTERNAL");
+    mockMvc.perform(put("/users/default").with(token(oAuthHelper.getDefaultToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isForbidden());
+  }
+
+  @Test
+  void editActiveByNotAdmin() throws Exception {
+    EditUserRQ editUserRQ = new EditUserRQ();
+    editUserRQ.setActive(false);
+    mockMvc.perform(put("/users/default").with(token(oAuthHelper.getDefaultToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isForbidden());
+  }
+
+  @Test
+  void editExternalIdByNotAdmin() throws Exception {
+    EditUserRQ editUserRQ = new EditUserRQ();
+    editUserRQ.setExternalId("test");
+    mockMvc.perform(put("/users/default").with(token(oAuthHelper.getDefaultToken()))
         .contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isOk());
   }

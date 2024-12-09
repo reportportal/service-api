@@ -21,6 +21,7 @@ import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.core.jasper.JasperReportRender;
 import com.epam.ta.reportportal.core.jasper.constants.UserReportConstants;
+import com.epam.ta.reportportal.entity.Metadata;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.jasper.ReportType;
 import com.epam.ta.reportportal.entity.user.User;
@@ -31,6 +32,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import net.sf.jasperreports.engine.JRDataSource;
@@ -80,11 +82,12 @@ public class UserJasperReportHandler extends AbstractJasperReportHandler<User> {
             )).entrySet().stream().map(entry -> entry.getKey() + " - " + entry.getValue())
             .collect(Collectors.joining(", ")));
 
-    ofNullable(user.getMetadata()).ifPresent(
-        metadata -> ofNullable(metadata.getMetadata()).ifPresent(meta -> ofNullable(meta.get(
-            USER_LAST_LOGIN)).ifPresent(lastLogin -> {
+    ofNullable(user.getMetadata())
+        .map(Metadata::getMetadata)
+        .map(meta -> meta.get(USER_LAST_LOGIN))
+        .ifPresent(lastLogin -> {
           try {
-            long epochMilli = Long.parseLong(String.valueOf(lastLogin));
+            long epochMilli = Double.valueOf(String.valueOf(lastLogin)).longValue();
             Instant instant = Instant.ofEpochMilli(epochMilli);
             params.put(
                 UserReportConstants.LAST_LOGIN,
@@ -95,7 +98,7 @@ public class UserJasperReportHandler extends AbstractJasperReportHandler<User> {
             //do nothing, null value will be put in the result
           }
 
-        })));
+        });
 
     return params;
   }

@@ -17,6 +17,7 @@ on:
       - gradle.properties
 
 jobs:
-  call-java-cheks:
-    name: Call Java checks
+  call-java-checks:
+    name: Call Java Checks
     uses: reportportal/.github/.github/workflows/java-checks.yaml@main
+    secrets: inherit

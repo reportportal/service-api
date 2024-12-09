@@ -17,5 +17,6 @@ on:
 
 jobs:
   call-java-checks:
-    name: Call Java checks
+    name: Call Java Checks
     uses: reportportal/.github/.github/workflows/java-checks.yaml@main
+    secrets: inherit

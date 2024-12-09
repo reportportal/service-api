@@ -53,6 +53,7 @@ import com.epam.ta.reportportal.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.model.item.UnlinkExternalIssueRQ;
 import com.epam.ta.reportportal.model.item.UpdateTestItemRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.reporting.FinishTestItemRQ;
@@ -61,20 +62,23 @@ import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.reporting.StatisticsResource;
 import com.epam.ta.reportportal.ws.reporting.TestItemResource;
+import com.epam.ta.reportportal.ws.reporting.TestItemResourceOld;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Operator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -97,6 +101,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/{projectKey}/item")
 @Tag(name = "test-item-controller", description = "Test Item Controller")
+@RequiredArgsConstructor
 public class TestItemController {
 
   public static final String HISTORY_TYPE_PARAM = "type";
@@ -115,22 +120,6 @@ public class TestItemController {
   private final GetTestItemHandler getTestItemHandler;
   private final TestItemsHistoryHandler testItemsHistoryHandler;
   private final SuggestItemService suggestItemService;
-
-  @Autowired
-  public TestItemController(ProjectExtractor projectExtractor,
-      StartTestItemHandler startTestItemHandler, DeleteTestItemHandler deleteTestItemHandler,
-      FinishTestItemHandler finishTestItemHandler, UpdateTestItemHandler updateTestItemHandler,
-      GetTestItemHandler getTestItemHandler, TestItemsHistoryHandler testItemsHistoryHandler,
-      SuggestItemService suggestItemService) {
-    this.projectExtractor = projectExtractor;
-    this.startTestItemHandler = startTestItemHandler;
-    this.deleteTestItemHandler = deleteTestItemHandler;
-    this.finishTestItemHandler = finishTestItemHandler;
-    this.updateTestItemHandler = updateTestItemHandler;
-    this.getTestItemHandler = getTestItemHandler;
-    this.testItemsHistoryHandler = testItemsHistoryHandler;
-    this.suggestItemService = suggestItemService;
-  }
 
   /* Report client API */
 
@@ -187,7 +176,7 @@ public class TestItemController {
   }
 
   @Transactional(readOnly = true)
-  @GetMapping("/uuid/{itemId}")
+  @GetMapping(value = "/uuid/{itemId}", produces = "application/x.reportportal.test.v2+json")
   @ResponseStatus(OK)
   @Operation(summary = "Find test item by UUID")
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
@@ -196,7 +185,25 @@ public class TestItemController {
     return getTestItemHandler.getTestItem(itemId,
         projectExtractor.extractMembershipDetails(user, projectKey), user
     );
+  }
 
+  @Transactional(readOnly = true)
+  @GetMapping("/uuid/{itemId}")
+  @ResponseStatus(OK)
+  @Operation(summary = "Find test item by UUID")
+  @ApiResponse(
+      responseCode = "200",
+      description = "Successful response with dates in timestamp format. "
+          + "Response with dates in ISO-8601 format if the custom header "
+          + "'Accept: application/x.reportportal.test.v2+json' is used.",
+      content = @Content(mediaType = "application/json", schema = @Schema(implementation = TestItemResourceOld.class))
+  )
+  public TestItemResourceOld getTestItemByUuidTimestamp(@PathVariable String projectName,
+      @AuthenticationPrincipal ReportPortalUser user, @PathVariable String itemId) {
+    var testItem = getTestItemHandler.getTestItem(itemId,
+        projectExtractor.extractProjectDetails(user, projectName), user
+    );
+    return TestItemConverter.TO_RESOURCE_TIMESTAMP.apply(testItem);
   }
 
   @Transactional(readOnly = true)
@@ -243,13 +250,14 @@ public class TestItemController {
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public Iterable<TestItemResource> getTestItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @Nullable
-  @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID, required = false)
-  Long launchId,
+  @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ
+      + CRITERIA_LAUNCH_ID, required = false)
+      Long launchId,
       @Nullable @RequestParam(value = FILTER_ID_REQUEST_PARAM, required = false) Long filterId,
       @RequestParam(value = IS_LATEST_LAUNCHES_REQUEST_PARAM, defaultValue = "false", required = false)
-      boolean isLatest,
+          boolean isLatest,
       @RequestParam(value = LAUNCHES_LIMIT_REQUEST_PARAM, defaultValue = "0", required = false)
-      int launchesLimit, @FilterFor(TestItem.class) Filter filter,
+          int launchesLimit, @FilterFor(TestItem.class) Filter filter,
       @FilterFor(TestItem.class) Queryable predefinedFilter,
       @SortFor(TestItem.class) Pageable pageable) {
     return getTestItemHandler.getTestItems(
@@ -339,19 +347,23 @@ public class TestItemController {
       @AuthenticationPrincipal ReportPortalUser user, @FilterFor(TestItem.class) Filter filter,
       @FilterFor(TestItem.class) Queryable predefinedFilter,
       @SortFor(TestItem.class) Pageable pageable, @Nullable
-  @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_PARENT_ID, required = false)
-  Long parentId, @Nullable
-  @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_ID, required = false)
-  Long itemId, @Nullable
-  @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID, required = false)
-  Long launchId, @Nullable @RequestParam(value = HISTORY_TYPE_PARAM, required = false) String type,
+  @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ
+      + CRITERIA_PARENT_ID, required = false)
+      Long parentId, @Nullable
+  @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ
+      + CRITERIA_ID, required = false)
+      Long itemId, @Nullable
+  @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ
+      + CRITERIA_LAUNCH_ID, required = false)
+      Long launchId,
+      @Nullable @RequestParam(value = HISTORY_TYPE_PARAM, required = false) String type,
       @Nullable @RequestParam(value = FILTER_ID_REQUEST_PARAM, required = false) Long filterId,
       @RequestParam(value = IS_LATEST_LAUNCHES_REQUEST_PARAM, defaultValue = "false", required = false)
-      boolean isLatest,
+          boolean isLatest,
       @RequestParam(value = LAUNCHES_LIMIT_REQUEST_PARAM, defaultValue = "0", required = false)
-      int launchesLimit,
+          int launchesLimit,
       @RequestParam(value = HISTORY_DEPTH_PARAM, required = false, defaultValue = HISTORY_DEPTH_DEFAULT_VALUE)
-      int historyDepth) {
+          int historyDepth) {
 
     return testItemsHistoryHandler.getItemsHistory(
         projectExtractor.extractMembershipDetails(user, projectKey),
@@ -393,7 +405,7 @@ public class TestItemController {
   public List<String> getAttributeKeys(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "launch") Long id,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_KEY)
-      String value) {
+          String value) {
     return getTestItemHandler.getAttributeKeys(id, value);
   }
 
@@ -406,9 +418,9 @@ public class TestItemController {
   public List<String> getAttributeKeysForProject(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_KEY)
-      String value, @RequestParam(value = FILTER_ID_REQUEST_PARAM) Long launchFilterId,
+          String value, @RequestParam(value = FILTER_ID_REQUEST_PARAM) Long launchFilterId,
       @RequestParam(value = IS_LATEST_LAUNCHES_REQUEST_PARAM, defaultValue = "false", required = false)
-      boolean isLatest,
+          boolean isLatest,
       @RequestParam(value = LAUNCHES_LIMIT_REQUEST_PARAM, defaultValue = "0") int launchesLimit) {
     return getTestItemHandler.getAttributeKeys(launchFilterId, isLatest, launchesLimit,
         projectExtractor.extractMembershipDetails(user, projectKey), value
@@ -426,7 +438,7 @@ public class TestItemController {
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ
           + CRITERIA_ITEM_ATTRIBUTE_KEY, required = false) String key,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_VALUE)
-      String value) {
+          String value) {
     return getTestItemHandler.getAttributeValues(id, key, value);
   }
 
@@ -438,9 +450,9 @@ public class TestItemController {
   public List<String> getAttributeKeys(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_NAME, required = false)
-      String launchName,
+          String launchName,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_KEY)
-      String value) {
+          String value) {
     return ofNullable(launchName).filter(StringUtils::isNotBlank).map(
             name -> getTestItemHandler.getAttributeKeys(
                 projectExtractor.extractMembershipDetails(user, projectKey), name, value))
@@ -455,10 +467,10 @@ public class TestItemController {
   public List<String> getAttributeValues(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_NAME, required = false)
-      String launchName, @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ
+          String launchName, @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ
       + CRITERIA_ITEM_ATTRIBUTE_KEY, required = false) String key,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_VALUE)
-      String value) {
+          String value) {
     return ofNullable(launchName).filter(StringUtils::isNotBlank).map(
             name -> getTestItemHandler.getAttributeValues(
                 projectExtractor.extractMembershipDetails(user, projectKey), name, key, value))

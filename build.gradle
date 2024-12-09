@@ -20,6 +20,7 @@ plugins {
     id 'java'
     id "org.owasp.dependencycheck" version "9.0.9"
     id "org.openapi.generator" version "7.9.0"
+    id "com.epam.drill.integration.cicd" version "0.1.6"
 }
 
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
@@ -31,9 +32,12 @@ apply from: "$scriptsUrl/build-info.gradle"
 apply from: "$scriptsUrl/release-service.gradle"
 apply from: "$scriptsUrl/signing.gradle"
 apply from: "$scriptsUrl/copy-database-scripts.gradle"
+
+//replaced with drill4j
 //apply from: "$scriptsUrl/build-quality.gradle"
-apply from: "$scriptsUrl/jacoco.gradle"
-apply plugin: 'jacoco'
+//apply from: "$scriptsUrl/jacoco.gradle"
+//apply plugin: 'jacoco'
+
 project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
 
 repositories {
@@ -70,9 +74,9 @@ dependencies {
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.github.reportportal:commons-dao:05c74a8'
-        implementation 'com.github.reportportal:commons:287df6c'
-        implementation 'com.github.reportportal:plugin-api:925a550'
+        implementation 'com.github.reportportal:commons-dao:239b084'
+        implementation 'com.github.reportportal:commons:596fceb'
+        implementation 'com.github.reportportal:plugin-api:9ce5992'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
@@ -240,4 +244,20 @@ compileJava.dependsOn generateOrganizationsApi
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts
-build.dependsOn jacocoTestReport
+
+//replaced with drill4j
+//build.dependsOn jacocoTestReport
+
+drill {
+    groupId = "report-portal"
+    appId = "service-api"
+    packagePrefixes = ["com/epam/ta/reportportal"]
+    enableTestAgent {
+        enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
+        version = "0.23.3"
+    }
+    enableAppAgent {
+        enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
+        version = "0.9.4"
+    }
+}

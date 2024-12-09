@@ -32,4 +32,5 @@ jobs:
       image-tag: 'orgs-${{ github.run_number }}'
       version: 'orgs-${{ github.run_number }}'
       date: ${{ needs.variables-setup.outputs.date }}
+      runs-on: ubuntu-latest
     secrets: inherit

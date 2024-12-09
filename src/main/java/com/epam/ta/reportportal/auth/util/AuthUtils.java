@@ -16,19 +16,9 @@
 package com.epam.ta.reportportal.auth.util;
 
 import com.epam.ta.reportportal.entity.user.UserRole;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InvalidClassException;
-import java.io.ObjectInputStream;
-import java.io.ObjectStreamClass;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -43,8 +33,7 @@ public final class AuthUtils {
     //statics only
   }
 
-  public static final Function<UserRole, List<GrantedAuthority>> AS_AUTHORITIES = userRole -> Collections.singletonList(
-      new SimpleGrantedAuthority(
-          userRole.getAuthority()));
+  public static final Function<UserRole, List<GrantedAuthority>> AS_AUTHORITIES = userRole ->
+      Collections.singletonList(new SimpleGrantedAuthority(userRole.getAuthority()));
 
 }

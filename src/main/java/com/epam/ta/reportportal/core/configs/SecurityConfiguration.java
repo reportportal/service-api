@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.core.configs;
 import com.epam.ta.reportportal.auth.UserRoleHierarchy;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
+import com.epam.ta.reportportal.core.configs.filter.ApiKeyFilter;
+import com.epam.ta.reportportal.core.configs.filter.JwtFilter;
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
 import java.nio.charset.StandardCharsets;
@@ -45,6 +47,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter;
 
 /**
  * Spring's Security Configuration
@@ -70,6 +74,12 @@ class SecurityConfiguration {
 
   @Autowired
   private RoleHierarchy roleHierarchy;
+
+  @Autowired
+  JwtFilter jwtFilter;
+
+  @Autowired
+  ApiKeyFilter apiKeyFilter;
 
   private static final String SECRET_KEY = "secret.key";
 
@@ -115,10 +125,12 @@ class SecurityConfiguration {
             .hasRole("USER")
             .anyRequest()
             .authenticated())
-        .oauth2ResourceServer(resourceServer ->
+/*        .oauth2ResourceServer(resourceServer ->
             resourceServer.jwt(
-                jwt -> jwt.jwtAuthenticationConverter(accessTokenConverter())))
+                jwt -> jwt.jwtAuthenticationConverter(accessTokenConverter())))*/
         .userDetailsService(userDetailsService)
+        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(apiKeyFilter, RememberMeAuthenticationFilter.class)
         .csrf(AbstractHttpConfigurer::disable);
 
     return http.build();

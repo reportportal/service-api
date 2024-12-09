@@ -42,6 +42,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.DefaultUserAuthenticationConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -90,7 +91,7 @@ public class TestConfig {
   @Bean
   @Profile("unittest")
   public JwtAccessTokenConverter accessTokenConverter() {
-    JwtAccessTokenConverter jwtConverter = new JwtAccessTokenConverter();
+    JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
     jwtConverter.setSigningKey("123");
 
     DefaultAccessTokenConverter accessTokenConverter = new DefaultAccessTokenConverter();

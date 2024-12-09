@@ -21,9 +21,10 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.job.builder.SimpleJobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
@@ -39,7 +40,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class BatchJobConfiguration {
 
   @Autowired
-  private JobBuilderFactory jobBuilderFactory;
+  private JobRepository jobRepository;
 
   @Autowired
   private Step attachmentSizeStep;
@@ -65,7 +66,7 @@ public class BatchJobConfiguration {
 
   @Bean
   public Job job() {
-    SimpleJobBuilder job = jobBuilderFactory.get("attachmentSize")
+    SimpleJobBuilder job = new JobBuilder("attachmentSize", jobRepository)
         .incrementer(new RunIdIncrementer())
         .listener(jobExecutionListener())
         .start(attachmentSizeStep);

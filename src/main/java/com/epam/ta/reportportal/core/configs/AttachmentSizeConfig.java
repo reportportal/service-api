@@ -26,7 +26,8 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
@@ -36,6 +37,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.StreamUtils;
 
 /**
@@ -50,9 +52,6 @@ public class AttachmentSizeConfig {
   private static final int CHUNK_SIZE = 10;
 
   @Autowired
-  private StepBuilderFactory stepBuilderFactory;
-
-  @Autowired
   private DataSource dataSource;
 
   @Autowired
@@ -61,6 +60,12 @@ public class AttachmentSizeConfig {
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
+
+  @Autowired
+  private JobRepository jobRepository;
+
+  private PlatformTransactionManager transactionManager;
+
 
   @Bean
   public JdbcCursorItemReader<Attachment> reader() throws Exception {
@@ -108,7 +113,8 @@ public class AttachmentSizeConfig {
 
   @Bean
   public Step attachmentSizeStep() throws Exception {
-    return stepBuilderFactory.get("attachment").<Attachment, Attachment>chunk(CHUNK_SIZE)
+    return new StepBuilder("attachment", jobRepository)
+        .<Attachment, Attachment>chunk(CHUNK_SIZE, transactionManager)
         .reader(reader())
         .processor(processor())
         .writer(writer())

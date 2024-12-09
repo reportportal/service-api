@@ -17,9 +17,11 @@
 package com.epam.ta.reportportal.auth;
 
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.nimbusds.jwt.JWTClaimsSet;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -68,7 +70,16 @@ public class OAuthHelper {
         customerToken;
   }
 
-  private OAuth2AccessToken createAccessToken(String username, String password, UserRole... roles) {
+  private AccessToken createAccessToken(String username, String password, UserRole... roles) {
+
+    var claimsSet = new JWTClaimsSet.Builder()
+        .expirationTime(new Date(new Date().getTime() + 60 * 1000))
+        .build();
+    var signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256)
+        .keyID(rsaKey.getKeyID()).build(), claimsSet);
+    signedJWT.sign(signer);
+    return signedJWT.serialize();
+
     Collection<GrantedAuthority> authorities = Arrays.stream(roles)
         .map(it -> new SimpleGrantedAuthority(it.getAuthority()))
         .collect(Collectors.toList());
@@ -79,6 +90,7 @@ public class OAuthHelper {
     requestParameters.put("password", password);
     requestParameters.put("grand_type", "password");
     requestParameters.put("username", username);
+
 
     OAuth2Request oAuth2Request = new OAuth2Request(
         requestParameters,

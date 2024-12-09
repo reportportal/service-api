@@ -16,14 +16,21 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EMAIL;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EXPIRED;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER;
 import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
+import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
+import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_INSTANCE_USER;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 
+import com.epam.reportportal.api.model.InstanceUser;
+import com.epam.reportportal.api.model.InstanceUserPage;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -42,15 +49,14 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.user.UserBidRS;
 import com.epam.ta.reportportal.model.user.UserResource;
 import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
@@ -110,6 +116,19 @@ public class GetUserHandlerImpl implements GetUserHandler {
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
     return UserConverter.TO_RESOURCE.apply(user);
+  }
+
+  @Override
+  public InstanceUser getCurrentUser(ReportPortalUser loggedInUser) {
+    Filter filterById = new Filter(User.class, Lists.newArrayList());
+    filterById.withCondition(
+        new FilterCondition(Condition.EQUALS, false, loggedInUser.getUserId().toString(), CRITERIA_ID));
+    User user = userRepository.findByFilter(filterById).stream()
+        .findFirst()
+        .orElseThrow(
+            () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
+    return UserConverter.TO_INSTANCE_USER.apply(user);
+
   }
 
   @Override
@@ -175,6 +194,20 @@ public class GetUserHandlerImpl implements GetUserHandler {
   public Iterable<UserResource> getAllUsers(Queryable filter, Pageable pageable) {
     final Page<User> users = userRepository.findByFilter(filter, pageable);
     return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(users);
+  }
+
+  @Override
+  public InstanceUserPage getUsersExcluding(Queryable filter, Pageable pageable,
+      String... excludeFields) {
+    final Page<User> users = userRepository.findByFilterExcluding(filter, pageable, excludeFields);
+
+    var items = users.getContent().stream()
+        .map(TO_INSTANCE_USER)
+        .toList();
+    InstanceUserPage instanceUserPage = new InstanceUserPage()
+        .items(items);
+
+    return responseWithPageParameters(instanceUserPage, pageable, users.getTotalElements());
   }
 
   @Override

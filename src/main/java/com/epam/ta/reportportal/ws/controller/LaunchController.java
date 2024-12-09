@@ -269,7 +269,7 @@ public class LaunchController {
   public LaunchResourceOld getLaunchByUuidOldTimestamp(@PathVariable String projectName,
       @PathVariable String launchId, @AuthenticationPrincipal ReportPortalUser user) {
     LaunchResource launch = getLaunchMessageHandler.getLaunch(launchId,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectName))
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectName))
     );
     return launchConverter.TO_RESOURCE_OLD.apply(launch);
   }
@@ -416,7 +416,7 @@ public class LaunchController {
 
   @Transactional
   @PostMapping(value = "/merge")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Merge set of specified launches in common one", description =
       "This operation merges a set of launches into a common one. "
@@ -433,7 +433,7 @@ public class LaunchController {
       @Parameter(description = "Merge launches request body", required = true) @RequestBody
       @Validated MergeLaunchesRQ mergeLaunchesRQ, @AuthenticationPrincipal ReportPortalUser user) {
     var launchResource = mergeLaunchesHandler.mergeLaunches(
-        projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user,
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectName)), user,
         mergeLaunchesRQ
     );
     return launchConverter.TO_RESOURCE_OLD.apply(launchResource);

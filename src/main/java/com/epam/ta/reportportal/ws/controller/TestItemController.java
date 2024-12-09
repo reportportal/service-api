@@ -198,10 +198,10 @@ public class TestItemController {
           + "'Accept: application/x.reportportal.test.v2+json' is used.",
       content = @Content(mediaType = "application/json", schema = @Schema(implementation = TestItemResourceOld.class))
   )
-  public TestItemResourceOld getTestItemByUuidTimestamp(@PathVariable String projectName,
+  public TestItemResourceOld getTestItemByUuidTimestamp(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @PathVariable String itemId) {
     var testItem = getTestItemHandler.getTestItem(itemId,
-        projectExtractor.extractProjectDetails(user, projectName), user
+        projectExtractor.extractMembershipDetails(user, projectKey), user
     );
     return TestItemConverter.TO_RESOURCE_TIMESTAMP.apply(testItem);
   }

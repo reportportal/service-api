@@ -266,10 +266,10 @@ public class LaunchController {
           + "'Accept: application/x.reportportal.launch.v2+json' is used.",
       content = @Content(mediaType = "application/json", schema = @Schema(implementation = LaunchResourceOld.class))
   )
-  public LaunchResourceOld getLaunchByUuidOldTimestamp(@PathVariable String projectName,
+  public LaunchResourceOld getLaunchByUuidOldTimestamp(@PathVariable String projectKey,
       @PathVariable String launchId, @AuthenticationPrincipal ReportPortalUser user) {
     LaunchResource launch = getLaunchMessageHandler.getLaunch(launchId,
-        projectExtractor.extractMembershipDetails(user, normalizeId(projectName))
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey))
     );
     return launchConverter.TO_RESOURCE_OLD.apply(launch);
   }
@@ -429,11 +429,11 @@ public class LaunchController {
           + "'Accept: application/x.reportportal.launch.v2+json' is used.",
       content = @Content(mediaType = "application/json", schema = @Schema(implementation = LaunchResourceOld.class))
   )
-  public LaunchResourceOld mergeLaunchesOldUuid(@PathVariable String projectName,
+  public LaunchResourceOld mergeLaunchesOldUuid(@PathVariable String projectKey,
       @Parameter(description = "Merge launches request body", required = true) @RequestBody
       @Validated MergeLaunchesRQ mergeLaunchesRQ, @AuthenticationPrincipal ReportPortalUser user) {
     var launchResource = mergeLaunchesHandler.mergeLaunches(
-        projectExtractor.extractMembershipDetails(user, normalizeId(projectName)), user,
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
         mergeLaunchesRQ
     );
     return launchConverter.TO_RESOURCE_OLD.apply(launchResource);

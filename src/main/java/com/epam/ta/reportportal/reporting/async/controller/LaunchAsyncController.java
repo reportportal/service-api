@@ -139,7 +139,7 @@ public class LaunchAsyncController {
   @HttpLogging
   @Transactional
   @PostMapping(value = "/merge")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Merge set of specified launches in common one", description =
       "This operation merges a set of launches into a common one. "
@@ -152,11 +152,11 @@ public class LaunchAsyncController {
           + "'Accept: application/x.reportportal.launch.v2+json' is used.",
       content = @Content(mediaType = "application/json", schema = @Schema(implementation = LaunchResourceOld.class))
   )
-  public LaunchResourceOld mergeLaunchesOldUuid(@PathVariable String projectName,
+  public LaunchResourceOld mergeLaunchesOldUuid(@PathVariable String projectKey,
       @Parameter(description = "Merge launches request body", required = true) @RequestBody
       @Validated MergeLaunchesRQ mergeLaunchesRQ, @AuthenticationPrincipal ReportPortalUser user) {
     var launchResource = mergeLaunchesHandler.mergeLaunches(
-        projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user,
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
         mergeLaunchesRQ
     );
     return launchConverter.TO_RESOURCE_OLD.apply(launchResource);

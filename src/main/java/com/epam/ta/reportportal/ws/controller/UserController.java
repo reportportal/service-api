@@ -55,7 +55,8 @@ public class UserController extends BaseController implements UserApi {
     this.httpServletRequest = httpServletRequest;
   }
 
-  @Override
+  // TODO: Postpone new endpoints
+/*  @Override
   @PreAuthorize(IS_ADMIN)
   @Transactional(readOnly = true)
   public ResponseEntity<InstanceUserPage> getUsers(String excludeFields, Integer offset,
@@ -79,7 +80,7 @@ public class UserController extends BaseController implements UserApi {
     var user = getLoggedUser();
     InstanceUser instanceUser = getUserHandler.getCurrentUser(user);
     return new ResponseEntity<>(instanceUser, HttpStatus.OK);
-  }
+  }*/
 
   @Override
   @Transactional(readOnly = true)

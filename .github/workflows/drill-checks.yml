@@ -1,0 +1,26 @@
+name: Drill4J checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '.github/**'
+      - README.md
+      - gradle.properties
+  push:
+    branches:
+      - master
+      - develop
+    paths-ignore:
+      - '.github/**'
+      - README.md
+      - gradle.properties
+
+jobs:
+  call-java-checks:
+    name: Call Java Checks
+    uses: reportportal/.github/.github/workflows/java-checks.yaml@main
+    with:
+      runs-on: 'rp-beta-runner-set'
+      drill-agent-enabled: 'false' #disable Drill4J agent to check tests without Drill4J
+    secrets: inherit

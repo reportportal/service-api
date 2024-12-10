@@ -33,8 +33,7 @@ jobs:
       - name: Build with Gradle
         id: build
         run: |
-          ./gradlew build
-        continue-on-error: true
+          ./gradlew build        
 
       - name: Upload test report
         if: failure()

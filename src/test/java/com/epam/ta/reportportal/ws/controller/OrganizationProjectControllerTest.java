@@ -66,6 +66,10 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
           "created_at|NE|2024-08-14T06:01:25.329026Z|2",
           "updated_at|NE|2024-08-14T06:01:25.329026Z|2",
           "users|EQ|1|2",
+          "users|GT|0|2",
+          "users|GTE|0|2",
+          "users|LT|3|2",
+          "users|LTE|2|2",
           "launches|EQ|0|2",
           "last_launch_occurred|EQ|2024-08-14T06:01:25.329026Z|0"
       },

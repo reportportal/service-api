@@ -61,7 +61,7 @@ ext['spring-boot.version'] = '2.5.15'
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.12.3' : 'com.epam.reportportal:commons-bom:5.12.3')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.13.0' : 'com.epam.reportportal:commons-bom:5.13.0')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
     }
 }
@@ -231,3 +231,7 @@ drill {
         version = "0.9.4"
     }
 }
+
+tasks.preTagCommit.enabled = false
+tasks.updateVersion.enabled = false
+tasks.commitNewVersion.enabled = false

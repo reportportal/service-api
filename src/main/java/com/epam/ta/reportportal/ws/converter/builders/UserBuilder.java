@@ -25,9 +25,11 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
 import com.epam.ta.reportportal.model.user.CreateUserRQFull;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 /**
@@ -40,6 +42,8 @@ public class UserBuilder implements Supplier<User> {
 
   public UserBuilder() {
     user = new User();
+    user.setActive(Boolean.TRUE);
+    user.setUuid(UUID.randomUUID());
   }
 
   public UserBuilder(User user) {
@@ -47,12 +51,16 @@ public class UserBuilder implements Supplier<User> {
   }
 
   public UserBuilder addCreateUserRQ(CreateUserRQConfirm request) {
-    ofNullable(request).ifPresent(r -> fillUser(r.getLogin(), r.getEmail(), r.getFullName()));
+    ofNullable(request).ifPresent(
+        r -> fillUser(r.getLogin(), r.getEmail(), r.getFullName(), null, true,
+            UserType.INTERNAL.name()));
     return this;
   }
 
   public UserBuilder addCreateUserFullRQ(CreateUserRQFull request) {
-    ofNullable(request).ifPresent(it -> fillUser(it.getLogin(), it.getEmail(), it.getFullName()));
+    ofNullable(request).ifPresent(
+        it -> fillUser(it.getLogin(), it.getEmail(), it.getFullName(), it.getExternalId(),
+            it.isActive(), request.getAccountType()));
     return this;
   }
 
@@ -68,19 +76,19 @@ public class UserBuilder implements Supplier<User> {
 
   @Override
   public User get() {
-
-    //TODO check for existing of the default project etc.
     return user;
   }
 
-  private void fillUser(String login, String email, String fullName) {
+  private void fillUser(String login, String email, String fullName, String externalId,
+      boolean active, String type) {
     user.setLogin(EntityUtils.normalizeId(login));
     ofNullable(email).map(String::trim).map(EntityUtils::normalizeId).ifPresent(user::setEmail);
     user.setFullName(fullName);
-    user.setUserType(UserType.INTERNAL);
+    user.setExternalId(externalId);
+    user.setUserType(UserType.valueOf(ofNullable(type).orElse("INTERNAL")));
     user.setExpired(false);
     Map<String, Object> meta = new HashMap<>();
-    meta.put(USER_LAST_LOGIN, new Date());
+    meta.put(USER_LAST_LOGIN, Instant.now().toEpochMilli());
     user.setMetadata(new Metadata(meta));
   }
 }

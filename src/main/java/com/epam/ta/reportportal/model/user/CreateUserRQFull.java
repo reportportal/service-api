@@ -16,8 +16,9 @@
 
 package com.epam.ta.reportportal.model.user;
 
-import com.epam.reportportal.annotations.In;
+
 import com.epam.reportportal.model.ValidationConstraints;
+import com.epam.ta.reportportal.ws.annotations.In;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -27,116 +28,66 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+import lombok.Data;
 
 /**
  * Create User request for admin user creation functionality
  *
  * @author Andrei_Ramanchuk
  */
+@Data
 @JsonInclude(Include.NON_NULL)
 public class CreateUserRQFull {
 
-	@NotBlank
-	@Pattern(regexp = "[a-zA-Z0-9-_.]+")
-	@Size(min = ValidationConstraints.MIN_LOGIN_LENGTH, max = ValidationConstraints.MAX_LOGIN_LENGTH)
-	@JsonProperty(value = "login", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
-	private String login;
+  @JsonProperty(value = "active", defaultValue = "true")
+  @Schema(requiredMode = RequiredMode.NOT_REQUIRED, defaultValue = "true")
+  private boolean active = true;
 
-	@NotBlank
-	@Size(min = ValidationConstraints.MIN_PASSWORD_LENGTH, max = ValidationConstraints.MAX_PASSWORD_LENGTH)
-	@JsonProperty(value = "password", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED)
-	private String password;
+  @JsonProperty(value = "externalId")
+  @Schema(requiredMode = RequiredMode.NOT_REQUIRED)
+  private String externalId;
 
-	@NotBlank
-	@Pattern(regexp = "[\\pL0-9-_ \\.]+")
-	@Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)
-	@JsonProperty(value = "fullName", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
-	private String fullName;
+  @In(allowedValues = {"INTERNAL", "SCIM"})
+  @JsonProperty(value = "accountType")
+  @Schema(requiredMode = RequiredMode.NOT_REQUIRED, allowableValues = "INTERNAL, SCIM")
+  private String accountType;
 
-	@NotBlank
-	@JsonProperty(value = "email", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED)
-	private String email;
+  @NotBlank
+  @Pattern(regexp = "[a-zA-Z0-9-_.]+")
+  @Size(min = ValidationConstraints.MIN_LOGIN_LENGTH, max = ValidationConstraints.MAX_LOGIN_LENGTH)
+  @JsonProperty(value = "login", required = true)
+  @Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
+  private String login;
 
-	@NotNull
-	@JsonProperty(value = "accountRole", required = true)
-	@In(allowedValues = { "user", "administrator" })
-	@Schema(required = true, allowableValues = "USER, ADMINISTRATOR")
-	private String accountRole;
+  @Size(max = ValidationConstraints.MAX_PASSWORD_LENGTH)
+  @JsonProperty(value = "password")
+  @Schema(requiredMode = RequiredMode.NOT_REQUIRED)
+  private String password;
 
-	@NotNull
-	@JsonProperty(value = "projectRole", required = true)
-	@In(allowedValues = { "operator", "customer", "member", "project_manager" })
-	@Schema(required = true, allowableValues = "CUSTOMER, MEMBER, PROJECT_MANAGER")
-	private String projectRole;
+  @NotBlank
+  @Pattern(regexp = "[\\pL0-9-_ \\.]+")
+  @Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)
+  @JsonProperty(value = "fullName", required = true)
+  @Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
+  private String fullName;
 
-	@NotBlank
-	@JsonProperty(value = "defaultProject", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED)
-	private String defaultProject;
+  @NotBlank
+  @JsonProperty(value = "email", required = true)
+  @Schema(requiredMode = RequiredMode.REQUIRED)
+  private String email;
 
-	public void setLogin(String value) {
-		this.login = value;
-	}
+  @NotNull
+  @JsonProperty(value = "accountRole", required = true)
+  @In(allowedValues = {"user", "administrator"})
+  @Schema(requiredMode = RequiredMode.NOT_REQUIRED, allowableValues = "USER, ADMINISTRATOR")
+  private String accountRole;
 
-	public String getLogin() {
-		return login;
-	}
+  @JsonProperty(value = "projectRole")
+  @In(allowedValues = {"operator", "customer", "member", "project_manager"})
+  @Schema(requiredMode = RequiredMode.NOT_REQUIRED, allowableValues = "CUSTOMER, MEMBER, PROJECT_MANAGER")
+  private String projectRole;
 
-	public void setPassword(String value) {
-		this.password = value;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setFullName(String value) {
-		this.fullName = value;
-	}
-
-	public String getFullName() {
-		return fullName;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public String getAccountRole() {
-		return accountRole;
-	}
-
-	public void setAccountRole(String role) {
-		this.accountRole = role;
-	}
-
-	public String getProjectRole() {
-		return projectRole;
-	}
-
-	public void setProjectRole(String role) {
-		this.projectRole = role;
-	}
-
-	public String getDefaultProject() {
-		return defaultProject;
-	}
-
-	public void setDefaultProject(String value) {
-		this.defaultProject = value;
-	}
-
-	@Override
-	public String toString() {
-		return "CreateUserRQFull [login=" + login + ", password=" + password + ", fullName=" + fullName + ", email=" + email
-				+ ", projectRole=" + projectRole + ", defaultProject=" + defaultProject + "]";
-	}
+  @JsonProperty(value = "defaultProject")
+  @Schema(requiredMode = RequiredMode.NOT_REQUIRED)
+  private String defaultProject;
 }

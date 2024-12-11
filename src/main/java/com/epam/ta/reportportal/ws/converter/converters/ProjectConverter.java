@@ -60,8 +60,12 @@ public final class ProjectConverter {
     projectResource.setAllocatedStorage(project.getAllocatedStorage());
     projectResource.setUsers(project.getUsers().stream().map(user -> {
       ProjectResource.ProjectUser projectUser = new ProjectResource.ProjectUser();
+      projectUser.setUuid(user.getUser().getUuid());
       projectUser.setLogin(user.getUser().getLogin());
       projectUser.setProjectRole(user.getProjectRole().toString());
+      projectUser.setEmail(user.getUser().getEmail());
+      projectUser.setAccountRole(user.getUser().getRole().toString());
+      projectUser.setAccountType(user.getUser().getUserType().toString());
       return projectUser;
     }).collect(Collectors.toList()));
 

@@ -153,12 +153,9 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
       // save data for analytics
       int skipped = (int) toAnalyze.stream()
-          .filter(ti -> rq.getTestItems().stream()
-              .anyMatch(idxTi -> idxTi.getTestItemId().equals(ti.getItemResults().getItemId())))
+          .filter(ti -> ti.getItemResults().getStatus().equals(SKIPPED))
           .count();
       int passed = (int) toAnalyze.stream()
-          .filter(ti -> rq.getTestItems().stream()
-              .anyMatch(idxTi -> idxTi.getTestItemId().equals(ti.getItemResults().getItemId())))
           .filter(ti -> ti.getItemResults().getStatus().equals(PASSED))
           .count();
 

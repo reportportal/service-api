@@ -20,17 +20,24 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.model.integration.IntegrationRQ;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class IntegrationValidator {
+
+  private static final String RALLY_BASE_URL = "https://rally1.rallydev.com";
+
+  private static final String JIRA_URL_PATTERN = "https://[^?]*\\.atlassian\\.(com|net).*";
 
   private IntegrationValidator() {
     //static only
@@ -64,6 +71,28 @@ public final class IntegrationValidator {
                 "Global integration with ID = '{}' has been found, but you cannot use it, because you have project-level integration(s) of that type",
                 integration.getId()
             ).get()
+        );
+  }
+
+
+  /**
+   * Validates Validates Rally and Jira server urls
+   *
+   * @param integrationRq {@link IntegrationRQ}
+   * @param type          {@link Integration} with {@link IntegrationType}
+   */
+  public static void validateThirdPartyUrl(IntegrationRQ integrationRq, IntegrationType type) {
+    var valid = switch (type.getName()) {
+      case "rally" -> integrationRq.getIntegrationParams()
+          .get("url").toString()
+          .startsWith(RALLY_BASE_URL);
+      case "JIRA Cloud" -> Pattern.matches(JIRA_URL_PATTERN,
+          integrationRq.getIntegrationParams().get("url").toString());
+      default -> true;
+    };
+    BusinessRule.expect(valid, Predicates.equalTo(true))
+        .verify(ErrorType.BAD_REQUEST_ERROR,
+            Suppliers.formattedSupplier("Integration url is not acceptable")
         );
   }
 }

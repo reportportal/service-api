@@ -22,6 +22,7 @@ import static java.util.Optional.ofNullable;
 import com.epam.reportportal.extension.CommonPluginCommand;
 import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import com.epam.ta.reportportal.core.integration.util.validator.IntegrationValidator;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
@@ -60,11 +61,17 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
   @Override
   public Integration createIntegration(IntegrationRQ integrationRq,
       IntegrationType integrationType) {
-    return new IntegrationBuilder().withCreationDate(Instant.now()).withType(integrationType)
-        .withEnabled(integrationRq.getEnabled()).withName(integrationRq.getName()).withParams(
-            new IntegrationParams(retrieveCreateParams(integrationType.getName(),
-                integrationRq.getIntegrationParams()
-            ))).get();
+    IntegrationValidator.validateThirdPartyUrl(integrationRq, integrationType);
+
+    return new IntegrationBuilder()
+        .withCreationDate(Instant.now())
+        .withType(integrationType)
+        .withEnabled(integrationRq.getEnabled())
+        .withName(integrationRq.getName())
+        .withParams(new IntegrationParams(
+            retrieveCreateParams(integrationType.getName(), integrationRq.getIntegrationParams()
+            )))
+        .get();
   }
 
   @Override

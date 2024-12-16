@@ -70,7 +70,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping(value = "/v1/plugin")
 @RequiredArgsConstructor
-@Tag(name = "plugin-controller", description = "Plugin Controller")
+@Tag(name = "Plugin", description = "Plugins API collection")
 public class PluginController {
 
   private final CreatePluginHandler createPluginHandler;

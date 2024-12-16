@@ -62,7 +62,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 @RequestMapping("/v1/{projectName}/widget")
-@Tag(name = "widget-controller", description = "Widget Controller")
+@Tag(name = "Widget", description = "Widgets API collection")
 public class WidgetController {
 
   private final ProjectExtractor projectExtractor;

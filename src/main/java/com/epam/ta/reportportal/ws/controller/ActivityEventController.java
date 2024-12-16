@@ -58,7 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping("/v1/activities")
-@Tag(name = "activity-event-controller", description = "Activity Event Controller")
+@Tag(name = "Activity Event", description = "Activity Events API collection")
 public class ActivityEventController {
 
   private final ActivityEventHandler activityEventHandler;

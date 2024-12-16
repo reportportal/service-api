@@ -76,7 +76,7 @@ public final class IntegrationValidator {
 
 
   /**
-   * Validates Validates Rally and Jira server urls
+   * Validates Validates Rally and Jira server urls.
    *
    * @param integrationRq {@link IntegrationRQ}
    * @param type          {@link Integration} with {@link IntegrationType}

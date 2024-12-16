@@ -65,7 +65,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v2/{projectName}/launch")
-@Tag(name = "launch-async-controller", description = "Launch Async Controller. Puts events to the queues")
+@Tag(name = "Launch Async", description = "Launches Async API collection")
 public class LaunchAsyncController {
 
   private final ProjectExtractor projectExtractor;

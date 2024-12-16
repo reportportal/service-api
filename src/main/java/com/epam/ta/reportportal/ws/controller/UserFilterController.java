@@ -65,7 +65,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 @RequestMapping("/v1/{projectName}/filter")
-@Tag(name = "user-filter-controller", description = "User Filter Controller")
+@Tag(name = "User Filter", description = "User Filters API collection")
 public class UserFilterController {
 
   private final ProjectExtractor projectExtractor;

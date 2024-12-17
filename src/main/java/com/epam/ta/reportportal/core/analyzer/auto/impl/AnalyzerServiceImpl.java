@@ -48,6 +48,7 @@ import com.epam.ta.reportportal.model.analyzer.RelevantItemInfo;
 import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -158,9 +159,12 @@ public class AnalyzerServiceImpl implements AnalyzerService {
       int passed = (int) toAnalyze.stream()
           .filter(ti -> ti.getItemResults().getStatus().equals(PASSED))
           .count();
+      int analyzedAmount = (int) analyzedMap.values().stream()
+          .mapToLong(Collection::size)
+          .sum();
 
       defectUpdateStatisticsService
-          .saveAutoAnalyzedDefectStatistics(amountToAnalyze, analyzedMap.size(), skipped, passed,
+          .saveAutoAnalyzedDefectStatistics(amountToAnalyze, analyzedAmount, skipped, passed,
               rq.getProjectId());
     });
   }

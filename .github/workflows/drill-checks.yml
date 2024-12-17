@@ -8,10 +8,17 @@ on:
         type: string
         required: false
         default: 'false'
+  push:
+    branches:
+      - develop
+    paths-ignore:
+      - '.github/**'
+      - README.md
+      - gradle.properties
 
 jobs:
   call-java-checks:
-    name: Call Java Checks
+    name: Call Java Checks with Drill4J
     runs-on: 'rp-beta-runner-set'
     env:
       DRILL_AGENT_ENABLED: ${{ inputs.drill-agent-enabled }}
@@ -33,13 +40,11 @@ jobs:
       - name: Build with Gradle
         id: build
         run: |
-          ./gradlew build        
+          ./gradlew test --continue
 
       - name: Upload test report
-        if: failure()
         uses: actions/upload-artifact@v3
         with:
           name: test-report
           path: |
-            build/reports/tests/test/** 
-            build/test-results/test/**  
+            build/reports/tests/test/**  

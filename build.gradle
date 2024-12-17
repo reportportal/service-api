@@ -116,6 +116,8 @@ dependencies {
     }
     implementation 'xerces:xercesImpl:2.12.2'
     implementation 'com.lowagie:itext:4.2.2'
+    // Fix CVE-2021-43113 in com.lowagie:itext:4.2.2
+    implementation 'com.itextpdf:itextpdf:5.5.13.4'
     // Fix CVE-2020-15522 in com.lowagie:itext:2.1.7.js7
     implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
     // JasperReport's export to XLS uses Apache POI

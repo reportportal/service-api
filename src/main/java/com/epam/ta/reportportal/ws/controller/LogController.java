@@ -91,7 +91,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @RestController
 @RequestMapping("/v1/{projectKey}/log")
-@Tag(name = "log-controller", description = "Log Controller")
+@Tag(name = "Log", description = "Logs API collection")
 public class LogController {
 
   private final ProjectExtractor projectExtractor;

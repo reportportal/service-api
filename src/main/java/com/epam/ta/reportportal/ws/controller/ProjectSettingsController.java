@@ -67,7 +67,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/{projectKey}/settings")
-@Tag(name = "project-settings-controller", description = "Project Settings Controller")
+@Tag(name = "Project Settings", description = "Project Settings API collection")
 public class ProjectSettingsController {
 
   private final CreateProjectSettingsHandler createHandler;

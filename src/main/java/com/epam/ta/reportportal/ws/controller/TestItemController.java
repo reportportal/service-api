@@ -100,7 +100,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/{projectKey}/item")
-@Tag(name = "test-item-controller", description = "Test Item Controller")
+@Tag(name = "Test Item", description = "Test Items API collection")
 @RequiredArgsConstructor
 public class TestItemController {
 

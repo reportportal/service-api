@@ -58,7 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping(value = "/v1/integration")
-@Tag(name = "integration-controller", description = "Integration Controller")
+@Tag(name = "Integration", description = "Integrations API collection")
 public class IntegrationController {
 
   private final ProjectExtractor projectExtractor;

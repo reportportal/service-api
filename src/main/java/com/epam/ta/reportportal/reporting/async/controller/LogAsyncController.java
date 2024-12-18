@@ -65,7 +65,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/v2/{projectKey}/log")
 @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
-@Tag(name = "log-async-controller", description = "Log Async Controller")
+@Tag(name = "Log Async", description = "Logs Async API collection")
 public class LogAsyncController {
 
   private final ProjectExtractor projectExtractor;

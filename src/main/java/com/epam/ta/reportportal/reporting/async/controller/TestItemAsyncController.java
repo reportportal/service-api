@@ -54,7 +54,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v2/{projectKey}/item")
-@Tag(name = "test-item-async-controller", description = "Test Item Async Controller")
+@Tag(name = "Test Item Async", description = "Test Items Async API collection")
 public class TestItemAsyncController {
 
   private final ProjectExtractor projectExtractor;

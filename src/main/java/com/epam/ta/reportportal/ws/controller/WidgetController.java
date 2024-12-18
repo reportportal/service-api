@@ -62,7 +62,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/{projectKey}/widget")
-@Tag(name = "widget-controller", description = "Widget Controller")
+@Tag(name = "Widget", description = "Widgets API collection")
 public class WidgetController {
 
   private final ProjectExtractor projectExtractor;

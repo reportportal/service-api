@@ -43,7 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping(value = "/v1/plugin/public")
-@Tag(name = "plugin-public-controller", description = "Plugin Public Controller")
+@Tag(name = "Plugin Public", description = "Plugins Public API collection")
 public class PluginPublicController {
 
   private final PluginFilesProvider pluginPublicFilesProvider;

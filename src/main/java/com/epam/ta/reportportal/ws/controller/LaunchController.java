@@ -104,7 +104,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/{projectKey}/launch")
-@Tag(name = "launch-controller", description = "Launch Controller")
+@Tag(name = "Launch", description = "Launches API collection")
 public class LaunchController {
 
   private final ProjectExtractor projectExtractor;

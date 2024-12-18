@@ -91,7 +91,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/users")
-@Tag(name = "user-controller", description = "User Controller")
+@Tag(name = "User", description = "Users API collection")
 public class UserController {
 
   private final CreateUserHandler createUserMessageHandler;

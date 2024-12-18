@@ -56,7 +56,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @RestController
 @RequestMapping("/v1/data")
-@Tag(name = "file-storage-controller", description = "File Storage Controller")
+@Tag(name = "File Storage", description = "Files Storage API collection")
 public class FileStorageController {
 
   private final ProjectExtractor projectExtractor;

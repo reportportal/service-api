@@ -99,7 +99,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/project")
-@Tag(name = "project-controller", description = "Project Controller")
+@Tag(name = "Project", description = "Projects API collection")
 public class ProjectController {
 
   private final ProjectExtractor projectExtractor;

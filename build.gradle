@@ -33,8 +33,8 @@ apply from: "$scriptsUrl/copy-database-scripts.gradle"
 
 //replaced with drill4j
 //apply from: "$scriptsUrl/build-quality.gradle"
-apply from: "$scriptsUrl/jacoco.gradle"
-apply plugin: 'jacoco'
+//apply from: "$scriptsUrl/jacoco.gradle"
+//apply plugin: 'jacoco'
 
 project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
 
@@ -189,6 +189,7 @@ dependencyCheck {
 }
 
 bootJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('' +
             'exec')
 }
@@ -213,21 +214,21 @@ publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts
 
 //replaced with drill4j
-build.dependsOn jacocoTestReport
+//build.dependsOn jacocoTestReport
 
-//drill {
-//    groupId = "report-portal"
-//    appId = "service-api"
-//    packagePrefixes = ["com/epam/ta/reportportal"]
-//    enableTestAgent {
-//        enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
-//        version = "0.23.3"
-//    }
-//    enableAppAgent {
-//        enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
-//        version = "0.9.4"
-//    }
-//}
+drill {
+    groupId = "report-portal"
+    appId = "service-api"
+    packagePrefixes = ["com/epam/ta/reportportal"]
+    enableTestAgent {
+        enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
+        version = "0.23.3"
+    }
+    enableAppAgent {
+        enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
+        version = "0.9.4"
+    }
+}
 
 tasks.preTagCommit.enabled = false
 tasks.updateVersion.enabled = false

@@ -243,3 +243,5 @@ tasks.register('updateSubmodules') {
         }
     }
 }
+
+tasks.build.dependsOn initSubmodules

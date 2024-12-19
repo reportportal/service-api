@@ -40,6 +40,11 @@ project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from
 
 repositories {
     mavenCentral { url "https://repo1.maven.org/maven2" }
+
+    // We have to use jitpack for building commons libraries
+    if (!releaseMode) {
+        maven { url 'https://jitpack.io' }
+    }
     maven { url "https://jaspersoft.jfrog.io/artifactory/third-party-ce-artifacts" }
 }
 
@@ -227,21 +232,3 @@ drill {
 tasks.preTagCommit.enabled = false
 tasks.updateVersion.enabled = false
 tasks.commitNewVersion.enabled = false
-
-tasks.register('initSubmodules') {
-    doLast {
-        exec {
-            commandLine 'git', 'submodule', 'init'
-        }
-    }
-}
-
-tasks.register('updateSubmodules') {
-    doLast {
-        exec {
-            commandLine 'git', 'submodule', 'update', '--remote', '--merge'
-        }
-    }
-}
-
-tasks.build.dependsOn initSubmodules

@@ -1,1 +1,5 @@
 rootProject.name = 'service-api'
+
+include('commons')
+include('commons-dao')
+include('plugin-api')

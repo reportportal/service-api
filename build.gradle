@@ -15,10 +15,10 @@
  */
 
 plugins {
-    id "io.spring.dependency-management" version "1.1.4"
+    id "io.spring.dependency-management" version "1.1.6"
     id 'org.springframework.boot' version '2.5.15'
     id 'java'
-    id "org.owasp.dependencycheck" version "9.0.9"
+    id "org.owasp.dependencycheck" version "11.1.0"
     id "com.epam.drill.integration.cicd" version "0.1.6"
 }
 
@@ -40,10 +40,6 @@ project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from
 
 repositories {
     mavenCentral { url "https://repo1.maven.org/maven2" }
-
-    if (!releaseMode) {
-        maven { url 'https://jitpack.io' }
-    }
     maven { url "https://jaspersoft.jfrog.io/artifactory/third-party-ce-artifacts" }
 }
 
@@ -67,15 +63,9 @@ dependencyManagement {
 }
 
 dependencies {
-    if (releaseMode) {
-        implementation 'com.epam.reportportal:commons-dao'
-        implementation 'com.epam.reportportal:commons'
-        implementation 'com.epam.reportportal:plugin-api'
-    } else {
-        implementation 'com.github.reportportal:commons-dao:72f99ff'
-        implementation 'com.github.reportportal:commons:26ab837'
-        implementation 'com.github.reportportal:plugin-api:8a1f61c'
-    }
+    implementation project(':commons')
+    implementation project(':commons-dao')
+    implementation project(':plugin-api')
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -237,3 +227,19 @@ drill {
 tasks.preTagCommit.enabled = false
 tasks.updateVersion.enabled = false
 tasks.commitNewVersion.enabled = false
+
+tasks.register('initSubmodules') {
+    doLast {
+        exec {
+            commandLine 'git', 'submodule', 'init'
+        }
+    }
+}
+
+tasks.register('updateSubmodules') {
+    doLast {
+        exec {
+            commandLine 'git', 'submodule', 'update', '--remote', '--merge'
+        }
+    }
+}

@@ -17,9 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.SKIPPED;
-import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -48,6 +46,7 @@ import com.epam.ta.reportportal.model.analyzer.RelevantItemInfo;
 import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -119,7 +118,8 @@ public class AnalyzerServiceImpl implements AnalyzerService {
       analyzerStatusCache.analyzeStarted(AUTO_ANALYZER_KEY, launch.getId(), launch.getProjectId());
       Optional<Long> previousLaunchId = findPreviousLaunchId(launch, analyzerConfig);
       Iterables.partition(testItemIds, itemsBatchSize)
-          .forEach(partition -> analyzeItemsPartition(launch, partition, analyzerConfig, previousLaunchId));
+          .forEach(partition -> analyzeItemsPartition(launch, partition, analyzerConfig,
+              previousLaunchId));
     } catch (Exception e) {
       LOGGER.error(e.getMessage(), e);
     } finally {
@@ -153,19 +153,14 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
       // save data for analytics
       int skipped = (int) toAnalyze.stream()
-          .filter(ti -> rq.getTestItems().stream()
-              .anyMatch(idxTi -> idxTi.getTestItemId().equals(ti.getItemResults().getItemId())))
           .filter(ti -> ti.getItemResults().getStatus().equals(SKIPPED))
           .count();
-      int passed = (int) toAnalyze.stream()
-          .filter(ti -> rq.getTestItems().stream()
-              .anyMatch(idxTi -> idxTi.getTestItemId().equals(ti.getItemResults().getItemId())))
-          .filter(ITEM_CAN_BE_INDEXED)
-          .filter(ti -> ti.getItemResults().getStatus().equals(PASSED))
-          .count();
+      int analyzedAmount = (int) analyzedMap.values().stream()
+          .mapToLong(Collection::size)
+          .sum();
 
       defectUpdateStatisticsService
-          .saveAutoAnalyzedDefectStatistics(amountToAnalyze, analyzedMap.size(), skipped, passed,
+          .saveAutoAnalyzedDefectStatistics(amountToAnalyze, analyzedAmount, skipped,
               rq.getProjectId());
     });
   }
@@ -256,8 +251,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
   }
 
   /**
-   *
-   * @param launch Analyzed launch
+   * @param launch         Analyzed launch
    * @param analyzerConfig Current analyzer config
    * @return Id of previous launch. Required only for PREVIOUS_LAUNCH option.
    */

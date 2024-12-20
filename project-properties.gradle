@@ -12,6 +12,7 @@ project.ext {
             'method'     : 65,
             'class'      : 90
     ]
+    scriptVersion =
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.12.0' : 'develop')

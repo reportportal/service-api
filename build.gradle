@@ -230,6 +230,16 @@ drill {
     }
 }
 
+tasks.register('initGitSubmodules') {
+    doLast {
+        exec {
+            commandLine 'git', 'submodule', 'update', '--init', '--recursive'
+        }
+    }
+}
+
+compileJava.dependsOn initGitSubmodules
+
 tasks.preTagCommit.enabled = false
 tasks.updateVersion.enabled = false
 tasks.commitNewVersion.enabled = false

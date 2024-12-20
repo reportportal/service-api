@@ -1,12 +1,12 @@
 [submodule "commons-dao"]
 	path = commons-dao
-	url = git@github.com:reportportal/commons-dao.git
+	url = https://github.com/reportportal/commons-dao.git
 	branch = develop
 [submodule "commons"]
 	path = commons
-	url = git@github.com:reportportal/commons.git
+	url = https://github.com/reportportal/commons.git
 	branch = develop
 [submodule "plugin-api"]
 	path = plugin-api
-	url = git@github.com:reportportal/plugin-api.git
+	url = https://github.com/reportportal/plugin-api.git
 	branch = develop

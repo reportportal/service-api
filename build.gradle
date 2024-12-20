@@ -233,7 +233,7 @@ drill {
 tasks.register('initGitSubmodules') {
     doLast {
         exec {
-            commandLine 'git', 'submodule', 'update', '--init', '--recursive'
+            commandLine 'git', 'submodule', 'update', '--init'
         }
     }
 }

@@ -41,6 +41,7 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
+import com.epam.ta.reportportal.ws.converter.converters.InvitationConverter;
 import com.google.common.collect.Maps;
 import java.net.URI;
 import java.time.Instant;
@@ -116,22 +117,22 @@ public class UserInvitationHandlerImpl implements UserInvitationHandler {
     userBid.setInvitingUser(user);
     userBid.setMetadata(getUserCreationBidMetadata(request.getOrganizations()));
 
+    UserCreationBid storedUserBid;
     try {
-      userCreationBidRepository.save(userBid);
+      storedUserBid = userCreationBidRepository.save(userBid);
     } catch (Exception e) {
       throw new ReportPortalException("Error while user creation bid registering.", e);
     }
 
-    StringBuilder emailLink = new StringBuilder(baseUrl)
-        .append("/ui/#registration?uuid=")
-        .append(userBid.getUuid());
-
     var response = new Invitation();
-    response.setCreatedAt(now);
-    response.setExpiresAt(now.plus(1, ChronoUnit.DAYS));
+    response.setCreatedAt(storedUserBid.getLastModified());
+    response.setExpiresAt(storedUserBid.getLastModified().plus(1, ChronoUnit.DAYS));
     response.setId(UUID.fromString(userBid.getUuid()));
-    response.setLink(URI.create(emailLink.toString()));
+    response.setLink(getEmailLink(baseUrl, userBid.getUuid()));
+    response.setEmail(request.getEmail());
     response.setStatus(PENDING);
+    response.setUserId(user.getId());
+    response.setFullName(user.getFullName());
 
     /*
     emailExecutorService.execute(() -> emailServiceFactory.getEmailService(integration, false)
@@ -143,6 +144,14 @@ public class UserInvitationHandlerImpl implements UserInvitationHandler {
     */
 
     return response;
+  }
+
+  @Override
+  public Invitation getInvitation(String invitationId, String baseUrl) {
+    var bid = userCreationBidRepository.getById(invitationId);
+    var invitation = InvitationConverter.TO_INVITATION.apply(bid);
+    invitation.setLink(getEmailLink(baseUrl, bid.getUuid()));
+    return invitation;
   }
 
   private void validateInvitationRequest(InvitationRequest request) {
@@ -192,5 +201,9 @@ public class UserInvitationHandlerImpl implements UserInvitationHandler {
   private boolean isSsoEnabled() {
     return settingsRepository.findByKey(SERVER_USERS_SSO).map(ServerSettings::getValue)
         .map(Boolean::parseBoolean).orElse(false);
+  }
+
+  private URI getEmailLink(String baseUrl, String invitationId) {
+    return URI.create(baseUrl + "/ui/#registration?uuid=" + invitationId);
   }
 }

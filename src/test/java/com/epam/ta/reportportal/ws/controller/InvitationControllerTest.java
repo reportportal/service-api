@@ -19,6 +19,8 @@ package com.epam.ta.reportportal.ws.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.reportportal.api.model.Invitation;
@@ -32,9 +34,9 @@ import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 class InvitationControllerTest extends BaseMvcTest {
 
@@ -44,6 +46,7 @@ class InvitationControllerTest extends BaseMvcTest {
   private ObjectMapper objectMapper;
 
   @Test
+  @Order(1)
   void createInvitationByAdmin() throws Exception {
     List<UserProjectInfo> projects = new ArrayList<>();
     InvitationRequestOrganizationsInner orgInfo = new InvitationRequestOrganizationsInner();
@@ -65,7 +68,7 @@ class InvitationControllerTest extends BaseMvcTest {
     rq.setEmail("invitation@example.com");
     rq.setOrganizations(organizations);
 
-    var result = mockMvc.perform(MockMvcRequestBuilders.post(INVITATIONS_ENDPOINT)
+    var result = mockMvc.perform(post(INVITATIONS_ENDPOINT)
             .content(objectMapper.writeValueAsBytes(rq))
             .contentType(APPLICATION_JSON)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -78,6 +81,17 @@ class InvitationControllerTest extends BaseMvcTest {
     assertNotNull(invitation);
 
     assertEquals(InvitationStatus.PENDING, invitation.getStatus());
+
+    var storedInvitationString = mockMvc.perform(get(INVITATIONS_ENDPOINT + "/" + invitation.getId())
+            .content(objectMapper.writeValueAsBytes(rq))
+            .contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse().getContentAsString();
+    var storedInvitation = objectMapper.readValue(storedInvitationString, Invitation.class);
+
+    assertEquals(storedInvitation, invitation);
 
   }
 
@@ -104,7 +118,7 @@ class InvitationControllerTest extends BaseMvcTest {
     rq.setEmail("invitation@example.com");
     rq.setOrganizations(organizations);
 
-    mockMvc.perform(MockMvcRequestBuilders.post(INVITATIONS_ENDPOINT)
+    mockMvc.perform(post(INVITATIONS_ENDPOINT)
             .content(objectMapper.writeValueAsBytes(rq))
             .contentType(APPLICATION_JSON)
             .with(token(oAuthHelper.getDefaultToken())))

@@ -219,11 +219,6 @@ class UserControllerTest extends BaseMvcTest {
     assertTrue(userRepository.findById(createUserRS.getId()).isPresent());
   }
 
-  @Test
-  void getUserBidInfoPositive() throws Exception {
-    mockMvc.perform(get(USERS_URL + "/registration?uuid=e5f98deb-8966-4b2d-ba2f-35bc69d30c06"))
-        .andExpect(status().isOk());
-  }
 
   @Test
   void deleteUserNegative() throws Exception {

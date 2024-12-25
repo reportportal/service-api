@@ -21,7 +21,6 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EMAIL;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EXPIRED;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER;
-import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
 import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_INSTANCE_USER;
 import static java.util.Optional.ofNullable;
@@ -48,9 +47,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.model.YesNoRS;
-import com.epam.ta.reportportal.model.user.UserBidRS;
 import com.epam.ta.reportportal.model.user.UserResource;
 import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -146,22 +143,6 @@ public class GetUserHandlerImpl implements GetUserHandler {
         .apply(userRepository.findByFilterExcluding(filter, pageable, "email"));
   }
 
-  @Override
-  public UserBidRS getBidInformation(String uuid) {
-    Optional<UserCreationBid> bid = userCreationBidRepository.findByUuidAndType(uuid,
-        INTERNAL_BID_TYPE);
-    return bid.map(b -> {
-      UserBidRS rs = new UserBidRS();
-      rs.setIsActive(true);
-      rs.setEmail(b.getEmail());
-      rs.setUuid(b.getUuid());
-      return rs;
-    }).orElseGet(() -> {
-      UserBidRS rs = new UserBidRS();
-      rs.setIsActive(false);
-      return rs;
-    });
-  }
 
   @Override
   public YesNoRS validateInfo(String username, String email) {

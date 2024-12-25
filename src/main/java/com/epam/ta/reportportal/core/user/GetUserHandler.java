@@ -24,7 +24,6 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.YesNoRS;
-import com.epam.ta.reportportal.model.user.UserBidRS;
 import com.epam.ta.reportportal.model.user.UserResource;
 import java.io.OutputStream;
 import java.util.Map;
@@ -61,14 +60,6 @@ public interface GetUserHandler {
    */
   InstanceUser getCurrentUser(ReportPortalUser currentUser);
 
-
-  /**
-   * Get information about user registration bid
-   *
-   * @param uuid UUID
-   * @return {@link UserBidRS}
-   */
-  UserBidRS getBidInformation(String uuid);
 
   /**
    * Validate existence of username or email

@@ -20,5 +20,5 @@ jobs:
     name: Call Release Java Checks
     uses: reportportal/.github/.github/workflows/java-checks.yaml@main
     with:
-      release-mode: true
+      release-mode: false
     secrets: inherit

@@ -69,15 +69,9 @@ dependencyManagement {
 }
 
 dependencies {
-    if (releaseMode) {
-        implementation 'com.epam.reportportal:commons-dao'
-        implementation 'com.epam.reportportal:commons'
-        implementation 'com.epam.reportportal:plugin-api'
-    } else {
-        implementation 'com.github.reportportal:commons-dao:b1599ca4b52b9533fd0d277526a9a83fe27ff2cf'
-        implementation 'com.github.reportportal:commons:2b470a3'
-        implementation 'com.github.reportportal:plugin-api:d96f33f'
-    }
+    implementation 'com.github.reportportal:commons-dao:b1599ca4b52b9533fd0d277526a9a83fe27ff2cf'
+    implementation 'com.github.reportportal:commons:2b470a3'
+    implementation 'com.github.reportportal:plugin-api:d96f33f'
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-web'

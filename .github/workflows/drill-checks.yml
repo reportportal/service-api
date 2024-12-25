@@ -35,6 +35,8 @@ jobs:
         run: |
           ./gradlew build
         continue-on-error: true
+        with:
+          release-mode : false
 
       - name: Upload test report
         if: failure()

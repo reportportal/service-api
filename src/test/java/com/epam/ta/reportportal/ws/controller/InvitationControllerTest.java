@@ -34,7 +34,6 @@ import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -46,7 +45,6 @@ class InvitationControllerTest extends BaseMvcTest {
   private ObjectMapper objectMapper;
 
   @Test
-  @Order(1)
   void createInvitationByAdmin() throws Exception {
     List<UserProjectInfo> projects = new ArrayList<>();
     InvitationRequestOrganizationsInner orgInfo = new InvitationRequestOrganizationsInner();
@@ -72,7 +70,7 @@ class InvitationControllerTest extends BaseMvcTest {
             .content(objectMapper.writeValueAsBytes(rq))
             .contentType(APPLICATION_JSON)
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk())
+        .andExpect(status().isCreated())
         .andReturn()
         .getResponse().getContentAsString();
 

@@ -17,23 +17,20 @@
 package com.epam.ta.reportportal.core.user.impl;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.YesNoRS;
-import com.epam.ta.reportportal.model.user.UserBidRS;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -78,18 +75,6 @@ class GetUserHandlerImplTest {
     assertEquals("User 'not_exist' not found.", exception.getMessage());
   }
 
-  @Test
-  void getEmptyBidInfo() {
-    String uuid = "uuid";
-
-    when(userCreationBidRepository.findByUuidAndType(uuid, INTERNAL_BID_TYPE)).thenReturn(
-        Optional.empty());
-
-    UserBidRS bidInformation = handler.getBidInformation(uuid);
-    assertFalse(bidInformation.getIsActive());
-    assertNull(bidInformation.getEmail());
-    assertNull(bidInformation.getUuid());
-  }
 
   @Test
   void validateInfoByNotExistUsername() {

@@ -7,13 +7,6 @@ on:
       - '.github/**'
       - README.md
       - gradle.properties
-  push:
-    branches:
-      - feature/orgs
-    paths-ignore:
-      - '.github/**'
-      - README.md
-      - gradle.properties
 
 jobs:
   call-java-checks:

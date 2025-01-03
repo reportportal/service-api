@@ -28,6 +28,7 @@ import static com.epam.ta.reportportal.model.settings.SettingsKeyConstants.SERVE
 import com.epam.reportportal.api.model.Invitation;
 import com.epam.reportportal.api.model.InvitationRequest;
 import com.epam.reportportal.api.model.InvitationRequestOrganizationsInner;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
@@ -148,7 +149,9 @@ public class UserInvitationHandlerImpl implements UserInvitationHandler {
 
   @Override
   public Invitation getInvitation(String invitationId, String baseUrl) {
-    var bid = userCreationBidRepository.getById(invitationId);
+    var bid = userCreationBidRepository.findById(invitationId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND, "User invitation id"));
+
     var invitation = InvitationConverter.TO_INVITATION.apply(bid);
     invitation.setLink(getEmailLink(baseUrl, bid.getUuid()));
     return invitation;

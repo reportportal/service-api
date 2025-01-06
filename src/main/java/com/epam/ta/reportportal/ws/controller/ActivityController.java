@@ -57,7 +57,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/{projectName}/activity")
 @Transactional(readOnly = true)
 @PreAuthorize(ASSIGNED_TO_PROJECT)
-@Tag(name = "activity-controller", description = "Activity Controller")
+@Tag(name = "Activity", description = "Activities API collection")
 public class ActivityController {
 
   private final ActivityHandler activityHandler;

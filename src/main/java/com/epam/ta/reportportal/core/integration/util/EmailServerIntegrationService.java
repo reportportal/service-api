@@ -27,7 +27,8 @@ import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.util.email.EmailService;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.model.integration.IntegrationRQ;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.google.common.collect.Maps;
 import com.mchange.lang.IntegerUtils;
@@ -60,9 +61,9 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
    * Constructs an EmailServerIntegrationService with the specified dependencies.
    *
    * @param integrationRepository the repository for integration entities
-   * @param pluginBox the plugin box for managing plugins
-   * @param basicTextEncryptor the text encryptor for encrypting sensitive data
-   * @param emailServiceFactory the factory for creating email services
+   * @param pluginBox             the plugin box for managing plugins
+   * @param basicTextEncryptor    the text encryptor for encrypting sensitive data
+   * @param emailServiceFactory   the factory for creating email services
    */
   public EmailServerIntegrationService(
       IntegrationRepository integrationRepository,
@@ -160,31 +161,56 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
   }
 
   @Override
-  public boolean checkConnection(Integration integration) {
-    Optional<EmailService> emailService = emailServiceFactory.getEmailService(integration);
-    final boolean isIntegrationCreated = integration.getId() == null;
+  public Integration createIntegration(IntegrationRQ integrationRq,
+      IntegrationType integrationType) {
+    Integration integration = super.createIntegration(integrationRq, integrationType);
+    sendConnectionTestEmail(integration, true);
+    return integration;
+  }
 
-    if (emailService.isPresent()) {
+  @Override
+  public Integration updateIntegration(Integration integration, IntegrationRQ integrationRq) {
+    Integration updatedIntegration = super.updateIntegration(integration, integrationRq);
+    sendConnectionTestEmail(updatedIntegration, false);
+    return updatedIntegration;
+  }
+
+  @Override
+  public boolean checkConnection(Integration integration) {
+    return emailServiceFactory.getEmailService(integration).map(emailService -> {
       try {
-        emailService.get().testConnection();
-        if (BooleanUtils.toBoolean(
-            EmailSettingsEnum.AUTH_ENABLED
-                .getAttribute(integration.getParams().getParams())
-                .orElse("false"))) {
-          emailService.get().sendConnectionTestEmail(isIntegrationCreated);
-        }
+        emailService.testConnection();
       } catch (MessagingException ex) {
-        LOGGER.error("Cannot send email to user", ex);
+        LOGGER.error("Connection to email server failed", ex);
         fail()
             .withError(
                 EMAIL_CONFIGURATION_IS_INCORRECT,
                 "Email configuration is incorrect. Please, check your configuration. "
                     + ex.getMessage());
+        return false;
       }
-    } else {
-      return false;
-    }
+      return true;
+    }).orElse(false);
+  }
 
-    return true;
+  private void sendConnectionTestEmail(Integration integration, boolean isNewIntegration) {
+    boolean isAuthEnabled = BooleanUtils.toBoolean(
+        EmailSettingsEnum.AUTH_ENABLED
+            .getAttribute(integration.getParams().getParams())
+            .orElse("false"));
+    emailServiceFactory.getEmailService(integration).ifPresent(emailService -> {
+      if (isAuthEnabled) {
+        try {
+          emailService.sendConnectionTestEmail(isNewIntegration);
+        } catch (MessagingException ex) {
+          LOGGER.error("Cannot send email to user", ex);
+          fail()
+              .withError(
+                  EMAIL_CONFIGURATION_IS_INCORRECT,
+                  "Email configuration is incorrect. Please, check your configuration. "
+                      + ex.getMessage());
+        }
+      }
+    });
   }
 }

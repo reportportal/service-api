@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analytics;
+package com.epam.ta.reportportal.core.configs;
 
-public interface DefectUpdateStatisticsService {
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
-  void saveAnalyzedDefectStatistics(int amountToAnalyze, int analyzedAmount, int userAnalyzedAmount,
-      int skipped, Long projectId);
+/**
+ * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
+ */
+@Configuration
+public class RestTemplateConfig {
 
-  void saveAutoAnalyzedDefectStatistics(int amountToAnalyze, int analyzedAmount, int skipped,
-      Long projectId);
-
-  void saveUserAnalyzedDefectStatistics(int size, Long projectId);
+  @Bean
+  RestTemplate restTemplate() {
+    return new RestTemplateBuilder()
+        .build();
+  }
 }

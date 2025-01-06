@@ -57,7 +57,7 @@ ext['spring-boot.version'] = "${springBootVersion}"
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.12.3' : 'com.epam.reportportal:commons-bom:5.12.3')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.13.0' : 'com.epam.reportportal:commons-bom:5.13.0')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
     }
 }
@@ -108,7 +108,11 @@ dependencies {
     implementation 'com.sun.mail:jakarta.mail:2.0.1'
 
     implementation 'xerces:xercesImpl:2.12.2'
-    //implementation 'com.lowagie:itext:4.2.2'
+    implementation 'com.lowagie:itext:4.2.2'
+    // Fix CVE-2021-43113 in com.lowagie:itext:4.2.2
+    implementation 'com.itextpdf:itextpdf:5.5.13.4'
+    // Fix CVE-2020-15522 in com.lowagie:itext:2.1.7.js7
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
     // JasperReport's export to XLS uses Apache POI
     implementation 'org.apache.poi:poi:4.1.2'
     implementation 'com.google.api-client:google-api-client:2.6.0'
@@ -204,3 +208,7 @@ drill {
         version = "0.9.4"
     }
 }
+
+tasks.preTagCommit.enabled = false
+tasks.updateVersion.enabled = false
+tasks.commitNewVersion.enabled = false

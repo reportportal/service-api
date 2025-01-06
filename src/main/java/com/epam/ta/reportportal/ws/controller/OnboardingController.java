@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/onboarding")
-@Tag(name = "onboarding-controller", description = "Onboarding Controller")
+@Tag(name = "Onboarding", description = "Onboardings API collection")
 public class OnboardingController {
 
   private final OnboardingService onboardingService;

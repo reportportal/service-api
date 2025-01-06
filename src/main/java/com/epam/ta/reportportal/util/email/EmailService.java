@@ -450,16 +450,15 @@ public class EmailService extends JavaMailSenderImpl {
    * Send email to user with connection test result. If email address is not valid, exception will
    * be thrown.
    *
-   * @param isCreated - flag that indicates if integration was created or updated. Used to determine
-   *     email subject.
+   * @param isNewIntegration - flag that indicates if integration was created or updated.
    * @throws AddressException - if email address is not valid or not exist.
    */
-  public void sendConnectionTestEmail(boolean isCreated)
+  public void sendConnectionTestEmail(boolean isNewIntegration)
       throws AddressException {
     InternetAddress sender =
         getFrom().orElseThrow(() -> new AddressException("Sender email address is not exist"));
     String subject =
-        isCreated ? "Email server integration creation" : "Email server integration updated";
+        isNewIntegration ? "Email server integration creation" : "Email server integration updated";
     MimeMessagePreparator preparator =
         mimeMessage -> {
           MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");

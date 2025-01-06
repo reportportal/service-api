@@ -47,7 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/settings")
 @PreAuthorize(ADMIN_ONLY)
-@Tag(name = "settings-controller", description = "Settings Controller")
+@Tag(name = "Settings", description = "Settings API collection")
 public class SettingsController {
 
   private final ServerAdminHandler serverHandler;

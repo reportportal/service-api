@@ -107,10 +107,7 @@ dependencies {
     implementation 'com.sun.mail:jakarta.mail:2.0.1'
 
     implementation 'xerces:xercesImpl:2.12.2'
-    implementation 'com.lowagie:itext:4.2.2'
-    // Fix CVE-2021-43113 in com.lowagie:itext:4.2.2
     implementation 'com.itextpdf:itextpdf:5.5.13.4'
-    // Fix CVE-2020-15522 in com.lowagie:itext:2.1.7.js7
     implementation 'org.bouncycastle:bcprov-jdk18on:1.78.1'
     // JasperReport's export to XLS uses Apache POI
     implementation 'org.apache.poi:poi:4.1.2'
@@ -143,6 +140,10 @@ dependencies {
     implementation 'org.springframework:spring-web'
     implementation 'org.springframework:spring-test'
     testImplementation 'org.flywaydb.flyway-test-extensions:flyway-spring-test:10.0.0'
+
+    testImplementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+    testImplementation 'io.jsonwebtoken:jjwt-impl:0.12.5'
+    testImplementation 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 }
 
 processResources {

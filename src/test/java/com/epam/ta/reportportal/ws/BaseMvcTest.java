@@ -92,7 +92,7 @@ public abstract class BaseMvcTest {
   @Mock
   protected EmailService emailService;
 
-  @FlywayTest
+  @FlywayTest(invokeCleanDB = false)
   @BeforeAll
   public static void before() {
   }

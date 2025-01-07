@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.util;
 
-import java.io.FileInputStream;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.io.IOUtils;

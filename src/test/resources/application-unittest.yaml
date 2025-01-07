@@ -12,3 +12,6 @@ embedded:
     dir: ${java.io.tmpdir}/reportportal/embedded-postgres
     clean: true
     port: 0
+spring:
+  flyway:
+    clean-disabled: false

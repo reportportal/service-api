@@ -147,6 +147,7 @@ class SecurityConfiguration {
 
 
   @Bean
+  @Profile("!unittest")
   JwtDecoder jwtDecoder() {
     return NimbusJwtDecoder.withSecretKey(this.getSecret()).build();
   }

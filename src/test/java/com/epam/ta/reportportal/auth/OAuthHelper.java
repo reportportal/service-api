@@ -16,25 +16,15 @@
 
 package com.epam.ta.reportportal.auth;
 
+import static com.epam.ta.reportportal.TestConfig.TEST_SECRET;
+
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.nimbusds.jwt.JWTClaimsSet;
+import io.jsonwebtoken.Jwts;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,9 +32,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class OAuthHelper {
-
-  @Autowired
-  private AuthorizationServerTokenServices tokenService;
 
   private String defaultToken;
 
@@ -54,59 +41,36 @@ public class OAuthHelper {
 
   public String getDefaultToken() {
     return defaultToken == null ? defaultToken = createAccessToken("default", "1q2w3e",
-        UserRole.USER).getValue() : defaultToken;
+        UserRole.USER) : defaultToken;
   }
 
   public String getSuperadminToken() {
     return superadminToken == null ?
-        superadminToken = createAccessToken("superadmin", "erebus",
-            UserRole.ADMINISTRATOR).getValue() :
-        superadminToken;
+        superadminToken = createAccessToken("superadmin", "erebus", UserRole.ADMINISTRATOR)
+        : superadminToken;
   }
 
   public String getCustomerToken() {
     return customerToken == null ?
-        customerToken = createAccessToken("default_customer", "erebus", UserRole.USER).getValue() :
+        customerToken = createAccessToken("default_customer", "erebus", UserRole.USER) :
         customerToken;
   }
 
-  private AccessToken createAccessToken(String username, String password, UserRole... roles) {
-
-    var claimsSet = new JWTClaimsSet.Builder()
-        .expirationTime(new Date(new Date().getTime() + 60 * 1000))
-        .build();
-    var signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256)
-        .keyID(rsaKey.getKeyID()).build(), claimsSet);
-    signedJWT.sign(signer);
-    return signedJWT.serialize();
-
-    Collection<GrantedAuthority> authorities = Arrays.stream(roles)
-        .map(it -> new SimpleGrantedAuthority(it.getAuthority()))
+  private String createAccessToken(String username, String password,
+      UserRole... roles) {
+    var authorities = Arrays.stream(roles)
+        .map(role -> "ROLE_" + role)
         .collect(Collectors.toList());
 
-    Set<String> scopes = Collections.singleton("ui");
+    return Jwts.builder()
+        .subject(username)
+        .claim("user_name", username)
+        .claim("scope", "ui")
+        .claim("authorities", authorities)
+        .issuedAt(new Date())
+        .expiration(new Date(Instant.now().plus(1, ChronoUnit.DAYS).toEpochMilli()))
+        .signWith(TEST_SECRET)
+        .compact();
 
-    Map<String, String> requestParameters = new HashMap<>();
-    requestParameters.put("password", password);
-    requestParameters.put("grand_type", "password");
-    requestParameters.put("username", username);
-
-
-    OAuth2Request oAuth2Request = new OAuth2Request(
-        requestParameters,
-        "ui",
-        authorities,
-        true,
-        scopes,
-        Collections.emptySet(),
-        null,
-        Collections.emptySet(),
-        Collections.emptyMap()
-    );
-    User userPrincipal = new User(username, password, true, true, true, true, authorities);
-    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-        userPrincipal, null, authorities);
-    OAuth2Authentication auth = new OAuth2Authentication(oAuth2Request, authenticationToken);
-    return tokenService.createAccessToken(auth);
   }
 }

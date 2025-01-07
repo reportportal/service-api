@@ -66,7 +66,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
   @Autowired
   private SenderCaseRepository senderCaseRepository;
 
-  private static final String NOTIFICATION_URL = "/settings/notification/";
+  private static final String NOTIFICATION_URL = "/settings/notification";
 
   @Test
   void createSubType() throws Exception {
@@ -269,8 +269,8 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
   void deleteNotification() throws Exception {
     Long id = 1L;
 
-    mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + NOTIFICATION_URL + id).with(
-        token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+    mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + NOTIFICATION_URL + "/" + id)
+        .with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 
     List<SenderCase> senderCases = senderCaseRepository.findAll();
 

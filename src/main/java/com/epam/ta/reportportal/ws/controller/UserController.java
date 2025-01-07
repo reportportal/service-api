@@ -76,6 +76,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -194,8 +195,8 @@ public class UserController {
   @Transactional(readOnly = true)
   @GetMapping(value = { "", "/" })
   @Operation(summary = "Return information about current logged-in user")
-  public UserResource getMyself(@AuthenticationPrincipal ReportPortalUser currentUser) {
-    return getUserHandler.getUser(currentUser);
+  public UserResource getMyself(@AuthenticationPrincipal UserDetails currentUser) {
+    return getUserHandler.getUser((ReportPortalUser) currentUser);
   }
 
   @Transactional(readOnly = true)

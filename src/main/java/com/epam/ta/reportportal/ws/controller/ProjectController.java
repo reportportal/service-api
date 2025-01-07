@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.NOT_CUSTOMER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
@@ -304,7 +303,7 @@ public class ProjectController {
   }
 
   @Transactional(readOnly = true)
-  @GetMapping("/{projectName}/preference")
+  @GetMapping({"/{projectName}/preference", "/{projectName}/preference/"})
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Load logged-in user preferences", description = "Only for logged-in user")
   public PreferenceResource getUserPreference(@PathVariable String projectName,

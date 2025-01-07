@@ -80,7 +80,7 @@ public class IntegrationController {
   }
 
   @Transactional(readOnly = true)
-  @GetMapping("/global/all")
+  @GetMapping({"/global/all", "/global/all/"}) // TODO: fix on UI side and remove the second one
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get available global integrations")
   public List<IntegrationResource> getGlobalIntegrations(

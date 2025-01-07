@@ -15,14 +15,16 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.auth.JwtReportPortalUserConverter;
 import com.epam.ta.reportportal.auth.UserRoleHierarchy;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
-import com.epam.ta.reportportal.core.configs.filter.ApiKeyFilter;
 import com.epam.ta.reportportal.core.configs.filter.JwtFilter;
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -32,10 +34,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.vote.AffirmativeBased;
+import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -44,11 +50,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter;
 
 /**
  * Spring's Security Configuration
@@ -78,28 +84,18 @@ class SecurityConfiguration {
   @Autowired
   JwtFilter jwtFilter;
 
-  @Autowired
-  ApiKeyFilter apiKeyFilter;
-
   private static final String SECRET_KEY = "secret.key";
 
   @Bean
   @Profile("!unittest")
-  public JwtAuthenticationConverter accessTokenConverter() {
+  public JwtReportPortalUserConverter accessTokenConverter() {
+    JwtReportPortalUserConverter jwtConverter = new JwtReportPortalUserConverter(userDetailsService);
+    JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+    jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName("authorities");
+    jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
+    //jwtGrantedAuthoritiesConverter.setAuthoritiesClaimDelimiter(" ");
 
-    JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
-    jwtConverter.setJwtGrantedAuthoritiesConverter(new JwtGrantedAuthoritiesConverter());
-    jwtConverter.setPrincipalClaimName("sub");
-/*
-    JwtBearerTokenAuthenticationConverter jwtConverter = new JwtBearerTokenAuthenticationConverter();
-    jwtConverter.setJwtGrantedAuthoritiesConverter(new JwtGrantedAuthoritiesConverter());
-
-    DefaultAccessTokenConverter accessTokenConverter = new DefaultAccessTokenConverter();
-    DefaultUserAuthenticationConverter defaultUserAuthenticationConverter = new DefaultUserAuthenticationConverter();
-    defaultUserAuthenticationConverter.setUserDetailsService(userDetailsService);
-    accessTokenConverter.setUserTokenConverter(defaultUserAuthenticationConverter);
-
-    jwtConverter.setAccessTokenConverter(accessTokenConverter);*/
+    jwtConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
 
     return jwtConverter;
   }
@@ -125,25 +121,23 @@ class SecurityConfiguration {
             .hasRole("USER")
             .anyRequest()
             .authenticated())
-/*        .oauth2ResourceServer(resourceServer ->
-            resourceServer.jwt(
-                jwt -> jwt.jwtAuthenticationConverter(accessTokenConverter())))*/
-        .userDetailsService(userDetailsService)
+        .oauth2ResourceServer(resourceServer -> resourceServer
+            .jwt(jwt -> jwt.jwtAuthenticationConverter(accessTokenConverter())))
         .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-        .addFilterBefore(apiKeyFilter, RememberMeAuthenticationFilter.class)
+        .userDetailsService(userDetailsService)
         .csrf(AbstractHttpConfigurer::disable);
 
     return http.build();
   }
 
-/*  @Bean
-  public TokenStore tokenStore() {
-    return new CombinedTokenStore(accessTokenConverter());
-  }*/
+  @Bean
+  public static PermissionEvaluatorFactoryBean permissionEvaluatorFactoryBean() {
+    return new PermissionEvaluatorFactoryBean();
+  }
 
   @Bean
-  public PermissionEvaluatorFactoryBean permissionEvaluator() {
-    return new PermissionEvaluatorFactoryBean();
+  public static RoleHierarchy userRoleHierarchy() {
+    return new UserRoleHierarchy();
   }
 
   @Bean
@@ -151,10 +145,6 @@ class SecurityConfiguration {
     return new BCryptPasswordEncoder();
   }
 
-  @Bean
-  public static RoleHierarchy userRoleHierarchy() {
-    return new UserRoleHierarchy();
-  }
 
   @Bean
   JwtDecoder jwtDecoder() {
@@ -169,48 +159,24 @@ class SecurityConfiguration {
     return handler;
   }
 
-/*  @Configuration
-  @EnableResourceServer
-  public static class SecurityServerConfiguration extends ResourceServerConfigurerAdapter {
+  public DefaultWebSecurityExpressionHandler webSecurityExpressionHandler() {
+    DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
+    handler.setRoleHierarchy(userRoleHierarchy());
+    handler.setPermissionEvaluator(permissionEvaluator);
+    return handler;
+  }
 
 
-    @Bean
-    public static PermissionEvaluatorFactoryBean permissionEvaluatorFactoryBean() {
-      return new PermissionEvaluatorFactoryBean();
-    }
+  @Bean
+  public AccessDecisionManager webAccessDecisionManager() {
+    List<AccessDecisionVoter<?>> accessDecisionVoters = new ArrayList<>();
+    accessDecisionVoters.add(new AuthenticatedVoter());
+    WebExpressionVoter webVoter = new WebExpressionVoter();
+    webVoter.setExpressionHandler(webSecurityExpressionHandler());
+    accessDecisionVoters.add(webVoter);
 
-    @Bean
-    public static RoleHierarchy userRoleHierarchy() {
-      return new UserRoleHierarchy();
-    }*/
-
-
-/*    @Bean
-    @Primary
-    public DefaultTokenServices tokenServices() {
-      DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
-      defaultTokenServices.setTokenStore(tokenStore());
-      defaultTokenServices.setSupportRefreshToken(true);
-      defaultTokenServices.setTokenEnhancer(accessTokenConverter());
-      return defaultTokenServices;
-    }
-
-    private DefaultWebSecurityExpressionHandler webSecurityExpressionHandler() {
-      OAuth2WebSecurityExpressionHandler handler = new OAuth2WebSecurityExpressionHandler();
-      handler.setRoleHierarchy(userRoleHierarchy());
-      handler.setPermissionEvaluator(permissionEvaluator);
-      return handler;
-    }
-
-    private AccessDecisionManager webAccessDecisionManager() {
-      List<AccessDecisionVoter<?>> accessDecisionVoters = Lists.newArrayList();
-      accessDecisionVoters.add(new AuthenticatedVoter());
-      WebExpressionVoter webVoter = new WebExpressionVoter();
-      webVoter.setExpressionHandler(webSecurityExpressionHandler());
-      accessDecisionVoters.add(webVoter);
-
-      return new AffirmativeBased(accessDecisionVoters);
-    }*/
+    return new AffirmativeBased(accessDecisionVoters);
+  }
 
 
   private SecretKey getSecret() {

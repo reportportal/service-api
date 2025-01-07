@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id 'io.spring.dependency-management' version '1.1.6'
+    id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
     id 'java-library'
     id 'org.owasp.dependencycheck' version '11.1.1'
@@ -68,9 +68,9 @@ dependencies {
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.github.reportportal:commons-dao:1fb643b'
-        implementation 'com.github.reportportal:commons:56e9608'
-        implementation 'com.github.reportportal:plugin-api:f7d2e68'
+        implementation 'com.github.reportportal:commons-dao:b13f8d3'
+        implementation 'com.github.reportportal:commons:6729eb7'
+        implementation 'com.github.reportportal:plugin-api:e37b0fd'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
@@ -83,14 +83,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.security:spring-security-jwt:1.1.1.RELEASE'
+
     implementation 'org.springframework.security:spring-security-core'
     implementation 'org.springframework.security:spring-security-oauth2-core'
     implementation 'org.springframework.security:spring-security-oauth2-client'
     implementation 'org.springframework.security:spring-security-oauth2-resource-server'
     implementation 'org.springframework.security:spring-security-web'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
-    implementation "org.springdoc:springdoc-openapi-starter-common:2.6.0" // TODO: go down to 2.6.0 in case of problems
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
     implementation 'org.springframework:spring-context-support'
 
 
@@ -112,7 +111,7 @@ dependencies {
     // Fix CVE-2021-43113 in com.lowagie:itext:4.2.2
     implementation 'com.itextpdf:itextpdf:5.5.13.4'
     // Fix CVE-2020-15522 in com.lowagie:itext:2.1.7.js7
-    implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.78.1'
     // JasperReport's export to XLS uses Apache POI
     implementation 'org.apache.poi:poi:4.1.2'
     implementation 'com.google.api-client:google-api-client:2.6.0'
@@ -122,7 +121,7 @@ dependencies {
     }
     implementation 'org.springframework.security:spring-security-acl'
     implementation 'com.github.ben-manes.caffeine:caffeine'
-    implementation 'commons-fileupload:commons-fileupload:1.5' // TODO to delete
+    implementation 'commons-fileupload:commons-fileupload:1.5' // TODO: to remove
 
     implementation "org.apache.jclouds.api:filesystem:${jcloudsVersion}"
 
@@ -131,7 +130,7 @@ dependencies {
     implementation "org.hibernate.validator:hibernate-validator:${hibernateValidatorVersion}"
 
     // Metrics
-    implementation 'io.micrometer:micrometer-registry-prometheus:1.13.2'
+    implementation 'io.micrometer:micrometer-registry-prometheus:1.14.2'
 
     // add lombok support
     compileOnly "org.projectlombok:lombok:${lombokVersion}"

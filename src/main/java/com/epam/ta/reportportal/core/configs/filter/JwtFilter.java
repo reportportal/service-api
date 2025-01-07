@@ -2,17 +2,21 @@ package com.epam.ta.reportportal.core.configs.filter;
 
 import static org.apache.http.HttpHeaders.AUTHORIZATION;
 
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.auth.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -23,37 +27,39 @@ public class JwtFilter extends OncePerRequestFilter {
   private JwtService jwtService;
 
   @Autowired
-  JwtDecoder jwtDecoder;
+  private UserDetailsService userDetailsService;
+
 
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
       FilterChain filterChain) throws ServletException, IOException {
-    System.out.println("asd");
+
     String authHeader = request.getHeader(AUTHORIZATION);
     String token = null;
     String username = null;
+
     if (authHeader != null && authHeader.startsWith("Bearer")) {
       token = authHeader.substring(7);
       username = jwtService.extractUserName(token);
-      Jwt jwt = jwtDecoder.decode(token);
     }
 
-    if (username != null && SecurityContextHolder.getContext().getAuthentication() != null) {
+    if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+      BusinessRule.expect(jwtService.isValid(token), BooleanUtils::isTrue)
+          .verify(ErrorType.FORBIDDEN_OPERATION, "User token expired");
 
-     // SecurityContextHolder.getContext().setAuthentication(new BearerTokenAuthentication());
+      UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+      UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+          userDetails,
+          null,
+          userDetails.getAuthorities()
+      );
+      authToken.setDetails(
+          new WebAuthenticationDetailsSource().buildDetails(request)
+      );
+
+      SecurityContextHolder.getContext().setAuthentication(authToken);
     }
 
-/*
-      public BearerTokenAuthentication(OAuth2AuthenticatedPrincipal principal, OAuth2AccessToken
-        credentials, Collection<? extends GrantedAuthority > authorities) {
-      super(credentials, principal, credentials, authorities);
-      Assert.isTrue(credentials.getTokenType() == TokenType.BEARER, "credentials must be a bearer token");
-      this.attributes = Collections.unmodifiableMap(new LinkedHashMap(principal.getAttributes()));
-      this.setAuthenticated(true);
-    }
-*/
-
-    //request.getHeader()
     filterChain.doFilter(request, response);
   }
 }

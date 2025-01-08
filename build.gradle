@@ -71,10 +71,13 @@ println("releaseMode=" + releaseMode)
 
 dependencies {
     if (project.releaseMode) {
+        println(" use commons released versions")
+
         implementation 'com.epam.reportportal:commons-dao'
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:plugin-api'
     } else {
+        println(" use commons feature versions")
         implementation 'com.github.reportportal:commons-dao:b1599ca'
         implementation 'com.github.reportportal:commons:2b470a3'
         implementation 'com.github.reportportal:plugin-api:d96f33f'

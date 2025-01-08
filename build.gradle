@@ -70,7 +70,7 @@ dependencyManagement {
 println("releaseMode=" + releaseMode)
 
 dependencies {
-    if (releaseMode == true) {
+    if (releaseMode) {
         println(" use commons released versions")
 
         implementation 'com.epam.reportportal:commons-dao'

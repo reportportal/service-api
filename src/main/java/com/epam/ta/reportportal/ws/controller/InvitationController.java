@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.INVITATION_ALLOWED;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.reportportal.api.InvitationApi;
@@ -25,9 +26,9 @@ import com.epam.reportportal.api.model.Invitation;
 import com.epam.reportportal.api.model.InvitationRequest;
 import com.epam.ta.reportportal.core.user.UserInvitationHandler;
 import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -54,8 +55,18 @@ public class InvitationController extends BaseController implements InvitationAp
         composeBaseUrl(httpServletRequest));
 
     return ResponseEntity
-        .status(OK)
+        .status(CREATED)
         .body(response);
+  }
+
+
+  @Override
+  public ResponseEntity<Invitation> getInvitationsId(String invitationId) {
+    return ResponseEntity
+        .status(OK)
+        .body(
+            userInvitationHandler.getInvitation(invitationId, composeBaseUrl(httpServletRequest)));
+
   }
 
 }

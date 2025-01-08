@@ -34,4 +34,12 @@ public interface UserInvitationHandler {
   Invitation createUserInvitation(InvitationRequest request, ReportPortalUser username,
       String userRegURL);
 
+  /**
+   * Retrieve an invitation by its ID.
+   *
+   * @param invitationId the ID of the invitation to retrieve
+   * @param baseUrl the base url of the webservice
+   * @return the invitation corresponding to the given ID
+   */
+  Invitation getInvitation(String invitationId, String baseUrl);
 }

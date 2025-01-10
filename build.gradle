@@ -62,12 +62,16 @@ dependencyManagement {
     }
 }
 
+println("Release mode: $releaseMode")
+
 dependencies {
     if (releaseMode) {
+        println("Using release dependencies")
         implementation 'com.epam.reportportal:commons-dao'
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:plugin-api'
     } else {
+        println("Using snapshot dependencies")
         implementation 'com.github.reportportal:commons-dao:184a749'
         implementation 'com.github.reportportal:commons:6729eb7'
         implementation 'com.github.reportportal:plugin-api:e37b0fd'

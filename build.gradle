@@ -66,17 +66,13 @@ dependencyManagement {
     }
 }
 
-println("Release mode: $releaseMode")
-
 dependencies {
     if (releaseMode) {
-        println("Using release dependencies")
         implementation 'com.epam.reportportal:commons-dao'
         implementation 'com.epam.reportportal:commons'
         implementation 'com.epam.reportportal:plugin-api'
     } else {
-        println("Using snapshot dependencies")
-        implementation 'com.github.reportportal:commons-dao:72f99ff'
+        implementation 'com.github.reportportal:commons-dao:b561fb6'
         implementation 'com.github.reportportal:commons:3dfb9d8'
         implementation 'com.github.reportportal:plugin-api:8a1f61c'
     }
@@ -120,8 +116,6 @@ dependencies {
     }
     implementation 'xerces:xercesImpl:2.12.2'
     implementation 'com.lowagie:itext:4.2.2'
-    // Fix CVE-2021-43113 in com.lowagie:itext:4.2.2
-    implementation 'com.itextpdf:itextpdf:5.5.13.4'
     // Fix CVE-2020-15522 in com.lowagie:itext:2.1.7.js7
     implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
     // JasperReport's export to XLS uses Apache POI
@@ -237,7 +231,3 @@ drill {
         version = "0.9.4"
     }
 }
-
-tasks.preTagCommit.enabled = false
-tasks.updateVersion.enabled = false
-tasks.commitNewVersion.enabled = false

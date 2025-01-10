@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.auth;
+package com.epam.ta.reportportal.core.configs.security;
 
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;

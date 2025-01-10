@@ -38,7 +38,7 @@ import java.util.function.Supplier;
 public class UserBuilder implements Supplier<User> {
 
   public static final String USER_LAST_LOGIN = "last_login";
-  private User user;
+  private final User user;
 
   public UserBuilder() {
     user = new User();

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.auth.JwtReportPortalUserConverter;
+package com.epam.ta.reportportal.core.configs.security;
+
 import com.epam.ta.reportportal.auth.UserRoleHierarchy;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
-import com.epam.ta.reportportal.core.configs.filter.JwtFilter;
+import com.epam.ta.reportportal.core.configs.utils.CustomAuthenticationManagerResolver;
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
 import java.nio.charset.StandardCharsets;
@@ -54,7 +54,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * Spring's Security Configuration
@@ -82,19 +81,22 @@ class SecurityConfiguration {
   private RoleHierarchy roleHierarchy;
 
   @Autowired
-  JwtFilter jwtFilter;
+  private ApiKeyAuthenticationProvider apiKeyAuthenticationProvider;
+
+  @Autowired
+  private JwtCustomAuthenticationProvider jwtCustomAuthenticationProvider;
+
 
   private static final String SECRET_KEY = "secret.key";
 
   @Bean
   @Profile("!unittest")
   public JwtReportPortalUserConverter accessTokenConverter() {
-    JwtReportPortalUserConverter jwtConverter = new JwtReportPortalUserConverter(userDetailsService);
+    JwtReportPortalUserConverter jwtConverter = new JwtReportPortalUserConverter(
+        userDetailsService);
     JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
     jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName("authorities");
     jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
-    //jwtGrantedAuthoritiesConverter.setAuthoritiesClaimDelimiter(" ");
-
     jwtConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
 
     return jwtConverter;
@@ -121,9 +123,8 @@ class SecurityConfiguration {
             .hasRole("USER")
             .anyRequest()
             .authenticated())
-        .oauth2ResourceServer(resourceServer -> resourceServer
-            .jwt(jwt -> jwt.jwtAuthenticationConverter(accessTokenConverter())))
-        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+        .oauth2ResourceServer(resourceServer ->
+            resourceServer.authenticationManagerResolver(customAuthenticationManagerResolver()))
         .userDetailsService(userDetailsService)
         .csrf(AbstractHttpConfigurer::disable);
 
@@ -187,8 +188,22 @@ class SecurityConfiguration {
             .map(ServerSettings::getValue)
             .orElseGet(() -> serverSettingsRepository.generateSecret()));
 
-    return new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), 0, secret.length(), "HmacSha256");
+    return new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), 0, secret.length(),
+        "HmacSha256");
   }
+
+
+  @Bean
+  public CustomAuthenticationManagerResolver customAuthenticationManagerResolver() {
+    return new CustomAuthenticationManagerResolver(apiKeyAuthenticationProvider,
+        jwtCustomAuthenticationProvider, jwtDecoder());
+  }
+
+  @Bean
+  public JwtCustomAuthenticationProvider jwtCustomAuthenticationProvider() {
+    return new JwtCustomAuthenticationProvider(jwtDecoder(), userDetailsService);
+  }
+
 }
 
 

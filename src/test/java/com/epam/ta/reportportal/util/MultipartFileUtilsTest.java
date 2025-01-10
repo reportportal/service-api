@@ -36,7 +36,7 @@ class MultipartFileUtilsTest {
   void getMultipartFile() throws IOException {
     String path = "image/image.png";
     File expected = new ClassPathResource(path).getFile();
-    MockMultipartFile file = (MockMultipartFile)MultipartFileUtils.getMultipartFile(path);
+    MockMultipartFile file = (MockMultipartFile) MultipartFileUtils.getMultipartFile(path);
     assertEquals(expected.length(), file.getSize());
     assertEquals(expected.getName(), file.getName());
     assertEquals("image/png", file.getContentType());

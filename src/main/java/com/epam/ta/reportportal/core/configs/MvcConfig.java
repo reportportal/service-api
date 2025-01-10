@@ -17,6 +17,9 @@
 package com.epam.ta.reportportal.core.configs;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.apache.commons.io.FileUtils.ONE_GB;
+import static org.apache.commons.io.FileUtils.ONE_KB;
+import static org.apache.commons.io.FileUtils.ONE_MB;
 
 import com.epam.reportportal.rules.commons.ExceptionMappings;
 import com.epam.reportportal.rules.commons.exception.forwarding.ClientResponseForwardingExceptionHandler;
@@ -35,7 +38,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -54,7 +56,6 @@ import org.springframework.validation.beanvalidation.BeanValidationPostProcessor
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.MultipartFilter;
 import org.springframework.web.multipart.support.StandardMultipartHttpServletRequest;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
@@ -64,6 +65,7 @@ import org.springframework.web.servlet.config.annotation.ContentNegotiationConfi
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 /**
  * Class-based Spring MVC Configuration
@@ -224,16 +226,16 @@ public class MvcConfig implements WebMvcConfigurer {
     //level and handle exceptions in proper way. Fixes reportportal/reportportal#19
     resolver.setResolveLazily(true);
 
-/*    commonsMultipartResolver.setMaxUploadSize(multipartConfig.maxUploadSize);
-    commonsMultipartResolver.setMaxUploadSizePerFile(multipartConfig.maxFileSize);*/
+    multipartConfig.setMaxUploadSize(String.valueOf(multipartConfig.maxUploadSize));
+    //resolver.setMaxUploadSizePerFile(multipartConfig.maxFileSize);
     return resolver;
   }
 
   @ConfigurationProperties("rp.upload")
   public static class MultipartConfig {
 
-    long maxUploadSize = 128L * 1024L * 1024L;
-    long maxFileSize = 128L * 1024L * 1024L;
+    long maxUploadSize = 128 * ONE_MB;
+    long maxFileSize = 128 * ONE_MB;
 
     public void setMaxUploadSize(String maxUploadSize) {
       this.maxUploadSize = parseSize(maxUploadSize);
@@ -247,13 +249,13 @@ public class MvcConfig implements WebMvcConfigurer {
       Preconditions.checkArgument(!isNullOrEmpty(size), "Size must not be empty");
       size = size.toUpperCase();
       if (size.endsWith("KB")) {
-        return Long.parseLong(size.substring(0, size.length() - 2)) * 1024;
+        return Long.parseLong(size.substring(0, size.length() - 2)) * ONE_KB;
       }
       if (size.endsWith("MB")) {
-        return Long.parseLong(size.substring(0, size.length() - 2)) * 1024 * 1024;
+        return Long.parseLong(size.substring(0, size.length() - 2)) * ONE_MB;
       }
       if (size.endsWith("GB")) {
-        return Long.parseLong(size.substring(0, size.length() - 2)) * 1024 * 1024 * 1024;
+        return Long.parseLong(size.substring(0, size.length() - 2)) * ONE_GB;
       }
       return Long.parseLong(size);
     }

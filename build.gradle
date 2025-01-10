@@ -232,6 +232,6 @@ drill {
     }
 }
 
-tasks.preTagCommit.  = false
+tasks.preTagCommit.enabled  = false
 tasks.updateVersion.enabled = false
 tasks.commitNewVersion.enabled = false

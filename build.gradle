@@ -231,3 +231,7 @@ drill {
         version = "0.9.4"
     }
 }
+
+tasks.preTagCommit.  = false
+tasks.updateVersion.enabled = false
+tasks.commitNewVersion.enabled = false

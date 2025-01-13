@@ -81,6 +81,7 @@ dependencies {
         implementation 'com.github.reportportal:plugin-api:8a1f61c'
     }
 
+    implementation 'javax.inject:javax.inject:1'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-quartz'

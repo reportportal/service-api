@@ -42,6 +42,15 @@ public interface EditUserHandler {
   /**
    * Upload photo
    *
+   * @param username Name of user
+   * @param file     New photo
+   * @return Completion result
+   */
+  OperationCompletionRS uploadPhoto(String username, MultipartFile file);
+
+  /**
+   * Upload photo
+   *
    * @param userId id of user
    * @param file   New photo
    * @return Completion result

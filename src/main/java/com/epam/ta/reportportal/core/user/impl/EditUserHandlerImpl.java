@@ -164,6 +164,15 @@ public class EditUserHandlerImpl implements EditUserHandler {
   }
 
   @Override
+  public OperationCompletionRS uploadPhoto(String username, MultipartFile file) {
+    User user = userRepository.findByLogin(username)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
+    validatePhoto(file);
+    userBinaryDataService.saveUserPhoto(user, file);
+    return new OperationCompletionRS("Profile photo has been uploaded successfully");
+  }
+
+  @Override
   public OperationCompletionRS uploadPhoto(Long userId, MultipartFile file) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));

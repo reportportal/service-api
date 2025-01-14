@@ -108,6 +108,13 @@ public class FileStorageController {
     toResponse(response, userPhoto);
   }
 
+  @Transactional
+  @PostMapping(value = "/photo", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  @Operation(summary = "Upload user's photo")
+  public OperationCompletionRS uploadPhoto(@RequestParam("file") MultipartFile file,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return editUserHandler.uploadPhoto(EntityUtils.normalizeId(user.getUsername()), file);
+  }
 
   @Transactional
   @DeleteMapping(value = "/photo")

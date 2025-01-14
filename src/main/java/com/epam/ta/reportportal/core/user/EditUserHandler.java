@@ -40,7 +40,7 @@ public interface EditUserHandler {
   OperationCompletionRS editUser(String username, EditUserRQ editUserRQ, ReportPortalUser editor);
 
   /**
-   * Upload photo
+   * Upload photo.
    *
    * @param username Name of user
    * @param file     New photo
@@ -49,7 +49,7 @@ public interface EditUserHandler {
   OperationCompletionRS uploadPhoto(String username, MultipartFile file);
 
   /**
-   * Upload photo
+   * Upload photo.
    *
    * @param userId id of user
    * @param file   New photo

@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
+import com.epam.ta.reportportal.reporting.async.producer.*;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
@@ -49,15 +50,15 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @RequiredArgsConstructor
 public class EventBasedReporting {
 
-  private final StartLaunchHandler startLaunchHandler;
+  private final LaunchStartProducer startLaunchHandler;
 
-  private final FinishLaunchHandler finishLaunchHandler;
+  private final LaunchFinishProducer finishLaunchHandler;
 
-  private final StartTestItemHandler startTestItemHandler;
+  private final ItemStartProducer startTestItemHandler;
 
-  private final FinishTestItemHandler finishTestItemHandler;
+  private final ItemFinishProducer finishTestItemHandler;
 
-  private final CreateLogHandler createLogHandler;
+  private final LogProducer createLogHandler;
 
   private final ProjectExtractor projectExtractor;
 

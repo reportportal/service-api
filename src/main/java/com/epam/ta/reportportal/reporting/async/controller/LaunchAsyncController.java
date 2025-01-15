@@ -29,13 +29,18 @@ import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.core.logging.HttpLogging;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.reporting.LaunchResource;
+import com.epam.ta.reportportal.ws.reporting.LaunchResourceOld;
 import com.epam.ta.reportportal.ws.reporting.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,24 +65,26 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v2/{projectName}/launch")
-@Tag(name = "launch-async-controller", description = "Launch Async Controller. Puts events to the queues")
+@Tag(name = "Launch Async", description = "Launches Async API collection")
 public class LaunchAsyncController {
 
   private final ProjectExtractor projectExtractor;
   private final StartLaunchHandler startLaunchHandler;
   private final FinishLaunchHandler finishLaunchHandler;
   private final MergeLaunchHandler mergeLaunchesHandler;
+  private final LaunchConverter launchConverter;
 
   @Autowired
   public LaunchAsyncController(ProjectExtractor projectExtractor,
       @Qualifier("launchStartProducer") StartLaunchHandler startLaunchHandler,
       @Qualifier("launchFinishProducer") FinishLaunchHandler finishLaunchHandler,
-      MergeLaunchHandler mergeLaunchesHandler) {
+      MergeLaunchHandler mergeLaunchesHandler, LaunchConverter launchConverter) {
 
     this.projectExtractor = projectExtractor;
     this.startLaunchHandler = startLaunchHandler;
     this.finishLaunchHandler = finishLaunchHandler;
     this.mergeLaunchesHandler = mergeLaunchesHandler;
+    this.launchConverter = launchConverter;
   }
 
   @HttpLogging
@@ -113,7 +120,7 @@ public class LaunchAsyncController {
 
   @HttpLogging
   @Transactional
-  @PostMapping("/merge")
+  @PostMapping(value = "/merge", produces = "application/x.reportportal.launch.v2+json")
   @PreAuthorize(ALLOWED_TO_REPORT)
   @ResponseStatus(OK)
   @Operation(summary = "Merge set of specified launches in common one", description =
@@ -128,5 +135,32 @@ public class LaunchAsyncController {
         mergeLaunchesRQ
     );
   }
+
+  @HttpLogging
+  @Transactional
+  @PostMapping(value = "/merge")
+  @PreAuthorize(ALLOWED_TO_REPORT)
+  @ResponseStatus(OK)
+  @Operation(summary = "Merge set of specified launches in common one", description =
+      "This operation merges a set of launches into a common one. "
+          + "The IDs of the launches to be merged should be provided in the 'launches' "
+          + "field of the request body.")
+  @ApiResponse(
+      responseCode = "200",
+      description = "Successful response with dates in timestamp format. "
+          + "Response with dates in ISO-8601 format if the custom header "
+          + "'Accept: application/x.reportportal.launch.v2+json' is used.",
+      content = @Content(mediaType = "application/json", schema = @Schema(implementation = LaunchResourceOld.class))
+  )
+  public LaunchResourceOld mergeLaunchesOldUuid(@PathVariable String projectName,
+      @Parameter(description = "Merge launches request body", required = true) @RequestBody
+      @Validated MergeLaunchesRQ mergeLaunchesRQ, @AuthenticationPrincipal ReportPortalUser user) {
+    var launchResource = mergeLaunchesHandler.mergeLaunches(
+        projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user,
+        mergeLaunchesRQ
+    );
+    return launchConverter.TO_RESOURCE_OLD.apply(launchResource);
+  }
+
 
 }

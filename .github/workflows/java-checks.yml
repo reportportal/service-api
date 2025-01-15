@@ -7,16 +7,18 @@ on:
       - '.github/**'
       - README.md
       - gradle.properties
-  push:
-    branches:
-      - master
-      - develop
-    paths-ignore:
-      - '.github/**'
-      - README.md
-      - gradle.properties
 
 jobs:
-  call-java-cheks:
-    name: Call Java checks
+  call-java-checks:
+    if : ${{ github.event_name == 'pull_request' && github.base_ref != 'refs/heads/master' }}
+    name: Call Java Checks
     uses: reportportal/.github/.github/workflows/java-checks.yaml@main
+    secrets: inherit
+    
+  call-release-java-checks:
+    if: ${{ github.event_name == 'pull_request' && github.base_ref == 'refs/heads/master' }}
+    name: Call Release Java Checks
+    uses: reportportal/.github/.github/workflows/java-checks.yaml@main
+    with:
+      release-mode: true
+    secrets: inherit

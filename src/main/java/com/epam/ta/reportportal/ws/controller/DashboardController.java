@@ -60,7 +60,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 @RequestMapping("/v1/{projectName}/dashboard")
-@Tag(name = "dashboard-controller", description = "Dashboard Controller")
+@Tag(name = "Dashboard", description = "Dashboards API collection")
 public class DashboardController {
 
   private final ProjectExtractor projectExtractor;

@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.model.user;
 
-import com.epam.reportportal.annotations.In;
+import com.epam.ta.reportportal.ws.annotations.In;
 import com.epam.reportportal.annotations.NotBlankString;
 import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.entity.user.UserType;

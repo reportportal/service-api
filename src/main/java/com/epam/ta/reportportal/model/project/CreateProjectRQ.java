@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.model.project;
 
 import static com.epam.reportportal.model.ValidationConstraints.PROJECT_NAME_REGEXP;
 
-import com.epam.reportportal.annotations.In;
+import com.epam.ta.reportportal.ws.annotations.In;
 import com.epam.reportportal.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;

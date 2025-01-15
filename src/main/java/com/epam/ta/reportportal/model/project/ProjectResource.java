@@ -80,11 +80,17 @@ public class ProjectResource {
     @JsonProperty(value = "login")
     private String login;
 
+    @JsonProperty(value = "email")
+    private String email;
+
     @JsonProperty(value = "projectRole")
     private String projectRole;
 
-    @JsonProperty(value = "email")
-    private String email;
+    @JsonProperty(value = "accountRole")
+    private String accountRole;
+
+    @JsonProperty(value = "accountType")
+    private String accountType;
 
   }
 }

@@ -21,6 +21,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandler;
 import com.epam.ta.reportportal.model.settings.AnalyticsResource;
+import com.epam.ta.reportportal.model.settings.UpdateSettingsRq;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,6 +33,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -45,7 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/settings")
 @PreAuthorize(ADMIN_ONLY)
-@Tag(name = "settings-controller", description = "Settings Controller")
+@Tag(name = "Settings", description = "Settings API collection")
 public class SettingsController {
 
   private final ServerAdminHandler serverHandler;
@@ -56,19 +58,29 @@ public class SettingsController {
   }
 
   @Transactional
-  @RequestMapping(value = "/analytics", method = { RequestMethod.PUT, RequestMethod.POST })
+  @RequestMapping(value = "/analytics", method = {RequestMethod.PUT, RequestMethod.POST})
   @ResponseStatus(HttpStatus.OK)
-  @Operation(summary =  "Update analytics settings")
+  @Operation(summary = "Update analytics settings")
   public OperationCompletionRS saveAnalyticsSettings(
       @RequestBody @Validated AnalyticsResource request,
       @AuthenticationPrincipal ReportPortalUser user) {
     return serverHandler.saveAnalyticsSettings(request);
   }
 
+  @Transactional
+  @PutMapping
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "Update server settings with specified key")
+  public OperationCompletionRS updateServerSettings(
+      @RequestBody @Validated UpdateSettingsRq request,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return serverHandler.updateServerSettings(request, user);
+  }
+
   @Transactional(readOnly = true)
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  @Operation(summary =  "Get server settings")
+  @Operation(summary = "Get server settings")
   public Map<String, String> getServerSettings(@AuthenticationPrincipal ReportPortalUser user) {
     return serverHandler.getServerSettings();
   }

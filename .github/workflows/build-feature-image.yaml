@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened]
     branches:
       - 'develop'
+  workflow_dispatch:
 
 jobs:
   variables-setup:
@@ -34,4 +35,5 @@ jobs:
       version: ${{ needs.variables-setup.outputs.tag }}
       branch: ${{ github.head_ref }}
       date: ${{ needs.variables-setup.outputs.date }}
+      runs-on: ubuntu-latest
     secrets: inherit

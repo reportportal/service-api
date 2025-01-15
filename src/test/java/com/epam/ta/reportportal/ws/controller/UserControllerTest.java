@@ -492,7 +492,7 @@ class UserControllerTest extends BaseMvcTest {
         .contentType(MediaType.MULTIPART_FORM_DATA);
 
     mockMvc.perform(requestBuilder.with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isCreated());
 
     mockMvc.perform(get("/users/2/avatar?thumbnail=false")
             .with(token(oAuthHelper.getDefaultToken())))

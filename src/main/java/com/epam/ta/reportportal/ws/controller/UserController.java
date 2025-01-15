@@ -98,10 +98,10 @@ public class UserController extends BaseController implements UserApi {
   @Transactional
   @PreAuthorize(ALLOWED_TO_USER_ITSELF)
   public ResponseEntity<Void> postUsersUserIdAvatar(Long userId,
-      @Parameter(name = "file", description = "")
-      @RequestPart(value = "file", required = false) MultipartFile file) {
+      @Parameter(name = "file")
+      @RequestPart(value = "file") MultipartFile file) {
 
     editUserHandler.uploadPhoto(userId, file);
-    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    return new ResponseEntity<>(HttpStatus.CREATED);
   }
 }

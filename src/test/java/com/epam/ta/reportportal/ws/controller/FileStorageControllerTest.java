@@ -54,15 +54,15 @@ class FileStorageControllerTest extends BaseMvcTest {
   @Test
   void userPhoto() throws Exception {
     final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
-            "/v1/data/photo")
+            "/users/2/avatar")
         .file(new MockMultipartFile("file", "file", "image/png",
             new ClassPathResource("image/image.png").getInputStream()))
         .contentType(MediaType.MULTIPART_FORM_DATA);
 
     mockMvc.perform(requestBuilder.with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+        .andExpect(status().isNoContent());
 
-    mockMvc.perform(get("/v1/data/photo").with(token(oAuthHelper.getDefaultToken())))
+    mockMvc.perform(get("/users/2/avatar").with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk());
 
     mockMvc.perform(get("/v1/data/default_personal/userphoto?login=default").with(
@@ -84,7 +84,7 @@ class FileStorageControllerTest extends BaseMvcTest {
   @Test
   void uploadLargeUserPhoto() throws Exception {
     final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
-            "/v1/data/photo")
+            "/users/2/avatar")
         .file(new MockMultipartFile("file",
             new ClassPathResource("image/large_image.png").getInputStream()))
         .contentType(MediaType.MULTIPART_FORM_DATA);
@@ -118,7 +118,7 @@ class FileStorageControllerTest extends BaseMvcTest {
   @Test
   void uploadNotImage() throws Exception {
     final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
-            "/v1/data/photo")
+            "/users/2/avatar")
         .file(new MockMultipartFile("file", "text.txt", "text/plain",
             "test".getBytes(StandardCharsets.UTF_8)))
         .contentType(MediaType.MULTIPART_FORM_DATA);

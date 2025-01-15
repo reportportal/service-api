@@ -16,20 +16,13 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_USER_ITSELF;
 
 import com.epam.reportportal.api.UserApi;
-import com.epam.reportportal.api.model.AccountType;
-import com.epam.reportportal.api.model.InstanceRole;
-import com.epam.reportportal.api.model.InstanceUser;
-import com.epam.reportportal.api.model.InstanceUserPage;
-import com.epam.reportportal.api.model.Order;
-import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
+import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
-import com.epam.ta.reportportal.util.ControllerUtils;
-import com.epam.ta.reportportal.util.DefaultUserFilter;
-import java.util.UUID;
+import io.swagger.v3.oas.annotations.Parameter;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -39,18 +32,24 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 public class UserController extends BaseController implements UserApi {
 
   private final GetFileHandler getFileHandler;
+  private final EditUserHandler editUserHandler;
   private final GetUserHandler getUserHandler;
 
   private final HttpServletRequest httpServletRequest;
 
-  public UserController(GetFileHandler getFileHandler, GetUserHandler getUserHandler, HttpServletRequest httpServletRequest) {
+  public UserController(GetFileHandler getFileHandler, EditUserHandler editUserHandler,
+      GetUserHandler getUserHandler,
+      HttpServletRequest httpServletRequest) {
     this.getFileHandler = getFileHandler;
+    this.editUserHandler = editUserHandler;
     this.getUserHandler = getUserHandler;
     this.httpServletRequest = httpServletRequest;
   }
@@ -93,5 +92,16 @@ public class UserController extends BaseController implements UserApi {
         .header(HttpHeaders.CONTENT_DISPOSITION,
             "attachment; filename=\"" + binaryData.getFileName() + "\"")
         .body(resource);
+  }
+
+  @Override
+  @Transactional
+  @PreAuthorize(ALLOWED_TO_USER_ITSELF)
+  public ResponseEntity<Void> postUsersUserIdAvatar(Long userId,
+      @Parameter(name = "file", description = "")
+      @RequestPart(value = "file", required = false) MultipartFile file) {
+
+    editUserHandler.uploadPhoto(userId, file);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 }

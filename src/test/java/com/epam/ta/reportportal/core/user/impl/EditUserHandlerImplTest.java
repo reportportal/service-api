@@ -69,20 +69,20 @@ class EditUserHandlerImplTest {
 
   @Test
   void uploadNotExistUserPhoto() {
-    when(userRepository.findByLogin("not_exists")).thenReturn(Optional.empty());
+    when(userRepository.findById(4004L)).thenReturn(Optional.empty());
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.uploadPhoto("not_exists", new MockMultipartFile("photo", new byte[100]))
+        () -> handler.uploadPhoto(4004L, new MockMultipartFile("photo", new byte[100]))
     );
-    assertEquals("User 'not_exists' not found.", exception.getMessage());
+    assertEquals("User '4004' not found.", exception.getMessage());
   }
 
   @Test
   void uploadOversizePhoto() {
-    when(userRepository.findByLogin("test")).thenReturn(Optional.of(new User()));
+    when(userRepository.findById(1L)).thenReturn(Optional.of(new User()));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.uploadPhoto("test",
+        () -> handler.uploadPhoto(1L,
             new MockMultipartFile("photo", new byte[1024 * 1024 + 10])
         )
     );

@@ -110,7 +110,7 @@ class UserControllerTest extends BaseMvcTest {
     assertEquals(normalizeId(rq.getLogin()), createUserRS.getLogin());
     var user = userRepository.findById(createUserRS.getId());
     assertTrue(user.isPresent());
-    assertEquals(user.get().getUserType(), UserType.SCIM);
+    assertEquals(UserType.SCIM, user.get().getUserType());
     assertNull(user.get().getPassword());
 
     var projectOptional = projectRepository.findByName("default_personal");
@@ -486,13 +486,13 @@ class UserControllerTest extends BaseMvcTest {
   @Test
   void userPhoto() throws Exception {
     final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
-            "/v1/data/photo")
+            "/users/2/avatar")
         .file(new MockMultipartFile("file", "file", "image/png",
             new ClassPathResource("image/image.png").getInputStream()))
         .contentType(MediaType.MULTIPART_FORM_DATA);
 
     mockMvc.perform(requestBuilder.with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+        .andExpect(status().isNoContent());
 
     mockMvc.perform(get("/users/2/avatar?thumbnail=false")
             .with(token(oAuthHelper.getDefaultToken())))

@@ -13,7 +13,7 @@ project.ext {
             'class'      : 90
     ]
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
-    releaseMode = project.hasProperty("releaseMode")
+    releaseMode = project.hasProperty("releaseMode") ? project.releaseMode.toBoolean() : false
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.12.0' : 'develop')
     migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.12.0' : 'feature/orgs')
     //TODO refactor with archive download

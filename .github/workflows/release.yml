@@ -11,7 +11,7 @@ on:
 
 env:
   GH_USER_NAME: github.actor
-  RELEASE_VERSION: 5.13.0
+  RELEASE_VERSION: 5.13.2
   REPOSITORY_URL: 'https://maven.pkg.github.com/'
 
 jobs:

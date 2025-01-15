@@ -104,4 +104,12 @@ public class UserController extends BaseController implements UserApi {
     editUserHandler.uploadPhoto(userId, file);
     return new ResponseEntity<>(HttpStatus.CREATED);
   }
+
+  @Override
+  @Transactional
+  @PreAuthorize(ALLOWED_TO_USER_ITSELF)
+  public ResponseEntity<Void> deleteUsersUserIdAvatar(Long userId) {
+    editUserHandler.deletePhoto(userId);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
 }

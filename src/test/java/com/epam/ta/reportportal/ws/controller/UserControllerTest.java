@@ -502,7 +502,7 @@ class UserControllerTest extends BaseMvcTest {
             token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk());
 
-    mockMvc.perform(delete("/v1/data/photo").with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+    mockMvc.perform(delete("/users/2/avatar").with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isNoContent());
   }
 }

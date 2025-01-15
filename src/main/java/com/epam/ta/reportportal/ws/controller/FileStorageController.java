@@ -111,6 +111,7 @@ public class FileStorageController {
   @Transactional
   @PostMapping(value = "/photo", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   @Operation(summary = "Upload user's photo")
+  @Deprecated(forRemoval = true)
   public OperationCompletionRS uploadPhoto(@RequestParam("file") MultipartFile file,
       @AuthenticationPrincipal ReportPortalUser user) {
     return editUserHandler.uploadPhoto(EntityUtils.normalizeId(user.getUsername()), file);
@@ -119,6 +120,7 @@ public class FileStorageController {
   @Transactional
   @DeleteMapping(value = "/photo")
   @Operation(summary = "Delete user's photo")
+  @Deprecated(forRemoval = true)
   public OperationCompletionRS deletePhoto(@AuthenticationPrincipal ReportPortalUser user) {
     return editUserHandler.deletePhoto(EntityUtils.normalizeId(user.getUsername()));
   }

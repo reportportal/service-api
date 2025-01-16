@@ -66,6 +66,13 @@ public interface EditUserHandler {
   OperationCompletionRS deletePhoto(String username);
 
   /**
+   * Delete user's photo.
+   *
+   * @param userId id of user
+   */
+  void deletePhoto(Long userId);
+
+  /**
    * Change password
    *
    * @param currentUser      User performing the edit operation

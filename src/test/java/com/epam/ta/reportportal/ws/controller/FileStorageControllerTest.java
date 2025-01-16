@@ -69,13 +69,13 @@ class FileStorageControllerTest extends BaseMvcTest {
             token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk());
 
-    mockMvc.perform(delete("/v1/data/photo").with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
+    mockMvc.perform(delete("/users/2/avatar").with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isNoContent());
   }
 
   @Test
   @Sql("/db/user/user-viewer.sql")
-  public void testUserPhotoAccessDeniedForCustomer() throws Exception {
+  void testUserPhotoAccessDeniedForCustomer() throws Exception {
     mockMvc.perform(get("/v1/data/default_personal/userphoto?login=default").with(
             token(oAuthHelper.getCustomerToken())))
         .andExpect(status().isForbidden());

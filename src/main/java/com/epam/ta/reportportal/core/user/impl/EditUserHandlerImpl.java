@@ -192,6 +192,15 @@ public class EditUserHandlerImpl implements EditUserHandler {
   }
 
   @Override
+  public void deletePhoto(Long userId) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
+    expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED,
+        "Unable to change photo for external user");
+    userBinaryDataService.deleteUserPhoto(user);
+  }
+
+  @Override
   public OperationCompletionRS changePassword(ReportPortalUser loggedInUser,
       ChangePasswordRQ request) {
     User user = userRepository.findByLogin(loggedInUser.getUsername())

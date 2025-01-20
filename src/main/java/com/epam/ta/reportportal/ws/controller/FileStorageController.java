@@ -19,13 +19,12 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.file.DeleteFilesHandler;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.net.HttpHeaders;
@@ -41,7 +40,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -83,47 +81,6 @@ public class FileStorageController {
         projectExtractor.extractMembershipDetails(user, projectKey)));
   }
 
-  @Transactional(readOnly = true)
-  @GetMapping(value = "/photo")
-  @Operation(summary = "Get photo of current user")
-  @Deprecated(forRemoval = true)
-  public void getMyPhoto(@AuthenticationPrincipal ReportPortalUser user,
-      HttpServletResponse response,
-      @RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail) {
-    toResponse(response, getFileHandler.getUserPhoto(user, loadThumbnail));
-  }
-
-  @Transactional(readOnly = true)
-  @GetMapping(value = "/{projectKey}/userphoto")
-  @Operation(summary = "Get user's photo")
-  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
-  @Deprecated(forRemoval = true)
-  public void getUserPhoto(@PathVariable String projectKey,
-      @RequestParam(value = "login") String username,
-      @RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail,
-      HttpServletResponse response,
-      @AuthenticationPrincipal ReportPortalUser user) {
-    BinaryData userPhoto = getFileHandler.getUserPhoto(EntityUtils.normalizeId(username), user,
-        projectKey, loadThumbnail);
-    toResponse(response, userPhoto);
-  }
-
-  @Transactional
-  @PostMapping(value = "/photo", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-  @Operation(summary = "Upload user's photo")
-  @Deprecated(forRemoval = true)
-  public OperationCompletionRS uploadPhoto(@RequestParam("file") MultipartFile file,
-      @AuthenticationPrincipal ReportPortalUser user) {
-    return editUserHandler.uploadPhoto(EntityUtils.normalizeId(user.getUsername()), file);
-  }
-
-  @Transactional
-  @DeleteMapping(value = "/photo")
-  @Operation(summary = "Delete user's photo")
-  @Deprecated(forRemoval = true)
-  public OperationCompletionRS deletePhoto(@AuthenticationPrincipal ReportPortalUser user) {
-    return editUserHandler.deletePhoto(EntityUtils.normalizeId(user.getUsername()));
-  }
 
   @Transactional
   @PreAuthorize(IS_ADMIN)

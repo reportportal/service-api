@@ -65,20 +65,8 @@ class FileStorageControllerTest extends BaseMvcTest {
     mockMvc.perform(get("/users/2/avatar").with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk());
 
-    mockMvc.perform(get("/v1/data/default_personal/userphoto?login=default").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
-
     mockMvc.perform(delete("/users/2/avatar").with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isNoContent());
-  }
-
-  @Test
-  @Sql("/db/user/user-viewer.sql")
-  void testUserPhotoAccessDeniedForCustomer() throws Exception {
-    mockMvc.perform(get("/v1/data/default_personal/userphoto?login=default").with(
-            token(oAuthHelper.getCustomerToken())))
-        .andExpect(status().isForbidden());
   }
 
   @Test
@@ -157,23 +145,11 @@ class FileStorageControllerTest extends BaseMvcTest {
         .andExpect(status().isOk());
   }
 
-  @Test
-  void getUserPhotoNegative() throws Exception {
-    mockMvc.perform(get("/v1/data/photo").with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  void getUserPhotoByLoginNegative() throws Exception {
-    mockMvc.perform(get("/v1/data/superadmin_personal/userphoto?login=superadmin").with(
-            token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
-  }
 
   @Test
   void getNotExistUserPhoto() throws Exception {
     mockMvc.perform(
-            get("/v1/data/userphoto?login=not_exist")
+            get("/users/999/avatar")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound());
   }

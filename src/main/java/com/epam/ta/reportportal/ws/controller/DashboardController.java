@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.dashboard.AddWidgetRq;
 import com.epam.ta.reportportal.model.dashboard.CreateDashboardRQ;
+import com.epam.ta.reportportal.model.dashboard.DashboardConfigResource;
 import com.epam.ta.reportportal.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.model.dashboard.UpdateDashboardRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -152,6 +153,17 @@ public class DashboardController {
   public DashboardResource getDashboard(@PathVariable String projectName,
       @PathVariable Long dashboardId, @AuthenticationPrincipal ReportPortalUser user) {
     return getDashboardHandler.getDashboard(
+        dashboardId, projectExtractor.extractProjectDetails(user, projectName));
+  }
+
+
+  @Transactional
+  @GetMapping(value = "/copy/{dashboardId}")
+  @ResponseStatus(OK)
+  @Operation(summary = "Get Dashboard configuration including its widgets and filters if any")
+  public DashboardConfigResource getDashboardConfig(@PathVariable String projectName,
+      @PathVariable Long dashboardId, @AuthenticationPrincipal ReportPortalUser user) {
+    return getDashboardHandler.getDashboardConfig(
         dashboardId, projectExtractor.extractProjectDetails(user, projectName));
   }
 }

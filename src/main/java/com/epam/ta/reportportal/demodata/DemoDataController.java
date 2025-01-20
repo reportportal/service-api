@@ -36,7 +36,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANA
 @RestController
 @RequestMapping("/v1/demo/{projectName}")
 @PreAuthorize(PROJECT_MANAGER)
-@Tag(name = "demo-data-controller", description = "Demo Data Controller")
+@Tag(name = "Demo Data", description = "Demo data API collection")
 class DemoDataController {
 
 	private final DemoDataService demoDataService;

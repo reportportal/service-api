@@ -113,7 +113,7 @@ public class ReportingTopologyConfiguration {
 
   @Bean
   Queue ttlQueue() {
-    return QueueBuilder.durable(TTL_QUEUE).deadLetterExchange(REPORTING_EXCHANGE)
+    return QueueBuilder.durable(TTL_QUEUE).quorum().deadLetterExchange(REPORTING_EXCHANGE)
         .deadLetterRoutingKey(DEFAULT_CONSISTENT_HASH_ROUTING_KEY)
         .build();
   }
@@ -125,7 +125,7 @@ public class ReportingTopologyConfiguration {
 
   @Bean
   public Queue reportingParkingLot() {
-    return QueueBuilder.durable(REPORTING_PARKING_LOT)
+    return QueueBuilder.durable(REPORTING_PARKING_LOT).quorum()
         .ttl((int) TimeUnit.DAYS.toMillis(parkingLotTtl))
         .build();
   }
@@ -140,7 +140,7 @@ public class ReportingTopologyConfiguration {
   }
 
   private Queue buildQueue(String queueName) {
-    Queue queue = QueueBuilder.durable(queueName).build();
+    Queue queue = QueueBuilder.durable(queueName).quorum().build();
     queue.setShouldDeclare(true);
     queue.setAdminsThatShouldDeclare(amqpAdmin);
     amqpAdmin.declareQueue(queue);

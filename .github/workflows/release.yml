@@ -12,4 +12,4 @@ jobs:
       release_version: ${{ github.event.release.tag_name }}
       repository_url: 'https://maven.pkg.github.com/'
       gradle_command: ./gradlew build
-      branch: master
+      branch: feature/EPMRPP-98957

@@ -1,18 +1,15 @@
 name: Release Workflow
 
 on:
-  push:
-    branches:
-      - feature/EPMRPP-98957
-  #release:
-    #types: [published]
+  release:
+    types: [published]
 
 jobs:
   publish-artifacts:
-    uses: reportportal/.github/.github/workflows/java-build-release.yaml@feature/EPMRPP-98957 #Don't forget replace with master before merge
+    uses: reportportal/.github/.github/workflows/java-build-release.yaml@master
 
     with:
       release_version: ${{ github.event.release.tag_name }}
       repository_url: 'https://maven.pkg.github.com/'
       gradle_command: ./gradlew build
-      branch: feature/EPMRPP-98957 #Don't forget replace with master before merge
+      branch: master

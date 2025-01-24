@@ -6,7 +6,7 @@ on:
 
 jobs:
   publish-artifacts:
-    uses: reportportal/.github/.github/workflows/java-build-release.yaml@22bf340
+    uses: reportportal/.github/.github/workflows/java-build-release.yaml@feature/EPMRPP-98957
 
     with:
       release_version: ${{ github.event.release.tag_name }}

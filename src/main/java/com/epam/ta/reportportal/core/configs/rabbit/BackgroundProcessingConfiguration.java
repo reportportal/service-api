@@ -5,15 +5,12 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(prefix = "rp.searchengine", name = "host")
 @Conditional(Conditions.NotTestCondition.class)
 public class BackgroundProcessingConfiguration {
 
@@ -23,7 +20,7 @@ public class BackgroundProcessingConfiguration {
 
   @Bean
   Queue logMessageSavingQueue() {
-    return QueueBuilder.durable(LOG_MESSAGE_SAVING_QUEUE_NAME).quorum().build();
+    return new Queue(LOG_MESSAGE_SAVING_QUEUE_NAME);
   }
 
   @Bean

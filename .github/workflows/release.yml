@@ -6,7 +6,8 @@ on:
 
 jobs:
   publish-artifacts:
-    uses: reportportal/.github/workflows/java-build-release.yaml@22bf340
+    uses: reportportal/.github/.github/workflows/java-build-release.yaml@22bf340
+
     with:
       release_version: ${{ github.event.release.tag_name }}
       repository_url: 'https://maven.pkg.github.com/'

@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.ta.reportportal.model.widget;
+package com.epam.ta.reportportal.model.dashboard;
 
-import com.epam.ta.reportportal.model.dashboard.DashboardResource.WidgetObjectModel;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,12 +29,13 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class WidgetConfigResource {
+@AllArgsConstructor
+public class DashboardPreconfiguredRq extends CreateDashboardRQ {
 
-  private WidgetObjectModel widgetObject;
-
-  private WidgetResource widgetResource;
+  @NotNull
+  @JsonProperty(value = "config", required = true)
+  @Schema(requiredMode = RequiredMode.REQUIRED)
+  private DashboardConfigResource dashboardConfig;
 
 }

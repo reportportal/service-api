@@ -18,17 +18,21 @@ package com.epam.ta.reportportal.model.dashboard;
 import com.epam.ta.reportportal.model.widget.WidgetConfigResource;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class DashboardConfigResource {
 
   @JsonProperty(value = "widgets")
-  private List<WidgetConfigResource> widgets;
+  private List<WidgetConfigResource> widgetsConfig;
 
 }

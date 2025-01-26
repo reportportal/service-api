@@ -20,7 +20,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
-import com.epam.ta.reportportal.model.dashboard.DashboardResource.WidgetObjectModel;
+import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.model.widget.WidgetConfigResource;
 import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
 import java.util.List;
@@ -39,19 +39,20 @@ public class WidgetConfigurationService {
 
   public List<WidgetConfigResource> getWidgetsConfiguration(Dashboard dashboard,
       ProjectDetails projectDetails) {
-    return dashboard.getDashboardWidgets().stream().map(WidgetConverter.TO_OBJECT_MODEL)
+    return dashboard.getDashboardWidgets().stream()
         .map(widget -> getWidgetConfig(widget, projectDetails)).collect(Collectors.toList());
   }
 
-  private WidgetConfigResource getWidgetConfig(WidgetObjectModel widgetObject,
+  private WidgetConfigResource getWidgetConfig(DashboardWidget dashboardWidget,
       ProjectDetails projectDetails) {
-    var widget = widgetRepository.findByIdAndProjectId(widgetObject.getWidgetId(),
+    var widgetId = dashboardWidget.getWidget().getId();
+    var widget = widgetRepository.findByIdAndProjectId(widgetId,
         projectDetails.getProjectId()).orElseThrow(
-        () -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
-            widgetObject.getWidgetId(),
+        () -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT, widgetId,
             projectDetails.getProjectName()
         ));
-    return WidgetConfigResource.builder().widgetObject(widgetObject)
+    return WidgetConfigResource.builder()
+        .widgetObject(WidgetConverter.TO_OBJECT_MODEL.apply(dashboardWidget))
         .widgetResource(WidgetConverter.TO_WIDGET_RESOURCE.apply(widget)).build();
   }
 

@@ -31,6 +31,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import lombok.EqualsAndHashCode;
 
 /**
  * JSON Representation of ReportPortal's UserFilter domain object
@@ -38,6 +39,7 @@ import javax.validation.constraints.Size;
  * @author Aliaksei_Makayed
  */
 
+@EqualsAndHashCode(callSuper = true)
 @JsonInclude(Include.NON_NULL)
 public class UserFilterResource extends OwnedResource {
 

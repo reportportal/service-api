@@ -13,3 +13,5 @@ jobs:
       repository_url: 'https://maven.pkg.github.com/'
       gradle_command: ./gradlew build
       branch: feature/EPMRPP-98957
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

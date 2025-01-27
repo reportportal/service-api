@@ -19,15 +19,14 @@ package com.epam.ta.reportportal.core.dashboard.impl;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.core.widget.WidgetConfigurationService;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
-import com.epam.ta.reportportal.model.dashboard.DashboardConfigResource;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.model.dashboard.DashboardConfigResource;
 import com.epam.ta.reportportal.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.DashboardConverter;
@@ -55,20 +54,20 @@ public class GetDashboardHandlerImpl implements GetDashboardHandler {
 
   @Override
   public DashboardResource getDashboard(Long id, MembershipDetails membershipDetails) {
-    var dashboard = getDashboardById(id, projectDetails);
+    var dashboard = getDashboardById(id, membershipDetails);
     return DashboardConverter.TO_RESOURCE.apply(dashboard);
   }
 
   @Override
   public DashboardConfigResource getDashboardConfig(Long id,
-      ReportPortalUser.ProjectDetails projectDetails) {
-    var dashboard = getDashboardById(id, projectDetails);
+      MembershipDetails membershipDetails) {
+    var dashboard = getDashboardById(id, membershipDetails);
     var widgetsConfiguration = widgetConfigurationService.getWidgetsConfiguration(
-        dashboard, projectDetails);
+        dashboard, membershipDetails);
     return DashboardConfigResource.builder().widgets(widgetsConfiguration).build();
   }
 
-  private Dashboard getDashboardById(Long id, ProjectDetails projectDetails) {
+  private Dashboard getDashboardById(Long id, MembershipDetails membershipDetails) {
     return dashboardRepository.findByIdAndProjectId(id, membershipDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
 						id,

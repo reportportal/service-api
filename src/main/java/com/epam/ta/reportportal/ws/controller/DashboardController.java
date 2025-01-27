@@ -168,9 +168,9 @@ public class DashboardController {
   @GetMapping(value = "/copy/{dashboardId}")
   @ResponseStatus(OK)
   @Operation(summary = "Get Dashboard configuration including its widgets and filters if any")
-  public DashboardConfigResource getDashboardConfig(@PathVariable String projectName,
+  public DashboardConfigResource getDashboardConfig(@PathVariable String projectKey,
       @PathVariable Long dashboardId, @AuthenticationPrincipal ReportPortalUser user) {
     return getDashboardHandler.getDashboardConfig(
-        dashboardId, projectExtractor.extractProjectDetails(user, projectName));
+        dashboardId, projectExtractor.extractMembershipDetails(user, projectKey));
   }
 }

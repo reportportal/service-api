@@ -56,10 +56,10 @@ public interface GetDashboardHandler {
    * Get Dashboard configuration including its widgets and filters if any
    *
    * @param id Dashboard id
-   * @param projectDetails Project details
+   * @param membershipDetails Project details
    * @return Dashboard configuration
    */
   DashboardConfigResource getDashboardConfig(Long id,
-      ReportPortalUser.ProjectDetails projectDetails);
+      MembershipDetails membershipDetails);
 
 }

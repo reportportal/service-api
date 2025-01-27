@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.dashboard;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.model.dashboard.DashboardConfigResource;
 import com.epam.ta.reportportal.model.dashboard.DashboardResource;
 import org.springframework.data.domain.Pageable;
 
@@ -29,25 +30,36 @@ import org.springframework.data.domain.Pageable;
  */
 public interface GetDashboardHandler {
 
-	/**
-	 * Get dashboard resource by provided id
-	 *
-	 * @param id             Provided id
+  /**
+   * Get dashboard resource by provided id
+   *
+   * @param id             Provided id
    * @param membershipDetails Membership details
-	 * @return {@link DashboardResource}
-	 */
-	DashboardResource getDashboard(Long id, MembershipDetails membershipDetails);
+   * @return {@link DashboardResource}
+   */
+  DashboardResource getDashboard(Long id, MembershipDetails membershipDetails);
 
-	/**
-	 * Get permitted projects for concrete user for concrete project
-	 *
+  /**
+   * Get permitted projects for concrete user for concrete project
+   *
    * @param membershipDetails Membership details
-	 * @param user           User
-	 * @param pageable       Page Details
-	 * @param filter         {@link Filter}
-	 * @return Page of permitted dashboard resources
-	 */
-	Iterable<DashboardResource> getDashboards(MembershipDetails membershipDetails, Pageable pageable, Filter filter,
-			ReportPortalUser user);
+   * @param user           User
+   * @param pageable       Page Details
+   * @param filter         {@link Filter}
+   * @return Page of permitted dashboard resources
+   */
+  Iterable<DashboardResource> getDashboards(MembershipDetails membershipDetails,
+      Pageable pageable, Filter filter,
+      ReportPortalUser user);
+
+  /**
+   * Get Dashboard configuration including its widgets and filters if any
+   *
+   * @param id Dashboard id
+   * @param projectDetails Project details
+   * @return Dashboard configuration
+   */
+  DashboardConfigResource getDashboardConfig(Long id,
+      ReportPortalUser.ProjectDetails projectDetails);
 
 }

@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/demo/{projectKey}")
 @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
-@Tag(name = "demo-data-controller", description = "Demo Data Controller")
+@Tag(name = "Demo Data", description = "Demo data API collection")
 class DemoDataController {
 
 	private final DemoDataService demoDataService;

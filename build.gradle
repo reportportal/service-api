@@ -94,18 +94,18 @@ dependencies {
     implementation 'org.springframework.security:spring-security-oauth2-client'
     implementation 'org.springframework.security:spring-security-oauth2-resource-server'
     implementation 'org.springframework.security:spring-security-web'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
     implementation 'org.springframework:spring-context-support'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
 
 
-    implementation 'com.opencsv:opencsv:5.9'
+    implementation 'com.opencsv:opencsv:5.10'
     implementation "org.jooq:jooq:${jooqVersion}"
 
     // Optional for spring-boot-starter-amqp
-    implementation "com.rabbitmq:http-client:5.2.0"
+    implementation "com.rabbitmq:http-client:5.3.0"
 
     // check authentication error response format for versions higher than 6.21.3
-    implementation('net.sf.jasperreports:jasperreports:6.21.3') {
+    implementation('net.sf.jasperreports:jasperreports:6.21.3') { //TODO: consider upgrade to 7.0.1+
         exclude group: 'com.fasterxml.jackson.dataformat', module: 'jackson-dataformat-xml'
     }
     implementation 'jakarta.inject:jakarta.inject-api:2.0.1'
@@ -113,9 +113,7 @@ dependencies {
 
     implementation 'xerces:xercesImpl:2.12.2'
     implementation 'com.itextpdf:itextpdf:5.5.13.4'
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.78.1'
-    // JasperReport's export to XLS uses Apache POI
-    implementation 'org.apache.poi:poi:4.1.2'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.80'
     implementation 'com.google.api-client:google-api-client:2.6.0'
 
     implementation('commons-validator:commons-validator:1.9.0') {
@@ -123,16 +121,13 @@ dependencies {
     }
     implementation 'org.springframework.security:spring-security-acl'
     implementation 'com.github.ben-manes.caffeine:caffeine'
-    implementation 'commons-fileupload:commons-fileupload:1.5' // TODO: to remove
 
+    // JasperReport's export to XLS uses Apache POI
+    implementation 'org.apache.poi:poi:4.1.2' // TODO: consider upgrade to 5.4.0+
     implementation "org.apache.jclouds.api:filesystem:${jcloudsVersion}"
-
-    implementation 'org.apache.commons:commons-compress:1.27.1'
+    implementation 'org.apache.commons:commons-compress'
 
     implementation "org.hibernate.validator:hibernate-validator:${hibernateValidatorVersion}"
-
-    // Metrics
-    implementation 'io.micrometer:micrometer-registry-prometheus:1.14.2'
 
     // add lombok support
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
@@ -146,7 +141,6 @@ dependencies {
     implementation 'org.springframework:spring-test'
     testImplementation 'org.flywaydb.flyway-test-extensions:flyway-spring-test:10.0.0'
 
-    testImplementation 'io.jsonwebtoken:jjwt-api:0.12.5'
     testImplementation 'io.jsonwebtoken:jjwt-impl:0.12.5'
     testImplementation 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 }

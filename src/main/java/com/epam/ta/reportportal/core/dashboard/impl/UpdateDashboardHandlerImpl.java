@@ -110,7 +110,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
             dashboardId,
             projectDetails.getProjectName()
         ));
-    Set<DashboardWidget> dashboardWidgets = dashboard.getDashboardWidgets();
+    Set<DashboardWidget> dashboardWidgets = dashboard.getWidgets();
 
     validateWidgetBeforeAddingToDashboard(rq, dashboard, dashboardWidgets);
 
@@ -171,7 +171,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
       return result;
     }
 
-    DashboardWidget toRemove = dashboard.getDashboardWidgets()
+    DashboardWidget toRemove = dashboard.getWidgets()
         .stream()
         .filter(dashboardWidget -> widget.getId().equals(dashboardWidget.getId().getWidgetId()))
         .findFirst()

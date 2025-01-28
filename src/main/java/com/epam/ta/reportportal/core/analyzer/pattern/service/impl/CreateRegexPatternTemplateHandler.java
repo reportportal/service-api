@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.project.config.pattern.CreatePatternTemplateRQ;
 import com.epam.reportportal.rules.exception.ErrorType;
-import javax.persistence.PersistenceException;
+import jakarta.persistence.PersistenceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

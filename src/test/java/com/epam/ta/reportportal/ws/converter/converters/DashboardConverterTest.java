@@ -66,7 +66,7 @@ class DashboardConverterTest {
     assertEquals(resource.getName(), dashboard.getName());
     assertEquals(resource.getDescription(), dashboard.getDescription());
     assertEquals(resource.getOwner(), dashboard.getOwner());
-    assertEquals(resource.getWidgets().size(), dashboard.getDashboardWidgets().size());
+    assertEquals(resource.getWidgets().size(), dashboard.getWidgets().size());
   }
 
   private static Dashboard getDashboard() {

@@ -39,7 +39,7 @@ public class WidgetConfigurationService {
 
   public List<WidgetConfigResource> getWidgetsConfiguration(Dashboard dashboard,
       ProjectDetails projectDetails) {
-    return dashboard.getDashboardWidgets().stream().map(WidgetConverter.TO_OBJECT_MODEL)
+    return dashboard.getWidgets().stream().map(WidgetConverter.TO_OBJECT_MODEL)
         .map(widget -> getWidgetConfig(widget, projectDetails)).collect(Collectors.toList());
   }
 

@@ -20,11 +20,15 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Dzmitry_Kavalets
  */
+@Setter
+@Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RestorePasswordRQ {
 
@@ -33,15 +37,7 @@ public class RestorePasswordRQ {
 	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String email;
 
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	@Override
+  @Override
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;

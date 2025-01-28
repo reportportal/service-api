@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.model.filter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * @author Pavel Bortnik

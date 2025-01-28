@@ -18,9 +18,10 @@ package com.epam.ta.reportportal.core.dashboard.impl;
 
 import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.CreateDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardCreatedEvent;
@@ -29,28 +30,21 @@ import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.converter.builders.DashboardBuilder;
-import com.epam.reportportal.rules.exception.ErrorType;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
  * @author Pavel Bortnik
  */
 @Service
+@RequiredArgsConstructor
 public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
 
   private final DashboardRepository dashboardRepository;
   private final MessageBus messageBus;
 
   private final static int DASHBOARD_LIMIT = 3000;
-
-  @Autowired
-  public CreateDashboardHandlerImpl(DashboardRepository dashboardRepository,
-      MessageBus messageBus) {
-    this.dashboardRepository = dashboardRepository;
-    this.messageBus = messageBus;
-  }
 
   @Override
   public EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails,

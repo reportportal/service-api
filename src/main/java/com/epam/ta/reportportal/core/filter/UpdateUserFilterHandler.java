@@ -43,6 +43,17 @@ public interface UpdateUserFilterHandler {
       ReportPortalUser user);
 
   /**
+   * Creates new filter for a specific project and user and creates copy on duplicate name.
+   *
+   * @param createFilterRQ The request containing the filter creation data
+   * @param projectName    The name of the project where the filter will be created
+   * @param user           The {@link ReportPortalUser} who is creating the filter
+   * @return An {@link EntryCreatedRS} instance containing the created filter's ID
+   */
+  EntryCreatedRS createFilterCopyOnDuplicate(UpdateUserFilterRQ createFilterRQ, String projectName,
+      ReportPortalUser user);
+
+  /**
    * Update user filter with specified id
    *
    * @param userFilterId   User filter id

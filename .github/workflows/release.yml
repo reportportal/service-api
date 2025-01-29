@@ -6,7 +6,7 @@ on:
 
 jobs:
   publish-artifacts:
-    uses: reportportal/.github/.github/workflows/java-build-release.yaml@feature/main
+    uses: reportportal/.github/.github/workflows/java-build-release.yaml@main
 
     with:
       release_version: ${{ github.event.release.tag_name }}

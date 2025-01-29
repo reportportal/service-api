@@ -6,10 +6,9 @@ on:
 
 jobs:
   publish-artifacts:
-    uses: reportportal/.github/.github/workflows/java-build-release.yaml@main
+    uses: reportportal/.github/.github/workflows/java-build-release.yaml@EPMRPP-89957/changes-review
 
     with:
       release_version: ${{ github.event.release.tag_name }}
-      repository_url: 'https://maven.pkg.github.com/'
-      gradle_command: ./gradlew build
-      branch: master
+      artifact_upload_url: 'https://maven.pkg.github.com/'
+      branch: EPMRPP-89957/changes-review

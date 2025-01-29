@@ -10,6 +10,6 @@ jobs:
 
     with:
       release_version: ${{ github.event.release.tag_name }}
-      repository_url: 'https://maven.pkg.github.com/'
-      gradle_command: ./gradlew build
+      artifact_upload_url: 'https://maven.pkg.github.com/'
+      java_version: "21"
       branch: master

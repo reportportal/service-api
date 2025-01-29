@@ -6,10 +6,10 @@ on:
 
 jobs:
   publish-artifacts:
-    uses: reportportal/.github/.github/workflows/java-build-release.yaml@feature/EPMRPP-98957
+    uses: reportportal/.github/.github/workflows/java-build-release.yaml@feature/main
 
     with:
       release_version: ${{ github.event.release.tag_name }}
       repository_url: 'https://maven.pkg.github.com/'
       gradle_command: ./gradlew build
-      branch: feature/EPMRPP-98957
+      branch: master

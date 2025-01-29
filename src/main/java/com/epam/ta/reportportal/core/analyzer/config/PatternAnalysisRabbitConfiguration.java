@@ -49,12 +49,12 @@ public class PatternAnalysisRabbitConfiguration {
 
   @Bean
   public Queue patternAnalysisStringQueue() {
-    return QueueBuilder.durable(PATTERN_ANALYSIS_STRING).quorum().build();
+    return QueueBuilder.durable(PATTERN_ANALYSIS_STRING).build();
   }
 
   @Bean
   public Queue patternAnalysisRegexQueue() {
-    return QueueBuilder.durable(PATTERN_ANALYSIS_REGEX).quorum().build();
+    return QueueBuilder.durable(PATTERN_ANALYSIS_REGEX).build();
   }
 
   @Bean

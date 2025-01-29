@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.model.externalsystem;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>

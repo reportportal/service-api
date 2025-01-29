@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.job.InterruptBrokenLaunchesJob;
 import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
-import javax.inject.Named;
+import jakarta.inject.Named;
 import javax.sql.DataSource;
 import org.quartz.Job;
 import org.quartz.JobDetail;

@@ -62,9 +62,9 @@ public class GetDashboardHandlerImpl implements GetDashboardHandler {
   public DashboardConfigResource getDashboardConfig(Long id,
       ReportPortalUser.ProjectDetails projectDetails) {
     var dashboard = getDashboardById(id, projectDetails);
-    var widgetsConfiguration = widgetConfigurationService.getWidgetsConfiguration(
+    var widgets = widgetConfigurationService.getWidgetsConfiguration(
         dashboard, projectDetails);
-    return DashboardConfigResource.builder().widgets(widgetsConfiguration).build();
+    return DashboardConfigResource.builder().widgetsConfig(widgets).build();
   }
 
   private Dashboard getDashboardById(Long id, ProjectDetails projectDetails) {

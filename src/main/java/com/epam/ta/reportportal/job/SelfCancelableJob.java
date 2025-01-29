@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.job;
 
+import java.time.Instant;
 import java.util.Date;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;

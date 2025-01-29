@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.configs.rabbit;
 import com.epam.ta.reportportal.core.configs.Conditions;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.MessageBusImpl;
-import java.util.Map;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.AnonymousQueue;
 import org.springframework.amqp.core.Base64UrlNamingStrategy;
@@ -28,7 +27,6 @@ import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -46,6 +44,7 @@ public class InternalConfiguration {
   /**
    * Exchanges
    */
+  public static final String EXCHANGE_EVENTS = "broadcast.events";
   public static final String EXCHANGE_ACTIVITY = "activity";
   public static final String EXCHANGE_ATTACHMENT = "attachment";
   public static final String EXCHANGE_NOTIFICATION = "notification";
@@ -53,6 +52,7 @@ public class InternalConfiguration {
   /**
    * Queues
    */
+  public static final String KEY_EVENTS = "broadcast.events";
   public static final String QUEUE_ACTIVITY = "activity";
   public static final String QUEUE_ACTIVITY_KEY = "activity.#";
   public static final String QUEUE_ATTACHMENT_DELETE = "attachment.delete";
@@ -67,6 +67,11 @@ public class InternalConfiguration {
   }
 
   //  Exchanges definition
+
+  @Bean
+  public FanoutExchange eventsExchange() {
+    return new FanoutExchange(EXCHANGE_EVENTS, false, false);
+  }
 
   @Bean
   public TopicExchange activityExchange() {
@@ -84,27 +89,39 @@ public class InternalConfiguration {
   }
 
   //  Queues definition
+
+  @Bean
+  public Queue eventsQueue() {
+    return new AnonymousQueue(new Base64UrlNamingStrategy(KEY_EVENTS + "."));
+  }
+
   @Bean
   public Queue activityQueue() {
-    return QueueBuilder.durable(QUEUE_ACTIVITY).quorum().build();
+    return new Queue(QUEUE_ACTIVITY);
   }
 
   @Bean
   public Queue deleteAttachmentQueue() {
-    return QueueBuilder.durable(QUEUE_ATTACHMENT_DELETE).quorum().build();
+    return new Queue(QUEUE_ATTACHMENT_DELETE);
   }
 
   @Bean
   public Queue queryQueue() {
-    return QueueBuilder.durable(QUEUE_QUERY_RQ).quorum().build();
+    return new Queue(QUEUE_QUERY_RQ);
   }
 
   @Bean
   public Queue emailNotificationQueue() {
-    return QueueBuilder.durable(QUEUE_EMAIL).quorum().build();
+    return new Queue(QUEUE_EMAIL);
   }
 
   //  Bindings
+
+  @Bean
+  public Binding eventsQueueBinding() {
+    return BindingBuilder.bind(eventsQueue()).to(eventsExchange());
+  }
+
   @Bean
   public Binding eventsActivityBinding() {
     return BindingBuilder.bind(activityQueue()).to(activityExchange()).with(QUEUE_ACTIVITY_KEY);
@@ -118,7 +135,6 @@ public class InternalConfiguration {
 
   @Bean
   public Binding emailNotificationBinding() {
-    return BindingBuilder.bind(emailNotificationQueue()).to(notificationExchange())
-        .with(QUEUE_EMAIL);
+    return BindingBuilder.bind(emailNotificationQueue()).to(notificationExchange()).with(QUEUE_EMAIL);
   }
 }

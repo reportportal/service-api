@@ -12,3 +12,4 @@ jobs:
       release_version: ${{ github.event.release.tag_name }}
       artifact_upload_url: 'https://maven.pkg.github.com/'
       branch: EPMRPP-89957/changes-review
+      java_version: "21"

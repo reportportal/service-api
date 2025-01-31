@@ -21,10 +21,14 @@ import static com.epam.ta.reportportal.entity.user.UserRole.ADMINISTRATOR;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.dao.GroupRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 /**
@@ -34,10 +38,15 @@ import org.springframework.stereotype.Service;
 public class ProjectExtractor {
 
   private final ProjectUserRepository projectUserRepository;
+  private final GroupRepository groupRepository;
 
   @Autowired
-  public ProjectExtractor(ProjectUserRepository projectUserRepository) {
+  public ProjectExtractor(
+      ProjectUserRepository projectUserRepository,
+      GroupRepository groupRepository
+  ) {
     this.projectUserRepository = projectUserRepository;
+    this.groupRepository = groupRepository;
   }
 
   /**
@@ -71,7 +80,27 @@ public class ProjectExtractor {
    */
   public Optional<ReportPortalUser.ProjectDetails> findProjectDetails(ReportPortalUser user,
       String projectName) {
-    return projectUserRepository.findDetailsByUserIdAndProjectName(user.getUserId(), projectName);
+    Optional<ReportPortalUser.ProjectDetails> projectDetails = projectUserRepository.findDetailsByUserIdAndProjectName(
+        user.getUserId(),
+        projectName
+    );
+
+    if (projectDetails.isPresent()) {
+      Long projectId = projectDetails.get().getProjectId();
+      List<ProjectRole> projectRoles = groupRepository.getUserProjectRoles(
+          user.getUserId(),
+          projectId);
+      projectRoles.add(projectDetails.get().getProjectRole());
+//      projectDetails.setHighestProjectRole(projectRoles);
+      return projectDetails;
+    }
+
+//    Optional<ReportPortalUser.ProjectDetails> groupProjectDetails = groupRepository.getUserProjectDetails(
+//        user.getUserId(),
+//        projectName
+//    );
+
+    return projectDetails;
   }
 
   /**
@@ -101,5 +130,6 @@ public class ProjectExtractor {
             "Please check the list of your available projects."
         ));
   }
+
 
 }

@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.core.configs.rabbit;
 
-import com.epam.ta.reportportal.core.configs.Conditions;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.core.configs.Conditions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.http.client.Client;
 import java.net.URI;
@@ -26,6 +26,7 @@ import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory.ConfirmType;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -70,6 +71,7 @@ public class RabbitMqConfiguration {
     final CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory(
         addresses);
     cachingConnectionFactory.setVirtualHost(virtualHost);
+    cachingConnectionFactory.setPublisherConfirmType(ConfirmType.SIMPLE);
     return cachingConnectionFactory;
   }
 

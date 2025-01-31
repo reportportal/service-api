@@ -42,12 +42,4 @@ public interface UserInvitationHandler {
    * @return the invitation corresponding to the given ID
    */
   Invitation getInvitation(String invitationId, String baseUrl);
-
-/*  *//**
-   * Validate the invitation request.
-   *
-   * @param invitationRequest the invitation request to validate
-   * @param rpUser the user making the request
-   *//*
-  void validateInvitationRequest(InvitationRequest invitationRequest, ReportPortalUser rpUser);*/
 }

@@ -115,7 +115,7 @@ public class InvitationPermission implements Permission {
 
     expect(orgUser.getOrganizationRole()
         .sameOrHigherThan(OrganizationRole.valueOf(orgInfo.getOrgRole().name())), isEqual(true))
-        .verify(ACCESS_DENIED, "You are not member of the organization");
+        .verify(ACCESS_DENIED);
 
     orgInfo.getProjects()
         .forEach(assigningPrj -> checkProjectAccess(rpUser, orgUser, assigningPrj));

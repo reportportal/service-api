@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -67,8 +68,8 @@ public class DefectTypeDeletedHandler {
     this.projectRepository = projectRepository;
   }
 
-  @Transactional
-  @Retryable(value = ReportPortalException.class, maxAttempts = 5, backoff = @Backoff(value = 5000L))
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Retryable(retryFor = ReportPortalException.class, maxAttempts = 5, backoff = @Backoff(value = 5000L))
   @TransactionalEventListener
   public void handleDefectTypeDeleted(DefectTypeDeletedEvent event) {
     Project project = projectRepository.findById(event.getProjectId())

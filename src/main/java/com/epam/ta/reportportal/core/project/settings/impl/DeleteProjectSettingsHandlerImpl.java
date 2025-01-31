@@ -127,9 +127,9 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 		project.getProjectIssueTypes().remove(type);
 		projectRepository.save(project);
 
-		issueTypeRepository.delete(type.getIssueType());
+    updateWidgets(project, type.getIssueType());
 
-		updateWidgets(project, type.getIssueType());
+    issueTypeRepository.delete(type.getIssueType());
 
 		DefectTypeDeletedEvent defectTypeDeletedEvent = new DefectTypeDeletedEvent(TO_ACTIVITY_RESOURCE.apply(type.getIssueType()),
 				user.getUserId(),

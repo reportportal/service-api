@@ -7,8 +7,8 @@ import com.epam.ta.reportportal.model.BaseEntityRQ;
 import com.epam.ta.reportportal.model.widget.MaterializedWidgetType;
 import com.epam.ta.reportportal.model.widget.WidgetRQ;
 import java.util.Arrays;
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -18,8 +18,7 @@ public class WidgetLimitRangeValidator
 
   @Override
   public boolean isValid(BaseEntityRQ value, ConstraintValidatorContext context) {
-    if (value instanceof WidgetRQ) {
-      WidgetRQ widgetRQ = (WidgetRQ) value;
+    if (value instanceof WidgetRQ widgetRQ) {
       int limit = widgetRQ.getContentParameters().getItemsCount();
       if (Arrays.stream(MaterializedWidgetType.values())
           .anyMatch(it -> it.getType().equalsIgnoreCase(widgetRQ.getWidgetType()))) {

@@ -22,10 +22,10 @@ import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.ConstraintViolation;
-import javax.validation.Path;
-import javax.validation.Validator;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Path;
+import jakarta.validation.Validator;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.springframework.util.MultiValueMap;
@@ -99,8 +99,8 @@ public class ControllerUtils {
 
   public static MultiValuedMap<String, MultipartFile> getUploadedFiles(HttpServletRequest request) {
     MultiValuedMap<String, MultipartFile> uploadedFiles = new ArrayListValuedHashMap<>();
-    if (request instanceof MultipartHttpServletRequest) {
-      MultiValueMap<String, MultipartFile> multiFileMap = (((MultipartHttpServletRequest) request)).getMultiFileMap();
+    if (request instanceof MultipartHttpServletRequest multipartRequest) {
+      MultiValueMap<String, MultipartFile> multiFileMap = multipartRequest.getMultiFileMap();
       for (List<MultipartFile> multipartFiles : multiFileMap.values()) {
         for (MultipartFile file : multipartFiles) {
           uploadedFiles.put(file.getOriginalFilename(), file);

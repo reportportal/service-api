@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.model.dashboard;
 
+import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.model.BaseEntityRQ;
 import com.epam.ta.reportportal.ws.annotations.NotBlankWithSize;
-import com.epam.reportportal.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -45,13 +45,5 @@ public class CreateDashboardRQ extends BaseEntityRQ {
 
   public void setName(String name) {
     this.name = name;
-  }
-
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder("CreateDashboardRQ{");
-    sb.append("name='").append(name).append('\'');
-    sb.append('}');
-    return sb.toString();
   }
 }

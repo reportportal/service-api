@@ -31,6 +31,7 @@ import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
+import com.epam.ta.reportportal.dao.GroupRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
@@ -63,7 +64,9 @@ class UpdateUserFilterHandlerTest {
 
   private ProjectUserRepository projectUserRepository = mock(ProjectUserRepository.class);
 
-  private ProjectExtractor projectExtractor = new ProjectExtractor(projectUserRepository);
+  private GroupRepository groupRepository = mock(GroupRepository.class);
+
+  private ProjectExtractor projectExtractor = new ProjectExtractor(projectUserRepository, groupRepository);
 
   private UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
 

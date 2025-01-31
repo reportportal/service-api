@@ -21,6 +21,7 @@ import static com.epam.ta.reportportal.entity.user.UserRole.ADMINISTRATOR;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.dao.GroupRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -28,7 +29,6 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 /**
@@ -78,28 +78,23 @@ public class ProjectExtractor {
    * @param projectName Project name
    * @return {@link Optional} with Project Details
    */
-  public Optional<ReportPortalUser.ProjectDetails> findProjectDetails(ReportPortalUser user,
+  public Optional<ProjectDetails> findProjectDetails(ReportPortalUser user,
       String projectName) {
-    Optional<ReportPortalUser.ProjectDetails> projectDetails = projectUserRepository.findDetailsByUserIdAndProjectName(
+    Optional<ProjectDetails> projectDetails = projectUserRepository.findDetailsByUserIdAndProjectName(
         user.getUserId(),
         projectName
     );
 
-    if (projectDetails.isPresent()) {
-      Long projectId = projectDetails.get().getProjectId();
-      List<ProjectRole> projectRoles = groupRepository.getUserProjectRoles(
-          user.getUserId(),
-          projectId);
-      projectRoles.add(projectDetails.get().getProjectRole());
-//      projectDetails.setHighestProjectRole(projectRoles);
-      return projectDetails;
+    if (projectDetails.isEmpty()) {
+      return groupRepository.getUserProjectDetails(user.getUserId(), projectName);
     }
 
-//    Optional<ReportPortalUser.ProjectDetails> groupProjectDetails = groupRepository.getUserProjectDetails(
-//        user.getUserId(),
-//        projectName
-//    );
+    Long projectId = projectDetails.get().getProjectId();
+    ProjectRole directProjectRole = projectDetails.get().getProjectRole();
 
+    List<ProjectRole> projectRoles = groupRepository.getUserProjectRoles(user.getUserId(), projectId);
+    projectRoles.add(directProjectRole);
+    projectDetails.get().setHighestRole(projectRoles);
     return projectDetails;
   }
 

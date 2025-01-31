@@ -164,7 +164,7 @@ public class DashboardController {
   @PostMapping(value = "/preconfigured")
   @ResponseStatus(OK)
   @Operation(summary = "Create Dashboard with provided configuration including its widgets and filters if any")
-  public EntryCreatedRS creatPreconfigured(@PathVariable String projectName,
+  public EntryCreatedRS createPreconfigured(@PathVariable String projectName,
       @RequestBody @Validated DashboardPreconfiguredRq rq,
       @AuthenticationPrincipal ReportPortalUser user) {
     return dashboardPreconfiguredService.createDashboard(

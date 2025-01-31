@@ -34,7 +34,8 @@ import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class InvitationControllerTest extends BaseMvcTest {
@@ -44,18 +45,28 @@ class InvitationControllerTest extends BaseMvcTest {
   @Autowired
   private ObjectMapper objectMapper;
 
-  @Test
-  void createInvitationByAdmin() throws Exception {
+  @ParameterizedTest
+  @CsvSource(value = {
+      "MANAGER|EDITOR|1",
+      "MANAGER|VIEWER|1",
+      "MEMBER|EDITOR|1",
+      "MEMBER|VIEWER|1",
+      "MANAGER|EDITOR|2",
+      "MANAGER|VIEWER|2",
+      "MEMBER|EDITOR|2",
+      "MEMBER|VIEWER|2"
+  }, delimiter = '|')
+  void createInvitationByAdmin(OrgRole orgRole, ProjectRole projectRole) throws Exception {
     List<UserProjectInfo> projects = new ArrayList<>();
     InvitationRequestOrganizationsInner orgInfo = new InvitationRequestOrganizationsInner();
     UserProjectInfo projectInfo = new UserProjectInfo()
         .id(1L)
-        .projectRole(ProjectRole.VIEWER);
+        .projectRole(projectRole);
 
     projects.add(projectInfo);
 
     orgInfo.setId(1L);
-    orgInfo.setOrgRole(OrgRole.MANAGER);
+    orgInfo.setOrgRole(orgRole);
     orgInfo.setProjects(projects);
 
     List<InvitationRequestOrganizationsInner> organizations = new ArrayList<>();
@@ -80,10 +91,11 @@ class InvitationControllerTest extends BaseMvcTest {
 
     assertEquals(InvitationStatus.PENDING, invitation.getStatus());
 
-    var storedInvitationString = mockMvc.perform(get(INVITATIONS_ENDPOINT + "/" + invitation.getId())
-            .content(objectMapper.writeValueAsBytes(rq))
-            .contentType(APPLICATION_JSON)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    var storedInvitationString = mockMvc.perform(
+            get(INVITATIONS_ENDPOINT + "/" + invitation.getId())
+                .content(objectMapper.writeValueAsBytes(rq))
+                .contentType(APPLICATION_JSON)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andReturn()
         .getResponse().getContentAsString();
@@ -94,18 +106,28 @@ class InvitationControllerTest extends BaseMvcTest {
   }
 
 
-  @Test
-  void createInvitationNotEnoughPermissions() throws Exception {
+  @ParameterizedTest
+  @CsvSource(value = {
+      "MANAGER|EDITOR|1",
+      "MANAGER|VIEWER|1",
+      "MEMBER|EDITOR|1",
+      "MEMBER|VIEWER|1",
+      "MANAGER|EDITOR|2",
+      "MANAGER|VIEWER|2",
+      "MEMBER|EDITOR|2"
+  }, delimiter = '|')
+  void memberEditorNotEnoughPermissionsFor(OrgRole orgRole, ProjectRole projectRole, long prjId)
+      throws Exception {
     List<UserProjectInfo> projects = new ArrayList<>();
     var orgInfo = new InvitationRequestOrganizationsInner();
     UserProjectInfo projectInfo = new UserProjectInfo()
-        .id(1L)
-        .projectRole(ProjectRole.VIEWER);
+        .id(prjId)
+        .projectRole(projectRole);
 
     projects.add(projectInfo);
 
     orgInfo.setId(1L);
-    orgInfo.setOrgRole(OrgRole.MANAGER);
+    orgInfo.setOrgRole(orgRole);
     orgInfo.setProjects(projects);
 
     List<InvitationRequestOrganizationsInner> organizations = new ArrayList<>();
@@ -121,6 +143,41 @@ class InvitationControllerTest extends BaseMvcTest {
             .contentType(APPLICATION_JSON)
             .with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isForbidden());
+
+  }
+
+
+  @ParameterizedTest
+  @CsvSource(value = {
+      "MEMBER|VIEWER|2"
+  }, delimiter = '|')
+  void memberEditorCanInvite(OrgRole orgRole, ProjectRole projectRole, long prjId)
+      throws Exception {
+    List<UserProjectInfo> projects = new ArrayList<>();
+    var orgInfo = new InvitationRequestOrganizationsInner();
+    UserProjectInfo projectInfo = new UserProjectInfo()
+        .id(prjId)
+        .projectRole(projectRole);
+
+    projects.add(projectInfo);
+
+    orgInfo.setId(1L);
+    orgInfo.setOrgRole(orgRole);
+    orgInfo.setProjects(projects);
+
+    List<InvitationRequestOrganizationsInner> organizations = new ArrayList<>();
+    organizations.add(orgInfo);
+
+    var rq = new InvitationRequest();
+
+    rq.setEmail("invitation@example.com");
+    rq.setOrganizations(organizations);
+
+    mockMvc.perform(post(INVITATIONS_ENDPOINT)
+            .content(objectMapper.writeValueAsBytes(rq))
+            .contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isCreated());
 
   }
 }

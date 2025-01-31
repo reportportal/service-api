@@ -16,6 +16,7 @@
 package com.epam.ta.reportportal.model.widget;
 
 import com.epam.ta.reportportal.model.dashboard.DashboardResource.WidgetObjectModel;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,8 +31,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class WidgetConfigResource {
 
+  @NotNull
   private WidgetObjectModel widgetObject;
 
+  @NotNull
   private WidgetResource widgetResource;
 
 }

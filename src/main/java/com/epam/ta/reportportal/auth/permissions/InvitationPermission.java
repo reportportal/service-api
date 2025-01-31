@@ -115,7 +115,7 @@ public class InvitationPermission implements Permission {
 
     expect(orgUser.getOrganizationRole()
         .sameOrHigherThan(OrganizationRole.valueOf(orgInfo.getOrgRole().name())), isEqual(true))
-        .verify(ACCESS_DENIED, "You are not manager of the organization");
+        .verify(ACCESS_DENIED, "You are not member of the organization");
 
     orgInfo.getProjects()
         .forEach(assigningPrj -> checkProjectAccess(rpUser, orgUser, assigningPrj));
@@ -129,10 +129,6 @@ public class InvitationPermission implements Permission {
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND,
             assigningPrj.getId()));
     if (orgUser.getOrganizationRole().equals(OrganizationRole.MEMBER)) {
-      expect(assigningPrj.getProjectRole(), equalTo(ProjectRole.VIEWER))
-          .verify(ACCESS_DENIED, formattedSupplier(
-              "You can invite users on the project '{}' with the role 'VIEWER' only",
-              prj.getId()));
 
       ProjectUser projectUser = findUserConfigByLogin(prj, rpUser.getUsername());
       expect(projectUser, not(isNull()))

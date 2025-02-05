@@ -81,7 +81,7 @@ public class ProjectExtractor {
   public Optional<ProjectDetails> findProjectDetails(ReportPortalUser user,
       String projectName) {
     return projectUserRepository.findDetailsByUserIdAndProjectName(user.getUserId(), projectName)
-        .or(() -> groupRepository.getProjectDetails(user.getUserId(), projectName))
+        .or(() -> groupRepository.findProjectDetails(user.getUserId(), projectName))
         .map(details -> {
           List<ProjectRole> projectRoles = groupRepository.getUserProjectRoles(user.getUserId(),
               details.getProjectId());

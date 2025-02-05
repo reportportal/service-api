@@ -76,26 +76,18 @@ public class ProjectExtractor {
    *
    * @param user        User
    * @param projectName Project name
-   * @return {@link Optional} with Project Details
+   * @return {@link Optional} with Project Details found in ProjectUserRepository or GroupRepository
    */
   public Optional<ProjectDetails> findProjectDetails(ReportPortalUser user,
       String projectName) {
-    Optional<ProjectDetails> projectDetails = projectUserRepository.findDetailsByUserIdAndProjectName(
-        user.getUserId(),
-        projectName
-    );
-
-    if (projectDetails.isEmpty()) {
-      return groupRepository.getUserProjectDetails(user.getUserId(), projectName);
-    }
-
-    Long projectId = projectDetails.get().getProjectId();
-    ProjectRole directProjectRole = projectDetails.get().getProjectRole();
-
-    List<ProjectRole> projectRoles = groupRepository.getUserProjectRoles(user.getUserId(), projectId);
-    projectRoles.add(directProjectRole);
-    projectDetails.get().setHighestRole(projectRoles);
-    return projectDetails;
+    return projectUserRepository.findDetailsByUserIdAndProjectName(user.getUserId(), projectName)
+        .or(() -> groupRepository.getProjectDetails(user.getUserId(), projectName))
+        .map(details -> {
+          List<ProjectRole> projectRoles = groupRepository.getUserProjectRoles(user.getUserId(),
+              details.getProjectId());
+          details.setHighestRole(projectRoles);
+          return details;
+        });
   }
 
   /**

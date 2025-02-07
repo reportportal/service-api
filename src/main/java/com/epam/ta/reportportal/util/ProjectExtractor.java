@@ -19,12 +19,12 @@ package com.epam.ta.reportportal.util;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.entity.user.UserRole.ADMINISTRATOR;
 
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.dao.GroupProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +32,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Service for extracting project details for a specified user by project name. This service
+ * provides methods to extract project details for users, including special handling for
+ * administrators.
+ *
  * @author Pavel Bortnik
  */
 @Service
@@ -40,6 +44,12 @@ public class ProjectExtractor {
   private final ProjectUserRepository projectUserRepository;
   private final GroupProjectRepository groupProjectRepository;
 
+  /**
+   * Constructor for ProjectExtractor.
+   *
+   * @param projectUserRepository  ProjectUserRepository
+   * @param groupProjectRepository GroupProjectRepository
+   */
   @Autowired
   public ProjectExtractor(
       ProjectUserRepository projectUserRepository,
@@ -50,7 +60,7 @@ public class ProjectExtractor {
   }
 
   /**
-   * Extracts project details for specified user by specified project name
+   * Extracts project details for specified user by specified project name.
    *
    * @param user        User
    * @param projectName Project name
@@ -72,7 +82,7 @@ public class ProjectExtractor {
   }
 
   /**
-   * Find project details for specified user by specified project name
+   * Find project details for specified user by specified project name.
    *
    * @param user        User
    * @param projectName Project name
@@ -83,7 +93,8 @@ public class ProjectExtractor {
     return projectUserRepository.findDetailsByUserIdAndProjectName(user.getUserId(), projectName)
         .or(() -> groupProjectRepository.findProjectDetails(user.getUserId(), projectName))
         .map(details -> {
-          List<ProjectRole> projectRoles = groupProjectRepository.getUserProjectRoles(user.getUserId(),
+          List<ProjectRole> projectRoles = groupProjectRepository.findUserProjectRoles(
+              user.getUserId(),
               details.getProjectId());
           details.setHighestRole(projectRoles);
           return details;
@@ -92,7 +103,7 @@ public class ProjectExtractor {
 
   /**
    * Extracts project details for specified user by specified project name If user is ADMINISTRATOR
-   * - he is added as a PROJECT_MANAGER to the project
+   * - he is added as a PROJECT_MANAGER to the project.
    *
    * @param user        User
    * @param projectName Project name
@@ -103,8 +114,8 @@ public class ProjectExtractor {
 
     //dirty hack to allow everything for user with 'admin' authority
     if (user.getUserRole().getAuthority().equals(ADMINISTRATOR.getAuthority())) {
-      ReportPortalUser.ProjectDetails projectDetails = projectUserRepository.findAdminDetailsProjectName(
-              normalizeId(projectName))
+      ReportPortalUser.ProjectDetails projectDetails = projectUserRepository
+          .findAdminDetailsProjectName(normalizeId(projectName))
           .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
       user.getProjectDetails().put(
           normalizeId(projectName),

@@ -22,7 +22,7 @@ import static com.epam.ta.reportportal.entity.user.UserRole.ADMINISTRATOR;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
-import com.epam.ta.reportportal.dao.GroupRepository;
+import com.epam.ta.reportportal.dao.GroupProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -38,15 +38,15 @@ import org.springframework.stereotype.Service;
 public class ProjectExtractor {
 
   private final ProjectUserRepository projectUserRepository;
-  private final GroupRepository groupRepository;
+  private final GroupProjectRepository groupProjectRepository;
 
   @Autowired
   public ProjectExtractor(
       ProjectUserRepository projectUserRepository,
-      GroupRepository groupRepository
+      GroupProjectRepository groupProjectRepository
   ) {
     this.projectUserRepository = projectUserRepository;
-    this.groupRepository = groupRepository;
+    this.groupProjectRepository = groupProjectRepository;
   }
 
   /**
@@ -81,9 +81,9 @@ public class ProjectExtractor {
   public Optional<ProjectDetails> findProjectDetails(ReportPortalUser user,
       String projectName) {
     return projectUserRepository.findDetailsByUserIdAndProjectName(user.getUserId(), projectName)
-        .or(() -> groupRepository.findProjectDetails(user.getUserId(), projectName))
+        .or(() -> groupProjectRepository.findProjectDetails(user.getUserId(), projectName))
         .map(details -> {
-          List<ProjectRole> projectRoles = groupRepository.getUserProjectRoles(user.getUserId(),
+          List<ProjectRole> projectRoles = groupProjectRepository.getUserProjectRoles(user.getUserId(),
               details.getProjectId());
           details.setHighestRole(projectRoles);
           return details;

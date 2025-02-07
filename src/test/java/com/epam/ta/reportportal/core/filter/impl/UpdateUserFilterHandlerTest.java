@@ -66,7 +66,10 @@ class UpdateUserFilterHandlerTest {
 
   private GroupProjectRepository groupProjectRepository = mock(GroupProjectRepository.class);
 
-  private ProjectExtractor projectExtractor = new ProjectExtractor(projectUserRepository, groupProjectRepository);
+  private ProjectExtractor projectExtractor = new ProjectExtractor(
+      projectUserRepository,
+      groupProjectRepository
+  );
 
   private UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
 
@@ -74,8 +77,11 @@ class UpdateUserFilterHandlerTest {
 
   private MessageBus messageBus = mock(MessageBus.class);
 
-  private UpdateUserFilterHandler updateUserFilterHandler =
-      new UpdateUserFilterHandlerImpl(projectExtractor, userFilterRepository, messageBus);
+  private UpdateUserFilterHandler updateUserFilterHandler = new UpdateUserFilterHandlerImpl(
+      projectExtractor,
+      userFilterRepository,
+      messageBus
+  );
 
   @Test
   void updateUserFilterWithTheSameName() {

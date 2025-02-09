@@ -33,14 +33,10 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.reporting.async.controller.LaunchAsyncController;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.reporting.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
-import com.google.common.collect.Lists;
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.UUID;
-import org.apache.commons.math3.geometry.euclidean.twod.Line;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -48,8 +44,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.web.savedrequest.Enumerator;
 
 /**
  * @author Konstantin Antipin

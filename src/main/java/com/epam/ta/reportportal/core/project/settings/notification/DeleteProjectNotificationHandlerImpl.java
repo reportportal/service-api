@@ -64,7 +64,6 @@ public class DeleteProjectNotificationHandlerImpl implements DeleteProjectNotifi
         ErrorType.BAD_REQUEST_ERROR, Suppliers.formattedSupplier(
                 "Notification '{}' not found. Did you use correct Notification ID?", notificationId)
             .get());
-    senderCaseRepository.deleteSenderCaseById(notificationId);
 
     ProjectResource projectResource = projectConverter.TO_PROJECT_RESOURCE.apply(project);
     ProjectNotificationConfigDTO projectNotificationConfigDTO =
@@ -73,6 +72,8 @@ public class DeleteProjectNotificationHandlerImpl implements DeleteProjectNotifi
         scs -> projectNotificationConfigDTO.setSenderCases(
             scs.stream().filter(sc -> !Objects.equals(sc.getId(), notificationId))
                 .collect(Collectors.toList())));
+
+    project.getSenderCases().removeIf(sc -> sc.getId().equals(notificationId));
 
     messageBus.publishActivity(new NotificationsConfigUpdatedEvent(projectResource,
         projectResource.getConfiguration().getProjectConfig(), user.getUserId(), user.getUsername()

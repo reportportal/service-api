@@ -41,10 +41,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
 
+  private final static int DASHBOARD_LIMIT = 3000;
   private final DashboardRepository dashboardRepository;
   private final MessageBus messageBus;
-
-  private final static int DASHBOARD_LIMIT = 3000;
 
   @Override
   public EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails,
@@ -56,10 +55,10 @@ public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
             "The limit of {} dashboards has been reached. To create a new one you need to delete at least one created previously.",
             DASHBOARD_LIMIT
         ));
+
     BusinessRule.expect(
-        dashboardRepository.existsByNameAndOwnerAndProjectId(rq.getName(), user.getUsername(),
-            projectDetails.getProjectId()
-        ), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
+        dashboardRepository.existsByNameAndProjectId(rq.getName(), projectDetails.getProjectId()),
+        BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
 
     Dashboard dashboard =
         new DashboardBuilder().addDashboardRq(rq).addProject(projectDetails.getProjectId())

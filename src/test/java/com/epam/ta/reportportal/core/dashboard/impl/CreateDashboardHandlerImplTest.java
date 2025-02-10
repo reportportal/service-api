@@ -53,7 +53,7 @@ class CreateDashboardHandlerImplTest {
 
     final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-    when(dashboardRepository.existsByNameAndOwnerAndProjectId("exist", "owner", 1L)).thenReturn(
+    when(dashboardRepository.existsByNameAndProjectId("exist", 1L)).thenReturn(
         true);
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.createDashboard(extractProjectDetails(rpUser, "test_project"),

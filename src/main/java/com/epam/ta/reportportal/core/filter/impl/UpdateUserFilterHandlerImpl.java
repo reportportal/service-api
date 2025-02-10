@@ -38,6 +38,7 @@ import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.model.CollectionsRQ;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.activity.UserFilterActivityResource;
@@ -51,6 +52,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -80,14 +82,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
         projectExtractor.extractProjectDetails(user, projectName);
 
     validateFilterRq(createFilterRQ);
-
-    BusinessRule.expect(
-            userFilterRepository.existsByNameAndOwnerAndProjectId(createFilterRQ.getName(),
-                user.getUsername(), projectDetails.getProjectId()
-            ), BooleanUtils::isFalse)
-        .verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName(), user.getUsername(),
-            projectName
-        );
+    validateNameUniqueness(createFilterRQ.getName(), user, projectDetails);
 
     UserFilter filter = new UserFilterBuilder().addFilterRq(createFilterRQ)
         .addProject(projectDetails.getProjectId()).addOwner(user.getUsername()).get();
@@ -100,6 +95,20 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
     return new EntryCreatedRS(filter.getId());
   }
 
+  private void validateNameUniqueness(String filterName, ReportPortalUser user,
+      ProjectDetails projectDetails) {
+    Project project = new Project();
+    project.setId(projectDetails.getProjectId());
+    UserFilter probe = new UserFilter();
+    probe.setName(filterName);
+    probe.setProject(project);
+    BusinessRule.expect(
+            userFilterRepository.exists(Example.of(probe)), BooleanUtils::isFalse)
+        .verify(ErrorType.USER_FILTER_ALREADY_EXISTS, filterName, user.getUsername(),
+            projectDetails.getProjectName()
+        );
+  }
+
 
   @Override
   public EntryCreatedRS createFilterCopyOnDuplicate(UpdateUserFilterRQ createFilterRQ,
@@ -109,7 +118,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
         projectExtractor.extractProjectDetails(user, projectName);
 
     validateFilterRq(createFilterRQ);
-    validateFilterName(createFilterRQ, user, projectDetails);
+    validateFilterName(createFilterRQ, projectDetails);
 
     UserFilter filter = new UserFilterBuilder().addFilterRq(createFilterRQ)
         .addProject(projectDetails.getProjectId()).addOwner(user.getUsername()).get();
@@ -138,8 +147,8 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
     if (!userFilter.getName().equals(updateRQ.getName())) {
 
       BusinessRule.expect(
-              userFilterRepository.existsByNameAndOwnerAndProjectId(updateRQ.getName(),
-                  userFilter.getOwner(), projectDetails.getProjectId()
+              userFilterRepository.existsByNameAndProjectId(updateRQ.getName(),
+                  projectDetails.getProjectId()
               ), BooleanUtils::isFalse)
           .verify(ErrorType.USER_FILTER_ALREADY_EXISTS, updateRQ.getName(), userFilter.getOwner(),
               projectDetails.getProjectName()
@@ -211,11 +220,11 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 
   private void validateFilterName(UpdateUserFilterRQ createFilterRQ,
-      ReportPortalUser user, ProjectDetails projectDetails) {
+      Long projectId) {
     int maxIterations = 100;
     int count = 0;
-    while (userFilterRepository.existsByNameAndOwnerAndProjectId(createFilterRQ.getName(),
-        user.getUsername(), projectDetails.getProjectId()) && count < maxIterations) {
+    while (userFilterRepository.existsByNameAndProjectId(createFilterRQ.getName(), projectId)
+        && count < maxIterations) {
       createFilterRQ.setName(createFilterRQ.getName() + "_copy");
       count++;
     }

@@ -26,8 +26,9 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
@@ -38,7 +39,6 @@ import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.filter.Order;
 import com.epam.ta.reportportal.model.filter.UpdateUserFilterRQ;
 import com.epam.ta.reportportal.model.filter.UserFilterCondition;
@@ -64,13 +64,9 @@ class UpdateUserFilterHandlerTest {
   private ProjectUserRepository projectUserRepository = mock(ProjectUserRepository.class);
 
   private ProjectExtractor projectExtractor = new ProjectExtractor(projectUserRepository);
-
   private UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
-
   private WidgetRepository widgetRepository = mock(WidgetRepository.class);
-
   private MessageBus messageBus = mock(MessageBus.class);
-
   private UpdateUserFilterHandler updateUserFilterHandler =
       new UpdateUserFilterHandlerImpl(projectExtractor, userFilterRepository, messageBus);
 
@@ -119,9 +115,9 @@ class UpdateUserFilterHandlerTest {
     when(userFilter.getProject()).thenReturn(project);
     when(project.getId()).thenReturn(1L);
 
-    when(userFilterRepository.existsByNameAndOwnerAndProjectId(updateUserFilterRQ.getName(), "user",
-        1L
-    )).thenReturn(Boolean.FALSE);
+    when(
+        userFilterRepository.existsByNameAndProjectId(updateUserFilterRQ.getName(), 1L)).thenReturn(
+        Boolean.FALSE);
 
     doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
 
@@ -152,9 +148,8 @@ class UpdateUserFilterHandlerTest {
     when(userFilter.getOwner()).thenReturn("user");
     when(project.getId()).thenReturn(1L);
 
-    when(userFilterRepository.existsByNameAndOwnerAndProjectId(updateUserFilterRQ.getName(),
-        userFilter.getOwner(), projectDetails.getProjectId()
-    )).thenReturn(Boolean.TRUE);
+    when(userFilterRepository.existsByNameAndProjectId(updateUserFilterRQ.getName(),
+        projectDetails.getProjectId())).thenReturn(Boolean.TRUE);
 
     doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
 

@@ -27,7 +27,6 @@ import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
 import com.epam.ta.reportportal.commons.querygen.FilterTarget;
@@ -82,8 +81,8 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
     validateFilterRq(createFilterRQ);
 
     BusinessRule.expect(
-            userFilterRepository.existsByNameAndOwnerAndProjectId(createFilterRQ.getName(),
-                user.getUsername(), projectDetails.getProjectId()
+            userFilterRepository.existsByNameAndProjectId(createFilterRQ.getName(),
+                projectDetails.getProjectId()
             ), BooleanUtils::isFalse)
         .verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName(), user.getUsername(),
             projectName
@@ -109,7 +108,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
         projectExtractor.extractProjectDetails(user, projectName);
 
     validateFilterRq(createFilterRQ);
-    validateFilterName(createFilterRQ, user, projectDetails);
+    validateFilterName(createFilterRQ, projectDetails.getProjectId());
 
     UserFilter filter = new UserFilterBuilder().addFilterRq(createFilterRQ)
         .addProject(projectDetails.getProjectId()).addOwner(user.getUsername()).get();
@@ -138,9 +137,8 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
     if (!userFilter.getName().equals(updateRQ.getName())) {
 
       BusinessRule.expect(
-              userFilterRepository.existsByNameAndOwnerAndProjectId(updateRQ.getName(),
-                  userFilter.getOwner(), projectDetails.getProjectId()
-              ), BooleanUtils::isFalse)
+              userFilterRepository.existsByNameAndProjectId(updateRQ.getName(),
+                  projectDetails.getProjectId()), BooleanUtils::isFalse)
           .verify(ErrorType.USER_FILTER_ALREADY_EXISTS, updateRQ.getName(), userFilter.getOwner(),
               projectDetails.getProjectName()
           );
@@ -211,11 +209,11 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 
   private void validateFilterName(UpdateUserFilterRQ createFilterRQ,
-      ReportPortalUser user, ProjectDetails projectDetails) {
+      Long projectId) {
     int maxIterations = 100;
     int count = 0;
-    while (userFilterRepository.existsByNameAndOwnerAndProjectId(createFilterRQ.getName(),
-        user.getUsername(), projectDetails.getProjectId()) && count < maxIterations) {
+    while (userFilterRepository.existsByNameAndProjectId(createFilterRQ.getName(), projectId)
+        && count < maxIterations) {
       createFilterRQ.setName(createFilterRQ.getName() + "_copy");
       count++;
     }

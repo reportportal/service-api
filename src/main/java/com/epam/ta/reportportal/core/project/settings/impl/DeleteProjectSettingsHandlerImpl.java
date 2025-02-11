@@ -170,7 +170,7 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT, id, project.getName()));
 		PatternTemplateActivityResource before = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate);
 
-		patternTemplateRepository.deleteById(patternTemplate.getId());
+    project.getPatternTemplates().removeIf(pt -> pt.getId().equals(id));
 
 		messageBus.publishActivity(new PatternDeletedEvent(user.getUserId(), user.getUsername(), before));
 		return new OperationCompletionRS(Suppliers.formattedSupplier("Pattern template with id = '{}' has been successfully removed.", id)

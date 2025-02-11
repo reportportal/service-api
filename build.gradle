@@ -104,6 +104,7 @@ dependencies {
 
     // Optional for spring-boot-starter-amqp
     implementation "com.rabbitmq:http-client:5.3.0"
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.4.2") // supports gzip encoding
 
     // check authentication error response format for versions higher than 6.21.3
     implementation('net.sf.jasperreports:jasperreports:6.21.3') { //TODO: consider upgrade to 7.0.1+

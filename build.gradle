@@ -72,12 +72,13 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         println("Using snapshot dependencies")
-        implementation 'com.github.reportportal:commons-dao:0f555c9'
+        implementation 'com.github.reportportal:commons-dao:c9d3325'
         implementation 'com.github.reportportal:commons:c7041ee'
         implementation 'com.github.reportportal:plugin-api:8874441'
     }
     implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
 
+    implementation 'javax.inject:javax.inject:1'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-quartz'

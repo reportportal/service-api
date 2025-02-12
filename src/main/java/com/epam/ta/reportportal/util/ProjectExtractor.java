@@ -90,16 +90,20 @@ public class ProjectExtractor {
    */
   public Optional<ProjectDetails> findProjectDetails(ReportPortalUser user,
       String projectName) {
-    return projectUserRepository.findDetailsByUserIdAndProjectName(user.getUserId(), projectName)
-        .or(() -> groupProjectRepository.findProjectDetails(user.getUserId(), projectName))
-        .map(details -> {
-          List<ProjectRole> projectRoles = groupProjectRepository.findUserProjectRoles(
-              user.getUserId(),
-              details.getProjectId());
-          projectRoles.add(details.getProjectRole());
-          details.setHighestRole(projectRoles);
-          return details;
-        });
+
+    Optional<ProjectDetails> projectDetails = projectUserRepository
+        .findDetailsByUserIdAndProjectName(user.getUserId(), projectName);
+
+    if (projectDetails.isPresent()) {
+      List<ProjectRole> projectRoles = groupProjectRepository.findUserProjectRoles(
+          user.getUserId(),
+          projectDetails.get().getProjectId());
+      projectRoles.add(projectDetails.get().getProjectRole());
+      projectDetails.get().setHighestRole(projectRoles);
+      return projectDetails;
+    }
+
+    return groupProjectRepository.findProjectDetails(user.getUserId(), projectName);
   }
 
   /**

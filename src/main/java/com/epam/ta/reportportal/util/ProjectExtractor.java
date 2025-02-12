@@ -96,6 +96,7 @@ public class ProjectExtractor {
           List<ProjectRole> projectRoles = groupProjectRepository.findUserProjectRoles(
               user.getUserId(),
               details.getProjectId());
+          projectRoles.add(details.getProjectRole());
           details.setHighestRole(projectRoles);
           return details;
         });

@@ -16,14 +16,22 @@
 
 package com.epam.ta.reportportal.model.dashboard;
 
+import static com.epam.reportportal.model.ValidationConstraints.MAX_ENTITY_DESCRIPTION;
+
+import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.model.BaseEntityRQ;
 import com.epam.ta.reportportal.ws.annotations.NotBlankWithSize;
-import com.epam.reportportal.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
+import javax.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 /**
  * Domain object for creating dashboards.
@@ -45,13 +53,5 @@ public class CreateDashboardRQ extends BaseEntityRQ {
 
   public void setName(String name) {
     this.name = name;
-  }
-
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder("CreateDashboardRQ{");
-    sb.append("name='").append(name).append('\'');
-    sb.append('}');
-    return sb.toString();
   }
 }

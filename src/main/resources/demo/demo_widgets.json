@@ -122,7 +122,7 @@
     "contentParameters": {
       "itemsCount": 50,
       "contentFields": [
-        "statistics$executions$failed'"
+        "statistics$executions$failed"
       ],
       "widgetOptions": {
       }

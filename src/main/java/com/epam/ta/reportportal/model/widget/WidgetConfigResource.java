@@ -16,7 +16,7 @@
 package com.epam.ta.reportportal.model.widget;
 
 import com.epam.ta.reportportal.model.dashboard.DashboardResource.WidgetObjectModel;
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

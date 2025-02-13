@@ -44,7 +44,6 @@ repositories {
     if (!releaseMode) {
         maven { url 'https://jitpack.io' }
     }
-    maven { url 'https://jitpack.io' }
     maven { url "https://jaspersoft.jfrog.io/artifactory/third-party-ce-artifacts" }
 }
 
@@ -74,8 +73,8 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         implementation 'com.github.reportportal:commons-dao:5c7b5a2'
-        implementation 'com.epam.reportportal:commons'
-        implementation 'com.epam.reportportal:plugin-api'
+        implementation 'com.github.reportportal:commons:0bd0667'
+        implementation 'com.github.reportportal:plugin-api:80b20c8'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'

@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.dao.GroupProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,19 +92,18 @@ public class ProjectExtractor {
   public Optional<ProjectDetails> findProjectDetails(ReportPortalUser user,
       String projectName) {
 
-    Optional<ProjectDetails> projectDetails = projectUserRepository
-        .findDetailsByUserIdAndProjectName(user.getUserId(), projectName);
-
-    if (projectDetails.isPresent()) {
-      List<ProjectRole> projectRoles = groupProjectRepository.findUserProjectRoles(
-          user.getUserId(),
-          projectDetails.get().getProjectId());
-      projectRoles.add(projectDetails.get().getProjectRole());
-      projectDetails.get().setHighestRole(projectRoles);
-      return projectDetails;
-    }
-
-    return groupProjectRepository.findProjectDetails(user.getUserId(), projectName);
+    return projectUserRepository.findDetailsByUserIdAndProjectName(user.getUserId(), projectName)
+        .or(() -> groupProjectRepository.findProjectDetails(user.getUserId(), projectName))
+        .map(details -> {
+          List<ProjectRole> projectRoles = new ArrayList<>(
+              groupProjectRepository.findUserProjectRoles(
+                  user.getUserId(),
+                  details.getProjectId()
+              ));
+          projectRoles.add(details.getProjectRole());
+          details.setHighestRole(projectRoles);
+          return details;
+        });
   }
 
   /**

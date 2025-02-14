@@ -50,12 +50,13 @@ public class WidgetRQ extends BaseEntityRQ {
       "activityStream", "launchesComparisonChart", "launchesDurationChart", "launchesTable",
       "topTestCases", "flakyTestCases", "passingRateSummary", "passingRatePerLaunch",
       "productStatus", "mostTimeConsuming", "cumulative", "topPatternTemplates",
-      "componentHealthCheck", "componentHealthCheckTable" })
+      "componentHealthCheck", "componentHealthCheckTable", "testCaseSearch" })
   @Schema(required = true, allowableValues =
       "oldLineChart, investigatedTrend, launchStatistics, statisticTrend,"
           + " casesTrend, notPassed, overallStatistics, uniqueBugTable, bugTrend, activityStream, launchesComparisonChart,"
           + " launchesDurationChart, launchesTable, topTestCases, flakyTestCases, passingRateSummary, passingRatePerLaunch,"
-          + " productStatus, mostTimeConsuming, cumulative, topPatternTemplates, componentHealthCheck, componentHealthCheckTable")
+          + " productStatus, mostTimeConsuming, cumulative, topPatternTemplates, componentHealthCheck, componentHealthCheckTable,"
+          + " testCaseSearch")
   private String widgetType;
 
   @Valid

@@ -89,6 +89,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
+    implementation 'org.springframework.security:spring-security-acl'
     implementation 'org.springframework.security:spring-security-core'
     implementation 'org.springframework.security:spring-security-oauth2-core'
     implementation 'org.springframework.security:spring-security-oauth2-client'
@@ -103,27 +104,28 @@ dependencies {
 
     // Optional for spring-boot-starter-amqp
     implementation "com.rabbitmq:http-client:5.3.0"
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.4.2") // supports gzip encoding
 
     // check authentication error response format for versions higher than 6.21.3
     implementation('net.sf.jasperreports:jasperreports:6.21.3') { //TODO: consider upgrade to 7.0.1+
         exclude group: 'com.fasterxml.jackson.dataformat', module: 'jackson-dataformat-xml'
     }
+    // JasperReport's export to XLS uses Apache POI and openpdf for PDF export
+    implementation 'org.apache.poi:poi:5.4.0'
+    implementation 'com.github.librepdf:openpdf:2.0.3'
+
     implementation 'jakarta.inject:jakarta.inject-api:2.0.1'
     implementation 'com.sun.mail:jakarta.mail:2.0.1'
 
     implementation 'xerces:xercesImpl:2.12.2'
-    implementation 'com.itextpdf:itextpdf:5.5.13.4'
     implementation 'org.bouncycastle:bcprov-jdk18on:1.80'
     implementation 'com.google.api-client:google-api-client:2.6.0'
 
     implementation('commons-validator:commons-validator:1.9.0') {
         exclude group: 'commons-beanutils', module: 'commons-beanutils'
     }
-    implementation 'org.springframework.security:spring-security-acl'
     implementation 'com.github.ben-manes.caffeine:caffeine'
 
-    // JasperReport's export to XLS uses Apache POI
-    implementation 'org.apache.poi:poi:4.1.2' // TODO: consider upgrade to 5.4.0+
     implementation "org.apache.jclouds.api:filesystem:${jcloudsVersion}"
     implementation 'org.apache.commons:commons-compress'
 

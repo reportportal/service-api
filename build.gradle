@@ -24,7 +24,6 @@ plugins {
     id "org.openapi.generator" version "7.11.0"
 }
 
-import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
@@ -151,29 +150,18 @@ dependencies {
     testImplementation 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 }
 
+processResources {
+    dependsOn(gitInfo)
+    filesMatching('application.properties') {
+        expand(project.properties)
+    }
+}
+
 sourceSets {
     main {
         java {
             srcDirs "$buildDir/generated/src/main/java"
         }
-    }
-}
-
-
-tasks.register('generateApi', GenerateTask) {
-    generatorName.set("spring")
-    inputSpec.set("$rootDir/api-registry/api/openapi/reportportal-api.yaml")
-    outputDir.set("${layout.buildDirectory.get()}/generated")
-    configFile.set("$rootDir/src/main/resources/openapi/config.json")
-    skipOverwrite.set(false)
-    cleanupOutput.set(true)
-    // verbose.set(true)
-}
-
-processResources {
-    dependsOn(gitInfo)
-    filesMatching('application.properties') {
-        expand(project.properties)
     }
 }
 
@@ -216,8 +204,7 @@ test {
     }
 }
 
-compileJava.dependsOn tasks.named('generateApi')
-generateApi.dependsOn updateApiSubmodule
+compileJava.dependsOn tasks.named('openApiGenerate')
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts
@@ -252,6 +239,15 @@ springBoot {
             excludes = ['time', 'artifact']
         }
     }
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$rootDir/api-registry/api/openapi/reportportal-api.yaml"
+    outputDir = "${layout.buildDirectory.get()}/generated"
+    configFile = "$rootDir/src/main/resources/openapi/config.json"
+    skipOverwrite = false
+    cleanupOutput = true
 }
 
 tasks.preTagCommit.enabled = false

@@ -15,7 +15,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode") ? project.releaseMode.toBoolean() : false
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.12.0' : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.13.0' : 'develop')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.13.0' : 'feature/EPMRPP-migrate-tms')
     //TODO refactor with archive download
     testScriptsSrc = [
             (migrationsUrl + '/migrations/0_extensions.up.sql')                        : 'V001__extensions.sql',
@@ -71,7 +71,9 @@ project.ext {
             (migrationsUrl + '/migrations/88_analytics_data_table.up.sql')             : 'V088__analytics_data_table.sql',
             (migrationsUrl + '/migrations/90_add_user_fields.up.sql')                  : 'V090__scim_user_fields.sql',
             (migrationsUrl + '/migrations/91_settings_users_sso.up.sql')               : 'V091__settings_users_sso.sql',
-            (migrationsUrl + '/migrations/93_create_groups_tables.up.sql')             : 'V093__create_groups_tables.sql',
+            (migrationsUrl + '/migrations/92_round_last_login.up.sql')                 : 'V092__round_last_login.up.sql',
+            (migrationsUrl + '/migrations/93_create_groups_tables.up.sql')             : 'V093__create_groups_tables.up.sql',
+            (migrationsUrl + '/migrations/94_tms_initial.up.sql')                      : 'V094__tms_initial.up.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

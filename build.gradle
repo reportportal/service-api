@@ -210,6 +210,21 @@ drill {
     }
 }
 
+springBoot {
+    buildInfo {
+        properties {
+            name = "API Service"
+            version = "${project.version}"
+            additional = [
+                    "description": "$project.description",
+                    "branch"     : getCurrentGitBranch(),
+                    "repo"       : "reportportal/service-api"
+            ]
+            excludes = ['time', 'artifact']
+        }
+    }
+}
+
 tasks.preTagCommit.enabled = false
 tasks.updateVersion.enabled = false
 tasks.commitNewVersion.enabled = false

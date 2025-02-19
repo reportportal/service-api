@@ -86,6 +86,14 @@ class DashboardControllerTest extends BaseMvcTest {
         .andExpect(status().isOk());
   }
 
+
+  @Test
+  void getDashboardConfig() throws Exception {
+    mockMvc.perform(
+            get(DEFAULT_PROJECT_BASE_URL + "/dashboard/17/config").with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk());
+  }
+
   @Test
   void updateDashboardPositive() throws Exception {
     final UpdateDashboardRQ rq = new UpdateDashboardRQ();

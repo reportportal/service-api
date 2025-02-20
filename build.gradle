@@ -73,7 +73,7 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         implementation 'com.epam.reportportal:commons-dao'
-        implementation 'com.epam.reportportal:commons'
+        implementation 'com.github.reportportal:commons:cb1492b'
         implementation 'com.epam.reportportal:plugin-api'
     }
 

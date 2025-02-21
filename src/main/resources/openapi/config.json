@@ -10,6 +10,7 @@
   "skipOperationExample": true,
   "java21": true,
   "library": "spring-boot",
+  "useSpringBoot3": true,
   "openapiNormalizer": {
     "REF_AS_PARENT_IN_ALLOF": true
   },

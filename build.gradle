@@ -157,17 +157,16 @@ processResources {
     }
 }
 
-tasks.register('updateApiSubmodule', Exec) {
-    commandLine 'git', 'submodule', 'update', '--init', "--recursive"
+sourceSets {
+    main {
+        java {
+            srcDirs "$buildDir/generated/src/main/java"
+        }
+    }
 }
 
-openApiGenerate {
-    generatorName = "spring"
-    inputSpec = "$rootDir/api-registry/api/openapi/reportportal-api.yaml"
-    outputDir = "$layout.buildDirectory/generated"
-    configFile = "$rootDir/src/main/resources/openapi/config.json"
-    skipOverwrite = false
-    cleanupOutput = true
+tasks.register('updateApiSubmodule', Exec) {
+    commandLine 'git', 'submodule', 'update', '--init', "--recursive"
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -177,6 +176,15 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-parameters"
     options.debug = true
     options.debugOptions.debugLevel = "source,lines,vars"
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$rootDir/api-registry/api/openapi/reportportal-api.yaml"
+    outputDir = "${layout.buildDirectory.get()}/generated"
+    configFile = "$rootDir/src/main/resources/openapi/config.json"
+    skipOverwrite = false
+    cleanupOutput = true
 }
 
 dependencyCheck {
@@ -205,6 +213,11 @@ test {
     }
 }
 
+tasks.named('openApiGenerate') {
+    dependsOn 'updateApiSubmodule'
+}
+
+compileJava.dependsOn tasks.named('openApiGenerate')
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts

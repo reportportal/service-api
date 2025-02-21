@@ -21,6 +21,7 @@ plugins {
     id 'org.owasp.dependencycheck' version '11.1.1'
     id 'org.springframework.boot' version "${springBootVersion}"
     id "com.epam.drill.integration.cicd" version "0.1.6"
+    id "org.openapi.generator" version "7.11.0"
 }
 
 import org.owasp.dependencycheck.reporting.ReportGenerator
@@ -152,6 +153,20 @@ processResources {
     filesMatching('application.properties') {
         expand(project.properties)
     }
+}
+
+tasks.register('updateApiSubmodule', Exec) {
+    commandLine 'git', 'submodule', 'update', '--init', "--recursive"
+}
+
+tasks.register('generateApi', GenerateTask) {
+    generatorName.set("spring")
+    inputSpec.set("$rootDir/api-registry/api/openapi/reportportal-api.yaml")
+    outputDir.set(layout.buildDirectory.dir("generated"))
+    configFile.set("$rootDir/src/main/resources/openapi/config.json")
+    skipOverwrite.set(false)
+    cleanupOutput.set(true)
+    // verbose.set(true)
 }
 
 tasks.withType(JavaCompile).configureEach {

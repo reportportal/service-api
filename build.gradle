@@ -187,7 +187,7 @@ openApiGenerate {
 }
 
 dependencyCheck {
-    formats = [ReportGenerator.Format.HTML, ReportGenerator.Format.XML]
+    formats = [ReportGenerator.Format.HTML, ReportGenerator.Format.XML] as List<String>
 //    cveValidForHours = 1
 }
 

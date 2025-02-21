@@ -1,11 +1,11 @@
 package com.epam.ta.reportportal.core.tms.service;
 
-import com.epam.ta.reportportal.core.tms.db.model.TestFolder;
-import com.epam.ta.reportportal.core.tms.db.repository.TestFolderRepository;
 import com.epam.ta.reportportal.core.tms.dto.TestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TestFolderRS;
 import com.epam.ta.reportportal.core.tms.exception.NotFoundException;
 import com.epam.ta.reportportal.core.tms.mapper.DtoMapper;
+import com.epam.ta.reportportal.dao.TmsTestFolderRepository;
+import com.epam.ta.reportportal.entity.tms.TmsTestFolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,12 +18,12 @@ public class TestFolderServiceImpl implements TestFolderService {
     public static final String TEST_FOLDER_NOT_FOUND_BY_ID = "Test Folder cannot be found by id: {0}";
     public static final String TEST_CASE_NOT_FOUND_BY_ID = "Test Case cannot be found by id: {0}";
 
-    private final DtoMapper<TestFolder, TestFolderRS> testFolderMapper;
-    private final TestFolderRepository testFolderRepository;
+    private final DtoMapper<TmsTestFolder, TestFolderRS> testFolderMapper;
+    private final TmsTestFolderRepository testFolderRepository;
     
     @Override
     public TestFolderRS createFolder(final long projectId, final TestFolderRQ inputDto) {
-        return testFolderMapper.convert(testFolderRepository.save(new TestFolder(null,projectId, inputDto.name(), inputDto.description())));
+        return testFolderMapper.convert(testFolderRepository.save(new TmsTestFolder(null,projectId, inputDto.name(), inputDto.description())));
     }
     
     @Override

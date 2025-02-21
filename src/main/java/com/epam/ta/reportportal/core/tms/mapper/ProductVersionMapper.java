@@ -1,14 +1,14 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
-import com.epam.ta.reportportal.core.tms.db.model.ProductVersion;
 import com.epam.ta.reportportal.core.tms.dto.ProductVersionRS;
+import com.epam.ta.reportportal.entity.tms.TmsProductVersion;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ProductVersionMapper implements DtoMapper<ProductVersion, ProductVersionRS> {
+public class ProductVersionMapper implements DtoMapper<TmsProductVersion, ProductVersionRS> {
 
     @Override
-    public ProductVersionRS convert(ProductVersion productVersion) {
+    public ProductVersionRS convert(TmsProductVersion productVersion) {
         return new ProductVersionRS(productVersion.getId(),
                 productVersion.getVersion(),
                 productVersion.getDocumentation(),

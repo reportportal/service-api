@@ -20,9 +20,6 @@ import com.epam.ta.reportportal.core.configs.security.JwtReportPortalUserConvert
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.impl.RabbitMqManagementClientTemplate;
-import com.epam.ta.reportportal.core.tms.db.repository.ProductVersionRepository;
-import com.epam.ta.reportportal.core.tms.db.repository.TestCaseRepository;
-import com.epam.ta.reportportal.core.tms.db.repository.TestFolderRepository;
 import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBeanTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -67,15 +64,6 @@ public class TestConfig {
 
   @MockBean
   protected Client rabbitClient;
-
-  @MockBean
-  protected ProductVersionRepository productVersionRepository; //TODO remove
-
-  @MockBean
-  protected TestCaseRepository testCaseRepository; //TODO remove
-
-  @MockBean
-  protected TestFolderRepository testFolderRepository; //TODO remove
 
   @MockBean(name = "analyzerRabbitTemplate")
   protected RabbitTemplate analyzerRabbitTemplate;

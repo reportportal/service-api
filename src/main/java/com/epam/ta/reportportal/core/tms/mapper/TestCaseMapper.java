@@ -1,16 +1,16 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
-import com.epam.ta.reportportal.core.tms.db.model.TestCase;
 import com.epam.ta.reportportal.core.tms.dto.TestCaseRS;
 import com.epam.ta.reportportal.core.tms.dto.TestCaseVersionRS;
+import com.epam.ta.reportportal.entity.tms.TmsTestCase;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
 
 @Component
-public class TestCaseMapper implements DtoMapper<TestCase, TestCaseRS> {
+public class TestCaseMapper implements DtoMapper<TmsTestCase, TestCaseRS> {
 
-    public TestCaseRS convert(final TestCase testCase) {
+    public TestCaseRS convert(final TmsTestCase testCase) {
         return new TestCaseRS(testCase.getId(),
                 testCase.getName(),
                 testCase.getDescription(),

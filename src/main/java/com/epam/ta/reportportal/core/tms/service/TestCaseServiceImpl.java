@@ -1,13 +1,13 @@
 package com.epam.ta.reportportal.core.tms.service;
 
-import com.epam.ta.reportportal.core.tms.db.model.TestCase;
-import com.epam.ta.reportportal.core.tms.db.model.TestCaseVersion;
-import com.epam.ta.reportportal.core.tms.db.repository.TestCaseRepository;
-import com.epam.ta.reportportal.core.tms.db.repository.TestFolderRepository;
 import com.epam.ta.reportportal.core.tms.dto.TestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TestCaseRS;
 import com.epam.ta.reportportal.core.tms.exception.NotFoundException;
 import com.epam.ta.reportportal.core.tms.mapper.DtoMapper;
+import com.epam.ta.reportportal.dao.TmsTestCaseRepository;
+import com.epam.ta.reportportal.dao.TmsTestFolderRepository;
+import com.epam.ta.reportportal.entity.tms.TmsTestCase;
+import com.epam.ta.reportportal.entity.tms.TmsTestCaseVersion;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,21 +22,21 @@ public class TestCaseServiceImpl implements TestCaseService {
 
     private static final String TEST_CASE_NOT_FOUND_BY_ID = "Test Case cannot be found by id: {0}";
 
-    private final DtoMapper<TestCase, TestCaseRS> testCaseMapper;
-    private final TestCaseRepository testCaseRepository;
-    private final TestFolderRepository testFolderRepository;
+    private final DtoMapper<TmsTestCase, TestCaseRS> testCaseMapper;
+    private final TmsTestCaseRepository testCaseRepository;
+    private final TmsTestFolderRepository testFolderRepository;
 
     @Override
     public TestCaseRS createTestCase(final TestCaseRQ inputDto) {
         final var testFolder = testFolderRepository.findById(inputDto.testFolderId())
                 .orElseThrow(NotFoundException.supplier(TEST_FOLDER_NOT_FOUND_BY_ID, inputDto.testFolderId())); // replace by getting default Test Folder
-        final var testCase = new TestCase(null,
+        final var testCase = new TmsTestCase(null,
                 inputDto.name(),
                 inputDto.description(),
                 new HashSet<>(),
                 new HashSet<>(),
                 testFolder);
-        testCase.addTestCaseVersion(new TestCaseVersion(null, "Default", true, false, null));
+        testCase.addTestCaseVersion(new TmsTestCaseVersion(null, "Default", true, false, null));
 
         return testCaseMapper.convert(testCaseRepository.save(testCase));
     }

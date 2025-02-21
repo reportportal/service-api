@@ -1,13 +1,13 @@
 package com.epam.ta.reportportal.core.tms.service;
 
-import com.epam.ta.reportportal.core.tms.db.model.Milestone;
-import com.epam.ta.reportportal.core.tms.db.model.ProductVersion;
-import com.epam.ta.reportportal.core.tms.db.model.TestPlan;
-import com.epam.ta.reportportal.core.tms.db.repository.ProductVersionRepository;
 import com.epam.ta.reportportal.core.tms.dto.ProductVersionRQ;
 import com.epam.ta.reportportal.core.tms.dto.ProductVersionRS;
 import com.epam.ta.reportportal.core.tms.exception.NotFoundException;
 import com.epam.ta.reportportal.core.tms.mapper.DtoMapper;
+import com.epam.ta.reportportal.dao.TmsProductVersionRepository;
+import com.epam.ta.reportportal.entity.tms.TmsMilestone;
+import com.epam.ta.reportportal.entity.tms.TmsProductVersion;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,23 +19,23 @@ public class ProductVersionServiceImpl implements ProductVersionService {
 
     private static final String VERSION_NOT_FOUND_BY_ID = "Product Version cannot be found by id: {0}";
 
-    private final DtoMapper<ProductVersion, ProductVersionRS> productVersionMapper;
-    private final ProductVersionRepository productVersionRepository;
+    private final DtoMapper<TmsProductVersion, ProductVersionRS> productVersionMapper;
+    private final TmsProductVersionRepository productVersionRepository;
 
     @Override
     public ProductVersionRS create(long projectID, final ProductVersionRQ inputDto) {
 //        final var testSuite = testSuiteRepository.findById(inputDto.testFolderId())
 //                .orElseThrow(NotFoundException.supplier(TEST_SUITE_NOT_FOUND_BY_ID, inputDto.testFolderId())); // replace by getting default Test Suite
-        final var productVersion = new ProductVersion(null,
+        final var productVersion = new TmsProductVersion(null,
                 inputDto.version(),
                 inputDto.documentation(),
                 inputDto.testPlans().stream().map(it -> {
-                  var tp = new TestPlan();
+                  var tp = new TmsTestPlan();
                   tp.setId(it);
                   return tp;
                 }).collect(Collectors.toSet()),
                 inputDto.milestones().stream().map(it -> {
-                    var milestone = new Milestone();
+                    var milestone = new TmsMilestone();
                     milestone.setId(it);
                     return milestone;
                 }).collect(Collectors.toSet()));
@@ -45,16 +45,16 @@ public class ProductVersionServiceImpl implements ProductVersionService {
 
     @Override
     public ProductVersionRS update(long projectID,final Long productVersionID, final ProductVersionRQ inputDto) {
-        final var productVersion = new ProductVersion(productVersionID,
+        final var productVersion = new TmsProductVersion(productVersionID,
                 inputDto.version(),
                 inputDto.documentation(),
                 inputDto.testPlans().stream().map(it -> {
-                    var tp = new TestPlan();
+                    var tp = new TmsTestPlan();
                     tp.setId(it);
                     return tp;
                 }).collect(Collectors.toSet()),
                 inputDto.milestones().stream().map(it -> {
-                    var milestone = new Milestone();
+                    var milestone = new TmsMilestone();
                     milestone.setId(it);
                     return milestone;
                 }).collect(Collectors.toSet()));

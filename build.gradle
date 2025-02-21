@@ -72,9 +72,12 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         println("Using snapshot dependencies")
-        implementation 'com.github.reportportal:commons-dao:fcd10b0'
+//        implementation 'com.github.reportportal:commons-dao:0f555c9'
+        implementation files('lib/commons-dao-tms.jar')
         implementation 'com.github.reportportal:commons:c7041ee'
-        implementation 'com.github.reportportal:plugin-api:8874441'
+        implementation ('com.github.reportportal:plugin-api:8874441') {
+            exclude group: 'com.github.reportportal', module: 'commons-dao'
+        }
     }
     implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
 
@@ -145,6 +148,52 @@ dependencies {
 
     testImplementation 'io.jsonwebtoken:jjwt-impl:0.12.5'
     testImplementation 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+
+    // common dao temp
+    implementation "io.swagger.core.v3:swagger-annotations-jakarta:2.2.27"
+    // jooq dependencies
+    api "org.jooq:jooq:${jooqVersion}"
+    implementation "org.postgresql:postgresql:${jdbcDriverVersion}"
+
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.2'
+    implementation 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
+
+    implementation 'org.springframework:spring-webmvc'
+    implementation 'org.apache.tika:tika-core'
+    api('org.springframework.boot:spring-boot-starter-data-jpa') {
+        exclude group: 'org.hibernate', module: 'hibernate-core'
+    }
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+
+    implementation 'io.minio:minio:8.5.17'
+
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    api 'org.apache.commons:commons-collections4:4.4'
+
+    api 'org.jasypt:jasypt:1.9.3'
+
+    api 'io.zonky.test:embedded-postgres:2.0.7'
+    api 'org.apache.commons:commons-compress:1.27.1'
+    implementation 'org.flywaydb:flyway-core:10.15.2'
+    implementation 'org.flywaydb:flyway-database-postgresql:10.20.0'
+
+    api "org.apache.jclouds.api:s3:${jcloudsVersion}"
+    api "org.apache.jclouds.provider:aws-s3:${jcloudsVersion}"
+    api "org.apache.jclouds.api:filesystem:${jcloudsVersion}"
+    implementation 'software.amazon.awssdk:aws-core:2.29.50'
+    implementation 'software.amazon.awssdk:sts:2.29.50'
+    api 'com.google.guava:guava:33.2.1-jre'
+
+    // add lombok support
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.flywaydb.flyway-test-extensions:flyway-spring6-test:10.0.0'
 }
 
 processResources {

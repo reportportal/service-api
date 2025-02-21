@@ -113,7 +113,8 @@ class SecurityConfiguration {
                 "/**/plugin/public/**",
                 "/documentation.html",
                 "/health",
-                "/info"
+                "/info",
+                "/**/tms/**"
             )
             .permitAll()
             /* set of special endpoints for another microservices from RP ecosystem */

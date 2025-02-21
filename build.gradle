@@ -25,7 +25,6 @@ plugins {
 }
 
 
-import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'

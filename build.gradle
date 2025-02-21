@@ -24,6 +24,8 @@ plugins {
     id "org.openapi.generator" version "7.11.0"
 }
 
+
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
@@ -159,14 +161,13 @@ tasks.register('updateApiSubmodule', Exec) {
     commandLine 'git', 'submodule', 'update', '--init', "--recursive"
 }
 
-tasks.register('generateApi', GenerateTask) {
-    generatorName.set("spring")
-    inputSpec.set("$rootDir/api-registry/api/openapi/reportportal-api.yaml")
-    outputDir.set(layout.buildDirectory.dir("generated"))
-    configFile.set("$rootDir/src/main/resources/openapi/config.json")
-    skipOverwrite.set(false)
-    cleanupOutput.set(true)
-    // verbose.set(true)
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$rootDir/api-registry/api/openapi/reportportal-api.yaml"
+    outputDir = "$layout.buildDirectory/generated"
+    configFile = "$rootDir/src/main/resources/openapi/config.json"
+    skipOverwrite = false
+    cleanupOutput = true
 }
 
 tasks.withType(JavaCompile).configureEach {

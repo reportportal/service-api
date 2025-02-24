@@ -6,7 +6,10 @@ import com.epam.ta.reportportal.core.tms.service.ProductVersionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 
 @RestController
 @RequestMapping("/project/{projectId}/tms/productversion")
@@ -16,18 +19,21 @@ public class ProductVersionController {
 
     private final ProductVersionService productVersionService;
 
+    @PreAuthorize(ASSIGNED_TO_PROJECT)
     @GetMapping("/{productVersionId}")
     ProductVersionRS getById(@PathVariable("projectId") final long projectId,
                              @PathVariable("productVersionId") final long productVersionId) {
         return productVersionService.getById(projectId, productVersionId);
     }
 
+    @PreAuthorize(ASSIGNED_TO_PROJECT)
     @PostMapping
     ProductVersionRS createVersion(@PathVariable("projectId") final long projectId,
                                    @RequestBody final ProductVersionRQ inputDto) {
         return productVersionService.create(projectId, inputDto);
     }
 
+    @PreAuthorize(ASSIGNED_TO_PROJECT)
     @PutMapping("/{productVersionId}")
     ProductVersionRS updateVersion(@PathVariable("projectId") final long projectId,
                                    @PathVariable("productVersionId") final long productVersionId,
@@ -35,6 +41,7 @@ public class ProductVersionController {
         return productVersionService.update(projectId, productVersionId,inputDto);
     }
 
+    @PreAuthorize(ASSIGNED_TO_PROJECT)
     @DeleteMapping("/{productVersionId}")
     void deleteVersion(@PathVariable("projectId") final long projectId,
                        @PathVariable("productVersionId") final long productVersionId) {

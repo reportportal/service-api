@@ -19,3 +19,4 @@ hs_err_pid*
 build/
 .gradle/
 out/
+src/test/resources/db/migration/*.sql

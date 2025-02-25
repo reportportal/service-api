@@ -164,9 +164,9 @@ sourceSets {
     }
 }
 
-tasks.register('updateApiSubmodule', Exec) {
-    commandLine 'git', 'submodule', 'update', '--init', "--recursive"
-}
+//tasks.register('updateApiSubmodule', Exec) {
+//    commandLine 'git', 'submodule', 'update', '--init', "--recursive"
+//}
 
 tasks.withType(JavaCompile).configureEach {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -212,9 +212,9 @@ test {
     }
 }
 
-tasks.named('openApiGenerate') {
-    dependsOn 'updateApiSubmodule'
-}
+//tasks.named('openApiGenerate') {
+//    dependsOn 'updateApiSubmodule'
+//}
 
 compileJava.dependsOn tasks.named('openApiGenerate')
 publish.dependsOn build

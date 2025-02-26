@@ -206,7 +206,7 @@ drill {
     }
     enableAppAgent {
         enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
-        version = "0.9.6"
+        version = "0.9.7"
     }
 }
 

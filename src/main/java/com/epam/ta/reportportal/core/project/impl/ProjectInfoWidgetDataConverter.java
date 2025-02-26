@@ -99,9 +99,7 @@ public class ProjectInfoWidgetDataConverter {
     final String TI = "toInvestigate";
     Map<String, List<ChartObject>> result = new HashMap<>();
     Map<String, List<Launch>> grouped = groupBy(initial, grouping.get(interval));
-    Iterator<Entry<String, List<Launch>>> iterator = grouped.entrySet().iterator();
-    while (iterator.hasNext()) {
-      Entry<String, List<Launch>> pair = iterator.next();
+    for (Entry<String, List<Launch>> pair : grouped.entrySet()) {
       double investigated = 0;
       double toInvestigate = 0;
       List<Launch> group = pair.getValue();
@@ -128,7 +126,6 @@ public class ProjectInfoWidgetDataConverter {
       }
       currentGroup.setValues(values);
       result.put(pair.getKey(), Collections.singletonList(currentGroup));
-      iterator.remove();
     }
     return result;
   }

@@ -202,7 +202,7 @@ drill {
     packagePrefixes = ["com/epam/ta/reportportal"]
     enableTestAgent {
         enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
-        version = "0.23.4"
+        version = "0.23.5"
     }
     enableAppAgent {
         enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false

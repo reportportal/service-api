@@ -12,9 +12,14 @@ import com.epam.reportportal.api.model.GroupUsersPage;
 import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
+import com.epam.ta.reportportal.core.group.GroupHandler;
+import org.pf4j.PluginManager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
+
 
 /**
  * Controller for handling group-related requests.
@@ -24,14 +29,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class GroupController implements GroupsApi {
 
+  @Autowired
+  private PluginManager pluginManager;
+
   @Override
+  @PreAuthorize("hasAuthority('ADMINISTRATOR')")
   public ResponseEntity<GroupPage> getGroups(
       Integer offset,
       Integer limit,
       Order order,
       String sort
   ) {
-    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    var extensionPoint = pluginManager.getExtensions(GroupHandler.class);
+    GroupPage groupPage = extensionPoint.stream().findFirst()
+        .map(groupHandler -> groupHandler.getGroups(offset, limit, order, sort))
+        .orElseThrow();
+    return new ResponseEntity<>(groupPage, HttpStatus.OK);
+
   }
 
   @Override

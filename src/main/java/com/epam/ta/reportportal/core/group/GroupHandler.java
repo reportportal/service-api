@@ -11,9 +11,9 @@ import com.epam.reportportal.api.model.GroupUsersPage;
 import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
-import org.pf4j.ExtensionPoint;
+import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 
-public interface GroupService extends ExtensionPoint {
+public interface GroupHandler extends ReportPortalExtensionPoint {
   GroupPage getGroups(Integer offset, Integer limit, Order order, String sort);
   Group createGroup(CreateGroupRequest createGroupRequest);
   Group getGroupById(Long groupId);

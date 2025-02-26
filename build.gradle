@@ -129,7 +129,7 @@ dependencies {
     implementation 'com.github.ben-manes.caffeine:caffeine'
 
     implementation "org.apache.jclouds.api:filesystem:${jcloudsVersion}"
-    implementation 'org.apache.commons:commons-compress'
+    implementation 'org.apache.commons:commons-compress:1.27.1'
 
     implementation "org.hibernate.validator:hibernate-validator:${hibernateValidatorVersion}"
 
@@ -164,9 +164,9 @@ sourceSets {
     }
 }
 
-//tasks.register('updateApiSubmodule', Exec) {
-//    commandLine 'git', 'submodule', 'update', '--init', "--recursive"
-//}
+tasks.register('updateApiSubmodule', Exec) {
+    commandLine 'git', 'submodule', 'update', '--init', "--recursive"
+}
 
 tasks.withType(JavaCompile).configureEach {
     sourceCompatibility = JavaVersion.VERSION_21

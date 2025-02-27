@@ -64,14 +64,17 @@ import com.epam.ta.reportportal.core.events.activity.UnassignUserEvent;
 import com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
 import com.epam.ta.reportportal.core.project.validator.attribute.ProjectAttributeValidator;
+import com.epam.ta.reportportal.dao.AttributeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.Prefix;
 import com.epam.ta.reportportal.entity.enums.ProjectType;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
@@ -128,6 +131,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
   private final UserRepository userRepository;
 
+  private final AttributeRepository attributeRepository;
+
   private final UserPreferenceRepository preferenceRepository;
 
   private final ProjectUserRepository projectUserRepository;
@@ -156,7 +161,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
       ApplicationEventPublisher applicationEventPublisher, MailServiceFactory mailServiceFactory,
       AnalyzerStatusCache analyzerStatusCache, IndexerStatusCache indexerStatusCache,
       AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer,
-      ProjectConverter projectConverter) {
+      ProjectConverter projectConverter, AttributeRepository attributeRepository) {
     this.projectExtractor = projectExtractor;
     this.projectAttributeValidator = projectAttributeValidator;
     this.projectRepository = projectRepository;
@@ -171,6 +176,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     this.analyzerServiceClient = analyzerServiceClient;
     this.logIndexer = logIndexer;
     this.projectConverter = projectConverter;
+    this.attributeRepository = attributeRepository;
   }
 
   @Override
@@ -501,9 +507,23 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
         .ifPresent(attributes -> {
           projectAttributeValidator.verifyProjectAttributes(
               ProjectUtils.getConfigParameters(project.getProjectAttributes()), attributes);
-          attributes.forEach((attribute, value) -> project.getProjectAttributes().stream()
-              .filter(it -> it.getAttribute().getName().equalsIgnoreCase(attribute)).findFirst()
-              .ifPresent(attr -> attr.setValue(value)));
+          attributes.forEach((attribute, value) -> {
+            Optional<ProjectAttribute> existingAttribute = project.getProjectAttributes().stream()
+                .filter(it -> it.getAttribute().getName().equalsIgnoreCase(attribute))
+                .findFirst();
+            if (existingAttribute.isPresent()) {
+              existingAttribute.get().setValue(value);
+            } else {
+              Optional<Attribute> attributeOptional = attributeRepository.findByName(attribute);
+              if (attributeOptional.isPresent()) {
+                ProjectAttribute newAttribute = new ProjectAttribute();
+                newAttribute.setAttribute(attributeOptional.get());
+                newAttribute.setValue(value);
+                newAttribute.setProject(project);
+                project.getProjectAttributes().add(newAttribute);
+              }
+            }
+          });
         });
   }
 

@@ -21,9 +21,7 @@ plugins {
     id 'org.owasp.dependencycheck' version '11.1.1'
     id 'org.springframework.boot' version "${springBootVersion}"
     id "com.epam.drill.integration.cicd" version "0.1.6"
-    id "org.openapi.generator" version "7.11.0"
 }
-
 
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
@@ -61,7 +59,7 @@ dependencyManagement {
     imports {
         mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.13.1' : 'com.epam.reportportal:commons-bom:5.13.1')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
-        mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
+        mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
     }
 }
 
@@ -80,8 +78,6 @@ dependencies {
         implementation 'com.github.reportportal:plugin-api:8874441'
     }
     implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
-
-    implementation 'org.pf4j:pf4j-spring:0.9.0'
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -159,18 +155,6 @@ processResources {
     }
 }
 
-sourceSets {
-    main {
-        java {
-            srcDirs "$buildDir/generated/src/main/java"
-        }
-    }
-}
-
-tasks.register('updateApiSubmodule', Exec) {
-    commandLine 'git', 'submodule', 'update', '--init', "--recursive"
-}
-
 tasks.withType(JavaCompile).configureEach {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
@@ -180,17 +164,8 @@ tasks.withType(JavaCompile).configureEach {
     options.debugOptions.debugLevel = "source,lines,vars"
 }
 
-openApiGenerate {
-    generatorName = "spring"
-    inputSpec = "$rootDir/api-registry/api/openapi/reportportal-api.yaml"
-    outputDir = "${layout.buildDirectory.get()}/generated"
-    configFile = "$rootDir/src/main/resources/openapi/config.json"
-    skipOverwrite = false
-    cleanupOutput = true
-}
-
 dependencyCheck {
-    formats = [ReportGenerator.Format.HTML, ReportGenerator.Format.XML] as List<String>
+    formats = [ReportGenerator.Format.HTML, ReportGenerator.Format.XML]
 //    cveValidForHours = 1
 }
 
@@ -215,11 +190,6 @@ test {
     }
 }
 
-//tasks.named('openApiGenerate') {
-//    dependsOn 'updateApiSubmodule'
-//}
-
-compileJava.dependsOn tasks.named('openApiGenerate')
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts

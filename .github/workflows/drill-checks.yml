@@ -37,6 +37,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Send build info to Drill4J
+        run: ./gradlew drillSendBuildInfo
+
       - name: Build with Gradle
         id: build
         run: |

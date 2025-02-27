@@ -61,6 +61,7 @@ dependencyManagement {
     imports {
         mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.13.1' : 'com.epam.reportportal:commons-bom:5.13.1')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
     }
 }
 
@@ -79,6 +80,8 @@ dependencies {
         implementation 'com.github.reportportal:plugin-api:8874441'
     }
     implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
+
+    implementation 'org.pf4j:pf4j-spring:0.9.0'
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-web'

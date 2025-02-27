@@ -1,5 +1,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+
 import com.epam.reportportal.api.GroupsApi;
 import com.epam.reportportal.api.model.AddGroupProjectByIdRequest;
 import com.epam.reportportal.api.model.CreateGroupRequest;
@@ -33,7 +35,7 @@ public class GroupController implements GroupsApi {
   private PluginManager pluginManager;
 
   @Override
-  @PreAuthorize("hasAuthority('ADMINISTRATOR')")
+  @PreAuthorize(ADMIN_ONLY)
   public ResponseEntity<GroupPage> getGroups(
       Integer offset,
       Integer limit,

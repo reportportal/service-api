@@ -203,6 +203,7 @@ test {
     }
 }
 
+compileJava.dependsOn tasks.named('openApiGenerate')
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts

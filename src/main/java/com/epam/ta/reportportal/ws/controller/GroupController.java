@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Controller for handling group-related requests.
  *
- * @author Reingold Shekhtel
+ * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
 @RestController
 public class GroupController implements GroupsApi {

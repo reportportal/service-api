@@ -16,7 +16,7 @@ import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 /**
  * Handler for group operations.
  *
- * @author Reingold Shekhtel
+ * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
 public interface GroupHandler extends ReportPortalExtensionPoint {
 

@@ -20,7 +20,6 @@ import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_START_TIME;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
 import static java.util.Optional.ofNullable;
@@ -52,6 +51,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.model.Page.PageMetadata;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.StatisticsConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
@@ -72,8 +72,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -326,33 +325,25 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   }
 
   @Override
-  public List<TestItemResource> searchTestItems(String namePart, String attribute,
+  public Iterable<TestItemResource> searchTestItems(String namePart, String attribute,
       Pageable pageable, ProjectDetails projectDetails) {
     validateInputParameters(namePart, attribute);
-    String sortDirection = getSortDirection(pageable.getSort());
-    List<TestItem> result;
+    Slice<TestItem> result;
     if (StringUtils.hasText(attribute)) {
       String[] attributeSplit = attribute.split(":");
       result = testItemRepository.findTestItemsByAttribute(projectDetails.getProjectId(),
-          attributeSplit[0], attributeSplit[1], pageable.getPageNumber(), pageable.getOffset(),
-          sortDirection);
-    } else if (StringUtils.hasText(namePart)) {
-      result = testItemRepository.findTestItemsContainsName(namePart, projectDetails.getProjectId(),
-          pageable.getPageSize(), pageable.getOffset(), sortDirection);
+          attributeSplit[0], attributeSplit[1], pageable);
     } else {
-      result = Collections.emptyList();
+      result = testItemRepository.findTestItemsContainsName(namePart, projectDetails.getProjectId(),
+          pageable);
     }
-    var resourceUpdaters = getResourceUpdaters(projectDetails.getProjectId(), result);
-    return result.stream().map(item -> {
+    var resourceUpdaters = getResourceUpdaters(projectDetails.getProjectId(), result.getContent());
+    return new com.epam.ta.reportportal.model.Page<>(result.stream().map(item -> {
       var testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
       resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
       return testItemResource;
-    }).collect(toList());
-  }
-
-  private String getSortDirection(Sort sort) {
-    return ofNullable(sort.getOrderFor(CRITERIA_START_TIME)).map(
-        order -> order.getDirection().name()).orElse(Direction.DESC.name());
+    }).collect(toList()), new PageMetadata(result.getPageable().getPageSize(), result.getNumber(),
+        result.hasNext()));
   }
 
   private void validateInputParameters(String namePart, String attribute) {

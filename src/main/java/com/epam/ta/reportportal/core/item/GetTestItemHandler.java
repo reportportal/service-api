@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 /**
  * GET operations for {@link TestItem}
@@ -83,7 +84,7 @@ public interface GetTestItemHandler {
    * @return a paged list of {@link TestItemResource} objects that match the specified filters;
    * @throws IllegalArgumentException if there is a missing or invalid parameter condition;
    */
-  List<TestItemResource> searchTestItems(String namePart, String attribute, Pageable pageable,
+  Iterable<TestItemResource> searchTestItems(String namePart, String attribute, Pageable pageable,
       ProjectDetails projectDetails);
 
   /**

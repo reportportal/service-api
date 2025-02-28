@@ -41,9 +41,9 @@ project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from
 repositories {
     mavenCentral { url "https://repo1.maven.org/maven2" }
 
-    if (!releaseMode) {
+//    if (!releaseMode) {
         maven { url 'https://jitpack.io' }
-    }
+//    }/
     maven { url "https://jaspersoft.jfrog.io/artifactory/third-party-ce-artifacts" }
 }
 

@@ -16,22 +16,26 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
-import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
-import com.epam.reportportal.rules.commons.validation.BusinessRule;
-import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.GetTestItemHandler;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
@@ -47,14 +51,13 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.Page.PageMetadata;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.StatisticsConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterProvider;
 import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemUpdaterContent;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.StatisticsResource;
 import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.Arrays;
@@ -69,11 +72,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /**
- * GET operations for {@link TestItem}<br>
- * Default implementation
+ * GET operations for {@link TestItem}<br> Default implementation
  *
  * @author Andrei Varabyeu
  * @author Aliaksei Makayed
@@ -143,8 +147,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
       ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
       @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit) {
 
-    Optional<Long> launchIdOptional = Optional.ofNullable(launchId);
-    Optional<Long> filterIdOptional = Optional.ofNullable(filterId);
+    Optional<Long> launchIdOptional = ofNullable(launchId);
+    Optional<Long> filterIdOptional = ofNullable(filterId);
 
     Page<TestItem> testItemPage = filterIdOptional.map(launchFilterId -> {
       validateProjectRole(projectDetails, user);
@@ -318,6 +322,39 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
       resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
       return testItemResource;
     }).collect(toList());
+  }
+
+  @Override
+  public Iterable<TestItemResource> searchTestItems(String namePart, String attribute,
+      Pageable pageable, ProjectDetails projectDetails) {
+    validateInputParameters(namePart, attribute);
+    Slice<TestItem> result;
+    if (StringUtils.hasText(attribute)) {
+      String[] attributeSplit = attribute.split(":");
+      result = testItemRepository.findTestItemsByAttribute(projectDetails.getProjectId(),
+          attributeSplit[0], attributeSplit[1], pageable);
+    } else {
+      result = testItemRepository.findTestItemsContainsName(namePart, projectDetails.getProjectId(),
+          pageable);
+    }
+    var resourceUpdaters = getResourceUpdaters(projectDetails.getProjectId(), result.getContent());
+    return new com.epam.ta.reportportal.model.Page<>(result.stream().map(item -> {
+      var testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
+      resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
+      return testItemResource;
+    }).collect(toList()), new PageMetadata(result.getPageable().getPageSize(), result.getNumber(),
+        result.hasNext()));
+  }
+
+  private void validateInputParameters(String namePart, String attribute) {
+    if (!StringUtils.hasText(namePart) && !StringUtils.hasText(attribute)) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "Provide either 'filter.has.compositeAttribute' or 'filter.cnt.name'.");
+    }
+    if (StringUtils.hasText(attribute) && attribute.split(":").length != 2) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "rovide 'filter.has.compositeAttribute' with 'key' and 'value' combined by ':'");
+    }
   }
 
   private Filter getItemsFilter(Long[] ids, ReportPortalUser.ProjectDetails projectDetails) {

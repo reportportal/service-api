@@ -41,9 +41,9 @@ project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from
 repositories {
     mavenCentral { url "https://repo1.maven.org/maven2" }
 
-    if (!releaseMode) {
+//    if (!releaseMode) {
         maven { url 'https://jitpack.io' }
-    }
+//    }/
     maven { url "https://jaspersoft.jfrog.io/artifactory/third-party-ce-artifacts" }
 }
 
@@ -68,12 +68,12 @@ dependencyManagement {
 
 dependencies {
     if (releaseMode) {
-        implementation 'com.epam.reportportal:commons-dao'
-        implementation 'com.epam.reportportal:commons'
+        implementation 'com.github.reportportal:commons-dao:65f5d6b'
+        implementation 'com.github.reportportal:commons:feb0d4d'
         implementation 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.epam.reportportal:commons-dao'
-        implementation 'com.epam.reportportal:commons'
+        implementation 'com.github.reportportal:commons-dao:65f5d6b'
+        implementation 'com.github.reportportal:commons:feb0d4d'
         implementation 'com.epam.reportportal:plugin-api'
     }
 

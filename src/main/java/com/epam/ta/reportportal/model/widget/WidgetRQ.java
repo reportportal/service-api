@@ -16,17 +16,16 @@
 
 package com.epam.ta.reportportal.model.widget;
 
-import com.epam.ta.reportportal.model.BaseEntityRQ;
+import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.core.events.annotations.WidgetLimitRange;
+import com.epam.ta.reportportal.model.BaseEntityRQ;
 import com.epam.ta.reportportal.ws.annotations.In;
 import com.epam.ta.reportportal.ws.annotations.NotBlankWithSize;
-import com.epam.reportportal.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
-import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -45,12 +44,12 @@ public class WidgetRQ extends BaseEntityRQ {
 
   @NotNull
   @JsonProperty(value = "widgetType", required = true)
-  @In(allowedValues = { "oldLineChart", "investigatedTrend", "launchStatistics", "statisticTrend",
+  @In(allowedValues = {"oldLineChart", "investigatedTrend", "launchStatistics", "statisticTrend",
       "casesTrend", "notPassed", "overallStatistics", "uniqueBugTable", "bugTrend",
       "activityStream", "launchesComparisonChart", "launchesDurationChart", "launchesTable",
       "topTestCases", "flakyTestCases", "passingRateSummary", "passingRatePerLaunch",
       "productStatus", "mostTimeConsuming", "cumulative", "topPatternTemplates",
-      "componentHealthCheck", "componentHealthCheckTable", "testCaseSearch" })
+      "componentHealthCheck", "componentHealthCheckTable", "testCaseSearch"})
   @Schema(required = true, allowableValues =
       "oldLineChart, investigatedTrend, launchStatistics, statisticTrend,"
           + " casesTrend, notPassed, overallStatistics, uniqueBugTable, bugTrend, activityStream, launchesComparisonChart,"
@@ -59,7 +58,6 @@ public class WidgetRQ extends BaseEntityRQ {
           + " testCaseSearch")
   private String widgetType;
 
-  @Valid
   @JsonProperty(value = "contentParameters")
   private ContentParameters contentParameters;
 

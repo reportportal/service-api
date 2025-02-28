@@ -74,18 +74,18 @@ public class WidgetBuilder implements Supplier<Widget> {
         ofNullable(widget.getWidgetOptions()).orElseGet(WidgetOptions::new);
     Map<String, Object> options =
         ofNullable(widgetOptions.getOptions()).orElseGet(LinkedHashMap::new);
-    options.putAll(previewRQ.getContentParameters().getWidgetOptions());
+
+    ofNullable(previewRQ.getContentParameters()).ifPresent(cp -> {
+      options.putAll(cp.getWidgetOptions());
+      widget.setItemsCount(cp.getItemsCount());
+      widget.getContentFields()
+          .addAll(ofNullable(cp.getContentFields()).orElse(Collections.emptyList()));
+    });
 
     widgetOptions.setOptions(options);
     widget.setWidgetOptions(widgetOptions);
-
     widget.setWidgetType(previewRQ.getWidgetType());
-    widget.setItemsCount(previewRQ.getContentParameters().getItemsCount());
-
     widget.getContentFields().clear();
-    widget.getContentFields().addAll(
-        ofNullable(previewRQ.getContentParameters().getContentFields()).orElse(
-            Collections.emptyList()));
     return this;
   }
 

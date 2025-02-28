@@ -1,0 +1,129 @@
+package com.epam.ta.reportportal.ws.controller;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+
+import com.epam.reportportal.api.GroupsApi;
+import com.epam.reportportal.api.model.AddGroupProjectByIdRequest;
+import com.epam.reportportal.api.model.CreateGroupRequest;
+import com.epam.reportportal.api.model.Group;
+import com.epam.reportportal.api.model.GroupPage;
+import com.epam.reportportal.api.model.GroupProject;
+import com.epam.reportportal.api.model.GroupProjectsPage;
+import com.epam.reportportal.api.model.GroupUser;
+import com.epam.reportportal.api.model.GroupUsersPage;
+import com.epam.reportportal.api.model.Order;
+import com.epam.reportportal.api.model.SuccessfulUpdate;
+import com.epam.reportportal.api.model.UpdateGroupRequest;
+import com.epam.ta.reportportal.core.group.GroupHandler;
+import org.pf4j.PluginManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.RestController;
+
+
+/**
+ * Controller for handling group-related requests.
+ *
+ * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
+ */
+@RestController
+public class GroupController implements GroupsApi {
+
+  @Autowired
+  private PluginManager pluginManager;
+
+  @Override
+  @PreAuthorize(ADMIN_ONLY)
+  public ResponseEntity<GroupPage> getGroups(
+      Integer offset,
+      Integer limit,
+      Order order,
+      String sort
+  ) {
+    var extensionPoint = pluginManager.getExtensions(GroupHandler.class);
+    GroupPage groupPage = extensionPoint.stream().findFirst()
+        .map(groupHandler -> groupHandler.getGroups(offset, limit, order, sort))
+        .orElseThrow();
+    return new ResponseEntity<>(groupPage, HttpStatus.OK);
+
+  }
+
+  @Override
+  public ResponseEntity<Group> createGroup(CreateGroupRequest createGroupRequest) {
+    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+  }
+
+  @Override
+  public ResponseEntity<Group> getGroupById(Long groupId) {
+    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+  }
+
+  @Override
+  public ResponseEntity<SuccessfulUpdate> updateGroup(
+      Long groupId,
+      UpdateGroupRequest updateGroupRequest
+  ) {
+    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+  }
+
+  @Override
+  public ResponseEntity<Void> deleteGroup(Long groupId) {
+    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+  }
+
+  @Override
+  public ResponseEntity<GroupUsersPage> getGroupUsers(
+      Long groupId,
+      Integer offset,
+      Integer limit,
+      Order order
+  ) {
+    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+  }
+
+  @Override
+  public ResponseEntity<GroupUser> getGroupUserById(Long groupId, Long userId) {
+    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+  }
+
+  @Override
+  public ResponseEntity<Void> addUserToGroupById(Long groupId, Long userId) {
+    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+  }
+
+  @Override
+  public ResponseEntity<Void> deleteUserFromGroupById(Long groupId, Long userId) {
+    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+  }
+
+  @Override
+  public ResponseEntity<GroupProjectsPage> getGroupProjects(
+      Long groupId,
+      Integer offset,
+      Integer limit,
+      Order order
+  ) {
+    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+  }
+
+  @Override
+  public ResponseEntity<GroupProject> getGroupProjectById(Long groupId, Long projectId) {
+    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+  }
+
+  @Override
+  public ResponseEntity<Void> addGroupProjectById(
+      Long groupId,
+      Long projectId,
+      AddGroupProjectByIdRequest addGroupProjectByIdRequest
+  ) {
+    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+  }
+
+  @Override
+  public ResponseEntity<Void> deleteProjectFromGroupById(Long groupId, Long projectId) {
+    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+  }
+}

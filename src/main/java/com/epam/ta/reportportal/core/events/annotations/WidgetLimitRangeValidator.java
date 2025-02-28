@@ -33,8 +33,9 @@ public class WidgetLimitRangeValidator
         );
         return limit >= MIN_WIDGET_LIMIT && limit <= MAX_WIDGET_LIMIT;
       }
+      return false;
     }
-    return false;
+    return true;
   }
 
   public void updateValidationMessage(String message, ConstraintValidatorContext context) {

@@ -47,6 +47,15 @@ public class WidgetRqValidatorTest {
     );
   }
 
+
+  @Test
+  public void validNullContentParams() {
+    WidgetRQ widgetRQ = basicWidgetRq();
+    widgetRQ.setContentParameters(null);
+    final Set<ConstraintViolation<WidgetRQ>> validate = validator.validate(widgetRQ);
+    assertEquals(0, validate.size());
+  }
+
   @Test
   public void validLimitMaterializedView() {
     WidgetRQ widgetRQ = basicWidgetRq();

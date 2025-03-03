@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+
 import com.epam.reportportal.api.GroupsApi;
 import com.epam.reportportal.api.model.AddGroupProjectByIdRequest;
 import com.epam.reportportal.api.model.CreateGroupRequest;
@@ -28,7 +30,6 @@ import com.epam.reportportal.api.model.GroupUsersPage;
 import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import com.epam.ta.reportportal.core.group.GroupHandler;
 import org.pf4j.PluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-
 
 /**
  * Controller for handling group-related requests.
@@ -58,14 +58,7 @@ public class GroupController implements GroupsApi {
       Order order,
       String sort
   ) {
-    var extensionPoint = pluginManager.getExtensions(GroupHandler.class)
-        .stream()
-        .findFirst()
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED)
-        );
-
-    GroupPage groupPage = extensionPoint.getGroups(offset, limit, order, sort).orElseThrow(
+    GroupPage groupPage = getGroupExtension().getGroups(offset, limit, order, sort).orElseThrow(
         () -> new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED)
     );
     return new ResponseEntity<>(groupPage, HttpStatus.OK);
@@ -146,5 +139,14 @@ public class GroupController implements GroupsApi {
   @Override
   public ResponseEntity<Void> deleteProjectFromGroupById(Long groupId, Long projectId) {
     return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+  }
+
+  private GroupHandler getGroupExtension() {
+    return pluginManager.getExtensions(GroupHandler.class)
+        .stream()
+        .findFirst()
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED)
+        );
   }
 }

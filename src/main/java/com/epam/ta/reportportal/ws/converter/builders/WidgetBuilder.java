@@ -80,14 +80,13 @@ public class WidgetBuilder implements Supplier<Widget> {
     ofNullable(previewRQ.getContentParameters()).ifPresent(cp -> {
       options.putAll(cp.getWidgetOptions());
       widget.setItemsCount(cp.getItemsCount());
+      widget.getContentFields().clear();
       widget.getContentFields()
           .addAll(ofNullable(cp.getContentFields()).orElse(Collections.emptyList()));
     });
-
     widgetOptions.setOptions(options);
     widget.setWidgetOptions(widgetOptions);
     widget.setWidgetType(previewRQ.getWidgetType());
-    widget.getContentFields().clear();
     return this;
   }
 

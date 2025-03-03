@@ -26,8 +26,7 @@ public class WidgetLimitRangeValidator
       if (TEST_CASE_SEARCH.getType().equalsIgnoreCase(widgetRQ.getWidgetType())) {
         return true;
       }
-      int limit = ofNullable(widgetRQ.getContentParameters()).map(ContentParameters::getItemsCount)
-          .orElse(0);
+      int limit = widgetRQ.getContentParameters().getItemsCount();
       if (Arrays.stream(MaterializedWidgetType.values())
           .anyMatch(it -> it.getType().equalsIgnoreCase(widgetRQ.getWidgetType()))) {
         return limit >= MIN_WIDGET_LIMIT;

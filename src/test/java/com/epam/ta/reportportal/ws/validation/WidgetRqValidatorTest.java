@@ -3,10 +3,11 @@ package com.epam.ta.reportportal.ws.validation;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.epam.reportportal.model.ValidationConstraints;
+import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.model.widget.ContentParameters;
 import com.epam.ta.reportportal.model.widget.MaterializedWidgetType;
 import com.epam.ta.reportportal.model.widget.WidgetRQ;
-import com.epam.reportportal.model.ValidationConstraints;
 import java.util.Collections;
 import java.util.Set;
 import javax.validation.ConstraintViolation;
@@ -51,6 +52,7 @@ public class WidgetRqValidatorTest {
   @Test
   public void validNullContentParams() {
     WidgetRQ widgetRQ = basicWidgetRq();
+    widgetRQ.setWidgetType(WidgetType.TEST_CASE_SEARCH.getType());
     widgetRQ.setContentParameters(null);
     final Set<ConstraintViolation<WidgetRQ>> validate = validator.validate(widgetRQ);
     assertEquals(0, validate.size());

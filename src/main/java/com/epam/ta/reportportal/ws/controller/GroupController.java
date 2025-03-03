@@ -16,9 +16,6 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.reportportal.api.model.Problem;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
-
 import com.epam.reportportal.api.GroupsApi;
 import com.epam.reportportal.api.model.AddGroupProjectByIdRequest;
 import com.epam.reportportal.api.model.CreateGroupRequest;
@@ -31,6 +28,7 @@ import com.epam.reportportal.api.model.GroupUsersPage;
 import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import com.epam.ta.reportportal.core.group.GroupHandler;
 import org.pf4j.PluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,13 +58,16 @@ public class GroupController implements GroupsApi {
       Order order,
       String sort
   ) {
-    var extensionPoint = pluginManager.getExtensions(GroupHandler.class);
-    GroupPage groupPage = extensionPoint.stream().findFirst()
-        .map(groupHandler -> groupHandler.getGroups(offset, limit, order, sort))
-        .orElseThrow(() -> new ResponseStatusException(
-            HttpStatus.PAYMENT_REQUIRED,
-            "No group plugin found"
-        ));
+    var extensionPoint = pluginManager.getExtensions(GroupHandler.class)
+        .stream()
+        .findFirst()
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED)
+        );
+
+    GroupPage groupPage = extensionPoint.getGroups(offset, limit, order, sort).orElseThrow(
+        () -> new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED)
+    );
     return new ResponseEntity<>(groupPage, HttpStatus.OK);
   }
 

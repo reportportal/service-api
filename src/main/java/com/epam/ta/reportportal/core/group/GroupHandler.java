@@ -12,6 +12,7 @@ import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import java.util.Optional;
 
 /**
  * Handler for group operations.
@@ -29,7 +30,7 @@ public interface GroupHandler extends ReportPortalExtensionPoint {
    * @param sort The field to sort by.
    * @return A page of groups.
    */
-  GroupPage getGroups(Integer offset, Integer limit, Order order, String sort);
+  Optional<GroupPage> getGroups(Integer offset, Integer limit, Order order, String sort);
 
   /**
    * Creates a group.
@@ -37,7 +38,7 @@ public interface GroupHandler extends ReportPortalExtensionPoint {
    * @param createGroupRequest The request to create a group.
    * @return The created group.
    */
-  Group createGroup(CreateGroupRequest createGroupRequest);
+  Optional<Group> createGroup(CreateGroupRequest createGroupRequest);
 
   /**
    * Returns a group by its ID.
@@ -45,7 +46,7 @@ public interface GroupHandler extends ReportPortalExtensionPoint {
    * @param groupId The ID of the group.
    * @return The group.
    */
-  Group getGroupById(Long groupId);
+  Optional<Group> getGroupById(Long groupId);
 
   /**
    * Updates a group.
@@ -54,7 +55,7 @@ public interface GroupHandler extends ReportPortalExtensionPoint {
    * @param updateGroupRequest The request to update the group.
    * @return The updated group.
    */
-  SuccessfulUpdate updateGroup(Long groupId, UpdateGroupRequest updateGroupRequest);
+  Optional<SuccessfulUpdate> updateGroup(Long groupId, UpdateGroupRequest updateGroupRequest);
 
   /**
    * Deletes a group.
@@ -72,7 +73,7 @@ public interface GroupHandler extends ReportPortalExtensionPoint {
    * @param order The order of sorting.
    * @return A page of group users.
    */
-  GroupUsersPage getGroupUsers(Long groupId, Integer offset, Integer limit, Order order);
+  Optional<GroupUsersPage> getGroupUsers(Long groupId, Integer offset, Integer limit, Order order);
 
   /**
    * Returns a group user by group ID and user ID.
@@ -81,7 +82,7 @@ public interface GroupHandler extends ReportPortalExtensionPoint {
    * @param userId The ID of the user.
    * @return The group user.
    */
-  GroupUser getGroupUserById(Long groupId, Long userId);
+  Optional<GroupUser> getGroupUserById(Long groupId, Long userId);
 
   /**
    * Adds a user to a group by group ID and user ID.
@@ -108,7 +109,7 @@ public interface GroupHandler extends ReportPortalExtensionPoint {
    * @param order The order of sorting.
    * @return A page of group projects.
    */
-  GroupProjectsPage getGroupProjects(Long groupId, Integer offset, Integer limit, Order order);
+  Optional<GroupProjectsPage> getGroupProjects(Long groupId, Integer offset, Integer limit, Order order);
 
   /**
    * Returns a group project by group ID and project ID.
@@ -117,7 +118,7 @@ public interface GroupHandler extends ReportPortalExtensionPoint {
    * @param projectId The ID of the project.
    * @return The group project.
    */
-  GroupProject getGroupProjectById(Long groupId, Long projectId);
+  Optional<GroupProject> getGroupProjectById(Long groupId, Long projectId);
 
   /**
    * Adds a project to a group by group ID and project ID.

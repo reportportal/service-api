@@ -1,5 +1,22 @@
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.reportportal.api.model.Problem;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 
 import com.epam.reportportal.api.GroupsApi;
@@ -21,6 +38,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 
 /**
@@ -45,9 +63,11 @@ public class GroupController implements GroupsApi {
     var extensionPoint = pluginManager.getExtensions(GroupHandler.class);
     GroupPage groupPage = extensionPoint.stream().findFirst()
         .map(groupHandler -> groupHandler.getGroups(offset, limit, order, sort))
-        .orElseThrow();
+        .orElseThrow(() -> new ResponseStatusException(
+            HttpStatus.PAYMENT_REQUIRED,
+            "No group plugin found"
+        ));
     return new ResponseEntity<>(groupPage, HttpStatus.OK);
-
   }
 
   @Override

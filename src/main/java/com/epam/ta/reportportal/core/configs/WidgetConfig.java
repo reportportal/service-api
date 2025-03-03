@@ -69,7 +69,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -194,6 +193,8 @@ public class WidgetConfig implements ApplicationContextAware {
             (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
         )
         .put(WidgetType.COMPONENT_HEALTH_CHECK_TABLE,
+            (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
+        ).put(WidgetType.TOP_TEST_CASES,
             (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
         )
         .build();

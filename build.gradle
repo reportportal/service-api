@@ -68,11 +68,11 @@ dependencyManagement {
 
 dependencies {
     if (releaseMode) {
-        implementation 'com.github.reportportal:commons-dao:094b259'
+        implementation 'com.github.reportportal:commons-dao:13eb3c6'
         implementation 'com.github.reportportal:commons:feb0d4d'
         implementation 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.github.reportportal:commons-dao:094b259'
+        implementation 'com.github.reportportal:commons-dao:13eb3c6'
         implementation 'com.github.reportportal:commons:feb0d4d'
         implementation 'com.epam.reportportal:plugin-api'
     }

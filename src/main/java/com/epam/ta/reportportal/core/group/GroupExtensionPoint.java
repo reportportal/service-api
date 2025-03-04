@@ -15,11 +15,11 @@ import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import java.util.Optional;
 
 /**
- * Handler for group operations.
+ * Extension point for group-related operations.
  *
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
-public interface GroupHandler extends ReportPortalExtensionPoint {
+public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
 
   /**
    * Returns a page of groups.

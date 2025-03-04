@@ -30,7 +30,7 @@ import com.epam.reportportal.api.model.GroupUsersPage;
 import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
-import com.epam.ta.reportportal.core.group.GroupHandler;
+import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
 import org.pf4j.PluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -142,8 +142,8 @@ public class GroupController implements GroupsApi {
     return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
   }
 
-  private GroupHandler getGroupExtension() {
-    return pluginManager.getExtensions(GroupHandler.class)
+  private GroupExtensionPoint getGroupExtension() {
+    return pluginManager.getExtensions(GroupExtensionPoint.class)
         .stream()
         .findFirst()
         .orElseThrow(

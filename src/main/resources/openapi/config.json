@@ -18,11 +18,9 @@
   "skipOverwrite": true,
   "useTags": true,
   "typeMappings": {
-    "OffsetDateTime": "Instant",
-    "Order": "Sort.Direction"
+    "OffsetDateTime": "Instant"
   },
   "importMappings": {
-    "java.time.OffsetDateTime": "java.time.Instant",
-    "com.epam.reportportal.api.model.Order": "org.springframework.data.domain.Sort"
+    "java.time.OffsetDateTime": "java.time.Instant"
   }
 }

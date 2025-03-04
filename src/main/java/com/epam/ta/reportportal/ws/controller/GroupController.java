@@ -58,9 +58,10 @@ public class GroupController implements GroupsApi {
       Order order,
       String sort
   ) {
-    GroupPage groupPage = getGroupExtension().getGroups(offset, limit, order, sort).orElseThrow(
-        () -> new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED)
-    );
+    GroupPage groupPage = getGroupExtension().getGroups(offset, limit, order, sort)
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED)
+        );
     return new ResponseEntity<>(groupPage, HttpStatus.OK);
   }
 

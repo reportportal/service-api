@@ -327,7 +327,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   @Override
   public Iterable<TestItemResource> searchTestItems(String namePart, String attribute,
       Pageable pageable, ProjectDetails projectDetails) {
-    validateInputParameters(namePart, attribute);
+    validateInputParameters(namePart, attribute, pageable);
     Slice<TestItem> result;
     if (StringUtils.hasText(attribute)) {
       String[] attributeSplit = attribute.split(":");
@@ -346,7 +346,15 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
         result.hasNext()));
   }
 
-  private void validateInputParameters(String namePart, String attribute) {
+  private void validateInputParameters(String namePart, String attribute, Pageable pageable) {
+    if (pageable.getPageSize() > 10) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "Page size must be lower than 10");
+    }
+    if (pageable.getOffset() > 300) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "Total amount must be lower than 300");
+    }
     if (!StringUtils.hasText(namePart) && !StringUtils.hasText(attribute)) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "Provide either 'filter.has.compositeAttribute' or 'filter.cnt.name'.");

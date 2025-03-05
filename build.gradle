@@ -70,11 +70,11 @@ dependencies {
     if (releaseMode) {
         implementation 'com.github.reportportal:commons-dao:13eb3c6'
         implementation 'com.github.reportportal:commons:feb0d4d'
-        implementation 'com.epam.reportportal:plugin-api'
+        implementation 'com.github.reportportal:plguin-api:80b20c8'
     } else {
         implementation 'com.github.reportportal:commons-dao:13eb3c6'
         implementation 'com.github.reportportal:commons:feb0d4d'
-        implementation 'com.epam.reportportal:plugin-api'
+        implementation 'com.github.reportportal:plguin-api:80b20c8'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'

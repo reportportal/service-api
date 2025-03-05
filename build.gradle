@@ -42,7 +42,7 @@ repositories {
     mavenCentral { url "https://repo1.maven.org/maven2" }
 
 //    if (!releaseMode) {
-        maven { url 'https://jitpack.io' }
+    maven { url 'https://jitpack.io' }
 //    }/
     maven { url "https://jaspersoft.jfrog.io/artifactory/third-party-ce-artifacts" }
 }
@@ -70,11 +70,11 @@ dependencies {
     if (releaseMode) {
         implementation 'com.github.reportportal:commons-dao:13eb3c6'
         implementation 'com.github.reportportal:commons:feb0d4d'
-        implementation 'com.github.reportportal:plguin-api:80b20c8'
+        implementation 'com.github.reportportal:plugin-api:5.13.0'
     } else {
         implementation 'com.github.reportportal:commons-dao:13eb3c6'
         implementation 'com.github.reportportal:commons:feb0d4d'
-        implementation 'com.github.reportportal:plguin-api:80b20c8'
+        implementation 'com.github.reportportal:plugin-api:5.13.0'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'

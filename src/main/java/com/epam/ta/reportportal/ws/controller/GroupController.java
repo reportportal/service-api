@@ -30,12 +30,16 @@ import com.epam.reportportal.api.model.GroupUsersPage;
 import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
+import org.checkerframework.checker.units.qual.A;
 import org.pf4j.PluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -66,8 +70,16 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
+  @PreAuthorize(ADMIN_ONLY)
   public ResponseEntity<GroupInfo> createGroup(CreateGroupRequest createGroupRequest) {
-    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    GroupInfo group = getGroupExtension().createGroup(
+            createGroupRequest,
+            getPrincipal().getUserId()
+        )
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED)
+        );
+    return new ResponseEntity<>(group, HttpStatus.CREATED);
   }
 
   @Override
@@ -149,5 +161,12 @@ public class GroupController implements GroupsApi {
         .orElseThrow(
             () -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED)
         );
+  }
+
+  private ReportPortalUser getPrincipal() {
+    return (ReportPortalUser) SecurityContextHolder
+        .getContext()
+        .getAuthentication()
+        .getPrincipal();
   }
 }

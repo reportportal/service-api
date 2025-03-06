@@ -36,9 +36,10 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * Creates a group.
    *
    * @param createGroupRequest The request to create a group.
+   * @param userId The ID of the user who creates the group.
    * @return The {@link Optional} of {@link GroupInfo} containing the created group.
    */
-  Optional<GroupInfo> createGroup(CreateGroupRequest createGroupRequest);
+  Optional<GroupInfo> createGroup(CreateGroupRequest createGroupRequest, Long userId);
 
   /**
    * Returns a group by its ID.

@@ -62,11 +62,8 @@ public class GroupController implements GroupsApi {
       Order order,
       String sort
   ) {
-    GroupPage groupPage = getGroupExtension().getGroups(offset, limit, order, sort)
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED)
-        );
-    return new ResponseEntity<>(groupPage, HttpStatus.OK);
+    GroupPage groupPage = getGroupExtension().getGroups(offset, limit, order, sort);
+    return ResponseEntity.ok(groupPage);
   }
 
   @Override
@@ -75,16 +72,16 @@ public class GroupController implements GroupsApi {
     GroupInfo group = getGroupExtension().createGroup(
             createGroupRequest,
             getPrincipal().getUserId()
-        )
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED)
         );
     return new ResponseEntity<>(group, HttpStatus.CREATED);
   }
 
   @Override
   public ResponseEntity<GroupInfo> getGroupById(Long groupId) {
-    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    GroupInfo group = getGroupExtension().getGroupById(groupId).orElseThrow(
+        () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
+    );
+    return ResponseEntity.ok(group);
   }
 
   @Override
@@ -92,12 +89,14 @@ public class GroupController implements GroupsApi {
       Long groupId,
       UpdateGroupRequest updateGroupRequest
   ) {
-    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    getGroupExtension().updateGroup(groupId, updateGroupRequest);
+    return ResponseEntity.ok(new SuccessfulUpdate("Group updated successfully"));
   }
 
   @Override
   public ResponseEntity<Void> deleteGroup(Long groupId) {
-    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    getGroupExtension().deleteGroup(groupId);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @Override

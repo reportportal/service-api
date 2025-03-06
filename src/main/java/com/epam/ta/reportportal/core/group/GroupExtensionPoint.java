@@ -28,24 +28,24 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * @param limit The number of groups to return.
    * @param order The order of sorting.
    * @param sort The field to sort by.
-   * @return {@link Optional} of {@link GroupPage} containing a page of groups.
+   * @return {@link GroupPage} containing a page of groups.
    */
-  Optional<GroupPage> getGroups(Integer offset, Integer limit, Order order, String sort);
+  GroupPage getGroups(Integer offset, Integer limit, Order order, String sort);
 
   /**
    * Creates a group.
    *
    * @param createGroupRequest The request to create a group.
    * @param userId The ID of the user who creates the group.
-   * @return The {@link Optional} of {@link GroupInfo} containing the created group.
+   * @return {@link GroupInfo} containing the created group.
    */
-  Optional<GroupInfo> createGroup(CreateGroupRequest createGroupRequest, Long userId);
+  GroupInfo createGroup(CreateGroupRequest createGroupRequest, Long userId);
 
   /**
    * Returns a group by its ID.
    *
    * @param groupId The ID of the group.
-   * @return The {@link Optional} of {@link GroupInfo} containing the group.
+   * @return {@link GroupInfo} with the group information.
    */
   Optional<GroupInfo> getGroupById(Long groupId);
 
@@ -54,9 +54,8 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    *
    * @param groupId The ID of the group.
    * @param updateGroupRequest The request to update the group.
-   * @return {@link Optional} of {@link SuccessfulUpdate} containing the result of the update.
    */
-  Optional<SuccessfulUpdate> updateGroup(Long groupId, UpdateGroupRequest updateGroupRequest);
+  void updateGroup(Long groupId, UpdateGroupRequest updateGroupRequest);
 
   /**
    * Deletes a group.
@@ -72,9 +71,9 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * @param offset The number of group users to skip before starting to collect the result set.
    * @param limit The number of group users to return.
    * @param order The order of sorting.
-   * @return {@link Optional} of {@link GroupUsersPage} containing a page of group users.
+   * @return {@link GroupUsersPage} containing a page of group users.
    */
-  Optional<GroupUsersPage> getGroupUsers(Long groupId, Integer offset, Integer limit, Order order);
+  GroupUsersPage getGroupUsers(Long groupId, Integer offset, Integer limit, Order order);
 
   /**
    * Returns a group user by group ID and user ID.
@@ -110,14 +109,14 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * @param order The order of sorting.
    * @return {@link Optional} of {@link GroupProjectsPage} containing a page of group projects.
    */
-  Optional<GroupProjectsPage> getGroupProjects(Long groupId, Integer offset, Integer limit, Order order);
+  GroupProjectsPage getGroupProjects(Long groupId, Integer offset, Integer limit, Order order);
 
   /**
    * Returns a group project by group ID and project ID.
    *
    * @param groupId The ID of the group.
    * @param projectId The ID of the project.
-   * @return {@link Optional} of {@link GroupProject} containing the group project.
+   * @return {@link GroupProject} containing the group project information.
    */
   Optional<GroupProject> getGroupProjectById(Long groupId, Long projectId);
 

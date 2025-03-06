@@ -21,7 +21,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import com.epam.reportportal.api.GroupsApi;
 import com.epam.reportportal.api.model.AddGroupProjectByIdRequest;
 import com.epam.reportportal.api.model.CreateGroupRequest;
-import com.epam.reportportal.api.model.Group;
+import com.epam.reportportal.api.model.GroupInfo;
 import com.epam.reportportal.api.model.GroupPage;
 import com.epam.reportportal.api.model.GroupProject;
 import com.epam.reportportal.api.model.GroupProjectsPage;
@@ -66,12 +66,12 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  public ResponseEntity<Group> createGroup(CreateGroupRequest createGroupRequest) {
+  public ResponseEntity<GroupInfo> createGroup(CreateGroupRequest createGroupRequest) {
     return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
   }
 
   @Override
-  public ResponseEntity<Group> getGroupById(Long groupId) {
+  public ResponseEntity<GroupInfo> getGroupById(Long groupId) {
     return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
   }
 

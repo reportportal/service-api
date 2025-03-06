@@ -2,7 +2,7 @@ package com.epam.ta.reportportal.core.group;
 
 import com.epam.reportportal.api.model.AddGroupProjectByIdRequest;
 import com.epam.reportportal.api.model.CreateGroupRequest;
-import com.epam.reportportal.api.model.Group;
+import com.epam.reportportal.api.model.GroupInfo;
 import com.epam.reportportal.api.model.GroupPage;
 import com.epam.reportportal.api.model.GroupProject;
 import com.epam.reportportal.api.model.GroupProjectsPage;
@@ -28,7 +28,7 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * @param limit The number of groups to return.
    * @param order The order of sorting.
    * @param sort The field to sort by.
-   * @return A page of groups.
+   * @return {@link Optional} of {@link GroupPage} containing a page of groups.
    */
   Optional<GroupPage> getGroups(Integer offset, Integer limit, Order order, String sort);
 
@@ -36,24 +36,24 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * Creates a group.
    *
    * @param createGroupRequest The request to create a group.
-   * @return The created group.
+   * @return The {@link Optional} of {@link GroupInfo} containing the created group.
    */
-  Optional<Group> createGroup(CreateGroupRequest createGroupRequest);
+  Optional<GroupInfo> createGroup(CreateGroupRequest createGroupRequest);
 
   /**
    * Returns a group by its ID.
    *
    * @param groupId The ID of the group.
-   * @return The group.
+   * @return The {@link Optional} of {@link GroupInfo} containing the group.
    */
-  Optional<Group> getGroupById(Long groupId);
+  Optional<GroupInfo> getGroupById(Long groupId);
 
   /**
    * Updates a group.
    *
    * @param groupId The ID of the group.
    * @param updateGroupRequest The request to update the group.
-   * @return The updated group.
+   * @return {@link Optional} of {@link SuccessfulUpdate} containing the result of the update.
    */
   Optional<SuccessfulUpdate> updateGroup(Long groupId, UpdateGroupRequest updateGroupRequest);
 
@@ -71,7 +71,7 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * @param offset The number of group users to skip before starting to collect the result set.
    * @param limit The number of group users to return.
    * @param order The order of sorting.
-   * @return A page of group users.
+   * @return {@link Optional} of {@link GroupUsersPage} containing a page of group users.
    */
   Optional<GroupUsersPage> getGroupUsers(Long groupId, Integer offset, Integer limit, Order order);
 
@@ -80,7 +80,7 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    *
    * @param groupId The ID of the group.
    * @param userId The ID of the user.
-   * @return The group user.
+   * @return {@link Optional} of {@link GroupUser} containing the group user.
    */
   Optional<GroupUser> getGroupUserById(Long groupId, Long userId);
 
@@ -107,7 +107,7 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * @param offset The number of group projects to skip before starting to collect the result set.
    * @param limit The number of group projects to return.
    * @param order The order of sorting.
-   * @return A page of group projects.
+   * @return {@link Optional} of {@link GroupProjectsPage} containing a page of group projects.
    */
   Optional<GroupProjectsPage> getGroupProjects(Long groupId, Integer offset, Integer limit, Order order);
 
@@ -116,7 +116,7 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    *
    * @param groupId The ID of the group.
    * @param projectId The ID of the project.
-   * @return The group project.
+   * @return {@link Optional} of {@link GroupProject} containing the group project.
    */
   Optional<GroupProject> getGroupProjectById(Long groupId, Long projectId);
 

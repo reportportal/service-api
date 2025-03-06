@@ -1,5 +1,7 @@
 package com.epam.ta.reportportal.core.tms.controller;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+
 import com.epam.ta.reportportal.core.tms.dto.TestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TestCaseRS;
 import com.epam.ta.reportportal.core.tms.service.TestCaseService;
@@ -11,42 +13,39 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-
 @RestController
 @RequestMapping("/project/{projectId}/tms/testcase")
 @Tag(name = "Test Case", description = "Test Case API collection")
 @RequiredArgsConstructor
 public class TestCaseController {
 
-    private final TestCaseService testCaseService;
+  private final TestCaseService testCaseService;
 
-    @PreAuthorize(ASSIGNED_TO_PROJECT)
-    @GetMapping("/{testCaseId}")
-    TestCaseRS getTestCaseById(@PathVariable("projectId") final long projectId,
-                               @PathVariable("testCaseId") final long testCaseId) {
-        return testCaseService.getTestCaseById(projectId,testCaseId);
-    }
+  @PreAuthorize(ADMIN_ONLY)
+  @GetMapping("/{testCaseId}")
+  TestCaseRS getTestCaseById(@PathVariable("projectId") final long projectId,
+                             @PathVariable("testCaseId") final long testCaseId) {
+    return testCaseService.getTestCaseById(projectId, testCaseId);
+  }
 
-    @PreAuthorize(ASSIGNED_TO_PROJECT)
-    @GetMapping("/")
-    List<TestCaseRS> getTestCaseByProjectId(@PathVariable("projectId") final long projectId) {
-        return testCaseService.getTestCaseByProjectId(projectId);
-    }
+  @PreAuthorize(ADMIN_ONLY)
+  @GetMapping("/")
+  List<TestCaseRS> getTestCaseByProjectId(@PathVariable("projectId") final long projectId) {
+    return testCaseService.getTestCaseByProjectId(projectId);
+  }
 
-    @PreAuthorize(ASSIGNED_TO_PROJECT)
-    @PostMapping
-    TestCaseRS createTestCase(@PathVariable("projectId") final long projectId,
-                              @RequestBody @Valid final TestCaseRQ inputDto) {
-        return testCaseService.createTestCase(inputDto);
-    }
+  @PreAuthorize(ADMIN_ONLY)
+  @PostMapping
+  TestCaseRS createTestCase(@PathVariable("projectId") final long projectId,
+                            @RequestBody @Valid final TestCaseRQ inputDto) {
+    return testCaseService.createTestCase(inputDto);
+  }
 
-    @PreAuthorize(ASSIGNED_TO_PROJECT)
-    @PutMapping("/{testCaseId}")
-    TestCaseRS updateTestCase(@PathVariable("projectId") final long projectId,
-                              @PathVariable("testCaseId") final long testCaseId,
-                              @RequestBody final TestCaseRQ inputDto) {
-        return testCaseService.updateTestCase(testCaseId, inputDto);
-    }
-
+  @PreAuthorize(ADMIN_ONLY)
+  @PutMapping("/{testCaseId}")
+  TestCaseRS updateTestCase(@PathVariable("projectId") final long projectId,
+                            @PathVariable("testCaseId") final long testCaseId,
+                            @RequestBody final TestCaseRQ inputDto) {
+    return testCaseService.updateTestCase(testCaseId, inputDto);
+  }
 }

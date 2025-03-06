@@ -1,5 +1,17 @@
-package com.epam.ta.reportportal.core.tms.controller;
+package com.epam.ta.reportportal.core.tms.controller.unit;
 
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
+
+import com.epam.ta.reportportal.core.tms.controller.ProductVersionController;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsMilestone;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlan;
 import com.epam.ta.reportportal.core.tms.dto.ProductVersionRQ;
@@ -14,11 +26,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import java.util.Set;
-
-import static org.mockito.BDDMockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 class ProductVersionControllerTest {
 

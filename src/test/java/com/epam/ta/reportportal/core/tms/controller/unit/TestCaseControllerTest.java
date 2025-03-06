@@ -1,5 +1,17 @@
-package com.epam.ta.reportportal.core.tms.controller;
+package com.epam.ta.reportportal.core.tms.controller.unit;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
+
+import com.epam.ta.reportportal.core.tms.controller.TestCaseController;
 import com.epam.ta.reportportal.core.tms.dto.AttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.ManualScenarioRS;
 import com.epam.ta.reportportal.core.tms.dto.TestCaseRQ;
@@ -17,11 +29,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-
-import static org.mockito.BDDMockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 class TestCaseControllerTest {
 

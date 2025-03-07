@@ -12,6 +12,7 @@ import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import java.util.Optional;
+import org.jclouds.rest.ResourceAlreadyExistsException;
 import org.jclouds.rest.ResourceNotFoundException;
 
 /**
@@ -25,9 +26,9 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * Returns a page of groups.
    *
    * @param offset The number of groups to skip before starting to collect the result set.
-   * @param limit The number of groups to return.
-   * @param order The order of sorting.
-   * @param sort The field to sort by.
+   * @param limit  The number of groups to return.
+   * @param order  The order of sorting.
+   * @param sort   The field to sort by.
    * @return {@link GroupPage} containing a page of groups.
    */
   GroupPage getGroups(Integer offset, Integer limit, Order order, String sort);
@@ -36,7 +37,7 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * Creates a group.
    *
    * @param createGroupRequest The request to create a group.
-   * @param userId The ID of the user who creates the group.
+   * @param userId             The ID of the user who creates the group.
    * @return {@link GroupInfo} containing the created group.
    */
   GroupInfo createGroup(CreateGroupRequest createGroupRequest, Long userId);
@@ -52,7 +53,7 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
   /**
    * Updates a group.
    *
-   * @param groupId The ID of the group.
+   * @param groupId            The ID of the group.
    * @param updateGroupRequest The request to update the group.
    */
   void updateGroup(Long groupId, UpdateGroupRequest updateGroupRequest);
@@ -69,9 +70,9 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * Returns a page of group users.
    *
    * @param groupId The ID of the group.
-   * @param offset The number of group users to skip before starting to collect the result set.
-   * @param limit The number of group users to return.
-   * @param order The order of sorting.
+   * @param offset  The number of group users to skip before starting to collect the result set.
+   * @param limit   The number of group users to return.
+   * @param order   The order of sorting.
    * @return {@link GroupUsersPage} containing a page of group users.
    */
   GroupUsersPage getGroupUsers(Long groupId, Integer offset, Integer limit, Order order);
@@ -80,7 +81,7 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * Returns a group user by group ID and user ID.
    *
    * @param groupId The ID of the group.
-   * @param userId The ID of the user.
+   * @param userId  The ID of the user.
    * @return {@link Optional} of {@link GroupUserInfo} containing the group user.
    */
   Optional<GroupUserInfo> getGroupUserById(Long groupId, Long userId);
@@ -89,7 +90,7 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * Adds a user to a group by group ID and user ID.
    *
    * @param groupId The ID of the group.
-   * @param userId The ID of the user.
+   * @param userId  The ID of the user.
    */
   void addUserToGroupById(Long groupId, Long userId);
 
@@ -97,7 +98,7 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * Deletes a user from a group by group ID and user ID.
    *
    * @param groupId The ID of the group.
-   * @param userId The ID of the user.
+   * @param userId  The ID of the user.
    */
   void deleteUserFromGroupById(Long groupId, Long userId);
 
@@ -105,9 +106,9 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * Returns a page of group projects.
    *
    * @param groupId The ID of the group.
-   * @param offset The number of group projects to skip before starting to collect the result set.
-   * @param limit The number of group projects to return.
-   * @param order The order of sorting.
+   * @param offset  The number of group projects to skip before starting to collect the result set.
+   * @param limit   The number of group projects to return.
+   * @param order   The order of sorting.
    * @return {@link Optional} of {@link GroupProjectsPage} containing a page of group projects.
    */
   GroupProjectsPage getGroupProjects(Long groupId, Integer offset, Integer limit, Order order);
@@ -115,7 +116,7 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
   /**
    * Returns a group project by group ID and project ID.
    *
-   * @param groupId The ID of the group.
+   * @param groupId   The ID of the group.
    * @param projectId The ID of the project.
    * @return {@link GroupProjectInfo} containing the group project information.
    */
@@ -124,8 +125,8 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
   /**
    * Adds a project to a group by group ID and project ID.
    *
-   * @param groupId The ID of the group.
-   * @param projectId The ID of the project.
+   * @param groupId                    The ID of the group.
+   * @param projectId                  The ID of the project.
    * @param addGroupProjectByIdRequest The request to add a project to a group.
    */
   void addGroupProjectById(Long groupId, Long projectId,
@@ -134,7 +135,7 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
   /**
    * Deletes a project from a group by group ID and project ID.
    *
-   * @param groupId The ID of the group.
+   * @param groupId   The ID of the group.
    * @param projectId The ID of the project.
    */
   void deleteProjectFromGroupById(Long groupId, Long projectId);

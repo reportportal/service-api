@@ -22,6 +22,8 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
+import static com.epam.ta.reportportal.ws.resolver.PagingHandlerMethodArgumentResolver.CUT_DEFAULT_OFFSET;
+import static com.epam.ta.reportportal.ws.resolver.PagingHandlerMethodArgumentResolver.CUT_DEFAULT_PAGE_SIZE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
@@ -71,6 +73,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -342,18 +345,19 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
       var testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
       resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
       return testItemResource;
-    }).collect(toList()), new PageMetadata(result.getPageable().getPageSize(), result.getNumber(),
-        result.hasNext()));
+    }).collect(toList()),
+        new PageMetadata(result.getPageable().getPageNumber(), result.getPageable().getPageSize(),
+            result.hasNext()));
   }
 
   private void validateInputParameters(String namePart, String attribute, Pageable pageable) {
-    if (pageable.getPageSize() > 10) {
-      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "Page size must be lower than 10");
+    if (0 == pageable.getPageSize() || CUT_DEFAULT_PAGE_SIZE < pageable.getPageSize()) {
+      pageable = PageRequest.of(pageable.getPageNumber(), CUT_DEFAULT_PAGE_SIZE,
+          pageable.getSort());
     }
-    if (pageable.getOffset() > 300) {
+    if (pageable.getOffset() > CUT_DEFAULT_OFFSET) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "Total amount must be lower than 300");
+          "Total amount must be lower or equals than " + CUT_DEFAULT_OFFSET);
     }
     if (!StringUtils.hasText(namePart) && !StringUtils.hasText(attribute)) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
@@ -361,7 +365,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
     }
     if (StringUtils.hasText(attribute) && attribute.split(":").length != 2) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "rovide 'filter.has.compositeAttribute' with 'key' and 'value' combined by ':'");
+          "Provide 'filter.has.compositeAttribute' with 'key' and 'value' combined by ':'");
     }
   }
 

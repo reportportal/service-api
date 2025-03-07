@@ -16,6 +16,8 @@
 package com.epam.ta.reportportal.model;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import java.util.Collection;
 import java.util.Iterator;
 import lombok.Getter;
@@ -53,6 +55,12 @@ public class Page<T> implements Iterable<T> {
     this.page = new PageMetadata(size, number, totalElements);
   }
 
+  private static void checkArgument(boolean expression, String errorMessage) {
+    if (!expression) {
+      throw new IllegalArgumentException(errorMessage);
+    }
+  }
+
   public Collection<T> getContent() {
     return content;
   }
@@ -66,13 +74,23 @@ public class Page<T> implements Iterable<T> {
     return content.iterator();
   }
 
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder("Page{");
+    sb.append("content=").append(content);
+    sb.append(", page=").append(page);
+    sb.append('}');
+    return sb.toString();
+  }
+
   @Getter
+  @JsonInclude(Include.NON_NULL)
   public static class PageMetadata {
 
     long number;
     long size;
-    long totalElements;
-    long totalPages;
+    Long totalElements;
+    Long totalPages;
     Boolean hasNext;
 
     /**
@@ -81,7 +99,7 @@ public class Page<T> implements Iterable<T> {
     PageMetadata() {
     }
 
-    public PageMetadata(long number, long size, Boolean hasNext) {
+    public PageMetadata(Integer number, Integer size, Boolean hasNext) {
       this.number = number;
       this.size = size;
       this.hasNext = hasNext;
@@ -103,21 +121,6 @@ public class Page<T> implements Iterable<T> {
     public PageMetadata(long size, long number, long totalElements) {
       this(size, number, totalElements,
           size == 0 ? 0 : (long) Math.ceil((double) totalElements / (double) size));
-    }
-  }
-
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder("Page{");
-    sb.append("content=").append(content);
-    sb.append(", page=").append(page);
-    sb.append('}');
-    return sb.toString();
-  }
-
-  private static void checkArgument(boolean expression, String errorMessage) {
-    if (!expression) {
-      throw new IllegalArgumentException(errorMessage);
     }
   }
 }

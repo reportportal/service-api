@@ -43,6 +43,8 @@ public class PagingHandlerMethodArgumentResolver extends
     super(sortResolver);
   }
 
+  public static final int CUT_DEFAULT_PAGE_SIZE = 10;
+  public static final int CUT_DEFAULT_OFFSET = 300;
   public static final int DEFAULT_PAGE_SIZE = 50;
   public static final int MAX_PAGE_SIZE = 300000;
 

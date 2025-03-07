@@ -330,7 +330,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   @Override
   public Iterable<TestItemResource> searchTestItems(String namePart, String attribute,
       Pageable pageable, ProjectDetails projectDetails) {
-    validateInputParameters(namePart, attribute, pageable);
+    pageable = validateInputParameters(namePart, attribute, pageable);
     Slice<TestItem> result;
     if (StringUtils.hasText(attribute)) {
       String[] attributeSplit = attribute.split(":");
@@ -346,13 +346,13 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
       resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
       return testItemResource;
     }).collect(toList()),
-        new PageMetadata(result.getPageable().getPageNumber(), result.getPageable().getPageSize(),
+        new PageMetadata(result.getPageable().getPageNumber() + 1, result.getPageable().getPageSize(),
             result.hasNext()));
   }
 
-  private void validateInputParameters(String namePart, String attribute, Pageable pageable) {
+  private Pageable validateInputParameters(String namePart, String attribute, Pageable pageable) {
     if (0 == pageable.getPageSize() || CUT_DEFAULT_PAGE_SIZE < pageable.getPageSize()) {
-      pageable = PageRequest.of(pageable.getPageNumber(), CUT_DEFAULT_PAGE_SIZE,
+      return PageRequest.of(pageable.getPageNumber(), CUT_DEFAULT_PAGE_SIZE,
           pageable.getSort());
     }
     if (pageable.getOffset() > CUT_DEFAULT_OFFSET) {
@@ -367,6 +367,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "Provide 'filter.has.compositeAttribute' with 'key' and 'value' combined by ':'");
     }
+    return pageable;
   }
 
   private Filter getItemsFilter(Long[] ids, ReportPortalUser.ProjectDetails projectDetails) {

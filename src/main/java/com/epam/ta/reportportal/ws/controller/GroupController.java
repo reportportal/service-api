@@ -23,22 +23,21 @@ import com.epam.reportportal.api.model.AddGroupProjectByIdRequest;
 import com.epam.reportportal.api.model.CreateGroupRequest;
 import com.epam.reportportal.api.model.GroupInfo;
 import com.epam.reportportal.api.model.GroupPage;
-import com.epam.reportportal.api.model.GroupProject;
+import com.epam.reportportal.api.model.GroupProjectInfo;
 import com.epam.reportportal.api.model.GroupProjectsPage;
-import com.epam.reportportal.api.model.GroupUser;
+import com.epam.reportportal.api.model.GroupUserInfo;
 import com.epam.reportportal.api.model.GroupUsersPage;
 import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
-import org.checkerframework.checker.units.qual.A;
+import org.jclouds.rest.ResourceNotFoundException;
 import org.pf4j.PluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -51,8 +50,13 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 public class GroupController implements GroupsApi {
 
+
+  private final PluginManager pluginManager;
+
   @Autowired
-  private PluginManager pluginManager;
+  public GroupController(PluginManager pluginManager) {
+    this.pluginManager = pluginManager;
+  }
 
   @Override
   @PreAuthorize(ADMIN_ONLY)
@@ -95,8 +99,12 @@ public class GroupController implements GroupsApi {
 
   @Override
   public ResponseEntity<Void> deleteGroup(Long groupId) {
-    getGroupExtension().deleteGroup(groupId);
-    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    try {
+      getGroupExtension().deleteGroup(groupId);
+      return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    } catch (ResourceNotFoundException e) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+    }
   }
 
   @Override
@@ -110,7 +118,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  public ResponseEntity<GroupUser> getGroupUserById(Long groupId, Long userId) {
+  public ResponseEntity<GroupUserInfo> getGroupUserById(Long groupId, Long userId) {
     return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
   }
 
@@ -135,7 +143,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  public ResponseEntity<GroupProject> getGroupProjectById(Long groupId, Long projectId) {
+  public ResponseEntity<GroupProjectInfo> getGroupProjectById(Long groupId, Long projectId) {
     return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
   }
 

@@ -4,15 +4,15 @@ import com.epam.reportportal.api.model.AddGroupProjectByIdRequest;
 import com.epam.reportportal.api.model.CreateGroupRequest;
 import com.epam.reportportal.api.model.GroupInfo;
 import com.epam.reportportal.api.model.GroupPage;
-import com.epam.reportportal.api.model.GroupProject;
+import com.epam.reportportal.api.model.GroupProjectInfo;
 import com.epam.reportportal.api.model.GroupProjectsPage;
-import com.epam.reportportal.api.model.GroupUser;
+import com.epam.reportportal.api.model.GroupUserInfo;
 import com.epam.reportportal.api.model.GroupUsersPage;
 import com.epam.reportportal.api.model.Order;
-import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import java.util.Optional;
+import org.jclouds.rest.ResourceNotFoundException;
 
 /**
  * Extension point for group-related operations.
@@ -61,8 +61,9 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * Deletes a group.
    *
    * @param groupId The ID of the group.
+   * @throws ResourceNotFoundException if the group is not found.
    */
-  void deleteGroup(Long groupId);
+  void deleteGroup(Long groupId) throws ResourceNotFoundException;
 
   /**
    * Returns a page of group users.
@@ -80,9 +81,9 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    *
    * @param groupId The ID of the group.
    * @param userId The ID of the user.
-   * @return {@link Optional} of {@link GroupUser} containing the group user.
+   * @return {@link Optional} of {@link GroupUserInfo} containing the group user.
    */
-  Optional<GroupUser> getGroupUserById(Long groupId, Long userId);
+  Optional<GroupUserInfo> getGroupUserById(Long groupId, Long userId);
 
   /**
    * Adds a user to a group by group ID and user ID.
@@ -116,9 +117,9 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    *
    * @param groupId The ID of the group.
    * @param projectId The ID of the project.
-   * @return {@link GroupProject} containing the group project information.
+   * @return {@link GroupProjectInfo} containing the group project information.
    */
-  Optional<GroupProject> getGroupProjectById(Long groupId, Long projectId);
+  Optional<GroupProjectInfo> getGroupProjectById(Long groupId, Long projectId);
 
   /**
    * Adds a project to a group by group ID and project ID.

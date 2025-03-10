@@ -12,7 +12,6 @@ import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import java.util.Optional;
-import org.jclouds.rest.ResourceAlreadyExistsException;
 import org.jclouds.rest.ResourceNotFoundException;
 
 /**
@@ -72,10 +71,9 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * @param groupId The ID of the group.
    * @param offset  The number of group users to skip before starting to collect the result set.
    * @param limit   The number of group users to return.
-   * @param order   The order of sorting.
    * @return {@link GroupUsersPage} containing a page of group users.
    */
-  GroupUsersPage getGroupUsers(Long groupId, Integer offset, Integer limit, Order order);
+  GroupUsersPage getGroupUsers(Long groupId, Integer offset, Integer limit);
 
   /**
    * Returns a group user by group ID and user ID.
@@ -108,10 +106,9 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * @param groupId The ID of the group.
    * @param offset  The number of group projects to skip before starting to collect the result set.
    * @param limit   The number of group projects to return.
-   * @param order   The order of sorting.
    * @return {@link Optional} of {@link GroupProjectsPage} containing a page of group projects.
    */
-  GroupProjectsPage getGroupProjects(Long groupId, Integer offset, Integer limit, Order order);
+  GroupProjectsPage getGroupProjects(Long groupId, Integer offset, Integer limit);
 
   /**
    * Returns a group project by group ID and project ID.

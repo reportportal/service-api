@@ -32,7 +32,6 @@ import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
-import org.jclouds.rest.ResourceNotFoundException;
 import org.pf4j.PluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -74,9 +73,9 @@ public class GroupController implements GroupsApi {
   @PreAuthorize(ADMIN_ONLY)
   public ResponseEntity<GroupInfo> createGroup(CreateGroupRequest createGroupRequest) {
     GroupInfo group = getGroupExtension().createGroup(
-            createGroupRequest,
-            getPrincipal().getUserId()
-        );
+        createGroupRequest,
+        getPrincipal().getUserId()
+    );
     return new ResponseEntity<>(group, HttpStatus.CREATED);
   }
 
@@ -99,66 +98,72 @@ public class GroupController implements GroupsApi {
 
   @Override
   public ResponseEntity<Void> deleteGroup(Long groupId) {
-    try {
-      getGroupExtension().deleteGroup(groupId);
-      return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    } catch (ResourceNotFoundException e) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-    }
+    getGroupExtension().deleteGroup(groupId);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @Override
   public ResponseEntity<GroupUsersPage> getGroupUsers(
       Long groupId,
       Integer offset,
-      Integer limit,
-      Order order
+      Integer limit
   ) {
-    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    var usersPage = getGroupExtension().getGroupUsers(groupId, offset, limit);
+    return ResponseEntity.ok(usersPage);
   }
 
   @Override
   public ResponseEntity<GroupUserInfo> getGroupUserById(Long groupId, Long userId) {
-    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    var groupUserInfo = getGroupExtension().getGroupUserById(groupId, userId).orElseThrow(
+        () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
+    );
+    return ResponseEntity.ok(groupUserInfo);
   }
 
   @Override
-  public ResponseEntity<Void> addUserToGroupById(Long groupId, Long userId) {
-    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+  public ResponseEntity<SuccessfulUpdate> addUserToGroupById(Long groupId, Long userId) {
+    getGroupExtension().addUserToGroupById(groupId, userId);
+    return ResponseEntity.ok(new SuccessfulUpdate("Group updated successfully"));
   }
 
   @Override
   public ResponseEntity<Void> deleteUserFromGroupById(Long groupId, Long userId) {
-    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    getGroupExtension().deleteUserFromGroupById(groupId, userId);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @Override
   public ResponseEntity<GroupProjectsPage> getGroupProjects(
       Long groupId,
       Integer offset,
-      Integer limit,
-      Order order
+      Integer limit
   ) {
-    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    var groupProjectsPage = getGroupExtension().getGroupProjects(groupId, offset, limit);
+    return ResponseEntity.ok(groupProjectsPage);
+
   }
 
   @Override
   public ResponseEntity<GroupProjectInfo> getGroupProjectById(Long groupId, Long projectId) {
-    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    var groupProjectInfo = getGroupExtension().getGroupProjectById(groupId, projectId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    return ResponseEntity.ok(groupProjectInfo);
   }
 
   @Override
-  public ResponseEntity<Void> addGroupProjectById(
+  public ResponseEntity<SuccessfulUpdate> addGroupProjectById(
       Long groupId,
       Long projectId,
       AddGroupProjectByIdRequest addGroupProjectByIdRequest
   ) {
-    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    getGroupExtension().addGroupProjectById(groupId, projectId, addGroupProjectByIdRequest);
+    return ResponseEntity.ok(new SuccessfulUpdate("Group updated successfully"));
   }
 
   @Override
   public ResponseEntity<Void> deleteProjectFromGroupById(Long groupId, Long projectId) {
-    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    getGroupExtension().deleteProjectFromGroupById(groupId, projectId);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   private GroupExtensionPoint getGroupExtension() {

@@ -20,6 +20,11 @@ public class GeneratedProjectController implements ProjectsApi {
 
   private final PluginManager pluginManager;
 
+  /**
+   * Constructor for the controller.
+   *
+   * @param pluginManager Plugin manager
+   */
   @Autowired
   public GeneratedProjectController(PluginManager pluginManager) {
     this.pluginManager = pluginManager;
@@ -38,9 +43,5 @@ public class GeneratedProjectController implements ProjectsApi {
             () -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED)
         );
     return ResponseEntity.ok(extension.getProjectGroups(projectId, offset, limit));
-  }
-
-  public ResponseEntity<ProjectGroupsPage> getProjectGroups(Long projectId, Integer offset, Integer limit) {
-    return getGroupsOfProject(projectId, offset, limit);
   }
 }

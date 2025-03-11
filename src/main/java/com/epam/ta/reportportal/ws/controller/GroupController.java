@@ -51,6 +51,11 @@ public class GroupController implements GroupsApi {
 
   private final PluginManager pluginManager;
 
+  /**
+   * Constructor for the controller.
+   *
+   * @param pluginManager Plugin manager
+   */
   @Autowired
   public GroupController(PluginManager pluginManager) {
     this.pluginManager = pluginManager;

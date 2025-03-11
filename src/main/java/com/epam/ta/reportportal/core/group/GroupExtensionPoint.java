@@ -9,6 +9,7 @@ import com.epam.reportportal.api.model.GroupProjectsPage;
 import com.epam.reportportal.api.model.GroupUserInfo;
 import com.epam.reportportal.api.model.GroupUsersPage;
 import com.epam.reportportal.api.model.Order;
+import com.epam.reportportal.api.model.ProjectGroupsPage;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import java.util.Optional;
@@ -136,4 +137,14 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * @param projectId The ID of the project.
    */
   void deleteProjectFromGroupById(Long groupId, Long projectId);
+
+  /**
+   * Returns a page of project groups.
+   *
+   * @param projectId The ID of the project.
+   * @param offset  The number of project groups to skip before starting to collect the result set.
+   * @param limit   The number of project groups to return.
+   * @return {@link ProjectGroupsPage} containing a page of project groups.
+   */
+  ProjectGroupsPage getProjectGroups(Long projectId, Integer offset, Integer limit);
 }

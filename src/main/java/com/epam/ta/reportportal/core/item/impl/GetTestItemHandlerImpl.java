@@ -76,6 +76,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -331,6 +332,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   public Iterable<TestItemResource> searchTestItems(String namePart, String attribute,
       Pageable pageable, ProjectDetails projectDetails) {
     pageable = validateInputParameters(namePart, attribute, pageable);
+    namePart = EscapeCharacter.DEFAULT.escape(namePart);
     Slice<TestItem> result;
     if (StringUtils.hasText(attribute)) {
       String[] attributeSplit = attribute.split(":");
@@ -346,7 +348,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
       resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
       return testItemResource;
     }).collect(toList()),
-        new PageMetadata(result.getPageable().getPageNumber() + 1, result.getPageable().getPageSize(),
+        new PageMetadata(result.getPageable().getPageNumber() + 1,
+            result.getPageable().getPageSize(),
             result.hasNext()));
   }
 

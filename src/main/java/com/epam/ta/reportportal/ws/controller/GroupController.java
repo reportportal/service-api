@@ -49,7 +49,6 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 public class GroupController implements GroupsApi {
 
-
   private final PluginManager pluginManager;
 
   @Autowired

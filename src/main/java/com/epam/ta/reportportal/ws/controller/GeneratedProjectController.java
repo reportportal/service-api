@@ -3,7 +3,10 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 
 import com.epam.reportportal.api.ProjectsApi;
+import com.epam.reportportal.api.model.AddProjectToGroupByIdRequest;
+import com.epam.reportportal.api.model.ProjectGroupInfo;
 import com.epam.reportportal.api.model.ProjectGroupsPage;
+import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
 import org.pf4j.PluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,12 +43,43 @@ public class GeneratedProjectController implements ProjectsApi {
       Integer offset,
       Integer limit
   ) {
-    var extension = pluginManager.getExtensions(GroupExtensionPoint.class)
+    var page = getGroupExtension().getProjectGroups(projectName, offset, limit);
+    return ResponseEntity.ok(page);
+  }
+
+  @Override
+  @PreAuthorize(PROJECT_MANAGER)
+  public ResponseEntity<ProjectGroupInfo> getProjectGroupById(String projectName, Long groupId) {
+    var group = getGroupExtension().getProjectGroupById(projectName, groupId).orElseThrow(
+        () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
+    );
+    return ResponseEntity.ok(group);
+  }
+
+  @Override
+  @PreAuthorize(PROJECT_MANAGER)
+  public ResponseEntity<SuccessfulUpdate> addGroupToProjectById(
+      String projectName,
+      Long groupId,
+      AddProjectToGroupByIdRequest addProjectToGroupByIdRequest
+  ) {
+    getGroupExtension().addGroupToProject(projectName, groupId, addProjectToGroupByIdRequest);
+    return ResponseEntity.ok(new SuccessfulUpdate());
+  }
+
+  @Override
+  @PreAuthorize(PROJECT_MANAGER)
+  public ResponseEntity<Void> deleteGroupFromProjectById(String projectName, Long groupId) {
+    getGroupExtension().deleteGroupFromProject(projectName, groupId);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+
+  private GroupExtensionPoint getGroupExtension() {
+    return pluginManager.getExtensions(GroupExtensionPoint.class)
         .stream()
         .findFirst()
         .orElseThrow(
             () -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED)
         );
-    return ResponseEntity.ok(extension.getProjectGroups(projectName, offset, limit));
   }
 }

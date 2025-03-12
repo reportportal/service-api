@@ -9,6 +9,7 @@ import com.epam.reportportal.api.model.GroupProjectsPage;
 import com.epam.reportportal.api.model.GroupUserInfo;
 import com.epam.reportportal.api.model.GroupUsersPage;
 import com.epam.reportportal.api.model.Order;
+import com.epam.reportportal.api.model.ProjectGroupInfo;
 import com.epam.reportportal.api.model.ProjectGroupsPage;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
@@ -121,15 +122,6 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
   Optional<GroupProjectInfo> getGroupProjectById(Long groupId, Long projectId);
 
   /**
-   * Returns a group project by group ID and project name.
-   *
-   * @param groupId   The ID of the group.
-   * @param projectName The name of the project.
-   * @return {@link GroupProjectInfo} containing the group project information.
-   */
-  Optional<GroupProjectInfo> getGroupProjectByName(Long groupId, String projectName);
-
-  /**
    * Adds a project to a group by group ID and project ID.
    *
    * @param groupId                    The ID of the group.
@@ -137,16 +129,6 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * @param addGroupProjectByIdRequest The request to add a project to a group.
    */
   void addProjectToGroupById(Long groupId, Long projectId,
-      AddProjectToGroupByIdRequest addGroupProjectByIdRequest);
-
-  /**
-   * Adds a project to a group by group ID and project name.
-   *
-   * @param groupId                    The ID of the group.
-   * @param projectName                The Name of the project.
-   * @param addGroupProjectByIdRequest The request to add a project to a group.
-   */
-  void addProjectToGroupByName(Long groupId, String projectName,
       AddProjectToGroupByIdRequest addGroupProjectByIdRequest);
 
   /**
@@ -158,14 +140,6 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
   void deleteProjectFromGroupById(Long groupId, Long projectId);
 
   /**
-   * Deletes a project from a group by group ID and project name.
-   *
-   * @param groupId   The ID of the group.
-   * @param projectName The Name of the project.
-   */
-  void deleteProjectFromGroupByName(Long groupId, String projectName);
-
-  /**
    * Returns a page of project groups.
    *
    * @param projectName The name of the project.
@@ -175,4 +149,31 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * @return {@link ProjectGroupsPage} containing a page of project groups.
    */
   ProjectGroupsPage getProjectGroups(String projectName, Integer offset, Integer limit);
+
+  /**
+   * Returns a group project by group ID and project name.
+   *
+   * @param projectName The name of the project.
+   * @param groupId   The ID of the group.
+   * @return {@link GroupProjectInfo} containing the group project information.
+   */
+  Optional<ProjectGroupInfo> getProjectGroupById(String projectName, Long groupId);
+
+  /**
+   * Adds a project to a group by group ID and project name.
+   *
+   * @param projectName                The Name of the project.
+   * @param groupId                    The ID of the group.
+   * @param addGroupProjectByIdRequest The request to add a project to a group.
+   */
+  void addGroupToProject(String projectName, Long groupId,
+      AddProjectToGroupByIdRequest addGroupProjectByIdRequest);
+
+  /**
+   * Deletes a project from a group by group ID and project name.
+   *
+   * @param projectName The Name of the project.
+   * @param groupId   The ID of the group.
+   */
+  void deleteGroupFromProject(String projectName, Long groupId);
 }

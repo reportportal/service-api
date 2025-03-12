@@ -366,6 +366,10 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "Provide either 'filter.has.compositeAttribute' or 'filter.cnt.name'.");
     }
+    if (StringUtils.hasText(namePart) && namePart.length() < 3) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "Value of 'filter.cnt.name' must contains more than 2 symbols.");
+    }
     if (StringUtils.hasText(attribute) && attribute.split(":").length != 2) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "Provide 'filter.has.compositeAttribute' with 'key' and 'value' combined by ':'");

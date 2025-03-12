@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 
 import com.epam.reportportal.api.GroupsApi;
-import com.epam.reportportal.api.model.AddGroupProjectByIdRequest;
+import com.epam.reportportal.api.model.AddProjectToGroupByIdRequest;
 import com.epam.reportportal.api.model.CreateGroupRequest;
 import com.epam.reportportal.api.model.GroupInfo;
 import com.epam.reportportal.api.model.GroupPage;
@@ -165,12 +165,12 @@ public class GroupController implements GroupsApi {
 
   @Override
   @PreAuthorize(ADMIN_ONLY)
-  public ResponseEntity<SuccessfulUpdate> addGroupProjectById(
+  public ResponseEntity<SuccessfulUpdate> addProjectToGroupById(
       Long groupId,
       Long projectId,
-      AddGroupProjectByIdRequest addGroupProjectByIdRequest
+      AddProjectToGroupByIdRequest addProjectToGroupByIdRequest
   ) {
-    getGroupExtension().addGroupProjectById(groupId, projectId, addGroupProjectByIdRequest);
+    getGroupExtension().addProjectToGroupById(groupId, projectId, addProjectToGroupByIdRequest);
     return ResponseEntity.ok(new SuccessfulUpdate("Group updated successfully"));
   }
 

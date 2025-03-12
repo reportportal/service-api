@@ -1,5 +1,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
+
 import com.epam.reportportal.api.ProjectsApi;
 import com.epam.reportportal.api.model.ProjectGroupsPage;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
@@ -7,6 +9,7 @@ import org.pf4j.PluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -31,6 +34,7 @@ public class GeneratedProjectController implements ProjectsApi {
   }
 
   @Override
+  @PreAuthorize(PROJECT_MANAGER)
   public ResponseEntity<ProjectGroupsPage> getGroupsOfProject(
       Long projectId,
       Integer offset,

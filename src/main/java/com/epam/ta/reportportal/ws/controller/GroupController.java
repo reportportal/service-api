@@ -84,6 +84,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
+  @PreAuthorize(ADMIN_ONLY)
   public ResponseEntity<GroupInfo> getGroupById(Long groupId) {
     GroupInfo group = getGroupExtension().getGroupById(groupId).orElseThrow(
         () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
@@ -92,6 +93,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
+  @PreAuthorize(ADMIN_ONLY)
   public ResponseEntity<SuccessfulUpdate> updateGroup(
       Long groupId,
       UpdateGroupRequest updateGroupRequest
@@ -101,12 +103,14 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
+  @PreAuthorize(ADMIN_ONLY)
   public ResponseEntity<Void> deleteGroup(Long groupId) {
     getGroupExtension().deleteGroup(groupId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @Override
+  @PreAuthorize(ADMIN_ONLY)
   public ResponseEntity<GroupUsersPage> getGroupUsers(
       Long groupId,
       Integer offset,
@@ -117,6 +121,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
+  @PreAuthorize(ADMIN_ONLY)
   public ResponseEntity<GroupUserInfo> getGroupUserById(Long groupId, Long userId) {
     var groupUserInfo = getGroupExtension().getGroupUserById(groupId, userId).orElseThrow(
         () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
@@ -125,18 +130,21 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
+  @PreAuthorize(ADMIN_ONLY)
   public ResponseEntity<SuccessfulUpdate> addUserToGroupById(Long groupId, Long userId) {
     getGroupExtension().addUserToGroupById(groupId, userId);
     return ResponseEntity.ok(new SuccessfulUpdate("Group updated successfully"));
   }
 
   @Override
+  @PreAuthorize(ADMIN_ONLY)
   public ResponseEntity<Void> deleteUserFromGroupById(Long groupId, Long userId) {
     getGroupExtension().deleteUserFromGroupById(groupId, userId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @Override
+  @PreAuthorize(ADMIN_ONLY)
   public ResponseEntity<GroupProjectsPage> getGroupProjects(
       Long groupId,
       Integer offset,
@@ -148,6 +156,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
+  @PreAuthorize(ADMIN_ONLY)
   public ResponseEntity<GroupProjectInfo> getGroupProjectById(Long groupId, Long projectId) {
     var groupProjectInfo = getGroupExtension().getGroupProjectById(groupId, projectId)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -155,6 +164,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
+  @PreAuthorize(ADMIN_ONLY)
   public ResponseEntity<SuccessfulUpdate> addGroupProjectById(
       Long groupId,
       Long projectId,
@@ -165,6 +175,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
+  @PreAuthorize(ADMIN_ONLY)
   public ResponseEntity<Void> deleteProjectFromGroupById(Long groupId, Long projectId) {
     getGroupExtension().deleteProjectFromGroupById(groupId, projectId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);

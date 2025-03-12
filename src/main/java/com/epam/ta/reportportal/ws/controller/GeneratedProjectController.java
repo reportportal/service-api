@@ -36,7 +36,7 @@ public class GeneratedProjectController implements ProjectsApi {
   @Override
   @PreAuthorize(PROJECT_MANAGER)
   public ResponseEntity<ProjectGroupsPage> getGroupsOfProject(
-      Long projectId,
+      String projectName,
       Integer offset,
       Integer limit
   ) {
@@ -46,6 +46,6 @@ public class GeneratedProjectController implements ProjectsApi {
         .orElseThrow(
             () -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED)
         );
-    return ResponseEntity.ok(extension.getProjectGroups(projectId, offset, limit));
+    return ResponseEntity.ok(extension.getProjectGroups(projectName, offset, limit));
   }
 }

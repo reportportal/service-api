@@ -34,7 +34,7 @@ import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
-import com.epam.ta.reportportal.dao.GroupProjectRepository;
+import com.epam.ta.reportportal.dao.GroupMembershipRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -78,7 +78,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
   private final ProjectRepository projectRepository;
 
-  private final GroupProjectRepository groupProjectRepository;
+  private final GroupMembershipRepository groupMembershipRepository;
 
   private final UserCreationBidRepository userCreationBidRepository;
 
@@ -87,22 +87,22 @@ public class GetUserHandlerImpl implements GetUserHandler {
   /**
    * Constructor.
    *
-   * @param userRepo                User repository
-   * @param projectRepository       Project repository
-   * @param groupProjectRepository  Group project repository
+   * @param userRepo                  User repository
+   * @param projectRepository         Project repository
+   * @param groupMembershipRepository Group project repository
    * @param userCreationBidRepository User creation bid repository
-   * @param jasperReportHandler     Jasper report handler
+   * @param jasperReportHandler       Jasper report handler
    */
   @Autowired
   public GetUserHandlerImpl(
       UserRepository userRepo,
       ProjectRepository projectRepository,
-      GroupProjectRepository groupProjectRepository,
+      GroupMembershipRepository groupMembershipRepository,
       UserCreationBidRepository userCreationBidRepository,
       @Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler
   ) {
     this.userRepository = Preconditions.checkNotNull(userRepo);
-    this.groupProjectRepository = groupProjectRepository;
+    this.groupMembershipRepository = groupMembershipRepository;
     this.userCreationBidRepository = Preconditions.checkNotNull(userCreationBidRepository);
     this.projectRepository = projectRepository;
     this.jasperReportHandler = jasperReportHandler;
@@ -121,7 +121,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
     User user = userRepository.findByLogin(loggedInUser.getUsername())
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
-    List<GroupProject> groupProjects = groupProjectRepository.findAllUserProjects(user.getId());
+    List<GroupProject> groupProjects = groupMembershipRepository.findAllUserProjects(user.getId());
     return UserConverter.TO_RESOURCE_WITH_GROUPS.apply(user, groupProjects);
   }
 

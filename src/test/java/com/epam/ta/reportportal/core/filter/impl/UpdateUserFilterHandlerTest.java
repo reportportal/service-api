@@ -64,7 +64,8 @@ class UpdateUserFilterHandlerTest {
 
   private ProjectUserRepository projectUserRepository = mock(ProjectUserRepository.class);
 
-  private GroupMembershipRepository groupMembershipRepository = mock(GroupMembershipRepository.class);
+  private GroupMembershipRepository groupMembershipRepository = mock(
+      GroupMembershipRepository.class);
 
   private ProjectExtractor projectExtractor = new ProjectExtractor(
       projectUserRepository,

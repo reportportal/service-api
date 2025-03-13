@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.NOT_CUSTOMER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 
 import com.epam.reportportal.api.ProjectsApi;
@@ -37,7 +38,7 @@ public class GeneratedProjectController implements ProjectsApi {
   }
 
   @Override
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(NOT_CUSTOMER)
   public ResponseEntity<ProjectGroupsPage> getGroupsOfProject(
       String projectName,
       Integer offset,
@@ -48,7 +49,7 @@ public class GeneratedProjectController implements ProjectsApi {
   }
 
   @Override
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(NOT_CUSTOMER)
   public ResponseEntity<ProjectGroupInfo> getProjectGroupById(String projectName, Long groupId) {
     var group = getGroupExtension().getProjectGroupById(projectName, groupId).orElseThrow(
         () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
@@ -64,7 +65,7 @@ public class GeneratedProjectController implements ProjectsApi {
       AddProjectToGroupByIdRequest addProjectToGroupByIdRequest
   ) {
     getGroupExtension().addGroupToProject(projectName, groupId, addProjectToGroupByIdRequest);
-    return ResponseEntity.ok(new SuccessfulUpdate());
+    return ResponseEntity.ok(new SuccessfulUpdate("Group updated successfully"));
   }
 
   @Override

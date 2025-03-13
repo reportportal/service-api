@@ -33,7 +33,7 @@ class TestFolderIntegrationTest extends BaseMvcTest {
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
 
-    mockMvc.perform(post("/project/1/tms/folder")
+    mockMvc.perform(post("/project/31/tms/folder")
                         .contentType("application/json")
                         .content(jsonContent)
                         .with(token(oAuthHelper.getSuperadminToken())))
@@ -42,7 +42,7 @@ class TestFolderIntegrationTest extends BaseMvcTest {
     assertTrue(folder.isPresent());
     assertEquals(request.name(), folder.get().getName());
     assertEquals(request.description(), folder.get().getDescription());
-    assertEquals(1L, folder.get().getProjectId());
+    assertEquals(31L, folder.get().getProjectId());
   }
 
   @Test
@@ -51,7 +51,7 @@ class TestFolderIntegrationTest extends BaseMvcTest {
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
 
-    mockMvc.perform(put("/project/4/tms/folder/3")
+    mockMvc.perform(put("/project/31/tms/folder/3")
                         .contentType("application/json")
                         .content(jsonContent)
                         .with(token(oAuthHelper.getSuperadminToken())))
@@ -61,14 +61,14 @@ class TestFolderIntegrationTest extends BaseMvcTest {
     assertTrue(folder.isPresent());
     assertEquals(request.name(), folder.get().getName());
     assertEquals(request.description(), folder.get().getDescription());
-    assertEquals(4L, folder.get().getProjectId());
+    assertEquals(31L, folder.get().getProjectId());
   }
 
   @Test
   void getTestFolderByIdIntegrationTest() throws Exception {
     Optional<TmsTestFolder> folder = testFolderRepository.findById(4L);
 
-    mockMvc.perform(get("/project/4/tms/folder/4")
+    mockMvc.perform(get("/project/31/tms/folder/4")
                     .with(token(oAuthHelper.getSuperadminToken())))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(folder.get().getId()))
@@ -80,7 +80,7 @@ class TestFolderIntegrationTest extends BaseMvcTest {
   void testGetTestFolderByProjectId() throws Exception {
     Optional<TmsTestFolder> folder = testFolderRepository.findById(5L);
 
-    mockMvc.perform(get("/project/5/tms/folder/")
+    mockMvc.perform(get("/project/35/tms/folder/")
                     .with(token(oAuthHelper.getSuperadminToken())))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.[0].id").value(folder.get().getId()))

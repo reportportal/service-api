@@ -70,6 +70,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import javax.persistence.QueryTimeoutException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -332,13 +333,18 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
       Pageable pageable, ProjectDetails projectDetails) {
     pageable = validateInputParameters(namePart, attribute, pageable);
     Slice<TestItem> result;
-    if (StringUtils.hasText(attribute)) {
-      String[] attributeSplit = attribute.split(":");
-      result = testItemRepository.findTestItemsByAttribute(projectDetails.getProjectId(),
-          attributeSplit[0], attributeSplit[1], pageable);
-    } else {
-      result = testItemRepository.findTestItemsContainsName(namePart, projectDetails.getProjectId(),
-          pageable);
+    try {
+      if (StringUtils.hasText(attribute)) {
+        String[] attributeSplit = attribute.split(":");
+        result = testItemRepository.findTestItemsByAttribute(projectDetails.getProjectId(),
+            attributeSplit[0], attributeSplit[1], pageable);
+      } else {
+        result = testItemRepository.findTestItemsContainsName(namePart,
+            projectDetails.getProjectId(), pageable);
+      }
+    } catch (QueryTimeoutException e) {
+      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+          "There are too many results. Please refine your search by providing a more specific or unique test case name / attribute.");
     }
     var resourceUpdaters = getResourceUpdaters(projectDetails.getProjectId(), result.getContent());
     return new com.epam.ta.reportportal.model.Page<>(result.stream().map(item -> {

@@ -344,7 +344,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
       }
     } catch (QueryTimeoutException e) {
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST,
-          "There are too many results. Please refine your search by providing a more specific or unique test case name / attribute.");
+          "Please refine your search by providing a more specific or unique test case name / attribute.");
     }
     var resourceUpdaters = getResourceUpdaters(projectDetails.getProjectId(), result.getContent());
     return new com.epam.ta.reportportal.model.Page<>(result.stream().map(item -> {

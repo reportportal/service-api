@@ -23,7 +23,7 @@ import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
-import com.epam.ta.reportportal.dao.GroupProjectRepository;
+import com.epam.ta.reportportal.dao.GroupMembershipRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import java.util.ArrayList;
@@ -43,21 +43,21 @@ import org.springframework.stereotype.Service;
 public class ProjectExtractor {
 
   private final ProjectUserRepository projectUserRepository;
-  private final GroupProjectRepository groupProjectRepository;
+  private final GroupMembershipRepository groupMembershipRepository;
 
   /**
    * Constructor for ProjectExtractor.
    *
    * @param projectUserRepository  ProjectUserRepository
-   * @param groupProjectRepository GroupProjectRepository
+   * @param groupMembershipRepository GroupMembershipRepository
    */
   @Autowired
   public ProjectExtractor(
       ProjectUserRepository projectUserRepository,
-      GroupProjectRepository groupProjectRepository
+      GroupMembershipRepository groupMembershipRepository
   ) {
     this.projectUserRepository = projectUserRepository;
-    this.groupProjectRepository = groupProjectRepository;
+    this.groupMembershipRepository = groupMembershipRepository;
   }
 
   /**
@@ -93,10 +93,10 @@ public class ProjectExtractor {
       String projectName) {
 
     return projectUserRepository.findDetailsByUserIdAndProjectName(user.getUserId(), projectName)
-        .or(() -> groupProjectRepository.findProjectDetails(user.getUserId(), projectName))
+        .or(() -> groupMembershipRepository.findProjectDetails(user.getUserId(), projectName))
         .map(details -> {
           List<ProjectRole> projectRoles = new ArrayList<>(
-              groupProjectRepository.findUserProjectRoles(
+              groupMembershipRepository.findUserProjectRoles(
                   user.getUserId(),
                   details.getProjectId()
               ));

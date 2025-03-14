@@ -13,12 +13,12 @@ import com.epam.ta.reportportal.core.tms.db.repository.TestFolderRepository;
 import com.epam.ta.reportportal.core.tms.dto.TestFolderRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
-import java.util.Optional;
 
 @Sql("/db/tms/tms-product-version/tms-test-folder-fill.sql")
 @ExtendWith(MockitoExtension.class)
@@ -34,10 +34,10 @@ class TestFolderIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(request);
 
     mockMvc.perform(post("/project/31/tms/folder")
-                        .contentType("application/json")
-                        .content(jsonContent)
-                        .with(token(oAuthHelper.getSuperadminToken())))
-                        .andExpect(status().isOk());
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
     Optional<TmsTestFolder> folder = testFolderRepository.findById(1L);
     assertTrue(folder.isPresent());
     assertEquals(request.name(), folder.get().getName());
@@ -52,10 +52,10 @@ class TestFolderIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(request);
 
     mockMvc.perform(put("/project/31/tms/folder/3")
-                        .contentType("application/json")
-                        .content(jsonContent)
-                        .with(token(oAuthHelper.getSuperadminToken())))
-                        .andExpect(status().isOk());
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
 
     Optional<TmsTestFolder> folder = testFolderRepository.findById(3L);
     assertTrue(folder.isPresent());
@@ -69,11 +69,11 @@ class TestFolderIntegrationTest extends BaseMvcTest {
     Optional<TmsTestFolder> folder = testFolderRepository.findById(4L);
 
     mockMvc.perform(get("/project/31/tms/folder/4")
-                    .with(token(oAuthHelper.getSuperadminToken())))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(folder.get().getId()))
-                    .andExpect(jsonPath("$.name").value(folder.get().getName()))
-                    .andExpect(jsonPath("$.description").value(folder.get().getDescription()));
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(folder.get().getId()))
+        .andExpect(jsonPath("$.name").value(folder.get().getName()))
+        .andExpect(jsonPath("$.description").value(folder.get().getDescription()));
   }
 
   @Test
@@ -81,10 +81,10 @@ class TestFolderIntegrationTest extends BaseMvcTest {
     Optional<TmsTestFolder> folder = testFolderRepository.findById(5L);
 
     mockMvc.perform(get("/project/35/tms/folder/")
-                    .with(token(oAuthHelper.getSuperadminToken())))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.[0].id").value(folder.get().getId()))
-                    .andExpect(jsonPath("$.[0].name").value(folder.get().getName()))
-                    .andExpect(jsonPath("$.[0].description").value(folder.get().getDescription()));
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.[0].id").value(folder.get().getId()))
+        .andExpect(jsonPath("$.[0].name").value(folder.get().getName()))
+        .andExpect(jsonPath("$.[0].description").value(folder.get().getDescription()));
   }
 }

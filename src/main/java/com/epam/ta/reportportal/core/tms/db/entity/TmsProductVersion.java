@@ -23,27 +23,27 @@ import lombok.ToString;
 @AllArgsConstructor
 public class TmsProductVersion implements Serializable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
+  private Long id;
 
-    @Column(name = "version")
-    private String version;
+  @Column(name = "version")
+  private String version;
 
-    @Column(name = "documentation")
-    private String documentation;
+  @Column(name = "documentation")
+  private String documentation;
 
-    //TODO to become foreign key
-    @Column(name = "project_id")
-    private Long projectId;
+  //TODO to become foreign key
+  @Column(name = "project_id")
+  private Long projectId;
 
-    @OneToMany(mappedBy = "productVersion")
-    @ToString.Exclude
-    private Set<TmsTestPlan> testPlans;
+  @OneToMany(mappedBy = "productVersion")
+  @ToString.Exclude
+  private Set<TmsTestPlan> testPlans;
 
-    @OneToMany(mappedBy = "productVersion")
-    @ToString.Exclude
-    private Set<TmsMilestone> milestones;
-    //TODO test changes
+  @OneToMany(mappedBy = "productVersion")
+  @ToString.Exclude
+  private Set<TmsMilestone> milestones;
+  //TODO test changes
 }

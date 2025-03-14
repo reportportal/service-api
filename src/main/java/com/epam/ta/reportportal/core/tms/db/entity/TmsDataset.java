@@ -7,23 +7,27 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "tms_test_plan", schema = "public")
+@Table(name = "tms_dataset", schema = "public")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TmsTestPlan {
+@EqualsAndHashCode(of = "id")
+public class TmsDataset {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,34 +37,18 @@ public class TmsTestPlan {
   @Column(name = "name")
   private String name;
 
-  @Column(name = "description")
-  private String description;
-
   @ManyToOne
   @JoinColumn(name = "project_id", nullable = false)
   private Project project;
 
-  @ManyToOne
-  @JoinColumn(name = "environment_id", nullable = false)
-  private TmsEnvironment environment;
-
-  @ManyToOne
-  @JoinColumn(name = "product_version_id", nullable = false)
-  private TmsProductVersion productVersion;
-
-  @OneToMany(mappedBy = "testPlan")
+  @OneToMany(mappedBy = "dataset")
   @ToString.Exclude
-  private Set<TmsTestPlanAttribute> attributes;
+  private List<TmsDatasetData> data;
 
-  @OneToMany(mappedBy = "testPlan")
+  @OneToMany(mappedBy = "dataset")
   @ToString.Exclude
-  private Set<TmsMilestone> milestones;
+  private List<TmsTestCase> testCases;
 
-//    @ManyToMany TODO add
-//    @JoinTable(
-//        name = "tms_test_plan_test_folder",
-//        joinColumns = @JoinColumn(name = "test_plan_id"),
-//        inverseJoinColumns = @JoinColumn(name = "test_folder_id"))
-//    private Set<TmsTestFolder> testFolders;
-
+  @ManyToMany(mappedBy = "datasets")
+  private Set<TmsEnvironment> environments;
 }

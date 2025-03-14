@@ -50,11 +50,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -88,7 +88,7 @@ public class RerunHandlerImpl implements RerunHandler {
 
   @Override
   public Launch handleLaunch(StartLaunchRQ request, Long projectId, ReportPortalUser user) {
-    Optional<Launch> launchOptional = StringUtils.isEmpty(request.getRerunOf()) ?
+    Optional<Launch> launchOptional = !StringUtils.hasText(request.getRerunOf()) ?
         launchRepository.findLatestByNameAndProjectId(request.getName(), projectId) :
         launchRepository.findByUuid(request.getRerunOf());
     Launch existingLaunch = launchOptional.orElseThrow(
@@ -106,6 +106,19 @@ public class RerunHandlerImpl implements RerunHandler {
     ofNullable(request.getUuid()).ifPresent(launch::setUuid);
 
     return launch;
+  }
+
+  @Override
+  public String getRerunLaunchUuid(String rerunOf, String launchName, Long projectId) {
+    if (StringUtils.hasText(rerunOf)) {
+      return rerunOf;
+    }
+    Launch rerunLaunch = launchRepository.findLatestByNameAndProjectId(launchName, projectId)
+        .orElseThrow(() -> new ReportPortalException(
+            ErrorType.LAUNCH_NOT_FOUND,
+            ofNullable(rerunOf).orElse(rerunOf)));
+
+    return rerunLaunch.getUuid();
   }
 
   @Override

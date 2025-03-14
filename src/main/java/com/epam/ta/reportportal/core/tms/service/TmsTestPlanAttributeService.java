@@ -6,11 +6,13 @@ import java.util.List;
 
 public interface TmsTestPlanAttributeService {
 
-    void createTestPlanAttributes(TmsTestPlan tmsTestPlan, List<TmsTestPlanAttributeRQ> attributes);
+  void createTestPlanAttributes(TmsTestPlan tmsTestPlan, List<TmsTestPlanAttributeRQ> attributes);
 
-    void updateTestPlanAttributes(TmsTestPlan existingTestPlan,
-        List<TmsTestPlanAttributeRQ> attributes);
+  void updateTestPlanAttributes(TmsTestPlan existingTestPlan,
+      List<TmsTestPlanAttributeRQ> attributes);
 
-    void patchTestPlanAttributes(TmsTestPlan existingTestPlan,
-        List<TmsTestPlanAttributeRQ> attributes);
+  void patchTestPlanAttributes(TmsTestPlan existingTestPlan,
+      List<TmsTestPlanAttributeRQ> attributes);
+
+  void deleteAllByTestPlanId(Long testPlanId);
 }

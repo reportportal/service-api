@@ -113,6 +113,7 @@ dependencies {
     }
     // JasperReport's export to XLS uses Apache POI and openpdf for PDF export
     implementation 'org.apache.poi:poi:5.4.0'
+    implementation 'org.apache.poi:poi-ooxml:5.4.0'
     implementation 'com.github.librepdf:openpdf:2.0.3'
 
     implementation 'jakarta.inject:jakarta.inject-api:2.0.1'

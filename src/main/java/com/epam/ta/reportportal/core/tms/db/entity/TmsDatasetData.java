@@ -1,6 +1,5 @@
 package com.epam.ta.reportportal.core.tms.db.entity;
 
-import com.epam.ta.reportportal.entity.project.Project;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,44 +7,34 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.util.Set;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 @Entity
-@Table(name = "tms_environment", schema = "public")
+@Table(name = "tms_dataset_data", schema = "public")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TmsEnvironment {
+@EqualsAndHashCode(of = "id")
+public class TmsDatasetData {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id")
   private Long id;
 
-  @Column(name = "name")
-  private String name;
+  @Column(name = "key")
+  private String key;
+
+  @Column(name = "value")
+  private String value;
 
   @ManyToOne
-  @JoinColumn(name = "project_id", nullable = false)
-  private Project project;
-
-  @ManyToOne
-  @JoinColumn(name = "dataset_id")
+  @JoinColumn(name = "dataset_id", nullable = false)
   private TmsDataset dataset;
-
-  @OneToMany(mappedBy = "environment")
-  @ToString.Exclude
-  private Set<TmsAttachment> attachments;
-
-  @OneToMany(mappedBy = "environment")
-  @ToString.Exclude
-  private Set<TmsTestPlan> testPlans;
 }

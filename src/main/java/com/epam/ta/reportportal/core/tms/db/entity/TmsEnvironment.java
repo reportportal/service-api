@@ -7,6 +7,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -25,28 +27,30 @@ import lombok.ToString;
 @AllArgsConstructor
 public class TmsEnvironment {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
+  private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "project_id", nullable = false)
-    private Project project;
+  @Column(name = "name")
+  private String name;
 
-    @Column(name = "name")
-    private String name;
+  @ManyToOne
+  @JoinColumn(name = "project_id", nullable = false)
+  private Project project;
 
-    @Column(name = "test_data")
-    private String testData;
+  @OneToMany(mappedBy = "environment")
+  @ToString.Exclude
+  private Set<TmsAttachment> attachments;
 
-    @OneToMany(mappedBy = "environment")
-    @ToString.Exclude
-    private Set<TmsAttachment> attachments;
+  @OneToMany(mappedBy = "environment")
+  @ToString.Exclude
+  private Set<TmsTestPlan> testPlans;
 
-    @OneToMany(mappedBy = "environment")
-    @ToString.Exclude
-    private Set<TmsTestPlan> testPlans;
-
-    //TODO: add link to dataset
+  @ManyToMany
+  @JoinTable(
+        name = "tms_environment_dataset",
+        joinColumns = @JoinColumn(name = "dataset_id"),
+        inverseJoinColumns = @JoinColumn(name = "environment_id"))
+  private Set<TmsDataset> datasets;
 }

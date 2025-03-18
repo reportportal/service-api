@@ -359,7 +359,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
   private Pageable validateInputParameters(String namePart, String attribute, Pageable pageable) {
     if (0 == pageable.getPageSize() || CUT_DEFAULT_PAGE_SIZE < pageable.getPageSize()) {
-      return PageRequest.of(pageable.getPageNumber(), CUT_DEFAULT_PAGE_SIZE,
+      pageable = PageRequest.of(pageable.getPageNumber(), CUT_DEFAULT_PAGE_SIZE,
           pageable.getSort());
     }
     if (pageable.getOffset() > CUT_DEFAULT_OFFSET) {

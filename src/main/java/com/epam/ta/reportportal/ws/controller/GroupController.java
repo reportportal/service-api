@@ -27,7 +27,6 @@ import com.epam.reportportal.api.model.GroupProjectInfo;
 import com.epam.reportportal.api.model.GroupProjectsPage;
 import com.epam.reportportal.api.model.GroupUserInfo;
 import com.epam.reportportal.api.model.GroupUsersPage;
-import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -66,7 +65,7 @@ public class GroupController implements GroupsApi {
   public ResponseEntity<GroupPage> getGroups(
       Integer offset,
       Integer limit,
-      Order order,
+      String order,
       String sort
   ) {
     GroupPage groupPage = getGroupExtension().getGroups(offset, limit, order, sort);

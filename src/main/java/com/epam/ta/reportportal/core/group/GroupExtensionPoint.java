@@ -8,7 +8,6 @@ import com.epam.reportportal.api.model.GroupProjectInfo;
 import com.epam.reportportal.api.model.GroupProjectsPage;
 import com.epam.reportportal.api.model.GroupUserInfo;
 import com.epam.reportportal.api.model.GroupUsersPage;
-import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.api.model.ProjectGroupInfo;
 import com.epam.reportportal.api.model.ProjectGroupsPage;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
@@ -32,7 +31,7 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * @param sort   The field to sort by.
    * @return {@link GroupPage} containing a page of groups.
    */
-  GroupPage getGroups(Integer offset, Integer limit, Order order, String sort);
+  GroupPage getGroups(Integer offset, Integer limit, String order, String sort);
 
   /**
    * Creates a group.

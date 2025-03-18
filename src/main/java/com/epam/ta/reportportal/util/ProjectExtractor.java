@@ -22,27 +22,47 @@ import static com.epam.ta.reportportal.entity.user.UserRole.ADMINISTRATOR;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
+import com.epam.ta.reportportal.dao.GroupMembershipRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Service for extracting project details for a specified user by project name. This service
+ * provides methods to extract project details for users, including special handling for
+ * administrators.
+ *
  * @author Pavel Bortnik
  */
 @Service
 public class ProjectExtractor {
 
   private final ProjectUserRepository projectUserRepository;
+  private final GroupMembershipRepository groupMembershipRepository;
 
+  /**
+   * Constructor for ProjectExtractor.
+   *
+   * @param projectUserRepository  ProjectUserRepository
+   * @param groupMembershipRepository GroupMembershipRepository
+   */
   @Autowired
-  public ProjectExtractor(ProjectUserRepository projectUserRepository) {
+  public ProjectExtractor(
+      ProjectUserRepository projectUserRepository,
+      GroupMembershipRepository groupMembershipRepository
+  ) {
     this.projectUserRepository = projectUserRepository;
+    this.groupMembershipRepository = groupMembershipRepository;
   }
 
   /**
-   * Extracts project details for specified user by specified project name
+   * Extracts project details for specified user by specified project name.
    *
    * @param user       User
    * @param projectKey Project name
@@ -62,11 +82,11 @@ public class ProjectExtractor {
   }
 
   /**
-   * Find project details for specified user by specified project name
+   * Find project details for specified user by specified project name.
    *
    * @param user       User
    * @param projectKey Project unique key
-   * @return {@link Optional} with Project Details
+   * @return {@link Optional} with Project Details found in ProjectUserRepository or GroupRepository
    */
   public Optional<MembershipDetails> findMembershipDetails(ReportPortalUser user,
       String projectKey) {
@@ -75,7 +95,7 @@ public class ProjectExtractor {
 
   /**
    * Extracts project details for specified user by specified project name If user is ADMINISTRATOR
-   * - he is added as a PROJECT_MANAGER to the project
+   * - he is added as a PROJECT_MANAGER to the project.
    *
    * @param user       User
    * @param projectKey Project unique key
@@ -85,9 +105,11 @@ public class ProjectExtractor {
       String projectKey) {
     final String normalizedProjectKey = normalizeId(projectKey);
     MembershipDetails membershipDetails =
-        projectUserRepository.findAdminDetailsProjectKey(normalizeId(normalizedProjectKey))
+        projectUserRepository
+          .findAdminDetailsProjectKey(normalizeId(normalizedProjectKey))
             .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
     return membershipDetails;
   }
+
 
 }

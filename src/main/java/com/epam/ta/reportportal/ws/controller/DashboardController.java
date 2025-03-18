@@ -27,9 +27,11 @@ import com.epam.ta.reportportal.core.dashboard.CreateDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.DeleteDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.UpdateDashboardHandler;
+import com.epam.ta.reportportal.core.dashboard.impl.DashboardPreconfiguredService;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.dashboard.AddWidgetRq;
+import com.epam.ta.reportportal.model.dashboard.DashboardPreconfiguredRq;
 import com.epam.ta.reportportal.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.model.dashboard.DashboardConfigResource;
 import com.epam.ta.reportportal.model.dashboard.DashboardResource;
@@ -40,7 +42,7 @@ import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -59,6 +61,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Pavel Bortnik
  */
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/v1/{projectKey}/dashboard")
 @Tag(name = "Dashboard", description = "Dashboards API collection")
@@ -66,20 +69,10 @@ public class DashboardController {
 
   private final ProjectExtractor projectExtractor;
   private final CreateDashboardHandler createDashboardHandler;
+  private final DashboardPreconfiguredService dashboardPreconfiguredService;
   private final UpdateDashboardHandler updateDashboardHandler;
   private final GetDashboardHandler getDashboardHandler;
   private final DeleteDashboardHandler deleteDashboardHandler;
-
-  @Autowired
-  public DashboardController(ProjectExtractor projectExtractor,
-      CreateDashboardHandler createDashboardHandler, UpdateDashboardHandler updateDashboardHandler,
-      GetDashboardHandler getDashboardHandler, DeleteDashboardHandler deleteDashboardHandler) {
-    this.projectExtractor = projectExtractor;
-    this.createDashboardHandler = createDashboardHandler;
-    this.updateDashboardHandler = updateDashboardHandler;
-    this.getDashboardHandler = getDashboardHandler;
-    this.deleteDashboardHandler = deleteDashboardHandler;
-  }
 
   @Transactional
   @PostMapping
@@ -165,12 +158,23 @@ public class DashboardController {
 
 
   @Transactional
-  @GetMapping(value = "/copy/{dashboardId}")
+  @GetMapping(value = "/{dashboardId}/config")
   @ResponseStatus(OK)
   @Operation(summary = "Get Dashboard configuration including its widgets and filters if any")
   public DashboardConfigResource getDashboardConfig(@PathVariable String projectKey,
       @PathVariable Long dashboardId, @AuthenticationPrincipal ReportPortalUser user) {
     return getDashboardHandler.getDashboardConfig(
         dashboardId, projectExtractor.extractMembershipDetails(user, projectKey));
+  }
+
+  @Transactional
+  @PostMapping(value = "/preconfigured")
+  @ResponseStatus(OK)
+  @Operation(summary = "Create Dashboard with provided configuration including its widgets and filters if any")
+  public EntryCreatedRS createPreconfigured(@PathVariable String projectName,
+      @RequestBody @Validated DashboardPreconfiguredRq rq,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return dashboardPreconfiguredService.createDashboard(
+        projectExtractor.extractProjectDetails(user, projectName), rq, user);
   }
 }

@@ -17,14 +17,11 @@
 package com.epam.ta.reportportal.core.widget.impl;
 
 import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.Condition;
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.WidgetCreatedEvent;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
@@ -39,13 +36,10 @@ import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
-import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -109,12 +103,7 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 
   private List<UserFilter> getUserFilters(List<Long> filterIds, Long projectId, String username) {
     if (CollectionUtils.isNotEmpty(filterIds)) {
-      String ids = filterIds.stream().map(String::valueOf).collect(Collectors.joining(","));
-      Filter defaultFilter = new Filter(UserFilter.class, Condition.IN, false, ids, CRITERIA_ID);
-      List<UserFilter> userFilters =
-          filterRepository.findByFilter(ProjectFilter.of(defaultFilter, projectId),
-              Pageable.unpaged()
-          ).getContent();
+      var userFilters = filterRepository.findAllByIdInAndProjectId(filterIds, projectId);
       BusinessRule.expect(userFilters, not(List::isEmpty))
           .verify(ErrorType.USER_FILTER_NOT_FOUND, filterIds, projectId, username);
       return userFilters;

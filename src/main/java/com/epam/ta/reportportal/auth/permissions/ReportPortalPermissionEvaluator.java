@@ -94,6 +94,6 @@ class ReportPortalPermissionEvaluator implements PermissionEvaluator {
   public boolean hasPermission(Authentication authentication, Serializable targetId,
       String targetType, Object permission) {
     throw new PermissionNotDefinedException(
-        "Id and Class permissions are not supported by " + this.getClass().getName());
+        "Id and Class permissions are not supported by " + this.getClass());
   }
 }

@@ -16,17 +16,21 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
-import static com.epam.ta.reportportal.commons.Preconditions.NOT_EMPTY_COLLECTION;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_FILTER_NOT_FOUND;
+import static com.epam.ta.reportportal.commons.Preconditions.NOT_EMPTY_COLLECTION;
+import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter.TO_ACTIVITY_RESOURCE;
 
+import com.epam.reportportal.model.ValidationConstraints;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
 import com.epam.ta.reportportal.commons.querygen.FilterTarget;
-import com.epam.reportportal.rules.commons.validation.BusinessRule;
-import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterCreatedEvent;
 import com.epam.ta.reportportal.core.events.activity.FilterUpdatedEvent;
@@ -43,9 +47,7 @@ import com.epam.ta.reportportal.model.filter.BulkUpdateFilterRQ;
 import com.epam.ta.reportportal.model.filter.UpdateUserFilterRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
-import com.epam.reportportal.model.ValidationConstraints;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -91,6 +93,28 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
     UserFilter filter = new UserFilterBuilder().addFilterRq(createFilterRQ)
         .addProject(membershipDetails.getProjectId()).addOwner(user.getUsername()).get();
+
+    userFilterRepository.save(filter);
+    messageBus.publishActivity(
+        new FilterCreatedEvent(TO_ACTIVITY_RESOURCE.apply(filter), user.getUserId(),
+            user.getUsername()
+        ));
+    return new EntryCreatedRS(filter.getId());
+  }
+
+
+  @Override
+  public EntryCreatedRS createFilterCopyOnDuplicate(UpdateUserFilterRQ createFilterRQ,
+      String projectName,
+      ReportPortalUser user) {
+    ReportPortalUser.ProjectDetails projectDetails =
+        projectExtractor.extractProjectDetails(user, projectName);
+
+    validateFilterRq(createFilterRQ);
+    validateFilterName(createFilterRQ, user, projectDetails);
+
+    UserFilter filter = new UserFilterBuilder().addFilterRq(createFilterRQ)
+        .addProject(projectDetails.getProjectId()).addOwner(user.getUsername()).get();
 
     userFilterRepository.save(filter);
     messageBus.publishActivity(
@@ -185,6 +209,18 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
         ).verify(ErrorType.INCORRECT_SORTING_PARAMETERS,
             "Unable to find sort parameter '" + order.getSortingColumnName() + "'"
         ));
+  }
+
+
+  private void validateFilterName(UpdateUserFilterRQ createFilterRQ,
+      ReportPortalUser user, ProjectDetails projectDetails) {
+    int maxIterations = 100;
+    int count = 0;
+    while (userFilterRepository.existsByNameAndOwnerAndProjectId(createFilterRQ.getName(),
+        user.getUsername(), projectDetails.getProjectId()) && count < maxIterations) {
+      createFilterRQ.setName(createFilterRQ.getName() + "_copy");
+      count++;
+    }
   }
 
   private String cutAttributesToMaxLength(String keyAndValue) {

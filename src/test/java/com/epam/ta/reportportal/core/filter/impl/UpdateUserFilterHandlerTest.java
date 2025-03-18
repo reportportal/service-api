@@ -28,11 +28,13 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
+import com.epam.ta.reportportal.dao.GroupMembershipRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
@@ -42,7 +44,6 @@ import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.filter.Order;
 import com.epam.ta.reportportal.model.filter.UpdateUserFilterRQ;
 import com.epam.ta.reportportal.model.filter.UserFilterCondition;
@@ -67,7 +68,13 @@ class UpdateUserFilterHandlerTest {
 
   private ProjectUserRepository projectUserRepository = mock(ProjectUserRepository.class);
 
-  private ProjectExtractor projectExtractor = new ProjectExtractor(projectUserRepository);
+  private GroupMembershipRepository groupMembershipRepository = mock(
+      GroupMembershipRepository.class);
+
+  private ProjectExtractor projectExtractor = new ProjectExtractor(
+      projectUserRepository,
+      groupMembershipRepository
+  );
 
   private UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
 

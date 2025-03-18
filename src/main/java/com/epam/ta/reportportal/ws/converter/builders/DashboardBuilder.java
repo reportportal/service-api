@@ -60,7 +60,7 @@ public class DashboardBuilder implements Supplier<Dashboard> {
     Optional.ofNullable(rq.getDescription())
         .ifPresent(description -> dashboard.setDescription(description));
     Optional.ofNullable(rq.getWidgets()).ifPresent(widgets -> {
-      for (DashboardWidget dashboardWidget : dashboard.getDashboardWidgets()) {
+      for (DashboardWidget dashboardWidget : dashboard.getWidgets()) {
         widgets.stream().filter(updWidget -> Objects.equals(dashboardWidget.getId().getWidgetId(),
             updWidget.getWidgetId()
         )).forEach(updWidget -> {

@@ -22,6 +22,7 @@ import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,6 +32,7 @@ import com.epam.ta.reportportal.core.launch.MergeLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.reporting.async.controller.LaunchAsyncController;
@@ -38,16 +40,14 @@ import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.reporting.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
-import com.google.common.collect.Lists;
 import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.web.savedrequest.Enumerator;
 
 /**
  * @author Konstantin Antipin
@@ -69,9 +69,6 @@ class LaunchAsyncControllerTest {
 
   @InjectMocks
   LaunchAsyncController launchAsyncController;
-
-  @Mock
-  HttpServletRequest httpServletRequest;
 
   @Test
   void startLaunch() {
@@ -122,11 +119,11 @@ class LaunchAsyncControllerTest {
         anyString()
     )).thenReturn(rpUserToMembership(user));
 
-    when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080"));
-    when(httpServletRequest.getHeaderNames()).thenReturn(new Enumerator<>(Lists.newArrayList()));
-    launchAsyncController.finishLaunch(TEST_PROJECT_KEY, launchId, finishExecutionRQ, user,
-        httpServletRequest
-    );
+    MockedStatic<LinkGenerator> a = mockStatic(LinkGenerator.class);
+    a.when(() -> LinkGenerator.composeBaseUrl(any()))
+        .thenReturn("http://localhost:8080/api");
+
+    launchAsyncController.finishLaunch(TEST_PROJECT_KEY, launchId, finishExecutionRQ, user,null);
     verify(finishLaunchHandler).finishLaunch(launchIdArgumentCaptor.capture(),
         requestArgumentCaptor.capture(), projectDetailsArgumentCaptor.capture(),
         userArgumentCaptor.capture(), urlArgumentCaptor.capture()

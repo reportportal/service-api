@@ -69,7 +69,7 @@ import java.io.OutputStream;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -303,7 +303,7 @@ public class ProjectController {
   }
 
   @Transactional(readOnly = true)
-  @GetMapping("/{projectKey}/preference")
+  @GetMapping({"/{projectKey}/preference", "/{projectName}/preference/"})
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Load logged-in user preferences", description = "Only for logged-in user")
   public PreferenceResource getUserPreference(@PathVariable String projectKey,

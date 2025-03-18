@@ -71,7 +71,7 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
             membershipDetails.getProjectName()
 				));
 
-		Set<DashboardWidget> dashboardWidgets = dashboard.getDashboardWidgets();
+		Set<DashboardWidget> dashboardWidgets = dashboard.getWidgets();
 		List<Widget> widgets = dashboardWidgets.stream()
 				.filter(DashboardWidget::isCreatedOn)
 				.map(DashboardWidget::getWidget)

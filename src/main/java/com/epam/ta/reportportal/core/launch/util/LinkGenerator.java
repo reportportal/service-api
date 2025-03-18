@@ -16,13 +16,16 @@
 
 package com.epam.ta.reportportal.core.launch.util;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
+import java.net.URI;
+import java.util.Collections;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.ForwardedHeaderUtils;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -51,13 +54,21 @@ public final class LinkGenerator {
     return StringUtils.isEmpty(baseUrl) ? null : baseUrl + UI_PREFIX + projectName + LAUNCHES + id;
   }
 
+  @SneakyThrows
   public static String composeBaseUrl(HttpServletRequest request) {
 
     String processedPath = "/".equals(path) ? null : path.replace("/api", "");
     /*
      * Use Uri components since they are aware of x-forwarded-host headers
      */
-    return UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
+
+    HttpHeaders httpHeaders = new HttpHeaders();
+    Collections.list(request.getHeaderNames())
+        .forEach(headerName-> httpHeaders.add(headerName, request.getHeader(headerName)));
+
+    URI uri = new URI(request.getRequestURI());
+
+    return ForwardedHeaderUtils.adaptFromForwardedHeaders(uri, httpHeaders)
         .replacePath(processedPath)
         .replaceQuery(null)
         .build()

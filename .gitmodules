@@ -1,3 +1,7 @@
+[submodule "api-registry"]
+	path = api-registry
+	url = https://github.com/reportportal/api-registry
+
 [submodule "reportportal-common-api"]
 	path = reportportal-common-api
 	url = https://github.com/reportportal/reportportal-common-api

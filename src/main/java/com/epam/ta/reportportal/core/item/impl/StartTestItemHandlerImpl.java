@@ -135,7 +135,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
       MembershipDetails membershipDetails, StartTestItemRQ rq,
       String parentId) {
     boolean isRetry =
-        BooleanUtils.toBoolean(rq.isRetry()) || StringUtils.isNotBlank(rq.getRetryOf());
+        BooleanUtils.toBoolean(rq.getRetry()) || StringUtils.isNotBlank(rq.getRetryOf());
 
     Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
@@ -234,7 +234,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
         launch.getStartTime(),
         launch.getId()
     );
-    expect(isTrue(BooleanUtils.toBoolean(rq.isRetry())), equalTo(false)).verify(BAD_REQUEST_ERROR,
+    expect(isTrue(BooleanUtils.toBoolean(rq.getRetry())), equalTo(false)).verify(BAD_REQUEST_ERROR,
         "Root test item can't be a retry.");
   }
 

@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.EntityUtils.INSTANT_TO_TIMESTAMP;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.commons.Predicates.not;
@@ -34,15 +36,19 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.LINK_ISSUE
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.UNLINK_ISSUE;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_DEFECT;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ITEM;
+import static com.epam.ta.reportportal.entity.project.email.ProjectInfoWidget.CASES_STATISTIC;
+import static com.epam.ta.reportportal.entity.project.email.ProjectInfoWidget.INVESTIGATED;
+import static com.epam.ta.reportportal.entity.project.email.ProjectInfoWidget.ISSUES_CHART;
+import static com.epam.ta.reportportal.entity.project.email.ProjectInfoWidget.LAUNCHES_QUANTITY;
 import static com.epam.ta.reportportal.ws.converter.converters.ActivityConverter.TO_RESOURCE;
 import static com.epam.ta.reportportal.ws.converter.converters.ActivityConverter.TO_RESOURCE_WITH_USER;
-import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
+import com.epam.reportportal.model.ActivityResource;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
@@ -62,13 +68,11 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.project.email.ProjectInfoWidget;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.project.LaunchesPerUser;
 import com.epam.ta.reportportal.model.project.ProjectInfoResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectSettingsConverter;
-import com.epam.reportportal.model.ActivityResource;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.google.common.collect.Lists;
 import java.math.RoundingMode;
@@ -77,6 +81,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -221,38 +226,22 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
     ProjectInfoWidget widgetType = ProjectInfoWidget.findByCode(widgetCode)
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, widgetCode));
 
-    List<Launch> launches =
-        launchRepository.findByProjectIdAndStartTimeGreaterThanAndMode(project.getId(),
-            getStartIntervalDate(infoInterval), LaunchModeEnum.DEFAULT
-        );
-
-    Map<String, ?> result;
-
-    switch (widgetType) {
-      case INVESTIGATED:
-        result = dataConverter.getInvestigatedProjectInfo(launches, infoInterval);
-        break;
-      case CASES_STATISTIC:
-        result = dataConverter.getTestCasesStatisticsProjectInfo(launches);
-        break;
-      case LAUNCHES_QUANTITY:
-        result = dataConverter.getLaunchesQuantity(launches, infoInterval);
-        break;
-      case ISSUES_CHART:
-        result = dataConverter.getLaunchesIssues(launches, infoInterval);
-        break;
-      case ACTIVITIES:
-        result = getActivities(project, infoInterval);
-        break;
-      case LAST_LAUNCH:
-        result = getLastLaunchStatistics(project.getId());
-        break;
-      default:
-        // empty result
-        result = Collections.emptyMap();
+    List<Launch> launches = new ArrayList<>();
+    if (List.of(INVESTIGATED, CASES_STATISTIC, LAUNCHES_QUANTITY, ISSUES_CHART)
+        .contains(widgetType)) {
+      launches = launchRepository.findByProjectIdAndStartTimeGreaterThanAndMode(project.getId(),
+          getStartIntervalDate(infoInterval), LaunchModeEnum.DEFAULT);
     }
 
-    return result;
+    return switch (widgetType) {
+      case INVESTIGATED -> dataConverter.getInvestigatedProjectInfo(launches, infoInterval);
+      case CASES_STATISTIC -> dataConverter.getTestCasesStatisticsProjectInfo(launches);
+      case LAUNCHES_QUANTITY -> dataConverter.getLaunchesQuantity(launches, infoInterval);
+      case ISSUES_CHART -> dataConverter.getLaunchesIssues(launches, infoInterval);
+      case ACTIVITIES -> getActivities(project, infoInterval);
+      case LAST_LAUNCH -> getLastLaunchStatistics(project.getId());
+      default -> Collections.emptyMap();
+    };
   }
 
   private Map<String, ?> getLastLaunchStatistics(Long projectId) {

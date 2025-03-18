@@ -16,17 +16,25 @@
 package com.epam.ta.reportportal.model.widget;
 
 import com.epam.ta.reportportal.model.dashboard.DashboardResource.WidgetObjectModel;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class WidgetConfigResource {
 
+  @NotNull
   private WidgetObjectModel widgetObject;
+
+  @NotNull
   private WidgetResource widgetResource;
 
 }

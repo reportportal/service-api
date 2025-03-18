@@ -33,10 +33,10 @@ import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 /**
  * Domain object for filter actions

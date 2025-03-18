@@ -90,7 +90,7 @@ class LaunchControllerTest extends BaseMvcTest {
     startLaunchRQ.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
 
     mockMvc.perform(
-            post(DEFAULT_PROJECT_BASE_URL + "/launch/").with(token(oAuthHelper.getDefaultToken()))
+            post(DEFAULT_PROJECT_BASE_URL + "/launch").with(token(oAuthHelper.getDefaultToken()))
                 .content(objectMapper.writeValueAsBytes(startLaunchRQ)).contentType(APPLICATION_JSON))
         .andExpect(status().isCreated());
   }

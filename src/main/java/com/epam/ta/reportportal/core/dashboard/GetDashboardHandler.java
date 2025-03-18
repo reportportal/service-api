@@ -55,7 +55,7 @@ public interface GetDashboardHandler {
   /**
    * Get Dashboard configuration including its widgets and filters if any
    *
-   * @param id Dashboard id
+   * @param id             Dashboard id
    * @param membershipDetails Project details
    * @return Dashboard configuration
    */

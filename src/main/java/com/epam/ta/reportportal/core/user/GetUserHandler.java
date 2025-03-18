@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.user.UserResource;
 import java.io.OutputStream;
 import java.util.Map;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Pageable;
 
 /**

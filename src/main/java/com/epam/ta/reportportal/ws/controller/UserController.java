@@ -23,6 +23,18 @@ import com.epam.ta.reportportal.core.file.GetFileHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.jooq.Operator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Pageable;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -31,6 +43,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -86,6 +100,11 @@ public class UserController extends BaseController implements UserApi {
   public ResponseEntity<Resource> getUsersUserIdAvatar(Long userId, Boolean thumbnail) {
     var binaryData = getFileHandler.getUserPhoto(userId, thumbnail);
     Resource resource = new InputStreamResource(binaryData.getInputStream());
+  @GetMapping(value = { "", "/" })
+  @Operation(summary = "Return information about current logged-in user")
+  public UserResource getMyself(@AuthenticationPrincipal UserDetails currentUser) {
+    return getUserHandler.getUser((ReportPortalUser) currentUser);
+  }
 
     return ResponseEntity.ok()
         .contentType(MediaType.parseMediaType(binaryData.getContentType()))

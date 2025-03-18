@@ -30,6 +30,8 @@ import com.epam.reportportal.api.model.InstanceUser;
 import com.epam.reportportal.api.model.InstanceUserPage;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -38,18 +40,20 @@ import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
+import com.epam.ta.reportportal.dao.GroupMembershipRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.group.GroupProject;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.user.UserResource;
-import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
 import com.google.common.base.Preconditions;
@@ -70,7 +74,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /**
- * Implementation for GET user operations
+ * Implementation for GET user operations.
  *
  * @author Andrei_Ramanchuk
  */
@@ -79,23 +83,35 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
   private final UserRepository userRepository;
 
-  private final UserCreationBidRepository userCreationBidRepository;
-
   private final ProjectRepository projectRepository;
 
-  private final PersonalProjectService personalProjectService;
+  private final GroupMembershipRepository groupMembershipRepository;
+
+  private final UserCreationBidRepository userCreationBidRepository;
 
   private final GetJasperReportHandler<User> jasperReportHandler;
 
+  /**
+   * Constructor.
+   *
+   * @param userRepo                  User repository
+   * @param projectRepository         Project repository
+   * @param groupMembershipRepository Group project repository
+   * @param userCreationBidRepository User creation bid repository
+   * @param jasperReportHandler       Jasper report handler
+   */
   @Autowired
-  public GetUserHandlerImpl(UserRepository userRepo,
+  public GetUserHandlerImpl(
+      UserRepository userRepo,
+      ProjectRepository projectRepository,
+      GroupMembershipRepository groupMembershipRepository,
       UserCreationBidRepository userCreationBidRepository,
-      ProjectRepository projectRepository, PersonalProjectService personalProjectService,
-      @Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler) {
+      @Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler
+  ) {
     this.userRepository = Preconditions.checkNotNull(userRepo);
+    this.groupMembershipRepository = groupMembershipRepository;
     this.userCreationBidRepository = Preconditions.checkNotNull(userCreationBidRepository);
     this.projectRepository = projectRepository;
-    this.personalProjectService = personalProjectService;
     this.jasperReportHandler = jasperReportHandler;
   }
 
@@ -112,7 +128,8 @@ public class GetUserHandlerImpl implements GetUserHandler {
     User user = userRepository.findByLogin(loggedInUser.getUsername())
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
-    return UserConverter.TO_RESOURCE.apply(user);
+    List<GroupProject> groupProjects = groupMembershipRepository.findAllUserProjects(user.getId());
+    return UserConverter.TO_RESOURCE_WITH_GROUPS.apply(user, groupProjects);
   }
 
   @Override

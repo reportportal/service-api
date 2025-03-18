@@ -137,9 +137,9 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 		project.getProjectIssueTypes().remove(type);
 		projectRepository.save(project);
 
-		issueTypeRepository.delete(type.getIssueType());
+    updateWidgets(project, type.getIssueType());
 
-		updateWidgets(project, type.getIssueType());
+    issueTypeRepository.delete(type.getIssueType());
 
 		DefectTypeDeletedEvent defectTypeDeletedEvent = new DefectTypeDeletedEvent(TO_ACTIVITY_RESOURCE.apply(type.getIssueType()),
 				user.getUserId(),
@@ -180,7 +180,7 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT, id, project.getName()));
 		PatternTemplateActivityResource before = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate);
 
-		patternTemplateRepository.deleteById(patternTemplate.getId());
+    project.getPatternTemplates().removeIf(pt -> pt.getId().equals(id));
 
 		messageBus.publishActivity(new PatternDeletedEvent(user.getUserId(), user.getUsername(), before));
 		return new OperationCompletionRS(Suppliers.formattedSupplier("Pattern template with id = '{}' has been successfully removed.", id)

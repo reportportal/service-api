@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
 
 import com.epam.reportportal.api.OrganizationApi;
-import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.api.model.OrganizationInfo;
 import com.epam.reportportal.api.model.OrganizationPage;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
@@ -64,7 +63,7 @@ public class OrganizationController extends BaseController implements Organizati
   @Transactional(readOnly = true)
   @Override
   public ResponseEntity<OrganizationPage> getOrganizations(Integer offset, Integer limit,
-      Order order, String name, String slug, String sort) {
+      String order, String name, String slug, String sort) {
     var user = getLoggedUser();
     Filter filter = new Filter(OrganizationFilter.class, Lists.newArrayList());
 
@@ -96,7 +95,7 @@ public class OrganizationController extends BaseController implements Organizati
 
     var pageable = ControllerUtils.getPageable(
         StringUtils.isNotBlank(searchCriteria.getSort()) ? searchCriteria.getSort() : "name",
-        Order.fromValue(searchCriteria.getOrder().toString()),
+        searchCriteria.getOrder().toString(),
         searchCriteria.getOffset(),
         searchCriteria.getLimit());
 

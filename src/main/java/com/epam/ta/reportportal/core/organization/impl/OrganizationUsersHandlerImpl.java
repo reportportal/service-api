@@ -125,18 +125,16 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
         formattedSupplier("organization '{}'", orgId)
     );
 
-    saveOrganizationUser(organization, assignedUser, request);
+    saveOrganizationUser(organization, assignedUser, request.getOrgRole().getValue());
 
     var projects = getDeduplicatedProjectList(request);
 
     // validate projects
     projects.forEach(project -> {
       var projectEntity = projectRepository.findById(project.getId())
-          .orElseThrow(
-              () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, project.getId()));
+          .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, project.getId()));
       expect(projectEntity.getOrganizationId(), equalTo(orgId)).verify(BAD_REQUEST_ERROR,
-          formattedSupplier("Project '{}' does not belong to organization {}", project.getId(),
-              orgId)
+          formattedSupplier("Project '{}' does not belong to organization {}", project.getId(), orgId)
       );
 
       var projectUser = projectUserRepository
@@ -155,12 +153,11 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
         .message("User %s has been successfully assigned".formatted(assignedUser.getLogin()));
   }
 
-  private void saveOrganizationUser(Organization organization, User assignedUser,
-      OrgUserAssignment request) {
+  public void saveOrganizationUser(Organization organization, User assignedUser, String role) {
     var organizationUser = new OrganizationUser();
     organizationUser.setOrganization(organization);
     organizationUser.setUser(assignedUser);
-    organizationUser.setOrganizationRole(OrganizationRole.valueOf(request.getOrgRole().getValue()));
+    organizationUser.setOrganizationRole(OrganizationRole.valueOf(role));
     organizationUserRepository.save(organizationUser);
   }
 

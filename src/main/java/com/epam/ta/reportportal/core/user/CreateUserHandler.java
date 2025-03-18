@@ -42,15 +42,6 @@ public interface CreateUserHandler {
    */
   CreateUserRS createUserByAdmin(CreateUserRQFull request, ReportPortalUser user, String basicUrl);
 
-  /**
-   * Create new User (confirm invitation)
-   *
-   * @param request Create request
-   * @param uuid    Create UUID
-   * @return Operation result
-   */
-  CreateUserRS createUser(CreateUserRQConfirm request, String uuid);
-
 
   /**
    * Create restore password bid

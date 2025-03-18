@@ -1,11 +1,9 @@
 package com.epam.ta.reportportal.util;
 
-import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.lang.NonNull;
 
 
@@ -13,7 +11,7 @@ import org.springframework.lang.NonNull;
 @EqualsAndHashCode
 public class OffsetRequest implements Pageable {
 
-  public static final Sort DEFAULT_SORT = Sort.by(Direction.ASC, "id");
+  public static final Sort DEFAULT_SORT = Sort.unsorted();
 
   private final long offset;
   private final int limit;
@@ -31,7 +29,7 @@ public class OffsetRequest implements Pageable {
 
     this.limit = limit;
 
-    this.sort = Objects.requireNonNull(sort, "Sorting cannot be null. Use Sort.unsorted() instead");
+    this.sort = sort != null ? sort : DEFAULT_SORT;
   }
 
   public static OffsetRequest of(int offset, int limit) {

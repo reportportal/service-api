@@ -23,8 +23,9 @@ import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.reportportal.api.InvitationApi;
 import com.epam.reportportal.api.model.Invitation;
+import com.epam.reportportal.api.model.InvitationActivation;
 import com.epam.reportportal.api.model.InvitationRequest;
-import com.epam.ta.reportportal.core.user.UserInvitationHandler;
+import com.epam.ta.reportportal.core.user.impl.UserInvitationHandler;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -67,6 +68,13 @@ public class InvitationController extends BaseController implements InvitationAp
         .body(
             userInvitationHandler.getInvitation(invitationId, composeBaseUrl(httpServletRequest)));
 
+  }
+
+  @Override
+  public ResponseEntity<Invitation> putInvitationsId(String invitationId, InvitationActivation invitationActivation) {
+    return ResponseEntity
+        .status(OK)
+        .body(userInvitationHandler.activate(invitationActivation, invitationId));
   }
 
 }

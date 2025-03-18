@@ -183,7 +183,7 @@ class SecurityConfiguration {
       http.authorizeRequests()
           .accessDecisionManager(webAccessDecisionManager())
           .antMatchers("/**/user**/registration/info*",
-              "/**/user**/registration**",
+              "/**/invitations/**",
               "/**/user**/password/reset/*",
               "/**/user**/password/reset**",
               "/**/user**/password/restore**",

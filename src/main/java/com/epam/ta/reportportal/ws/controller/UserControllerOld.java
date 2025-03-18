@@ -45,7 +45,6 @@ import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.model.ModelViews;
 import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.user.ChangePasswordRQ;
-import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
 import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.model.user.CreateUserRS;
 import com.epam.ta.reportportal.model.user.EditUserRQ;
@@ -125,15 +124,6 @@ public class UserControllerOld {
   public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq,
       @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
     return createUserMessageHandler.createUserByAdmin(rq, currentUser, composeBaseUrl(request));
-  }
-
-
-  @PostMapping(value = "/registration")
-  @ResponseStatus(CREATED)
-  @Operation(summary = "Activate invitation and create user in system")
-  public CreateUserRS createUser(@RequestBody @Validated CreateUserRQConfirm request,
-      @RequestParam(value = "uuid") String uuid) {
-    return createUserMessageHandler.createUser(request, uuid);
   }
 
 

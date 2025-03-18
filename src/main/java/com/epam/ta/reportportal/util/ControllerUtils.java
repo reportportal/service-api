@@ -115,15 +115,14 @@ public class ControllerUtils {
     return uploadedFiles;
   }
 
-  public static Direction parseSortDirection(Order order) {
+  public static Direction parseSortDirection(String order) {
     if (order == null) {
       return Direction.ASC;
     }
-    return order.toString().equalsIgnoreCase(Direction.DESC.name()) ? Direction.DESC
-        : Direction.ASC;
+    return order.equalsIgnoreCase(Direction.DESC.name()) ? Direction.DESC : Direction.ASC;
   }
 
-  public static Pageable getPageable(String sortBy, Order order, int offset, int limit) {
+  public static Pageable getPageable(String sortBy, String order, int offset, int limit) {
     var sortDirection = parseSortDirection(order);
     //TODO: switch to ScrollPosition after migration to Spring Data 3.1
     return OffsetRequest.of(offset, limit, Sort.by(sortDirection, sortBy));

@@ -21,9 +21,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.reportportal.api.model.Invitation;
+import com.epam.reportportal.api.model.InvitationActivation;
+import com.epam.reportportal.api.model.InvitationActivation.StatusEnum;
 import com.epam.reportportal.api.model.InvitationRequest;
 import com.epam.reportportal.api.model.InvitationRequestOrganizationsInner;
 import com.epam.reportportal.api.model.InvitationStatus;
@@ -34,6 +38,8 @@ import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +47,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 class InvitationControllerTest extends BaseMvcTest {
 
   private static final String INVITATIONS_ENDPOINT = "/invitations";
+
+  private static final InvitationActivation activationRq = new InvitationActivation()
+      .fullName("Stanley Jobson")
+      .password("sw0rd_Fi$h")
+      .status(StatusEnum.ACTIVATED);
 
   @Autowired
   private ObjectMapper objectMapper;
@@ -57,25 +68,7 @@ class InvitationControllerTest extends BaseMvcTest {
       "MEMBER|VIEWER|2"
   }, delimiter = '|')
   void createInvitationByAdmin(OrgRole orgRole, ProjectRole projectRole) throws Exception {
-    List<UserProjectInfo> projects = new ArrayList<>();
-    InvitationRequestOrganizationsInner orgInfo = new InvitationRequestOrganizationsInner();
-    UserProjectInfo projectInfo = new UserProjectInfo()
-        .id(1L)
-        .projectRole(projectRole);
-
-    projects.add(projectInfo);
-
-    orgInfo.setId(1L);
-    orgInfo.setOrgRole(orgRole);
-    orgInfo.setProjects(projects);
-
-    List<InvitationRequestOrganizationsInner> organizations = new ArrayList<>();
-    organizations.add(orgInfo);
-
-    var rq = new InvitationRequest();
-
-    rq.setEmail("invitation@example.com");
-    rq.setOrganizations(organizations);
+    var rq = getInvitationRequest(orgRole, projectRole);
 
     var result = mockMvc.perform(post(INVITATIONS_ENDPOINT)
             .content(objectMapper.writeValueAsBytes(rq))
@@ -103,6 +96,29 @@ class InvitationControllerTest extends BaseMvcTest {
 
     assertEquals(storedInvitation, invitation);
 
+  }
+
+  private static InvitationRequest getInvitationRequest(OrgRole orgRole, ProjectRole projectRole) {
+    List<UserProjectInfo> projects = new ArrayList<>();
+    InvitationRequestOrganizationsInner orgInfo = new InvitationRequestOrganizationsInner();
+    UserProjectInfo projectInfo = new UserProjectInfo()
+        .id(1L)
+        .projectRole(projectRole);
+
+    projects.add(projectInfo);
+
+    orgInfo.setId(1L);
+    orgInfo.setOrgRole(orgRole);
+    orgInfo.setProjects(projects);
+
+    List<InvitationRequestOrganizationsInner> organizations = new ArrayList<>();
+    organizations.add(orgInfo);
+
+    var rq = new InvitationRequest();
+
+    rq.setEmail("invitation@example.com");
+    rq.setOrganizations(organizations);
+    return rq;
   }
 
 
@@ -179,5 +195,75 @@ class InvitationControllerTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isCreated());
 
+  }
+
+  @Test
+  void activateInvitation() throws Exception {
+    var rq = getInvitationRequest(OrgRole.MANAGER, ProjectRole.EDITOR);
+
+    var invitationAsString = mockMvc.perform(post(INVITATIONS_ENDPOINT)
+            .content(objectMapper.writeValueAsBytes(rq))
+            .contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isCreated())
+        .andReturn()
+        .getResponse().getContentAsString();
+    var invitation = objectMapper.readValue(invitationAsString, Invitation.class);
+
+
+    mockMvc.perform(put(INVITATIONS_ENDPOINT + "/" + invitation.getId())
+            // no token required
+            .content(objectMapper.writeValueAsBytes(activationRq))
+            .contentType(APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void activateInvitationNotFound() throws Exception {
+    mockMvc.perform(put(INVITATIONS_ENDPOINT + "/" + UUID.randomUUID())
+            // no token required
+            .content(objectMapper.writeValueAsBytes(activationRq))
+            .contentType(APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().is4xxClientError());
+  }
+
+  @Test
+  void activateInvitationUserAlreadyExists() throws Exception {
+    var rq = getInvitationRequest(OrgRole.MANAGER, ProjectRole.EDITOR);
+
+    var invitationAsString = mockMvc.perform(post(INVITATIONS_ENDPOINT)
+            .content(objectMapper.writeValueAsBytes(rq))
+            .contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isCreated())
+        .andReturn()
+        .getResponse().getContentAsString();
+    var invitation = objectMapper.readValue(invitationAsString, Invitation.class);
+
+    var invitationAsString2 = mockMvc.perform(post(INVITATIONS_ENDPOINT)
+            .content(objectMapper.writeValueAsBytes(rq))
+            .contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isCreated())
+        .andReturn()
+        .getResponse().getContentAsString();
+    var invitation2 = objectMapper.readValue(invitationAsString2, Invitation.class);
+
+
+    mockMvc.perform(put(INVITATIONS_ENDPOINT + "/" + invitation.getId())
+            // no token required
+            .content(objectMapper.writeValueAsBytes(activationRq))
+            .contentType(APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk());
+
+    mockMvc.perform(put(INVITATIONS_ENDPOINT + "/" + invitation2.getId())
+            // no token required
+            .content(objectMapper.writeValueAsBytes(activationRq))
+            .contentType(APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk());
   }
 }

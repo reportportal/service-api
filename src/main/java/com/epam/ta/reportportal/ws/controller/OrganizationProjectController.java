@@ -82,7 +82,7 @@ public class OrganizationProjectController extends BaseController implements
   @PreAuthorize(ORGANIZATION_MEMBER)
   @Override
   public ResponseEntity<OrganizationProjectsPage> getOrganizationsOrgIdProjects(Long orgId,
-      Integer offset, Integer limit, Order order, String name, String slug, String sort
+      Integer offset, Integer limit, String order, String name, String slug, String sort
   ) {
 
     organizationRepositoryCustom.findById(orgId).orElseThrow(() -> new ReportPortalException(
@@ -138,7 +138,7 @@ public class OrganizationProjectController extends BaseController implements
 
     var pageable = ControllerUtils.getPageable(
         StringUtils.isNotBlank(searchCriteria.getSort()) ? searchCriteria.getSort() : "name",
-        Order.fromValue(searchCriteria.getOrder().toString()),
+        searchCriteria.getOrder().toString(),
         searchCriteria.getOffset(),
         searchCriteria.getLimit());
 

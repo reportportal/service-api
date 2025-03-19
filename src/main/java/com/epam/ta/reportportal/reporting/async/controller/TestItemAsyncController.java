@@ -72,7 +72,7 @@ public class TestItemAsyncController {
   }
 
   @HttpLogging
-  @PostMapping
+  @PostMapping(value = { "", "/"})
   @ResponseStatus(CREATED)
   @Operation(description = "Start a root test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
@@ -84,7 +84,7 @@ public class TestItemAsyncController {
   }
 
   @HttpLogging
-  @PostMapping("/{parentItem}")
+  @PostMapping(value = {"/{parentItem}", "/{parentItem}/"})
   @ResponseStatus(CREATED)
   @Operation(description = "Start a child test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
@@ -96,7 +96,7 @@ public class TestItemAsyncController {
   }
 
   @HttpLogging
-  @PutMapping("/{testItemId}")
+  @PutMapping(value = {"/{testItemId}", "/{testItemId}/"})
   @ResponseStatus(OK)
   @Operation(description = "Finish test item")
   @PreAuthorize(ALLOWED_TO_REPORT)

@@ -91,7 +91,7 @@ class TestItemControllerTest extends BaseMvcTest {
     rq.setParameters(getParameters());
     rq.setUniqueId(UUID.randomUUID().toString());
     rq.setStartTime(Instant.now());
-    mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/item").contentType(APPLICATION_JSON)
+    mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/item/").contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsBytes(rq)).with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isCreated());
   }

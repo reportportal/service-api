@@ -26,6 +26,7 @@ import static com.epam.ta.reportportal.ws.resolver.PagingHandlerMethodArgumentRe
 import static com.epam.ta.reportportal.ws.resolver.PagingHandlerMethodArgumentResolver.CUT_DEFAULT_PAGE_SIZE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
+import static org.springframework.util.StringUtils.hasText;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
@@ -78,7 +79,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 /**
  * GET operations for {@link TestItem}<br> Default implementation
@@ -334,10 +334,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
     pageable = validateInputParameters(namePart, attribute, pageable);
     Slice<TestItem> result;
     try {
-      if (StringUtils.hasText(attribute)) {
-        String[] attributeSplit = attribute.split(":");
-        result = testItemRepository.findTestItemsByAttribute(projectDetails.getProjectId(),
-            attributeSplit[0], attributeSplit[1], pageable);
+      if (hasText(attribute)) {
+        result = searchByAttribute(attribute, pageable, projectDetails);
       } else {
         result = testItemRepository.findTestItemsContainsName(namePart,
             projectDetails.getProjectId(), pageable);
@@ -357,6 +355,19 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
             result.hasNext()));
   }
 
+  private Slice<TestItem> searchByAttribute(String attribute, Pageable pageable,
+      ProjectDetails projectDetails) {
+    var attributeSplit = attribute.split(":");
+    var key = attributeSplit[0];
+    var value = attributeSplit[1];
+    if (hasText(key)) {
+      return testItemRepository.findTestItemsByAttribute(projectDetails.getProjectId(), key, value,
+          pageable);
+    }
+    return testItemRepository.findTestItemsByAttribute(projectDetails.getProjectId(), value,
+        pageable);
+  }
+
   private Pageable validateInputParameters(String namePart, String attribute, Pageable pageable) {
     if (0 == pageable.getPageSize() || CUT_DEFAULT_PAGE_SIZE < pageable.getPageSize()) {
       pageable = PageRequest.of(pageable.getPageNumber(), CUT_DEFAULT_PAGE_SIZE,
@@ -366,15 +377,15 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "Total amount must be lower or equals than " + CUT_DEFAULT_OFFSET);
     }
-    if (!StringUtils.hasText(namePart) && !StringUtils.hasText(attribute)) {
+    if (!hasText(namePart) && !hasText(attribute)) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "Provide either 'filter.has.compositeAttribute' or 'filter.cnt.name'.");
     }
-    if (StringUtils.hasText(namePart) && namePart.length() < 3) {
+    if (hasText(namePart) && namePart.length() < 3) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "Value of 'filter.cnt.name' must contains more than 2 symbols.");
     }
-    if (StringUtils.hasText(attribute) && attribute.split(":").length != 2) {
+    if (hasText(attribute) && attribute.split(":").length != 2) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "Provide 'filter.has.compositeAttribute' with 'key' and 'value' combined by ':'");
     }

@@ -29,6 +29,7 @@ public class ProductVersionServiceImpl implements ProductVersionService {
         final var productVersion = new TmsProductVersion(null,
                 inputDto.version(),
                 inputDto.documentation(),
+                projectID,
                 inputDto.testPlans().stream().map(it -> {
                   var tp = new TmsTestPlan();
                   tp.setId(it);
@@ -48,6 +49,7 @@ public class ProductVersionServiceImpl implements ProductVersionService {
         final var productVersion = new TmsProductVersion(productVersionID,
                 inputDto.version(),
                 inputDto.documentation(),
+                projectID,
                 inputDto.testPlans().stream().map(it -> {
                     var tp = new TmsTestPlan();
                     tp.setId(it);
@@ -60,6 +62,11 @@ public class ProductVersionServiceImpl implements ProductVersionService {
                 }).collect(Collectors.toSet()));
 
         return productVersionMapper.convert(productVersionRepository.save(productVersion));    }
+
+    @Override
+    public ProductVersionRS patch(long projectId, Long aLong, ProductVersionRQ t) {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
     public void delete(long projectID,Long id) {

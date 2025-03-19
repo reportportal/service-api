@@ -103,6 +103,10 @@ dependencies {
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 
+    //mapstruct
+    implementation "org.mapstruct:mapstruct:$mapstructVersion"
+    annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion"
+
     //  Tests
     testImplementation(libs.bundles.test.libs)
     testCompileOnly(libs.lombok)

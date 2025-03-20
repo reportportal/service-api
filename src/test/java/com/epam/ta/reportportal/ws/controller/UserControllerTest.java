@@ -32,13 +32,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.ta.reportportal.dao.ApiKeyRepository;
+import com.epam.reportportal.model.ValidationConstraints;
+import com.epam.ta.reportportal.core.user.ApiKeyHandler;
 import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.user.UserType;
+import com.epam.ta.reportportal.model.ApiKeyRQ;
 import com.epam.ta.reportportal.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.user.ChangePasswordRQ;
@@ -57,6 +62,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
@@ -85,6 +92,9 @@ class UserControllerTest extends BaseMvcTest {
   private IssueTypeRepository issueTypeRepository;
 
   private static final String USERS_URL = "/v1/users";
+
+  @Autowired
+  ApiKeyHandler apiKeyHandler;
 
   @Test
   void createdUserByIdentityProvider() throws Exception  {
@@ -359,8 +369,10 @@ class UserControllerTest extends BaseMvcTest {
 
   @Test
   void getUserPositiveUsingApiToken() throws Exception {
+    var apikeyRs = apiKeyHandler.createApiKey("test", 1L);
+
     mockMvc.perform(get(USERS_URL + "/default").with(
-            token("test__ET4Byc1QUqO8VV8kiCGSP3O4SERb5MJWIowQQ3SiEqHO6hjicoPw-vm1tnrQI5V")))
+            token(apikeyRs.getApiKey())))
         .andExpect(status().isOk());
   }
 
@@ -505,5 +517,42 @@ class UserControllerTest extends BaseMvcTest {
 
     mockMvc.perform(delete("/users/2/avatar").with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isNoContent());
+  }
+
+  @ParameterizedTest
+  @CsvSource(value = {
+      "abcABC123",
+      "abcABC123-",
+      "abcABC123.",
+      "abcABC123_",
+      "abcABC123~",
+      "abcABC123+",
+      "abcABC123/"
+  }, delimiter = '|')
+  void createApiKey(String name) throws Exception {
+    var apiKeyRq = new ApiKeyRQ();
+    apiKeyRq.setName(name);
+    mockMvc.perform(post("/users/1/api-keys")
+        .with(token(oAuthHelper.getSuperadminToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(apiKeyRq))).andExpect(status().isCreated());
+  }
+
+  @ParameterizedTest
+  @CsvSource(value = {
+      "abcABC123,",
+      "abcABC123!",
+      "abcABC123{",
+      "abcABC123-._~+/,!{}",
+      "abcABC123=",
+      "abcABC 123"
+  }, delimiter = '|')
+  void createApiKeyWrongPattern(String name) throws Exception {
+    var apiKeyRq = new ApiKeyRQ();
+    apiKeyRq.setName(name);
+    mockMvc.perform(post("/users/1/api-keys")
+        .with(token(oAuthHelper.getDefaultToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(apiKeyRq))).andExpect(status().is4xxClientError());
   }
 }

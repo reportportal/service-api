@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.UserRepository;
 import java.util.Objects;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 
 /**
@@ -43,9 +42,8 @@ public class AllowedToUserItself implements Permission {
 
   @Override
   public boolean isAllowed(Authentication authentication, Object id) {
-    OAuth2Authentication oauth = (OAuth2Authentication) authentication;
+    ReportPortalUser rpUser = (ReportPortalUser) authentication.getPrincipal();
 
-    ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
     Long userIdParameter = Long.parseLong(String.valueOf(id));

@@ -56,7 +56,7 @@ public class OAuthHelper {
         customerToken;
   }
 
-  private String createAccessToken(String username, String password,
+  public String createAccessToken(String username, String password,
       UserRole... roles) {
     var authorities = Arrays.stream(roles)
         .map(role -> "ROLE_" + role)

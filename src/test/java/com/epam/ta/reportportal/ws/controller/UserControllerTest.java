@@ -34,14 +34,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.core.user.ApiKeyHandler;
-import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.item.issue.IssueType;
-import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.model.ApiKeyRQ;
 import com.epam.ta.reportportal.model.DeleteBulkRQ;
@@ -532,7 +528,7 @@ class UserControllerTest extends BaseMvcTest {
   void createApiKey(String name) throws Exception {
     var apiKeyRq = new ApiKeyRQ();
     apiKeyRq.setName(name);
-    mockMvc.perform(post("/users/1/api-keys")
+    mockMvc.perform(post("/v1/users/1/api-keys")
         .with(token(oAuthHelper.getSuperadminToken()))
         .contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(apiKeyRq))).andExpect(status().isCreated());
@@ -550,7 +546,7 @@ class UserControllerTest extends BaseMvcTest {
   void createApiKeyWrongPattern(String name) throws Exception {
     var apiKeyRq = new ApiKeyRQ();
     apiKeyRq.setName(name);
-    mockMvc.perform(post("/users/1/api-keys")
+    mockMvc.perform(post("/v1/users/1/api-keys")
         .with(token(oAuthHelper.getDefaultToken()))
         .contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(apiKeyRq))).andExpect(status().is4xxClientError());

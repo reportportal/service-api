@@ -128,8 +128,10 @@ public class GetUserHandlerImpl implements GetUserHandler {
     User user = userRepository.findByLogin(loggedInUser.getUsername())
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
-    List<GroupProject> groupProjects = groupMembershipRepository.findAllUserProjects(user.getId());
-    return UserConverter.TO_RESOURCE_WITH_GROUPS.apply(user, groupProjects);
+    //TODO : implement with group roles
+/*    List<GroupProject> groupProjects = groupMembershipRepository.findAllUserProjects(user.getId());
+    return UserConverter.TO_RESOURCE_WITH_GROUPS.apply(user, groupProjects);*/
+    return UserConverter.TO_RESOURCE.apply(user);
   }
 
   @Override

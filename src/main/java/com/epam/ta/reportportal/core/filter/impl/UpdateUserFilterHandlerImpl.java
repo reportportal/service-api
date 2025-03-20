@@ -27,7 +27,6 @@ import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
 import com.epam.ta.reportportal.commons.querygen.FilterTarget;
@@ -38,7 +37,6 @@ import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.CollectionsRQ;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
@@ -105,16 +103,15 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
   @Override
   public EntryCreatedRS createFilterCopyOnDuplicate(UpdateUserFilterRQ createFilterRQ,
-      String projectName,
+      String projectKey,
       ReportPortalUser user) {
-    ReportPortalUser.ProjectDetails projectDetails =
-        projectExtractor.extractProjectDetails(user, projectName);
+    MembershipDetails membershipDetails = projectExtractor.extractMembershipDetails(user, projectKey);
 
     validateFilterRq(createFilterRQ);
-    validateFilterName(createFilterRQ, user, projectDetails);
+    validateFilterName(createFilterRQ, user, membershipDetails);
 
     UserFilter filter = new UserFilterBuilder().addFilterRq(createFilterRQ)
-        .addProject(projectDetails.getProjectId()).addOwner(user.getUsername()).get();
+        .addProject(membershipDetails.getProjectId()).addOwner(user.getUsername()).get();
 
     userFilterRepository.save(filter);
     messageBus.publishActivity(
@@ -213,11 +210,11 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 
   private void validateFilterName(UpdateUserFilterRQ createFilterRQ,
-      ReportPortalUser user, ProjectDetails projectDetails) {
+      ReportPortalUser user, MembershipDetails membershipDetails) {
     int maxIterations = 100;
     int count = 0;
     while (userFilterRepository.existsByNameAndOwnerAndProjectId(createFilterRQ.getName(),
-        user.getUsername(), projectDetails.getProjectId()) && count < maxIterations) {
+        user.getUsername(), membershipDetails.getProjectId()) && count < maxIterations) {
       createFilterRQ.setName(createFilterRQ.getName() + "_copy");
       count++;
     }

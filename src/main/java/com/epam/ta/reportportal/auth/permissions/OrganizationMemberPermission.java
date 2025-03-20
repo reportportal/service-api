@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 
 @Component("organizationMemberPermission")
@@ -56,8 +55,7 @@ public class OrganizationMemberPermission implements Permission {
       return false;
     }
 
-    OAuth2Authentication oauth = (OAuth2Authentication) authentication;
-    ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
+    ReportPortalUser rpUser = (ReportPortalUser) authentication.getPrincipal();
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
     var org = organizationRepositoryCustom.findById((Long) orgId)

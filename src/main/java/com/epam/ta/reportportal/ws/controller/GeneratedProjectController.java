@@ -1,7 +1,6 @@
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.NOT_CUSTOMER;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 
 import com.epam.reportportal.api.ProjectsApi;
 import com.epam.reportportal.api.model.AddProjectToGroupByIdRequest;
@@ -38,38 +37,38 @@ public class GeneratedProjectController implements ProjectsApi {
   }
 
   @Override
-  @PreAuthorize(NOT_CUSTOMER)
+  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<ProjectGroupsPage> getGroupsOfProject(
-      String projectName,
+      String projectKey,
       Integer offset,
       Integer limit
   ) {
-    var page = getGroupExtension().getProjectGroups(projectName, offset, limit);
+    var page = getGroupExtension().getProjectGroups(projectKey, offset, limit);
     return ResponseEntity.ok(page);
   }
 
   @Override
-  @PreAuthorize(NOT_CUSTOMER)
-  public ResponseEntity<ProjectGroupInfo> getProjectGroupById(String projectName, Long groupId) {
-    var group = getGroupExtension().getProjectGroupById(projectName, groupId).orElseThrow(
+  @PreAuthorize(IS_ADMIN)
+  public ResponseEntity<ProjectGroupInfo> getProjectGroupById(String projectKey, Long groupId) {
+    var group = getGroupExtension().getProjectGroupById(projectKey, groupId).orElseThrow(
         () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
     );
     return ResponseEntity.ok(group);
   }
 
   @Override
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<SuccessfulUpdate> addGroupToProjectById(
-      String projectName,
+      String projectKey,
       Long groupId,
       AddProjectToGroupByIdRequest addProjectToGroupByIdRequest
   ) {
-    getGroupExtension().addGroupToProject(projectName, groupId, addProjectToGroupByIdRequest);
+    getGroupExtension().addGroupToProject(projectKey, groupId, addProjectToGroupByIdRequest);
     return ResponseEntity.ok(new SuccessfulUpdate("Group updated successfully"));
   }
 
   @Override
-  @PreAuthorize(PROJECT_MANAGER)
+  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<Void> deleteGroupFromProjectById(String projectName, Long groupId) {
     getGroupExtension().deleteGroupFromProject(projectName, groupId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);

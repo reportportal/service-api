@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.util;
 
 import java.lang.reflect.Method;
 import java.util.regex.Matcher;
-import javax.validation.constraints.Pattern;
+import jakarta.validation.constraints.Pattern;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Assertions;
 

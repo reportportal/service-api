@@ -134,7 +134,6 @@ public final class UserConverter {
 
         user.getProjects().forEach(projectUser -> {
           UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-          assignedProject.setEntryType(projectUser.getProject().getProjectType().name());
           assignedProject.setProjectRole(projectUser.getProjectRole().toString());
           userProjectsMap.put(projectUser.getProject().getName(), assignedProject);
         });
@@ -142,7 +141,6 @@ public final class UserConverter {
         groupProjects.forEach(project -> {
           String projectName = project.getProject().getName();
           UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-          assignedProject.setEntryType(project.getProject().getProjectType().name());
           assignedProject.setProjectRole(project.getProjectRole().toString());
 
           if (userProjectsMap.containsKey(projectName)) {

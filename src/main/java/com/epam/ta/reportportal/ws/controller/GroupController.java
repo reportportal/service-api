@@ -16,7 +16,8 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
+
 
 import com.epam.reportportal.api.GroupsApi;
 import com.epam.reportportal.api.model.AddProjectToGroupByIdRequest;
@@ -61,7 +62,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<GroupPage> getGroups(
       Integer offset,
       Integer limit,
@@ -73,7 +74,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<GroupInfo> createGroup(CreateGroupRequest createGroupRequest) {
     GroupInfo group = getGroupExtension().createGroup(
         createGroupRequest,
@@ -83,7 +84,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<GroupInfo> getGroupById(Long groupId) {
     GroupInfo group = getGroupExtension().getGroupById(groupId).orElseThrow(
         () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
@@ -92,7 +93,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<SuccessfulUpdate> updateGroup(
       Long groupId,
       UpdateGroupRequest updateGroupRequest
@@ -102,14 +103,14 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<Void> deleteGroup(Long groupId) {
     getGroupExtension().deleteGroup(groupId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @Override
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<GroupUsersPage> getGroupUsers(
       Long groupId,
       Integer offset,
@@ -120,7 +121,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<GroupUserInfo> getGroupUserById(Long groupId, Long userId) {
     var groupUserInfo = getGroupExtension().getGroupUserById(groupId, userId).orElseThrow(
         () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
@@ -129,21 +130,21 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<SuccessfulUpdate> addUserToGroupById(Long groupId, Long userId) {
     getGroupExtension().addUserToGroupById(groupId, userId);
     return ResponseEntity.ok(new SuccessfulUpdate("Group updated successfully"));
   }
 
   @Override
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<Void> deleteUserFromGroupById(Long groupId, Long userId) {
     getGroupExtension().deleteUserFromGroupById(groupId, userId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @Override
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<GroupProjectsPage> getGroupProjects(
       Long groupId,
       Integer offset,
@@ -155,7 +156,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<GroupProjectInfo> getGroupProjectById(Long groupId, Long projectId) {
     var groupProjectInfo = getGroupExtension().getGroupProjectById(groupId, projectId)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -163,7 +164,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<SuccessfulUpdate> addProjectToGroupById(
       Long groupId,
       Long projectId,
@@ -174,7 +175,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<Void> deleteProjectFromGroupById(Long groupId, Long projectId) {
     getGroupExtension().deleteProjectFromGroupById(groupId, projectId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);

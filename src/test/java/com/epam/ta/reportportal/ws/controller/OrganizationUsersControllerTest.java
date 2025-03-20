@@ -72,24 +72,12 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
   @BeforeEach
   void beforeEach() {
-    adminToken =
-        oAuthHelper.createAccessToken("admin", "erebus", UserRole.ADMINISTRATOR)
-            .getValue();
-    managerToken =
-        oAuthHelper.createAccessToken("user-manager", "erebus", UserRole.USER)
-            .getValue();
-    editorToken =
-        oAuthHelper.createAccessToken("user-member-editor", "erebus", UserRole.USER)
-            .getValue();
-    viewerToken =
-        oAuthHelper.createAccessToken("user-member-viewer", "erebus", UserRole.USER)
-            .getValue();
-    noProjectsUser =
-        oAuthHelper.createAccessToken("no-projects-user", "erebus", UserRole.USER)
-            .getValue();
-    noOrgUser =
-        oAuthHelper.createAccessToken("no-orgs-user", "erebus", UserRole.USER)
-            .getValue();
+    adminToken = oAuthHelper.createAccessToken("admin", "erebus", UserRole.ADMINISTRATOR);
+    managerToken = oAuthHelper.createAccessToken("user-manager", "erebus", UserRole.USER);
+    editorToken = oAuthHelper.createAccessToken("user-member-editor", "erebus", UserRole.USER);
+    viewerToken = oAuthHelper.createAccessToken("user-member-viewer", "erebus", UserRole.USER);
+    noProjectsUser = oAuthHelper.createAccessToken("no-projects-user", "erebus", UserRole.USER);
+    noOrgUser = oAuthHelper.createAccessToken("no-orgs-user", "erebus", UserRole.USER);
   }
 
 

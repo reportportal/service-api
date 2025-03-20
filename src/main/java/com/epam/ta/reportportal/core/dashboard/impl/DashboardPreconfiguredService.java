@@ -16,11 +16,11 @@
 package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.dashboard.CreateDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.UpdateDashboardHandler;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.core.widget.CreateWidgetHandler;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.dashboard.AddWidgetRq;
 import com.epam.ta.reportportal.model.dashboard.DashboardPreconfiguredRq;
@@ -46,27 +46,26 @@ public class DashboardPreconfiguredService {
   private final CreateWidgetHandler createWidgetHandler;
   private final UpdateUserFilterHandler userFilterHandler;
 
-  public EntryCreatedRS createDashboard(ProjectDetails projectDetails,
+  public EntryCreatedRS createDashboard(MembershipDetails membershipDetails,
       DashboardPreconfiguredRq rq, ReportPortalUser user) {
-    var dashboard = createDashboardHandler.createDashboard(projectDetails, rq, user);
-    createAndAddWidgets(dashboard.getId(), rq.getDashboardConfig().getWidgetsConfig(),
-        projectDetails, user);
+    var dashboard = createDashboardHandler.createDashboard(membershipDetails, rq, user);
+    createAndAddWidgets(dashboard.getId(), rq.getDashboardConfig().getWidgetsConfig(), membershipDetails, user);
     return dashboard;
   }
 
   private void createAndAddWidgets(Long dashboardId, List<WidgetConfigResource> widgetsConfigs,
-      ProjectDetails projectDetails, ReportPortalUser user) {
-    var filterIdMapping = createUniqueFilters(widgetsConfigs, projectDetails, user);
+      MembershipDetails membershipDetails, ReportPortalUser user) {
+    var filterIdMapping = createUniqueFilters(widgetsConfigs, membershipDetails, user);
     widgetsConfigs.forEach(widgetConfig -> {
-      var widget = createWidgetByConfig(projectDetails, user,
+      var widget = createWidgetByConfig(membershipDetails, user,
           getNewFilterIds(filterIdMapping, widgetConfig), widgetConfig);
       widgetConfig.getWidgetObject().setWidgetId(widget.getId());
-      updateDashboardHandler.addWidget(dashboardId, projectDetails,
+      updateDashboardHandler.addWidget(dashboardId, membershipDetails,
           new AddWidgetRq(widgetConfig.getWidgetObject()), user);
     });
   }
 
-  private EntryCreatedRS createWidgetByConfig(ProjectDetails projectDetails, ReportPortalUser user,
+  private EntryCreatedRS createWidgetByConfig(MembershipDetails projectDetails, ReportPortalUser user,
       List<Long> filterIds, WidgetConfigResource config) {
     var widgetRQ = new WidgetRQ();
     widgetRQ.setName(config.getWidgetResource().getName());
@@ -85,7 +84,7 @@ public class DashboardPreconfiguredService {
   }
 
   private HashMap<Long, Long> createUniqueFilters(List<WidgetConfigResource> widgetsConfigs,
-      ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
 
     var filtersMapping = new HashMap<Long, Long>();
 
@@ -102,7 +101,7 @@ public class DashboardPreconfiguredService {
       updateUserFilterRQ.setObjectType(filter.getObjectType());
       updateUserFilterRQ.setDescription(filter.getDescription());
       var createdFilter = userFilterHandler.createFilterCopyOnDuplicate(updateUserFilterRQ,
-          projectDetails.getProjectName(), user);
+          membershipDetails.getProjectKey(), user);
       filtersMapping.put(id, createdFilter.getId());
     });
     return filtersMapping;

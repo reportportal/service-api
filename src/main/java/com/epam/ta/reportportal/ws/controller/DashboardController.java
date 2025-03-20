@@ -175,6 +175,6 @@ public class DashboardController {
       @RequestBody @Validated DashboardPreconfiguredRq rq,
       @AuthenticationPrincipal ReportPortalUser user) {
     return dashboardPreconfiguredService.createDashboard(
-        projectExtractor.extractProjectDetails(user, projectName), rq, user);
+        projectExtractor.extractMembershipDetails(user, projectName), rq, user);
   }
 }

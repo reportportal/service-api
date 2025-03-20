@@ -20,7 +20,6 @@ plugins {
     id 'java-library'
     id 'org.owasp.dependencycheck' version '11.1.1'
     id 'org.springframework.boot' version "${springBootVersion}"
-    id "org.openapi.generator" version "7.9.0"
     id "com.epam.drill.integration.cicd" version "0.1.6"
     id "org.openapi.generator" version "7.11.0"
 }
@@ -105,6 +104,7 @@ dependencies {
 
     implementation 'com.opencsv:opencsv:5.10'
     implementation "org.jooq:jooq:${jooqVersion}"
+    implementation 'com.github.slugify:slugify:3.0.7'
 
     // Optional for spring-boot-starter-amqp
     implementation "com.rabbitmq:http-client:5.3.0"
@@ -159,14 +159,11 @@ sourceSets {
     }
 }
 
-tasks.register('updateApiSubmodule', Exec) {
-    commandLine 'git', 'submodule', 'update', '--init', "--recursive"
-}
 
-tasks.register('generateOrganizationsApi', GenerateTask) {
+tasks.register('generateApi', GenerateTask) {
     generatorName.set("spring")
-    inputSpec.set("$rootDir/reportportal-common-api/api/openapi/reportportal-api.yaml")
-    outputDir.set("$buildDir/generated")
+    inputSpec.set("$rootDir/api-registry/api/openapi/reportportal-api.yaml")
+    outputDir.set("${layout.buildDirectory.get()}/generated")
     configFile.set("$rootDir/src/main/resources/openapi/config.json")
     skipOverwrite.set(false)
     cleanupOutput.set(true)
@@ -177,14 +174,6 @@ processResources {
     dependsOn(gitInfo)
     filesMatching('application.properties') {
         expand(project.properties)
-    }
-}
-
-sourceSets {
-    main {
-        java {
-            srcDirs "$buildDir/generated/src/main/java"
-        }
     }
 }
 
@@ -227,9 +216,8 @@ test {
     }
 }
 
-compileJava.dependsOn tasks.named('openApiGenerate')
-generateOrganizationsApi.dependsOn updateApiSubmodule
-compileJava.dependsOn generateOrganizationsApi
+compileJava.dependsOn tasks.named('generateApi')
+generateApi.dependsOn updateApiSubmodule
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts
@@ -264,15 +252,6 @@ springBoot {
             excludes = ['time', 'artifact']
         }
     }
-}
-
-openApiGenerate {
-    generatorName = "spring"
-    inputSpec = "$rootDir/api-registry/api/openapi/reportportal-api.yaml"
-    outputDir = "${layout.buildDirectory.get()}/generated"
-    configFile = "$rootDir/src/main/resources/openapi/config.json"
-    skipOverwrite = false
-    cleanupOutput = true
 }
 
 tasks.preTagCommit.enabled = false

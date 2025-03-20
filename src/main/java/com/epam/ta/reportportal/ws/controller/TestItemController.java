@@ -124,7 +124,7 @@ public class TestItemController {
 
   /* Report client API */
 
-  @PostMapping
+  @PostMapping(value = { "", "/" })
   @ResponseStatus(CREATED)
   @Operation(summary = "Start a root test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
@@ -136,7 +136,7 @@ public class TestItemController {
     );
   }
 
-  @PostMapping("/{parentItem}")
+  @PostMapping(value = {"/{parentItem}", "/{parentItem}/"})
   @ResponseStatus(CREATED)
   @Operation(summary = "Start a child test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
@@ -148,7 +148,7 @@ public class TestItemController {
     );
   }
 
-  @PutMapping("/{testItemId}")
+  @PutMapping(value = {"/{testItemId}", "/{testItemId}/"})
   @ResponseStatus(OK)
   @Operation(summary = "Finish test item")
   @PreAuthorize(ALLOWED_TO_REPORT)

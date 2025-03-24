@@ -22,11 +22,8 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
-import static com.epam.ta.reportportal.ws.resolver.PagingHandlerMethodArgumentResolver.CUT_DEFAULT_OFFSET;
-import static com.epam.ta.reportportal.ws.resolver.PagingHandlerMethodArgumentResolver.CUT_DEFAULT_PAGE_SIZE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
-import static org.springframework.util.StringUtils.hasText;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
@@ -34,7 +31,6 @@ import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -54,7 +50,6 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.model.Page.PageMetadata;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.StatisticsConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
@@ -71,13 +66,10 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import javax.persistence.QueryTimeoutException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 /**
@@ -248,7 +240,6 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
     return resourceUpdaterProviders.stream()
         .map(retriever -> retriever.retrieve(TestItemUpdaterContent.of(projectId, testItems)))
         .collect(toList());
-
   }
 
   @Override
@@ -326,70 +317,6 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
       resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
       return testItemResource;
     }).collect(toList());
-  }
-
-  @Override
-  public Iterable<TestItemResource> searchTestItems(String namePart, String attribute,
-      Pageable pageable, ProjectDetails projectDetails) {
-    pageable = validateInputParameters(namePart, attribute, pageable);
-    Slice<TestItem> result;
-    try {
-      if (hasText(attribute)) {
-        result = searchByAttribute(attribute, pageable, projectDetails);
-      } else {
-        result = testItemRepository.findTestItemsContainsName(namePart,
-            projectDetails.getProjectId(), pageable);
-      }
-    } catch (QueryTimeoutException e) {
-      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST,
-          "Please refine your search by providing a more specific or unique test case name / attribute.");
-    }
-    var resourceUpdaters = getResourceUpdaters(projectDetails.getProjectId(), result.getContent());
-    return new com.epam.ta.reportportal.model.Page<>(result.stream().map(item -> {
-      var testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
-      resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
-      return testItemResource;
-    }).collect(toList()),
-        new PageMetadata(result.getPageable().getPageNumber() + 1,
-            result.getPageable().getPageSize(),
-            result.hasNext()));
-  }
-
-  private Slice<TestItem> searchByAttribute(String attribute, Pageable pageable,
-      ProjectDetails projectDetails) {
-    var attributeSplit = attribute.split(":");
-    var key = attributeSplit[0];
-    var value = attributeSplit[1];
-    if (hasText(key)) {
-      return testItemRepository.findTestItemsByAttribute(projectDetails.getProjectId(), key, value,
-          pageable);
-    }
-    return testItemRepository.findTestItemsByAttribute(projectDetails.getProjectId(), value,
-        pageable);
-  }
-
-  private Pageable validateInputParameters(String namePart, String attribute, Pageable pageable) {
-    if (0 == pageable.getPageSize() || CUT_DEFAULT_PAGE_SIZE < pageable.getPageSize()) {
-      pageable = PageRequest.of(pageable.getPageNumber(), CUT_DEFAULT_PAGE_SIZE,
-          pageable.getSort());
-    }
-    if (pageable.getOffset() > CUT_DEFAULT_OFFSET) {
-      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "Total amount must be lower or equals than " + CUT_DEFAULT_OFFSET);
-    }
-    if (!hasText(namePart) && !hasText(attribute)) {
-      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "Provide either 'filter.has.compositeAttribute' or 'filter.cnt.name'.");
-    }
-    if (hasText(namePart) && namePart.length() < 3) {
-      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "Value of 'filter.cnt.name' must contains more than 2 symbols.");
-    }
-    if (hasText(attribute) && attribute.split(":").length != 2) {
-      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "Provide 'filter.has.compositeAttribute' with 'key' and 'value' combined by ':'");
-    }
-    return pageable;
   }
 
   private Filter getItemsFilter(Long[] ids, ReportPortalUser.ProjectDetails projectDetails) {

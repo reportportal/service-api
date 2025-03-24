@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.ItemAttribute;
@@ -31,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 
 /**
  * GET operations for {@link TestItem}
@@ -68,24 +66,6 @@ public interface GetTestItemHandler {
   Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
       ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
       @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit);
-
-
-  /**
-   * Retrieves a list of {@link TestItemResource} based on the provided filtering criteria. This
-   * method caters for searching test items by their name part as well as key-value pair in the
-   * associated item attributes. Results can be paged according to the provided {@link Pageable}
-   * object.
-   *
-   * @param namePart       the name part of the test items to filter by contains;
-   * @param attribute      the attribute key and value to filter by;
-   * @param pageable       the {@link Pageable}
-   * @param projectDetails @param projectDetails
-   *                       {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-   * @return a paged list of {@link TestItemResource} objects that match the specified filters;
-   * @throws IllegalArgumentException if there is a missing or invalid parameter condition;
-   */
-  Iterable<TestItemResource> searchTestItems(String namePart, String attribute, Pageable pageable,
-      ProjectDetails projectDetails);
 
   /**
    * Gets {@link TestItem} instances

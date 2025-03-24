@@ -46,6 +46,7 @@ import com.epam.ta.reportportal.core.item.GetTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
+import com.epam.ta.reportportal.core.item.impl.TestCaseSearchHandler;
 import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.model.TestItemHistoryElement;
@@ -122,6 +123,7 @@ public class TestItemController {
   private final GetTestItemHandler getTestItemHandler;
   private final TestItemsHistoryHandler testItemsHistoryHandler;
   private final SuggestItemService suggestItemService;
+  private final TestCaseSearchHandler testCaseSearchHandler;
 
   /* Report client API */
 
@@ -245,12 +247,12 @@ public class TestItemController {
       @AuthenticationPrincipal ReportPortalUser user, @Nullable
   @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
       + CRITERIA_LAUNCH_ID, required = false)
-      Long launchId,
+  Long launchId,
       @Nullable @RequestParam(value = FILTER_ID_REQUEST_PARAM, required = false) Long filterId,
       @RequestParam(value = IS_LATEST_LAUNCHES_REQUEST_PARAM, defaultValue = "false", required = false)
-          boolean isLatest,
+      boolean isLatest,
       @RequestParam(value = LAUNCHES_LIMIT_REQUEST_PARAM, defaultValue = "0", required = false)
-          int launchesLimit, @FilterFor(TestItem.class) Filter filter,
+      int launchesLimit, @FilterFor(TestItem.class) Filter filter,
       @FilterFor(TestItem.class) Queryable predefinedFilter,
       @SortFor(TestItem.class) Pageable pageable) {
     return getTestItemHandler.getTestItems(
@@ -336,21 +338,21 @@ public class TestItemController {
       @SortFor(TestItem.class) Pageable pageable, @Nullable
   @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
       + CRITERIA_PARENT_ID, required = false)
-      Long parentId, @Nullable
+  Long parentId, @Nullable
   @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
       + CRITERIA_ID, required = false)
-      Long itemId, @Nullable
+  Long itemId, @Nullable
   @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
       + CRITERIA_LAUNCH_ID, required = false)
-      Long launchId,
+  Long launchId,
       @Nullable @RequestParam(value = HISTORY_TYPE_PARAM, required = false) String type,
       @Nullable @RequestParam(value = FILTER_ID_REQUEST_PARAM, required = false) Long filterId,
       @RequestParam(value = IS_LATEST_LAUNCHES_REQUEST_PARAM, defaultValue = "false", required = false)
-          boolean isLatest,
+      boolean isLatest,
       @RequestParam(value = LAUNCHES_LIMIT_REQUEST_PARAM, defaultValue = "0", required = false)
-          int launchesLimit,
+      int launchesLimit,
       @RequestParam(value = HISTORY_DEPTH_PARAM, required = false, defaultValue = HISTORY_DEPTH_DEFAULT_VALUE)
-          int historyDepth) {
+      int historyDepth) {
 
     return testItemsHistoryHandler.getItemsHistory(
         projectExtractor.extractProjectDetails(user, projectName),
@@ -389,7 +391,7 @@ public class TestItemController {
   public List<String> getAttributeKeys(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "launch") Long id,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT + CRITERIA_ITEM_ATTRIBUTE_KEY)
-          String value) {
+      String value) {
     return getTestItemHandler.getAttributeKeys(id, value);
   }
 
@@ -401,9 +403,9 @@ public class TestItemController {
   public List<String> getAttributeKeysForProject(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT + CRITERIA_ITEM_ATTRIBUTE_KEY)
-          String value, @RequestParam(value = FILTER_ID_REQUEST_PARAM) Long launchFilterId,
+      String value, @RequestParam(value = FILTER_ID_REQUEST_PARAM) Long launchFilterId,
       @RequestParam(value = IS_LATEST_LAUNCHES_REQUEST_PARAM, defaultValue = "false", required = false)
-          boolean isLatest,
+      boolean isLatest,
       @RequestParam(value = LAUNCHES_LIMIT_REQUEST_PARAM, defaultValue = "0") int launchesLimit) {
     return getTestItemHandler.getAttributeKeys(launchFilterId, isLatest, launchesLimit,
         projectExtractor.extractProjectDetails(user, projectName), value
@@ -420,7 +422,7 @@ public class TestItemController {
       @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
           + CRITERIA_ITEM_ATTRIBUTE_KEY, required = false) String key,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT + CRITERIA_ITEM_ATTRIBUTE_VALUE)
-          String value) {
+      String value) {
     return getTestItemHandler.getAttributeValues(id, key, value);
   }
 
@@ -431,9 +433,9 @@ public class TestItemController {
   public List<String> getAttributeKeys(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ + CRITERIA_NAME, required = false)
-          String launchName,
+      String launchName,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT + CRITERIA_ITEM_ATTRIBUTE_KEY)
-          String value) {
+      String value) {
     return ofNullable(launchName).filter(StringUtils::isNotBlank).map(
             name -> getTestItemHandler.getAttributeKeys(
                 projectExtractor.extractProjectDetails(user, projectName), name, value))
@@ -447,10 +449,10 @@ public class TestItemController {
   public List<String> getAttributeValues(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ + CRITERIA_NAME, required = false)
-          String launchName, @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
+      String launchName, @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
       + CRITERIA_ITEM_ATTRIBUTE_KEY, required = false) String key,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT + CRITERIA_ITEM_ATTRIBUTE_VALUE)
-          String value) {
+      String value) {
     return ofNullable(launchName).filter(StringUtils::isNotBlank).map(
             name -> getTestItemHandler.getAttributeValues(
                 projectExtractor.extractProjectDetails(user, projectName), name, key, value))
@@ -525,8 +527,9 @@ public class TestItemController {
       @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT
           + CRITERIA_NAME, required = false) String name,
       @RequestParam(value = "filter.has.compositeAttribute", required = false) String attribute,
+      @RequestParam(value = "filter.in.statuses", required = false) String statuses,
       Pageable pageable) {
-    return getTestItemHandler.searchTestItems(name, attribute, pageable,
+    return testCaseSearchHandler.searchTestItems(name, attribute, statuses, pageable,
         projectExtractor.extractProjectDetails(user, projectName));
   }
 }

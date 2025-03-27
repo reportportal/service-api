@@ -47,6 +47,9 @@ public class IntegrationTypeResource implements Serializable {
 	@JsonProperty("creationDate")
 	private Instant creationDate;
 
+	@JsonProperty("pluginType")
+	private String pluginType;
+
 	@JsonProperty("groupType")
 	private String groupType;
 

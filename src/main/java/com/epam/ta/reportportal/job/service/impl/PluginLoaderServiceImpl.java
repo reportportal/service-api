@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.job.service.impl;
 import static com.epam.reportportal.extension.common.IntegrationTypeProperties.FILE_ID;
 import static com.epam.reportportal.extension.common.IntegrationTypeProperties.FILE_NAME;
 import static com.epam.reportportal.extension.common.IntegrationTypeProperties.VERSION;
+import static com.epam.ta.reportportal.entity.enums.PluginTypeEnum.EXTENSION;
 
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
@@ -72,7 +73,7 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
     integrationTypeRepository.findAll()
         .stream()
         .filter(IntegrationType::isEnabled)
-        .filter(it -> it.getDetails() != null && it.getDetails().getDetails() != null)
+        .filter(it -> it.getPluginType() == EXTENSION)
         .filter(this::isMandatoryFieldsExist)
         .forEach(it -> {
 

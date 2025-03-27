@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.plugin;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.entity.enums.PluginTypeEnum.EXTENSION;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
@@ -148,6 +149,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
     integrationTypeRepository.findAll()
         .stream()
         .filter(IntegrationType::isEnabled)
+        .filter(it -> it.getPluginType() == EXTENSION)
         .forEach(integrationType -> ofNullable(integrationType.getDetails()).ifPresent(
             integrationTypeDetails -> {
               try {
@@ -465,7 +467,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
   /**
    * Add plugin file name to the uploading plugins holder
    *
-   * @param fileName Name of the plugin file to put to the {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
+   * @param fileName Name of the plugin file to put to the
+   *                 {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
    * @param path     Full path to the plugin file
    * @see com.epam.ta.reportportal.plugin.Pf4jPluginManager
    */
@@ -603,7 +606,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
   /**
    * Remove plugin file name from the uploading plugins holder
    *
-   * @param fileName Name of the plugin file to remove from the {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
+   * @param fileName Name of the plugin file to remove from the
+   *                 {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
    * @see com.epam.ta.reportportal.plugin.Pf4jPluginManager
    */
   private void removeUploadingPlugin(String fileName) {

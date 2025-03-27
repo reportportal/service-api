@@ -23,6 +23,7 @@ import static com.epam.ta.reportportal.commons.Predicates.isPresent;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
+import static com.epam.ta.reportportal.util.DateTimeProvider.instantNow;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
 import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.PROJECT_PROFILE_TO_ORG_PROJECT_INFO;
 import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.PROJECT_TO_ORG_PROJECT_INFO;
@@ -199,7 +200,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
   private Project generateProjectBody(Long orgId, ProjectBase projectDetails,
       String projectKey) {
     var project = new Project();
-    var now = Instant.now();
+    var now = instantNow();
     project.setName(projectDetails.getName());
     project.setSlug(projectDetails.getSlug());
     project.setKey(projectKey);

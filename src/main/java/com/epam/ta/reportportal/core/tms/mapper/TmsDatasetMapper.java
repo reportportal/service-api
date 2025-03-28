@@ -16,7 +16,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 
-@Mapper(config = CommonMapperConfig.class)
+@Mapper(config = CommonMapperConfig.class, uses = TmsEnvironmentDatasetMapper.class)
 public abstract class TmsDatasetMapper {
 
   @Autowired
@@ -25,6 +25,7 @@ public abstract class TmsDatasetMapper {
   @Mapping(target = "project.id", source = "projectId")
   @Mapping(target = "data", ignore = true)
   @Mapping(target = "testCases", ignore = true)
+  @Mapping(target = "environmentDatasets", ignore = true)
   public abstract TmsDataset convertFromRQ(Long projectId, TmsDatasetRQ tmsDatasetRQ);
 
   public abstract TmsDatasetRS convertToRS(TmsDataset tmsDataset);

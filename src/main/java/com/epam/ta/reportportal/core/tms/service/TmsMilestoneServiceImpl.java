@@ -19,7 +19,35 @@ public class TmsMilestoneServiceImpl implements TmsMilestoneService {
 
     @Override
     @Transactional
-    public void upsertTestPlanToMilestones(TmsTestPlan tmsTestPlan, List<Long> milestoneIds) {
+    public void createTestPlanMilestones(TmsTestPlan tmsTestPlan, List<Long> milestoneIds) {
+        if (isEmpty(milestoneIds)) {
+            return;
+        }
+        var milestones = tmsMilestoneMapper.convertToTmsMilestones(milestoneIds);
+        milestones.forEach(milestone -> {
+            milestone.setTestPlan(tmsTestPlan);
+            tmsMilestoneRepository.attachTestPlanToMilestone(tmsTestPlan, milestone.getId());
+        });
+        tmsTestPlan.setMilestones(milestones);
+    }
+
+    @Override
+    @Transactional
+    public void patchTestPlanMilestones(TmsTestPlan tmsTestPlan, List<Long> milestoneIds) {
+        if (isEmpty(milestoneIds)) {
+            return;
+        }
+        var milestones = tmsMilestoneMapper.convertToTmsMilestones(milestoneIds);
+        milestones.forEach(milestone -> {
+            milestone.setTestPlan(tmsTestPlan);
+            tmsMilestoneRepository.attachTestPlanToMilestone(tmsTestPlan, milestone.getId());
+        });
+        tmsTestPlan.getMilestones().addAll(milestones);
+    }
+
+    @Override
+    @Transactional
+    public void updateTestPlanMilestones(TmsTestPlan tmsTestPlan, List<Long> milestoneIds) {
         if (isEmpty(milestoneIds)) {
             return;
         }

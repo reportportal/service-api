@@ -527,9 +527,9 @@ public class TestItemController {
       @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT
           + CRITERIA_NAME, required = false) String name,
       @RequestParam(value = "filter.has.compositeAttribute", required = false) String attribute,
-      @RequestParam(value = "filter.in.statuses", required = false) String statuses,
+      @RequestParam(value = "filter.in.status", required = false) String status,
       Pageable pageable) {
-    return testCaseSearchHandler.searchTestItems(name, attribute, statuses, pageable,
+    return testCaseSearchHandler.searchTestItems(name, attribute, status, pageable,
         projectExtractor.extractProjectDetails(user, projectName));
   }
 }

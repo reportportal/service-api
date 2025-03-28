@@ -22,6 +22,7 @@ public class TmsDatasetServiceImpl implements TmsDatasetService {
   private final TmsDatasetRepository tmsDatasetRepository;
   private final TmsDatasetMapper tmsDatasetMapper;
   private final TmsDatasetDataService tmsDatasetDataService;
+  private final TmsEnvironmentDatasetService tmsEnvironmentDatasetService;
 
   @Override
   @Transactional
@@ -32,6 +33,9 @@ public class TmsDatasetServiceImpl implements TmsDatasetService {
 
     tmsDatasetDataService.createDatasetData(tmsDataset,
         tmsDatasetRQ.getAttributes());
+    tmsEnvironmentDatasetService.createEnvironmentDataset(
+        tmsDataset, tmsDatasetRQ.getEnvironmentAttachments()
+    );
 
     return tmsDatasetMapper.convertToRS(tmsDataset);
   }
@@ -47,6 +51,9 @@ public class TmsDatasetServiceImpl implements TmsDatasetService {
 
           tmsDatasetDataService.upsertDatasetData(existingDataset,
               tmsDatasetRQ.getAttributes());
+          tmsEnvironmentDatasetService.upsertEnvironmentDataset(
+              existingDataset, tmsDatasetRQ.getEnvironmentAttachments()
+          );
           return tmsDatasetMapper.convertToRS(existingDataset);
         })
         .orElseGet(() -> create(projectId, tmsDatasetRQ));
@@ -63,6 +70,9 @@ public class TmsDatasetServiceImpl implements TmsDatasetService {
 
           tmsDatasetDataService.addDatasetData(existingDataset,
               tmsDatasetRQ.getAttributes());
+          tmsEnvironmentDatasetService.addEnvironmentDataset(
+              existingDataset, tmsDatasetRQ.getEnvironmentAttachments()
+          );
           return tmsDatasetMapper.convertToRS(existingDataset);
         })
         .orElseThrow(
@@ -73,6 +83,7 @@ public class TmsDatasetServiceImpl implements TmsDatasetService {
   @Transactional
   public void delete(long projectId, Long datasetId) {
     tmsDatasetDataService.deleteByDatasetId(datasetId);
+    tmsEnvironmentDatasetService.deleteByDatasetId(datasetId);
     tmsDatasetRepository.deleteByIdAndProject_Id(datasetId, projectId);
   }
 

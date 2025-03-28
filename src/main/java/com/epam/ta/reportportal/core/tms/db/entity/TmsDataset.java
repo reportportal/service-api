@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -49,6 +50,7 @@ public class TmsDataset {
   @ToString.Exclude
   private List<TmsTestCase> testCases;
 
-  @ManyToMany(mappedBy = "datasets")
-  private Set<TmsEnvironment> environments;
+  @OneToMany(mappedBy = "dataset")
+  @ToString.Exclude
+  private Set<TmsEnvironmentDataset> environmentDatasets;
 }

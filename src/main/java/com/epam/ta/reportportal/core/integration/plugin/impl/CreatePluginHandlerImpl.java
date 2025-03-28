@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.events.activity.PluginUploadedEvent;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
-import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.core.integration.plugin.strategy.PluginUploaderFactory;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
@@ -40,14 +40,16 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
-  private final Pf4jPluginBox pluginBox;
+  private final PluginUploaderFactory pluginUploaderFactory;
 
   private final ApplicationEventPublisher applicationEventPublisher;
 
   @Autowired
-  public CreatePluginHandlerImpl(Pf4jPluginBox pluginBox,
-      ApplicationEventPublisher applicationEventPublisher) {
-    this.pluginBox = pluginBox;
+  public CreatePluginHandlerImpl(
+      PluginUploaderFactory pluginUploaderFactory,
+      ApplicationEventPublisher applicationEventPublisher
+  ) {
+    this.pluginUploaderFactory = pluginUploaderFactory;
     this.applicationEventPublisher = applicationEventPublisher;
   }
 
@@ -60,7 +62,8 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
         .verify(ErrorType.BAD_REQUEST_ERROR, "File name should be not empty.");
 
     try (InputStream inputStream = pluginFile.getInputStream()) {
-      IntegrationType integrationType = pluginBox.uploadPlugin(newPluginFileName, inputStream);
+      var uploader = pluginUploaderFactory.getUploader(pluginFile.getContentType());
+      IntegrationType integrationType = uploader.uploadPlugin(newPluginFileName, inputStream);
       PluginActivityResource pluginActivityResource = new PluginActivityResource();
       pluginActivityResource.setId(integrationType.getId());
       pluginActivityResource.setName(integrationType.getName());

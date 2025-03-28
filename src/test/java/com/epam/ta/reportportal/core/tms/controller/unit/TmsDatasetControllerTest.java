@@ -52,8 +52,8 @@ class TmsDatasetControllerTest {
   @Test
   void shouldCreateDataset() throws Exception {
     long projectId = 1L;
-    var datasetRQ = new TmsDatasetRQ("Dataset1", List.of());
-    var expectedResponse = new TmsDatasetRS(1L, "Dataset1", List.of());
+    var datasetRQ = TmsDatasetRQ.builder().name("Dataset1").attributes(List.of()).build();
+    var expectedResponse = TmsDatasetRS.builder().id(1L).data(List.of()).build();
 
     var jsonContent = objectMapper.writeValueAsString(datasetRQ);
 
@@ -73,8 +73,8 @@ class TmsDatasetControllerTest {
   @Test
   void shouldUploadDatasetFromFile() throws Exception {
     long projectId = 1L;
-    var dataset1 = new TmsDatasetRS(1L, "Dataset1", List.of());
-    var dataset2 = new TmsDatasetRS(2L, "Dataset2", List.of());
+    var dataset1 = TmsDatasetRS.builder().id(1L).name("Dataset1").data(List.of()).build();
+    var dataset2 = TmsDatasetRS.builder().id(2L).name("Dataset2").data(List.of()).build();
     var mockResponse = Arrays.asList(dataset1, dataset2);
 
     given(tmsDatasetService.uploadFromFile(eq(projectId), any())).willReturn(mockResponse);
@@ -91,8 +91,8 @@ class TmsDatasetControllerTest {
   @Test
   void shouldGetDatasetsByProjectId() throws Exception {
     long projectId = 1L;
-    var dataset1 = new TmsDatasetRS(1L, "Dataset1", List.of());
-    var dataset2 = new TmsDatasetRS(2L, "Dataset2", List.of());
+    var dataset1 = TmsDatasetRS.builder().id(1L).name("Dataset1").data(List.of()).build();
+    var dataset2 = TmsDatasetRS.builder().id(2L).name("Dataset2").data(List.of()).build();
     var mockResponse = Arrays.asList(dataset1, dataset2);
 
     given(tmsDatasetService.getByProjectId(projectId)).willReturn(mockResponse);
@@ -108,7 +108,7 @@ class TmsDatasetControllerTest {
   void shouldGetDatasetById() throws Exception {
     long projectId = 1L;
     long datasetId = 100L;
-    var mockResponse = new TmsDatasetRS(100L, "Dataset100", List.of());
+    var mockResponse = TmsDatasetRS.builder().id(100L).name("Dataset100").build();
 
     given(tmsDatasetService.getById(projectId, datasetId)).willReturn(mockResponse);
 
@@ -124,8 +124,8 @@ class TmsDatasetControllerTest {
   void shouldUpdateDataset() throws Exception {
     long projectId = 1L;
     long datasetId = 100L;
-    var requestData = new TmsDatasetRQ("UpdatedDataset", List.of());
-    var expectedResponse = new TmsDatasetRS(100L, "UpdatedDataset", List.of());
+    var requestData = TmsDatasetRQ.builder().name("UpdatedDataset").build();
+    var expectedResponse = TmsDatasetRS.builder().id(100L).name("UpdatedDataset").build();
 
     var jsonContent = objectMapper.writeValueAsString(requestData);
 
@@ -147,8 +147,8 @@ class TmsDatasetControllerTest {
   void shouldPatchDataset() throws Exception {
     long projectId = 1L;
     long datasetId = 100L;
-    var requestData = new TmsDatasetRQ("PatchedDataset", List.of());
-    var expectedResponse = new TmsDatasetRS(100L, "PatchedDataset", List.of());
+    var requestData = TmsDatasetRQ.builder().name("UpdatedDataset").build();
+    var expectedResponse = TmsDatasetRS.builder().id(100L).name("PatchedDataset").build();
 
     var jsonContent = objectMapper.writeValueAsString(requestData);
 

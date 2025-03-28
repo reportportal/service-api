@@ -3,7 +3,7 @@ package com.epam.ta.reportportal.core.tms.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 
 import com.epam.ta.reportportal.core.tms.dto.ProductVersionRQ;
-import com.epam.ta.reportportal.core.tms.dto.ProductVersionRS;
+import com.epam.ta.reportportal.core.tms.dto.TmsProductVersionRS;
 import com.epam.ta.reportportal.core.tms.service.ProductVersionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -20,21 +20,21 @@ public class ProductVersionController {
 
   @PreAuthorize(ADMIN_ONLY)
   @GetMapping("/{productVersionId}")
-  ProductVersionRS getById(@PathVariable("projectId") final long projectId,
+  TmsProductVersionRS getById(@PathVariable("projectId") final long projectId,
                              @PathVariable("productVersionId") final long productVersionId) {
     return productVersionService.getById(projectId, productVersionId);
   }
 
   @PreAuthorize(ADMIN_ONLY)
   @PostMapping
-  ProductVersionRS createVersion(@PathVariable("projectId") final long projectId,
+  TmsProductVersionRS createVersion(@PathVariable("projectId") final long projectId,
                                    @RequestBody final ProductVersionRQ inputDto) {
     return productVersionService.create(projectId, inputDto);
   }
 
   @PreAuthorize(ADMIN_ONLY)
   @PutMapping("/{productVersionId}")
-  ProductVersionRS updateVersion(@PathVariable("projectId") final long projectId,
+  TmsProductVersionRS updateVersion(@PathVariable("projectId") final long projectId,
                                  @PathVariable("productVersionId") final long productVersionId,
                                  @RequestBody final ProductVersionRQ inputDto) {
     return productVersionService.update(projectId, productVersionId, inputDto);

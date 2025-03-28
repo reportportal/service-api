@@ -73,7 +73,7 @@ project.ext {
             (migrationsUrl + '/migrations/91_settings_users_sso.up.sql')               : 'V091__settings_users_sso.sql',
             (migrationsUrl + '/migrations/92_round_last_login.up.sql')                 : 'V092__round_last_login.up.sql',
             (migrationsUrl + '/migrations/93_create_groups_tables.up.sql')             : 'V093__create_groups_tables.up.sql',
-            (migrationsUrl + '/migrations/95_tms_initial.up.sql')                      : 'V095__tms_initial.up.sql',
+            (migrationsUrl + '/migrations/96_tms_initial.up.sql')                      : 'V096__tms_initial.up.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

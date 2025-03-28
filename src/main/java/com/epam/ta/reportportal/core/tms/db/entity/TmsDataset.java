@@ -50,5 +50,6 @@ public class TmsDataset {
   private List<TmsTestCase> testCases;
 
   @ManyToMany(mappedBy = "datasets")
+  @ToString.Exclude
   private Set<TmsEnvironment> environments;
 }

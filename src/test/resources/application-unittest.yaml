@@ -7,6 +7,9 @@ rp:
 logging:
   file:
     name: ${java.io.tmpdir}/reportportal/logs/${spring.application.name}.log
+  level:
+    org.hibernate.sql: DEBUG
+    org.hibernate.type.descriptor: TRACE
 embedded:
   datasource:
     dir: ${java.io.tmpdir}/reportportal/embedded-postgres
@@ -15,3 +18,9 @@ embedded:
 spring:
   flyway:
     clean-disabled: false
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+

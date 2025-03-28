@@ -15,13 +15,13 @@ import com.epam.ta.reportportal.core.tms.db.repository.ProductVersionRepository;
 import com.epam.ta.reportportal.core.tms.dto.ProductVersionRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import java.util.Optional;
-import java.util.Set;
 
 @Sql("/db/tms/tms-product-version/tms-product-version-fill.sql")
 @ExtendWith(MockitoExtension.class)
@@ -30,10 +30,10 @@ class ProductVersionIntegrationTest extends BaseMvcTest {
   @Autowired
   private ProductVersionRepository productVersionRepository;
 
-  // @Test TODO organize the tables milestone and environment
+  @Test
   void createVersionIntegrationTest() throws Exception {
     ProductVersionRQ request = new ProductVersionRQ(1L, "version1", "documentation1",
-                                                    Set.of(2L), Set.of(2L));
+                                                      1L);
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
     mockMvc.perform(post("/project/1/tms/productversion")
@@ -42,17 +42,18 @@ class ProductVersionIntegrationTest extends BaseMvcTest {
                         .with(token(oAuthHelper.getSuperadminToken())))
                         .andExpect(status().isOk());
 
-    Optional<TmsProductVersion> productVersion = productVersionRepository.findById(1L);
+    Optional<TmsProductVersion> productVersion = productVersionRepository
+                                              .findByProjectIdAndId(1L, 1L);
     assertTrue(productVersion.isPresent());
     assertEquals(request.id(), productVersion.get().getId());
     assertEquals(request.version(), productVersion.get().getVersion());
     assertEquals(request.documentation(), productVersion.get().getDocumentation());
   }
 
-  //@Test TODO organize the tables milestone and environment
+  @Test
   void updateVersionIntegrationTest() throws Exception {
-    ProductVersionRQ request = new ProductVersionRQ(3L, "versionUpdated", "docUpdated",
-                                                    Set.of(1L), Set.of(1L));
+    ProductVersionRQ request = new ProductVersionRQ(3L, "versionUpdated",
+                                        "docUpdated", 3L);
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
 
@@ -62,30 +63,33 @@ class ProductVersionIntegrationTest extends BaseMvcTest {
                         .with(token(oAuthHelper.getSuperadminToken())))
                 .andExpect(status().isOk());
 
-    Optional<TmsProductVersion> productVersion = productVersionRepository.findById(3L);
+    Optional<TmsProductVersion> productVersion = productVersionRepository
+                                                    .findByProjectIdAndId(3L, 3L);
     assertTrue(productVersion.isPresent());
     assertEquals(request.id(), productVersion.get().getId());
     assertEquals(request.version(), productVersion.get().getVersion());
     assertEquals(request.documentation(), productVersion.get().getDocumentation());
   }
 
-  //@Test TODO organize the tables milestone and environment
+  @Test
   void deleteProductVersionIntegrationTest() throws Exception {
     mockMvc.perform(delete("/project/4/tms/productversion/4")
                     .with(token(oAuthHelper.getSuperadminToken())))
             .andExpect(status().isOk());
-    assertFalse(productVersionRepository.findById(4L).isPresent());
+    assertFalse(productVersionRepository.findByProjectIdAndId(4L, 4L).isPresent());
   }
 
-  //@Test TODO organize the tables milestone and environment
+  @Test
   void getByIdIntegrationTest() throws Exception {
-    Optional<TmsProductVersion> productVersion = productVersionRepository.findById(5L);
+    Optional<TmsProductVersion> productVersion = productVersionRepository
+                                                      .findByProjectIdAndId(5L, 5L);
 
     mockMvc.perform(get("/project/5/tms/productversion/5")
             .with(token(oAuthHelper.getSuperadminToken())))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(productVersion.get().getId()))
             .andExpect(jsonPath("$.version").value(productVersion.get().getVersion()))
-            .andExpect(jsonPath("$.documentation").value(productVersion.get().getDocumentation()));
+            .andExpect(jsonPath("$.documentation").value(productVersion.get()
+                                                                     .getDocumentation()));
   }
 }

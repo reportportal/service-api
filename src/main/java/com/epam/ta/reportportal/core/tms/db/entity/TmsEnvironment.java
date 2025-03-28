@@ -47,10 +47,7 @@ public class TmsEnvironment {
   @ToString.Exclude
   private Set<TmsTestPlan> testPlans;
 
-  @ManyToMany
-  @JoinTable(
-        name = "tms_environment_dataset",
-        joinColumns = @JoinColumn(name = "dataset_id"),
-        inverseJoinColumns = @JoinColumn(name = "environment_id"))
-  private Set<TmsDataset> datasets;
+  @OneToMany(mappedBy = "environment")
+  @ToString.Exclude
+  private Set<TmsEnvironmentDataset> environmentDatasets;
 }

@@ -1,5 +1,7 @@
 package com.epam.ta.reportportal.core.tms.mapper.parser;
 
+import static java.util.stream.Collectors.toList;
+
 import com.epam.ta.reportportal.core.tms.dto.TmsDatasetDataRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsDatasetRQ;
 import java.io.BufferedReader;
@@ -47,7 +49,7 @@ public class CsvTmsDatasetParser implements TmsDatasetParser {
     return datasetMap
         .entrySet()
         .stream()
-        .map(dataset -> new TmsDatasetRQ(dataset.getKey(), dataset.getValue()))
+        .map(dataset -> TmsDatasetRQ.builder().name(dataset.getKey()).attributes(dataset.getValue()).build())
         .toList();
   }
 }

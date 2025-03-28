@@ -12,10 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 import com.epam.ta.reportportal.core.tms.controller.ProductVersionController;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsMilestone;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlan;
 import com.epam.ta.reportportal.core.tms.dto.ProductVersionRQ;
-import com.epam.ta.reportportal.core.tms.dto.ProductVersionRS;
+import com.epam.ta.reportportal.core.tms.dto.TmsProductVersionRS;
 import com.epam.ta.reportportal.core.tms.service.ProductVersionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +23,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import java.util.Set;
 
 class ProductVersionControllerTest {
 
@@ -47,12 +44,13 @@ class ProductVersionControllerTest {
   void getByIdTest() throws Exception {
     long projectId = 1L;
     long productVersionId = 1L;
-    TmsTestPlan plan = new TmsTestPlan();
-    TmsMilestone milestone = new TmsMilestone();
-    ProductVersionRS expectedResponse = new ProductVersionRS(1L, "version", "doc",
-                                                             Set.of(plan), Set.of(milestone));
+    TmsProductVersionRS productVersionRS = new TmsProductVersionRS();
+    productVersionRS.setId(1L);
+    productVersionRS.setVersion("version");
+    productVersionRS.setDocumentation("doc");
+    productVersionRS.setProjectId(1L);
 
-    given(productVersionService.getById(projectId, productVersionId)).willReturn(expectedResponse);
+    given(productVersionService.getById(projectId, productVersionId)).willReturn(productVersionRS);
 
     mockMvc.perform(get("/project/{projectId}/tms/productversion/{productVersionId}", projectId,
                         productVersionId))
@@ -64,11 +62,13 @@ class ProductVersionControllerTest {
   @Test
   void createVersionTest() throws Exception {
     long projectId = 1L;
-    ProductVersionRQ request = new ProductVersionRQ(1L, "version", "doc", Set.of(2L), Set.of(2L));
-    TmsTestPlan plan = new TmsTestPlan();
-    TmsMilestone milestone = new TmsMilestone();
-    ProductVersionRS expectedResponse = new ProductVersionRS(1L, "version", "doc",
-                                                              Set.of(plan), Set.of(milestone));
+    ProductVersionRQ request = new ProductVersionRQ(1L, "version", "doc", 1L);
+    TmsProductVersionRS expectedResponse = new TmsProductVersionRS();
+    expectedResponse.setId(1L);
+    expectedResponse.setVersion("version");
+    expectedResponse.setDocumentation("doc");
+    expectedResponse.setProjectId(1L);
+
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
 
@@ -85,11 +85,13 @@ class ProductVersionControllerTest {
   void updateVersionTest() throws Exception {
     long projectId = 1L;
     long productVersionId = 1L;
-    ProductVersionRQ request = new ProductVersionRQ(1L, "version", "doc", Set.of(2L), Set.of(2L));
-    TmsTestPlan plan = new TmsTestPlan();
-    TmsMilestone milestone = new TmsMilestone();
-    ProductVersionRS expectedResponse = new ProductVersionRS(1L, "version", "doc",
-                                                             Set.of(plan), Set.of(milestone));
+    ProductVersionRQ request = new ProductVersionRQ(productVersionId, "version", "doc", projectId);
+    TmsProductVersionRS expectedResponse = new TmsProductVersionRS();
+    expectedResponse.setId(1L);
+    expectedResponse.setVersion("version");
+    expectedResponse.setDocumentation("doc");
+    expectedResponse.setProjectId(1L);
+
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
 

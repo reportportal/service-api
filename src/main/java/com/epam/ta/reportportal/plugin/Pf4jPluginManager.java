@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.core.plugin.Plugin;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
+import com.epam.ta.reportportal.entity.enums.PluginTypeEnum;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.entity.plugin.PluginFileExtension;
@@ -643,7 +644,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
                       IntegrationTypeBuilder::new)
                   .orElseGet(IntegrationTypeBuilder::new);
               integrationTypeBuilder.setName(newLoadedPluginId)
-                  .setIntegrationGroup(IntegrationGroupEnum.OTHER);
+                  .setIntegrationGroup(IntegrationGroupEnum.OTHER)
+                  .setPluginType(PluginTypeEnum.EXTENSION);
 
               Optional<ReportPortalExtensionPoint> instance = getInstance(newLoadedPluginId,
                   ReportPortalExtensionPoint.class);

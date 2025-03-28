@@ -1,0 +1,60 @@
+package com.epam.ta.reportportal.core.tms.mapper;
+
+import com.epam.ta.reportportal.core.tms.db.entity.TmsDataset;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
+import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
+import org.mapstruct.NullValueCheckStrategy;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.control.MappingControl;
+
+@Mapper(config = CommonMapperConfig.class)
+public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTestCaseRS> {
+
+    @Mapping(target = "testFolder", expression = "java(convertToTmsTestFolder(tmsTestCaseRQ.getTestFolderId(), projectId))")
+    @Mapping(target = "dataset", expression = "java(convertToTmsDataset(tmsTestCaseRQ.getDatasetId()))")
+    @Mapping(target = "tags", ignore = true)
+    @Mapping(target = "versions", ignore = true)
+    public abstract TmsTestCase convertFromRQ(Long projectId, TmsTestCaseRQ tmsTestCaseRQ);
+
+    @BeanMapping(nullValuePropertyMappingStrategy =
+        NullValuePropertyMappingStrategy.SET_TO_NULL,
+        nullValueCheckStrategy = NullValueCheckStrategy.ON_IMPLICIT_CONVERSION
+    )
+    @Mapping(target = "id", ignore = true)
+    public abstract void update(@MappingTarget TmsTestCase targetTestCase, TmsTestCase tmsTestCase);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+    @Mapping(target = "id", ignore = true)
+    public abstract void patch(@MappingTarget TmsTestCase existingTestCase,
+        TmsTestCase tmsTestCase);
+
+    protected TmsDataset convertToTmsDataset(Long datasetId) { //TODO use tmsDatasetMapper
+        if (datasetId == null) {
+            return null;
+        }
+        var tmsDataset = new TmsDataset();
+        tmsDataset.setId(datasetId);
+        return tmsDataset;
+    }
+
+    protected TmsTestFolder convertToTmsTestFolder(Long tmsTestFolderId, Long projectId) {  //TODO use tmsTestFolderMapper
+        if (tmsTestFolderId == null) {
+            return null;
+        }
+        var tmsTestFolder = new TmsTestFolder();
+
+        tmsTestFolder.setId(tmsTestFolderId);
+        tmsTestFolder.setProjectId(projectId);
+
+        return tmsTestFolder;
+    }
+}

@@ -13,6 +13,7 @@ public interface TmsDatasetRepository extends ReportPortalRepository<TmsDataset,
 
   @Query("SELECT ds FROM TmsDataset ds " +
       "LEFT JOIN FETCH ds.data atr " +
+      "LEFT JOIN FETCH ds.environmentDatasets env " +
       "WHERE ds.project.id = :projectId AND ds.id = :id"
   )
   Optional<TmsDataset> findByIdAndProjectId(Long id, long projectId);

@@ -1,10 +1,13 @@
 package com.epam.ta.reportportal.core.tms.db.entity;
 
+import com.epam.ta.reportportal.entity.project.Project;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.io.Serializable;
@@ -34,16 +37,6 @@ public class TmsProductVersion implements Serializable {
   @Column(name = "documentation")
   private String documentation;
 
-  //TODO to become foreign key
-  @Column(name = "project_id")
+  @Column(name = "project_id", nullable = false)
   private Long projectId;
-
-  @OneToMany(mappedBy = "productVersion")
-  @ToString.Exclude
-  private Set<TmsTestPlan> testPlans;
-
-  @OneToMany(mappedBy = "productVersion")
-  @ToString.Exclude
-  private Set<TmsMilestone> milestones;
-  //TODO test changes
 }

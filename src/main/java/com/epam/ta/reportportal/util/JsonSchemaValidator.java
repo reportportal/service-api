@@ -1,0 +1,64 @@
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.ta.reportportal.util;
+
+import com.epam.ta.reportportal.core.configs.JsonSchemaValidatorConfig;
+import com.networknt.schema.InputFormat;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SchemaLocation;
+import com.networknt.schema.SchemaValidatorsConfig;
+import com.networknt.schema.ValidationMessage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+/**
+ * Validates JSON documents against a JSON schema.
+ * <p>
+ * This class uses the NetworkNT JSON Schema library to perform validation.
+ * <p>
+ * The schema is loaded from the classpath using a prefix mapping.
+ *
+ * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
+ */
+@Component
+public class JsonSchemaValidator {
+
+  private final JsonSchemaFactory schemaFactory;
+
+  @Autowired
+  public JsonSchemaValidator(JsonSchemaValidatorConfig config) {
+    this.schemaFactory = config.createSchemaFactory();
+  }
+
+  public Set<ValidationMessage> validate(String location, InputStream input)
+      throws IOException {
+
+    SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
+
+    JsonSchema schema = schemaFactory.getSchema(SchemaLocation.of(location), config);
+
+    var json = new String(input.readAllBytes());
+
+    return schema.validate(json, InputFormat.JSON, executionContext -> {
+      executionContext.getExecutionConfig().setFormatAssertionsEnabled(true);
+    });
+  }
+}

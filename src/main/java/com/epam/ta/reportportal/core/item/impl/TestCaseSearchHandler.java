@@ -69,27 +69,22 @@ public class TestCaseSearchHandler {
 
   private Slice<TestItem> searchByAttribute(String attribute, String statuses, Pageable pageable,
       ProjectDetails projectDetails) {
-    var attributeSplit = attribute.split(":");
-    var key = attributeSplit[0];
-    var value = attributeSplit[1];
-    if (hasText(key)) {
+    if (attribute.contains(":")) {
+      var attributeSplit = attribute.split(":");
       if (hasText(statuses)) {
         return testItemRepository.findTestItemsByAttributeAndStatuses(projectDetails.getProjectId(),
-            key, value, parseStatuses(statuses),
-            pageable);
+            attributeSplit[0], attributeSplit[1], parseStatuses(statuses), pageable);
       }
-      return testItemRepository.findTestItemsByAttribute(projectDetails.getProjectId(), key, value,
+      return testItemRepository.findTestItemsByAttribute(projectDetails.getProjectId(),
+          attributeSplit[0], attributeSplit[1], pageable);
+    } else {
+      if (hasText(statuses)) {
+        return testItemRepository.findTestItemsByAttributeAndStatuses(projectDetails.getProjectId(),
+            attribute, parseStatuses(statuses), pageable);
+      }
+      return testItemRepository.findTestItemsByAttribute(projectDetails.getProjectId(), attribute,
           pageable);
     }
-    if (hasText(statuses)) {
-      return testItemRepository.findTestItemsByAttributeAndStatuses(projectDetails.getProjectId(),
-          value,
-          parseStatuses(statuses),
-          pageable);
-    }
-    return testItemRepository.findTestItemsByAttribute(projectDetails.getProjectId(), value,
-        pageable);
-
   }
 
   private List<String> parseStatuses(String statuses) {

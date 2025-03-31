@@ -95,10 +95,10 @@ dependencies {
 
     implementation 'com.opencsv:opencsv:5.8'
 
-    // Fix CVE-2023-46589, CVE-2024-24549
-    implementation 'org.apache.tomcat.embed:tomcat-embed-core:9.0.86'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-el:9.0.86'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:9.0.86'
+    // Fix CVE-2023-46589, CVE-2024-24549, CVE-2025-24813
+    implementation 'org.apache.tomcat.embed:tomcat-embed-core:9.0.99'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-el:9.0.99'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:9.0.99'
     //
 
     //https://nvd.nist.gov/vuln/detail/CVE-2020-5411

@@ -133,6 +133,8 @@ dependencies {
 
     implementation "org.hibernate.validator:hibernate-validator:${hibernateValidatorVersion}"
 
+    implementation 'com.networknt:json-schema-validator:1.5.6'
+
     // add lombok support
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"

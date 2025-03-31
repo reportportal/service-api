@@ -57,8 +57,8 @@ public class JsonSchemaValidator {
 
     var json = new String(input.readAllBytes());
 
-    return schema.validate(json, InputFormat.JSON, executionContext -> {
-      executionContext.getExecutionConfig().setFormatAssertionsEnabled(true);
-    });
+    return schema.validate(json, InputFormat.JSON, executionContext ->
+        executionContext.getExecutionConfig().setFormatAssertionsEnabled(true)
+    );
   }
 }

@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.util;
 
 import com.epam.ta.reportportal.core.configs.JsonSchemaValidatorConfig;
-import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.networknt.schema.InputFormat;
 import com.networknt.schema.JsonSchema;

@@ -69,63 +69,11 @@ public class JsonPluginUploader implements PluginUploader {
   @Override
   public IntegrationType uploadPlugin(String fileName, InputStream inputStream) throws IOException {
     try {
+      var json = new String(inputStream.readAllBytes());
+      var manifest = parseManifest(json);
+      validateManifest(json, manifest);
 
-      byte[] bytes = inputStream.readAllBytes();
-
-      var manifest = objectMapper.readValue(
-          new ByteArrayInputStream(bytes),
-          new TypeReference<Map<String, Object>>() {
-          }
-      );
-
-      var schemaLocation = ofNullable(manifest.get("$schema"))
-          .orElseThrow(
-              () -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-                  Suppliers.formattedSupplier(
-                      "Schema location is not specified in manifest file '{}'",
-                      fileName
-                  ))
-          ).toString();
-
-      var validationMessages = schemaValidator.validate(
-          schemaLocation,
-          new ByteArrayInputStream(bytes)
-      );
-
-      if (!validationMessages.isEmpty()) {
-        throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
-            "Manifest file '{}' validation error: {}",
-            fileName,
-            validationMessages
-        ));
-      }
-
-      var details = new IntegrationTypeDetails();
-      details.setDetails(manifest);
-
-      var name = ofNullable(manifest.get("id"))
-          .orElseThrow(
-              () -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-                  Suppliers.formattedSupplier(
-                      "Plugin id is not specified in manifest file '{}'",
-                      fileName
-                  ))
-          ).toString();
-
-      var group = ofNullable(manifest.get("group"))
-          .map(Object::toString)
-          .flatMap(IntegrationGroupEnum::findByName)
-          .orElse(OTHER);
-
-      var integrationType = new IntegrationTypeBuilder()
-          .setName(name)
-          .setIntegrationGroup(group)
-          .setDetails(details)
-          .setEnabled(true)
-          .setPluginType(REMOTE)
-          .get();
-
-      return integrationTypeRepository.save(integrationType);
+      return integrationTypeRepository.save(buildIntegrationType(manifest));
     } catch (ConstraintViolationException e) {
       throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
           e.getCause().getMessage()
@@ -137,5 +85,49 @@ public class JsonPluginUploader implements PluginUploader {
           e.getMessage()
       ));
     }
+  }
+
+  private Map<String, Object> parseManifest(String json) throws IOException {
+    return objectMapper.readValue(json, new TypeReference<>() {
+    });
+  }
+
+  private void validateManifest(String json, Map<String, Object> manifest) throws IOException {
+    var schemaLocation = ofNullable(manifest.get("$schema"))
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+            Suppliers.formattedSupplier("Schema location is not specified in manifest"))
+        ).toString();
+
+    var validationMessages = schemaValidator.validate(schemaLocation, json);
+    if (!validationMessages.isEmpty()) {
+      throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
+          "Manifest file validation error: {}",
+          validationMessages
+      ));
+    }
+  }
+
+  private IntegrationType buildIntegrationType(Map<String, Object> manifest) {
+    var details = new IntegrationTypeDetails();
+    details.setDetails(manifest);
+
+    var name = ofNullable(manifest.get("id"))
+        .map(Object::toString)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+            Suppliers.formattedSupplier("Plugin id is not specified in manifest file"))
+        );
+
+    var group = ofNullable(manifest.get("group"))
+        .map(Object::toString)
+        .flatMap(IntegrationGroupEnum::findByName)
+        .orElse(OTHER);
+
+    return new IntegrationTypeBuilder()
+        .setName(name)
+        .setIntegrationGroup(group)
+        .setDetails(details)
+        .setEnabled(true)
+        .setPluginType(REMOTE)
+        .get();
   }
 }

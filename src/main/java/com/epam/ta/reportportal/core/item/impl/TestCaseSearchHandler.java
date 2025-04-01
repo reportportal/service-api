@@ -108,10 +108,6 @@ public class TestCaseSearchHandler {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "Value of 'filter.cnt.name' must contains more than 2 symbols.");
     }
-    if (hasText(attribute) && attribute.split(":").length != 2) {
-      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "Provide 'filter.has.compositeAttribute' with 'key' and 'value' combined by ':'");
-    }
     return pageable;
   }
 

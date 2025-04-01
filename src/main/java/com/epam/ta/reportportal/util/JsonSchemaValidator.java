@@ -17,15 +17,12 @@
 package com.epam.ta.reportportal.util;
 
 import com.epam.ta.reportportal.core.configs.JsonSchemaValidatorConfig;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.networknt.schema.InputFormat;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SchemaLocation;
-import com.networknt.schema.SchemaValidatorsConfig;
 import com.networknt.schema.ValidationMessage;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

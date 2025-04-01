@@ -41,7 +41,6 @@ import org.springframework.stereotype.Service;
 
 /**
  * Uploads a plugin in JSON format.
- * <p>
  * Validates the plugin manifest against a JSON schema and saves the integration type to the
  * database.
  *
@@ -54,6 +53,13 @@ public class JsonPluginUploader implements PluginUploader {
   private final ObjectMapper objectMapper;
   private final JsonSchemaValidator schemaValidator;
 
+  /**
+   * Constructor for JsonPluginUploader.
+   *
+   * @param integrationTypeRepository Repository for integration types
+   * @param objectMapper              Object mapper for JSON processing
+   * @param schemaValidator           Validator for JSON schema
+   */
   @Autowired
   public JsonPluginUploader(
       IntegrationTypeRepository integrationTypeRepository,
@@ -68,9 +74,8 @@ public class JsonPluginUploader implements PluginUploader {
   @Override
   public IntegrationType uploadPlugin(String fileName, InputStream inputStream) throws IOException {
     try {
-      var json = new String(inputStream.readAllBytes());
-      var manifest = parseManifest(json);
-      validateManifest(json, manifest);
+      var manifest = parseManifest(inputStream);
+      validateManifest(manifest);
 
       return integrationTypeRepository.save(buildIntegrationType(manifest));
     } catch (ConstraintViolationException e) {
@@ -86,18 +91,20 @@ public class JsonPluginUploader implements PluginUploader {
     }
   }
 
-  private Map<String, Object> parseManifest(String json) throws IOException {
-    return objectMapper.readValue(json, new TypeReference<>() {
-    });
+  private Map<String, Object> parseManifest(InputStream input) throws IOException {
+    return objectMapper.readValue(input, new TypeReference<>() {});
   }
 
-  private void validateManifest(String json, Map<String, Object> manifest) throws IOException {
+  private void validateManifest(Map<String, Object> manifest) throws IOException {
     var schemaLocation = ofNullable(manifest.get("$schema"))
         .orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
             Suppliers.formattedSupplier("Schema location is not specified in manifest"))
         ).toString();
 
-    var validationMessages = schemaValidator.validate(schemaLocation, json);
+    var validationMessages = schemaValidator.validate(
+        schemaLocation, objectMapper.valueToTree(manifest)
+    );
+
     if (!validationMessages.isEmpty()) {
       throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
           "Manifest file validation error: {}",

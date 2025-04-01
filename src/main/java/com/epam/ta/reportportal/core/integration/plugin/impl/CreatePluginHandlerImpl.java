@@ -16,25 +16,28 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.PluginUploadedEvent;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.strategy.PluginUploaderFactory;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.activity.PluginActivityResource;
-import com.epam.reportportal.rules.exception.ErrorType;
 import java.io.IOException;
 import java.io.InputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
+ * Handles the creation of plugins by uploading them to the system.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
@@ -44,6 +47,12 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
   private final ApplicationEventPublisher applicationEventPublisher;
 
+  /**
+   * Constructor for CreatePluginHandlerImpl.
+   *
+   * @param pluginUploaderFactory     Factory for creating plugin uploads
+   * @param applicationEventPublisher Event publisher for reporting plugin upload events
+   */
   @Autowired
   public CreatePluginHandlerImpl(
       PluginUploaderFactory pluginUploaderFactory,

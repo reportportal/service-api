@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.util;
 
 import com.epam.ta.reportportal.core.configs.JsonSchemaValidatorConfig;
+import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.networknt.schema.InputFormat;
 import com.networknt.schema.JsonSchema;
@@ -30,9 +31,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Validates JSON documents against a JSON schema.
- * <p>
  * This class uses the NetworkNT JSON Schema library to perform validation.
- * <p>
  * The schema is loaded from the classpath using a prefix mapping.
  *
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
@@ -42,16 +41,37 @@ public class JsonSchemaValidator {
 
   private final JsonSchemaFactory schemaFactory;
 
+  /**
+   * Constructor for JsonSchemaValidator.
+   *
+   * @param config Configuration for the JSON schema validator
+   */
   @Autowired
   public JsonSchemaValidator(JsonSchemaValidatorConfig config) {
     this.schemaFactory = config.createSchemaFactory();
   }
 
+  /**
+   * Validates a JSON document against a schema located at the specified location.
+   *
+   * @param location The location of the schema
+   * @param input    The {@link String} JSON document to validate
+   * @return A {@link Set} of {@link ValidationMessage} indicating any validation errors
+   * @throws IOException If an error occurs while reading the schema or validating the input
+   */
   public Set<ValidationMessage> validate(String location, String input) throws IOException {
     JsonSchema schema = schemaFactory.getSchema(SchemaLocation.of(location));
     return schema.validate(input, InputFormat.JSON);
   }
 
+  /**
+   * Validates a JSON document against a schema located at the specified location.
+   *
+   * @param location The location of the schema
+   * @param input    The {@link JsonNode} document to validate
+   * @return A {@link Set} of {@link ValidationMessage} indicating any validation errors
+   * @throws IOException If an error occurs while reading the schema or validating the input
+   */
   public Set<ValidationMessage> validate(String location, JsonNode input) throws IOException {
     JsonSchema schema = schemaFactory.getSchema(SchemaLocation.of(location));
     return schema.validate(input);

@@ -32,7 +32,6 @@ import com.epam.ta.reportportal.util.JsonSchemaValidator;
 import com.epam.ta.reportportal.ws.converter.builders.IntegrationTypeBuilder;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;

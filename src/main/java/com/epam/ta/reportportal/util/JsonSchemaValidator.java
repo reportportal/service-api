@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.util;
 
 import com.epam.ta.reportportal.core.configs.JsonSchemaValidatorConfig;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.networknt.schema.InputFormat;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
@@ -48,17 +49,8 @@ public class JsonSchemaValidator {
     this.schemaFactory = config.createSchemaFactory();
   }
 
-  public Set<ValidationMessage> validate(String location, InputStream input)
-      throws IOException {
-
-    SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
-
-    JsonSchema schema = schemaFactory.getSchema(SchemaLocation.of(location), config);
-
-    var json = new String(input.readAllBytes());
-
-    return schema.validate(json, InputFormat.JSON, executionContext ->
-        executionContext.getExecutionConfig().setFormatAssertionsEnabled(true)
-    );
+  public Set<ValidationMessage> validate(String location, String input) throws IOException {
+    JsonSchema schema = schemaFactory.getSchema(SchemaLocation.of(location));
+    return schema.validate(input, InputFormat.JSON);
   }
 }

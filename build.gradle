@@ -179,6 +179,21 @@ tasks.withType(JavaCompile).configureEach {
     options.debugOptions.debugLevel = "source,lines,vars"
 }
 
+tasks.register('downloadManifestSchema') {
+    doLast {
+        def schemaDir = file("${projectDir}/src/main/resources/schema")
+        schemaDir.mkdirs()
+
+        def schemaUrl = new URI(manifestSchemaUrl).toURL()
+        def fileName = schemaUrl.path.tokenize('/').last()
+        def schemaFile = new File(schemaDir, fileName)
+
+        schemaFile.withOutputStream { out ->
+            out << schemaUrl.openStream()
+        }
+    }
+}
+
 dependencyCheck {
     formats = [ReportGenerator.Format.HTML, ReportGenerator.Format.XML]
 //    cveValidForHours = 1
@@ -206,6 +221,7 @@ test {
 }
 
 compileJava.dependsOn tasks.named('openApiGenerate')
+compileJava.dependsOn tasks.named('downloadManifestSchema')
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts

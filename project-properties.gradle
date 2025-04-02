@@ -1,5 +1,6 @@
 def commonScriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/'
 def migrationsScriptsUrl = 'https://raw.githubusercontent.com/reportportal/migrations/'
+def schemaUrl = 'https://schema.reportportal.io/'
 
 project.ext {
     publishRepo = "https://maven.pkg.github.com/reportportal/service-api"
@@ -16,6 +17,7 @@ project.ext {
     releaseMode = project.hasProperty("releaseMode") ? project.releaseMode.toBoolean() : false
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.12.0' : 'develop')
     migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.13.0' : 'develop')
+    manifestSchemaUrl = schemaUrl + ('manifest.schema.json')
     //TODO refactor with archive download
     testScriptsSrc = [
             (migrationsUrl + '/migrations/0_extensions.up.sql')                        : 'V001__extensions.sql',

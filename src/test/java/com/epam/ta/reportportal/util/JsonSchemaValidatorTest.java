@@ -29,6 +29,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
+ * Test class for {@link JsonSchemaValidator}.
+ *
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
 @SpringBootTest
@@ -43,8 +45,8 @@ public class JsonSchemaValidatorTest {
     String schemaLocation = "https://reportportal.io/schema-registry/test-schema.json";
     String validJson = "{ \"name\": \"John\", \"age\": 30 }";
 
-    Set<ValidationMessage> validationMessages = jsonSchemaValidator.validate(schemaLocation, validJson);
-    assertTrue(validationMessages.isEmpty(), "Validation should pass for valid JSON");
+    Set<ValidationMessage> messages = jsonSchemaValidator.validate(schemaLocation, validJson);
+    assertTrue(messages.isEmpty(), "Validation should pass for valid JSON");
   }
 
   @Test
@@ -52,7 +54,7 @@ public class JsonSchemaValidatorTest {
     String schemaLocation = "https://reportportal.io/schema-registry/test-schema.json";
     String invalidJson = "{ \"name\": \"John\", \"age\": \"thirty\" }"; // age should be an integer
 
-    Set<ValidationMessage> validationMessages = jsonSchemaValidator.validate(schemaLocation, invalidJson);
-    assertFalse(validationMessages.isEmpty(), "Validation should pass for valid JSON");
+    Set<ValidationMessage> messages = jsonSchemaValidator.validate(schemaLocation, invalidJson);
+    assertFalse(messages.isEmpty(), "Validation should pass for valid JSON");
   }
 }

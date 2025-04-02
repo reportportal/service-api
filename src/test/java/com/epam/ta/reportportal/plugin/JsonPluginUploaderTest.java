@@ -116,7 +116,7 @@ public class JsonPluginUploaderTest {
   }
 
   @Test
-  void uploadPluginWithMissingSchemaLocation() throws IOException {
+  void uploadPluginWithMissingSchemaLocation() {
     String manifestWithoutSchema = "{ \"id\": \"test-plugin\" }";
     InputStream manifestStream = new ByteArrayInputStream(manifestWithoutSchema.getBytes());
 

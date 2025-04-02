@@ -25,6 +25,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
+ * IntegrationTypeResource is a class that represents the integration type resource.
+ *
  * @author Pavel Bortnik
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -32,33 +34,33 @@ import lombok.Setter;
 @Setter
 public class IntegrationTypeResource implements Serializable {
 
-	@JsonProperty("type")
-	private Long id;
+  @JsonProperty("type")
+  private Long id;
 
-	@JsonProperty("name")
-	private String name;
+  @JsonProperty("name")
+  private String name;
 
-	@JsonProperty("enabled")
-	private boolean enabled;
+  @JsonProperty("enabled")
+  private boolean enabled;
 
-	@JsonProperty("authFlow")
-	private AuthFlowEnum authFlow;
+  @JsonProperty("authFlow")
+  private AuthFlowEnum authFlow;
 
-	@JsonProperty("creationDate")
-	private Instant creationDate;
+  @JsonProperty("creationDate")
+  private Instant creationDate;
 
-	@JsonProperty("pluginType")
-	private String pluginType;
+  @JsonProperty("pluginType")
+  private String pluginType;
 
-	@JsonProperty("groupType")
-	private String groupType;
+  @JsonProperty("groupType")
+  private String groupType;
 
-	@JsonProperty("details")
-	private Map<String, Object> details;
+  @JsonProperty("details")
+  private Map<String, Object> details;
 
-	@JsonProperty("enabled")
-	public boolean isEnabled() {
-		return enabled;
-	}
+  @JsonProperty("enabled")
+  public boolean isEnabled() {
+    return enabled;
+  }
 
 }

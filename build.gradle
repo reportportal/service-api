@@ -41,9 +41,9 @@ project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from
 repositories {
     mavenCentral { url "https://repo1.maven.org/maven2" }
 
-//    if (!releaseMode) {
-    maven { url 'https://jitpack.io' }
-//    }/
+    if (!releaseMode) {
+        maven { url 'https://jitpack.io' }
+    }
     maven { url "https://jaspersoft.jfrog.io/artifactory/third-party-ce-artifacts" }
 }
 
@@ -61,20 +61,20 @@ ext['spring-boot.version'] = '2.5.15'
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.13.2' : 'com.epam.reportportal:commons-bom:5.13.2')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.13.3' : 'com.epam.reportportal:commons-bom:5.13.3')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
     }
 }
 
 dependencies {
     if (releaseMode) {
-        implementation 'com.github.reportportal:commons-dao:688d9d4'
-        implementation 'com.github.reportportal:commons:32d5eb7'
-        implementation 'com.github.reportportal:plugin-api:5.13.0'
+        implementation 'com.epam.reportportal:commons-dao'
+        implementation 'com.epam.reportportal:commons'
+        implementation 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.github.reportportal:commons-dao:688d9d4'
-        implementation 'com.github.reportportal:commons:32d5eb7'
-        implementation 'com.github.reportportal:plugin-api:5.13.0'
+        implementation 'com.epam.reportportal:commons-dao'
+        implementation 'com.epam.reportportal:commons'
+        implementation 'com.epam.reportportal:plugin-api'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'

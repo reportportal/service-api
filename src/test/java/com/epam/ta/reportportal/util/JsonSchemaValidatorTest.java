@@ -23,10 +23,10 @@ import com.epam.ta.reportportal.core.configs.JsonSchemaValidatorConfig;
 import com.networknt.schema.ValidationMessage;
 import java.io.IOException;
 import java.util.Set;
-import org.springframework.core.env.Environment;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.ContextConfiguration;
 
 /**

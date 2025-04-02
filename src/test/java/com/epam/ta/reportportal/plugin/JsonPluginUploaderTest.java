@@ -45,6 +45,8 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 /**
+ * Test class for {@link JsonPluginUploader}.
+ *
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
 public class JsonPluginUploaderTest {
@@ -92,15 +94,15 @@ public class JsonPluginUploaderTest {
 
     IntegrationType result = jsonPluginUploader.uploadPlugin("manifest.json", manifestStream);
 
+    assertNotNull(result, "Resulting IntegrationType should not be null");
     verify(integrationTypeRepository).save(any(IntegrationType.class));
     verify(jsonSchemaValidator).validate(any(String.class), any(JsonNode.class));
     verify(integrationTypeRepository).save(argThat(type ->
         type.getIntegrationGroup().name().equals("BTS")));
-    assertNotNull(result, "Resulting IntegrationType should not be null");
   }
 
   @Test
-  void uploadPluginWithEmptyID() throws IOException {
+  void uploadPluginWithEmptyId() throws IOException {
     Map<String, Object> manifestMap = new HashMap<>();
     manifestMap.put("$schema", "https://schema.url");
     String manifestWithoutId = objectMapper.writeValueAsString(manifestMap);

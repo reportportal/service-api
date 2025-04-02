@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.configs.JsonSchemaValidatorConfig;
 import com.networknt.schema.ValidationMessage;
 import java.io.IOException;
 import java.util.Set;
+import org.springframework.core.env.Environment;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,10 +40,12 @@ public class JsonSchemaValidatorTest {
 
   @Autowired
   private JsonSchemaValidator jsonSchemaValidator;
+  @Autowired
+  private Environment environment;
 
   @Test
   public void testValidateValidJson() throws IOException {
-    String schemaLocation = "https://reportportal.io/schema-registry/test-schema.json";
+    String schemaLocation = environment.getProperty("rp.schema.source") + "test-schema.json";
     String validJson = "{ \"name\": \"John\", \"age\": 30 }";
 
     Set<ValidationMessage> messages = jsonSchemaValidator.validate(schemaLocation, validJson);
@@ -51,8 +54,8 @@ public class JsonSchemaValidatorTest {
 
   @Test
   public void testValidateInvalidJson() throws IOException {
-    String schemaLocation = "https://reportportal.io/schema-registry/test-schema.json";
-    String invalidJson = "{ \"name\": \"John\", \"age\": \"thirty\" }"; // age should be an integer
+    String schemaLocation = environment.getProperty("rp.schema.source") + "test-schema.json";
+    String invalidJson = "{ \"name\": \"John\", \"age\": \"thirty\" }";
 
     Set<ValidationMessage> messages = jsonSchemaValidator.validate(schemaLocation, invalidJson);
     assertFalse(messages.isEmpty(), "Validation should pass for valid JSON");

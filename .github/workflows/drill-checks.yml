@@ -26,7 +26,9 @@ jobs:
       DRILL_API_KEY: ${{ secrets.DRILL_API_KEY }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Set up JDK
         uses: actions/setup-java@v2

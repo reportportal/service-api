@@ -15,13 +15,13 @@ import com.epam.ta.reportportal.core.tms.db.repository.ProductVersionRepository;
 import com.epam.ta.reportportal.core.tms.dto.ProductVersionRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
-import java.util.Optional;
 
 @Sql("/db/tms/tms-product-version/tms-product-version-fill.sql")
 @ExtendWith(MockitoExtension.class)

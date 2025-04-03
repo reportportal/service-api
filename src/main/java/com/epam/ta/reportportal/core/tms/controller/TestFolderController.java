@@ -1,12 +1,13 @@
 package com.epam.ta.reportportal.core.tms.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 
 import com.epam.ta.reportportal.core.tms.dto.TestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TestFolderRS;
 import com.epam.ta.reportportal.core.tms.service.TestFolderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,8 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/project/{projectId}/tms/folder")
 @Tag(name = "Test Folder", description = "Test Folder API collection")
@@ -27,7 +26,7 @@ public class TestFolderController {
     
   private final TestFolderService testFolderService;
 
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   @PostMapping
   @Operation(summary = "Create Test Folder")
   TestFolderRS createTestFolder(@PathVariable("projectId") final long projectId,
@@ -35,7 +34,7 @@ public class TestFolderController {
     return testFolderService.createFolder(projectId, inputDto);
   }
 
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   @PutMapping("/{folderId}")
   @Operation(summary = "Update Test Folder")
   TestFolderRS updateTestFolder(@PathVariable("projectId") final long projectId,
@@ -44,7 +43,7 @@ public class TestFolderController {
     return testFolderService.updateFolder(projectId, folderId, inputDto);
   }
 
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   @GetMapping("/{folderId}")
   @Operation(summary = "Get Test Folder by ID")
   TestFolderRS getTestFolderById(@PathVariable("projectId") final long projectId,
@@ -52,7 +51,7 @@ public class TestFolderController {
     return testFolderService.getFolderById(folderId);
   }
 
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   @GetMapping("/")
   @Operation(summary = "Get Test Folders by project ID")
   List<TestFolderRS> getTestFolderByProjectId(@PathVariable("projectId") final long projectId) {

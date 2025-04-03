@@ -14,14 +14,14 @@ import com.epam.ta.reportportal.core.tms.dto.TestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TestFolderRS;
 import com.epam.ta.reportportal.core.tms.service.TestFolderService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.web.servlet.MockMvc;
-import java.util.Arrays;
-import java.util.List;
 
 public class TestFolderControllerTest {
 

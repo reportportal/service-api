@@ -2,7 +2,6 @@ package com.epam.ta.reportportal.core.tms.service;
 
 import com.epam.ta.reportportal.core.tms.dto.TestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TestFolderRS;
-
 import java.util.List;
 
 public interface TestFolderService {

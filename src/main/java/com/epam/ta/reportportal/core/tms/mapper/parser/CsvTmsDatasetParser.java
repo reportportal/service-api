@@ -1,7 +1,5 @@
 package com.epam.ta.reportportal.core.tms.mapper.parser;
 
-import static java.util.stream.Collectors.toList;
-
 import com.epam.ta.reportportal.core.tms.dto.TmsDatasetDataRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsDatasetRQ;
 import java.io.BufferedReader;

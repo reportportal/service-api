@@ -2,7 +2,6 @@ package com.epam.ta.reportportal.core.tms.service;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -10,7 +9,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsDataset;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsEnvironment;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsEnvironmentDataset;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsEnvironmentDatasetRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsEnvironmentDatasetRQ;

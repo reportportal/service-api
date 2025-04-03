@@ -24,18 +24,17 @@ import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.plugin.Pf4jPluginManager;
 import com.epam.ta.reportportal.plugin.ReportPortalExtensionFactory;
+import com.epam.ta.reportportal.plugin.ReportPortalManifestPluginDescriptorFinder;
+import jakarta.activation.FileTypeMap;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Set;
-import jakarta.activation.FileTypeMap;
-
 import org.pf4j.DefaultExtensionFinder;
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.ExtensionFactory;
 import org.pf4j.ExtensionFinder;
 import org.pf4j.LegacyExtensionFinder;
-import org.pf4j.ManifestPluginDescriptorFinder;
 import org.pf4j.PluginDescriptorFinder;
 import org.pf4j.PluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,7 +124,7 @@ public class PluginConfiguration {
 
   @Bean
   public PluginDescriptorFinder pluginDescriptorFinder() {
-    return new ManifestPluginDescriptorFinder();
+    return new ReportPortalManifestPluginDescriptorFinder();
   }
 
   @Bean

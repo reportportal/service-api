@@ -69,13 +69,13 @@ println("Release mode: $releaseMode")
 dependencies {
     if (releaseMode) {
         println("Using release dependencies")
-        implementation 'com.epam.reportportal:commons-dao'
         implementation 'com.epam.reportportal:commons'
+        implementation 'com.epam.reportportal:commons-dao'
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         println("Using snapshot dependencies")
         implementation 'com.github.reportportal:commons:c7041ee'
-        implementation 'com.github.reportportal:commons-dao:2a5a91b'
+        implementation 'com.github.reportportal:commons-dao:d13f45d'
         implementation 'com.github.reportportal:plugin-api:8874441'
     }
     implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
@@ -133,6 +133,8 @@ dependencies {
 
     implementation "org.hibernate.validator:hibernate-validator:${hibernateValidatorVersion}"
 
+    implementation 'com.networknt:json-schema-validator:1.5.6'
+
     // add lombok support
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
@@ -177,6 +179,21 @@ tasks.withType(JavaCompile).configureEach {
     options.debugOptions.debugLevel = "source,lines,vars"
 }
 
+tasks.register('downloadManifestSchema') {
+    doLast {
+        def schemaDir = file("${projectDir}/src/main/resources/schema")
+        schemaDir.mkdirs()
+
+        def schemaUrl = new URI(manifestSchemaUrl).toURL()
+        def fileName = schemaUrl.path.tokenize('/').last()
+        def schemaFile = new File(schemaDir, fileName)
+
+        schemaFile.withOutputStream { out ->
+            out << schemaUrl.openStream()
+        }
+    }
+}
+
 dependencyCheck {
     formats = [ReportGenerator.Format.HTML, ReportGenerator.Format.XML]
 //    cveValidForHours = 1
@@ -204,6 +221,7 @@ test {
 }
 
 compileJava.dependsOn tasks.named('openApiGenerate')
+compileJava.dependsOn tasks.named('downloadManifestSchema')
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts

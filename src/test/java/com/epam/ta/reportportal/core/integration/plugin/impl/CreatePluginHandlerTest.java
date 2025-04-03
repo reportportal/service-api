@@ -30,7 +30,8 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.PluginUploadedEvent;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
-import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.core.integration.plugin.PluginUploader;
+import com.epam.ta.reportportal.core.integration.plugin.strategy.PluginUploaderFactory;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import java.io.IOException;
@@ -53,7 +54,9 @@ public class CreatePluginHandlerTest {
 
   private final MultipartFile multipartFile = mock(MultipartFile.class);
 
-  private final Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
+  private final PluginUploader pluginUploader = mock(PluginUploader.class);
+
+  private final PluginUploaderFactory pluginUploaderFactory = mock(PluginUploaderFactory.class);
 
   private final InputStream inputStream = mock(InputStream.class);
 
@@ -61,10 +64,12 @@ public class CreatePluginHandlerTest {
       mock(ApplicationEventPublisher.class);
 
   private final CreatePluginHandler createPluginHandler =
-      new CreatePluginHandlerImpl(pluginBox, applicationEventPublisher);
+      new CreatePluginHandlerImpl(pluginUploaderFactory, applicationEventPublisher);
 
   @Test
   void shouldUploadPluginWhenValid() throws IOException {
+
+    when(pluginUploaderFactory.getUploader(any())).thenReturn(pluginUploader);
 
     when(multipartFile.getOriginalFilename()).thenReturn(FILE_NAME);
 
@@ -73,9 +78,10 @@ public class CreatePluginHandlerTest {
     when(pluginInfo.getId()).thenReturn(PLUGIN_ID);
     when(pluginInfo.getVersion()).thenReturn(PLUGIN_VERSION);
 
+    when(pluginUploader.uploadPlugin(FILE_NAME, inputStream))
+        .thenReturn(IntegrationTestUtil.getJiraIntegrationType());
+
     doNothing().when(applicationEventPublisher).publishEvent(any());
-    when(pluginBox.uploadPlugin(FILE_NAME, inputStream)).thenReturn(
-        IntegrationTestUtil.getJiraIntegrationType());
 
     ReportPortalUser reportPortalUser = mock(ReportPortalUser.class);
 

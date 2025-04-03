@@ -16,19 +16,20 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
+import static com.epam.ta.reportportal.entity.enums.PluginTypeEnum.EXTENSION;
+
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.PluginUpdatedEvent;
 import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
-import com.epam.ta.reportportal.entity.enums.ReservedIntegrationTypeEnum;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.activity.PluginActivityResource;
 import com.epam.ta.reportportal.model.integration.UpdatePluginStateRQ;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +79,7 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
      *  should be replaced as a separate tables for both 'email' or 'ldap' or remove them
      *  and rewrite as a plugin
      */
-    if (ReservedIntegrationTypeEnum.fromName(integrationType.getName()).isPresent()) {
+    if (integrationType.getPluginType() != EXTENSION) {
       return new OperationCompletionRS(Suppliers.formattedSupplier(
           "Enabled state of the plugin with id = '{}' has been switched to - '{}'",
           integrationType.getName(), isEnabled

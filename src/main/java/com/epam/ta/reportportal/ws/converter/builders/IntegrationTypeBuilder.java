@@ -17,12 +17,13 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
+import com.epam.ta.reportportal.entity.enums.PluginTypeEnum;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.google.common.collect.Maps;
+import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.function.Supplier;
-import jakarta.validation.constraints.NotNull;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -52,6 +53,11 @@ public class IntegrationTypeBuilder implements Supplier<IntegrationType> {
 
   public IntegrationTypeBuilder setName(String name) {
     integrationType.setName(name);
+    return this;
+  }
+
+  public IntegrationTypeBuilder setPluginType(PluginTypeEnum pluginType) {
+    integrationType.setPluginType(pluginType);
     return this;
   }
 

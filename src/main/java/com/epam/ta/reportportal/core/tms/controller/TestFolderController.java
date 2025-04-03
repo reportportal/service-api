@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.tms.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 
 import com.epam.ta.reportportal.core.tms.dto.TestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TestFolderRS;
@@ -27,7 +27,7 @@ public class TestFolderController {
     
   private final TestFolderService testFolderService;
 
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   @PostMapping
   @Operation(summary = "Create Test Folder")
   TestFolderRS createTestFolder(@PathVariable("projectId") final long projectId,
@@ -35,7 +35,7 @@ public class TestFolderController {
     return testFolderService.createFolder(projectId, inputDto);
   }
 
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   @PutMapping("/{folderId}")
   @Operation(summary = "Update Test Folder")
   TestFolderRS updateTestFolder(@PathVariable("projectId") final long projectId,
@@ -44,7 +44,7 @@ public class TestFolderController {
     return testFolderService.updateFolder(projectId, folderId, inputDto);
   }
 
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   @GetMapping("/{folderId}")
   @Operation(summary = "Get Test Folder by ID")
   TestFolderRS getTestFolderById(@PathVariable("projectId") final long projectId,
@@ -52,7 +52,7 @@ public class TestFolderController {
     return testFolderService.getFolderById(folderId);
   }
 
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   @GetMapping("/")
   @Operation(summary = "Get Test Folders by project ID")
   List<TestFolderRS> getTestFolderByProjectId(@PathVariable("projectId") final long projectId) {

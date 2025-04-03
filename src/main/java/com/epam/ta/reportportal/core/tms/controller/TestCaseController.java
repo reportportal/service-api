@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.tms.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
@@ -21,27 +21,27 @@ public class TestCaseController {
 
   private final TmsTestCaseService tmsTestCaseService;
 
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   @GetMapping("/{testCaseId}")
   public TmsTestCaseRS getTestCaseById(@PathVariable("projectId") final long projectId,
                              @PathVariable("testCaseId") final long testCaseId) {
     return tmsTestCaseService.getById(projectId, testCaseId);
   }
 
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   @GetMapping
   public List<TmsTestCaseRS> getTestCaseByProjectId(@PathVariable("projectId") final long projectId) {
     return tmsTestCaseService.getTestCaseByProjectId(projectId);
   }
 
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   @PostMapping
   public TmsTestCaseRS createTestCase(@PathVariable("projectId") final long projectId,
                             @RequestBody @Valid final TmsTestCaseRQ inputDto) {
     return tmsTestCaseService.create(projectId, inputDto);
   }
 
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   @PutMapping("/{testCaseId}")
   public TmsTestCaseRS updateTestCase(@PathVariable("projectId") final long projectId,
                             @PathVariable("testCaseId") final long testCaseId,
@@ -49,7 +49,7 @@ public class TestCaseController {
     return tmsTestCaseService.update(projectId, testCaseId, inputDto);
   }
 
-  @PreAuthorize(ADMIN_ONLY)
+  @PreAuthorize(IS_ADMIN)
   @PatchMapping("/{testCaseId}")
   public TmsTestCaseRS patchTestCase(@PathVariable("projectId") final long projectId,
       @PathVariable("testCaseId") final long testCaseId,

@@ -1,13 +1,17 @@
--- Insert Project Data
-insert into project (id, "name", project_type, creation_date, metadata, allocated_storage)
-values (31, 'test_personal31' , 'PERSONAL', '2025-02-17 16:07:59.076', '{"metadata": {"additional_info": ""}}', 0);
+-- Insert Organization Data
+insert into organization (id, name, slug, organization_type)
+values (101, 'test Org', 'org', 'INTERNAL');
 
-insert into project (id, "name", project_type, creation_date, metadata, allocated_storage)
-values (32, 'test_personal32' , 'PERSONAL', '2025-02-17 16:07:59.076', '{"metadata": {"additional_info": ""}}', 0);
+-- Insert Project Data
+insert into project (id, name, organization, organization_id, created_at)
+values (31, 'test_project31', 'org', 101, now());
+
+insert into project (id, name, organization, organization_id, created_at)
+values (32, 'test_project32', 'org', 101, now());
 
 -- Insert Dataset Data
-INSERT INTO tms_dataset (id, name, project_id)
-VALUES (10001, 'Dataset10001', 31);
+insert into tms_dataset (id, name, project_id)
+values (10001, 'Dataset10001', 31);
 
-INSERT INTO tms_dataset (id, name, project_id)
-VALUES (10002, 'Dataset10002', 31);
+insert into tms_dataset (id, name, project_id)
+values (10002, 'Dataset10002', 31);

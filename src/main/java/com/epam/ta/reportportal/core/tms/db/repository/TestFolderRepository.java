@@ -2,7 +2,6 @@ package com.epam.ta.reportportal.core.tms.db.repository;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
 import com.epam.ta.reportportal.dao.ReportPortalRepository;
-
 import java.util.List;
 import org.springframework.stereotype.Repository;
 

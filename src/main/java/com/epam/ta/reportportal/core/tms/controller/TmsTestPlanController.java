@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.tms.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
@@ -31,14 +31,14 @@ public class TmsTestPlanController {
     private final TmsTestPlanService tmsTestPlanService;
 
     @PostMapping
-    @PreAuthorize(ADMIN_ONLY)
+    @PreAuthorize(IS_ADMIN)
     public TmsTestPlanRS createTestPlan(@PathVariable Long projectId,
         @RequestBody TmsTestPlanRQ testPlan) {
         return tmsTestPlanService.create(projectId, testPlan);
     }
 
     @GetMapping
-    @PreAuthorize(ADMIN_ONLY)
+    @PreAuthorize(IS_ADMIN)
     public Page<TmsTestPlanRS> getTestPlansByCriteria(
         @PathVariable Long projectId,
         @RequestParam(required = false) List<Long> environmentId,
@@ -50,7 +50,7 @@ public class TmsTestPlanController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize(ADMIN_ONLY)
+    @PreAuthorize(IS_ADMIN)
     public TmsTestPlanRS updateTestPlan(@PathVariable Long projectId,
         @PathVariable("id") Long testPlanId,
         @RequestBody TmsTestPlanRQ testPlan) {
@@ -58,20 +58,20 @@ public class TmsTestPlanController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize(ADMIN_ONLY)
+    @PreAuthorize(IS_ADMIN)
     public TmsTestPlanRS getTestPlanById(@PathVariable Long projectId,
         @PathVariable("id") Long testPlanId) {
         return tmsTestPlanService.getById(projectId, testPlanId);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize(ADMIN_ONLY)
+    @PreAuthorize(IS_ADMIN)
     public void deleteTestPlan(@PathVariable Long projectId, @PathVariable("id") Long testPlanId) {
         tmsTestPlanService.delete(projectId, testPlanId);
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize(ADMIN_ONLY)
+    @PreAuthorize(IS_ADMIN)
     public TmsTestPlanRS patchTestPlan(@PathVariable Long projectId,
         @PathVariable("id") Long testPlanId,
         @RequestBody TmsTestPlanRQ updatedTestPlan) {

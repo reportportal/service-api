@@ -3,14 +3,11 @@ package com.epam.ta.reportportal.core.tms.mapper;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsDataset;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsEnvironment;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsEnvironmentDataset;
 import com.epam.ta.reportportal.core.tms.dto.TmsEnvironmentDatasetRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsEnvironmentDatasetRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;

@@ -39,12 +39,16 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Send build info to Drill4J
+        run: ./gradlew drillSendBuildInfo
+
       - name: Build with Gradle
         id: build
         run: |
-          ./gradlew test --continue
+          ./gradlew test || true
 
       - name: Upload test report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-report

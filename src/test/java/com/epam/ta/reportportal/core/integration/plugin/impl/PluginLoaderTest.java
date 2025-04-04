@@ -28,7 +28,7 @@ import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.filesystem.DataStore;
-import com.epam.ta.reportportal.plugin.ReportPortalPluginDescriptor;
+import com.epam.ta.reportportal.plugin.DetailPluginDescriptor;
 import com.epam.ta.reportportal.util.FeatureFlagHandler;
 import com.google.common.collect.Lists;
 import java.nio.file.Path;
@@ -56,7 +56,7 @@ class PluginLoaderTest {
 
   private final PluginDescriptorFinder pluginDescriptorFinder = mock(PluginDescriptorFinder.class);
 
-  private final ReportPortalPluginDescriptor pluginDescriptor = mock(ReportPortalPluginDescriptor.class);
+  private final DetailPluginDescriptor pluginDescriptor = mock(DetailPluginDescriptor.class);
 
   private final PluginWrapper pluginWrapper = mock(PluginWrapper.class);
 

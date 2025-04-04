@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.FeatureFlag;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.filesystem.DataStore;
-import com.epam.ta.reportportal.plugin.ReportPortalPluginDescriptor;
+import com.epam.ta.reportportal.plugin.DetailPluginDescriptor;
 import com.epam.ta.reportportal.util.FeatureFlagHandler;
 import com.epam.ta.reportportal.ws.converter.builders.IntegrationTypeBuilder;
 import jakarta.validation.constraints.NotNull;
@@ -89,7 +89,7 @@ public class PluginLoaderImpl implements PluginLoader {
   @Override
   @NotNull
   public PluginInfo extractPluginInfo(Path pluginPath) throws PluginRuntimeException {
-    var descriptor = (ReportPortalPluginDescriptor) pluginDescriptorFinder.find(pluginPath);
+    var descriptor = (DetailPluginDescriptor) pluginDescriptorFinder.find(pluginPath);
     var details = PluginDetails.builder()
         .id(descriptor.getPluginId())
         .name(descriptor.getPluginName())

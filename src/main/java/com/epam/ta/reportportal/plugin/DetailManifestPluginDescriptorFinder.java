@@ -41,10 +41,10 @@ import org.slf4j.LoggerFactory;
  *
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
-public class ReportPortalManifestPluginDescriptorFinder implements PluginDescriptorFinder {
+public class DetailManifestPluginDescriptorFinder implements PluginDescriptorFinder {
 
   private static final Logger log = LoggerFactory.getLogger(
-      ReportPortalManifestPluginDescriptorFinder.class);
+      DetailManifestPluginDescriptorFinder.class);
 
   public static final String PLUGIN_ID = "Plugin-Id";
   public static final String PLUGIN_NAME = "Plugin-Name";
@@ -100,7 +100,7 @@ public class ReportPortalManifestPluginDescriptorFinder implements PluginDescrip
           properties.put(key, parseValue(value));
         });
 
-    return ReportPortalPluginDescriptor.builder()
+    return DetailPluginDescriptor.builder()
         .pluginId(attributes.getValue(PLUGIN_ID))
         .pluginName(attributes.getValue(PLUGIN_NAME))
         .pluginDescription(attributes.getValue(PLUGIN_DESCRIPTION))

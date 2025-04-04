@@ -44,7 +44,7 @@ import org.pf4j.util.StringUtils;
 @NoArgsConstructor
 @ToString
 @EqualsAndHashCode
-public class ReportPortalPluginDescriptor implements PluginDescriptor {
+public class DetailPluginDescriptor implements PluginDescriptor {
 
   private String pluginId;
   private String pluginName;
@@ -63,7 +63,7 @@ public class ReportPortalPluginDescriptor implements PluginDescriptor {
    * Sets the plugin ID.
    *
    * @param dependencies the plugin ID
-   * @return the current instance of {@link ReportPortalPluginDescriptor}
+   * @return the current instance of {@link DetailPluginDescriptor}
    */
   protected PluginDescriptor setDependencies(String dependencies) {
     this.dependencies.clear();
@@ -82,7 +82,7 @@ public class ReportPortalPluginDescriptor implements PluginDescriptor {
    * Sets the plugin dependencies.
    *
    * @param dependencies the plugin dependencies
-   * @return the current instance of {@link ReportPortalPluginDescriptor}
+   * @return the current instance of {@link DetailPluginDescriptor}
    */
   protected PluginDescriptor setDependencies(String... dependencies) {
     for (String dependency : dependencies) {
@@ -100,7 +100,7 @@ public class ReportPortalPluginDescriptor implements PluginDescriptor {
    *
    * @param key   the metadata key
    * @param value the metadata value
-   * @return the current instance of {@link ReportPortalPluginDescriptor}
+   * @return the current instance of {@link DetailPluginDescriptor}
    */
   protected PluginDescriptor setMetadata(String key, Object value) {
     if (key != null && !key.isEmpty()) {
@@ -114,7 +114,7 @@ public class ReportPortalPluginDescriptor implements PluginDescriptor {
    * Sets the metadata for the plugin.
    *
    * @param metadata the metadata map
-   * @return the current instance of {@link ReportPortalPluginDescriptor}
+   * @return the current instance of {@link DetailPluginDescriptor}
    */
   protected PluginDescriptor setMetadata(Map<String, Object> metadata) {
     if (!metadata.isEmpty()) {
@@ -129,7 +129,7 @@ public class ReportPortalPluginDescriptor implements PluginDescriptor {
    *
    * @param key   the property key
    * @param value the property value
-   * @return the current instance of {@link ReportPortalPluginDescriptor}
+   * @return the current instance of {@link DetailPluginDescriptor}
    */
   protected PluginDescriptor setProperties(String key, Object value) {
     if (key != null && !key.isEmpty()) {
@@ -143,7 +143,7 @@ public class ReportPortalPluginDescriptor implements PluginDescriptor {
    * Sets the properties for the plugin.
    *
    * @param properties the properties map
-   * @return the current instance of {@link ReportPortalPluginDescriptor}
+   * @return the current instance of {@link DetailPluginDescriptor}
    */
   protected PluginDescriptor setProperties(Map<String, Object> properties) {
     if (!properties.isEmpty()) {
@@ -153,12 +153,12 @@ public class ReportPortalPluginDescriptor implements PluginDescriptor {
   }
 
   /**
-   * Builder for {@link ReportPortalPluginDescriptor}. This builder allows you to create an instance
-   * of {@link ReportPortalPluginDescriptor} with a fluent API.
+   * Builder for {@link DetailPluginDescriptor}. This builder allows you to create an instance
+   * of {@link DetailPluginDescriptor} with a fluent API.
    */
   public static class Builder {
 
-    private final ReportPortalPluginDescriptor descriptor = new ReportPortalPluginDescriptor();
+    private final DetailPluginDescriptor descriptor = new DetailPluginDescriptor();
 
     /**
      * Sets the plugin ID.
@@ -325,11 +325,11 @@ public class ReportPortalPluginDescriptor implements PluginDescriptor {
     }
 
     /**
-     * Builds the {@link ReportPortalPluginDescriptor} instance.
+     * Builds the {@link DetailPluginDescriptor} instance.
      *
-     * @return the built {@link ReportPortalPluginDescriptor} instance
+     * @return the built {@link DetailPluginDescriptor} instance
      */
-    public ReportPortalPluginDescriptor build() {
+    public DetailPluginDescriptor build() {
       return descriptor;
     }
   }

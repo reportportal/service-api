@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.plugin;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -56,8 +57,6 @@ public class ReportPortalPluginDescriptor implements PluginDescriptor {
   private String license;
   private String documentation;
   private final List<PluginDependency> dependencies = new ArrayList<>();
-  private final List<String> commonCommands = new ArrayList<>();
-  private final List<String> allowedCommands = new ArrayList<>();
   private final Map<String, Object> metadata = new HashMap<>();
   private final Map<String, Object> properties = new HashMap<>();
 
@@ -91,78 +90,6 @@ public class ReportPortalPluginDescriptor implements PluginDescriptor {
       dependency = dependency.trim();
       if (!dependency.isEmpty()) {
         this.dependencies.add(new PluginDependency(dependency));
-      }
-    }
-
-    return this;
-  }
-
-  /**
-   * Sets the common commands.
-   *
-   * @param commonCommands the common commands
-   * @return the current instance of {@link ReportPortalPluginDescriptor}
-   */
-  protected PluginDescriptor setCommonCommands(String commonCommands) {
-    this.commonCommands.clear();
-
-    if (commonCommands != null) {
-      commonCommands = commonCommands.trim();
-      if (!commonCommands.isEmpty()) {
-        setCommonCommands(commonCommands.split(","));
-      }
-    }
-
-    return this;
-  }
-
-  /**
-   * Sets the common commands.
-   *
-   * @param commonCommands the common commands
-   * @return the current instance of {@link ReportPortalPluginDescriptor}
-   */
-  protected PluginDescriptor setCommonCommands(String... commonCommands) {
-    for (String command : commonCommands) {
-      command = command.trim();
-      if (!command.isEmpty()) {
-        this.commonCommands.add(command);
-      }
-    }
-
-    return this;
-  }
-
-  /**
-   * Sets the allowed commands.
-   *
-   * @param allowedCommands the allowed commands
-   * @return the current instance of {@link ReportPortalPluginDescriptor}
-   */
-  protected PluginDescriptor setAllowedCommands(String allowedCommands) {
-    this.allowedCommands.clear();
-
-    if (allowedCommands != null) {
-      allowedCommands = allowedCommands.trim();
-      if (!allowedCommands.isEmpty()) {
-        setAllowedCommands(allowedCommands.split(","));
-      }
-    }
-
-    return this;
-  }
-
-  /**
-   * Sets the allowed commands.
-   *
-   * @param allowedCommands the allowed commands
-   * @return the current instance of {@link ReportPortalPluginDescriptor}
-   */
-  protected PluginDescriptor setAllowedCommands(String... allowedCommands) {
-    for (String command : allowedCommands) {
-      command = command.trim();
-      if (!command.isEmpty()) {
-        this.allowedCommands.add(command);
       }
     }
 
@@ -353,35 +280,9 @@ public class ReportPortalPluginDescriptor implements PluginDescriptor {
     }
 
     /**
-     * Sets the plugin common commands.
-     *
-     * @param commonCommands the plugin common commands
-     * @return the current instance of {@link Builder}
-     */
-    public Builder commonCommands(String commonCommands) {
-      if (StringUtils.isNotNullOrEmpty(commonCommands)) {
-        descriptor.setCommonCommands(commonCommands);
-      }
-      return this;
-    }
-
-    /**
-     * Sets the plugin allowed commands.
-     *
-     * @param allowedCommands the plugin allowed commands
-     * @return the current instance of {@link Builder}
-     */
-    public Builder allowedCommands(String allowedCommands) {
-      if (StringUtils.isNotNullOrEmpty(allowedCommands)) {
-        descriptor.setAllowedCommands(allowedCommands);
-      }
-      return this;
-    }
-
-    /**
      * Sets the plugin metadata.
      *
-     * @param key the metadata key
+     * @param key   the metadata key
      * @param value the metadata value
      * @return the current instance of {@link Builder}
      */
@@ -404,7 +305,7 @@ public class ReportPortalPluginDescriptor implements PluginDescriptor {
     /**
      * Sets the plugin properties.
      *
-     * @param key the property key
+     * @param key   the property key
      * @param value the property value
      * @return the current instance of {@link Builder}
      */

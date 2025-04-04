@@ -56,8 +56,6 @@ public class ReportPortalManifestPluginDescriptorFinder implements PluginDescrip
   public static final String PLUGIN_REQUIRES = "Plugin-Requires";
   public static final String PLUGIN_LICENSE = "Plugin-License";
   public static final String PLUGIN_DOCUMENTATION = "Plugin-Documentation";
-  public static final String PLUGIN_COMMON_COMMANDS = "Plugin-CommonCommands";
-  public static final String PLUGIN_ALLOWED_COMMANDS = "Plugin-AllowedCommands";
   public static final String PLUGIN_METADATA_PREFIX = "Plugin-Metadata-";
   public static final String PLUGIN_PROPERTIES_PREFIX = "Plugin-Property-";
 
@@ -113,8 +111,6 @@ public class ReportPortalManifestPluginDescriptorFinder implements PluginDescrip
         .license(attributes.getValue(PLUGIN_LICENSE))
         .documentation(attributes.getValue(PLUGIN_DOCUMENTATION))
         .dependencies(attributes.getValue(PLUGIN_DEPENDENCIES))
-        .commonCommands(attributes.getValue(PLUGIN_COMMON_COMMANDS))
-        .allowedCommands(attributes.getValue(PLUGIN_ALLOWED_COMMANDS))
         .metadata(metadata)
         .properties(properties)
         .build();

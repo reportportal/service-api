@@ -16,78 +16,35 @@
 
 package com.epam.ta.reportportal.model.user;
 
+import static com.epam.reportportal.model.ValidationConstraints.USER_PASSWORD_REGEXP;
+
 import com.epam.reportportal.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+import lombok.Data;
 
 /**
  * @author Dzmitry_Kavalets
  */
+@Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResetPasswordRQ {
 
-	@NotBlank
-	@Size(min = ValidationConstraints.MIN_PASSWORD_LENGTH, max = ValidationConstraints.MAX_PASSWORD_LENGTH)
-	@JsonProperty(value = "password")
-	@Schema(requiredMode = RequiredMode.REQUIRED)
-	private String password;
+  @NotBlank
+  @Size(min = ValidationConstraints.MIN_PASSWORD_LENGTH, max = ValidationConstraints.MAX_PASSWORD_LENGTH)
+  @JsonProperty(value = "password")
+  @Schema(requiredMode = RequiredMode.REQUIRED)
+  @Pattern(regexp = USER_PASSWORD_REGEXP)
+  private String password;
 
-	@NotBlank
-	@JsonProperty(value = "uuid")
-	@Schema(requiredMode = RequiredMode.REQUIRED)
-	private String uuid;
+  @NotBlank
+  @JsonProperty(value = "uuid")
+  @Schema(requiredMode = RequiredMode.REQUIRED)
+  private String uuid;
 
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public String getUuid() {
-		return uuid;
-	}
-
-	public void setUuid(String uuid) {
-		this.uuid = uuid;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-
-		ResetPasswordRQ that = (ResetPasswordRQ) o;
-
-		if (password != null ? !password.equals(that.password) : that.password != null) {
-			return false;
-		}
-		return !(uuid != null ? !uuid.equals(that.uuid) : that.uuid != null);
-
-	}
-
-	@Override
-	public int hashCode() {
-		int result = password != null ? password.hashCode() : 0;
-		result = 31 * result + (uuid != null ? uuid.hashCode() : 0);
-		return result;
-	}
-
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder("RestorePasswordRQ{");
-		sb.append("password='").append(password).append('\''); //NOSONAR
-		sb.append(", uuid='").append(uuid).append('\'');
-		sb.append('}');
-		return sb.toString();
-	}
 }

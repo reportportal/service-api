@@ -16,124 +16,111 @@
 package com.epam.ta.reportportal.model;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import java.util.Collection;
 import java.util.Iterator;
+import lombok.Getter;
 
 /**
- * Paged response  representation
- * Re-implementation of Spring's HATEAOS Page implementation to get rid of Spring's deps in model package
+ * Paged response  representation Re-implementation of Spring's HATEAOS Page implementation to get
+ * rid of Spring's deps in model package
  *
  * @author Andrei Varabyeu
  */
 public class Page<T> implements Iterable<T> {
 
-	private final Collection<T> content;
-	private final PageMetadata page;
+  private final Collection<T> content;
+  private final PageMetadata page;
 
-	/**
-	 * Visible for deserializer
-	 */
-	Page() {
-		this(null, null);
-	}
+  /**
+   * Visible for deserializer
+   */
+  Page() {
+    this(null, null);
+  }
 
-	public Page(Collection<T> content, PageMetadata page) {
-		this.content = content;
-		this.page = page;
-	}
+  public Page(Collection<T> content, PageMetadata page) {
+    this.content = content;
+    this.page = page;
+  }
 
-	public Page(Collection<T> content, long size, long number, long totalElements, long totalPages) {
-		this.content = content;
-		this.page = new PageMetadata(size, number, totalElements, totalPages);
-	}
+  public Page(Collection<T> content, long size, long number, long totalElements, long totalPages) {
+    this.content = content;
+    this.page = new PageMetadata(size, number, totalElements, totalPages);
+  }
 
-	public Page(Collection<T> content, long size, long number, long totalElements) {
-		this.content = content;
-		this.page = new PageMetadata(size, number, totalElements);
-	}
+  public Page(Collection<T> content, long size, long number, long totalElements) {
+    this.content = content;
+    this.page = new PageMetadata(size, number, totalElements);
+  }
 
-	public Collection<T> getContent() {
-		return content;
-	}
+  private static void checkArgument(boolean expression, String errorMessage) {
+    if (!expression) {
+      throw new IllegalArgumentException(errorMessage);
+    }
+  }
 
-	public PageMetadata getPage() {
-		return page;
-	}
+  public Collection<T> getContent() {
+    return content;
+  }
 
-	@Override
-	public Iterator<T> iterator() {
-		return content.iterator();
-	}
+  public PageMetadata getPage() {
+    return page;
+  }
 
-	public static class PageMetadata {
-		long number;
-		long size;
-		long totalElements;
-		long totalPages;
+  @Override
+  public Iterator<T> iterator() {
+    return content.iterator();
+  }
 
-		/**
-		 * Visible for deserializer
-		 */
-		PageMetadata(){
-		}
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder("Page{");
+    sb.append("content=").append(content);
+    sb.append(", page=").append(page);
+    sb.append('}');
+    return sb.toString();
+  }
 
-		public PageMetadata(long size, long number, long totalElements, long totalPages) {
-			checkArgument(size > -1, "Size must not be negative!");
-			checkArgument(number > -1, "Number must not be negative!");
-			checkArgument(totalElements > -1, "Total elements must not be negative!");
-			checkArgument(totalPages > -1, "Total pages must not be negative!");
+  @Getter
+  @JsonInclude(Include.NON_NULL)
+  public static class PageMetadata {
 
-			this.number = number;
-			this.size = size;
-			this.totalElements = totalElements;
-			this.totalPages = totalPages;
+    long number;
+    long size;
+    Long totalElements;
+    Long totalPages;
+    Boolean hasNext;
 
-		}
+    /**
+     * Visible for deserializer
+     */
+    PageMetadata() {
+    }
 
-		public PageMetadata(long size, long number, long totalElements) {
-			this(size, number, totalElements, size == 0 ? 0 : (long) Math.ceil((double) totalElements / (double) size));
-		}
+    public PageMetadata(Integer number, Integer size, Boolean hasNext) {
+      this.number = number;
+      this.size = size;
+      this.hasNext = hasNext;
+    }
 
-		public long getNumber() {
-			return number;
-		}
+    public PageMetadata(long size, long number, long totalElements, long totalPages) {
+      checkArgument(size > -1, "Size must not be negative!");
+      checkArgument(number > -1, "Number must not be negative!");
+      checkArgument(totalElements > -1, "Total elements must not be negative!");
+      checkArgument(totalPages > -1, "Total pages must not be negative!");
 
-		public long getSize() {
-			return size;
-		}
+      this.number = number;
+      this.size = size;
+      this.totalElements = totalElements;
+      this.totalPages = totalPages;
 
-		public long getTotalElements() {
-			return totalElements;
-		}
+    }
 
-		public long getTotalPages() {
-			return totalPages;
-		}
-
-		@Override
-		public String toString() {
-			final StringBuilder sb = new StringBuilder("PageMetadata{");
-			sb.append("number=").append(number);
-			sb.append(", size=").append(size);
-			sb.append(", totalElements=").append(totalElements);
-			sb.append(", totalPages=").append(totalPages);
-			sb.append('}');
-			return sb.toString();
-		}
-	}
-
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder("Page{");
-		sb.append("content=").append(content);
-		sb.append(", page=").append(page);
-		sb.append('}');
-		return sb.toString();
-	}
-
-	private static void checkArgument(boolean expression, String errorMessage) {
-		if (!expression) {
-			throw new IllegalArgumentException(errorMessage);
-		}
-	}
+    public PageMetadata(long size, long number, long totalElements) {
+      this(size, number, totalElements,
+          size == 0 ? 0 : (long) Math.ceil((double) totalElements / (double) size));
+    }
+  }
 }

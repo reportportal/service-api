@@ -17,31 +17,64 @@
 package com.epam.ta.reportportal.core.plugin;
 
 import java.io.Serializable;
-import javax.annotation.Nullable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
+ * This class represents information about a plugin, including its ID, version, file ID, file name,
+ * enabled status, and additional details.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class PluginInfo implements Serializable {
 
   private String id;
-
   private String version;
-
   private String fileId;
-
   private String fileName;
-
   private boolean isEnabled;
+  private PluginDetails details;
 
-  public PluginInfo() {
-  }
-
+  /**
+   * Constructs a {@link PluginInfo} object with the specified ID and version.
+   *
+   * @param id      The ID of the plugin.
+   * @param version The version of the plugin.
+   */
   public PluginInfo(String id, String version) {
     this.id = id;
     this.version = version;
   }
 
+  /**
+   * Constructs a {@link PluginInfo} object with the specified ID, version, and details.
+   *
+   * @param id      The ID of the plugin.
+   * @param version The version of the plugin.
+   * @param details The details of the plugin.
+   */
+  public PluginInfo(String id, String version, PluginDetails details) {
+    this.id = id;
+    this.version = version;
+    this.details = details;
+  }
+
+  /**
+   * Constructs a {@link PluginInfo} object with the specified ID, version, file ID, file name, and
+   * enabled status.
+   *
+   * @param id        The ID of the plugin.
+   * @param version   The version of the plugin.
+   * @param fileId    The file ID of the plugin.
+   * @param fileName  The file name of the plugin.
+   * @param isEnabled The enabled status of the plugin.
+   */
   public PluginInfo(String id, String version, String fileId, String fileName, boolean isEnabled) {
     this.id = id;
     this.version = version;
@@ -49,49 +82,4 @@ public class PluginInfo implements Serializable {
     this.fileName = fileName;
     this.isEnabled = isEnabled;
   }
-
-  @Nullable
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  @Nullable
-  public String getVersion() {
-    return version;
-  }
-
-  public void setVersion(String version) {
-    this.version = version;
-  }
-
-  @Nullable
-  public String getFileId() {
-    return fileId;
-  }
-
-  public void setFileId(String fileId) {
-    this.fileId = fileId;
-  }
-
-  @Nullable
-  public String getFileName() {
-    return fileName;
-  }
-
-  public void setFileName(String fileName) {
-    this.fileName = fileName;
-  }
-
-  public boolean isEnabled() {
-    return isEnabled;
-  }
-
-  public void setEnabled(boolean enabled) {
-    isEnabled = enabled;
-  }
-
 }

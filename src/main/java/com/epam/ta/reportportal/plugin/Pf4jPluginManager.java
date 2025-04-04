@@ -26,6 +26,8 @@ import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.extension.event.PluginEvent;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.Plugin;
@@ -36,10 +38,8 @@ import com.epam.ta.reportportal.entity.enums.PluginTypeEnum;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.entity.plugin.PluginFileExtension;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.ws.converter.builders.IntegrationTypeBuilder;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import java.io.IOException;
@@ -514,6 +514,10 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
     startUpPlugin(newPluginId);
     validateNewPluginExtensionClasses(newPluginId, uploadedPluginName);
     pluginManager.unloadPlugin(newPluginId);
+
+    if (newPluginInfo.getDetails() != null) {
+      pluginDetails.setDetails(newPluginInfo.getDetails().toMap());
+    }
 
     final String newPluginFileName = generatePluginFileName(newPluginInfo, uploadedPluginName);
     IntegrationTypeProperties.FILE_NAME.setValue(pluginDetails, newPluginFileName);

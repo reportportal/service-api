@@ -35,6 +35,8 @@ import org.junit.jupiter.api.io.TempDir;
 import org.pf4j.PluginRuntimeException;
 
 /**
+ * Test class for {@link DetailManifestPluginDescriptorFinder}.
+ *
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
 public class DetailManifestPluginDescriptorFinderTest {
@@ -105,7 +107,7 @@ public class DetailManifestPluginDescriptorFinderTest {
     var jarPath = tempDir.resolve("test-plugin.jar");
     createJarFile(jarPath, manifest);
 
-    var descriptor = (DetailPluginDescriptor)  finder.find(jarPath);
+    var descriptor = (DetailPluginDescriptor) finder.find(jarPath);
 
     assertEquals(Integer.class, descriptor.getMetadata().get("intValue").getClass());
     assertEquals(Double.class, descriptor.getMetadata().get("doubleValue").getClass());
@@ -128,24 +130,37 @@ public class DetailManifestPluginDescriptorFinderTest {
     attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
     attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_ID, "test-plugin");
     attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_NAME, "Test Plugin");
-    attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_DESCRIPTION, "A test plugin");
-    attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_CLASS, "com.example.TestPlugin");
+    attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_DESCRIPTION,
+        "A test plugin");
+    attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_CLASS,
+        "com.example.TestPlugin");
     attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_VERSION, "1.0.0");
     attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_REQUIRES, ">=1.8.0");
-    attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_PROVIDER, "Example Provider");
+    attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_PROVIDER,
+        "Example Provider");
     attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_LICENSE, "Apache-2.0");
-    attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_DOCUMENTATION, "https://example.com/docs");
-    attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_DEPENDENCIES, "plugin1,plugin2");
+    attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_DOCUMENTATION,
+        "https://example.com/docs");
+    attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_DEPENDENCIES,
+        "plugin1,plugin2");
 
     // Add metadata
-    attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_METADATA_PREFIX + "stringValue", "value1");
-    attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_METADATA_PREFIX + "intValue", "42");
-    attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_METADATA_PREFIX + "doubleValue", "3.14");
-    attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_METADATA_PREFIX + "boolValue", "true");
+    attributes.putValue(DetailManifestPluginDescriptorFinder
+        .PLUGIN_METADATA_PREFIX + "stringValue", "value1");
+    attributes.putValue(DetailManifestPluginDescriptorFinder
+        .PLUGIN_METADATA_PREFIX + "intValue", "42");
+    attributes.putValue(DetailManifestPluginDescriptorFinder
+        .PLUGIN_METADATA_PREFIX + "doubleValue", "3.14");
+    attributes.putValue(DetailManifestPluginDescriptorFinder
+        .PLUGIN_METADATA_PREFIX + "boolValue", "true");
 
     // Add properties
-    attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_PROPERTIES_PREFIX + "stringValue", "prop1");
-    attributes.putValue(DetailManifestPluginDescriptorFinder.PLUGIN_PROPERTIES_PREFIX + "intProp", "100");
+    attributes.putValue(
+        DetailManifestPluginDescriptorFinder
+            .PLUGIN_PROPERTIES_PREFIX + "stringValue", "prop1");
+    attributes.putValue(DetailManifestPluginDescriptorFinder
+            .PLUGIN_PROPERTIES_PREFIX + "intProp",
+        "100");
 
     return manifest;
   }

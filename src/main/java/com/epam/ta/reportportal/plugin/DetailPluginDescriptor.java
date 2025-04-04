@@ -63,9 +63,8 @@ public class DetailPluginDescriptor implements PluginDescriptor {
    * Sets the plugin ID.
    *
    * @param dependencies the plugin ID
-   * @return the current instance of {@link DetailPluginDescriptor}
    */
-  protected PluginDescriptor setDependencies(String dependencies) {
+  protected void setDependencies(String dependencies) {
     this.dependencies.clear();
 
     if (dependencies != null) {
@@ -75,16 +74,14 @@ public class DetailPluginDescriptor implements PluginDescriptor {
       }
     }
 
-    return this;
   }
 
   /**
    * Sets the plugin dependencies.
    *
    * @param dependencies the plugin dependencies
-   * @return the current instance of {@link DetailPluginDescriptor}
    */
-  protected PluginDescriptor setDependencies(String... dependencies) {
+  protected void setDependencies(String... dependencies) {
     for (String dependency : dependencies) {
       dependency = dependency.trim();
       if (!dependency.isEmpty()) {
@@ -92,7 +89,6 @@ public class DetailPluginDescriptor implements PluginDescriptor {
       }
     }
 
-    return this;
   }
 
   /**
@@ -100,28 +96,23 @@ public class DetailPluginDescriptor implements PluginDescriptor {
    *
    * @param key   the metadata key
    * @param value the metadata value
-   * @return the current instance of {@link DetailPluginDescriptor}
    */
-  protected PluginDescriptor setMetadata(String key, Object value) {
+  protected void setMetadata(String key, Object value) {
     if (key != null && !key.isEmpty()) {
       this.metadata.put(key, value);
     }
 
-    return this;
   }
 
   /**
    * Sets the metadata for the plugin.
    *
    * @param metadata the metadata map
-   * @return the current instance of {@link DetailPluginDescriptor}
    */
-  protected PluginDescriptor setMetadata(Map<String, Object> metadata) {
+  protected void setMetadata(Map<String, Object> metadata) {
     if (!metadata.isEmpty()) {
       this.metadata.putAll(metadata);
     }
-
-    return this;
   }
 
   /**
@@ -129,27 +120,22 @@ public class DetailPluginDescriptor implements PluginDescriptor {
    *
    * @param key   the property key
    * @param value the property value
-   * @return the current instance of {@link DetailPluginDescriptor}
    */
-  protected PluginDescriptor setProperties(String key, Object value) {
+  protected void setProperties(String key, Object value) {
     if (key != null && !key.isEmpty()) {
       this.properties.put(key, value);
     }
-
-    return this;
   }
 
   /**
    * Sets the properties for the plugin.
    *
    * @param properties the properties map
-   * @return the current instance of {@link DetailPluginDescriptor}
    */
-  protected PluginDescriptor setProperties(Map<String, Object> properties) {
+  protected void setProperties(Map<String, Object> properties) {
     if (!properties.isEmpty()) {
       this.properties.putAll(properties);
     }
-    return this;
   }
 
   /**

@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCaseRS, Long> {
 
-    List<TmsTestCaseRS> getTestCaseByProjectId(long projectId);
+  List<TmsTestCaseRS> getTestCaseByProjectId(long projectId);
 }

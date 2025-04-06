@@ -7,10 +7,10 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TmsTestPlanMilestoneRS {
 
-    private Long id;
-    private String name;
-    private String type;
-    private String startDate;
-    private String endDate;
-    private TmsTestPlanProductVersionRS productVersion;
+  private Long id;
+  private String name;
+  private String type;
+  private String startDate;
+  private String endDate;
+  private TmsTestPlanProductVersionRS productVersion;
 }

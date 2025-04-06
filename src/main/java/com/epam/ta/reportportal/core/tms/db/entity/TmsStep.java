@@ -24,22 +24,22 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TmsStep implements Serializable {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
-    
-    @Column(name = "instructions")
-    private String instructions;
-    
-    @Column(name = "expected_result")
-    private String expectedResult;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "manual_scenario_id")
-    private TmsManualScenario manualScenario;
-    
-    @OneToMany(mappedBy = "step")
-    private Set<TmsAttachment> attachments;
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
+  private Long id;
+
+  @Column(name = "instructions")
+  private String instructions;
+
+  @Column(name = "expected_result")
+  private String expectedResult;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "manual_scenario_id")
+  private TmsManualScenario manualScenario;
+
+  @OneToMany(mappedBy = "step")
+  private Set<TmsAttachment> attachments;
 }

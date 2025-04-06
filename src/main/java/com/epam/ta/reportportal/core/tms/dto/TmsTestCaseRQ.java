@@ -14,15 +14,15 @@ import lombok.NoArgsConstructor;
 @Builder
 public class TmsTestCaseRQ {
 
-    @NotEmpty
-    private String name;
+  @NotEmpty
+  private String name;
 
-    private String description;
+  private String description;
 
-    @NotNull
-    private Long testFolderId;
+  @NotNull
+  private Long testFolderId;
 
-    private List<TmsTestCaseAttributeRQ> tags;
+  private List<TmsTestCaseAttributeRQ> tags;
 
-    private Long datasetId;
+  private Long datasetId;
 }

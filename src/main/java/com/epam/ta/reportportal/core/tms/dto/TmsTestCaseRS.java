@@ -14,13 +14,13 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TmsTestCaseRS {
 
-    private Long id;
+  private Long id;
 
-    private String name;
+  private String name;
 
-    private String description;
+  private String description;
 
-    private Set<TmsTestCaseVersionRS> versions;
+  private Set<TmsTestCaseVersionRS> versions;
 
-    private Set<TmsTestPlanAttributeRS> tags;
+  private Set<TmsTestPlanAttributeRS> tags;
 }

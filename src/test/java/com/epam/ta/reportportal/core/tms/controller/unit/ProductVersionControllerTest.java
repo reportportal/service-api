@@ -53,9 +53,9 @@ class ProductVersionControllerTest {
     given(productVersionService.getById(projectId, productVersionId)).willReturn(productVersionRS);
 
     mockMvc.perform(get("/project/{projectId}/tms/productversion/{productVersionId}", projectId,
-                        productVersionId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").exists());
+            productVersionId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").exists());
     verify(productVersionService).getById(projectId, productVersionId);
   }
 
@@ -75,9 +75,9 @@ class ProductVersionControllerTest {
     given(productVersionService.create(projectId, request)).willReturn(expectedResponse);
 
     mockMvc.perform(post("/project/{projectId}/tms/productversion", projectId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonContent))
-                .andExpect(status().isOk());
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isOk());
     verify(productVersionService).create(projectId, request);
   }
 
@@ -96,13 +96,13 @@ class ProductVersionControllerTest {
     String jsonContent = mapper.writeValueAsString(request);
 
     given(productVersionService.update(projectId, productVersionId, request))
-                               .willReturn(expectedResponse);
+        .willReturn(expectedResponse);
 
     mockMvc.perform(put("/project/{projectId}/tms/productversion/{productVersionId}",
-                             projectId, productVersionId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonContent))
-                .andExpect(status().isOk());
+            projectId, productVersionId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isOk());
     verify(productVersionService).update(projectId, productVersionId, request);
   }
 
@@ -114,8 +114,8 @@ class ProductVersionControllerTest {
     doNothing().when(productVersionService).delete(projectId, productVersionId);
 
     mockMvc.perform(delete("/project/{projectId}/tms/productversion/{productVersionId}",
-                            projectId, productVersionId))
-                .andExpect(status().isOk());
+            projectId, productVersionId))
+        .andExpect(status().isOk());
     verify(productVersionService).delete(projectId, productVersionId);
   }
 }

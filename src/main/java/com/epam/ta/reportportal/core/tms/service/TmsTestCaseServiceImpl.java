@@ -14,80 +14,83 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
-    private static final String TEST_CASE_NOT_FOUND_BY_ID = "Test Case cannot be found by id: {0}. Project: {1}";
+  private static final String TEST_CASE_NOT_FOUND_BY_ID = "Test Case cannot be found by id: {0}. Project: {1}";
 
-    private final TmsTestCaseMapper tmsTestCaseMapper;
-    private final TmsTestCaseRepository tmsTestCaseRepository;
-    private final TmsTestCaseAttributeService tmsTestCaseAttributeService;
+  private final TmsTestCaseMapper tmsTestCaseMapper;
+  private final TmsTestCaseRepository tmsTestCaseRepository;
+  private final TmsTestCaseAttributeService tmsTestCaseAttributeService;
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<TmsTestCaseRS> getTestCaseByProjectId(long projectId) {
-        return tmsTestCaseRepository
-            .findByTestFolder_ProjectId(projectId)
-            .stream()
-            .map(tmsTestCaseMapper::convert)
-            .toList();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<TmsTestCaseRS> getTestCaseByProjectId(long projectId) {
+    return tmsTestCaseRepository
+        .findByTestFolder_ProjectId(projectId)
+        .stream()
+        .map(tmsTestCaseMapper::convert)
+        .toList();
+  }
 
-    @Override
-    @Transactional(readOnly = true)
-    public TmsTestCaseRS getById(long projectId, Long testCaseId) {
-        return tmsTestCaseMapper
-            .convert(tmsTestCaseRepository.findById(testCaseId)
-            .orElseThrow(NotFoundException.supplier(TEST_CASE_NOT_FOUND_BY_ID, testCaseId, projectId)));
-    }
-
-
-    @Override
-    @Transactional
-    public TmsTestCaseRS create(long projectId, TmsTestCaseRQ tmsTestCaseRQ) {
-        var tmsTestCase = tmsTestCaseMapper.convertFromRQ(projectId, tmsTestCaseRQ);
-
-        tmsTestCaseRepository.save(tmsTestCase);
-
-        tmsTestCaseAttributeService.createTestCaseAttributes(tmsTestCase, tmsTestCaseRQ.getTags());
-
-        return tmsTestCaseMapper.convert(tmsTestCase);
-    }
-
-    @Override
-    @Transactional
-    public TmsTestCaseRS update(long projectId, Long testCaseId, TmsTestCaseRQ tmsTestCaseRQ) {
-        return tmsTestCaseRepository
-            .findById(testCaseId)
-            .map((var existingTestCase) -> {
-                tmsTestCaseMapper.update(existingTestCase,
-                    tmsTestCaseMapper.convertFromRQ(projectId, tmsTestCaseRQ));
-
-                tmsTestCaseAttributeService.updateTestCaseAttributes(existingTestCase, tmsTestCaseRQ.getTags());
-
-                return tmsTestCaseMapper.convert(existingTestCase);
-            })
-            .orElseGet(() -> create(projectId, tmsTestCaseRQ));
-    }
-
-    @Override
-    @Transactional
-    public TmsTestCaseRS patch(long projectId, Long testCaseId, TmsTestCaseRQ tmsTestCaseRQ) {
-        return tmsTestCaseRepository
-            .findByIdAndProjectId(testCaseId, projectId)
-            .map((var existingTestCase) -> {
-                tmsTestCaseMapper.patch(existingTestCase,
-                    tmsTestCaseMapper.convertFromRQ(projectId, tmsTestCaseRQ));
-
-                tmsTestCaseAttributeService.patchTestCaseAttributes(existingTestCase, tmsTestCaseRQ.getTags());
-
-                return tmsTestCaseMapper.convert(existingTestCase);
-            })
+  @Override
+  @Transactional(readOnly = true)
+  public TmsTestCaseRS getById(long projectId, Long testCaseId) {
+    return tmsTestCaseMapper
+        .convert(tmsTestCaseRepository.findById(testCaseId)
             .orElseThrow(
-                NotFoundException.supplier(TEST_CASE_NOT_FOUND_BY_ID, testCaseId, projectId));
-    }
+                NotFoundException.supplier(TEST_CASE_NOT_FOUND_BY_ID, testCaseId, projectId)));
+  }
 
-    @Override
-    @Transactional
-    public void delete(long projectId, Long testCaseId) {
-        tmsTestCaseAttributeService.deleteAllByTestCaseId(testCaseId);
-        tmsTestCaseRepository.deleteById(testCaseId);
-    }
+
+  @Override
+  @Transactional
+  public TmsTestCaseRS create(long projectId, TmsTestCaseRQ tmsTestCaseRQ) {
+    var tmsTestCase = tmsTestCaseMapper.convertFromRQ(projectId, tmsTestCaseRQ);
+
+    tmsTestCaseRepository.save(tmsTestCase);
+
+    tmsTestCaseAttributeService.createTestCaseAttributes(tmsTestCase, tmsTestCaseRQ.getTags());
+
+    return tmsTestCaseMapper.convert(tmsTestCase);
+  }
+
+  @Override
+  @Transactional
+  public TmsTestCaseRS update(long projectId, Long testCaseId, TmsTestCaseRQ tmsTestCaseRQ) {
+    return tmsTestCaseRepository
+        .findById(testCaseId)
+        .map((var existingTestCase) -> {
+          tmsTestCaseMapper.update(existingTestCase,
+              tmsTestCaseMapper.convertFromRQ(projectId, tmsTestCaseRQ));
+
+          tmsTestCaseAttributeService.updateTestCaseAttributes(existingTestCase,
+              tmsTestCaseRQ.getTags());
+
+          return tmsTestCaseMapper.convert(existingTestCase);
+        })
+        .orElseGet(() -> create(projectId, tmsTestCaseRQ));
+  }
+
+  @Override
+  @Transactional
+  public TmsTestCaseRS patch(long projectId, Long testCaseId, TmsTestCaseRQ tmsTestCaseRQ) {
+    return tmsTestCaseRepository
+        .findByIdAndProjectId(testCaseId, projectId)
+        .map((var existingTestCase) -> {
+          tmsTestCaseMapper.patch(existingTestCase,
+              tmsTestCaseMapper.convertFromRQ(projectId, tmsTestCaseRQ));
+
+          tmsTestCaseAttributeService.patchTestCaseAttributes(existingTestCase,
+              tmsTestCaseRQ.getTags());
+
+          return tmsTestCaseMapper.convert(existingTestCase);
+        })
+        .orElseThrow(
+            NotFoundException.supplier(TEST_CASE_NOT_FOUND_BY_ID, testCaseId, projectId));
+  }
+
+  @Override
+  @Transactional
+  public void delete(long projectId, Long testCaseId) {
+    tmsTestCaseAttributeService.deleteAllByTestCaseId(testCaseId);
+    tmsTestCaseRepository.deleteById(testCaseId);
+  }
 }

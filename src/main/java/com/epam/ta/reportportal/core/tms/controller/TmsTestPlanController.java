@@ -22,59 +22,109 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controller for managing test plans within a project. Provides endpoints
+ * for creating, retrieving, updating, patching, and deleting test plans.
+ * All operations require administrator privileges.
+ */
 @RestController
 @RequestMapping("/project/{projectId}/tms/test-plan")
 @Tag(name = "Test Plan", description = "Test Plan API collection")
 @RequiredArgsConstructor
 public class TmsTestPlanController {
 
-    private final TmsTestPlanService tmsTestPlanService;
+  private final TmsTestPlanService tmsTestPlanService;
 
-    @PostMapping
-    @PreAuthorize(IS_ADMIN)
-    public TmsTestPlanRS createTestPlan(@PathVariable Long projectId,
-        @RequestBody TmsTestPlanRQ testPlan) {
-        return tmsTestPlanService.create(projectId, testPlan);
-    }
+  /**
+   * Creates a new test plan.
+   *
+   * @param projectId The ID of the project.
+   * @param testPlan  The test plan data ({@link TmsTestPlanRQ}) to be created.
+   * @return The details of the created test plan ({@link TmsTestPlanRS}).
+   */
+  @PostMapping
+  @PreAuthorize(IS_ADMIN)
+  public TmsTestPlanRS createTestPlan(@PathVariable Long projectId,
+      @RequestBody TmsTestPlanRQ testPlan) {
+    return tmsTestPlanService.create(projectId, testPlan);
+  }
 
-    @GetMapping
-    @PreAuthorize(IS_ADMIN)
-    public Page<TmsTestPlanRS> getTestPlansByCriteria(
-        @PathVariable Long projectId,
-        @RequestParam(required = false) List<Long> environmentId,
-        @RequestParam(required = false) List<Long> productVersionId,
-        Pageable pageable) {
-        return tmsTestPlanService.getByCriteria(
-            projectId, environmentId, productVersionId, pageable
-        );
-    }
+  /**
+   * Retrieves a list of test plans filtered by criteria.
+   *
+   * @param projectId          The ID of the project.
+   * @param environmentId      List of environment IDs to filter by.
+   * @param productVersionId   List of product version IDs to filter by.
+   * @param pageable           Pagination details.
+   * @return Paginated list of test plans matching the criteria ({@link TmsTestPlanRS}).
+   */
+  @GetMapping
+  @PreAuthorize(IS_ADMIN)
+  public Page<TmsTestPlanRS> getTestPlansByCriteria(
+      @PathVariable Long projectId,
+      @RequestParam(required = false) List<Long> environmentId,
+      @RequestParam(required = false) List<Long> productVersionId,
+      Pageable pageable) {
+    return tmsTestPlanService.getByCriteria(
+        projectId, environmentId, productVersionId, pageable
+    );
+  }
 
-    @PutMapping("/{id}")
-    @PreAuthorize(IS_ADMIN)
-    public TmsTestPlanRS updateTestPlan(@PathVariable Long projectId,
-        @PathVariable("id") Long testPlanId,
-        @RequestBody TmsTestPlanRQ testPlan) {
-        return tmsTestPlanService.update(projectId, testPlanId, testPlan);
-    }
+  /**
+   * Updates an existing test plan.
+   *
+   * @param projectId  The ID of the project.
+   * @param testPlanId The ID of the test plan to update.
+   * @param testPlan   Updated test plan data ({@link TmsTestPlanRQ}).
+   * @return Updated test plan details ({@link TmsTestPlanRS}).
+   */
+  @PutMapping("/{id}")
+  @PreAuthorize(IS_ADMIN)
+  public TmsTestPlanRS updateTestPlan(@PathVariable Long projectId,
+      @PathVariable("id") Long testPlanId,
+      @RequestBody TmsTestPlanRQ testPlan) {
+    return tmsTestPlanService.update(projectId, testPlanId, testPlan);
+  }
 
-    @GetMapping("/{id}")
-    @PreAuthorize(IS_ADMIN)
-    public TmsTestPlanRS getTestPlanById(@PathVariable Long projectId,
-        @PathVariable("id") Long testPlanId) {
-        return tmsTestPlanService.getById(projectId, testPlanId);
-    }
+  /**
+   * Retrieves a specific test plan by its ID.
+   *
+   * @param projectId  The ID of the project.
+   * @param testPlanId The ID of the test plan to retrieve.
+   * @return The test plan details ({@link TmsTestPlanRS}).
+   */
+  @GetMapping("/{id}")
+  @PreAuthorize(IS_ADMIN)
+  public TmsTestPlanRS getTestPlanById(@PathVariable Long projectId,
+      @PathVariable("id") Long testPlanId) {
+    return tmsTestPlanService.getById(projectId, testPlanId);
+  }
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize(IS_ADMIN)
-    public void deleteTestPlan(@PathVariable Long projectId, @PathVariable("id") Long testPlanId) {
-        tmsTestPlanService.delete(projectId, testPlanId);
-    }
+  /**
+   * Deletes a test plan from the specified project.
+   *
+   * @param projectId  The ID of the project.
+   * @param testPlanId The ID of the test plan to delete.
+   */
+  @DeleteMapping("/{id}")
+  @PreAuthorize(IS_ADMIN)
+  public void deleteTestPlan(@PathVariable Long projectId, @PathVariable("id") Long testPlanId) {
+    tmsTestPlanService.delete(projectId, testPlanId);
+  }
 
-    @PatchMapping("/{id}")
-    @PreAuthorize(IS_ADMIN)
-    public TmsTestPlanRS patchTestPlan(@PathVariable Long projectId,
-        @PathVariable("id") Long testPlanId,
-        @RequestBody TmsTestPlanRQ updatedTestPlan) {
-        return tmsTestPlanService.patch(projectId, testPlanId, updatedTestPlan);
-    }
+  /**
+   * Applies partial updates to an existing test plan.
+   *
+   * @param projectId  The ID of the project.
+   * @param testPlanId The ID of the test plan to patch.
+   * @param updatedTestPlan The patch data ({@link TmsTestPlanRQ}).
+   * @return The updated test plan details ({@link TmsTestPlanRS}).
+   */
+  @PatchMapping("/{id}")
+  @PreAuthorize(IS_ADMIN)
+  public TmsTestPlanRS patchTestPlan(@PathVariable Long projectId,
+      @PathVariable("id") Long testPlanId,
+      @RequestBody TmsTestPlanRQ updatedTestPlan) {
+    return tmsTestPlanService.patch(projectId, testPlanId, updatedTestPlan);
+  }
 }

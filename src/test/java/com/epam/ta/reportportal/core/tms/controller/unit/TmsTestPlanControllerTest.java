@@ -43,8 +43,8 @@ public class TmsTestPlanControllerTest {
   public void setup() {
     MockitoAnnotations.openMocks(this);
     mockMvc = standaloneSetup(testPlanController)
-            .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
-            .build();
+        .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
+        .build();
   }
 
   @Test
@@ -57,9 +57,9 @@ public class TmsTestPlanControllerTest {
     String jsonContent = mapper.writeValueAsString(tmsTestPlanRequest);
 
     mockMvc.perform(post("/project/{projectId}/tms/test-plan", projectId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(jsonContent))
-            .andExpect(status().isOk());
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isOk());
 
     verify(tmsTestPlanService).create(projectId, tmsTestPlanRequest);
   }
@@ -72,15 +72,15 @@ public class TmsTestPlanControllerTest {
     Page<TmsTestPlanRS> page = new PageImpl<>(content, pageable, content.size());
 
     given(tmsTestPlanService.getByCriteria(projectId, List.of(1L), List.of(2L), pageable))
-                                           .willReturn(page);
+        .willReturn(page);
 
     mockMvc.perform(get("/project/{projectId}/tms/test-plan", projectId)
-                    .contentType(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON)
             .param("environmentId", "1")
             .param("productVersionId", "2")
             .param("page", "0")
             .param("size", "1"))
-            .andExpect(status().isOk());
+        .andExpect(status().isOk());
 
     verify(tmsTestPlanService).getByCriteria(projectId, List.of(1L), List.of(2L), pageable);
   }
@@ -95,12 +95,12 @@ public class TmsTestPlanControllerTest {
     String jsonContent = mapper.writeValueAsString(tmsTestPlanRequest);
 
     given(tmsTestPlanService.update(projectId, testPlanId, tmsTestPlanRequest))
-                                .willReturn(testPlan);
+        .willReturn(testPlan);
 
     mockMvc.perform(put("/project/{projectId}/tms/test-plan/{testPlanId}", projectId, testPlanId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(jsonContent))
-            .andExpect(status().isOk());
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isOk());
 
     verify(tmsTestPlanService).update(projectId, testPlanId, tmsTestPlanRequest);
   }
@@ -113,8 +113,8 @@ public class TmsTestPlanControllerTest {
     given(tmsTestPlanService.getById(projectId, testPlanId)).willReturn(testPlan);
 
     mockMvc.perform(get("/project/{projectId}/tms/test-plan/{testPlanId}", projectId, testPlanId)
-                    .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk());
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
 
     verify(tmsTestPlanService).getById(projectId, testPlanId);
   }
@@ -125,8 +125,8 @@ public class TmsTestPlanControllerTest {
     Long testPlanId = 2L;
 
     mockMvc.perform(delete("/project/{projectId}/tms/test-plan/{testPlanId}", projectId, testPlanId)
-                    .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk());
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
 
     verify(tmsTestPlanService).delete(projectId, testPlanId);
   }
@@ -143,9 +143,9 @@ public class TmsTestPlanControllerTest {
     given(tmsTestPlanService.patch(projectId, testPlanId, tmsTestPlanRequest)).willReturn(testPlan);
 
     mockMvc.perform(patch("/project/{projectId}/tms/test-plan/{testPlanId}", projectId, testPlanId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(jsonContent))
-            .andExpect(status().isOk());
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isOk());
 
     verify(tmsTestPlanService).patch(projectId, testPlanId, tmsTestPlanRequest);
   }

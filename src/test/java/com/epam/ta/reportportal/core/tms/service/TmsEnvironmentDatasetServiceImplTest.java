@@ -109,12 +109,14 @@ class TmsEnvironmentDatasetServiceImplTest {
     var newEnvironmentsDatasets = new HashSet<TmsEnvironmentDataset>();
     newEnvironmentsDatasets.add(newEnvironmentDataset);
 
-    when(tmsEnvironmentDatasetMapper.convertToEnvironmentDatasets(tmsDataset, tmsEnvironmentDatasetRQs))
+    when(tmsEnvironmentDatasetMapper.convertToEnvironmentDatasets(tmsDataset,
+        tmsEnvironmentDatasetRQs))
         .thenReturn(newEnvironmentsDatasets);
 
     assertDoesNotThrow(() -> sut.addEnvironmentDataset(tmsDataset, tmsEnvironmentDatasetRQs));
 
-    verify(tmsEnvironmentDatasetMapper).convertToEnvironmentDatasets(tmsDataset, tmsEnvironmentDatasetRQs);
+    verify(tmsEnvironmentDatasetMapper).convertToEnvironmentDatasets(tmsDataset,
+        tmsEnvironmentDatasetRQs);
     verify(tmsEnvironmentDatasetRepository).saveAll(newEnvironmentsDatasets);
     assertThat(existingEnvironmentDatasets)
         .isNotNull()

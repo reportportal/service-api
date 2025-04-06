@@ -55,10 +55,10 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(tmsTestPlan);
 
     mockMvc.perform(post("/project/3/tms/test-plan")
-                    .contentType("application/json")
-                    .content(jsonContent)
-                    .with(token(oAuthHelper.getSuperadminToken())))
-            .andExpect(status().isOk());
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
 
     Optional<TmsTestPlan> testPlan = testPlanRepository.findById(1L);
 
@@ -67,7 +67,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     assertEquals(tmsTestPlan.getDescription(), testPlan.get().getDescription());
     assertEquals(tmsTestPlan.getEnvironmentId(), testPlan.get().getEnvironment().getId());
     TmsMilestone[] versionArray = testPlan.get().getMilestones()
-            .toArray(new TmsMilestone[0]);
+        .toArray(new TmsMilestone[0]);
     assertEquals(tmsTestPlan.getMilestoneIds().get(0), versionArray[0].getId());
     assertEquals(tmsTestPlan.getProductVersionId(), testPlan.get().getProductVersion().getId());
   }
@@ -82,14 +82,14 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
             .param("page", "0")
             .param("size", "1")
             .with(token(oAuthHelper.getSuperadminToken())))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.content[0].id").value(testPlan.get().getId()))
-            .andExpect(jsonPath("$.content[0].name").value(testPlan.get().getName()))
-            .andExpect(jsonPath("$.content[0].description").value(testPlan.get().getDescription()))
-            .andExpect(jsonPath("$.content[0].environment.id").value(testPlan.get()
-                                                               .getEnvironment().getId()))
-            .andExpect(jsonPath("$.content[0].productVersion.id").value(testPlan.get()
-                                                                .getProductVersion().getId()));
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].id").value(testPlan.get().getId()))
+        .andExpect(jsonPath("$.content[0].name").value(testPlan.get().getName()))
+        .andExpect(jsonPath("$.content[0].description").value(testPlan.get().getDescription()))
+        .andExpect(jsonPath("$.content[0].environment.id").value(testPlan.get()
+            .getEnvironment().getId()))
+        .andExpect(jsonPath("$.content[0].productVersion.id").value(testPlan.get()
+            .getProductVersion().getId()));
   }
 
   @Test
@@ -110,10 +110,10 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(tmsTestPlan);
 
     mockMvc.perform(put("/project/5/tms/test-plan/5")
-                    .contentType("application/json")
-                    .content(jsonContent)
-                    .with(token(oAuthHelper.getSuperadminToken())))
-                    .andExpect(status().isOk());
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
 
     Optional<TmsTestPlan> testPlan = testPlanRepository.findById(5L);
 
@@ -122,7 +122,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     assertEquals(tmsTestPlan.getDescription(), testPlan.get().getDescription());
     assertEquals(tmsTestPlan.getEnvironmentId(), testPlan.get().getEnvironment().getId());
     TmsMilestone[] versionArray = testPlan.get().getMilestones()
-            .toArray(new TmsMilestone[0]);
+        .toArray(new TmsMilestone[0]);
     assertEquals(tmsTestPlan.getMilestoneIds().get(0), versionArray[0].getId());
     assertEquals(tmsTestPlan.getProductVersionId(), testPlan.get().getProductVersion().getId());
   }
@@ -133,22 +133,22 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
 
     mockMvc.perform(get("/project/5/tms/test-plan/5")
             .with(token(oAuthHelper.getSuperadminToken())))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(testPlan.get().getId()))
-            .andExpect(jsonPath("$.name").value(testPlan.get().getName()))
-            .andExpect(jsonPath("$.description").value(testPlan.get().getDescription()))
-            .andExpect(jsonPath("$.environment.id").value(testPlan.get().getEnvironment().getId()))
-            .andExpect(jsonPath("$.productVersion.id").value(testPlan.get()
-                                                            .getProductVersion().getId()));
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(testPlan.get().getId()))
+        .andExpect(jsonPath("$.name").value(testPlan.get().getName()))
+        .andExpect(jsonPath("$.description").value(testPlan.get().getDescription()))
+        .andExpect(jsonPath("$.environment.id").value(testPlan.get().getEnvironment().getId()))
+        .andExpect(jsonPath("$.productVersion.id").value(testPlan.get()
+            .getProductVersion().getId()));
   }
 
   @Test
   void deleteTestPlanIntegrationTest() throws Exception {
 
     mockMvc.perform(delete("/project/6/tms/test-plan/6")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .with(token(oAuthHelper.getSuperadminToken())))
-                    .andExpect(status().isOk());
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
 
     assertFalse(testPlanRepository.findById(6L).isPresent());
   }
@@ -171,10 +171,10 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(tmsTestPlan);
 
     mockMvc.perform(patch("/project/5/tms/test-plan/5")
-                    .contentType("application/json")
-                    .content(jsonContent)
-                    .with(token(oAuthHelper.getSuperadminToken())))
-                    .andExpect(status().isOk());
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
 
     Optional<TmsTestPlan> testPlan = testPlanRepository.findById(5L);
 
@@ -183,7 +183,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     assertEquals(tmsTestPlan.getDescription(), testPlan.get().getDescription());
     assertEquals(tmsTestPlan.getEnvironmentId(), testPlan.get().getEnvironment().getId());
     TmsMilestone[] versionArray = testPlan.get().getMilestones()
-            .toArray(new TmsMilestone[0]);
+        .toArray(new TmsMilestone[0]);
     assertEquals(tmsTestPlan.getMilestoneIds().get(0), versionArray[0].getId());
     assertEquals(tmsTestPlan.getProductVersionId(), testPlan.get().getProductVersion().getId());
   }

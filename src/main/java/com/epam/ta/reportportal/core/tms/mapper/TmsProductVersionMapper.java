@@ -8,9 +8,9 @@ import org.mapstruct.Mapping;
 
 @Mapper(config = CommonMapperConfig.class)
 public abstract class TmsProductVersionMapper implements DtoMapper<TmsProductVersion,
-                                                                   TmsProductVersionRS> {
+    TmsProductVersionRS> {
 
-    @Mapping(target = "id", source = "tmsProductVersionId")
-    public abstract TmsProductVersion convertToTmsProductVersion(Long tmsProductVersionId);
+  @Mapping(target = "id", source = "tmsProductVersionId")
+  public abstract TmsProductVersion convertToTmsProductVersion(Long tmsProductVersionId);
 
 }

@@ -22,30 +22,30 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TmsAttachment implements Serializable {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
-    
-    @Column(name = "file_name")
-    private String fileName;
-    
-    @Column(name = "file_type")
-    private String fileType;
-    
-    @Column(name = "file_size")
-    private long fileSize;
-    
-    @Column(name = "path_to_file")
-    private String pathToFile;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "step_id")
-    private TmsStep step;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "environment_id")
-    private TmsEnvironment environment;
-    
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
+  private Long id;
+
+  @Column(name = "file_name")
+  private String fileName;
+
+  @Column(name = "file_type")
+  private String fileType;
+
+  @Column(name = "file_size")
+  private long fileSize;
+
+  @Column(name = "path_to_file")
+  private String pathToFile;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "step_id")
+  private TmsStep step;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "environment_id")
+  private TmsEnvironment environment;
+
 }

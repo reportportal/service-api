@@ -17,28 +17,28 @@ import org.springframework.data.domain.PageImpl;
     TmsProductVersionMapper.class})
 public abstract class TmsTestPlanMapper {
 
-    public abstract TmsTestPlanRS convertToRS(TmsTestPlan tmsTestPlan);
+  public abstract TmsTestPlanRS convertToRS(TmsTestPlan tmsTestPlan);
 
-    @Mapping(target = "project.id", source = "projectId")
-    @Mapping(target = "environment", source = "testPlanRQ.environmentId")
-    @Mapping(target = "productVersion", source = "testPlanRQ.productVersionId")
-    @Mapping(target = "milestones", ignore = true)
-    @Mapping(target = "attributes", ignore = true)
-    public abstract TmsTestPlan convertFromRQ(Long projectId, TmsTestPlanRQ testPlanRQ);
+  @Mapping(target = "project.id", source = "projectId")
+  @Mapping(target = "environment", source = "testPlanRQ.environmentId")
+  @Mapping(target = "productVersion", source = "testPlanRQ.productVersionId")
+  @Mapping(target = "milestones", ignore = true)
+  @Mapping(target = "attributes", ignore = true)
+  public abstract TmsTestPlan convertFromRQ(Long projectId, TmsTestPlanRQ testPlanRQ);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL, nullValueCheckStrategy = NullValueCheckStrategy.ON_IMPLICIT_CONVERSION)
-    @Mapping(target = "id", ignore = true)
-    public abstract void update(@MappingTarget TmsTestPlan targetTestPlan, TmsTestPlan tmsTestPlan);
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL, nullValueCheckStrategy = NullValueCheckStrategy.ON_IMPLICIT_CONVERSION)
+  @Mapping(target = "id", ignore = true)
+  public abstract void update(@MappingTarget TmsTestPlan targetTestPlan, TmsTestPlan tmsTestPlan);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE, nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
-    @Mapping(target = "id", ignore = true)
-    public abstract void patch(@MappingTarget TmsTestPlan existingTestPlan,
-        TmsTestPlan tmsTestPlan);
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE, nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+  @Mapping(target = "id", ignore = true)
+  public abstract void patch(@MappingTarget TmsTestPlan existingTestPlan,
+      TmsTestPlan tmsTestPlan);
 
-    public Page<TmsTestPlanRS> convertToRS(Page<TmsTestPlan> testPlansByCriteria) {
-        var content = testPlansByCriteria.map(this::convertToRS).getContent();
-        return new PageImpl<>(content, testPlansByCriteria.getPageable(),
-            testPlansByCriteria.getTotalElements());
-    }
+  public Page<TmsTestPlanRS> convertToRS(Page<TmsTestPlan> testPlansByCriteria) {
+    var content = testPlansByCriteria.map(this::convertToRS).getContent();
+    return new PageImpl<>(content, testPlansByCriteria.getPageable(),
+        testPlansByCriteria.getTotalElements());
+  }
 
 }

@@ -10,6 +10,6 @@ import org.springframework.stereotype.Repository;
 public interface TmsTestPlanAttributeRepository
     extends ReportPortalRepository<TmsTestPlanAttribute, TmsTestPlanAttributeId> {
 
-    @Modifying
-    void deleteAllById_TestPlanId(Long testPlanId);
+  @Modifying
+  void deleteAllById_TestPlanId(Long testPlanId);
 }

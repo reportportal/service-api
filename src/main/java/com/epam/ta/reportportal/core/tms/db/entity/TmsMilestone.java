@@ -22,28 +22,28 @@ import lombok.Setter;
 @AllArgsConstructor
 public class TmsMilestone {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
+  private Long id;
 
-    @Column(name = "name")
-    private String name;
+  @Column(name = "name")
+  private String name;
 
-    @Column(name = "type")
-    private String type;
+  @Column(name = "type")
+  private String type;
 
-    @Column(name = "start_date", columnDefinition = "TIMESTAMP")
-    private LocalDateTime startDate;
+  @Column(name = "start_date", columnDefinition = "TIMESTAMP")
+  private LocalDateTime startDate;
 
-    @Column(name = "end_date", columnDefinition = "TIMESTAMP")
-    private LocalDateTime endDate;
+  @Column(name = "end_date", columnDefinition = "TIMESTAMP")
+  private LocalDateTime endDate;
 
-    @ManyToOne
-    @JoinColumn(name = "product_version_id", nullable = false)
-    private TmsProductVersion productVersion;
+  @ManyToOne
+  @JoinColumn(name = "product_version_id", nullable = false)
+  private TmsProductVersion productVersion;
 
-    @ManyToOne
-    @JoinColumn(name = "test_plan_id")
-    private TmsTestPlan testPlan;
+  @ManyToOne
+  @JoinColumn(name = "test_plan_id")
+  private TmsTestPlan testPlan;
 }

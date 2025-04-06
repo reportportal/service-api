@@ -23,28 +23,28 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TmsManualScenario {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
-    
-    @Column(name = "execution_estimation_time")
-    private Integer executionEstimationTime;
-    
-    @Column(name = "link_to_requirements")
-    private String linkToRequirements;
-    
-    @Column(name = "preconditions")
-    private String preconditions;
-    
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "test_case_version_id")
-    private TmsTestCaseVersion testCaseVersion;
-    
-    @OneToMany(mappedBy = "manualScenario")
-    private Set<TmsManualScenarioAttribute> attributes;
-    
-    @OneToMany(mappedBy = "manualScenario")
-    private Set<TmsStep> steps;
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
+  private Long id;
+
+  @Column(name = "execution_estimation_time")
+  private Integer executionEstimationTime;
+
+  @Column(name = "link_to_requirements")
+  private String linkToRequirements;
+
+  @Column(name = "preconditions")
+  private String preconditions;
+
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "test_case_version_id")
+  private TmsTestCaseVersion testCaseVersion;
+
+  @OneToMany(mappedBy = "manualScenario")
+  private Set<TmsManualScenarioAttribute> attributes;
+
+  @OneToMany(mappedBy = "manualScenario")
+  private Set<TmsStep> steps;
 }

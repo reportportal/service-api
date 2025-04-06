@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPlanRS, Long> {
 
-    Page<TmsTestPlanRS> getByCriteria(Long projectId, List<Long> environmentIds,
-        List<Long> productVersionIds,
-        Pageable pageable);
+  Page<TmsTestPlanRS> getByCriteria(Long projectId, List<Long> environmentIds,
+      List<Long> productVersionIds,
+      Pageable pageable);
 }

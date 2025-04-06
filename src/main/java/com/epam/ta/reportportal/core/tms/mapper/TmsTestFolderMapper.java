@@ -7,4 +7,5 @@ import org.mapstruct.Mapper;
 
 @Mapper(config = CommonMapperConfig.class)
 public abstract class TmsTestFolderMapper implements DtoMapper<TmsTestFolder, TestFolderRS> {
+
 }

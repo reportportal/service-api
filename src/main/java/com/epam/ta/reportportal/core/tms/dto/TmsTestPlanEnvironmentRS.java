@@ -7,7 +7,7 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TmsTestPlanEnvironmentRS {
 
-    private Long id;
+  private Long id;
 
-    private String name;
+  private String name;
 }

@@ -25,28 +25,28 @@ import lombok.Setter;
 @AllArgsConstructor
 public class TmsTestCase implements Serializable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
+  private Long id;
 
-    @Column(name = "name")
-    private String name;
+  @Column(name = "name")
+  private String name;
 
-    @Column(name = "description")
-    private String description;
+  @Column(name = "description")
+  private String description;
 
-    @OneToMany(mappedBy = "testCase")
-    private Set<TmsTestCaseAttribute> tags;
+  @OneToMany(mappedBy = "testCase")
+  private Set<TmsTestCaseAttribute> tags;
 
-    @OneToMany(mappedBy = "testCase")
-    private Set<TmsTestCaseVersion> versions;
+  @OneToMany(mappedBy = "testCase")
+  private Set<TmsTestCaseVersion> versions;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "test_folder_id", nullable = false)
-    private TmsTestFolder testFolder;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "test_folder_id", nullable = false)
+  private TmsTestFolder testFolder;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "dataset_id")
-    private TmsDataset dataset;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "dataset_id")
+  private TmsDataset dataset;
 }

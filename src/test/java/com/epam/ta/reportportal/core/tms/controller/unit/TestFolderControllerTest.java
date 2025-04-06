@@ -50,9 +50,9 @@ public class TestFolderControllerTest {
     given(testFolderService.createFolder(projectId, request)).willReturn(expectedResponse);
 
     mockMvc.perform(post("/project/{projectId}/tms/folder", projectId)
-                        .contentType("application/json")
-                        .content(jsonContent))
-                .andExpect(status().isOk());
+            .contentType("application/json")
+            .content(jsonContent))
+        .andExpect(status().isOk());
 
     verify(testFolderService).createFolder(projectId, request);
   }
@@ -67,12 +67,12 @@ public class TestFolderControllerTest {
     String jsonContent = mapper.writeValueAsString(request);
 
     given(testFolderService.updateFolder(projectId, folderId, request))
-             .willReturn(expectedResponse);
+        .willReturn(expectedResponse);
 
     mockMvc.perform(put("/project/{projectId}/tms/folder/{folderId}", projectId, folderId)
-                        .contentType("application/json")
-                        .content(jsonContent))
-                .andExpect(status().isOk());
+            .contentType("application/json")
+            .content(jsonContent))
+        .andExpect(status().isOk());
 
     verify(testFolderService).updateFolder(projectId, folderId, request);
   }
@@ -86,7 +86,7 @@ public class TestFolderControllerTest {
     given(testFolderService.getFolderById(folderId)).willReturn(expectedResponse);
 
     mockMvc.perform(get("/project/{projectId}/tms/folder/{folderId}", projectId, folderId))
-                .andExpect(status().isOk());
+        .andExpect(status().isOk());
 
     verify(testFolderService).getFolderById(folderId);
   }
@@ -101,9 +101,9 @@ public class TestFolderControllerTest {
     given(testFolderService.getFolderByProjectID(projectId)).willReturn(expectedResponse);
 
     mockMvc.perform(get("/project/{projectId}/tms/folder/", projectId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(2));
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").isArray())
+        .andExpect(jsonPath("$.length()").value(2));
 
     verify(testFolderService).getFolderByProjectID(projectId);
   }

@@ -14,56 +14,56 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class TmsMilestoneServiceImpl implements TmsMilestoneService {
 
-    private final TmsMilestoneMapper tmsMilestoneMapper;
-    private final TmsMilestoneRepository tmsMilestoneRepository;
+  private final TmsMilestoneMapper tmsMilestoneMapper;
+  private final TmsMilestoneRepository tmsMilestoneRepository;
 
-    @Override
-    @Transactional
-    public void createTestPlanMilestones(TmsTestPlan tmsTestPlan, List<Long> milestoneIds) {
-        if (isEmpty(milestoneIds)) {
-            return;
-        }
-        var milestones = tmsMilestoneMapper.convertToTmsMilestones(milestoneIds);
-        milestones.forEach(milestone -> {
-            milestone.setTestPlan(tmsTestPlan);
-            tmsMilestoneRepository.attachTestPlanToMilestone(tmsTestPlan, milestone.getId());
-        });
-        tmsTestPlan.setMilestones(milestones);
+  @Override
+  @Transactional
+  public void createTestPlanMilestones(TmsTestPlan tmsTestPlan, List<Long> milestoneIds) {
+    if (isEmpty(milestoneIds)) {
+      return;
     }
+    var milestones = tmsMilestoneMapper.convertToTmsMilestones(milestoneIds);
+    milestones.forEach(milestone -> {
+      milestone.setTestPlan(tmsTestPlan);
+      tmsMilestoneRepository.attachTestPlanToMilestone(tmsTestPlan, milestone.getId());
+    });
+    tmsTestPlan.setMilestones(milestones);
+  }
 
-    @Override
-    @Transactional
-    public void patchTestPlanMilestones(TmsTestPlan tmsTestPlan, List<Long> milestoneIds) {
-        if (isEmpty(milestoneIds)) {
-            return;
-        }
-        var milestones = tmsMilestoneMapper.convertToTmsMilestones(milestoneIds);
-        milestones.forEach(milestone -> {
-            milestone.setTestPlan(tmsTestPlan);
-            tmsMilestoneRepository.attachTestPlanToMilestone(tmsTestPlan, milestone.getId());
-        });
-        tmsTestPlan.getMilestones().addAll(milestones);
+  @Override
+  @Transactional
+  public void patchTestPlanMilestones(TmsTestPlan tmsTestPlan, List<Long> milestoneIds) {
+    if (isEmpty(milestoneIds)) {
+      return;
     }
+    var milestones = tmsMilestoneMapper.convertToTmsMilestones(milestoneIds);
+    milestones.forEach(milestone -> {
+      milestone.setTestPlan(tmsTestPlan);
+      tmsMilestoneRepository.attachTestPlanToMilestone(tmsTestPlan, milestone.getId());
+    });
+    tmsTestPlan.getMilestones().addAll(milestones);
+  }
 
-    @Override
-    @Transactional
-    public void updateTestPlanMilestones(TmsTestPlan tmsTestPlan, List<Long> milestoneIds) {
-        if (isEmpty(milestoneIds)) {
-            return;
-        }
-        tmsMilestoneRepository.detachTestPlanFromMilestones(tmsTestPlan.getId());
-        var milestones = tmsMilestoneMapper.convertToTmsMilestones(milestoneIds);
-        milestones.forEach(milestone -> {
-            milestone.setTestPlan(tmsTestPlan);
-            tmsMilestoneRepository.attachTestPlanToMilestone(tmsTestPlan, milestone.getId());
-        });
-        tmsTestPlan.setMilestones(milestones);
+  @Override
+  @Transactional
+  public void updateTestPlanMilestones(TmsTestPlan tmsTestPlan, List<Long> milestoneIds) {
+    if (isEmpty(milestoneIds)) {
+      return;
     }
+    tmsMilestoneRepository.detachTestPlanFromMilestones(tmsTestPlan.getId());
+    var milestones = tmsMilestoneMapper.convertToTmsMilestones(milestoneIds);
+    milestones.forEach(milestone -> {
+      milestone.setTestPlan(tmsTestPlan);
+      tmsMilestoneRepository.attachTestPlanToMilestone(tmsTestPlan, milestone.getId());
+    });
+    tmsTestPlan.setMilestones(milestones);
+  }
 
-    @Override
-    @Transactional
-    public void detachTestPlanFromMilestones(Long testPlanId) {
-        tmsMilestoneRepository.detachTestPlanFromMilestones(testPlanId);
-    }
+  @Override
+  @Transactional
+  public void detachTestPlanFromMilestones(Long testPlanId) {
+    tmsMilestoneRepository.detachTestPlanFromMilestones(testPlanId);
+  }
 
 }

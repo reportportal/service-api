@@ -17,6 +17,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controller for managing product versions within a project. Each endpoint
+ * in this controller is secured and requires the user to have administrator
+ * privileges. Operations supported include creating, retrieving, updating,
+ * and deleting product versions associated with a specific project.
+ */
 @RestController
 @RequestMapping("/project/{projectId}/tms/productversion")
 @Tag(name = "Product Version", description = "Product Version API collection")
@@ -25,32 +31,62 @@ public class ProductVersionController {
 
   private final ProductVersionService productVersionService;
 
+  /**
+   * Retrieves a specific product version by its ID within a project.
+   *
+   * @param projectId        The ID of the project to which the product version belongs.
+   * @param productVersionId The ID of the product version to retrieve.
+   * @return A data transfer object ({@link TmsProductVersionRS}) containing details of the product version.
+   */
   @PreAuthorize(IS_ADMIN)
   @GetMapping("/{productVersionId}")
   TmsProductVersionRS getById(@PathVariable("projectId") final long projectId,
-                             @PathVariable("productVersionId") final long productVersionId) {
+      @PathVariable("productVersionId") final long productVersionId) {
     return productVersionService.getById(projectId, productVersionId);
   }
 
+  /**
+   * Creates a new product version in the specified project.
+   *
+   * @param projectId The ID of the project to which the new product version will be added.
+   * @param inputDto  A request payload ({@link ProductVersionRQ}) containing information
+   *                  about the product version to create.
+   * @return A data transfer object ({@link TmsProductVersionRS}) with details of the created product version.
+   */
   @PreAuthorize(IS_ADMIN)
   @PostMapping
   TmsProductVersionRS createVersion(@PathVariable("projectId") final long projectId,
-                                   @RequestBody final ProductVersionRQ inputDto) {
+      @RequestBody final ProductVersionRQ inputDto) {
     return productVersionService.create(projectId, inputDto);
   }
 
+  /**
+   * Updates the details of an existing product version in a project.
+   *
+   * @param projectId        The ID of the project to which the product version belongs.
+   * @param productVersionId The ID of the product version to update.
+   * @param inputDto         A request payload ({@link ProductVersionRQ}) containing updated information
+   *                         for the product version.
+   * @return A data transfer object ({@link TmsProductVersionRS}) with updated details of the product version.
+   */
   @PreAuthorize(IS_ADMIN)
   @PutMapping("/{productVersionId}")
   TmsProductVersionRS updateVersion(@PathVariable("projectId") final long projectId,
-                                 @PathVariable("productVersionId") final long productVersionId,
-                                 @RequestBody final ProductVersionRQ inputDto) {
+      @PathVariable("productVersionId") final long productVersionId,
+      @RequestBody final ProductVersionRQ inputDto) {
     return productVersionService.update(projectId, productVersionId, inputDto);
   }
 
+  /**
+   * Deletes a specific product version from a project.
+   *
+   * @param projectId        The ID of the project to which the product version belongs.
+   * @param productVersionId The ID of the product version to delete.
+   */
   @PreAuthorize(IS_ADMIN)
   @DeleteMapping("/{productVersionId}")
   void deleteVersion(@PathVariable("projectId") final long projectId,
-                     @PathVariable("productVersionId") final long productVersionId) {
+      @PathVariable("productVersionId") final long productVersionId) {
     productVersionService.delete(projectId, productVersionId);
   }
 }

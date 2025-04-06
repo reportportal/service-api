@@ -10,8 +10,8 @@ import org.mapstruct.Mapping;
 @Mapper(config = CommonMapperConfig.class)
 public abstract class TmsMilestoneMapper {
 
-    public abstract Set<TmsMilestone> convertToTmsMilestones(List<Long> milestoneIds);
+  public abstract Set<TmsMilestone> convertToTmsMilestones(List<Long> milestoneIds);
 
-    @Mapping(target = "id", source = "tmsMilestoneId")
-    protected abstract TmsMilestone convertToTmsMilestone(Long tmsMilestoneId);
+  @Mapping(target = "id", source = "tmsMilestoneId")
+  protected abstract TmsMilestone convertToTmsMilestone(Long tmsMilestoneId);
 }

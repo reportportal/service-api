@@ -25,116 +25,116 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class TmsTestPlanAttributeServiceImplTest {
 
-    @Mock
-    private TmsTestPlanAttributeMapper tmsTestPlanAttributeMapper;
+  @Mock
+  private TmsTestPlanAttributeMapper tmsTestPlanAttributeMapper;
 
-    @Mock
-    private TmsTestPlanAttributeRepository tmsTestPlanAttributeRepository;
+  @Mock
+  private TmsTestPlanAttributeRepository tmsTestPlanAttributeRepository;
 
-    @InjectMocks
-    private TmsTestPlanAttributeServiceImpl sut;
+  @InjectMocks
+  private TmsTestPlanAttributeServiceImpl sut;
 
-    @Test
-    void shouldNotCreateTestPlanAttributesWhenEmptyAttributes() {
-        var tmsTestPlan = new TmsTestPlan();
-        List<TmsTestPlanAttributeRQ> attributes = Collections.emptyList();
+  @Test
+  void shouldNotCreateTestPlanAttributesWhenEmptyAttributes() {
+    var tmsTestPlan = new TmsTestPlan();
+    List<TmsTestPlanAttributeRQ> attributes = Collections.emptyList();
 
-        assertDoesNotThrow(() -> sut.createTestPlanAttributes(tmsTestPlan, attributes));
+    assertDoesNotThrow(() -> sut.createTestPlanAttributes(tmsTestPlan, attributes));
 
-        // Assert
-        verifyNoInteractions(tmsTestPlanAttributeMapper, tmsTestPlanAttributeRepository);
-    }
+    // Assert
+    verifyNoInteractions(tmsTestPlanAttributeMapper, tmsTestPlanAttributeRepository);
+  }
 
-    @Test
-    void shouldCreateTestPlanAttributes() {
-        var tmsTestPlan = new TmsTestPlan();
-        var attributesRQ = List.of(new TmsTestPlanAttributeRQ(), new TmsTestPlanAttributeRQ());
-        var attributes = new HashSet<TmsTestPlanAttribute>();
-        attributes.add(new TmsTestPlanAttribute());
-        attributes.add(new TmsTestPlanAttribute());
+  @Test
+  void shouldCreateTestPlanAttributes() {
+    var tmsTestPlan = new TmsTestPlan();
+    var attributesRQ = List.of(new TmsTestPlanAttributeRQ(), new TmsTestPlanAttributeRQ());
+    var attributes = new HashSet<TmsTestPlanAttribute>();
+    attributes.add(new TmsTestPlanAttribute());
+    attributes.add(new TmsTestPlanAttribute());
 
-        when(tmsTestPlanAttributeMapper.convertToTmsTestPlanAttributes(attributesRQ)).thenReturn(
-            attributes);
+    when(tmsTestPlanAttributeMapper.convertToTmsTestPlanAttributes(attributesRQ)).thenReturn(
+        attributes);
 
-        // Act
-        assertDoesNotThrow(() -> sut.createTestPlanAttributes(tmsTestPlan, attributesRQ));
+    // Act
+    assertDoesNotThrow(() -> sut.createTestPlanAttributes(tmsTestPlan, attributesRQ));
 
-        // Assert
-        assertEquals(attributes, tmsTestPlan.getAttributes());
-        attributes.forEach(attribute -> assertEquals(tmsTestPlan, attribute.getTestPlan()));
+    // Assert
+    assertEquals(attributes, tmsTestPlan.getAttributes());
+    attributes.forEach(attribute -> assertEquals(tmsTestPlan, attribute.getTestPlan()));
 
-        verify(tmsTestPlanAttributeMapper).convertToTmsTestPlanAttributes(attributesRQ);
-        verify(tmsTestPlanAttributeRepository).saveAll(attributes);
-    }
+    verify(tmsTestPlanAttributeMapper).convertToTmsTestPlanAttributes(attributesRQ);
+    verify(tmsTestPlanAttributeRepository).saveAll(attributes);
+  }
 
-    @Test
-    void shouldRemoveAllTestPlanAttributesWhenEmptyAttributes() {
-        var existingTestPlan = new TmsTestPlan();
-        List<TmsTestPlanAttributeRQ> attributes = Collections.emptyList();
+  @Test
+  void shouldRemoveAllTestPlanAttributesWhenEmptyAttributes() {
+    var existingTestPlan = new TmsTestPlan();
+    List<TmsTestPlanAttributeRQ> attributes = Collections.emptyList();
 
-        assertDoesNotThrow(() -> sut.updateTestPlanAttributes(existingTestPlan, attributes));
+    assertDoesNotThrow(() -> sut.updateTestPlanAttributes(existingTestPlan, attributes));
 
-        verify(tmsTestPlanAttributeRepository).deleteAllById_TestPlanId(existingTestPlan.getId());
-        verifyNoInteractions(tmsTestPlanAttributeMapper);
-    }
+    verify(tmsTestPlanAttributeRepository).deleteAllById_TestPlanId(existingTestPlan.getId());
+    verifyNoInteractions(tmsTestPlanAttributeMapper);
+  }
 
-    @Test
-    void shouldTestUpdateTestPlanAttributes() {
-        var existingTestPlan = new TmsTestPlan();
-        var attributesRQ = List.of(new TmsTestPlanAttributeRQ(), new TmsTestPlanAttributeRQ());
-        var attributes = new HashSet<TmsTestPlanAttribute>();
-        attributes.add(new TmsTestPlanAttribute());
-        attributes.add(new TmsTestPlanAttribute());
+  @Test
+  void shouldTestUpdateTestPlanAttributes() {
+    var existingTestPlan = new TmsTestPlan();
+    var attributesRQ = List.of(new TmsTestPlanAttributeRQ(), new TmsTestPlanAttributeRQ());
+    var attributes = new HashSet<TmsTestPlanAttribute>();
+    attributes.add(new TmsTestPlanAttribute());
+    attributes.add(new TmsTestPlanAttribute());
 
-        when(tmsTestPlanAttributeMapper.convertToTmsTestPlanAttributes(attributesRQ)).thenReturn(
-            attributes);
+    when(tmsTestPlanAttributeMapper.convertToTmsTestPlanAttributes(attributesRQ)).thenReturn(
+        attributes);
 
-        assertDoesNotThrow(() -> sut.updateTestPlanAttributes(existingTestPlan, attributesRQ));
+    assertDoesNotThrow(() -> sut.updateTestPlanAttributes(existingTestPlan, attributesRQ));
 
-        verify(tmsTestPlanAttributeRepository).deleteAllById_TestPlanId(existingTestPlan.getId());
-        assertEquals(attributes, existingTestPlan.getAttributes());
-        attributes.forEach(attribute -> assertEquals(existingTestPlan, attribute.getTestPlan()));
+    verify(tmsTestPlanAttributeRepository).deleteAllById_TestPlanId(existingTestPlan.getId());
+    assertEquals(attributes, existingTestPlan.getAttributes());
+    attributes.forEach(attribute -> assertEquals(existingTestPlan, attribute.getTestPlan()));
 
-        verify(tmsTestPlanAttributeMapper).convertToTmsTestPlanAttributes(attributesRQ);
-        verify(tmsTestPlanAttributeRepository).saveAll(attributes);
-    }
+    verify(tmsTestPlanAttributeMapper).convertToTmsTestPlanAttributes(attributesRQ);
+    verify(tmsTestPlanAttributeRepository).saveAll(attributes);
+  }
 
-    @Test
-    void shouldNotPatchTestPlanAttributesWhenEmptyAttributes() {
-        var existingTestPlan = new TmsTestPlan();
-        var existingAttributes = Set.of(new TmsTestPlanAttribute());
-        existingTestPlan.setAttributes(existingAttributes);
+  @Test
+  void shouldNotPatchTestPlanAttributesWhenEmptyAttributes() {
+    var existingTestPlan = new TmsTestPlan();
+    var existingAttributes = Set.of(new TmsTestPlanAttribute());
+    existingTestPlan.setAttributes(existingAttributes);
 
-        List<TmsTestPlanAttributeRQ> attributes = Collections.emptyList();
+    List<TmsTestPlanAttributeRQ> attributes = Collections.emptyList();
 
-        assertDoesNotThrow(() -> sut.patchTestPlanAttributes(existingTestPlan, attributes));
+    assertDoesNotThrow(() -> sut.patchTestPlanAttributes(existingTestPlan, attributes));
 
-        // Ensure no modifications are made
-        assertEquals(existingAttributes, existingTestPlan.getAttributes());
-        verifyNoInteractions(tmsTestPlanAttributeMapper, tmsTestPlanAttributeRepository);
-    }
+    // Ensure no modifications are made
+    assertEquals(existingAttributes, existingTestPlan.getAttributes());
+    verifyNoInteractions(tmsTestPlanAttributeMapper, tmsTestPlanAttributeRepository);
+  }
 
-    @Test
-    void shouldPatchTestPlanAttributes() {
-        var existingTestPlan = new TmsTestPlan();
-        Set<TmsTestPlanAttribute> existingAttributes = new HashSet<>();
-        existingAttributes.add(new TmsTestPlanAttribute());
-        existingTestPlan.setAttributes(existingAttributes);
+  @Test
+  void shouldPatchTestPlanAttributes() {
+    var existingTestPlan = new TmsTestPlan();
+    Set<TmsTestPlanAttribute> existingAttributes = new HashSet<>();
+    existingAttributes.add(new TmsTestPlanAttribute());
+    existingTestPlan.setAttributes(existingAttributes);
 
-        var attributesRQ = List.of(new TmsTestPlanAttributeRQ(), new TmsTestPlanAttributeRQ());
-        var newAttributes = new HashSet<TmsTestPlanAttribute>();
-        newAttributes.add(new TmsTestPlanAttribute());
-        newAttributes.add(new TmsTestPlanAttribute());
+    var attributesRQ = List.of(new TmsTestPlanAttributeRQ(), new TmsTestPlanAttributeRQ());
+    var newAttributes = new HashSet<TmsTestPlanAttribute>();
+    newAttributes.add(new TmsTestPlanAttribute());
+    newAttributes.add(new TmsTestPlanAttribute());
 
-        when(tmsTestPlanAttributeMapper.convertToTmsTestPlanAttributes(attributesRQ)).thenReturn(
-            newAttributes);
+    when(tmsTestPlanAttributeMapper.convertToTmsTestPlanAttributes(attributesRQ)).thenReturn(
+        newAttributes);
 
-        assertDoesNotThrow(() -> sut.patchTestPlanAttributes(existingTestPlan, attributesRQ));
+    assertDoesNotThrow(() -> sut.patchTestPlanAttributes(existingTestPlan, attributesRQ));
 
-        assertTrue(existingTestPlan.getAttributes().containsAll(newAttributes));
-        newAttributes.forEach(attribute -> assertEquals(existingTestPlan, attribute.getTestPlan()));
+    assertTrue(existingTestPlan.getAttributes().containsAll(newAttributes));
+    newAttributes.forEach(attribute -> assertEquals(existingTestPlan, attribute.getTestPlan()));
 
-        verify(tmsTestPlanAttributeMapper).convertToTmsTestPlanAttributes(attributesRQ);
-        verify(tmsTestPlanAttributeRepository).saveAll(newAttributes);
-    }
+    verify(tmsTestPlanAttributeMapper).convertToTmsTestPlanAttributes(attributesRQ);
+    verify(tmsTestPlanAttributeRepository).saveAll(newAttributes);
+  }
 }

@@ -11,5 +11,5 @@ public interface ProductVersionRepository extends ReportPortalRepository<TmsProd
   Optional<TmsProductVersion> findByProjectIdAndId(Long projectId, Long id);
 
   void deleteByIdAndProjectId(Long id, Long projectId);
-    
+
 }

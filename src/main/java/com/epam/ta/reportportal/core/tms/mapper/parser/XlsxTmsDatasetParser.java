@@ -51,7 +51,8 @@ public class XlsxTmsDatasetParser implements TmsDatasetParser {
     return datasetMap
         .entrySet()
         .stream()
-        .map(dataset -> TmsDatasetRQ.builder().name(dataset.getKey()).attributes(dataset.getValue()).build())
+        .map(dataset -> TmsDatasetRQ.builder().name(dataset.getKey()).attributes(dataset.getValue())
+            .build())
         .toList();
   }
 

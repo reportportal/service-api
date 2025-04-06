@@ -13,9 +13,9 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TmsManualScenarioRS {
 
-    private Long id;
+  private Long id;
 
-    private String name;
+  private String name;
 
-    private String description;
+  private String description;
 }

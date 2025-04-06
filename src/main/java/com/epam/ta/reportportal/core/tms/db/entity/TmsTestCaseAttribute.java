@@ -20,23 +20,23 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TmsTestCaseAttribute implements Serializable {
-    
-    @EmbeddedId
-    private TmsTestCaseAttributeId id;
-    
-    @ManyToOne
-    @MapsId(value = "testCaseId")
-    @JoinColumn(name = "test_case_id")
-    private TmsTestCase testCase;
-    
-    @ManyToOne
-    @MapsId(value = "attributeId")
-    @JoinColumn(name = "attribute_id")
-    private TmsAttribute attribute;
-    
-    // TODO: Do we need this field for test case?
-    @Column(name = "value")
-    private String value;
-    
-    //TODO: override equals and hashCode methods
+
+  @EmbeddedId
+  private TmsTestCaseAttributeId id;
+
+  @ManyToOne
+  @MapsId(value = "testCaseId")
+  @JoinColumn(name = "test_case_id")
+  private TmsTestCase testCase;
+
+  @ManyToOne
+  @MapsId(value = "attributeId")
+  @JoinColumn(name = "attribute_id")
+  private TmsAttribute attribute;
+
+  // TODO: Do we need this field for test case?
+  @Column(name = "value")
+  private String value;
+
+  //TODO: override equals and hashCode methods
 }

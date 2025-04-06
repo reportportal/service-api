@@ -13,13 +13,13 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TmsTestCaseVersionRS {
 
-    private Long id;
+  private Long id;
 
-    private String name;
+  private String name;
 
-    private Boolean isDefault;
+  private Boolean isDefault;
 
-    private Boolean isDraft;
+  private Boolean isDraft;
 
-    private TmsManualScenarioRS manualScenario;
+  private TmsManualScenarioRS manualScenario;
 }

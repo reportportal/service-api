@@ -50,5 +50,5 @@ public class ProductVersionServiceImpl implements ProductVersionService {
     return productVersionRepository.findByProjectIdAndId(projectId, id)
         .map(productVersionMapper::convert)
         .orElseThrow(NotFoundException.supplier(VERSION_NOT_FOUND_BY_ID, id));
- }
+  }
 }

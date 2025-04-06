@@ -20,20 +20,20 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TmsTestPlanAttribute implements Serializable {
-    
-    @EmbeddedId
-    private TmsTestPlanAttributeId id;
-    
-    @ManyToOne
-    @MapsId(value = "testPlanId")
-    @JoinColumn(name = "test_plan_id")
-    private TmsTestPlan testPlan;
-    
-    @ManyToOne
-    @MapsId(value = "attributeId")
-    @JoinColumn(name = "attribute_id")
-    private TmsAttribute attribute;
-    
-    @Column(name = "value")
-    private String value;
+
+  @EmbeddedId
+  private TmsTestPlanAttributeId id;
+
+  @ManyToOne
+  @MapsId(value = "testPlanId")
+  @JoinColumn(name = "test_plan_id")
+  private TmsTestPlan testPlan;
+
+  @ManyToOne
+  @MapsId(value = "attributeId")
+  @JoinColumn(name = "attribute_id")
+  private TmsAttribute attribute;
+
+  @Column(name = "value")
+  private String value;
 }

@@ -7,7 +7,7 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TmsAttributeRS {
 
-    private Long id;
+  private Long id;
 
-    private String key;
+  private String key;
 }

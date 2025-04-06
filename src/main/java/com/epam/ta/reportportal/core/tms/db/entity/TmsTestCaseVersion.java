@@ -21,40 +21,40 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class TmsTestCaseVersion implements Serializable {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
-    
-    @Column(name = "name")
-    private String name;
-    
-    @Column(name = "is_default")
-    private boolean isDefault;
-    
-    @Column(name = "is_draft")
-    private boolean isDraft;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "test_case_id")
-    private TmsTestCase testCase;
-    
-    @OneToOne(mappedBy = "testCaseVersion", fetch = FetchType.LAZY)
-    private TmsManualScenario manualScenario;
-    
-    public TmsTestCaseVersion(final Long id,
-                           final String name,
-                           final boolean isDefault,
-                           final boolean isDraft,
-                           final TmsManualScenario manualScenario) {
-        this.id = id;
-        this.name = name;
-        this.isDefault = isDefault;
-        this.isDraft = isDraft;
-        this.manualScenario = manualScenario;
-    }
-    
-    //TODO: override equals and hashCode methods
-    
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
+  private Long id;
+
+  @Column(name = "name")
+  private String name;
+
+  @Column(name = "is_default")
+  private boolean isDefault;
+
+  @Column(name = "is_draft")
+  private boolean isDraft;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "test_case_id")
+  private TmsTestCase testCase;
+
+  @OneToOne(mappedBy = "testCaseVersion", fetch = FetchType.LAZY)
+  private TmsManualScenario manualScenario;
+
+  public TmsTestCaseVersion(final Long id,
+      final String name,
+      final boolean isDefault,
+      final boolean isDraft,
+      final TmsManualScenario manualScenario) {
+    this.id = id;
+    this.name = name;
+    this.isDefault = isDefault;
+    this.isDraft = isDraft;
+    this.manualScenario = manualScenario;
+  }
+
+  //TODO: override equals and hashCode methods
+
 }

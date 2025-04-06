@@ -7,6 +7,6 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TmsTestCaseAttributeRS {
 
-    private String value;
-    private TmsAttributeRS attribute;
+  private String value;
+  private TmsAttributeRS attribute;
 }

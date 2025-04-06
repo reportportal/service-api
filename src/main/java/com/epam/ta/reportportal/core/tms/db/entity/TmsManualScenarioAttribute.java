@@ -20,22 +20,22 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TmsManualScenarioAttribute implements Serializable {
-    
-    @EmbeddedId
-    private TmsManualScenarioAttributeId id;
-    
-    @ManyToOne
-    @MapsId(value = "manualScenarioId")
-    @JoinColumn(name = "manual_scenario_id")
-    private TmsManualScenario manualScenario;
-    
-    @ManyToOne
-    @MapsId(value = "attributeId")
-    @JoinColumn(name = "attribute_id")
-    private TmsAttribute attribute;
-    
-    @Column(name = "value")
-    private String value;
-    
-    //TODO: override equals and hashCode methods
+
+  @EmbeddedId
+  private TmsManualScenarioAttributeId id;
+
+  @ManyToOne
+  @MapsId(value = "manualScenarioId")
+  @JoinColumn(name = "manual_scenario_id")
+  private TmsManualScenario manualScenario;
+
+  @ManyToOne
+  @MapsId(value = "attributeId")
+  @JoinColumn(name = "attribute_id")
+  private TmsAttribute attribute;
+
+  @Column(name = "value")
+  private String value;
+
+  //TODO: override equals and hashCode methods
 }

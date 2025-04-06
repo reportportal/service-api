@@ -7,6 +7,6 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TmsTestPlanAttributeRQ {
 
-    private String value;
-    private Long attributeId;
+  private String value;
+  private Long attributeId;
 }

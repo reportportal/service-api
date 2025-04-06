@@ -8,6 +8,6 @@ import org.mapstruct.Mapping;
 @Mapper(config = CommonMapperConfig.class)
 public abstract class TmsEnvironmentMapper {
 
-    @Mapping(target = "id", source = "tmsEnvironmentId")
-    public abstract TmsEnvironment convertToTmsEnvironment(Long tmsEnvironmentId);
+  @Mapping(target = "id", source = "tmsEnvironmentId")
+  public abstract TmsEnvironment convertToTmsEnvironment(Long tmsEnvironmentId);
 }

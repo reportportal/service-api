@@ -33,17 +33,17 @@ class ProductVersionIntegrationTest extends BaseMvcTest {
   @Test
   void createVersionIntegrationTest() throws Exception {
     ProductVersionRQ request = new ProductVersionRQ(1L, "version1", "documentation1",
-                                                      1L);
+        1L);
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
     mockMvc.perform(post("/project/1/tms/productversion")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonContent)
-                        .with(token(oAuthHelper.getSuperadminToken())))
-                        .andExpect(status().isOk());
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
 
     Optional<TmsProductVersion> productVersion = productVersionRepository
-                                              .findByProjectIdAndId(1L, 1L);
+        .findByProjectIdAndId(1L, 1L);
     assertTrue(productVersion.isPresent());
     assertEquals(request.id(), productVersion.get().getId());
     assertEquals(request.version(), productVersion.get().getVersion());
@@ -53,18 +53,18 @@ class ProductVersionIntegrationTest extends BaseMvcTest {
   @Test
   void updateVersionIntegrationTest() throws Exception {
     ProductVersionRQ request = new ProductVersionRQ(3L, "versionUpdated",
-                                        "docUpdated", 3L);
+        "docUpdated", 3L);
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
 
     mockMvc.perform(put("/project/3/tms/productversion/3")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonContent)
-                        .with(token(oAuthHelper.getSuperadminToken())))
-                .andExpect(status().isOk());
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
 
     Optional<TmsProductVersion> productVersion = productVersionRepository
-                                                    .findByProjectIdAndId(3L, 3L);
+        .findByProjectIdAndId(3L, 3L);
     assertTrue(productVersion.isPresent());
     assertEquals(request.id(), productVersion.get().getId());
     assertEquals(request.version(), productVersion.get().getVersion());
@@ -74,22 +74,22 @@ class ProductVersionIntegrationTest extends BaseMvcTest {
   @Test
   void deleteProductVersionIntegrationTest() throws Exception {
     mockMvc.perform(delete("/project/4/tms/productversion/4")
-                    .with(token(oAuthHelper.getSuperadminToken())))
-            .andExpect(status().isOk());
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
     assertFalse(productVersionRepository.findByProjectIdAndId(4L, 4L).isPresent());
   }
 
   @Test
   void getByIdIntegrationTest() throws Exception {
     Optional<TmsProductVersion> productVersion = productVersionRepository
-                                                      .findByProjectIdAndId(5L, 5L);
+        .findByProjectIdAndId(5L, 5L);
 
     mockMvc.perform(get("/project/5/tms/productversion/5")
             .with(token(oAuthHelper.getSuperadminToken())))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(productVersion.get().getId()))
-            .andExpect(jsonPath("$.version").value(productVersion.get().getVersion()))
-            .andExpect(jsonPath("$.documentation").value(productVersion.get()
-                                                                     .getDocumentation()));
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(productVersion.get().getId()))
+        .andExpect(jsonPath("$.version").value(productVersion.get().getVersion()))
+        .andExpect(jsonPath("$.documentation").value(productVersion.get()
+            .getDocumentation()));
   }
 }

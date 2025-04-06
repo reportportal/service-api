@@ -6,11 +6,11 @@ import java.util.List;
 
 public interface TmsTestCaseAttributeService {
 
-    void createTestCaseAttributes(TmsTestCase tmsTestCase, List<TmsTestCaseAttributeRQ> attributes);
+  void createTestCaseAttributes(TmsTestCase tmsTestCase, List<TmsTestCaseAttributeRQ> attributes);
 
-    void updateTestCaseAttributes(TmsTestCase tmsTestCase, List<TmsTestCaseAttributeRQ> attributes);
+  void updateTestCaseAttributes(TmsTestCase tmsTestCase, List<TmsTestCaseAttributeRQ> attributes);
 
-    void patchTestCaseAttributes(TmsTestCase tmsTestCase, List<TmsTestCaseAttributeRQ> attributes);
+  void patchTestCaseAttributes(TmsTestCase tmsTestCase, List<TmsTestCaseAttributeRQ> attributes);
 
-    void deleteAllByTestCaseId(Long testCaseId);
+  void deleteAllByTestCaseId(Long testCaseId);
 }

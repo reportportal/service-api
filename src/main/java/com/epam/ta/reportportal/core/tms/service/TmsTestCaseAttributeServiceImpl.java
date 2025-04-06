@@ -15,46 +15,50 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeService {
 
-    private final TmsTestCaseAttributeMapper tmsTestCaseAttributeMapper;
-    private final TmsTestCaseAttributeRepository tmsTestCaseAttributeRepository;
+  private final TmsTestCaseAttributeMapper tmsTestCaseAttributeMapper;
+  private final TmsTestCaseAttributeRepository tmsTestCaseAttributeRepository;
 
-    @Override
-    @Transactional
-    public void createTestCaseAttributes(TmsTestCase tmsTestCase,
-        List<TmsTestCaseAttributeRQ> attributes) {
-        if (isEmpty(attributes)) {
-            return;
-        }
-        var tmsTestCaseAttributes = tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(attributes);
-        tmsTestCase.setTags(tmsTestCaseAttributes);
-        tmsTestCaseAttributes.forEach(
-            tmsTestCaseAttribute -> tmsTestCaseAttribute.setTestCase(tmsTestCase));
-        tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
+  @Override
+  @Transactional
+  public void createTestCaseAttributes(TmsTestCase tmsTestCase,
+      List<TmsTestCaseAttributeRQ> attributes) {
+    if (isEmpty(attributes)) {
+      return;
     }
+    var tmsTestCaseAttributes = tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(
+        attributes);
+    tmsTestCase.setTags(tmsTestCaseAttributes);
+    tmsTestCaseAttributes.forEach(
+        tmsTestCaseAttribute -> tmsTestCaseAttribute.setTestCase(tmsTestCase));
+    tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
+  }
 
-    @Override
-    @Transactional
-    public void updateTestCaseAttributes(TmsTestCase tmsTestCase, List<TmsTestCaseAttributeRQ> attributes) {
-        tmsTestCaseAttributeRepository.deleteAllById_TestCaseId(tmsTestCase.getId());
-        createTestCaseAttributes(tmsTestCase, attributes);
-    }
+  @Override
+  @Transactional
+  public void updateTestCaseAttributes(TmsTestCase tmsTestCase,
+      List<TmsTestCaseAttributeRQ> attributes) {
+    tmsTestCaseAttributeRepository.deleteAllById_TestCaseId(tmsTestCase.getId());
+    createTestCaseAttributes(tmsTestCase, attributes);
+  }
 
-    @Override
-    @Transactional
-    public void patchTestCaseAttributes(TmsTestCase tmsTestCase, List<TmsTestCaseAttributeRQ> attributes) {
-        if (isEmpty(attributes)) {
-            return;
-        }
-        var tmsTestCaseAttributes = tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(attributes);
-        tmsTestCaseAttributes.forEach(
-            tmsTestCaseAttribute -> tmsTestCaseAttribute.setTestCase(tmsTestCase));
-        tmsTestCase.getTags().addAll(tmsTestCaseAttributes);
-        tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
+  @Override
+  @Transactional
+  public void patchTestCaseAttributes(TmsTestCase tmsTestCase,
+      List<TmsTestCaseAttributeRQ> attributes) {
+    if (isEmpty(attributes)) {
+      return;
     }
+    var tmsTestCaseAttributes = tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(
+        attributes);
+    tmsTestCaseAttributes.forEach(
+        tmsTestCaseAttribute -> tmsTestCaseAttribute.setTestCase(tmsTestCase));
+    tmsTestCase.getTags().addAll(tmsTestCaseAttributes);
+    tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
+  }
 
-    @Override
-    @Transactional
-    public void deleteAllByTestCaseId(Long testCaseId) {
-        tmsTestCaseAttributeRepository.deleteAllById_TestCaseId(testCaseId);
-    }
+  @Override
+  @Transactional
+  public void deleteAllByTestCaseId(Long testCaseId) {
+    tmsTestCaseAttributeRepository.deleteAllById_TestCaseId(testCaseId);
+  }
 }

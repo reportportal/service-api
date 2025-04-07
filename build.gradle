@@ -24,7 +24,6 @@ plugins {
     id "org.openapi.generator" version "7.11.0"
 }
 
-import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
@@ -116,6 +115,7 @@ dependencies {
     }
     // JasperReport's export to XLS uses Apache POI and openpdf for PDF export
     implementation 'org.apache.poi:poi:5.4.0'
+    implementation 'org.apache.poi:poi-ooxml:5.4.0'
     implementation 'com.github.librepdf:openpdf:2.0.3'
 
     implementation 'jakarta.inject:jakarta.inject-api:2.0.1'
@@ -141,6 +141,10 @@ dependencies {
     testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
     testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
+    //mapstruct
+    implementation "org.mapstruct:mapstruct:$mapstructVersion"
+    annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion"
+
     //  Tests
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     implementation 'org.springframework:spring-web'
@@ -151,29 +155,18 @@ dependencies {
     testImplementation 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 }
 
+processResources {
+    dependsOn(gitInfo)
+    filesMatching('application.properties') {
+        expand(project.properties)
+    }
+}
+
 sourceSets {
     main {
         java {
             srcDirs "$buildDir/generated/src/main/java"
         }
-    }
-}
-
-
-tasks.register('generateApi', GenerateTask) {
-    generatorName.set("spring")
-    inputSpec.set("$rootDir/api-registry/api/openapi/reportportal-api.yaml")
-    outputDir.set("${layout.buildDirectory.get()}/generated")
-    configFile.set("$rootDir/src/main/resources/openapi/config.json")
-    skipOverwrite.set(false)
-    cleanupOutput.set(true)
-    // verbose.set(true)
-}
-
-processResources {
-    dependsOn(gitInfo)
-    filesMatching('application.properties') {
-        expand(project.properties)
     }
 }
 
@@ -216,8 +209,7 @@ test {
     }
 }
 
-compileJava.dependsOn tasks.named('generateApi')
-generateApi.dependsOn updateApiSubmodule
+compileJava.dependsOn tasks.named('openApiGenerate')
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts
@@ -252,6 +244,15 @@ springBoot {
             excludes = ['time', 'artifact']
         }
     }
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$rootDir/api-registry/api/openapi/reportportal-api.yaml"
+    outputDir = "${layout.buildDirectory.get()}/generated"
+    configFile = "$rootDir/src/main/resources/openapi/config.json"
+    skipOverwrite = false
+    cleanupOutput = true
 }
 
 tasks.preTagCommit.enabled = false

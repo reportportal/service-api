@@ -1,0 +1,132 @@
+package com.epam.ta.reportportal.core.tms.controller;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
+
+import com.epam.ta.reportportal.core.tms.dto.TmsDatasetRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsDatasetRS;
+import com.epam.ta.reportportal.core.tms.service.TmsDatasetService;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+/**
+ * Controller for managing datasets within a project. Provides endpoints to
+ * create, retrieve, update, and delete datasets, as well as upload datasets
+ * from files. All endpoints are secured and require administrator privileges.
+ */
+@RestController
+@RequestMapping("/project/{projectId}/tms/dataset")
+@RequiredArgsConstructor
+public class TmsDatasetController {
+
+  private final TmsDatasetService tmsDatasetService;
+
+  /**
+   * Creates a new dataset in the specified project.
+   *
+   * @param projectId The ID of the project.
+   * @param datasetRQ A request payload ({@link TmsDatasetRQ}) containing dataset details.
+   * @return A data transfer object ({@link TmsDatasetRS}) with the created dataset's details.
+   */
+  @PostMapping
+  @PreAuthorize(IS_ADMIN)
+  public TmsDatasetRS create(@PathVariable("projectId") Long projectId,
+      @RequestBody TmsDatasetRQ datasetRQ) {
+    return tmsDatasetService.create(projectId, datasetRQ);
+  }
+
+  /**
+   * Uploads a dataset from a file.
+   *
+   * @param projectId The ID of the project.
+   * @param file      The file containing dataset data.
+   * @return A list of data transfer objects ({@link TmsDatasetRS}) representing created datasets.
+   */
+  @PostMapping(path = "/upload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  @PreAuthorize(IS_ADMIN)
+  public List<TmsDatasetRS> uploadFromFile(@PathVariable("projectId") Long projectId,
+      @RequestPart MultipartFile file) {
+    return tmsDatasetService.uploadFromFile(projectId, file);
+  }
+
+  /**
+   * Retrieves all datasets for the specified project.
+   *
+   * @param projectId The ID of the project.
+   * @return A list of datasets ({@link TmsDatasetRS}).
+   */
+  @GetMapping
+  @PreAuthorize(IS_ADMIN)
+  public List<TmsDatasetRS> getByProjectId(@PathVariable("projectId") Long projectId) {
+    return tmsDatasetService.getByProjectId(projectId);
+  }
+
+  /**
+   * Fetches details of a specific dataset by its ID.
+   *
+   * @param projectId The ID of the project.
+   * @param datasetId The ID of the dataset to retrieve.
+   * @return A dataset's details ({@link TmsDatasetRS}).
+   */
+  @GetMapping("/{datasetId}")
+  @PreAuthorize(IS_ADMIN)
+  public TmsDatasetRS getById(@PathVariable("projectId") Long projectId,
+      @PathVariable("datasetId") Long datasetId) {
+    return tmsDatasetService.getById(projectId, datasetId);
+  }
+
+  /**
+   * Updates an existing dataset with new data.
+   *
+   * @param projectId The ID of the project.
+   * @param datasetId The ID of the dataset to update.
+   * @param datasetRQ A request payload ({@link TmsDatasetRQ}) containing updated fields.
+   * @return The updated dataset details ({@link TmsDatasetRS}).
+   */
+  @PutMapping("/{datasetId}")
+  @PreAuthorize(IS_ADMIN)
+  public TmsDatasetRS update(@PathVariable("projectId") Long projectId,
+      @PathVariable("datasetId") Long datasetId, @RequestBody TmsDatasetRQ datasetRQ) {
+    return tmsDatasetService.update(projectId, datasetId, datasetRQ);
+  }
+
+  /**
+   * Applies partial modifications to an existing dataset.
+   *
+   * @param projectId The ID of the project.
+   * @param datasetId The ID of the dataset to patch.
+   * @param tmsDatasetUpdateRQ A request payload ({@link TmsDatasetRQ}) containing updated fields.
+   * @return The updated dataset details ({@link TmsDatasetRS}).
+   */
+  @PatchMapping("/{datasetId}")
+  @PreAuthorize(IS_ADMIN)
+  public TmsDatasetRS patch(@PathVariable("projectId") Long projectId,
+      @PathVariable("datasetId") Long datasetId, @RequestBody TmsDatasetRQ tmsDatasetUpdateRQ) {
+    return tmsDatasetService.patch(projectId, datasetId, tmsDatasetUpdateRQ);
+  }
+
+  /**
+   * Deletes a dataset from the project.
+   *
+   * @param projectId The ID of the project.
+   * @param datasetId The ID of the dataset to delete.
+   */
+  @DeleteMapping("/{datasetId}")
+  @PreAuthorize(IS_ADMIN)
+  public void delete(@PathVariable("projectId") Long projectId,
+      @PathVariable("datasetId") Long datasetId) {
+    tmsDatasetService.delete(projectId, datasetId);
+  }
+}

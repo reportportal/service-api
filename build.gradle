@@ -135,6 +135,8 @@ dependencies {
 
     implementation 'com.networknt:json-schema-validator:1.5.6'
 
+    implementation 'com.github.slugify:slugify:3.0.7'
+
     // add lombok support
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"

@@ -75,7 +75,7 @@ dependencies {
     } else {
         println("Using snapshot dependencies")
         implementation 'com.github.reportportal:commons:c7041ee'
-        implementation 'com.github.reportportal:commons-dao:d13f45d'
+        implementation 'com.github.reportportal:commons-dao:e074a3e'
         implementation 'com.github.reportportal:plugin-api:8874441'
     }
     implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'

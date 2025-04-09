@@ -82,7 +82,7 @@ class DashboardControllerTest extends BaseMvcTest {
   @Test
   void getAllDashboardsPositiveWithSort() throws Exception {
     mockMvc.perform(
-            get(DEFAULT_PROJECT_BASE_URL + "/dashboard&page.sort=creationDate,DESC").with(
+            get(DEFAULT_PROJECT_BASE_URL + "/dashboard?page.sort=creationDate,DESC").with(
                 token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk());
   }

@@ -128,7 +128,7 @@ class UserControllerTest extends BaseMvcTest {
   void createUserByAdminPositive() throws Exception {
     CreateUserRQFull rq = new CreateUserRQFull();
     rq.setLogin("testLogin");
-    rq.setPassword("testPassword");
+    rq.setPassword("testPassword%123");
     rq.setFullName("Test User");
     rq.setEmail("test@test.com");
     rq.setAccountRole("USER");
@@ -201,7 +201,7 @@ class UserControllerTest extends BaseMvcTest {
   void createUserPositive() throws Exception {
     CreateUserRQConfirm rq = new CreateUserRQConfirm();
     rq.setLogin("testLogin");
-    rq.setPassword("testPassword");
+    rq.setPassword("testPassword%123");
     rq.setFullName("Test User");
     rq.setEmail("test@domain.com");
     MvcResult mvcResult = mockMvc.perform(
@@ -395,7 +395,7 @@ class UserControllerTest extends BaseMvcTest {
   void changePasswordPositive() throws Exception {
     ChangePasswordRQ rq = new ChangePasswordRQ();
     rq.setOldPassword("1q2w3e");
-    rq.setNewPassword("12345");
+    rq.setNewPassword("newPassword%123");
 
     when(mailServiceFactory.getDefaultEmailService(true)).thenReturn(emailService);
     doNothing().when(emailService).sendChangePasswordConfirmation(any(), any(), any());
@@ -443,7 +443,7 @@ class UserControllerTest extends BaseMvcTest {
   @Test
   void resetPassword() throws Exception {
     final ResetPasswordRQ resetPasswordRQ = new ResetPasswordRQ();
-    resetPasswordRQ.setPassword("password");
+    resetPasswordRQ.setPassword("Password%123");
     resetPasswordRQ.setUuid("e5f98deb-8966-4b2d-ba2f-35bc69d30c06");
     mockMvc.perform(post("/users/password/reset").with(token(oAuthHelper.getDefaultToken()))
         .contentType(APPLICATION_JSON)

@@ -1,13 +1,15 @@
 package com.epam.ta.reportportal.core.widget.content.updater.validator;
 
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
+import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Lists;
+import java.util.Collections;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -61,7 +63,8 @@ public class WidgetContentFieldsValidator implements WidgetValidator {
           );
     } else {
       widgetValidatorLoader.get(widgetType)
-          .validate(Lists.newArrayList(widget.getContentFields()),
+          .validate(Lists.newArrayList(
+                  ofNullable(widget.getContentFields()).orElse(Collections.emptySet())),
               buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
               widget.getWidgetOptions(),
               widget.getItemsCount()

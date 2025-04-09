@@ -49,23 +49,25 @@ public class WidgetBuilder implements Supplier<Widget> {
     ofNullable(widgetRQ.getName()).ifPresent(name -> widget.setName(name));
     widget.setDescription(widgetRQ.getDescription());
 
-    ofNullable(widgetRQ.getContentParameters().getWidgetOptions()).ifPresent(wo -> {
-      WidgetOptions widgetOptions =
-          ofNullable(widget.getWidgetOptions()).orElseGet(WidgetOptions::new);
-      Map<String, Object> options =
-          ofNullable(widgetOptions.getOptions()).orElseGet(LinkedHashMap::new);
-      options.putAll(wo);
-      widgetOptions.setOptions(options);
-      widget.setWidgetOptions(widgetOptions);
+    ofNullable(widgetRQ.getContentParameters()).ifPresent(cp -> {
+      ofNullable(cp.getWidgetOptions())
+          .ifPresent(wo -> {
+            WidgetOptions widgetOptions =
+                ofNullable(widget.getWidgetOptions()).orElseGet(WidgetOptions::new);
+            Map<String, Object> options =
+                ofNullable(widgetOptions.getOptions()).orElseGet(LinkedHashMap::new);
+            options.putAll(wo);
+            widgetOptions.setOptions(options);
+            widget.setWidgetOptions(widgetOptions);
+          });
+      widget.setItemsCount(widgetRQ.getContentParameters().getItemsCount());
+      widget.getContentFields().clear();
+      widget.getContentFields().addAll(
+          ofNullable(widgetRQ.getContentParameters().getContentFields()).orElse(
+              Collections.emptyList()));
     });
 
     widget.setWidgetType(widgetRQ.getWidgetType());
-    widget.setItemsCount(widgetRQ.getContentParameters().getItemsCount());
-
-    widget.getContentFields().clear();
-    widget.getContentFields().addAll(
-        ofNullable(widgetRQ.getContentParameters().getContentFields()).orElse(
-            Collections.emptyList()));
     return this;
   }
 
@@ -74,18 +76,17 @@ public class WidgetBuilder implements Supplier<Widget> {
         ofNullable(widget.getWidgetOptions()).orElseGet(WidgetOptions::new);
     Map<String, Object> options =
         ofNullable(widgetOptions.getOptions()).orElseGet(LinkedHashMap::new);
-    options.putAll(previewRQ.getContentParameters().getWidgetOptions());
 
+    ofNullable(previewRQ.getContentParameters()).ifPresent(cp -> {
+      options.putAll(cp.getWidgetOptions());
+      widget.setItemsCount(cp.getItemsCount());
+      widget.getContentFields().clear();
+      widget.getContentFields()
+          .addAll(ofNullable(cp.getContentFields()).orElse(Collections.emptyList()));
+    });
     widgetOptions.setOptions(options);
     widget.setWidgetOptions(widgetOptions);
-
     widget.setWidgetType(previewRQ.getWidgetType());
-    widget.setItemsCount(previewRQ.getContentParameters().getItemsCount());
-
-    widget.getContentFields().clear();
-    widget.getContentFields().addAll(
-        ofNullable(previewRQ.getContentParameters().getContentFields()).orElse(
-            Collections.emptyList()));
     return this;
   }
 

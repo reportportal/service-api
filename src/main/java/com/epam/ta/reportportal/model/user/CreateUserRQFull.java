@@ -61,6 +61,7 @@ public class CreateUserRQFull {
   @Size(max = ValidationConstraints.MAX_PASSWORD_LENGTH)
   @JsonProperty(value = "password")
   @Schema(requiredMode = RequiredMode.NOT_REQUIRED)
+  @Pattern(regexp = USER_PASSWORD_REGEXP)
   private String password;
 
   @NotBlank

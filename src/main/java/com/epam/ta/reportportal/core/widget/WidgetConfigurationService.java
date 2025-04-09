@@ -39,7 +39,7 @@ public class WidgetConfigurationService {
 
   public List<WidgetConfigResource> getWidgetsConfiguration(Dashboard dashboard,
       ProjectDetails projectDetails) {
-    return dashboard.getWidgets().stream()
+    return dashboard.getDashboardWidgets().stream()
         .map(widget -> getWidgetConfig(widget, projectDetails)).collect(Collectors.toList());
   }
 

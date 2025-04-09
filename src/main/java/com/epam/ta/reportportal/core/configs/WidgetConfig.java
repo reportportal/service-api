@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.core.widget.content.loader.BugTrendChartContentL
 import com.epam.ta.reportportal.core.widget.content.loader.CasesTrendContentLoader;
 import com.epam.ta.reportportal.core.widget.content.loader.ChartInvestigatedContentLoader;
 import com.epam.ta.reportportal.core.widget.content.loader.ComponentHealthCheckContentLoader;
+import com.epam.ta.reportportal.core.widget.content.loader.EmptyContentLoader;
 import com.epam.ta.reportportal.core.widget.content.loader.FlakyCasesTableContentLoader;
 import com.epam.ta.reportportal.core.widget.content.loader.LaunchExecutionAndIssueStatisticsContentLoader;
 import com.epam.ta.reportportal.core.widget.content.loader.LaunchesComparisonContentLoader;
@@ -69,7 +70,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -126,6 +126,7 @@ public class WidgetConfig implements ApplicationContextAware {
             applicationContext.getBean(ProductStatusContentLoaderManager.class))
         .put(WidgetType.MOST_TIME_CONSUMING,
             applicationContext.getBean(MostTimeConsumingContentLoader.class))
+        .put(WidgetType.TEST_CASE_SEARCH, applicationContext.getBean(EmptyContentLoader.class))
         .build();
   }
 
@@ -195,6 +196,8 @@ public class WidgetConfig implements ApplicationContextAware {
         )
         .put(WidgetType.COMPONENT_HEALTH_CHECK_TABLE,
             (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
+        ).put(WidgetType.TEST_CASE_SEARCH,
+            (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
         )
         .build();
   }
@@ -226,6 +229,7 @@ public class WidgetConfig implements ApplicationContextAware {
         .add(WidgetType.PASSING_RATE_PER_LAUNCH)
         .add(WidgetType.MOST_TIME_CONSUMING)
         .add(WidgetType.FLAKY_TEST_CASES)
+        .add(WidgetType.TEST_CASE_SEARCH)
         .build();
   }
 

@@ -25,8 +25,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.identity.TestCaseHashGenerator;
@@ -43,12 +46,11 @@ import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.reporting.ItemCreatedRS;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -246,6 +248,79 @@ class RerunHandlerImplTest {
     verify(retryHandler, times(1)).handleRetries(any(), any(), any());
 
     assertTrue(rerunCreatedRS.isPresent());
+  }
+
+  @Test
+  void shouldReturnRerunOfUuidWhenProvided() {
+    // When
+    String rerunOf = "rerun-uuid";
+    String launchName = "test-launch";
+    Long projectId = 1L;
+
+    // Given
+    String result = rerunHandler.getRerunLaunchUuid(rerunOf, launchName, projectId);
+
+    // Then
+    assertEquals("rerun-uuid", result);
+    verifyNoInteractions(launchRepository);
+  }
+
+  @Test
+  void shouldThrowExceptionWhenNoRerunOfAndNoLaunchFound() {
+    // When
+    String rerunOf = null; // No 'rerunOf' provided.
+    String launchName = "test-launch";
+    Long projectId = 1L;
+
+    when(launchRepository.findLatestByNameAndProjectId(launchName, projectId))
+        .thenReturn(Optional.empty()); // Simulate no launch found.
+
+    // Given & Then
+    Exception exception = assertThrows(ReportPortalException.class, () -> {
+      rerunHandler.getRerunLaunchUuid(rerunOf, launchName, projectId);
+    });
+
+    assertEquals(ErrorType.LAUNCH_NOT_FOUND, ((ReportPortalException) exception).getErrorType());
+    verify(launchRepository).findLatestByNameAndProjectId(launchName, projectId);
+  }
+
+  @Test
+  void shouldReturnLatestLaunchUuidWhenNoRerunOfProvided() {
+    // When
+    String rerunOf = null; // No 'rerunOf' provided.
+    String launchName = "test-launch";
+    Long projectId = 1L;
+
+    Launch mockLaunch = new Launch();
+    mockLaunch.setUuid("latest-uuid");
+    when(launchRepository.findLatestByNameAndProjectId(launchName, projectId))
+        .thenReturn(Optional.of(mockLaunch)); // Simulate a launch being found.
+
+    // Given
+    String result = rerunHandler.getRerunLaunchUuid(rerunOf, launchName, projectId);
+
+    // Then
+    assertEquals("latest-uuid", result);
+    verify(launchRepository).findLatestByNameAndProjectId(launchName, projectId);
+  }
+
+  @Test
+  void shouldHandleEmptyRerunOfGracefully() {
+    // When
+    String rerunOf = ""; // Explicitly set 'rerunOf' to an empty string.
+    String launchName = "test-launch";
+    Long projectId = 1L;
+
+    when(launchRepository.findLatestByNameAndProjectId(launchName, projectId))
+        .thenReturn(Optional.empty()); // Simulate no launch found.
+
+    // Given & Then
+    Exception exception = assertThrows(ReportPortalException.class, () -> {
+      rerunHandler.getRerunLaunchUuid(rerunOf, launchName, projectId);
+    });
+
+    assertEquals(ErrorType.LAUNCH_NOT_FOUND, ((ReportPortalException) exception).getErrorType());
+    verify(launchRepository).findLatestByNameAndProjectId(launchName, projectId);
   }
 
   private TestItem getItem(String name, Launch launch) {

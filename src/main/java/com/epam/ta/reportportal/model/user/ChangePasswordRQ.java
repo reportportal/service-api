@@ -16,73 +16,29 @@
 
 package com.epam.ta.reportportal.model.user;
 
+import static com.epam.reportportal.model.ValidationConstraints.USER_PASSWORD_REGEXP;
+
 import com.epam.reportportal.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
+import lombok.Data;
 
 /**
  * @author Dzmitry_Kavalets
  */
 
+@Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ChangePasswordRQ {
 
 	@NotBlank
 	@Size(min = ValidationConstraints.MIN_PASSWORD_LENGTH, max = ValidationConstraints.MAX_PASSWORD_LENGTH)
+  @Pattern(regexp = USER_PASSWORD_REGEXP)
 	private String newPassword;
 
-	@NotBlank
-	@Size(min = ValidationConstraints.MIN_PASSWORD_LENGTH, max = ValidationConstraints.MAX_PASSWORD_LENGTH)
-	private String oldPassword;
+  @NotBlank
+  private String oldPassword;
 
-	public String getNewPassword() {
-		return newPassword;
-	}
-
-	public void setNewPassword(String newPassword) {
-		this.newPassword = newPassword;
-	}
-
-	public String getOldPassword() {
-		return oldPassword;
-	}
-
-	public void setOldPassword(String oldPassword) {
-		this.oldPassword = oldPassword;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-
-		ChangePasswordRQ that = (ChangePasswordRQ) o;
-
-		if (newPassword != null ? !newPassword.equals(that.newPassword) : that.newPassword != null) {
-			return false;
-		}
-		return !(oldPassword != null ? !oldPassword.equals(that.oldPassword) : that.oldPassword != null);
-
-	}
-
-	@Override
-	public int hashCode() {
-		int result = newPassword != null ? newPassword.hashCode() : 0;
-		result = 31 * result + (oldPassword != null ? oldPassword.hashCode() : 0);
-		return result;
-	}
-
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder("ChangePasswordRQ{");
-		sb.append("newPassword='").append(newPassword).append('\''); //NOSONAR
-		sb.append(", oldPassword='").append(oldPassword).append('\''); //NOSONAR
-		sb.append('}');
-		return sb.toString();
-	}
 }

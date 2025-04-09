@@ -32,11 +32,10 @@ import java.util.Map;
 public class ContentParameters {
 
 	// fields for main data(for example: graphs at the chart)
-	@JsonProperty(value = "contentFields", required = true)
+	@JsonProperty(value = "contentFields")
 	private List<String> contentFields;
 
-	@NotNull
-	@JsonProperty(value = "itemsCount", required = true)
+	@JsonProperty(value = "itemsCount")
 	private int itemsCount;
 
 	@JsonProperty(value = "widgetOptions")

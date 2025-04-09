@@ -19,7 +19,7 @@ import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemUpdaterC
 import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.Arrays;
 import java.util.List;
-import javax.persistence.QueryTimeoutException;
+import jakarta.persistence.QueryTimeoutException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

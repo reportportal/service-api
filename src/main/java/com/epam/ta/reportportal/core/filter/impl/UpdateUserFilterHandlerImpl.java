@@ -64,9 +64,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
   @Autowired
   public UpdateUserFilterHandlerImpl(ProjectExtractor projectExtractor,
-      UserFilterRepository userFilterRepository,
-
-      MessageBus messageBus) {
+      UserFilterRepository userFilterRepository, MessageBus messageBus) {
     this.projectExtractor = projectExtractor;
     this.userFilterRepository = userFilterRepository;
     this.messageBus = messageBus;

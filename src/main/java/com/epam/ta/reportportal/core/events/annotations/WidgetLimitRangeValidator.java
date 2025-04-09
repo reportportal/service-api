@@ -3,15 +3,13 @@ package com.epam.ta.reportportal.core.events.annotations;
 import static com.epam.reportportal.model.ValidationConstraints.MAX_WIDGET_LIMIT;
 import static com.epam.reportportal.model.ValidationConstraints.MIN_WIDGET_LIMIT;
 import static com.epam.ta.reportportal.entity.widget.WidgetType.TEST_CASE_SEARCH;
-import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.model.BaseEntityRQ;
-import com.epam.ta.reportportal.model.widget.ContentParameters;
 import com.epam.ta.reportportal.model.widget.MaterializedWidgetType;
 import com.epam.ta.reportportal.model.widget.WidgetRQ;
-import java.util.Arrays;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import java.util.Arrays;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>

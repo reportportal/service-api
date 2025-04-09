@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.model.user;
 
+import static com.epam.reportportal.model.ValidationConstraints.USER_PASSWORD_REGEXP;
+
 import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.annotations.In;
 import com.fasterxml.jackson.annotation.JsonInclude;

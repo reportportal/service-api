@@ -21,6 +21,8 @@ import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCac
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 import static com.epam.ta.reportportal.ws.converter.converters.ExceptionConverter.TO_ERROR_RS;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
@@ -41,10 +43,8 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.util.FeatureFlagHandler;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.cache.Cache;
 import com.google.common.collect.Lists;
@@ -199,20 +199,20 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
   }
 
   private OperationCompletionRS deleteProject(Project project) {
-    Set<Long> defaultIssueTypeIds =
-        issueTypeRepository.getDefaultIssueTypes().stream().map(IssueType::getId)
-            .collect(Collectors.toSet());
-    Set<IssueType> issueTypesToRemove =
-        project.getProjectIssueTypes().stream().map(ProjectIssueType::getIssueType)
-            .filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
-            .collect(Collectors.toSet());
+    Set<Long> defaultIssueTypeIds = issueTypeRepository.getDefaultIssueTypes().stream()
+        .map(IssueType::getId)
+        .collect(Collectors.toSet());
+    Set<IssueType> issueTypesToRemove = project.getProjectIssueTypes().stream()
+        .map(ProjectIssueType::getIssueType)
+        .filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
+        .collect(Collectors.toSet());
+    logRepository.deleteByProjectId(project.getId());
     projectContentRemover.remove(project);
-    projectRepository.delete(project);
     issueTypeRepository.deleteAll(issueTypesToRemove);
     logIndexer.deleteIndex(project.getId());
     analyzerServiceClient.removeSuggest(project.getId());
-    logRepository.deleteByProjectId(project.getId());
     attachmentBinaryDataService.deleteAllByProjectId(project.getId());
+    projectRepository.delete(project);
 
     return new OperationCompletionRS(
         "Project with id = '" + project.getId() + "' has been successfully deleted.");

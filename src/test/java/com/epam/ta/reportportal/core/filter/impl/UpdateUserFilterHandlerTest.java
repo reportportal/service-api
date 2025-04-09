@@ -35,7 +35,6 @@ import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.dao.GroupMembershipRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
-import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -63,7 +62,6 @@ class UpdateUserFilterHandlerTest {
   private Project project = mock(Project.class);
 
   private ProjectUserRepository projectUserRepository = mock(ProjectUserRepository.class);
-
   private GroupMembershipRepository groupMembershipRepository = mock(
       GroupMembershipRepository.class);
 
@@ -71,13 +69,8 @@ class UpdateUserFilterHandlerTest {
       projectUserRepository,
       groupMembershipRepository
   );
-
   private UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
-
-  private WidgetRepository widgetRepository = mock(WidgetRepository.class);
-
   private MessageBus messageBus = mock(MessageBus.class);
-
   private UpdateUserFilterHandler updateUserFilterHandler =
       new UpdateUserFilterHandlerImpl(projectExtractor, userFilterRepository, messageBus);
 
@@ -126,9 +119,9 @@ class UpdateUserFilterHandlerTest {
     when(userFilter.getProject()).thenReturn(project);
     when(project.getId()).thenReturn(1L);
 
-    when(userFilterRepository.existsByNameAndOwnerAndProjectId(updateUserFilterRQ.getName(), "user",
-        1L
-    )).thenReturn(Boolean.FALSE);
+    when(
+        userFilterRepository.existsByNameAndProjectId(updateUserFilterRQ.getName(), 1L)).thenReturn(
+        Boolean.FALSE);
 
     doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
 
@@ -159,9 +152,8 @@ class UpdateUserFilterHandlerTest {
     when(userFilter.getOwner()).thenReturn("user");
     when(project.getId()).thenReturn(1L);
 
-    when(userFilterRepository.existsByNameAndOwnerAndProjectId(updateUserFilterRQ.getName(),
-        userFilter.getOwner(), projectDetails.getProjectId()
-    )).thenReturn(Boolean.TRUE);
+    when(userFilterRepository.existsByNameAndProjectId(updateUserFilterRQ.getName(),
+        projectDetails.getProjectId())).thenReturn(Boolean.TRUE);
 
     doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));
 

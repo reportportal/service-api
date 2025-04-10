@@ -399,7 +399,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/attribute/values")
   @ResponseStatus(OK)
-  @Operation(summary = "Get all unique attribute values of specified launch")
+  @Operation(summary = "Get all unique attribute values on the project")
   public List<String> getAttributeValues(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "launch") Long launchId,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ

@@ -390,8 +390,8 @@ public class TestItemController {
   public List<String> getUniqueAttributeKeys(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestParam(value = "launch", required = false) Long launchId,
-      @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT + CRITERIA_ITEM_ATTRIBUTE_KEY)
-      String keyPart) {
+      @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT
+          + CRITERIA_ITEM_ATTRIBUTE_KEY) String keyPart) {
     return getTestItemHandler.getUniqueAttributeKeys(
         projectExtractor.extractProjectDetails(user, projectName), keyPart, launchId);
   }
@@ -399,17 +399,17 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/attribute/values")
   @ResponseStatus(OK)
-  @Operation(summary = "Get all unique attribute values on the project")
-  public List<String> getUniqueAttributeValues(@PathVariable String projectName,
-      @AuthenticationPrincipal ReportPortalUser user,
-      @RequestParam(value = "launch", required = false) Long launchId,
-      @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT + CRITERIA_ITEM_ATTRIBUTE_KEY)
-      String valuePart) {
+  @Operation(summary = "Get all unique attribute values of specified launch")
+  public List<String> getAttributeValues(@PathVariable String projectName,
+      @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "launch") Long launchId,
+      @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
+          + CRITERIA_ITEM_ATTRIBUTE_KEY, required = false) String key,
+      @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT + CRITERIA_ITEM_ATTRIBUTE_VALUE)
+          String valuePart) {
     return getTestItemHandler.getUniqueAttributeValues(
-        projectExtractor.extractProjectDetails(user, projectName), valuePart, launchId);
+        projectExtractor.extractProjectDetails(user, projectName), key, valuePart, launchId);
   }
 
-  //TODO EPMRPP-59414
   @Transactional(readOnly = true)
   @GetMapping("/attribute/keys/all")
   @ResponseStatus(OK)
@@ -424,20 +424,6 @@ public class TestItemController {
     return getTestItemHandler.getAttributeKeys(launchFilterId, isLatest, launchesLimit,
         projectExtractor.extractProjectDetails(user, projectName), value
     );
-  }
-
-  //TODO EPMRPP-59414
-  @Transactional(readOnly = true)
-  @GetMapping("/attribute/values")
-  @ResponseStatus(OK)
-  @Operation(summary = "Get all unique attribute values of specified launch")
-  public List<String> getAttributeValues(@PathVariable String projectName,
-      @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "launch") Long id,
-      @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
-          + CRITERIA_ITEM_ATTRIBUTE_KEY, required = false) String key,
-      @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT + CRITERIA_ITEM_ATTRIBUTE_VALUE)
-      String value) {
-    return getTestItemHandler.getAttributeValues(id, key, value);
   }
 
   @Transactional(readOnly = true)

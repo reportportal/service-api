@@ -150,12 +150,12 @@ public interface GetTestItemHandler {
    *
    * @param projectDetails details of the project; must not be {@code null}.
    * @param valuePart      substring used to filter values; must not be {@code null} or empty.
-   * @param launchId       optional launch ID to restrict the search to a specific launch. If
-   *                       {@code null}, all launches within the project are considered.
+   * @param launchId       optional launch ID to restrict the search to a specific launch. If {@code
+   *                       null}, all launches within the project are considered.
    * @return a list of unique attribute values matching the criteria, or an empty list if none are
    * found.
    */
-  List<String> getUniqueAttributeValues(ProjectDetails projectDetails, String valuePart,
+  List<String> getUniqueAttributeValues(ProjectDetails projectDetails, String key, String valuePart,
       Long launchId);
 
   /**

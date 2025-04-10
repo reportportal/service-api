@@ -286,10 +286,10 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   }
 
   @Override
-  public List<String> getUniqueAttributeValues(ProjectDetails projectDetails, String valuePart,
-      Long launchId) {
-    return itemAttributeRepository.findUniqueAttributeKeysByPart(projectDetails.getProjectId(),
-        valuePart, launchId, false);
+  public List<String> getUniqueAttributeValues(ProjectDetails projectDetails, String key,
+      String valuePart, Long launchId) {
+    return itemAttributeRepository.findUniqueAttributeValuesByPart(projectDetails.getProjectId(),
+        key, valuePart, launchId, false);
   }
 
   @Override

@@ -66,8 +66,8 @@ public interface GetTestItemHandler {
    * @return {@link Iterable} of the {@link TestItemResource}
    */
   Page<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
-                                      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-                                      @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit);
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit);
 
   /**
    * Gets {@link TestItem} instances
@@ -151,8 +151,8 @@ public interface GetTestItemHandler {
    *
    * @param projectDetails details of the project; must not be {@code null}.
    * @param valuePart      substring used to filter values; must not be {@code null} or empty.
-   * @param launchId       optional launch ID to restrict the search to a specific launch. If {@code
-   *                       null}, all launches within the project are considered.
+   * @param launchId       optional launch ID to restrict the search to a specific launch. If
+   *                       {@code null}, all launches within the project are considered.
    * @return a list of unique attribute values matching the criteria, or an empty list if none are
    * found.
    */

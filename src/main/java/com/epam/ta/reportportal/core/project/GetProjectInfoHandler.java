@@ -35,7 +35,8 @@ public interface GetProjectInfoHandler {
    *
    * @param filter   Queryable filter to apply on the projects
    * @param pageable Pagination information for the results
-   * @return An {@link Page} of {@link ProjectInfoResource} containing information about all projects
+   * @return An {@link Page} of {@link ProjectInfoResource} containing information about all
+   * projects
    */
   Page<ProjectInfoResource> getAllProjectsInfo(Queryable filter, Pageable pageable);
 

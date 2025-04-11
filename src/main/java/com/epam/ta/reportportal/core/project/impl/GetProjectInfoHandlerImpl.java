@@ -166,7 +166,8 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
   }
 
   @Override
-  public com.epam.ta.reportportal.model.Page<ProjectInfoResource> getAllProjectsInfo(Queryable filter, Pageable pageable) {
+  public com.epam.ta.reportportal.model.Page<ProjectInfoResource> getAllProjectsInfo(
+      Queryable filter, Pageable pageable) {
     return PagedResourcesAssembler.pageConverter(ProjectSettingsConverter.TO_PROJECT_INFO_RESOURCE)
         .apply(projectRepository.findProjectInfoByFilter(filter, pageable));
   }

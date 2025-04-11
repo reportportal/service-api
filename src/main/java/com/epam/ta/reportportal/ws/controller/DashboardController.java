@@ -31,9 +31,9 @@ import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.dashboard.AddWidgetRq;
-import com.epam.ta.reportportal.model.dashboard.DashboardPreconfiguredRq;
 import com.epam.ta.reportportal.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.model.dashboard.DashboardConfigResource;
+import com.epam.ta.reportportal.model.dashboard.DashboardPreconfiguredRq;
 import com.epam.ta.reportportal.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.model.dashboard.UpdateDashboardRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -91,8 +91,8 @@ public class DashboardController {
   @ResponseStatus(OK)
   @Operation(summary = "Get all permitted dashboard resources for specified project")
   public Page<DashboardResource> getAllDashboards(@PathVariable String projectName,
-                                                  @SortFor(Dashboard.class) Pageable pageable, @FilterFor(Dashboard.class) Filter filter,
-                                                  @AuthenticationPrincipal ReportPortalUser user) {
+      @SortFor(Dashboard.class) Pageable pageable, @FilterFor(Dashboard.class) Filter filter,
+      @AuthenticationPrincipal ReportPortalUser user) {
     return getDashboardHandler.getDashboards(
         projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
   }

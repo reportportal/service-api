@@ -142,8 +142,8 @@ public class WidgetController {
   @ResponseStatus(OK)
   @Operation(summary = "Load all widget names which belong to a user")
   public Page<Object> getWidgetNames(@PathVariable String projectName,
-                                     @SortFor(Widget.class) Pageable pageable, @FilterFor(Widget.class) Filter filter,
-                                     @AuthenticationPrincipal ReportPortalUser user) {
+      @SortFor(Widget.class) Pageable pageable, @FilterFor(Widget.class) Filter filter,
+      @AuthenticationPrincipal ReportPortalUser user) {
     return getWidgetHandler.getOwnNames(
         projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
   }

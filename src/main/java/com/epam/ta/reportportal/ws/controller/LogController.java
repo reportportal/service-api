@@ -27,11 +27,12 @@ import static com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver.DEFAUL
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.reportportal.rules.commons.validation.BusinessRule;
-import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.SearchLogService;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.core.log.DeleteLogHandler;
@@ -48,7 +49,6 @@ import com.epam.ta.reportportal.ws.reporting.BatchElementCreatedRS;
 import com.epam.ta.reportportal.ws.reporting.BatchSaveOperatingRS;
 import com.epam.ta.reportportal.ws.reporting.Constants;
 import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
@@ -58,11 +58,11 @@ import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Validator;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Validator;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -115,8 +115,9 @@ public class LogController {
   }
 
   /**
-   * @deprecated in favour of {@link LogController#createLogEntry(String, SaveLogRQ,
-   * ReportPortalUser)} because of mapping collisions
+   * @deprecated in favour of
+   * {@link LogController#createLogEntry(String, SaveLogRQ, ReportPortalUser)} because of mapping
+   * collisions
    */
   /* Report client API */
   @Deprecated
@@ -220,10 +221,10 @@ public class LogController {
   @Operation(summary = "Get logs by filter")
   @Transactional(readOnly = true)
   public Page<LogResource> getLogs(@PathVariable String projectName,
-                                   @RequestParam(value = DEFAULT_FILTER_PREFIX + UNDR + CRITERIA_PATH, required = false)
-          String underPath, @FilterFor(Log.class) Filter filter,
-                                   @SortDefault({"logTime"}) @SortFor(Log.class) Pageable pageable,
-                                   @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestParam(value = DEFAULT_FILTER_PREFIX + UNDR + CRITERIA_PATH, required = false)
+      String underPath, @FilterFor(Log.class) Filter filter,
+      @SortDefault({"logTime"}) @SortFor(Log.class) Pageable pageable,
+      @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getLogs(underPath,
         projectExtractor.extractProjectDetails(user, projectName), filter, pageable
     );

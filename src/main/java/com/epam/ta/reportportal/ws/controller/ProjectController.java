@@ -169,7 +169,8 @@ public class ProjectController {
   @DeleteMapping
   @ResponseStatus(OK)
   @PreAuthorize(ADMIN_ONLY)
-  @Operation(summary = "Delete multiple projects", description = "Could be deleted only by users with administrator role")
+  @Operation(summary = "Delete multiple projects",
+      description = "Could be deleted only by users with administrator role")
   public DeleteBulkRS deleteProject(@RequestParam(value = "ids") List<Long> ids,
       @AuthenticationPrincipal ReportPortalUser user) {
     return deleteProjectHandler.bulkDeleteProjects(ids, user);
@@ -178,7 +179,8 @@ public class ProjectController {
   @DeleteMapping("/{projectId}")
   @ResponseStatus(OK)
   @PreAuthorize(ADMIN_ONLY)
-  @Operation(summary = "Delete project", description = "Could be deleted only by users with administrator role")
+  @Operation(summary = "Delete project",
+      description = "Could be deleted only by users with administrator role")
   public OperationCompletionRS deleteProject(@PathVariable Long projectId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return deleteProjectHandler.deleteProject(projectId, user);
@@ -216,7 +218,8 @@ public class ProjectController {
   @Transactional(readOnly = true)
   @GetMapping("/{projectName}")
   @PreAuthorize(ASSIGNED_TO_PROJECT)
-  @Operation(summary = "Get information about project", description = "Only for users that are assigned to the project")
+  @Operation(summary = "Get information about project",
+      description = "Only for users that are assigned to the project")
   public ProjectResource getProject(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getProjectHandler.getResource(normalizeId(projectName), user);
@@ -248,7 +251,8 @@ public class ProjectController {
   @GetMapping("/{projectName}/assignable")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
-  @Operation(summary = "Load users which can be assigned to specified project", description = "Only for users with project manager permissions")
+  @Operation(summary = "Load users which can be assigned to specified project",
+      description = "Only for users with project manager permissions")
   public Page<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter,
       @SortFor(User.class) Pageable pageable, @PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -261,7 +265,8 @@ public class ProjectController {
   @GetMapping("/{projectName}/usernames")
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(NOT_CUSTOMER)
-  @Operation(summary = "Load project users by filter", description = "Only for users that are members of the project")
+  @Operation(summary = "Load project users by filter",
+      description = "Only for users that are members of the project")
   public List<String> getProjectUsers(@PathVariable String projectName,
       @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + "users")
       String value, @AuthenticationPrincipal ReportPortalUser user) {
@@ -331,7 +336,8 @@ public class ProjectController {
   @PreAuthorize(ADMIN_ONLY)
   @GetMapping(value = "/export")
   @ResponseStatus(HttpStatus.OK)
-  @Operation(summary = "Exports information about all projects", description = "Allowable only for users with administrator role")
+  @Operation(summary = "Exports information about all projects",
+      description = "Allowable only for users with administrator role")
   public void exportProjects(@Parameter(schema = @Schema(allowableValues = "csv"))
       @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
       @FilterFor(ProjectInfo.class) Filter filter,

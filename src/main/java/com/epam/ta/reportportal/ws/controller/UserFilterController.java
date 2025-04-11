@@ -109,8 +109,8 @@ public class UserFilterController {
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get filters")
   public Page<UserFilterResource> getAllFilters(@PathVariable String projectName,
-                                                @SortFor(UserFilter.class) Pageable pageable, @FilterFor(UserFilter.class) Filter filter,
-                                                @AuthenticationPrincipal ReportPortalUser user) {
+      @SortFor(UserFilter.class) Pageable pageable, @FilterFor(UserFilter.class) Filter filter,
+      @AuthenticationPrincipal ReportPortalUser user) {
     return getFilterHandler.getUserFilters(projectName, pageable, filter, user);
   }
 

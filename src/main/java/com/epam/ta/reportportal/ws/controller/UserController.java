@@ -22,6 +22,8 @@ import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBas
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
@@ -36,8 +38,13 @@ import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.model.*;
+import com.epam.ta.reportportal.model.ApiKeyRQ;
+import com.epam.ta.reportportal.model.ApiKeyRS;
+import com.epam.ta.reportportal.model.ApiKeysRS;
+import com.epam.ta.reportportal.model.DeleteBulkRS;
+import com.epam.ta.reportportal.model.ModelViews;
+import com.epam.ta.reportportal.model.Page;
+import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.user.ChangePasswordRQ;
 import com.epam.ta.reportportal.model.user.CreateUserBidRS;
 import com.epam.ta.reportportal.model.user.CreateUserRQ;
@@ -49,7 +56,6 @@ import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
 import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
 import com.epam.ta.reportportal.model.user.UserBidRS;
 import com.epam.ta.reportportal.model.user.UserResource;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.resolver.ActiveRole;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
@@ -59,12 +65,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -119,7 +125,7 @@ public class UserController {
   @PostMapping
   @ResponseStatus(CREATED)
   @PreAuthorize(ADMIN_ONLY)
-  @Operation(summary =  "Create specified user", description = "Allowable only for users with administrator role")
+  @Operation(summary = "Create specified user", description = "Allowable only for users with administrator role")
   public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq,
       @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
     return createUserMessageHandler.createUserByAdmin(rq, currentUser, composeBaseUrl(request));
@@ -152,7 +158,7 @@ public class UserController {
   }
 
   @DeleteMapping(value = "/{id}")
-  @Operation(summary =  "Delete specified user")
+  @Operation(summary = "Delete specified user")
   public OperationCompletionRS deleteUser(@PathVariable(value = "id") Long userId,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
     return deleteUserHandler.deleteUser(userId, currentUser);
@@ -170,7 +176,7 @@ public class UserController {
   @Transactional
   @PutMapping(value = "/{login}")
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
-  @Operation(summary =  "Edit specified user", description = "Only for administrators and profile's owner")
+  @Operation(summary = "Edit specified user", description = "Only for administrators and profile's owner")
   public OperationCompletionRS editUser(@PathVariable String login,
       @RequestBody @Validated EditUserRQ editUserRQ, @ActiveRole UserRole role,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
@@ -181,14 +187,14 @@ public class UserController {
   @GetMapping(value = "/{login}")
   @ResponseView(ModelViews.FullUserView.class)
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
-  @Operation(summary =  "Return information about specified user", description = "Only for administrators and profile's owner")
+  @Operation(summary = "Return information about specified user", description = "Only for administrators and profile's owner")
   public UserResource getUser(@PathVariable String login,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
     return getUserHandler.getUser(EntityUtils.normalizeId(login), currentUser);
   }
 
   @Transactional(readOnly = true)
-  @GetMapping(value = { "", "/" })
+  @GetMapping(value = {"", "/"})
   @Operation(summary = "Return information about current logged-in user")
   public UserResource getMyself(@AuthenticationPrincipal UserDetails currentUser) {
     return getUserHandler.getUser((ReportPortalUser) currentUser);
@@ -198,10 +204,10 @@ public class UserController {
   @GetMapping(value = "/all")
   @ResponseView(ModelViews.FullUserView.class)
   @PreAuthorize(ADMIN_ONLY)
-  @Operation(summary =  "Return information about all users", description = "Allowable only for users with administrator role")
+  @Operation(summary = "Return information about all users", description = "Allowable only for users with administrator role")
   public Page<UserResource> getUsers(@FilterFor(User.class) Filter filter,
-                                     @SortFor(User.class) Pageable pageable, @FilterFor(User.class) Queryable queryable,
-                                     @AuthenticationPrincipal ReportPortalUser currentUser) {
+      @SortFor(User.class) Pageable pageable, @FilterFor(User.class) Queryable queryable,
+      @AuthenticationPrincipal ReportPortalUser currentUser) {
     return getUserHandler.getAllUsers(new CompositeFilter(Operator.AND, filter, queryable),
         pageable
     );
@@ -269,9 +275,9 @@ public class UserController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/export")
   @PreAuthorize(ADMIN_ONLY)
-  @Operation(summary =  "Exports information about all users", description = "Allowable only for users with administrator role")
+  @Operation(summary = "Exports information about all users", description = "Allowable only for users with administrator role")
   public void export(@Parameter(schema = @Schema(allowableValues = "csv"))
-  @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
+      @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
       @FilterFor(User.class) Filter filter, @FilterFor(User.class) Queryable queryable,
       @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletResponse response) {
 

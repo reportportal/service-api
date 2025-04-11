@@ -401,11 +401,12 @@ public class TestItemController {
   @ResponseStatus(OK)
   @Operation(summary = "Get all unique attribute values on the project")
   public List<String> getAttributeValues(@PathVariable String projectName,
-      @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "launch") Long launchId,
+      @AuthenticationPrincipal ReportPortalUser user,
+      @RequestParam(value = "launch", required = false) Long launchId,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
           + CRITERIA_ITEM_ATTRIBUTE_KEY, required = false) String key,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT + CRITERIA_ITEM_ATTRIBUTE_VALUE)
-          String valuePart) {
+      String valuePart) {
     return getTestItemHandler.getUniqueAttributeValues(
         projectExtractor.extractProjectDetails(user, projectName), key, valuePart, launchId);
   }

@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.UpdateWidgetHandler;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.model.widget.WidgetResource;
@@ -140,7 +141,7 @@ public class WidgetController {
   @GetMapping(value = "/names/all")
   @ResponseStatus(OK)
   @Operation(summary = "Load all widget names which belong to a user")
-  public Iterable<Object> getWidgetNames(@PathVariable String projectName,
+  public Page<Object> getWidgetNames(@PathVariable String projectName,
       @SortFor(Widget.class) Pageable pageable, @FilterFor(Widget.class) Filter filter,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getWidgetHandler.getOwnNames(

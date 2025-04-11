@@ -16,6 +16,12 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import static com.epam.reportportal.model.ValidationConstraints.MAX_LAUNCH_NAME_LENGTH;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_FILTER_PARAMETERS;
+import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Preconditions.HAS_ANY_MODE;
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -25,8 +31,6 @@ import static com.epam.ta.reportportal.commons.querygen.Condition.EQUALS;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.DEFECTS_AUTOMATION_BUG_TOTAL;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.DEFECTS_NO_DEFECT_TOTAL;
@@ -37,14 +41,14 @@ import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConst
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_PASSED;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_SKIPPED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
-import static com.epam.reportportal.model.ValidationConstraints.MAX_LAUNCH_NAME_LENGTH;
-import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
-import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_FILTER_PARAMETERS;
-import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 import static java.util.Collections.singletonMap;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.extension.event.GetLaunchResourceCollectionEvent;
+import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -52,7 +56,6 @@ import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
-import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.jasper.constants.LaunchReportConstants;
 import com.epam.ta.reportportal.core.jasper.util.JasperDataProvider;
@@ -72,11 +75,8 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
-import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.LaunchResource;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.google.common.base.Preconditions;
@@ -186,7 +186,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public Iterable<LaunchResource> getProjectLaunches(ReportPortalUser.ProjectDetails projectDetails,
+  public com.epam.ta.reportportal.model.Page<LaunchResource> getProjectLaunches(
+      ReportPortalUser.ProjectDetails projectDetails,
       Filter filter, Pageable pageable, String userName) {
     validateModeConditions(filter);
     Project project = projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
@@ -205,7 +206,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
    * project users, for specified user or only owner
    */
   @Override
-  public Iterable<LaunchResource> getDebugLaunches(ReportPortalUser.ProjectDetails projectDetails,
+  public com.epam.ta.reportportal.model.Page<LaunchResource> getDebugLaunches(
+      ReportPortalUser.ProjectDetails projectDetails,
       Filter filter, Pageable pageable) {
     validateModeConditions(filter);
     filter = addLaunchCommonCriteria(Mode.DEBUG, filter);
@@ -233,7 +235,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public Iterable<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails,
+  public com.epam.ta.reportportal.model.Page<LaunchResource> getLatestLaunches(
+      ReportPortalUser.ProjectDetails projectDetails,
       Filter filter, Pageable pageable) {
 
     validateModeConditions(filter);
@@ -252,7 +255,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
   @Override
   @Transactional(readOnly = true)
-  public Iterable<ClusterInfoResource> getClusters(String launchId,
+  public com.epam.ta.reportportal.model.Page<ClusterInfoResource> getClusters(String launchId,
       ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
     final Launch launch = findLaunch(launchId, projectDetails);
     return getClusterHandler.getResources(launch, pageable);
@@ -263,7 +266,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
     return testItemRepository.hasItemsWithIssueByLaunch(launch.getId());
   }
 
-  private Iterable<LaunchResource> getLaunchResources(Page<Launch> launches) {
+  private com.epam.ta.reportportal.model.Page<LaunchResource> getLaunchResources(
+      Page<Launch> launches) {
     final com.epam.ta.reportportal.model.Page<LaunchResource> launchResourcePage =
         PagedResourcesAssembler.pageConverter(launchConverter.TO_RESOURCE).apply(launches);
     applicationEventPublisher.publishEvent(

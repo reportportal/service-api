@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.reporting.StatisticsResource;
 import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.List;
@@ -64,7 +65,7 @@ public interface GetTestItemHandler {
    * @param launchesLimit  response limit
    * @return {@link Iterable} of the {@link TestItemResource}
    */
-  Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
+  Page<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
       ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
       @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit);
 
@@ -75,9 +76,9 @@ public interface GetTestItemHandler {
    * @param pageable       {@link Pageable}
    * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
    * @param user           {@link ReportPortalUser}
-   * @return {@link Iterable} of the {@link TestItemResource}
+   * @return {@link Page} of the {@link TestItemResource}
    */
-  Iterable<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable,
+  Page<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable,
       ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
       Map<String, String> params);
 
@@ -150,8 +151,8 @@ public interface GetTestItemHandler {
    *
    * @param projectDetails details of the project; must not be {@code null}.
    * @param valuePart      substring used to filter values; must not be {@code null} or empty.
-   * @param launchId       optional launch ID to restrict the search to a specific launch. If {@code
-   *                       null}, all launches within the project are considered.
+   * @param launchId       optional launch ID to restrict the search to a specific launch. If
+   *                       {@code null}, all launches within the project are considered.
    * @return a list of unique attribute values matching the criteria, or an empty list if none are
    * found.
    */

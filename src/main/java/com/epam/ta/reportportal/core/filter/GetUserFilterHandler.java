@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.model.OwnedEntityResource;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.filter.UserFilterResource;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
@@ -47,10 +48,10 @@ public interface GetUserFilterHandler {
    * @param pageable    Page request
    * @param filter      Filter representation
    * @param user        ReportPortal User
-   * @return {@link Iterable}
+   * @return {@link Page}
    */
-  Iterable<UserFilterResource> getUserFilters(String projectName, Pageable pageable, Filter filter,
-      ReportPortalUser user);
+  Page<UserFilterResource> getUserFilters(String projectName, Pageable pageable, Filter filter,
+                                          ReportPortalUser user);
 
   /**
    * Get all {@link com.epam.ta.reportportal.entity.filter.UserFilter}'s names
@@ -61,7 +62,7 @@ public interface GetUserFilterHandler {
    * @param user           ReportPortal user
    * @return List of {@link OwnedEntityResource}
    */
-  Iterable<OwnedEntityResource> getFiltersNames(ReportPortalUser.ProjectDetails projectDetails,
+  Page<OwnedEntityResource> getFiltersNames(ReportPortalUser.ProjectDetails projectDetails,
       Pageable pageable, Filter filter, ReportPortalUser user);
 
   /**

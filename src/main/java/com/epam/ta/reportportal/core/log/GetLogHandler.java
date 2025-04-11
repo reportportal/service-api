@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.log.impl.PagedLogResource;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.log.GetLogsUnderRq;
 import com.epam.ta.reportportal.model.log.LogResource;
 import java.util.List;
@@ -44,8 +45,8 @@ public interface GetLogHandler {
    * @param projectDetails - project details
    * @return mapping with {@link TestItem#getItemId()} as key and its list of {@link LogResource} as value
    */
-  Iterable<LogResource> getLogs(String path, ReportPortalUser.ProjectDetails projectDetails,
-      Filter filterable, Pageable pageable);
+  Page<LogResource> getLogs(String path, ReportPortalUser.ProjectDetails projectDetails,
+                            Filter filterable, Pageable pageable);
 
   /**
    * @param logsUnderRq    {@link GetLogsUnderRq}
@@ -90,7 +91,7 @@ public interface GetLogHandler {
    * @return The {@link Iterable} of {@link LogResource} and
    * {@link com.epam.ta.reportportal.model.NestedStepResource} entities
    */
-  Iterable<?> getNestedItems(Long parentId, ReportPortalUser.ProjectDetails projectDetails,
+  Page<?> getNestedItems(Long parentId, ReportPortalUser.ProjectDetails projectDetails,
       Map<String, String> params, Queryable queryable, Pageable pageable);
 
   List<PagedLogResource> getLogsWithLocation(Long parentId,

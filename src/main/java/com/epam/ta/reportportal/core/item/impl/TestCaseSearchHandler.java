@@ -11,15 +11,16 @@ import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.Page.PageMetadata;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterProvider;
 import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemUpdaterContent;
 import com.epam.ta.reportportal.ws.reporting.TestItemResource;
+import jakarta.persistence.QueryTimeoutException;
 import java.util.Arrays;
 import java.util.List;
-import jakarta.persistence.QueryTimeoutException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,7 +35,7 @@ public class TestCaseSearchHandler {
 
   private final List<ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource>> resourceUpdaterProviders;
 
-  public Iterable<TestItemResource> searchTestItems(String namePart, String attribute,
+  public Page<TestItemResource> searchTestItems(String namePart, String attribute,
       String statuses, Pageable pageable, ProjectDetails projectDetails) {
     pageable = validateInputParameters(namePart, attribute, pageable);
     Slice<TestItem> result;

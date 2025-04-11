@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.launch.cluster;
 import com.epam.ta.reportportal.entity.cluster.Cluster;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
+import com.epam.ta.reportportal.model.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
@@ -28,5 +29,5 @@ public interface GetClusterHandler {
 
   Cluster getById(Long id);
 
-  Iterable<ClusterInfoResource> getResources(Launch launch, Pageable pageable);
+  Page<ClusterInfoResource> getResources(Launch launch, Pageable pageable);
 }

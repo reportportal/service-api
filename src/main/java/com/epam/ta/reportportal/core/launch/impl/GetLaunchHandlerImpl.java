@@ -186,7 +186,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public Iterable<LaunchResource> getProjectLaunches(ReportPortalUser.ProjectDetails projectDetails,
+  public com.epam.ta.reportportal.model.Page<LaunchResource> getProjectLaunches(ReportPortalUser.ProjectDetails projectDetails,
       Filter filter, Pageable pageable, String userName) {
     validateModeConditions(filter);
     Project project = projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
@@ -205,7 +205,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
    * project users, for specified user or only owner
    */
   @Override
-  public Iterable<LaunchResource> getDebugLaunches(ReportPortalUser.ProjectDetails projectDetails,
+  public com.epam.ta.reportportal.model.Page<LaunchResource> getDebugLaunches(ReportPortalUser.ProjectDetails projectDetails,
       Filter filter, Pageable pageable) {
     validateModeConditions(filter);
     filter = addLaunchCommonCriteria(Mode.DEBUG, filter);
@@ -233,8 +233,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public Iterable<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails,
-      Filter filter, Pageable pageable) {
+  public com.epam.ta.reportportal.model.Page<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails,
+                                                                               Filter filter, Pageable pageable) {
 
     validateModeConditions(filter);
 
@@ -252,7 +252,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
   @Override
   @Transactional(readOnly = true)
-  public Iterable<ClusterInfoResource> getClusters(String launchId,
+  public com.epam.ta.reportportal.model.Page<ClusterInfoResource> getClusters(String launchId,
       ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
     final Launch launch = findLaunch(launchId, projectDetails);
     return getClusterHandler.getResources(launch, pageable);
@@ -263,7 +263,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
     return testItemRepository.hasItemsWithIssueByLaunch(launch.getId());
   }
 
-  private Iterable<LaunchResource> getLaunchResources(Page<Launch> launches) {
+  private com.epam.ta.reportportal.model.Page<LaunchResource> getLaunchResources(Page<Launch> launches) {
     final com.epam.ta.reportportal.model.Page<LaunchResource> launchResourcePage =
         PagedResourcesAssembler.pageConverter(launchConverter.TO_RESOURCE).apply(launches);
     applicationEventPublisher.publishEvent(

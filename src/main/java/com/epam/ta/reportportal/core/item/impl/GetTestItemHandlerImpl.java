@@ -140,9 +140,9 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   }
 
   @Override
-  public Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-      @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit) {
+  public com.epam.ta.reportportal.model.Page<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
+                                                                            ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+                                                                            @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit) {
 
     Optional<Long> launchIdOptional = ofNullable(launchId);
     Optional<Long> filterIdOptional = ofNullable(filterId);

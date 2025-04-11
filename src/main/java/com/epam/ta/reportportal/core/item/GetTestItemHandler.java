@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.reporting.StatisticsResource;
 import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.List;
@@ -64,9 +65,9 @@ public interface GetTestItemHandler {
    * @param launchesLimit  response limit
    * @return {@link Iterable} of the {@link TestItemResource}
    */
-  Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-      @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit);
+  Page<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
+                                      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+                                      @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit);
 
   /**
    * Gets {@link TestItem} instances

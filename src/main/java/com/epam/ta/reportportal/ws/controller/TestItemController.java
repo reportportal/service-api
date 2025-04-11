@@ -49,6 +49,7 @@ import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
 import com.epam.ta.reportportal.core.item.impl.TestCaseSearchHandler;
 import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.TestItemHistoryElement;
 import com.epam.ta.reportportal.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.model.item.LinkExternalIssueRQ;
@@ -243,7 +244,7 @@ public class TestItemController {
   @ResponseStatus(OK)
   @Operation(summary = "Find test items by specified filter")
   @Schema(implementation = TestItemHistoryElement.class)
-  public Iterable<TestItemResource> getTestItems(@PathVariable String projectName,
+  public Page<TestItemResource> getTestItems(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user, @Nullable
   @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
       + CRITERIA_LAUNCH_ID, required = false)

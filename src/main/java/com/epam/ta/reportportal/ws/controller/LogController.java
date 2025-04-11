@@ -38,6 +38,7 @@ import com.epam.ta.reportportal.core.log.DeleteLogHandler;
 import com.epam.ta.reportportal.core.log.GetLogHandler;
 import com.epam.ta.reportportal.core.log.impl.PagedLogResource;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.log.GetLogsUnderRq;
 import com.epam.ta.reportportal.model.log.LogResource;
 import com.epam.ta.reportportal.model.log.SearchLogRq;
@@ -218,11 +219,11 @@ public class LogController {
   @RequestMapping(method = RequestMethod.GET)
   @Operation(summary = "Get logs by filter")
   @Transactional(readOnly = true)
-  public Iterable<LogResource> getLogs(@PathVariable String projectName,
-      @RequestParam(value = DEFAULT_FILTER_PREFIX + UNDR + CRITERIA_PATH, required = false)
+  public Page<LogResource> getLogs(@PathVariable String projectName,
+                                   @RequestParam(value = DEFAULT_FILTER_PREFIX + UNDR + CRITERIA_PATH, required = false)
           String underPath, @FilterFor(Log.class) Filter filter,
-      @SortDefault({"logTime"}) @SortFor(Log.class) Pageable pageable,
-      @AuthenticationPrincipal ReportPortalUser user) {
+                                   @SortDefault({"logTime"}) @SortFor(Log.class) Pageable pageable,
+                                   @AuthenticationPrincipal ReportPortalUser user) {
     return getLogHandler.getLogs(underPath,
         projectExtractor.extractProjectDetails(user, projectName), filter, pageable
     );
@@ -279,7 +280,7 @@ public class LogController {
   @GetMapping(value = "/nested/{parentId}")
   @Operation(summary = "Get nested steps with logs for the parent Test Item")
   @Transactional(readOnly = true)
-  public Iterable<?> getNestedItems(@PathVariable String projectName, @PathVariable Long parentId,
+  public Page<?> getNestedItems(@PathVariable String projectName, @PathVariable Long parentId,
       @Parameter(required = false) @RequestParam Map<String, String> params,
       @FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {

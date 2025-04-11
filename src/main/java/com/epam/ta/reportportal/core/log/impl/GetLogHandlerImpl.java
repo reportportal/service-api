@@ -112,8 +112,8 @@ public class GetLogHandlerImpl implements GetLogHandler {
   }
 
   @Override
-  public Iterable<LogResource> getLogs(@Nullable String path,
-      ReportPortalUser.ProjectDetails projectDetails, Filter filterable, Pageable pageable) {
+  public com.epam.ta.reportportal.model.Page<LogResource> getLogs(@Nullable String path,
+                                                                  ReportPortalUser.ProjectDetails projectDetails, Filter filterable, Pageable pageable) {
     ofNullable(path).ifPresent(p -> updateFilter(filterable, p));
     Page<LogFull> logFullPage =
         logService.findByFilter(ProjectFilter.of(filterable, projectDetails.getProjectId()),
@@ -159,8 +159,8 @@ public class GetLogHandlerImpl implements GetLogHandler {
   }
 
   @Override
-  public Iterable<?> getNestedItems(Long parentId, ReportPortalUser.ProjectDetails projectDetails,
-      Map<String, String> params, Queryable queryable, Pageable pageable) {
+  public com.epam.ta.reportportal.model.Page<?> getNestedItems(Long parentId, ReportPortalUser.ProjectDetails projectDetails,
+                                                               Map<String, String> params, Queryable queryable, Pageable pageable) {
 
     TestItem parentItem = testItemRepository.findById(parentId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentId));

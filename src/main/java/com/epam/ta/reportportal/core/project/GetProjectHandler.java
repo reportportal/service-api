@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.project.ProjectResource;
 import com.epam.ta.reportportal.model.user.SearchUserResource;
 import com.epam.ta.reportportal.model.user.UserResource;
@@ -44,7 +45,7 @@ public interface GetProjectHandler {
    * @param pageable    {@link Pageable}
    * @return list of {@link UserResource}
    */
-  Iterable<UserResource> getProjectUsers(String projectName, Filter filter, Pageable pageable);
+  Page<UserResource> getProjectUsers(String projectName, Filter filter, Pageable pageable);
 
   boolean exists(Long id);
 
@@ -86,9 +87,9 @@ public interface GetProjectHandler {
    * @param value          login OR full name of user
    * @param projectDetails {@link ReportPortalUser.ProjectDetails}
    * @param pageable       {@link Pageable} Page Details
-   * @return List of found user resources
+   * @return Page of found user resources
    */
-  Iterable<SearchUserResource> getUserNames(String value,
+  Page<SearchUserResource> getUserNames(String value,
      UserRole userRole,
       ReportPortalUser.ProjectDetails projectDetails, Pageable pageable);
 

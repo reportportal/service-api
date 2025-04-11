@@ -170,9 +170,9 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   }
 
   @Override
-  public Iterable<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-      Map<String, String> params) {
+  public com.epam.ta.reportportal.model.Page<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable,
+                                                                                      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+                                                                                      Map<String, String> params) {
     DataProviderType dataProviderType = DataProviderType.findByName(params.get(PROVIDER_TYPE_PARAM))
         .orElseThrow(() -> new ReportPortalException(
             ErrorType.BAD_REQUEST_ERROR,

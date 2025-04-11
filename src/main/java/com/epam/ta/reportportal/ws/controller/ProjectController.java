@@ -46,6 +46,7 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.model.project.CreateProjectRQ;
@@ -206,9 +207,9 @@ public class ProjectController {
   @GetMapping("/{projectName}/users")
   @PreAuthorize(NOT_CUSTOMER)
   @Operation(summary = "Get users assigned on current project")
-  public Iterable<UserResource> getProjectUsers(@PathVariable String projectName,
-      @FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
-      @AuthenticationPrincipal ReportPortalUser user) {
+  public Page<UserResource> getProjectUsers(@PathVariable String projectName,
+                                            @FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
+                                            @AuthenticationPrincipal ReportPortalUser user) {
     return getProjectHandler.getProjectUsers(normalizeId(projectName), filter, pageable);
   }
 
@@ -248,7 +249,7 @@ public class ProjectController {
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
   @Operation(summary =  "Load users which can be assigned to specified project", description = "Only for users with project manager permissions")
-  public Iterable<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter,
+  public Page<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter,
       @SortFor(User.class) Pageable pageable, @PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getUserHandler.getUsers(filter, pageable,
@@ -273,7 +274,7 @@ public class ProjectController {
   @GetMapping("/{projectName}/usernames/search")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
-  public Iterable<SearchUserResource> searchForUser(@PathVariable String projectName,
+  public Page<SearchUserResource> searchForUser(@PathVariable String projectName,
       @RequestParam(value = "term") String term,
       Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
     return getProjectHandler.getUserNames(term, user.getUserRole(),
@@ -317,7 +318,7 @@ public class ProjectController {
   @PreAuthorize(ADMIN_ONLY)
   @GetMapping(value = "/list")
   @ResponseStatus(HttpStatus.OK)
-  public Iterable<ProjectInfoResource> getAllProjectsInfo(
+  public Page<ProjectInfoResource> getAllProjectsInfo(
       @FilterFor(ProjectInfo.class) Filter filter,
       @FilterFor(ProjectInfo.class) Queryable predefinedFilter,
       @SortFor(ProjectInfo.class) Pageable pageable,

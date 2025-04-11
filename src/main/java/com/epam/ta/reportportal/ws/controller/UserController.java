@@ -37,12 +37,7 @@ import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.model.ApiKeyRQ;
-import com.epam.ta.reportportal.model.ApiKeyRS;
-import com.epam.ta.reportportal.model.ApiKeysRS;
-import com.epam.ta.reportportal.model.DeleteBulkRS;
-import com.epam.ta.reportportal.model.ModelViews;
-import com.epam.ta.reportportal.model.YesNoRS;
+import com.epam.ta.reportportal.model.*;
 import com.epam.ta.reportportal.model.user.ChangePasswordRQ;
 import com.epam.ta.reportportal.model.user.CreateUserBidRS;
 import com.epam.ta.reportportal.model.user.CreateUserRQ;
@@ -204,9 +199,9 @@ public class UserController {
   @ResponseView(ModelViews.FullUserView.class)
   @PreAuthorize(ADMIN_ONLY)
   @Operation(summary =  "Return information about all users", description = "Allowable only for users with administrator role")
-  public Iterable<UserResource> getUsers(@FilterFor(User.class) Filter filter,
-      @SortFor(User.class) Pageable pageable, @FilterFor(User.class) Queryable queryable,
-      @AuthenticationPrincipal ReportPortalUser currentUser) {
+  public Page<UserResource> getUsers(@FilterFor(User.class) Filter filter,
+                                     @SortFor(User.class) Pageable pageable, @FilterFor(User.class) Queryable queryable,
+                                     @AuthenticationPrincipal ReportPortalUser currentUser) {
     return getUserHandler.getAllUsers(new CompositeFilter(Operator.AND, filter, queryable),
         pageable
     );
@@ -266,7 +261,7 @@ public class UserController {
   @GetMapping(value = "/search")
   @ResponseStatus(OK)
   @PreAuthorize(ADMIN_ONLY)
-  public Iterable<UserResource> findUsers(@RequestParam(value = "term") String term,
+  public Page<UserResource> findUsers(@RequestParam(value = "term") String term,
       Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
     return getUserHandler.searchUsers(term, pageable);
   }

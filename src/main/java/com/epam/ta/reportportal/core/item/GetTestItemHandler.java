@@ -76,9 +76,9 @@ public interface GetTestItemHandler {
    * @param pageable       {@link Pageable}
    * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
    * @param user           {@link ReportPortalUser}
-   * @return {@link Iterable} of the {@link TestItemResource}
+   * @return {@link Page} of the {@link TestItemResource}
    */
-  Iterable<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable,
+  Page<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable,
       ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
       Map<String, String> params);
 

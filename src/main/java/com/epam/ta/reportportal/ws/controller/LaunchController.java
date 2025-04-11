@@ -301,7 +301,7 @@ public class LaunchController {
   @ResponseBody
   @ResponseStatus(OK)
   @Operation(summary = "Get launches of specified project from DEBUG mode")
-  public Iterable<LaunchResource> getDebugLaunches(@PathVariable String projectName,
+  public Page<LaunchResource> getDebugLaunches(@PathVariable String projectName,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getDebugLaunches(
@@ -334,7 +334,7 @@ public class LaunchController {
   @GetMapping(value = "/cluster/{launchId}")
   @ResponseStatus(OK)
   @Operation(summary = "Get all index clusters of the launch")
-  public Iterable<ClusterInfoResource> getClusters(@PathVariable String projectName,
+  public Page<ClusterInfoResource> getClusters(@PathVariable String projectName,
       @PathVariable String launchId, Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getClusters(launchId,

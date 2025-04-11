@@ -125,7 +125,8 @@ public class UserController {
   @PostMapping
   @ResponseStatus(CREATED)
   @PreAuthorize(ADMIN_ONLY)
-  @Operation(summary = "Create specified user", description = "Allowable only for users with administrator role")
+  @Operation(summary = "Create specified user",
+      description = "Allowable only for users with administrator role")
   public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq,
       @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
     return createUserMessageHandler.createUserByAdmin(rq, currentUser, composeBaseUrl(request));
@@ -176,7 +177,8 @@ public class UserController {
   @Transactional
   @PutMapping(value = "/{login}")
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
-  @Operation(summary = "Edit specified user", description = "Only for administrators and profile's owner")
+  @Operation(summary = "Edit specified user",
+      description = "Only for administrators and profile's owner")
   public OperationCompletionRS editUser(@PathVariable String login,
       @RequestBody @Validated EditUserRQ editUserRQ, @ActiveRole UserRole role,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
@@ -187,7 +189,8 @@ public class UserController {
   @GetMapping(value = "/{login}")
   @ResponseView(ModelViews.FullUserView.class)
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
-  @Operation(summary = "Return information about specified user", description = "Only for administrators and profile's owner")
+  @Operation(summary = "Return information about specified user",
+      description = "Only for administrators and profile's owner")
   public UserResource getUser(@PathVariable String login,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
     return getUserHandler.getUser(EntityUtils.normalizeId(login), currentUser);
@@ -204,7 +207,8 @@ public class UserController {
   @GetMapping(value = "/all")
   @ResponseView(ModelViews.FullUserView.class)
   @PreAuthorize(ADMIN_ONLY)
-  @Operation(summary = "Return information about all users", description = "Allowable only for users with administrator role")
+  @Operation(summary = "Return information about all users",
+      description = "Allowable only for users with administrator role")
   public Page<UserResource> getUsers(@FilterFor(User.class) Filter filter,
       @SortFor(User.class) Pageable pageable, @FilterFor(User.class) Queryable queryable,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
@@ -275,7 +279,8 @@ public class UserController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/export")
   @PreAuthorize(ADMIN_ONLY)
-  @Operation(summary = "Exports information about all users", description = "Allowable only for users with administrator role")
+  @Operation(summary = "Exports information about all users",
+      description = "Allowable only for users with administrator role")
   public void export(@Parameter(schema = @Schema(allowableValues = "csv"))
       @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
       @FilterFor(User.class) Filter filter, @FilterFor(User.class) Queryable queryable,

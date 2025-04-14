@@ -135,7 +135,7 @@ class SecurityConfiguration {
   }
 
   @Bean
-  public AuthenticationEntryPoint authenticationEntryPoint(){
+  public AuthenticationEntryPoint authenticationEntryPoint() {
     return new CustomAuthenticationEntryPoint();
   }
 

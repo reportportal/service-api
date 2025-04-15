@@ -30,6 +30,8 @@ import org.springframework.test.context.jdbc.Sql;
 @ExtendWith(MockitoExtension.class)
 public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
+  private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
+
   @Autowired
   private TmsTestCaseRepository testCaseRepository;
 
@@ -50,7 +52,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(testCaseRQ);
 
     // When
-    mockMvc.perform(post("/project/3/tms/test-case")
+    mockMvc.perform(post("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -71,7 +73,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     Optional<TmsTestCase> testCase = testCaseRepository.findById(4L);
 
     // When/Then
-    mockMvc.perform(get("/project/4/tms/test-case/4")
+    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/4")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(testCase.get().getId()))
@@ -85,12 +87,12 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     Optional<TmsTestCase> testCase = testCaseRepository.findById(4L);
 
     // When/Then
-    mockMvc.perform(get("/project/4/tms/test-case")
+    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].id").value(testCase.get().getId()))
-        .andExpect(jsonPath("$[0].name").value(testCase.get().getName()))
-        .andExpect(jsonPath("$[0].description").value(testCase.get().getDescription()));
+        .andExpect(jsonPath("$[?(@.id == %d)]", testCase.get().getId()).exists())
+        .andExpect(jsonPath("$[?(@.id == %d)].name", testCase.get().getId()).value(testCase.get().getName()))
+        .andExpect(jsonPath("$[?(@.id == %d)].description", testCase.get().getId()).value(testCase.get().getDescription()));
   }
 
   @Test
@@ -110,7 +112,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(testCaseRQ);
 
     // When
-    mockMvc.perform(put("/project/5/tms/test-case/5")
+    mockMvc.perform(put("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/5")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -141,7 +143,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(testCaseRQ);
 
     // When
-    mockMvc.perform(patch("/project/6/tms/test-case/6")
+    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/6")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))

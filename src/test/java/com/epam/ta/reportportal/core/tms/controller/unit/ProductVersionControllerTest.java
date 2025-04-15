@@ -1,5 +1,8 @@
 package com.epam.ta.reportportal.core.tms.controller.unit;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
@@ -11,38 +14,86 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.controller.ProductVersionController;
 import com.epam.ta.reportportal.core.tms.dto.ProductVersionRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsProductVersionRS;
 import com.epam.ta.reportportal.core.tms.service.ProductVersionService;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
 class ProductVersionControllerTest {
 
   @Mock
   private ProductVersionService productVersionService;
 
+  @Mock
+  private ProjectExtractor projectExtractor;
+
   @InjectMocks
   private ProductVersionController productVersionController;
 
   private MockMvc mockMvc;
+  private final long projectId = 1L;
+  private final String projectKey = "test_project";
+  private ReportPortalUser testUser;
 
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
-    mockMvc = standaloneSetup(productVersionController).build();
+
+    // Create a test user
+    testUser = ReportPortalUser.userBuilder()
+        .withUserName("testUser")
+        .withPassword("password")
+        .withUserId(1L)
+        .withActive(true)
+        .withAuthorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
+        .build();
+
+    // Configure MockMvc with a custom argument resolver for @AuthenticationPrincipal
+    mockMvc = standaloneSetup(productVersionController)
+        .setCustomArgumentResolvers(new HandlerMethodArgumentResolver() {
+          @Override
+          public boolean supportsParameter(MethodParameter parameter) {
+            return parameter.getParameterAnnotation(AuthenticationPrincipal.class) != null;
+          }
+
+          @Override
+          public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+              NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+            return testUser;
+          }
+        })
+        .build();
+
+    // Setup the project extractor mock to return a MembershipDetails with the projectId
+    MembershipDetails membershipDetails = MembershipDetails.builder()
+        .withProjectId(projectId)
+        .withProjectKey(projectKey)
+        .build();
+    given(projectExtractor.extractProjectDetailsAdmin(any(ReportPortalUser.class), anyString()))
+        .willReturn(membershipDetails);
   }
 
   @Test
   void getByIdTest() throws Exception {
-    long projectId = 1L;
     long productVersionId = 1L;
     TmsProductVersionRS productVersionRS = new TmsProductVersionRS();
     productVersionRS.setId(1L);
@@ -52,16 +103,16 @@ class ProductVersionControllerTest {
 
     given(productVersionService.getById(projectId, productVersionId)).willReturn(productVersionRS);
 
-    mockMvc.perform(get("/project/{projectId}/tms/productversion/{productVersionId}", projectId,
+    mockMvc.perform(get("/project/{projectKey}/tms/productversion/{productVersionId}", projectKey,
             productVersionId))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").exists());
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
     verify(productVersionService).getById(projectId, productVersionId);
   }
 
   @Test
   void createVersionTest() throws Exception {
-    long projectId = 1L;
     ProductVersionRQ request = new ProductVersionRQ(1L, "version", "doc", 1L);
     TmsProductVersionRS expectedResponse = new TmsProductVersionRS();
     expectedResponse.setId(1L);
@@ -74,16 +125,16 @@ class ProductVersionControllerTest {
 
     given(productVersionService.create(projectId, request)).willReturn(expectedResponse);
 
-    mockMvc.perform(post("/project/{projectId}/tms/productversion", projectId)
+    mockMvc.perform(post("/project/{projectKey}/tms/productversion", projectKey)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
     verify(productVersionService).create(projectId, request);
   }
 
   @Test
   void updateVersionTest() throws Exception {
-    long projectId = 1L;
     long productVersionId = 1L;
     ProductVersionRQ request = new ProductVersionRQ(productVersionId, "version", "doc", projectId);
     TmsProductVersionRS expectedResponse = new TmsProductVersionRS();
@@ -98,24 +149,25 @@ class ProductVersionControllerTest {
     given(productVersionService.update(projectId, productVersionId, request))
         .willReturn(expectedResponse);
 
-    mockMvc.perform(put("/project/{projectId}/tms/productversion/{productVersionId}",
-            projectId, productVersionId)
+    mockMvc.perform(put("/project/{projectKey}/tms/productversion/{productVersionId}",
+            projectKey, productVersionId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
     verify(productVersionService).update(projectId, productVersionId, request);
   }
 
   @Test
   void deleteVersionTest() throws Exception {
-    long projectId = 1L;
     long productVersionId = 1L;
 
     doNothing().when(productVersionService).delete(projectId, productVersionId);
 
-    mockMvc.perform(delete("/project/{projectId}/tms/productversion/{productVersionId}",
-            projectId, productVersionId))
+    mockMvc.perform(delete("/project/{projectKey}/tms/productversion/{productVersionId}",
+            projectKey, productVersionId))
         .andExpect(status().isOk());
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
     verify(productVersionService).delete(projectId, productVersionId);
   }
 }

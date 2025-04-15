@@ -140,7 +140,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   }
 
   @Override
-  public Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
+  public com.epam.ta.reportportal.model.Page<TestItemResource> getTestItems(Queryable filter,
+      Pageable pageable,
       ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
       @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit) {
 
@@ -170,7 +171,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   }
 
   @Override
-  public Iterable<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable,
+  public com.epam.ta.reportportal.model.Page<TestItemResource> getTestItemsByProvider(
+      Queryable filter, Pageable pageable,
       ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
       Map<String, String> params) {
     DataProviderType dataProviderType = DataProviderType.findByName(params.get(PROVIDER_TYPE_PARAM))

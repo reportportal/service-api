@@ -16,16 +16,19 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.strategy;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.integration.plugin.PluginUploader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Factory class for creating instances of {@link PluginUploader} based on the content type.
- * This class is responsible for managing different types of plugin uploads and providing the
- * appropriate one based on the content type.
+ * Factory class for creating instances of {@link PluginUploader} based on the content type. This
+ * class is responsible for managing different types of plugin uploads and providing the appropriate
+ * one based on the content type.
  *
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
@@ -37,12 +40,14 @@ public class PluginUploaderFactory {
   /**
    * Constructor for PluginUploaderFactory.
    *
-   * @param jarPluginUploader    Instance of {@link JarPluginUploader} for handling JAR uploads
-   * @param jsonPluginUploader   Instance of {@link JsonPluginUploader} for handling JSON uploads
+   * @param jarPluginUploader  Instance of {@link JarPluginUploader} for handling JAR uploads
+   * @param jsonPluginUploader Instance of {@link JsonPluginUploader} for handling JSON uploads
    */
   @Autowired
-  public PluginUploaderFactory(JarPluginUploader jarPluginUploader,
-      JsonPluginUploader jsonPluginUploader) {
+  public PluginUploaderFactory(
+      JarPluginUploader jarPluginUploader,
+      JsonPluginUploader jsonPluginUploader
+  ) {
     uploads.put("application/java-archive", jarPluginUploader);
     uploads.put("application/json", jsonPluginUploader);
   }
@@ -52,8 +57,13 @@ public class PluginUploaderFactory {
    *
    * @param contentType The content type of the plugin to be uploaded
    * @return An instance of {@link PluginUploader} that matches the content type
+   * @throws ReportPortalException if no uploader is found for the specified content type
    */
   public PluginUploader getUploader(String contentType) {
-    return uploads.get(contentType);
+    return Optional.ofNullable(uploads.get(contentType))
+        .orElseThrow(() -> new ReportPortalException(
+            ErrorType.PLUGIN_UPLOAD_ERROR,
+            "Unsupported content type: " + contentType
+        ));
   }
 }

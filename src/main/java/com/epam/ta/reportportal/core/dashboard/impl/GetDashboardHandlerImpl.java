@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.core.widget.WidgetConfigurationService;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.dashboard.DashboardConfigResource;
 import com.epam.ta.reportportal.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -45,8 +46,8 @@ public class GetDashboardHandlerImpl implements GetDashboardHandler {
   private final WidgetConfigurationService widgetConfigurationService;
 
   @Override
-  public Iterable<DashboardResource> getDashboards(ReportPortalUser.ProjectDetails projectDetails,
-      Pageable pageable, Filter filter, ReportPortalUser user) {
+  public Page<DashboardResource> getDashboards(ReportPortalUser.ProjectDetails projectDetails,
+                                               Pageable pageable, Filter filter, ReportPortalUser user) {
     var dashboards = dashboardRepository.findByFilter(
         ProjectFilter.of(filter, projectDetails.getProjectId()), pageable);
     return PagedResourcesAssembler.pageConverter(DashboardConverter.TO_RESOURCE).apply(dashboards);

@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.item.history;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.TestItemHistoryElement;
 import org.springframework.data.domain.Pageable;
 
@@ -38,10 +39,10 @@ public interface TestItemsHistoryHandler {
    * @param pageable             - paging parameters object
    * @param historyRequestParams - {@link HistoryRequestParams}
    * @param user                 - {@link ReportPortalUser}
-   * @return {@link Iterable} of {@link TestItemHistoryElement}
+   * @return {@link Page} of {@link TestItemHistoryElement}
    */
-  Iterable<TestItemHistoryElement> getItemsHistory(ReportPortalUser.ProjectDetails projectDetails,
-      Queryable filter, Pageable pageable, HistoryRequestParams historyRequestParams,
-      ReportPortalUser user);
+  Page<TestItemHistoryElement> getItemsHistory(ReportPortalUser.ProjectDetails projectDetails,
+                                               Queryable filter, Pageable pageable, HistoryRequestParams historyRequestParams,
+                                               ReportPortalUser user);
 
 }

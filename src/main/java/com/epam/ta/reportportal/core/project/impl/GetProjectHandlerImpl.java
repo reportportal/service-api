@@ -98,12 +98,12 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   }
 
   @Override
-  public Iterable<UserResource> getProjectUsers(String projectName, Filter filter,
-      Pageable pageable) {
+  public com.epam.ta.reportportal.model.Page<UserResource> getProjectUsers(String projectName, Filter filter,
+                                                                           Pageable pageable) {
     Project project = projectRepository.findByName(projectName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
     if (CollectionUtils.isEmpty(project.getUsers())) {
-      return Collections.emptyList();
+      return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(Page.empty(pageable));
     }
     filter.withCondition(
         new FilterCondition(Condition.EQUALS, false, String.valueOf(project.getId()),
@@ -165,8 +165,8 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   }
 
   @Override
-  public Iterable<SearchUserResource> getUserNames(String value,
-      UserRole userRole,ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
+  public com.epam.ta.reportportal.model.Page<SearchUserResource> getUserNames(String value,
+                                                                              UserRole userRole, ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
     checkBusinessRuleLessThan1Symbol(value);
 
     final CompositeFilterCondition userCondition =

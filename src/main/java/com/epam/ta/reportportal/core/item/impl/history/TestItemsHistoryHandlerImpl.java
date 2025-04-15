@@ -89,7 +89,7 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
   }
 
   @Override
-  public Iterable<TestItemHistoryElement> getItemsHistory(
+  public com.epam.ta.reportportal.model.Page<TestItemHistoryElement> getItemsHistory(
       ReportPortalUser.ProjectDetails projectDetails, Queryable filter, Pageable pageable,
       HistoryRequestParams historyRequestParams, ReportPortalUser user) {
 
@@ -132,7 +132,7 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
         .verify(UNABLE_LOAD_TEST_ITEM_HISTORY, historyDepthMessage);
   }
 
-  private Iterable<TestItemHistoryElement> buildHistoryElements(
+  private com.epam.ta.reportportal.model.Page<TestItemHistoryElement> buildHistoryElements(
       Function<TestItemResource, String> groupingFunction,
       Page<TestItemHistory> testItemHistoryPage, Long projectId, Pageable pageable) {
 

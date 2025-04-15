@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.configs.security;
 
+import com.epam.ta.reportportal.auth.CustomAuthenticationEntryPoint;
 import com.epam.ta.reportportal.auth.UserRoleHierarchy;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
@@ -51,6 +52,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
@@ -123,12 +125,18 @@ class SecurityConfiguration {
             .hasRole("USER")
             .anyRequest()
             .authenticated())
-        .oauth2ResourceServer(resourceServer ->
-            resourceServer.authenticationManagerResolver(customAuthenticationManagerResolver()))
+        .oauth2ResourceServer(resourceServer -> resourceServer
+            .authenticationManagerResolver(customAuthenticationManagerResolver())
+            .authenticationEntryPoint(authenticationEntryPoint()))
         .userDetailsService(userDetailsService)
         .csrf(AbstractHttpConfigurer::disable);
 
     return http.build();
+  }
+
+  @Bean
+  public AuthenticationEntryPoint authenticationEntryPoint() {
+    return new CustomAuthenticationEntryPoint();
   }
 
   @Bean

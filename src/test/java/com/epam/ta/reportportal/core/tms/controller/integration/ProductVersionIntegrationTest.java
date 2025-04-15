@@ -27,16 +27,18 @@ import org.springframework.test.context.jdbc.Sql;
 @ExtendWith(MockitoExtension.class)
 class ProductVersionIntegrationTest extends BaseMvcTest {
 
+  private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
+
   @Autowired
   private ProductVersionRepository productVersionRepository;
 
   @Test
   void createVersionIntegrationTest() throws Exception {
-    ProductVersionRQ request = new ProductVersionRQ(1L, "version1", "documentation1",
-        1L);
+    ProductVersionRQ request = new ProductVersionRQ(1L, "version1", "documentation1", 1L);
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
-    mockMvc.perform(post("/project/1/tms/productversion")
+
+    mockMvc.perform(post("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/productversion")
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -52,19 +54,18 @@ class ProductVersionIntegrationTest extends BaseMvcTest {
 
   @Test
   void updateVersionIntegrationTest() throws Exception {
-    ProductVersionRQ request = new ProductVersionRQ(3L, "versionUpdated",
-        "docUpdated", 3L);
+    ProductVersionRQ request = new ProductVersionRQ(3L, "versionUpdated", "docUpdated", 3L);
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
 
-    mockMvc.perform(put("/project/3/tms/productversion/3")
+    mockMvc.perform(put("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/productversion/3")
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
     Optional<TmsProductVersion> productVersion = productVersionRepository
-        .findByProjectIdAndId(3L, 3L);
+        .findByProjectIdAndId(1L, 3L);
     assertTrue(productVersion.isPresent());
     assertEquals(request.id(), productVersion.get().getId());
     assertEquals(request.version(), productVersion.get().getVersion());
@@ -73,18 +74,18 @@ class ProductVersionIntegrationTest extends BaseMvcTest {
 
   @Test
   void deleteProductVersionIntegrationTest() throws Exception {
-    mockMvc.perform(delete("/project/4/tms/productversion/4")
+    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/productversion/4")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
-    assertFalse(productVersionRepository.findByProjectIdAndId(4L, 4L).isPresent());
+    assertFalse(productVersionRepository.findByProjectIdAndId(1L, 4L).isPresent());
   }
 
   @Test
   void getByIdIntegrationTest() throws Exception {
     Optional<TmsProductVersion> productVersion = productVersionRepository
-        .findByProjectIdAndId(5L, 5L);
+        .findByProjectIdAndId(1L, 5L);
 
-    mockMvc.perform(get("/project/5/tms/productversion/5")
+    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/productversion/5")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(productVersion.get().getId()))

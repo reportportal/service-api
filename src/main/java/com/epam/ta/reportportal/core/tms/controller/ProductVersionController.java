@@ -2,12 +2,16 @@ package com.epam.ta.reportportal.core.tms.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 
+import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.dto.ProductVersionRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsProductVersionRS;
 import com.epam.ta.reportportal.core.tms.service.ProductVersionService;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,46 +28,57 @@ import org.springframework.web.bind.annotation.RestController;
  * and deleting product versions associated with a specific project.
  */
 @RestController
-@RequestMapping("/project/{projectId}/tms/productversion")
+@RequestMapping("/project/{projectKey}/tms/productversion")
 @Tag(name = "Product Version", description = "Product Version API collection")
 @RequiredArgsConstructor
 public class ProductVersionController {
 
   private final ProductVersionService productVersionService;
+  private final ProjectExtractor projectExtractor;
 
   /**
    * Retrieves a specific product version by its ID within a project.
    *
-   * @param projectId        The ID of the project to which the product version belongs.
+   * @param projectKey        The key of the project to which the product version belongs.
    * @param productVersionId The ID of the product version to retrieve.
    * @return A data transfer object ({@link TmsProductVersionRS}) containing details of the product version.
    */
   @PreAuthorize(IS_ADMIN)
   @GetMapping("/{productVersionId}")
-  TmsProductVersionRS getById(@PathVariable("projectId") final long projectId,
-      @PathVariable("productVersionId") final long productVersionId) {
-    return productVersionService.getById(projectId, productVersionId);
+  TmsProductVersionRS getById(@PathVariable("projectKey") String projectKey,
+      @PathVariable("productVersionId") final long productVersionId,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return productVersionService.getById(
+        projectExtractor
+            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        productVersionId);
   }
 
   /**
    * Creates a new product version in the specified project.
    *
-   * @param projectId The ID of the project to which the new product version will be added.
+   * @param projectKey The key of the project to which the new product version will be added.
    * @param inputDto  A request payload ({@link ProductVersionRQ}) containing information
    *                  about the product version to create.
    * @return A data transfer object ({@link TmsProductVersionRS}) with details of the created product version.
    */
   @PreAuthorize(IS_ADMIN)
   @PostMapping
-  TmsProductVersionRS createVersion(@PathVariable("projectId") final long projectId,
-      @RequestBody final ProductVersionRQ inputDto) {
-    return productVersionService.create(projectId, inputDto);
+  TmsProductVersionRS createVersion(@PathVariable("projectKey") String projectKey,
+      @RequestBody final ProductVersionRQ inputDto,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return productVersionService.create(
+        projectExtractor
+            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        inputDto);
   }
 
   /**
    * Updates the details of an existing product version in a project.
    *
-   * @param projectId        The ID of the project to which the product version belongs.
+   * @param projectKey        The key of the project to which the product version belongs.
    * @param productVersionId The ID of the product version to update.
    * @param inputDto         A request payload ({@link ProductVersionRQ}) containing updated information
    *                         for the product version.
@@ -71,22 +86,33 @@ public class ProductVersionController {
    */
   @PreAuthorize(IS_ADMIN)
   @PutMapping("/{productVersionId}")
-  TmsProductVersionRS updateVersion(@PathVariable("projectId") final long projectId,
+  TmsProductVersionRS updateVersion(@PathVariable("projectKey") String projectKey,
       @PathVariable("productVersionId") final long productVersionId,
-      @RequestBody final ProductVersionRQ inputDto) {
-    return productVersionService.update(projectId, productVersionId, inputDto);
+      @RequestBody final ProductVersionRQ inputDto,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return productVersionService.update(
+        projectExtractor
+            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        productVersionId,
+        inputDto);
   }
 
   /**
    * Deletes a specific product version from a project.
    *
-   * @param projectId        The ID of the project to which the product version belongs.
+   * @param projectKey        The key of the project to which the product version belongs.
    * @param productVersionId The ID of the product version to delete.
    */
   @PreAuthorize(IS_ADMIN)
   @DeleteMapping("/{productVersionId}")
-  void deleteVersion(@PathVariable("projectId") final long projectId,
-      @PathVariable("productVersionId") final long productVersionId) {
-    productVersionService.delete(projectId, productVersionId);
+  void deleteVersion(@PathVariable("projectKey") String projectKey,
+      @PathVariable("productVersionId") final long productVersionId,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    productVersionService.delete(
+        projectExtractor
+            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        productVersionId);
   }
 }

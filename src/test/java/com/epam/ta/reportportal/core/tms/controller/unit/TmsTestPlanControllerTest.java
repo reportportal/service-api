@@ -35,8 +35,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -83,7 +83,8 @@ public class TmsTestPlanControllerTest {
               }
 
               @Override
-              public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+              public Object resolveArgument(MethodParameter parameter,
+                                            ModelAndViewContainer mavContainer,
                   NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
                 return testUser;
               }
@@ -113,7 +114,8 @@ public class TmsTestPlanControllerTest {
             .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsTestPlanService).create(projectId, tmsTestPlanRequest);
   }
 
@@ -134,7 +136,8 @@ public class TmsTestPlanControllerTest {
             .param("size", "1"))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsTestPlanService).getByCriteria(projectId, List.of(1L), List.of(2L), pageable);
   }
 
@@ -154,7 +157,8 @@ public class TmsTestPlanControllerTest {
             .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsTestPlanService).update(projectId, testPlanId, tmsTestPlanRequest);
   }
 
@@ -168,7 +172,8 @@ public class TmsTestPlanControllerTest {
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsTestPlanService).getById(projectId, testPlanId);
   }
 
@@ -176,11 +181,13 @@ public class TmsTestPlanControllerTest {
   void deleteTestPlanTest() throws Exception {
     Long testPlanId = 2L;
 
-    mockMvc.perform(delete("/project/{projectKey}/tms/test-plan/{testPlanId}", projectKey, testPlanId)
+    mockMvc.perform(delete("/project/{projectKey}/tms/test-plan/{testPlanId}",
+                            projectKey, testPlanId)
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsTestPlanService).delete(projectId, testPlanId);
   }
 
@@ -194,12 +201,14 @@ public class TmsTestPlanControllerTest {
 
     given(tmsTestPlanService.patch(projectId, testPlanId, tmsTestPlanRequest)).willReturn(testPlan);
 
-    mockMvc.perform(patch("/project/{projectKey}/tms/test-plan/{testPlanId}", projectKey, testPlanId)
+    mockMvc.perform(patch("/project/{projectKey}/tms/test-plan/{testPlanId}",
+                           projectKey, testPlanId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsTestPlanService).patch(projectId, testPlanId, tmsTestPlanRequest);
   }
 }

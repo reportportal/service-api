@@ -17,13 +17,13 @@ package com.epam.ta.reportportal.plugin;
 
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.google.common.collect.Lists;
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.pf4j.PluginManager;
@@ -33,6 +33,7 @@ import org.pf4j.update.PluginInfo.PluginRelease;
 import org.pf4j.update.SimpleFileDownloader;
 import org.pf4j.update.UpdateManager;
 import org.pf4j.update.UpdateRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -43,6 +44,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PluginStartUpService {
 
+  @Value("${rp.environment.variable.default-plugin.load:false}")
+  private final boolean defaultPluginsLoad;
+
   private final PluginManager pluginManager;
 
   private final Pf4jPluginBox pluginBox;
@@ -50,10 +54,13 @@ public class PluginStartUpService {
   @PostConstruct
   public void loadPlugins() {
     pluginBox.startUp();
-    UpdateManager updateManager = new UpdateManager(pluginManager, getDefaultPluginRepositories());
-    if (updateManager.hasAvailablePlugins()) {
-      updateManager.getAvailablePlugins()
-          .forEach(pluginInfo -> loadLatestVersion(updateManager, pluginInfo));
+    if (defaultPluginsLoad) {
+      UpdateManager updateManager = new UpdateManager(pluginManager,
+          getDefaultPluginRepositories());
+      if (updateManager.hasAvailablePlugins()) {
+        updateManager.getAvailablePlugins()
+            .forEach(pluginInfo -> loadLatestVersion(updateManager, pluginInfo));
+      }
     }
   }
 

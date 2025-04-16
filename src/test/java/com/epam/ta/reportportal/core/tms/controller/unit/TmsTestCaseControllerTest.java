@@ -30,8 +30,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -77,7 +77,8 @@ public class TmsTestCaseControllerTest {
           }
 
           @Override
-          public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+          public Object resolveArgument(MethodParameter parameter,
+                                        ModelAndViewContainer mavContainer,
               NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
             return testUser;
           }
@@ -108,7 +109,8 @@ public class TmsTestCaseControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsTestCaseService).getById(projectId, testCaseId);
   }
 
@@ -126,7 +128,8 @@ public class TmsTestCaseControllerTest {
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsTestCaseService).getTestCaseByProjectId(projectId);
   }
 
@@ -148,7 +151,8 @@ public class TmsTestCaseControllerTest {
             .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsTestCaseService).create(projectId, testCaseRequest);
   }
 
@@ -172,7 +176,8 @@ public class TmsTestCaseControllerTest {
                 .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsTestCaseService).update(projectId, testCaseId, testCaseRequest);
   }
 
@@ -196,7 +201,8 @@ public class TmsTestCaseControllerTest {
                 .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsTestCaseService).patch(projectId, testCaseId, testCaseRequest);
   }
 }

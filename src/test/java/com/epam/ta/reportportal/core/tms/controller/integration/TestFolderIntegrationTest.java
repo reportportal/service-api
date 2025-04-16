@@ -86,7 +86,9 @@ class TestFolderIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[?(@.id == %d)]", folder.get().getId()).exists())
-        .andExpect(jsonPath("$[?(@.id == %d)].name", folder.get().getId()).value(folder.get().getName()))
-        .andExpect(jsonPath("$[?(@.id == %d)].description", folder.get().getId()).value(folder.get().getDescription()));
+        .andExpect(jsonPath("$[?(@.id == %d)].name", folder.get().getId()).value(folder
+                                                                     .get().getName()))
+        .andExpect(jsonPath("$[?(@.id == %d)].description", folder.get().getId()).value(folder
+                                                                     .get().getDescription()));
   }
 }

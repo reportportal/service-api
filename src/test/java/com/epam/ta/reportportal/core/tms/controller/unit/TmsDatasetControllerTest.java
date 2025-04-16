@@ -34,8 +34,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -80,7 +80,8 @@ class TmsDatasetControllerTest {
           }
 
           @Override
-          public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+          public Object resolveArgument(MethodParameter parameter,
+                                        ModelAndViewContainer mavContainer,
               NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
             return testUser;
           }
@@ -115,7 +116,8 @@ class TmsDatasetControllerTest {
         .andExpect(jsonPath("$.id").value(expectedResponse.getId()))
         .andExpect(jsonPath("$.name").value(expectedResponse.getName()));
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsDatasetService).create(projectId, datasetRQ);
   }
 
@@ -134,7 +136,8 @@ class TmsDatasetControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(2));
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsDatasetService).uploadFromFile(eq(projectId), any());
   }
 
@@ -151,7 +154,8 @@ class TmsDatasetControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(2));
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsDatasetService).getByProjectId(projectId);
   }
 
@@ -163,12 +167,14 @@ class TmsDatasetControllerTest {
     given(tmsDatasetService.getById(projectId, datasetId)).willReturn(mockResponse);
 
     mockMvc
-        .perform(get("/project/{projectKey}/tms/dataset/{datasetId}", projectKey, datasetId))
+        .perform(get("/project/{projectKey}/tms/dataset/{datasetId}", projectKey,
+                                                                                 datasetId))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(mockResponse.getId()))
         .andExpect(jsonPath("$.name").value(mockResponse.getName()));
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsDatasetService).getById(projectId, datasetId);
   }
 
@@ -191,7 +197,8 @@ class TmsDatasetControllerTest {
         .andExpect(jsonPath("$.id").value(expectedResponse.getId()))
         .andExpect(jsonPath("$.name").value(expectedResponse.getName()));
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsDatasetService).update(projectId, datasetId, requestData);
   }
 
@@ -214,7 +221,8 @@ class TmsDatasetControllerTest {
         .andExpect(jsonPath("$.id").value(expectedResponse.getId()))
         .andExpect(jsonPath("$.name").value(expectedResponse.getName()));
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsDatasetService).patch(projectId, datasetId, requestData);
   }
 
@@ -224,10 +232,11 @@ class TmsDatasetControllerTest {
 
     mockMvc
         .perform(
-            delete("/project/{projectKey}/tms/dataset/{datasetId}", projectKey, datasetId))
+          delete("/project/{projectKey}/tms/dataset/{datasetId}", projectKey, datasetId))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(tmsDatasetService).delete(projectId, datasetId);
   }
 }

@@ -91,8 +91,10 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[?(@.id == %d)]", testCase.get().getId()).exists())
-        .andExpect(jsonPath("$[?(@.id == %d)].name", testCase.get().getId()).value(testCase.get().getName()))
-        .andExpect(jsonPath("$[?(@.id == %d)].description", testCase.get().getId()).value(testCase.get().getDescription()));
+        .andExpect(jsonPath("$[?(@.id == %d)].name", testCase.get().getId())
+                                                          .value(testCase.get().getName()))
+        .andExpect(jsonPath("$[?(@.id == %d)].description", testCase.get().getId())
+                                                          .value(testCase.get().getDescription()));
   }
 
   @Test

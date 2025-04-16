@@ -30,8 +30,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -76,7 +76,8 @@ class ProductVersionControllerTest {
           }
 
           @Override
-          public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+          public Object resolveArgument(MethodParameter parameter,
+                                        ModelAndViewContainer mavContainer,
               NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
             return testUser;
           }
@@ -107,7 +108,8 @@ class ProductVersionControllerTest {
             productVersionId))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").exists());
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(productVersionService).getById(projectId, productVersionId);
   }
 
@@ -129,7 +131,8 @@ class ProductVersionControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(productVersionService).create(projectId, request);
   }
 
@@ -154,7 +157,8 @@ class ProductVersionControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(productVersionService).update(projectId, productVersionId, request);
   }
 
@@ -167,7 +171,8 @@ class ProductVersionControllerTest {
     mockMvc.perform(delete("/project/{projectKey}/tms/productversion/{productVersionId}",
             projectKey, productVersionId))
         .andExpect(status().isOk());
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(productVersionService).delete(projectId, productVersionId);
   }
 }

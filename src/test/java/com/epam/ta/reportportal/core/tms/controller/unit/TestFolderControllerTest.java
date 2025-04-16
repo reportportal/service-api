@@ -29,8 +29,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.core.MethodParameter;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -75,7 +75,8 @@ public class TestFolderControllerTest {
           }
 
           @Override
-          public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+          public Object resolveArgument(MethodParameter parameter,
+                                        ModelAndViewContainer mavContainer,
               NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
             return testUser;
           }
@@ -105,7 +106,8 @@ public class TestFolderControllerTest {
             .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(testFolderService).createFolder(projectId, request);
   }
 
@@ -125,7 +127,8 @@ public class TestFolderControllerTest {
             .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(testFolderService).updateFolder(projectId, folderId, request);
   }
 
@@ -139,7 +142,8 @@ public class TestFolderControllerTest {
     mockMvc.perform(get("/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(testFolderService).getFolderById(folderId);
   }
 
@@ -156,7 +160,8 @@ public class TestFolderControllerTest {
         .andExpect(jsonPath("$").isArray())
         .andExpect(jsonPath("$.length()").value(2));
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class), eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
+                                                        eq(projectKey));
     verify(testFolderService).getFolderByProjectID(projectId);
   }
 }

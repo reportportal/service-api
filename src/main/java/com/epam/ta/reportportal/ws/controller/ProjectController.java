@@ -26,6 +26,8 @@ import static com.google.common.net.HttpHeaders.CONTENT_DISPOSITION;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -43,9 +45,9 @@ import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.model.project.CreateProjectRQ;
@@ -57,7 +59,6 @@ import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO
 import com.epam.ta.reportportal.model.user.SearchUserResource;
 import com.epam.ta.reportportal.model.user.UserResource;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
@@ -66,12 +67,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
-import jakarta.servlet.http.HttpServletResponse;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -118,7 +119,7 @@ public class ProjectController {
       UpdateProjectHandler updateProjectHandler, DeleteProjectHandler deleteProjectHandler,
       GetUserHandler getUserHandler, GetPreferenceHandler getPreference,
       UpdatePreferenceHandler updatePreference, @Qualifier("projectJasperReportHandler")
-  GetJasperReportHandler<ProjectInfo> jasperReportHandler) {
+      GetJasperReportHandler<ProjectInfo> jasperReportHandler) {
     this.projectExtractor = projectExtractor;
     this.getProjectHandler = getProjectHandler;
     this.projectInfoHandler = projectInfoHandler;
@@ -145,7 +146,7 @@ public class ProjectController {
   @PutMapping("/{projectName}")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
-  @Operation(summary =  "Update project")
+  @Operation(summary = "Update project")
   public OperationCompletionRS updateProject(@PathVariable String projectName,
       @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -168,7 +169,8 @@ public class ProjectController {
   @DeleteMapping
   @ResponseStatus(OK)
   @PreAuthorize(ADMIN_ONLY)
-  @Operation(summary =  "Delete multiple projects", description = "Could be deleted only by users with administrator role")
+  @Operation(summary = "Delete multiple projects",
+      description = "Could be deleted only by users with administrator role")
   public DeleteBulkRS deleteProject(@RequestParam(value = "ids") List<Long> ids,
       @AuthenticationPrincipal ReportPortalUser user) {
     return deleteProjectHandler.bulkDeleteProjects(ids, user);
@@ -177,7 +179,8 @@ public class ProjectController {
   @DeleteMapping("/{projectId}")
   @ResponseStatus(OK)
   @PreAuthorize(ADMIN_ONLY)
-  @Operation(summary =  "Delete project", description = "Could be deleted only by users with administrator role")
+  @Operation(summary = "Delete project",
+      description = "Could be deleted only by users with administrator role")
   public OperationCompletionRS deleteProject(@PathVariable Long projectId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return deleteProjectHandler.deleteProject(projectId, user);
@@ -196,7 +199,7 @@ public class ProjectController {
   @PutMapping("/{projectName}/index")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
-  @Operation(summary =  "Starts reindex all project data in ML")
+  @Operation(summary = "Starts reindex all project data in ML")
   public OperationCompletionRS indexProjectData(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateProjectHandler.indexProjectData(normalizeId(projectName), user);
@@ -206,7 +209,7 @@ public class ProjectController {
   @GetMapping("/{projectName}/users")
   @PreAuthorize(NOT_CUSTOMER)
   @Operation(summary = "Get users assigned on current project")
-  public Iterable<UserResource> getProjectUsers(@PathVariable String projectName,
+  public Page<UserResource> getProjectUsers(@PathVariable String projectName,
       @FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getProjectHandler.getProjectUsers(normalizeId(projectName), filter, pageable);
@@ -215,7 +218,8 @@ public class ProjectController {
   @Transactional(readOnly = true)
   @GetMapping("/{projectName}")
   @PreAuthorize(ASSIGNED_TO_PROJECT)
-  @Operation(summary =  "Get information about project", description = "Only for users that are assigned to the project")
+  @Operation(summary = "Get information about project",
+      description = "Only for users that are assigned to the project")
   public ProjectResource getProject(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getProjectHandler.getResource(normalizeId(projectName), user);
@@ -247,8 +251,9 @@ public class ProjectController {
   @GetMapping("/{projectName}/assignable")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
-  @Operation(summary =  "Load users which can be assigned to specified project", description = "Only for users with project manager permissions")
-  public Iterable<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter,
+  @Operation(summary = "Load users which can be assigned to specified project",
+      description = "Only for users with project manager permissions")
+  public Page<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter,
       @SortFor(User.class) Pageable pageable, @PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getUserHandler.getUsers(filter, pageable,
@@ -260,7 +265,8 @@ public class ProjectController {
   @GetMapping("/{projectName}/usernames")
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize(NOT_CUSTOMER)
-  @Operation(summary =  "Load project users by filter", description = "Only for users that are members of the project")
+  @Operation(summary = "Load project users by filter",
+      description = "Only for users that are members of the project")
   public List<String> getProjectUsers(@PathVariable String projectName,
       @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + "users")
       String value, @AuthenticationPrincipal ReportPortalUser user) {
@@ -273,7 +279,7 @@ public class ProjectController {
   @GetMapping("/{projectName}/usernames/search")
   @ResponseStatus(OK)
   @PreAuthorize(PROJECT_MANAGER)
-  public Iterable<SearchUserResource> searchForUser(@PathVariable String projectName,
+  public Page<SearchUserResource> searchForUser(@PathVariable String projectName,
       @RequestParam(value = "term") String term,
       Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
     return getProjectHandler.getUserNames(term, user.getUserRole(),
@@ -317,7 +323,7 @@ public class ProjectController {
   @PreAuthorize(ADMIN_ONLY)
   @GetMapping(value = "/list")
   @ResponseStatus(HttpStatus.OK)
-  public Iterable<ProjectInfoResource> getAllProjectsInfo(
+  public Page<ProjectInfoResource> getAllProjectsInfo(
       @FilterFor(ProjectInfo.class) Filter filter,
       @FilterFor(ProjectInfo.class) Queryable predefinedFilter,
       @SortFor(ProjectInfo.class) Pageable pageable,
@@ -330,9 +336,10 @@ public class ProjectController {
   @PreAuthorize(ADMIN_ONLY)
   @GetMapping(value = "/export")
   @ResponseStatus(HttpStatus.OK)
-  @Operation(summary =  "Exports information about all projects", description = "Allowable only for users with administrator role")
+  @Operation(summary = "Exports information about all projects",
+      description = "Allowable only for users with administrator role")
   public void exportProjects(@Parameter(schema = @Schema(allowableValues = "csv"))
-  @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
+      @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
       @FilterFor(ProjectInfo.class) Filter filter,
       @FilterFor(ProjectInfo.class) Queryable predefinedFilter,
       @AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {

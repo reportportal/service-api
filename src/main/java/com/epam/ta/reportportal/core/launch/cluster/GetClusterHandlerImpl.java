@@ -54,7 +54,8 @@ public class GetClusterHandlerImpl implements GetClusterHandler {
   }
 
   @Override
-  public Iterable<ClusterInfoResource> getResources(Launch launch, Pageable pageable) {
+  public com.epam.ta.reportportal.model.Page<ClusterInfoResource> getResources(Launch launch,
+      Pageable pageable) {
 
     Page<ClusterInfoResource> clusters =
         clusterRepository.findAllByLaunchIdWithCount(launch.getId(), pageable);
@@ -62,7 +63,8 @@ public class GetClusterHandlerImpl implements GetClusterHandler {
     return getClusterResources(clusters, launch.getId());
   }
 
-  private Iterable<ClusterInfoResource> getClusterResources(Page<ClusterInfoResource> clusters,
+  private com.epam.ta.reportportal.model.Page<ClusterInfoResource> getClusterResources(
+      Page<ClusterInfoResource> clusters,
       Long launchId) {
     final com.epam.ta.reportportal.model.Page<ClusterInfoResource> clustersPage =
         PagedResourcesAssembler.pageConverter(

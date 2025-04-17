@@ -42,6 +42,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.model.BulkRQ;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.model.launch.UpdateLaunchRQ;
@@ -276,7 +277,7 @@ public class LaunchController {
   @GetMapping
   @ResponseStatus(OK)
   @Operation(summary = "Get list of project launches by filter")
-  public Iterable<LaunchResource> getProjectLaunches(@PathVariable String projectName,
+  public Page<LaunchResource> getProjectLaunches(@PathVariable String projectName,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getProjectLaunches(
@@ -289,7 +290,7 @@ public class LaunchController {
   @GetMapping(value = "/latest")
   @ResponseStatus(OK)
   @Operation(summary = "Get list of latest project launches by filter")
-  public Iterable<LaunchResource> getLatestLaunches(@PathVariable String projectName,
+  public Page<LaunchResource> getLatestLaunches(@PathVariable String projectName,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLatestLaunches(
@@ -300,7 +301,7 @@ public class LaunchController {
   @ResponseBody
   @ResponseStatus(OK)
   @Operation(summary = "Get launches of specified project from DEBUG mode")
-  public Iterable<LaunchResource> getDebugLaunches(@PathVariable String projectName,
+  public Page<LaunchResource> getDebugLaunches(@PathVariable String projectName,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getDebugLaunches(
@@ -333,7 +334,7 @@ public class LaunchController {
   @GetMapping(value = "/cluster/{launchId}")
   @ResponseStatus(OK)
   @Operation(summary = "Get all index clusters of the launch")
-  public Iterable<ClusterInfoResource> getClusters(@PathVariable String projectName,
+  public Page<ClusterInfoResource> getClusters(@PathVariable String projectName,
       @PathVariable String launchId, Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getClusters(launchId,

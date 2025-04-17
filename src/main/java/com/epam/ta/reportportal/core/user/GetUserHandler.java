@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.user.UserBidRS;
 import com.epam.ta.reportportal.model.user.UserResource;
@@ -75,8 +76,8 @@ public interface GetUserHandler {
    * @param projectDetails Project details
    * @return Page of users
    */
-  Iterable<UserResource> getUsers(Filter filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails);
+  Page<UserResource> getUsers(Filter filter, Pageable pageable,
+                              ReportPortalUser.ProjectDetails projectDetails);
 
   Map<String, UserResource.AssignedProject> getUserProjects(String userName);
 
@@ -87,7 +88,7 @@ public interface GetUserHandler {
    * @param pageable Paging
    * @return Page of {@link UserResource}
    */
-  Iterable<UserResource> getAllUsers(Queryable filter, Pageable pageable);
+  Page<UserResource> getAllUsers(Queryable filter, Pageable pageable);
 
   /**
    * Export Users info according to the {@link ReportFormat} type
@@ -98,5 +99,5 @@ public interface GetUserHandler {
    */
   void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter);
 
-  Iterable<UserResource> searchUsers(String term, Pageable pageable);
+  Page<UserResource> searchUsers(String term, Pageable pageable);
 }

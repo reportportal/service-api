@@ -24,6 +24,8 @@ import org.springframework.test.context.jdbc.Sql;
 @ExtendWith(MockitoExtension.class)
 class TestFolderIntegrationTest extends BaseMvcTest {
 
+  private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
+
   @Autowired
   private TestFolderRepository testFolderRepository;
 
@@ -33,7 +35,7 @@ class TestFolderIntegrationTest extends BaseMvcTest {
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
 
-    mockMvc.perform(post("/project/31/tms/folder")
+    mockMvc.perform(post("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -42,7 +44,7 @@ class TestFolderIntegrationTest extends BaseMvcTest {
     assertTrue(folder.isPresent());
     assertEquals(request.name(), folder.get().getName());
     assertEquals(request.description(), folder.get().getDescription());
-    assertEquals(31L, folder.get().getProjectId());
+    assertEquals(1L, folder.get().getProjectId());
   }
 
   @Test
@@ -51,7 +53,7 @@ class TestFolderIntegrationTest extends BaseMvcTest {
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
 
-    mockMvc.perform(put("/project/31/tms/folder/3")
+    mockMvc.perform(put("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/3")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -61,14 +63,14 @@ class TestFolderIntegrationTest extends BaseMvcTest {
     assertTrue(folder.isPresent());
     assertEquals(request.name(), folder.get().getName());
     assertEquals(request.description(), folder.get().getDescription());
-    assertEquals(31L, folder.get().getProjectId());
+    assertEquals(1L, folder.get().getProjectId());
   }
 
   @Test
   void getTestFolderByIdIntegrationTest() throws Exception {
     Optional<TmsTestFolder> folder = testFolderRepository.findById(4L);
 
-    mockMvc.perform(get("/project/31/tms/folder/4")
+    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/4")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(folder.get().getId()))
@@ -80,11 +82,13 @@ class TestFolderIntegrationTest extends BaseMvcTest {
   void testGetTestFolderByProjectId() throws Exception {
     Optional<TmsTestFolder> folder = testFolderRepository.findById(5L);
 
-    mockMvc.perform(get("/project/35/tms/folder/")
+    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.[0].id").value(folder.get().getId()))
-        .andExpect(jsonPath("$.[0].name").value(folder.get().getName()))
-        .andExpect(jsonPath("$.[0].description").value(folder.get().getDescription()));
+        .andExpect(jsonPath("$[?(@.id == %d)]", folder.get().getId()).exists())
+        .andExpect(jsonPath("$[?(@.id == %d)].name", folder.get().getId()).value(folder
+                                                                     .get().getName()))
+        .andExpect(jsonPath("$[?(@.id == %d)].description", folder.get().getId()).value(folder
+                                                                     .get().getDescription()));
   }
 }

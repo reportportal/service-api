@@ -44,8 +44,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PluginStartUpService {
 
-  @Value("${rp.environment.variable.default-plugin.load:false}")
-  private final boolean defaultPluginsLoad;
+  @Value("${rp.plugins.default.load}")
+  private boolean defaultPluginsLoad;
 
   private final PluginManager pluginManager;
 

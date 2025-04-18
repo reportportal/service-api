@@ -70,7 +70,6 @@ import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.model.user.CreateUserRS;
 import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
 import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
-import com.epam.ta.reportportal.util.Predicates;
 import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
@@ -207,8 +206,13 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
         () -> new ReportPortalException(ROLE_NOT_FOUND, request.getRole())).name());
 
     UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(request, defaultProject);
+
     bid.setMetadata(getUserCreationBidMetadata());
-    bid.setInvitingUser(userRepository.getById(loggedInUser.getUserId()));
+
+    bid.setInvitingUser(userRepository.findById(loggedInUser.getUserId())
+        .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, loggedInUser.getUsername()))
+    );
+
     try {
       userCreationBidRepository.save(bid);
     } catch (Exception e) {

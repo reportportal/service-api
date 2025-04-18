@@ -70,7 +70,6 @@ import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.model.user.CreateUserRS;
 import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
 import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
-import com.epam.ta.reportportal.util.Predicates;
 import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
@@ -207,8 +206,13 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
         () -> new ReportPortalException(ROLE_NOT_FOUND, request.getRole())).name());
 
     UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(request, defaultProject);
+
     bid.setMetadata(getUserCreationBidMetadata());
-    bid.setInvitingUser(userRepository.getById(loggedInUser.getUserId()));
+
+    bid.setInvitingUser(userRepository.findById(loggedInUser.getUserId())
+        .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, loggedInUser.getUsername()))
+    );
+
     try {
       userCreationBidRepository.save(bid);
     } catch (Exception e) {
@@ -297,25 +301,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   }
 
   private void normalize(CreateUserRQFull request) {
-    final String login = normalizeLogin(request.getLogin());
     final String email = normalizeEmail(request.getEmail());
-    request.setLogin(login);
     request.setEmail(email);
-  }
-
-  private String normalizeLogin(String login) {
-    final String normalizedLogin = getNormalized(login);
-    validateLogin(login, normalizedLogin);
-    return normalizedLogin;
-  }
-
-  private void validateLogin(String original, String normalized) {
-    Optional<User> user = userRepository.findByLogin(normalized);
-    expect(user.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS,
-        formattedSupplier("login='{}'", original));
-    expect(normalized, Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
-        formattedSupplier("Username '{}' consists only of special characters", original)
-    );
   }
 
   private String normalizeEmail(String email) {
@@ -336,16 +323,22 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     return normalizeId(original.trim());
   }
 
-  private Pair<UserActivityResource, CreateUserRS> saveUser(CreateUserRQFull request,
-      User creator, boolean isSystemEvent) {
+  private Pair<UserActivityResource, CreateUserRS> saveUser(
+      CreateUserRQFull request,
+      User creator, boolean isSystemEvent
+  ) {
 
     final User user = convert(request);
 
     try {
       userRepository.save(user);
       UserActivityResource userActivityResource = getUserActivityResource(user);
-      UserCreatedEvent userCreatedEvent = new UserCreatedEvent(userActivityResource,
-          creator.getId(), creator.getLogin(), isSystemEvent);
+      UserCreatedEvent userCreatedEvent = new UserCreatedEvent(
+          userActivityResource,
+          creator.getId(),
+          creator.getLogin(),
+          isSystemEvent
+      );
       eventPublisher.publishEvent(userCreatedEvent);
     } catch (PersistenceException pe) {
       if (pe.getCause() instanceof ConstraintViolationException) {
@@ -360,18 +353,24 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     userAuthenticator.authenticate(user);
 
     ofNullable(request.getDefaultProject()).ifPresent(
-        defaultProject -> assignDefaultProject(creator, user, defaultProject,
-            request.getProjectRole()));
+        defaultProject -> assignDefaultProject(
+            creator, user, defaultProject, request.getProjectRole()
+        ));
 
     final Project personalProject = createProjectHandler.createPersonal(user);
-    projectUserHandler.assign(user, personalProject, ProjectRole.PROJECT_MANAGER, creator,
-        isSystemEvent);
+    projectUserHandler.assign(
+        user,
+        personalProject,
+        ProjectRole.PROJECT_MANAGER,
+        creator,
+        isSystemEvent
+    );
 
     final CreateUserRS response = new CreateUserRS();
     response.setId(user.getId());
     response.setUuid(user.getUuid());
     response.setExternalId(user.getExternalId());
-    response.setLogin(user.getLogin());
+    response.setLogin(user.getEmail());
     response.setEmail(user.getEmail());
     response.setFullName(user.getFullName());
     response.setAccountRole(user.getRole().toString());
@@ -410,7 +409,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   private CreateUserRQFull convertToCreateRequest(CreateUserRQConfirm request,
       UserCreationBid bid) {
     CreateUserRQFull createUserRQFull = new CreateUserRQFull();
-    createUserRQFull.setLogin(request.getLogin());
     createUserRQFull.setEmail(request.getEmail());
     createUserRQFull.setFullName(request.getFullName());
     createUserRQFull.setPassword(request.getPassword());

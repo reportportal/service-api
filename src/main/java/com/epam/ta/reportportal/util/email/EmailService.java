@@ -430,7 +430,7 @@ public class EmailService extends JavaMailSenderImpl {
 
           Map<String, Object> email = new HashMap<>();
           email.put("url", getUrl(basicUrl));
-          email.put("login", normalizeId(req.getLogin()));
+          email.put("login", normalizeId(req.getEmail()));
 
           if (req.getPassword() != null) {
             email.put("password", req.getPassword());

@@ -33,11 +33,6 @@ apply from: "$scriptsUrl/release-service.gradle"
 apply from: "$scriptsUrl/signing.gradle"
 apply from: "$scriptsUrl/copy-database-scripts.gradle"
 
-//replaced with drill4j
-//apply from: "$scriptsUrl/build-quality.gradle"
-//apply from: "$scriptsUrl/jacoco.gradle"
-//apply plugin: 'jacoco'
-
 project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
 
 repositories {
@@ -65,7 +60,6 @@ dependencyManagement {
 }
 
 println("Release mode: $releaseMode")
-
 dependencies {
     if (releaseMode) {
         println("Using release dependencies")

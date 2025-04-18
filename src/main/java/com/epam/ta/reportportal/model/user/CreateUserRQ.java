@@ -35,21 +35,21 @@ import lombok.Data;
 @JsonInclude(Include.NON_NULL)
 public class CreateUserRQ {
 
-	@NotBlank
-	@Email(message = "Invalid email format")
-	@JsonProperty(value = "email", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED)
-	private String email;
+  @NotBlank
+  @Email(message = "Invalid email format")
+  @JsonProperty(value = "email", required = true)
+  @Schema(requiredMode = RequiredMode.REQUIRED)
+  private String email;
 
-	@NotBlank
-	@JsonProperty(value = "role", required = true)
-	@In(allowedValues = { "operator", "customer", "member", "project_manager" })
-	@Schema(requiredMode = RequiredMode.REQUIRED)
-	private String role;
+  @NotBlank
+  @JsonProperty(value = "role", required = true)
+  @In(allowedValues = {"operator", "customer", "member", "project_manager"})
+  @Schema(requiredMode = RequiredMode.REQUIRED)
+  private String role;
 
-	@NotBlank
-	@JsonProperty(value = "defaultProject", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED)
-	private String defaultProject;
+  @NotBlank
+  @JsonProperty(value = "defaultProject", required = true)
+  @Schema(requiredMode = RequiredMode.REQUIRED)
+  private String defaultProject;
 
 }

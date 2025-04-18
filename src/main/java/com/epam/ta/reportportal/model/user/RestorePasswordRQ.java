@@ -33,37 +33,37 @@ import lombok.Setter;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RestorePasswordRQ {
 
-	@NotBlank
-	@Email(message = "Invalid email format")
-	@JsonProperty(value = "email")
-	@Schema(requiredMode = RequiredMode.REQUIRED)
-	private String email;
+  @NotBlank
+  @Email(message = "Invalid email format")
+  @JsonProperty(value = "email")
+  @Schema(requiredMode = RequiredMode.REQUIRED)
+  private String email;
 
   @Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
-		RestorePasswordRQ that = (RestorePasswordRQ) o;
+    RestorePasswordRQ that = (RestorePasswordRQ) o;
 
-		return !(email != null ? !email.equals(that.email) : that.email != null);
+    return !(email != null ? !email.equals(that.email) : that.email != null);
 
-	}
+  }
 
-	@Override
-	public int hashCode() {
-		return email != null ? email.hashCode() : 0;
-	}
+  @Override
+  public int hashCode() {
+    return email != null ? email.hashCode() : 0;
+  }
 
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder("ResetPasswordRQ{");
-		sb.append("email='").append(email).append('\'');
-		sb.append('}');
-		return sb.toString();
-	}
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder("ResetPasswordRQ{");
+    sb.append("email='").append(email).append('\'');
+    sb.append('}');
+    return sb.toString();
+  }
 }

@@ -30,11 +30,14 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import java.io.IOException;
 import java.util.Optional;
 import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MimeTypeUtils;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -43,6 +46,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 public class GetFileHandlerImpl implements GetFileHandler {
+
+  private static final String DEFAULT_USER_PHOTO = "image/defaultAvatar.png";
 
   private final UserRepository userRepository;
 
@@ -54,9 +59,8 @@ public class GetFileHandlerImpl implements GetFileHandler {
 
   @Override
   public BinaryData getUserPhoto(ReportPortalUser loggedInUser, boolean loadThumbnail) {
-    User user = userRepository.findByLogin(loggedInUser.getUsername())
-        .orElseThrow(
-            () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
+    User user = userRepository.findByLogin(loggedInUser.getUsername()).orElseThrow(
+        () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
     return userDataStoreService.loadUserPhoto(user, loadThumbnail);
   }
 
@@ -66,17 +70,16 @@ public class GetFileHandlerImpl implements GetFileHandler {
     Optional<User> userOptional = userRepository.findByLogin(username);
     if (userOptional.isEmpty()) {
       log.warn("User '{}' not found", username);
-      return new BinaryData("", 0L, null);
+      return getDefaultPhoto();
     }
     User user = userOptional.get();
     ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetailsAdmin(
         loggedInUser, projectName);
     if (loggedInUser.getUserRole() != UserRole.ADMINISTRATOR) {
-      expect(
-          ProjectUtils.isAssignedToProject(user, projectDetails.getProjectId()),
-          Predicate.isEqual(true)
-      ).verify(ErrorType.ACCESS_DENIED, formattedSupplier("You are not assigned to project '{}'",
-          projectDetails.getProjectName()));
+      expect(ProjectUtils.isAssignedToProject(user, projectDetails.getProjectId()),
+          Predicate.isEqual(true)).verify(ErrorType.ACCESS_DENIED,
+          formattedSupplier("You are not assigned to project '{}'",
+              projectDetails.getProjectName()));
     }
     return userDataStoreService.loadUserPhoto(user, loadThumbnail);
   }
@@ -84,5 +87,17 @@ public class GetFileHandlerImpl implements GetFileHandler {
   @Override
   public BinaryData loadFileById(Long fileId, ReportPortalUser.ProjectDetails projectDetails) {
     return attachmentBinaryDataService.load(fileId, projectDetails);
+  }
+
+  private BinaryData getDefaultPhoto() {
+    try {
+      var data = new ClassPathResource(DEFAULT_USER_PHOTO).getInputStream();
+      var contentType = MimeTypeUtils.IMAGE_JPEG_VALUE;
+      return new BinaryData(contentType, (long) data.available(), data);
+    } catch (IOException e) {
+      log.error("Unable to load default photo", e);
+      throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
+          "Unable to load default photo");
+    }
   }
 }

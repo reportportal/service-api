@@ -297,25 +297,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   }
 
   private void normalize(CreateUserRQFull request) {
-    final String login = normalizeLogin(request.getLogin());
     final String email = normalizeEmail(request.getEmail());
-    request.setLogin(login);
     request.setEmail(email);
-  }
-
-  private String normalizeLogin(String login) {
-    final String normalizedLogin = getNormalized(login);
-    validateLogin(login, normalizedLogin);
-    return normalizedLogin;
-  }
-
-  private void validateLogin(String original, String normalized) {
-    Optional<User> user = userRepository.findByLogin(normalized);
-    expect(user.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS,
-        formattedSupplier("login='{}'", original));
-    expect(normalized, Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
-        formattedSupplier("Username '{}' consists only of special characters", original)
-    );
   }
 
   private String normalizeEmail(String email) {
@@ -422,7 +405,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   private CreateUserRQFull convertToCreateRequest(CreateUserRQConfirm request,
       UserCreationBid bid) {
     CreateUserRQFull createUserRQFull = new CreateUserRQFull();
-    createUserRQFull.setLogin(request.getLogin());
     createUserRQFull.setEmail(request.getEmail());
     createUserRQFull.setFullName(request.getFullName());
     createUserRQFull.setPassword(request.getPassword());

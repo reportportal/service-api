@@ -143,7 +143,7 @@ public class FlushingDataJob implements Job {
 
   private void createDefaultUser() {
     final CreateUserRQFull request = new CreateUserRQFull();
-    request.setLogin("default");
+    request.setEmail("default");
     request.setPassword("1q2w3e");
     request.setEmail("defaultemail@domain.com");
     User user = new UserBuilder().addCreateUserFullRQ(request).addUserRole(UserRole.USER)

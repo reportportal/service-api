@@ -54,12 +54,6 @@ public class CreateUserRQFull {
   @Schema(requiredMode = RequiredMode.NOT_REQUIRED, allowableValues = "INTERNAL, SCIM")
   private String accountType;
 
-  @Email(message = "Invalid email format")
-  @Size(min = ValidationConstraints.MIN_LOGIN_LENGTH, max = ValidationConstraints.MAX_LOGIN_LENGTH)
-  @JsonProperty(value = "login", required = true)
-  @Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
-  private String login;
-
   @Size(max = ValidationConstraints.MAX_PASSWORD_LENGTH)
   @JsonProperty(value = "password")
   @Schema(requiredMode = RequiredMode.NOT_REQUIRED)

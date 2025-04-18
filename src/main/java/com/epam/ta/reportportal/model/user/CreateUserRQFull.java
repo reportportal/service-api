@@ -54,7 +54,6 @@ public class CreateUserRQFull {
   @Schema(requiredMode = RequiredMode.NOT_REQUIRED, allowableValues = "INTERNAL, SCIM")
   private String accountType;
 
-  @NotBlank
   @Email(message = "Invalid email format")
   @Size(min = ValidationConstraints.MIN_LOGIN_LENGTH, max = ValidationConstraints.MAX_LOGIN_LENGTH)
   @JsonProperty(value = "login", required = true)
@@ -68,7 +67,7 @@ public class CreateUserRQFull {
   private String password;
 
   @NotBlank
-  @Pattern(regexp = "[\\pL0-9-_ \\.]+")
+  @Pattern(regexp = "[\\pL0-9-_ .]+")
   @Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)
   @JsonProperty(value = "fullName", required = true)
   @Schema(requiredMode = RequiredMode.REQUIRED, example = "string")

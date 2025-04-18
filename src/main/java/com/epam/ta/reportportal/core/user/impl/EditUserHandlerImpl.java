@@ -61,6 +61,7 @@ import java.util.function.Predicate;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import org.apache.poi.util.StringUtil;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
@@ -74,7 +75,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * Edit user handler
+ * Edit user handler.
  *
  * @author Aliaksandr_Kazantsau
  * @author Andrei_Ramanchuk
@@ -98,11 +99,22 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
   private final ApplicationEventPublisher eventPublisher;
 
+  /**
+   * Constructor.
+   *
+   * @param passwordEncoder         Password encoder
+   * @param userRepository          User repository
+   * @param projectRepository       Project repository
+   * @param userBinaryDataService   User binary data service
+   * @param autoDetectParser        Auto detect parser
+   * @param emailServiceFactory     Email service factory
+   * @param eventPublisher          Event publisher
+   */
   @Autowired
   public EditUserHandlerImpl(PasswordEncoder passwordEncoder, UserRepository userRepository,
-      ProjectRepository projectRepository,
-      UserBinaryDataService userBinaryDataService, AutoDetectParser autoDetectParser,
-      MailServiceFactory emailServiceFactory, ApplicationEventPublisher eventPublisher) {
+      ProjectRepository projectRepository, UserBinaryDataService userBinaryDataService,
+      AutoDetectParser autoDetectParser, MailServiceFactory emailServiceFactory,
+      ApplicationEventPublisher eventPublisher) {
     this.passwordEncoder = passwordEncoder;
     this.userRepository = userRepository;
     this.projectRepository = projectRepository;
@@ -120,28 +132,11 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
     updateRestrictedFields(editor, user, editUserRq);
 
-    if (null != editUserRq.getEmail() && !editUserRq.getEmail().equalsIgnoreCase(user.getEmail())) {
-      String updEmail = editUserRq.getEmail().toLowerCase().trim();
-      if (!editor.getUserRole().equals(UserRole.ADMINISTRATOR)) {
-        expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED,
-            "Unable to change email for external user");
-      }
-      expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR,
-          " wrong email: " + updEmail);
-      final Optional<User> byEmail = userRepository.findByEmail(updEmail);
-
-      expect(byEmail, Predicates.not(Optional::isPresent)).verify(USER_ALREADY_EXISTS, updEmail);
-
-      List<Project> userProjects = projectRepository.findUserProjects(username);
-      userProjects.forEach(
-          project -> ProjectUtils.updateProjectRecipients(user.getEmail(), updEmail, project));
-      user.setEmail(updEmail);
-      try {
-        projectRepository.saveAll(userProjects);
-      } catch (Exception exp) {
-        throw new ReportPortalException("PROJECT update exception while USER editing.", exp);
-      }
-    }
+    Optional.ofNullable(editUserRq.getEmail())
+        .filter(StringUtil::isNotBlank)
+        .map(String::trim)
+        .filter(email -> !email.equalsIgnoreCase(user.getEmail()))
+        .ifPresent(email -> updateEmail(email, user, editor));
 
     if (null != editUserRq.getFullName()) {
       if (!editor.getUserRole().equals(UserRole.ADMINISTRATOR)) {
@@ -185,25 +180,20 @@ public class EditUserHandlerImpl implements EditUserHandler {
   @Override
   public OperationCompletionRS changePassword(ReportPortalUser loggedInUser,
       ChangePasswordRQ request) {
-    User user = userRepository.findByLogin(loggedInUser.getUsername())
-        .orElseThrow(
-            () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
+    User user = userRepository.findByLogin(loggedInUser.getUsername()).orElseThrow(
+        () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
 
     expect(user.getUserType(), equalTo(INTERNAL)).verify(FORBIDDEN_OPERATION,
         "Impossible to change password for external users.");
     expect(passwordEncoder.matches(request.getOldPassword(), user.getPassword()),
-        Predicate.isEqual(true)).verify(FORBIDDEN_OPERATION,
-        "Old password not match with stored."
-    );
+        Predicate.isEqual(true)).verify(FORBIDDEN_OPERATION, "Old password not match with stored.");
     user.setPassword(passwordEncoder.encode(request.getNewPassword()));
     userRepository.save(user);
 
     try {
       emailServiceFactory.getDefaultEmailService(true)
           .sendChangePasswordConfirmation("Change password confirmation",
-              new String[]{loggedInUser.getEmail()},
-              loggedInUser.getUsername()
-          );
+              new String[]{loggedInUser.getEmail()}, loggedInUser.getUsername());
     } catch (Exception e) {
       LOGGER.warn("Unable to send email.", e);
     }
@@ -211,11 +201,39 @@ public class EditUserHandlerImpl implements EditUserHandler {
     return new OperationCompletionRS("Password has been changed successfully");
   }
 
+  private void updateEmail(String email, User user, ReportPortalUser editor) {
+    if (!editor.getUserRole().equals(UserRole.ADMINISTRATOR)) {
+      expect(user.getUserType(), equalTo(INTERNAL))
+          .verify(ACCESS_DENIED, "Unable to change email for external user");
+    }
+
+    expect(UserUtils.isEmailValid(email), equalTo(true))
+        .verify(BAD_REQUEST_ERROR, " wrong email: " + email);
+
+    final Optional<User> byEmail = userRepository.findByEmail(email);
+
+    expect(byEmail, Predicates.not(Optional::isPresent)).verify(USER_ALREADY_EXISTS, email);
+
+    List<Project> userProjects = projectRepository.findUserProjects(user.getLogin());
+
+    userProjects.forEach(
+        project -> ProjectUtils.updateProjectRecipients(user.getEmail(), email, project));
+
+    user.setEmail(email);
+    user.setLogin(email);
+
+    try {
+      projectRepository.saveAll(userProjects);
+    } catch (Exception exp) {
+      throw new ReportPortalException("PROJECT update exception while USER editing.", exp);
+    }
+  }
+
   private void updateRestrictedFields(ReportPortalUser editor, User user, EditUserRQ editUserRq) {
     ofNullable(editUserRq.getRole()).ifPresent(role -> {
       checkPossibilityToEdit(editor, user, "role");
-      UserRole newRole = UserRole.findByName(role)
-          .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+      UserRole newRole = UserRole.findByName(role).orElseThrow(
+          () -> new ReportPortalException(BAD_REQUEST_ERROR,
               "Incorrect specified Account Role parameter."));
       publishChangeUserTypeEvent(user, editor, newRole);
       user.setRole(newRole);
@@ -237,16 +255,12 @@ public class EditUserHandlerImpl implements EditUserHandler {
     final MediaType mediaType = resolveMediaType(file);
     try (final InputStream inputStream = file.getInputStream()) {
       Dimension dimension = getImageDimension(mediaType, inputStream).orElseThrow(
-          () -> new ReportPortalException(
-              BINARY_DATA_CANNOT_BE_SAVED,
-              "Unable to resolve image size"
-          ));
+          () -> new ReportPortalException(BINARY_DATA_CANNOT_BE_SAVED,
+              "Unable to resolve image size"));
       expect(
           (dimension.getHeight() <= MAX_PHOTO_HEIGHT) && (dimension.getWidth() <= MAX_PHOTO_WIDTH),
-          equalTo(true)).verify(
-          BINARY_DATA_CANNOT_BE_SAVED,
-          "Image size should be 300x500px or less"
-      );
+          equalTo(true)).verify(BINARY_DATA_CANNOT_BE_SAVED,
+          "Image size should be 300x500px or less");
     } catch (IOException e) {
       fail().withError(BINARY_DATA_CANNOT_BE_SAVED);
     }
@@ -254,16 +268,14 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
   private MediaType resolveMediaType(MultipartFile file) {
     return ofNullable(file.getContentType()).flatMap(
-            string -> ofNullable(MediaType.parse(string)).filter(mediaType -> ImageFormat.fromValue(
-                mediaType.getSubtype()).isPresent()))
+            string -> ofNullable(MediaType.parse(string)).filter(
+                mediaType -> ImageFormat.fromValue(mediaType.getSubtype()).isPresent()))
         .orElseGet(() -> {
           try (final TikaInputStream tikaInputStream = TikaInputStream.get(file.getInputStream())) {
             MediaType mediaType = autoDetectParser.getDetector()
                 .detect(tikaInputStream, new Metadata());
             expect(ImageFormat.fromValue(mediaType.getSubtype()), Optional::isPresent).verify(
-                BINARY_DATA_CANNOT_BE_SAVED,
-                "Image format should be " + ImageFormat.getValues()
-            );
+                BINARY_DATA_CANNOT_BE_SAVED, "Image format should be " + ImageFormat.getValues());
             return mediaType;
           } catch (IOException e) {
             throw new ReportPortalException(BINARY_DATA_CANNOT_BE_SAVED);
@@ -291,8 +303,8 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
   private void publishChangeUserTypeEvent(User user, ReportPortalUser editor, UserRole newRole) {
     eventPublisher.publishEvent(
-        new ChangeUserTypeEvent(user.getId(), user.getLogin(),
-            user.getRole(), newRole, editor.getUserId(), editor.getUsername()));
+        new ChangeUserTypeEvent(user.getId(), user.getLogin(), user.getRole(), newRole,
+            editor.getUserId(), editor.getUsername()));
   }
 
   private void checkPossibilityToEdit(ReportPortalUser editor, User user, String fieldName) {

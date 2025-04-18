@@ -336,16 +336,22 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     return normalizeId(original.trim());
   }
 
-  private Pair<UserActivityResource, CreateUserRS> saveUser(CreateUserRQFull request,
-      User creator, boolean isSystemEvent) {
+  private Pair<UserActivityResource, CreateUserRS> saveUser(
+      CreateUserRQFull request,
+      User creator, boolean isSystemEvent
+  ) {
 
     final User user = convert(request);
 
     try {
       userRepository.save(user);
       UserActivityResource userActivityResource = getUserActivityResource(user);
-      UserCreatedEvent userCreatedEvent = new UserCreatedEvent(userActivityResource,
-          creator.getId(), creator.getLogin(), isSystemEvent);
+      UserCreatedEvent userCreatedEvent = new UserCreatedEvent(
+          userActivityResource,
+          creator.getId(),
+          creator.getLogin(),
+          isSystemEvent
+      );
       eventPublisher.publishEvent(userCreatedEvent);
     } catch (PersistenceException pe) {
       if (pe.getCause() instanceof ConstraintViolationException) {
@@ -360,18 +366,24 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     userAuthenticator.authenticate(user);
 
     ofNullable(request.getDefaultProject()).ifPresent(
-        defaultProject -> assignDefaultProject(creator, user, defaultProject,
-            request.getProjectRole()));
+        defaultProject -> assignDefaultProject(
+            creator, user, defaultProject, request.getProjectRole()
+        ));
 
     final Project personalProject = createProjectHandler.createPersonal(user);
-    projectUserHandler.assign(user, personalProject, ProjectRole.PROJECT_MANAGER, creator,
-        isSystemEvent);
+    projectUserHandler.assign(
+        user,
+        personalProject,
+        ProjectRole.PROJECT_MANAGER,
+        creator,
+        isSystemEvent
+    );
 
     final CreateUserRS response = new CreateUserRS();
     response.setId(user.getId());
     response.setUuid(user.getUuid());
     response.setExternalId(user.getExternalId());
-    response.setLogin(user.getLogin());
+    response.setLogin(user.getEmail());
     response.setEmail(user.getEmail());
     response.setFullName(user.getFullName());
     response.setAccountRole(user.getRole().toString());

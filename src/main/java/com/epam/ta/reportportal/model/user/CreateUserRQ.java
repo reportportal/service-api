@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -35,6 +36,7 @@ import lombok.Data;
 public class CreateUserRQ {
 
 	@NotBlank
+	@Email(message = "Invalid email format")
 	@JsonProperty(value = "email", required = true)
 	@Schema(requiredMode = RequiredMode.REQUIRED)
 	private String email;

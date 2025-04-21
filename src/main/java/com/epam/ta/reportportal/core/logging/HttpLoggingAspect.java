@@ -24,6 +24,7 @@ import java.lang.reflect.Parameter;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -55,6 +56,8 @@ public class HttpLoggingAspect {
   private static final String BODY_BINARY_MARK = "<binary body>";
 
   private static final AtomicLong COUNTER = new AtomicLong();
+
+  private static final List<String> SENSITIVE_HEADERS = List.of(HttpHeaders.AUTHORIZATION);
 
   @Autowired
   private ObjectMapper objectMapper;
@@ -134,6 +137,9 @@ public class HttpLoggingAspect {
       Enumeration<String> names = request.getHeaderNames();
       while (names.hasMoreElements()) {
         String name = names.nextElement();
+        if (containsSensitive(name)) {
+          continue;
+        }
         Enumeration<String> values = request.getHeaders(name);
         record.append(NEWLINE).append(' ').append(name).append(':');
         boolean comma = false;
@@ -159,6 +165,11 @@ public class HttpLoggingAspect {
     }
 
     return record.toString();
+  }
+
+  private boolean containsSensitive(String name) {
+    return SENSITIVE_HEADERS.stream()
+        .anyMatch(sh -> sh.equalsIgnoreCase(name));
   }
 
   protected String formatResponseRecord(long count, String prefix, Object response,

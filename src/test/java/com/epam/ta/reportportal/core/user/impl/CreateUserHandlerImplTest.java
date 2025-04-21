@@ -136,7 +136,8 @@ class CreateUserHandlerImplTest {
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.createUserByAdmin(request, rpUser, "url")
     );
-    assertEquals("User with 'email='new_user@example.com'' already exists. You couldn't create the duplicate.",
+    assertEquals(
+        "User with 'email='new_user@example.com'' already exists. You couldn't create the duplicate.",
         exception.getMessage()
     );
   }
@@ -319,7 +320,8 @@ class CreateUserHandlerImplTest {
     request.setEmail("test@example.com");
     final ReportPortalException exception =
         assertThrows(ReportPortalException.class, () -> handler.createUser(request, "uuid"));
-    assertEquals("User with 'email='test@example.com'' already exists. You couldn't create the duplicate.",
+    assertEquals(
+        "User with 'email='test@example.com'' already exists. You couldn't create the duplicate.",
         exception.getMessage()
     );
   }

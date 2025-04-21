@@ -35,8 +35,6 @@ class UserBuilderTest {
   @Test
   void userBuilder() {
     final CreateUserRQConfirm request = new CreateUserRQConfirm();
-    final String login = "login";
-    request.setLogin(login);
     final String email = "email@domain.com";
     request.setEmail(email);
     final String fullName = "full name";
@@ -47,7 +45,6 @@ class UserBuilderTest {
     final User user = new UserBuilder().addCreateUserRQ(request).addUserRole(role)
         .addPassword(request.getPassword()).get();
 
-    assertEquals(login, user.getLogin());
     assertEquals(email, user.getEmail());
     assertEquals(fullName, user.getFullName());
     assertNotNull(user.getPassword());

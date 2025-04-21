@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_USER_ITSELF;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -317,8 +318,9 @@ public class UserController {
   @DeleteMapping(value = "/{userId}/api-keys/{keyId}")
   @ResponseStatus(OK)
   @Operation(summary = "Delete specified Api Key")
+  @PreAuthorize(ALLOWED_TO_USER_ITSELF)
   public OperationCompletionRS deleteApiKey(@PathVariable Long keyId, @PathVariable Long userId) {
-    return apiKeyHandler.deleteApiKey(keyId);
+    return apiKeyHandler.deleteApiKey(keyId, userId);
   }
 
   @GetMapping(value = "/{userId}/api-keys")

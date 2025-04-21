@@ -63,8 +63,14 @@ public final class LinkGenerator {
      */
 
     HttpHeaders httpHeaders = new HttpHeaders();
-    Collections.list(request.getHeaderNames())
-        .forEach(headerName-> httpHeaders.add(headerName, request.getHeader(headerName)));
+    // Only include relevant forwarding headers
+    String[] forwardedHeaders = {"x-forwarded-host", "x-forwarded-proto", "x-forwarded-port", "x-forwarded-for", "forwarded"};
+    for (String headerName : forwardedHeaders) {
+      String headerValue = request.getHeader(headerName);
+      if (headerValue != null) {
+        httpHeaders.add(headerName, headerValue);
+      }
+    }
 
     URI uri = new URI(request.getRequestURI());
 

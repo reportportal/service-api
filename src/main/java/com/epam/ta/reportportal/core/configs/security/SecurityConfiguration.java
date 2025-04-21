@@ -24,8 +24,6 @@ import com.epam.ta.reportportal.core.configs.utils.CustomAuthenticationManagerRe
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -35,14 +33,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.access.AccessDecisionManager;
-import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
-import org.springframework.security.access.vote.AffirmativeBased;
-import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -54,8 +48,6 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
-import org.springframework.security.web.access.expression.WebExpressionVoter;
 
 /**
  * Spring's Security Configuration
@@ -168,26 +160,6 @@ class SecurityConfiguration {
     handler.setPermissionEvaluator(permissionEvaluator);
     return handler;
   }
-
-  public DefaultWebSecurityExpressionHandler webSecurityExpressionHandler() {
-    DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
-    handler.setRoleHierarchy(userRoleHierarchy());
-    handler.setPermissionEvaluator(permissionEvaluator);
-    return handler;
-  }
-
-
-  @Bean
-  public AccessDecisionManager webAccessDecisionManager() {
-    List<AccessDecisionVoter<?>> accessDecisionVoters = new ArrayList<>();
-    accessDecisionVoters.add(new AuthenticatedVoter());
-    WebExpressionVoter webVoter = new WebExpressionVoter();
-    webVoter.setExpressionHandler(webSecurityExpressionHandler());
-    accessDecisionVoters.add(webVoter);
-
-    return new AffirmativeBased(accessDecisionVoters);
-  }
-
 
   private SecretKey getSecret() {
     String secret = Optional.ofNullable(signingKey)

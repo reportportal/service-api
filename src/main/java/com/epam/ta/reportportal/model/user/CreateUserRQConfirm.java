@@ -39,13 +39,6 @@ import lombok.Data;
 public class CreateUserRQConfirm {
 
   @NotBlank
-  @Pattern(regexp = "[a-zA-Z0-9-_.]+")
-  @Size(min = ValidationConstraints.MIN_LOGIN_LENGTH, max = ValidationConstraints.MAX_LOGIN_LENGTH)
-  @JsonProperty(value = "login", required = true)
-  @Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
-  private String login;
-
-  @NotBlank
   @Size(min = ValidationConstraints.MIN_PASSWORD_LENGTH, max = ValidationConstraints.MAX_PASSWORD_LENGTH)
   @JsonProperty(value = "password", required = true)
   @Schema(requiredMode = RequiredMode.REQUIRED)

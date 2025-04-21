@@ -36,10 +36,6 @@ public class CollectionsRQ<T> {
     return elements;
   }
 
-  public void setElements(List<T> elements) {
-    this.elements = elements;
-  }
-
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder("CollectionsRQ{");

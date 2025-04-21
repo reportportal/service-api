@@ -20,6 +20,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
+import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.dashboard.CreateDashboardHandler;
@@ -42,6 +43,7 @@ import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -165,7 +167,8 @@ public class DashboardController {
   @PostMapping(value = "/preconfigured")
   @ResponseStatus(OK)
   @Operation(summary = "Create Dashboard with provided configuration including its widgets and filters if any")
-  public EntryCreatedRS createPreconfigured(@PathVariable String projectName,
+  public EntryCreatedRS createPreconfigured(
+      @PathVariable @Size(min = ValidationConstraints.MIN_NAME_LENGTH, max = ValidationConstraints.MAX_NAME_LENGTH) String projectName,
       @RequestBody @Validated DashboardPreconfiguredRq rq,
       @AuthenticationPrincipal ReportPortalUser user) {
     return dashboardPreconfiguredService.createDashboard(

@@ -49,6 +49,7 @@ public class PluginUploaderFactory {
       JsonPluginUploader jsonPluginUploader
   ) {
     uploads.put("application/java-archive", jarPluginUploader);
+    uploads.put("application/jar", jarPluginUploader);
     uploads.put("application/json", jsonPluginUploader);
   }
 

@@ -242,8 +242,8 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
   }
 
   @Override
-  public Iterable<Object> getOwnNames(MembershipDetails membershipDetails,
-      Pageable pageable, Filter filter, ReportPortalUser user) {
+  public com.epam.ta.reportportal.model.Page<Object> getOwnNames(MembershipDetails membershipDetails,
+                                                                 Pageable pageable, Filter filter, ReportPortalUser user) {
     final Page<Widget> widgets =
         widgetRepository.findByFilter(ProjectFilter.of(filter, membershipDetails.getProjectId()),
             pageable

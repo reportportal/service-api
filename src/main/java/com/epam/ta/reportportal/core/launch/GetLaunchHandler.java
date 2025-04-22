@@ -23,6 +23,8 @@ import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
+import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.reporting.LaunchResource;
 import java.io.OutputStream;
 import java.util.List;
@@ -72,9 +74,9 @@ public interface GetLaunchHandler {
    * @param userName       Name of User
    * @return Response Data
    */
-  Iterable<LaunchResource> getProjectLaunches(MembershipDetails membershipDetails,
-      Filter filter, Pageable pageable,
-      String userName);
+  Page<LaunchResource> getProjectLaunches(MembershipDetails membershipDetails,
+                                          Filter filter, Pageable pageable,
+                                          String userName);
 
   /**
    * Get debug launches
@@ -84,7 +86,7 @@ public interface GetLaunchHandler {
    * @param pageable       Page details
    * @return Response Data
    */
-  Iterable<LaunchResource> getDebugLaunches(MembershipDetails membershipDetails,
+  Page<LaunchResource> getDebugLaunches(MembershipDetails membershipDetails,
       Filter filter, Pageable pageable);
 
   /**
@@ -164,7 +166,7 @@ public interface GetLaunchHandler {
    * @param pageable       Page details
    * @return Response Data
    */
-  Iterable<LaunchResource> getLatestLaunches(MembershipDetails membershipDetails,
+  Page<LaunchResource> getLatestLaunches(MembershipDetails membershipDetails,
       Filter filter, Pageable pageable);
 
   /**
@@ -175,7 +177,7 @@ public interface GetLaunchHandler {
    * @param pageable       Pagination information for the results
    * @return {@link ClusterInfoResource}
    */
-  Iterable<ClusterInfoResource> getClusters(String launchId,
+  Page<ClusterInfoResource> getClusters(String launchId,
       MembershipDetails membershipDetails, Pageable pageable);
 
   boolean hasItemsWithIssues(Launch launch);

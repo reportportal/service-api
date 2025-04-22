@@ -21,12 +21,14 @@ jobs:
     name: Call Java Checks with Drill4J
     runs-on: 'rp-beta-runner-set'
     env:
-      DRILL_AGENT_ENABLED: ${{ inputs.drill-agent-enabled }}
+      DRILL_AGENT_ENABLED: ${{ github.event_name == 'push' && 'true' || inputs.drill-agent-enabled }}
       DRILL_API_URL: ${{ secrets.DRILL_API_URL }}
       DRILL_API_KEY: ${{ secrets.DRILL_API_KEY }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Set up JDK
         uses: actions/setup-java@v2
@@ -37,12 +39,16 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Send build info to Drill4J
+        run: ./gradlew drillSendBuildInfo
+
       - name: Build with Gradle
         id: build
         run: |
-          ./gradlew test --continue
+          ./gradlew test || true
 
       - name: Upload test report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-report

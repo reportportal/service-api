@@ -52,7 +52,7 @@ public class GroupController implements GroupsApi {
   private final PluginManager pluginManager;
 
   /**
-   * Constructor for the controller.
+   * Constructor for the {@link GroupController} class.
    *
    * @param pluginManager Plugin manager
    */

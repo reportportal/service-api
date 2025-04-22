@@ -34,6 +34,7 @@ public final class IntegrationTypeConverter {
         resource.setName(integrationType.getName());
         resource.setEnabled(integrationType.isEnabled());
         resource.setCreationDate(integrationType.getCreationDate());
+        resource.setPluginType(integrationType.getPluginType().name());
         resource.setGroupType(integrationType.getIntegrationGroup().name());
         ofNullable(integrationType.getDetails()).ifPresent(
             it -> resource.setDetails(integrationType.getDetails().getDetails()));

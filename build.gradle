@@ -34,11 +34,6 @@ apply from: "$scriptsUrl/release-service.gradle"
 apply from: "$scriptsUrl/signing.gradle"
 apply from: "$scriptsUrl/copy-database-scripts.gradle"
 
-//replaced with drill4j
-//apply from: "$scriptsUrl/build-quality.gradle"
-//apply from: "$scriptsUrl/jacoco.gradle"
-//apply plugin: 'jacoco'
-
 project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
 
 repositories {
@@ -59,25 +54,24 @@ ext['spring-boot.version'] = "${springBootVersion}"
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.13.1' : 'com.epam.reportportal:commons-bom:5.13.1')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.13.4' : 'com.epam.reportportal:commons-bom:5.13.4')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
         mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
     }
 }
 
 println("Release mode: $releaseMode")
-
 dependencies {
     if (releaseMode) {
         println("Using release dependencies")
-        implementation 'com.epam.reportportal:commons-dao'
         implementation 'com.epam.reportportal:commons'
+        implementation 'com.epam.reportportal:commons-dao'
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         println("Using snapshot dependencies")
-        implementation 'com.github.reportportal:commons-dao:b7e1fce'
-        implementation 'com.github.reportportal:commons:b06a656'
-        implementation 'com.github.reportportal:plugin-api:e945fcd'
+        implementation 'com.github.reportportal:commons:d7b101d'
+        implementation 'com.github.reportportal:commons-dao:cd88356'
+        implementation 'com.github.reportportal:plugin-api:ae5c502'
     }
     implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
 
@@ -100,6 +94,11 @@ dependencies {
     implementation 'org.springframework.security:spring-security-web'
     implementation 'org.springframework:spring-context-support'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
+
+    //Fix CVE-2025-24813
+    implementation 'org.apache.tomcat.embed:tomcat-embed-core:10.1.35'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-el:10.1.35'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:10.1.35'
 
 
     implementation 'com.opencsv:opencsv:5.10'
@@ -134,6 +133,10 @@ dependencies {
     implementation 'org.apache.commons:commons-compress:1.27.1'
 
     implementation "org.hibernate.validator:hibernate-validator:${hibernateValidatorVersion}"
+
+    implementation 'com.networknt:json-schema-validator:1.5.6'
+
+    implementation 'com.github.slugify:slugify:3.0.7'
 
     // add lombok support
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
@@ -190,6 +193,21 @@ tasks.withType(JavaCompile).configureEach {
     options.debugOptions.debugLevel = "source,lines,vars"
 }
 
+tasks.register('downloadManifestSchema') {
+    doLast {
+        def schemaDir = file("${projectDir}/src/main/resources/schema")
+        schemaDir.mkdirs()
+
+        def schemaUrl = new URI(manifestSchemaUrl).toURL()
+        def fileName = schemaUrl.path.tokenize('/').last()
+        def schemaFile = new File(schemaDir, fileName)
+
+        schemaFile.withOutputStream { out ->
+            out << schemaUrl.openStream()
+        }
+    }
+}
+
 dependencyCheck {
     formats = [ReportGenerator.Format.HTML, ReportGenerator.Format.XML]
 //    cveValidForHours = 1
@@ -216,8 +234,9 @@ test {
     }
 }
 
-compileJava.dependsOn tasks.named('generateApi')
-generateApi.dependsOn updateApiSubmodule
+compileJava.dependsOn tasks.named('updateApiSubmodule')
+compileJava.dependsOn tasks.named('openApiGenerate')
+compileJava.dependsOn tasks.named('downloadManifestSchema')
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts
@@ -231,11 +250,11 @@ drill {
     packagePrefixes = ["com/epam/ta/reportportal"]
     enableTestAgent {
         enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
-        version = "0.23.3"
+        version = "0.23.5"
     }
     enableAppAgent {
         enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
-        version = "0.9.4"
+        version = "0.9.7"
     }
 }
 

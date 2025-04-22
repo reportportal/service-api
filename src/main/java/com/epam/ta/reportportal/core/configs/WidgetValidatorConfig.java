@@ -19,6 +19,7 @@ import com.epam.ta.reportportal.core.widget.content.updater.validator.OverallSta
 import com.epam.ta.reportportal.core.widget.content.updater.validator.PassingRatePerLaunchContentValidator;
 import com.epam.ta.reportportal.core.widget.content.updater.validator.PassingRateSummaryContentValidator;
 import com.epam.ta.reportportal.core.widget.content.updater.validator.ProductStatusContentValidator;
+import com.epam.ta.reportportal.core.widget.content.updater.validator.TestCaseSearchValidator;
 import com.epam.ta.reportportal.core.widget.content.updater.validator.TopPatternContentValidator;
 import com.epam.ta.reportportal.core.widget.content.updater.validator.TopTestCasesContentValidator;
 import com.epam.ta.reportportal.core.widget.content.updater.validator.UniqueBugContentValidator;
@@ -80,6 +81,8 @@ public class WidgetValidatorConfig {
             applicationContext.getBean(MostTimeConsumingContentValidator.class))
         .put(WidgetType.PRODUCT_STATUS,
             applicationContext.getBean(ProductStatusContentValidator.class))
+        .put(WidgetType.TEST_CASE_SEARCH,
+            applicationContext.getBean(TestCaseSearchValidator.class))
         .build();
   }
 

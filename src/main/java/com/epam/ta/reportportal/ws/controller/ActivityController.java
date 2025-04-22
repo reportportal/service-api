@@ -303,7 +303,7 @@ public class ActivityController {
               "message": "Unclassified error"
           }
           """))) })
-  public Iterable<ActivityEventResource> getTestItemActivities(@PathVariable
+  public Page<ActivityEventResource> getTestItemActivities(@PathVariable
   @Parameter(description = "The name of the project for which the activities should be searched")
   String projectKey, @PathVariable
   @Parameter(description = "The ID of the test item for which all its activities should be "

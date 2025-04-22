@@ -148,8 +148,8 @@ public class GetUserHandlerImpl implements GetUserHandler {
   }
 
   @Override
-  public Iterable<UserResource> getUsers(Filter filter, Pageable pageable,
-      MembershipDetails membershipDetails) {
+  public com.epam.ta.reportportal.model.Page<UserResource> getUsers(Filter filter, Pageable pageable,
+                                                                    MembershipDetails membershipDetails) {
     // Active users only
     filter.withCondition(new FilterCondition(Condition.EQUALS, false, "false", CRITERIA_EXPIRED));
     filter.withCondition(new FilterCondition(Condition.EQUALS,
@@ -191,7 +191,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
   }
 
   @Override
-  public Iterable<UserResource> getAllUsers(Queryable filter, Pageable pageable) {
+  public com.epam.ta.reportportal.model.Page<UserResource> getAllUsers(Queryable filter, Pageable pageable) {
     final Page<User> users = userRepository.findByFilter(filter, pageable);
     return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(users);
   }
@@ -227,7 +227,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
   }
 
   @Override
-  public Iterable<UserResource> searchUsers(String term, Pageable pageable) {
+  public com.epam.ta.reportportal.model.Page<UserResource> searchUsers(String term, Pageable pageable) {
 
     Filter filter = Filter.builder()
         .withTarget(User.class)

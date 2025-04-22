@@ -42,6 +42,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.model.BulkRQ;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.model.launch.UpdateLaunchRQ;
@@ -279,7 +280,7 @@ public class LaunchController {
   @ResponseStatus(OK)
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get list of project launches by filter")
-  public Iterable<LaunchResource> getProjectLaunches(@PathVariable String projectKey,
+  public Page<LaunchResource> getProjectLaunches(@PathVariable String projectKey,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getProjectLaunches(
@@ -293,7 +294,7 @@ public class LaunchController {
   @ResponseStatus(OK)
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get list of latest project launches by filter")
-  public Iterable<LaunchResource> getLatestLaunches(@PathVariable String projectKey,
+  public Page<LaunchResource> getLatestLaunches(@PathVariable String projectKey,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLatestLaunches(
@@ -304,7 +305,7 @@ public class LaunchController {
   @ResponseStatus(OK)
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get launches of specified project from DEBUG mode")
-  public Iterable<LaunchResource> getDebugLaunches(@PathVariable String projectKey,
+  public Page<LaunchResource> getDebugLaunches(@PathVariable String projectKey,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getDebugLaunches(
@@ -340,7 +341,7 @@ public class LaunchController {
   @ResponseStatus(OK)
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get all index clusters of the launch")
-  public Iterable<ClusterInfoResource> getClusters(@PathVariable String projectKey,
+  public Page<ClusterInfoResource> getClusters(@PathVariable String projectKey,
       @PathVariable String launchId, Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getClusters(launchId,

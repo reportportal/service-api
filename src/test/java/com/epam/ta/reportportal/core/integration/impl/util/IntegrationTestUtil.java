@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.core.integration.impl.util;
 
+import static com.epam.ta.reportportal.entity.enums.PluginTypeEnum.BUILT_IN;
+import static com.epam.ta.reportportal.entity.enums.PluginTypeEnum.EXTENSION;
+
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
@@ -103,6 +106,7 @@ public final class IntegrationTestUtil {
     IntegrationType integrationType = new IntegrationType();
 
     integrationType.setName("jira");
+    integrationType.setPluginType(EXTENSION);
     integrationType.setCreationDate(Instant.now());
     integrationType.setId(1L);
     integrationType.setIntegrationGroup(IntegrationGroupEnum.BTS);
@@ -118,6 +122,7 @@ public final class IntegrationTestUtil {
     IntegrationType integrationType = new IntegrationType();
 
     integrationType.setName("EMAIL");
+    integrationType.setPluginType(BUILT_IN);
     integrationType.setCreationDate(Instant.now());
     integrationType.setId(1L);
     integrationType.setIntegrationGroup(IntegrationGroupEnum.NOTIFICATION);

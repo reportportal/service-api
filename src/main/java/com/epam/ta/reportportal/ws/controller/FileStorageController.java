@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 
+import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.file.DeleteFilesHandler;
@@ -30,6 +31,7 @@ import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.net.HttpHeaders;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Size;
 import java.io.IOException;
 import java.io.InputStream;
 import jakarta.servlet.http.HttpServletResponse;

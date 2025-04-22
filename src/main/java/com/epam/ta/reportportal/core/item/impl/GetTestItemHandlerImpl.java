@@ -16,22 +16,27 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
-import com.epam.reportportal.rules.commons.validation.BusinessRule;
-import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.GetTestItemHandler;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
@@ -48,14 +53,12 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.StatisticsConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterProvider;
 import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemUpdaterContent;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.StatisticsResource;
 import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.Arrays;
@@ -73,8 +76,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /**
- * GET operations for {@link TestItem}<br>
- * Default implementation
+ * GET operations for {@link TestItem}<br> Default implementation
  *
  * @author Andrei Varabyeu
  * @author Aliaksei Makayed
@@ -140,12 +142,13 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   }
 
   @Override
-  public Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
+  public com.epam.ta.reportportal.model.Page<TestItemResource> getTestItems(Queryable filter,
+      Pageable pageable,
       MembershipDetails membershipDetails, ReportPortalUser user,
       @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit) {
 
-    Optional<Long> launchIdOptional = Optional.ofNullable(launchId);
-    Optional<Long> filterIdOptional = Optional.ofNullable(filterId);
+    Optional<Long> launchIdOptional = ofNullable(launchId);
+    Optional<Long> filterIdOptional = ofNullable(filterId);
 
     Page<TestItem> testItemPage = filterIdOptional
         .map(launchFilterId ->
@@ -169,7 +172,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   }
 
   @Override
-  public Iterable<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable,
+  public com.epam.ta.reportportal.model.Page<TestItemResource> getTestItemsByProvider(
+      Queryable filter, Pageable pageable,
       MembershipDetails membershipDetails, ReportPortalUser user,
       Map<String, String> params) {
     DataProviderType dataProviderType = DataProviderType.findByName(params.get(PROVIDER_TYPE_PARAM))
@@ -232,7 +236,6 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
     return resourceUpdaterProviders.stream()
         .map(retriever -> retriever.retrieve(TestItemUpdaterContent.of(projectId, testItems)))
         .collect(toList());
-
   }
 
   @Override
@@ -271,8 +274,17 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   }
 
   @Override
-  public List<String> getAttributeKeys(Long launchId, String value) {
-    return itemAttributeRepository.findTestItemAttributeKeys(launchId, value, false);
+  public List<String> getUniqueAttributeKeys(ProjectDetails projectDetails, String keyPart,
+      Long launchId) {
+    return itemAttributeRepository.findUniqueAttributeKeysByPart(projectDetails.getProjectId(),
+        keyPart, launchId, false);
+  }
+
+  @Override
+  public List<String> getUniqueAttributeValues(ProjectDetails projectDetails, String key,
+      String valuePart, Long launchId) {
+    return itemAttributeRepository.findUniqueAttributeValuesByPart(projectDetails.getProjectId(),
+        key, valuePart, launchId, false);
   }
 
   @Override

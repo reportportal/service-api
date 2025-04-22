@@ -41,7 +41,6 @@ class WidgetBuilderTest {
     widgetRQ.setName(name);
     final String description = "description";
     widgetRQ.setDescription(description);
-    final boolean share = true;
     final String widgetType = "oldLineChart";
     widgetRQ.setWidgetType(widgetType);
     final ContentParameters contentParameters = new ContentParameters();

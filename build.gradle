@@ -163,7 +163,7 @@ sourceSets {
 }
 
 
-tasks.register('generateApi', GenerateTask) {
+openApiGenerate {
     generatorName.set("spring")
     inputSpec.set("$rootDir/api-registry/api/openapi/reportportal-api.yaml")
     outputDir.set("${layout.buildDirectory.get()}/generated")

@@ -56,7 +56,7 @@ public class LaunchStartProducer implements StartLaunchHandler {
 
     if (request.isRerun()) {
       request.setUuid(rerunHandler.getRerunLaunchUuid(request.getRerunOf(), request.getName(),
-          projectDetails.getProjectId()));
+          membershipDetails.getProjectId()));
     } else if (!StringUtils.hasText(request.getUuid())) {
       request.setUuid(UUID.randomUUID().toString());
     }

@@ -163,6 +163,7 @@ public class DashboardController {
   @Transactional
   @GetMapping(value = "/{dashboardId}/config")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get Dashboard configuration including its widgets and filters if any")
   public DashboardConfigResource getDashboardConfig(@PathVariable String projectKey,
       @PathVariable Long dashboardId, @AuthenticationPrincipal ReportPortalUser user) {
@@ -173,12 +174,13 @@ public class DashboardController {
   @Transactional
   @PostMapping(value = "/preconfigured")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Create Dashboard with provided configuration including its widgets and filters if any")
   public EntryCreatedRS createPreconfigured(
-      @PathVariable @Size(min = ValidationConstraints.MIN_NAME_LENGTH, max = ValidationConstraints.MAX_NAME_LENGTH) String projectName,
+      @PathVariable @Size(min = ValidationConstraints.MIN_NAME_LENGTH, max = ValidationConstraints.MAX_NAME_LENGTH) String projectKey,
       @RequestBody @Validated DashboardPreconfiguredRq rq,
       @AuthenticationPrincipal ReportPortalUser user) {
     return dashboardPreconfiguredService.createDashboard(
-        projectExtractor.extractMembershipDetails(user, projectName), rq, user);
+        projectExtractor.extractMembershipDetails(user, projectKey), rq, user);
   }
 }

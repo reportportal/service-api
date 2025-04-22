@@ -408,14 +408,14 @@ public class TestItemController {
       @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT
           + CRITERIA_ITEM_ATTRIBUTE_KEY) String keyPart) {
     return getTestItemHandler.getUniqueAttributeKeys(
-        projectExtractor.extractProjectDetails(user, projectName), keyPart, launchId);
+        projectExtractor.extractMembershipDetails(user, projectKey), keyPart, launchId);
   }
 
   @Transactional(readOnly = true)
   @GetMapping("/attribute/values")
   @ResponseStatus(OK)
   @Operation(summary = "Get all unique attribute values on the project")
-  public List<String> getAttributeValues(@PathVariable String projectName,
+  public List<String> getAttributeValues(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestParam(value = "launch", required = false) Long launchId,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
@@ -423,7 +423,7 @@ public class TestItemController {
       @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT + CRITERIA_ITEM_ATTRIBUTE_VALUE)
       String valuePart) {
     return getTestItemHandler.getUniqueAttributeValues(
-        projectExtractor.extractProjectDetails(user, projectName), key, valuePart, launchId);
+        projectExtractor.extractMembershipDetails(user, projectKey), key, valuePart, launchId);
   }
 
   @Transactional(readOnly = true)
@@ -545,7 +545,7 @@ public class TestItemController {
   @GetMapping("/search")
   @ResponseStatus(OK)
   @Operation(summary = "Search test items by either name or attribute")
-  public Page<TestItemResource> getTestItems(@PathVariable String projectName,
+  public Page<TestItemResource> getTestItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT
           + CRITERIA_NAME, required = false) String name,
@@ -553,6 +553,6 @@ public class TestItemController {
       @RequestParam(value = "filter.in.status", required = false) String status,
       Pageable pageable) {
     return testCaseSearchHandler.searchTestItems(name, attribute, status, pageable,
-        projectExtractor.extractProjectDetails(user, projectName));
+        projectExtractor.extractMembershipDetails(user, projectKey));
   }
 }

@@ -107,7 +107,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
     MembershipDetails membershipDetails = projectExtractor.extractMembershipDetails(user, projectKey);
 
     validateFilterRq(createFilterRQ);
-    validateFilterName(createFilterRQ, user, membershipDetails);
+    validateFilterName(createFilterRQ, membershipDetails.getProjectId());
 
     UserFilter filter = new UserFilterBuilder().addFilterRq(createFilterRQ)
         .addProject(membershipDetails.getProjectId()).addOwner(user.getUsername()).get();
@@ -208,8 +208,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
   }
 
 
-  private void validateFilterName(UpdateUserFilterRQ createFilterRQ,
-      Long projectId) {
+  private void validateFilterName(UpdateUserFilterRQ createFilterRQ, Long projectId) {
     IntStream.range(0, 100)
         .takeWhile(i -> userFilterRepository.existsByNameAndProjectId(createFilterRQ.getName(), projectId))
         .forEach(i -> createFilterRQ.setName(createFilterRQ.getName() + "_copy"));

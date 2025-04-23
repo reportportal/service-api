@@ -48,23 +48,23 @@ public class PluginUploaderFactory {
       JarPluginUploader jarPluginUploader,
       JsonPluginUploader jsonPluginUploader
   ) {
-    uploads.put("application/java-archive", jarPluginUploader);
-    uploads.put("application/jar", jarPluginUploader);
-    uploads.put("application/json", jsonPluginUploader);
+    uploads.put("jar", jarPluginUploader);
+    uploads.put("zip", jarPluginUploader);
+    uploads.put("json", jsonPluginUploader);
   }
 
   /**
    * Retrieves the appropriate {@link PluginUploader} based on the provided content type.
    *
-   * @param contentType The content type of the plugin to be uploaded
+   * @param extension The content type of the plugin to be uploaded
    * @return An instance of {@link PluginUploader} that matches the content type
    * @throws ReportPortalException if no uploader is found for the specified content type
    */
-  public PluginUploader getUploader(String contentType) {
-    return Optional.ofNullable(uploads.get(contentType))
+  public PluginUploader getUploader(String extension) {
+    return Optional.ofNullable(uploads.get(extension))
         .orElseThrow(() -> new ReportPortalException(
             ErrorType.PLUGIN_UPLOAD_ERROR,
-            "Unsupported content type: " + contentType
+            "Unsupported extension type: " + extension
         ));
   }
 }

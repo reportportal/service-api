@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.activity.PluginActivityResource;
 import java.io.IOException;
 import java.io.InputStream;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -65,12 +66,13 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
   public EntryCreatedRS uploadPlugin(MultipartFile pluginFile, ReportPortalUser user) {
 
     String newPluginFileName = pluginFile.getOriginalFilename();
+    String extension = FilenameUtils.getExtension(newPluginFileName);
 
     BusinessRule.expect(newPluginFileName, StringUtils::isNotBlank)
         .verify(ErrorType.BAD_REQUEST_ERROR, "File name should be not empty.");
 
     try (InputStream inputStream = pluginFile.getInputStream()) {
-      var uploader = pluginUploaderFactory.getUploader(pluginFile.getContentType());
+      var uploader = pluginUploaderFactory.getUploader(extension);
       IntegrationType integrationType = uploader.uploadPlugin(newPluginFileName, inputStream);
       PluginActivityResource pluginActivityResource = new PluginActivityResource();
       pluginActivityResource.setId(integrationType.getId());

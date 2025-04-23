@@ -49,13 +49,13 @@ public class PluginUploaderFactoryTest {
 
   @Test
   void shouldReturnJarUploaderForJarContentType() {
-    PluginUploader result = factory.getUploader("application/java-archive");
+    PluginUploader result = factory.getUploader("jar");
     assertEquals(jarPluginUploader, result);
   }
 
   @Test
   void shouldReturnJsonUploaderForJsonContentType() {
-    PluginUploader result = factory.getUploader("application/json");
+    PluginUploader result = factory.getUploader("json");
     assertEquals(jsonPluginUploader, result);
   }
 
@@ -63,7 +63,7 @@ public class PluginUploaderFactoryTest {
   void shouldThrowExceptionForUnsupportedContentType() {
     ReportPortalException exception = assertThrows(
         ReportPortalException.class,
-        () -> factory.getUploader("unsupported/content-type")
+        () -> factory.getUploader("unsupported")
     );
 
     assertEquals(ErrorType.PLUGIN_UPLOAD_ERROR, exception.getErrorType());

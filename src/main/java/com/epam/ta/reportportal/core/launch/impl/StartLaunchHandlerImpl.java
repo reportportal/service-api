@@ -22,8 +22,8 @@ import com.epam.reportportal.extension.event.StartLaunchEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
-import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
+import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -45,7 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Primary
 @Transactional
-class StartLaunchHandlerImpl implements StartLaunchHandler {
+public class StartLaunchHandlerImpl implements StartLaunchHandler {
 
   private final LaunchRepository launchRepository;
   private final ApplicationEventPublisher eventPublisher;

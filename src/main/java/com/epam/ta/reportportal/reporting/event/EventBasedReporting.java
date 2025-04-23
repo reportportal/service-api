@@ -23,16 +23,15 @@ import com.epam.reportportal.events.StartChildItemRqEvent;
 import com.epam.reportportal.events.StartLaunchRqEvent;
 import com.epam.reportportal.events.StartRootItemRqEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
-import com.epam.ta.reportportal.core.item.StartTestItemHandler;
-import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
-import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
+import com.epam.ta.reportportal.core.launch.impl.StartLaunchHandlerImpl;
 import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
-import com.epam.ta.reportportal.core.log.CreateLogHandler;
-import com.epam.ta.reportportal.reporting.async.producer.*;
+import com.epam.ta.reportportal.reporting.async.producer.ItemFinishProducer;
+import com.epam.ta.reportportal.reporting.async.producer.ItemStartProducer;
+import com.epam.ta.reportportal.reporting.async.producer.LaunchFinishProducer;
+import com.epam.ta.reportportal.reporting.async.producer.LogProducer;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import java.util.Optional;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -50,7 +49,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @RequiredArgsConstructor
 public class EventBasedReporting {
 
-  private final LaunchStartProducer startLaunchHandler;
+  private final StartLaunchHandlerImpl startLaunchHandler;
 
   private final LaunchFinishProducer finishLaunchHandler;
 

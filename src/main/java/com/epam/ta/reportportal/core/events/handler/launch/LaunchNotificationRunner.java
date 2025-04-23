@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.events.handler.launch;
 
+import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateLaunchLink;
 import static com.epam.ta.reportportal.core.statistics.StatisticsHelper.extractStatisticsCount;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.DEFECTS_AUTOMATION_BUG_TOTAL;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.DEFECTS_PRODUCT_BUG_TOTAL;
@@ -23,6 +24,9 @@ import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConst
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.DEFECTS_TO_INVESTIGATE_TOTAL;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_TOTAL;
 
+import com.epam.reportportal.extension.event.LaunchFinishedPluginEvent;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
@@ -39,12 +43,10 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Map;
 import java.util.Objects;
@@ -53,10 +55,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,15 +81,19 @@ public class LaunchNotificationRunner
   private final MailServiceFactory mailServiceFactory;
   private final UserRepository userRepository;
 
+  private final ApplicationEventPublisher eventPublisher;
+
   @Autowired
   public LaunchNotificationRunner(GetProjectHandler getProjectHandler,
       GetLaunchHandler getLaunchHandler, GetIntegrationHandler getIntegrationHandler,
-      MailServiceFactory mailServiceFactory, UserRepository userRepository) {
+      MailServiceFactory mailServiceFactory, UserRepository userRepository,
+      ApplicationEventPublisher eventPublisher) {
     this.getProjectHandler = getProjectHandler;
     this.getLaunchHandler = getLaunchHandler;
     this.getIntegrationHandler = getIntegrationHandler;
     this.mailServiceFactory = mailServiceFactory;
     this.userRepository = userRepository;
+    this.eventPublisher = eventPublisher;
   }
 
   @Override
@@ -109,6 +115,11 @@ public class LaunchNotificationRunner
                   IntegrationGroupEnum.NOTIFICATION, launchFinishedEvent.getProjectId()
               )
           );
+    }
+
+    if (BooleanUtils.toBoolean(
+        projectConfig.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()))) {
+      sendNotificationEvent(launchFinishedEvent);
     }
   }
 
@@ -271,5 +282,17 @@ public class LaunchNotificationRunner
         );
 
     return isEqual || isValueEqualWithKeyNull;
+  }
+
+  private void sendNotificationEvent(LaunchFinishedEvent launchFinishedEvent) {
+    final Project project = getProjectHandler.get(launchFinishedEvent.getProjectId());
+
+    String launchLink = generateLaunchLink(launchFinishedEvent.getBaseUrl(), project.getName(),
+        String.valueOf(launchFinishedEvent.getId())
+    );
+
+    eventPublisher.publishEvent(
+        new LaunchFinishedPluginEvent(launchFinishedEvent.getId(),
+            launchFinishedEvent.getProjectId(), launchLink));
   }
 }

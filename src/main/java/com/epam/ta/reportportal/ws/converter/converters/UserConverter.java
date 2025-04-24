@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.model.activity.UserActivityResource;
+import com.epam.ta.reportportal.model.user.CreateUserRS;
 import com.epam.ta.reportportal.model.user.SearchUserResource;
 import com.epam.ta.reportportal.model.user.UserResource;
 import com.google.common.collect.Lists;
@@ -212,6 +213,16 @@ public final class UserConverter {
               .orgStats(new InstanceUserStatsOrgStats()
                   .totalCount(user.getOrganizationUsers().size())));
 
+public static final Function<User, CreateUserRS> TO_CREATED_USER = user -> {
+    CreateUserRS resource = new CreateUserRS();
+    resource.setId(user.getId());
+    resource.setUuid(user.getUuid());
+    resource.setExternalId(user.getExternalId());
+    resource.setLogin(user.getLogin());
+    resource.setEmail(user.getEmail());
+    resource.setFullName(user.getFullName());
+    return resource;
+  };
 
   @SneakyThrows
   private static UserLinksLinks getLinks(User user) {

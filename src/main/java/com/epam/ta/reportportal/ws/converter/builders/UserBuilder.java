@@ -52,15 +52,23 @@ public class UserBuilder implements Supplier<User> {
 
   public UserBuilder addCreateUserRQ(CreateUserRQConfirm request) {
     ofNullable(request).ifPresent(
-        r -> fillUser(r.getLogin(), r.getEmail(), r.getFullName(), null, true,
-            UserType.INTERNAL.name()));
+        r -> fillUser(
+            r.getEmail(),
+            r.getFullName(),
+            null,
+            UserType.INTERNAL.name()
+        ));
     return this;
   }
 
   public UserBuilder addCreateUserFullRQ(CreateUserRQFull request) {
     ofNullable(request).ifPresent(
-        it -> fillUser(it.getLogin(), it.getEmail(), it.getFullName(), it.getExternalId(),
-            it.isActive(), request.getAccountType()));
+        it -> fillUser(
+            it.getEmail(),
+            it.getFullName(),
+            it.getExternalId(),
+            request.getAccountType()
+        ));
     return this;
   }
 
@@ -79,10 +87,13 @@ public class UserBuilder implements Supplier<User> {
     return user;
   }
 
-  private void fillUser(String login, String email, String fullName, String externalId,
-      boolean active, String type) {
-    user.setLogin(EntityUtils.normalizeId(login));
-    ofNullable(email).map(String::trim).map(EntityUtils::normalizeId).ifPresent(user::setEmail);
+  private void fillUser(String email, String fullName, String externalId, String type) {
+    var normalizedEmail = ofNullable(email).map(String::trim)
+        .map(EntityUtils::normalizeId)
+        .orElse(null);
+
+    user.setLogin(normalizedEmail);
+    user.setEmail(normalizedEmail);
     user.setFullName(fullName);
     user.setExternalId(externalId);
     user.setUserType(UserType.valueOf(ofNullable(type).orElse("INTERNAL")));

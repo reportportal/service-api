@@ -233,7 +233,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
   private Pair<UserActivityResource, CreateUserRS> saveUser(
       CreateUserRQFull request,
-      User creator, boolean isSystemEvent
+      User creator,
+      boolean isSystemEvent
   ) {
 
     final User user = convert(request);

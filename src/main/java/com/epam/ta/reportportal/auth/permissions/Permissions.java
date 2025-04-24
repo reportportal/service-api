@@ -46,6 +46,6 @@ public final class Permissions {
   public static final String PROJECT_MANAGER_OR_ADMIN =
       "hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')" + "||" + ADMIN_ONLY;
 
-  public static final String ALLOWED_TO_USER_ITSELF = ADMIN_ONLY + "||"
-      + "hasPermission(#userId, 'allowedToUserItself')";
+  public static final String ALLOWED_TO_OWNER = ADMIN_ONLY + "||"
+      + "hasPermission(#userId, 'allowedToOwner')";
 }

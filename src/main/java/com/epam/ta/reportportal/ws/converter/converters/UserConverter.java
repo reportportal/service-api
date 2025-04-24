@@ -29,9 +29,9 @@ import com.epam.reportportal.api.model.Link;
 import com.epam.reportportal.api.model.OrgRole;
 import com.epam.reportportal.api.model.UserLinksLinks;
 import com.epam.ta.reportportal.commons.MoreCollectors;
-import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.group.GroupProject;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserType;
@@ -42,7 +42,6 @@ import com.epam.ta.reportportal.model.user.UserResource;
 import com.google.common.collect.Lists;
 import java.net.URI;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,7 +52,6 @@ import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import javax.swing.GroupLayout.Group;
 
 /**
  * Converts user from database to resource.

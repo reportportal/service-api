@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
 import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import java.time.Instant;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;

@@ -69,7 +69,7 @@ dependencies {
     } else {
         println("Using snapshot dependencies")
         implementation 'com.github.reportportal:commons:0cb3ee1'
-        implementation 'com.github.reportportal:commons-dao:0afff61'
+        implementation 'com.github.reportportal:commons-dao:ad029ad'
         implementation 'com.github.reportportal:plugin-api:21310d8'
     }
     implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
@@ -221,7 +221,6 @@ test {
     }
 }
 
-compileJava.dependsOn tasks.named('updateApiSubmodule')
 compileJava.dependsOn tasks.named('openApiGenerate')
 compileJava.dependsOn tasks.named('downloadManifestSchema')
 publish.dependsOn build

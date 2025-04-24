@@ -46,6 +46,7 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -62,12 +63,14 @@ class LaunchNotificationRunnerTest {
 
   private EmailService emailService = mock(EmailService.class);
 
+  private ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
+
   private final LaunchNotificationRunner runner = new LaunchNotificationRunner(getProjectHandler,
       getLaunchHandler,
       getIntegrationHandler,
       mailServiceFactory,
-      userRepository
-  );
+      userRepository,
+      eventPublisher);
 
   @Test
   void shouldNotSendWhenNotificationsDisabled() {
@@ -125,7 +128,7 @@ class LaunchNotificationRunnerTest {
 
     runner.handle(event, mapping);
     verify(emailService, times(2)).sendLaunchFinishNotification(any(), any(), any(), any());
-
+    verify(eventPublisher, times(1)).publishEvent(any());
   }
 
 }

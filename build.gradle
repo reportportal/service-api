@@ -234,7 +234,6 @@ test {
     }
 }
 
-compileJava.dependsOn tasks.named('updateApiSubmodule')
 compileJava.dependsOn tasks.named('openApiGenerate')
 compileJava.dependsOn tasks.named('downloadManifestSchema')
 publish.dependsOn build

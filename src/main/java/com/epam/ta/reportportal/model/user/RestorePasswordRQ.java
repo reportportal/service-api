@@ -23,14 +23,18 @@ import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import java.util.Objects;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Dzmitry_Kavalets
  */
 @Setter
 @Getter
+@ToString
+@EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RestorePasswordRQ {
 
@@ -39,33 +43,4 @@ public class RestorePasswordRQ {
   @JsonProperty(value = "email")
   @Schema(requiredMode = RequiredMode.REQUIRED)
   private String email;
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    RestorePasswordRQ that = (RestorePasswordRQ) o;
-
-    return Objects.equals(email, that.email);
-
-  }
-
-  @Override
-  public int hashCode() {
-    return email != null ? email.hashCode() : 0;
-  }
-
-  @Override
-  public String toString() {
-    return "ResetPasswordRQ{"
-        + "email='"
-        + email
-        + '\''
-        + '}';
-  }
 }

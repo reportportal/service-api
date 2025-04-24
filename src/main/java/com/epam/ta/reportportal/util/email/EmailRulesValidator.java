@@ -29,10 +29,15 @@ import static com.epam.reportportal.model.ValidationConstraints.MAX_NAME_LENGTH;
 import static com.epam.reportportal.model.ValidationConstraints.MIN_LOGIN_LENGTH;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
+import com.google.common.base.Function;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -86,4 +91,12 @@ public final class EmailRulesValidator {
         "Attribute' values cannot be empty. Please specify them or do not include in a request."
     );
   }
+
+  public static final Function<String, String> NORMALIZE_EMAIL = email ->
+    Optional.ofNullable(email)
+        .map(String::trim)
+        .map(EntityUtils::normalizeId)
+        .filter(UserUtils::isEmailValid)
+        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "email is not valid"));
+
 }

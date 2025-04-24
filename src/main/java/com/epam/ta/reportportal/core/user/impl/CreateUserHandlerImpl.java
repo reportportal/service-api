@@ -181,7 +181,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     } catch (Exception exp) {
       throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
     }
-    // TODO: assign organization
+    // TODO: Assign organization
     // final Project personalProject = createProjectHandler.createPersonal(user);
     // projectUserHandler.assign(user, personalProject, ProjectRole.EDITOR, creator,
     //     isSystemEvent);

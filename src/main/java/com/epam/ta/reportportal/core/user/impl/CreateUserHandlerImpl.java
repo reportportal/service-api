@@ -181,11 +181,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     } catch (Exception exp) {
       throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
     }
-    // TODO: Assign organization
-    // final Project personalProject = createProjectHandler.createPersonal(user);
-    // projectUserHandler.assign(user, personalProject, ProjectRole.EDITOR, creator,
-    //     isSystemEvent);
-
     return user;
   }
 
@@ -203,17 +198,4 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
     return user;
   }
-
-  //  TODO: Return to the code after the project assignment is implemented
-  //  private void assignDefaultProject(
-  //      User creator,
-  //      User user,
-  //      String defaultProject,
-  //      String role
-  //  ) {
-  //    var projectToAssign = getProjectHandler.getRaw(normalizeId(defaultProject));
-  //    var projectRole = forName(role).orElseThrow(
-  //        () -> new ReportPortalException(ROLE_NOT_FOUND, role));
-  //    projectUserHandler.assign(user, projectToAssign, projectRole, creator, false);
-  //  }
 }

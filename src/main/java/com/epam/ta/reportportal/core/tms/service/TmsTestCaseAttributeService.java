@@ -13,4 +13,6 @@ public interface TmsTestCaseAttributeService {
   void patchTestCaseAttributes(TmsTestCase tmsTestCase, List<TmsTestCaseAttributeRQ> attributes);
 
   void deleteAllByTestCaseId(Long testCaseId);
+
+  void deleteAllByTestFolderId(Long projectId, Long testFolderId);
 }

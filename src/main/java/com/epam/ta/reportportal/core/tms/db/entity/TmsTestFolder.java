@@ -1,8 +1,8 @@
 package com.epam.ta.reportportal.core.tms.db.entity;
 
+import com.epam.ta.reportportal.entity.project.Project;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -41,28 +41,20 @@ public class TmsTestFolder implements Serializable {
   @Column(name = "description")
   private String description;
 
-  //TODO to become foreign key
-  @Column(name = "project_id")
-  private Long projectId;
+  @ManyToOne
+  @JoinColumn(name = "project_id", nullable = false)
+  private Project project;
 
   @OneToMany(mappedBy = "testFolder")
   private List<TmsTestCase> testCases;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne
   @JoinColumn(name = "parent_id")
-  private TmsTestFolder parent;
+  private TmsTestFolder parentTestFolder;
 
-  @OneToMany(mappedBy = "parent")
-  private List<TmsTestFolder> subTestFolders;
+  @OneToMany(mappedBy = "parentTestFolder")
+  private List<TmsTestFolder> subTestFolders; //TODO rename
 
 //    @ManyToMany(mappedBy = "testFolders") TODO add
 //    private Set<TmsTestPlan> testPlans;
-
-  public TmsTestFolder(final Long id, final Long projectId, final String name,
-      final String description) {
-    this.id = id;
-    this.projectId = projectId;
-    this.name = name;
-    this.description = description;
-  }
 }

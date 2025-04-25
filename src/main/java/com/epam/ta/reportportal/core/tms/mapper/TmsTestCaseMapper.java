@@ -6,6 +6,7 @@ import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
+import com.epam.ta.reportportal.entity.project.Project;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -51,8 +52,10 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
     }
     var tmsTestFolder = new TmsTestFolder();
 
+    var project = new Project();
+    project.setId(projectId);
     tmsTestFolder.setId(tmsTestFolderId);
-    tmsTestFolder.setProjectId(projectId);
+    tmsTestFolder.setProject(project); //TODO refactor that
 
     return tmsTestFolder;
   }

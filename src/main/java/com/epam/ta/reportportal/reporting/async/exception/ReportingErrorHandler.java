@@ -85,7 +85,7 @@ public class ReportingErrorHandler implements ErrorHandler {
         if (RETRYABLE_ERROR_TYPES.contains(reportPortalException.getErrorType())) {
           failedMessage.getMessageProperties()
               .setExpiration(String.valueOf(getNextTtl(retryCount)));
-          failedMessage.getMessageProperties().setPriority(retryCount);
+          failedMessage.getMessageProperties().setPriority(maxRetryCount - retryCount);
           rabbitTemplate.send(RETRY_EXCHANGE, PRIORITY_TTL_QUEUE, failedMessage);
           return;
         }

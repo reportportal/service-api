@@ -117,6 +117,7 @@ dependencies {
     implementation 'org.apache.poi:poi:5.4.0'
     implementation 'org.apache.poi:poi-ooxml:5.4.0'
     implementation 'com.github.librepdf:openpdf:2.0.3'
+    implementation 'org.apache.commons:commons-csv:1.10.0'
 
     implementation 'jakarta.inject:jakarta.inject-api:2.0.1'
     implementation 'com.sun.mail:jakarta.mail:2.0.1'

@@ -113,6 +113,6 @@ public final class EmailRulesValidator {
           .map(String::trim)
           .map(EntityUtils::normalizeId)
           .filter(UserUtils::isEmailValid)
-          .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "email is not valid"));
+          .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "wrong email: " + email));
 
 }

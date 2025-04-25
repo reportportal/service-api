@@ -246,7 +246,7 @@ class EditUserHandlerImplTest {
         )
     );
     assertEquals(
-        "Error in handled Request. Please, check specified parameters: ' wrong email: incorrect#domain.com'",
+        "Error in handled Request. Please, check specified parameters: 'wrong email: incorrect#domain.com'",
         exception.getMessage()
     );
   }

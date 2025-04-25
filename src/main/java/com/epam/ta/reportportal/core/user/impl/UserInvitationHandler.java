@@ -22,7 +22,6 @@ import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.reportportal.rules.exception.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_EXISTS;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -30,6 +29,7 @@ import static com.epam.ta.reportportal.model.settings.SettingsKeyConstants.SERVE
 import static com.epam.ta.reportportal.util.ControllerUtils.safeParseLong;
 import static com.epam.ta.reportportal.util.email.EmailRulesValidator.NORMALIZE_EMAIL;
 import static com.epam.ta.reportportal.ws.converter.builders.UserBuilder.USER_LAST_LOGIN;
+import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
 import static java.util.function.Predicate.isEqual;
 
@@ -40,10 +40,9 @@ import com.epam.reportportal.api.model.InvitationRequestOrganizationsInner;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.auth.authenticator.UserAuthenticator;
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.activity.CreateInvitationLinkEvent;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
-import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
@@ -53,8 +52,6 @@ import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.entity.Metadata;
 import com.epam.ta.reportportal.entity.ServerSettings;
-import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
-import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.user.OrganizationUser;
@@ -63,7 +60,6 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
-import com.epam.ta.reportportal.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.converters.InvitationConverter;
 import com.google.common.collect.Maps;
@@ -78,6 +74,7 @@ import java.util.UUID;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -96,7 +93,6 @@ public class UserInvitationHandler {
   private final ThreadPoolTaskExecutor emailExecutorService;
   private final MailServiceFactory emailServiceFactory;
   private final UserRepository userRepository;
-  private final GetIntegrationHandler getIntegrationHandler;
   private final ApplicationEventPublisher eventPublisher;
   private final ServerSettingsRepository settingsRepository;
   private final UserAuthenticator userAuthenticator;
@@ -104,24 +100,24 @@ public class UserInvitationHandler {
   private final OrganizationUserRepository organizationUserRepository;
   private final OrganizationRepositoryCustom organizationRepositoryCustom;
   private final ProjectRepository projectRepository;
+  private final PasswordEncoder passwordEncoder;
 
   /**
    * Constructor of UserInvitationHandlerImpl.
    */
   public UserInvitationHandler(UserCreationBidRepository userCreationBidRepository,
       ThreadPoolTaskExecutor emailExecutorService, MailServiceFactory emailServiceFactory,
-      UserRepository userRepository, GetIntegrationHandler getIntegrationHandler,
-      ApplicationEventPublisher eventPublisher, ServerSettingsRepository settingsRepository,
+      UserRepository userRepository, ApplicationEventPublisher eventPublisher,
+      ServerSettingsRepository settingsRepository,
       UserAuthenticator userAuthenticator,
       ProjectUserRepository projectUserRepository,
       OrganizationUserRepository organizationUserRepository,
       OrganizationRepositoryCustom organizationRepositoryCustom,
-      ProjectRepository projectRepository) {
+      ProjectRepository projectRepository, PasswordEncoder passwordEncoder) {
     this.userCreationBidRepository = userCreationBidRepository;
     this.emailExecutorService = emailExecutorService;
     this.emailServiceFactory = emailServiceFactory;
     this.userRepository = userRepository;
-    this.getIntegrationHandler = getIntegrationHandler;
     this.eventPublisher = eventPublisher;
     this.settingsRepository = settingsRepository;
     this.userAuthenticator = userAuthenticator;
@@ -129,7 +125,7 @@ public class UserInvitationHandler {
     this.organizationUserRepository = organizationUserRepository;
     this.organizationRepositoryCustom = organizationRepositoryCustom;
     this.projectRepository = projectRepository;
-
+    this.passwordEncoder = passwordEncoder;
   }
 
   /**
@@ -171,30 +167,27 @@ public class UserInvitationHandler {
       throw new ReportPortalException("Error while user creation bid registering.", e);
     }
 
+    var link = getEmailLink(baseUrl, userBid.getUuid());
     var response = new Invitation();
     response.setCreatedAt(storedUserBid.getLastModified());
     response.setExpiresAt(storedUserBid.getLastModified().plus(1, ChronoUnit.DAYS));
     response.setId(UUID.fromString(userBid.getUuid()));
-    response.setLink(getEmailLink(baseUrl, userBid.getUuid()));
+    response.setLink(link);
     response.setEmail(request.getEmail());
     response.setStatus(PENDING);
     response.setUserId(user.getId());
     response.setFullName(user.getFullName());
 
-    emailExecutorService.execute(() -> {
-      assert response.getLink() != null;
-      emailServiceFactory.getDefaultEmailService(false)
-          .sendCreateUserConfirmationEmail(
-              "User registration confirmation",
-              new String[]{userBid.getEmail()}, response.getLink().toString()
-          );
-    });
+    //  TODO: Add search organization integrations
+    emailExecutorService.execute(() -> emailServiceFactory.getDefaultEmailService(false)
+        .sendCreateUserConfirmationEmail(
+            "User registration confirmation",
+            new String[]{userBid.getEmail()}, link.toString()
+        ));
 
-    // TODO: Add project or org info to event publisher.
-    //
-    //    eventPublisher.publishEvent(
-    //        new CreateInvitationLinkEvent(rpUser.getUserId(), rpUser.getUsername(),
-    //            defaultProject.getId()));
+    // TODO: Add org IDs to event publisher. Needs to refactor ActivityEvent.
+    eventPublisher.publishEvent(
+        new CreateInvitationLinkEvent(rpUser.getUserId(), rpUser.getUsername()));
 
     return response;
   }
@@ -223,19 +216,21 @@ public class UserInvitationHandler {
    * @return Operation result
    */
   public Invitation activate(InvitationActivation invitationActivation, String invitationId) {
-    UserCreationBid bid = userCreationBidRepository.findByUuidAndType(invitationId,
-            INTERNAL_BID_TYPE)
+    UserCreationBid bid = userCreationBidRepository
+        .findByUuidAndType(invitationId, INTERNAL_BID_TYPE)
         .orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST,
             "Impossible to register user. UUID expired or already registered."));
 
     var createdUser = saveUser(invitationActivation, bid);
     assignOrganizationsAndProjects(createdUser, bid.getMetadata());
-
     userCreationBidRepository.delete(bid);
 
-    UserActivityResource activityDto = getUserActivityResource(createdUser);
-    UserCreatedEvent userCreatedEvent = new UserCreatedEvent(activityDto,
-        bid.getInvitingUser().getId(), bid.getInvitingUser().getLogin(), true);
+    var userCreatedEvent = new UserCreatedEvent(
+        TO_ACTIVITY_RESOURCE.apply(createdUser, null),
+        bid.getInvitingUser().getId(),
+        bid.getInvitingUser().getLogin(),
+        true
+    );
     eventPublisher.publishEvent(userCreatedEvent);
 
     userAuthenticator.authenticate(createdUser);
@@ -329,7 +324,6 @@ public class UserInvitationHandler {
     });
   }
 
-
   private void assignProjects(User createdUser, Map<String, Object> org, Long orgId) {
     if (org.get("projects") != null) {
       ((List<Map<String, Object>>) org.get("projects"))
@@ -359,30 +353,25 @@ public class UserInvitationHandler {
   }
 
   private User saveUser(InvitationActivation activationRq, UserCreationBid bid) {
-    var login = bid.getEmail().substring(0, bid.getEmail().indexOf('@'));
-    return userRepository.findByEmail(bid.getEmail())
+    var email = NORMALIZE_EMAIL.apply(bid.getEmail());
+
+    return userRepository.findByEmail(email)
         .orElseGet(() -> {
           var user = new User();
-          user.setActive(Boolean.TRUE);
+          user.setLogin(email);
+          user.setEmail(email);
           user.setUuid(UUID.randomUUID());
-          user.setRole(UserRole.USER);
-          user.setLogin(login);
-          ofNullable(bid.getEmail()).map(String::trim).map(EntityUtils::normalizeId)
-              .ifPresent(user::setEmail);
           user.setFullName(activationRq.getFullName());
+          user.setActive(Boolean.TRUE);
+          user.setRole(UserRole.USER);
           user.setUserType(UserType.valueOf("INTERNAL"));
           user.setExpired(false);
           Map<String, Object> meta = new HashMap<>();
           meta.put(USER_LAST_LOGIN, Instant.now().toEpochMilli());
           user.setMetadata(new Metadata(meta));
+          ofNullable(activationRq.getPassword())
+              .ifPresent(password -> user.setPassword(passwordEncoder.encode(password)));
           return userRepository.save(user);
         });
-  }
-
-  private UserActivityResource getUserActivityResource(User user) {
-    UserActivityResource userActivityResource = new UserActivityResource();
-    userActivityResource.setId(user.getId());
-    userActivityResource.setFullName(user.getLogin());
-    return userActivityResource;
   }
 }

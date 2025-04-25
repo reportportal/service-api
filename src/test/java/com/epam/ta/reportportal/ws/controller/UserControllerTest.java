@@ -95,7 +95,6 @@ class UserControllerTest extends BaseMvcTest {
   @Test
   void createdUserByIdentityProvider() throws Exception  {
     CreateUserRQFull rq = new CreateUserRQFull();
-    rq.setLogin("testLogin");
     rq.setFullName("Test User");
     rq.setEmail("test@test.com");
     rq.setAccountRole("USER");
@@ -114,7 +113,7 @@ class UserControllerTest extends BaseMvcTest {
         CreateUserRS.class);
 
     assertNotNull(createUserRS.getId());
-    assertEquals(normalizeId(rq.getLogin()), createUserRS.getLogin());
+    assertEquals(normalizeId(rq.getEmail()), createUserRS.getLogin());
     var user = userRepository.findById(createUserRS.getId());
     assertTrue(user.isPresent());
     assertEquals(UserType.SCIM, user.get().getUserType());
@@ -123,14 +122,13 @@ class UserControllerTest extends BaseMvcTest {
     var projectOptional = projectRepository.findByName("default_personal");
     assertTrue(projectOptional.isPresent());
     assertFalse(projectOptional.get().getUsers().stream()
-        .anyMatch(config -> config.getUser().getLogin().equals("testlogin")));
+        .anyMatch(config -> config.getUser().getLogin().equals("test@test.com")));
 
   }
 
   @Test
   void createUserByAdminPositive() throws Exception {
     CreateUserRQFull rq = new CreateUserRQFull();
-    rq.setLogin("testLogin");
     rq.setPassword("testPassword%123");
     rq.setFullName("Test User");
     rq.setEmail("test@test.com");
@@ -150,16 +148,16 @@ class UserControllerTest extends BaseMvcTest {
         CreateUserRS.class);
 
     assertNotNull(createUserRS.getId());
-    assertEquals(normalizeId(rq.getLogin()), createUserRS.getLogin());
+    assertEquals(normalizeId(rq.getEmail()), createUserRS.getLogin());
     assertTrue(userRepository.findById(createUserRS.getId()).isPresent());
 
     // TODO: move to the new organization endpoints test
     /*final Optional<Project> projectOptional = projectRepository.findByName("default_personal");
     assertTrue(projectOptional.isPresent());
     assertTrue(projectOptional.get().getUsers().stream()
-        .anyMatch(config -> config.getUser().getLogin().equals("testlogin")));
+        .anyMatch(config -> config.getUser().getLogin().equals("est@test.com")));
 
-    Optional<Project> personalProject = projectRepository.findByName("testlogin_personal");
+    Optional<Project> personalProject = projectRepository.findByName("test_test_com_personal");
     assertTrue(personalProject.isPresent(), "Personal project isn't created");
     Project project = personalProject.get();
 
@@ -208,7 +206,6 @@ class UserControllerTest extends BaseMvcTest {
   @Disabled("to be deleted")
   void createUserPositive() throws Exception {
     CreateUserRQConfirm rq = new CreateUserRQConfirm();
-    rq.setLogin("testLogin");
     rq.setPassword("testPassword%123");
     rq.setFullName("Test User");
     rq.setEmail("test@domain.com");
@@ -222,7 +219,7 @@ class UserControllerTest extends BaseMvcTest {
         CreateUserRS.class);
 
     assertNotNull(createUserRS.getId());
-    assertEquals(normalizeId(rq.getLogin()), createUserRS.getLogin());
+    assertEquals(normalizeId(rq.getEmail()), createUserRS.getLogin());
     assertTrue(userRepository.findById(createUserRS.getId()).isPresent());
   }
 

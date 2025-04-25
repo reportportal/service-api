@@ -21,65 +21,38 @@ import static com.epam.reportportal.rules.commons.validation.BusinessRule.fail;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.reportportal.rules.exception.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
-import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.reportportal.rules.exception.ErrorType.RESOURCE_ALREADY_EXISTS;
-import static com.epam.reportportal.rules.exception.ErrorType.ROLE_NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_EXISTS;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
-import static com.epam.ta.reportportal.model.settings.SettingsKeyConstants.SERVER_USERS_SSO;
+import static com.epam.ta.reportportal.util.email.EmailRulesValidator.NORMALIZE_EMAIL;
 import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
+import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_CREATED_USER;
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.rules.commons.validation.Suppliers;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.auth.authenticator.UserAuthenticator;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
-import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
-import com.epam.ta.reportportal.core.project.CreateProjectHandler;
-import com.epam.ta.reportportal.core.project.GetProjectHandler;
-import com.epam.ta.reportportal.core.project.ProjectUserHandler;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.dao.RestorePasswordBidRepository;
-import com.epam.ta.reportportal.dao.ServerSettingsRepository;
-import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.entity.Metadata;
-import com.epam.ta.reportportal.entity.ServerSettings;
-import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
-import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.RestorePasswordBid;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.model.YesNoRS;
-import com.epam.ta.reportportal.model.activity.UserActivityResource;
-import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
 import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.model.user.CreateUserRS;
 import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
 import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
-import com.epam.ta.reportportal.util.Predicates;
-import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.RestorePasswordBidConverter;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
-import com.google.common.collect.Maps;
 import jakarta.persistence.PersistenceException;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -88,7 +61,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Implementation of Create User handler
+ * Implementation of Create User handler.
  *
  * @author Andrei_Ramanchuk
  */
@@ -99,25 +72,13 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   public static final String BID_TYPE = "type";
   public static final String INTERNAL_BID_TYPE = "internal";
 
-  private final ServerSettingsRepository settingsRepository;
-
   private final UserRepository userRepository;
 
   private final UserAuthenticator userAuthenticator;
 
   private final MailServiceFactory emailServiceFactory;
 
-  private final UserCreationBidRepository userCreationBidRepository;
-
   private final RestorePasswordBidRepository restorePasswordBidRepository;
-
-  private final CreateProjectHandler createProjectHandler;
-
-  private final GetProjectHandler getProjectHandler;
-
-  private final ProjectUserHandler projectUserHandler;
-
-  private final GetIntegrationHandler getIntegrationHandler;
 
   private final ThreadPoolTaskExecutor emailExecutorService;
 
@@ -127,46 +88,45 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
   @Override
   @Transactional
-  public CreateUserRS createUserByAdmin(CreateUserRQFull request, ReportPortalUser creator,
-      String basicUrl) {
-    // creator validation
-    User administrator = userRepository.findRawById(creator.getUserId())
-        .orElseThrow(
-            () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, creator.getUsername()));
-    expect(administrator.getRole(), equalTo(UserRole.ADMINISTRATOR)).verify(ACCESS_DENIED,
-        Suppliers.formattedSupplier("Only administrator can create new user. Your role is - {}",
-            administrator.getRole())
+  public CreateUserRS createUserByAdmin(
+      CreateUserRQFull request,
+      ReportPortalUser creator,
+      String basicUrl
+  ) {
+    request.setEmail(NORMALIZE_EMAIL.apply(request.getEmail()));
+    var user = saveUser(request);
+
+    UserCreatedEvent userCreatedEvent = new UserCreatedEvent(
+        TO_ACTIVITY_RESOURCE.apply(user, null),
+        creator.getUserId(),
+        creator.getEmail(),
+        false
     );
 
-    normalize(request);
-
-    Pair<UserActivityResource, CreateUserRS> pair = saveUser(request, administrator, false);
+    eventPublisher.publishEvent(userCreatedEvent);
 
     emailExecutorService.execute(() -> emailServiceFactory.getDefaultEmailService(true)
         .sendCreateUserConfirmationEmail(request, basicUrl));
-    return pair.getValue();
 
+    return TO_CREATED_USER.apply(user);
   }
 
   @Override
   public OperationCompletionRS createRestorePasswordBid(RestorePasswordRQ rq, String baseUrl) {
-    String email = normalizeId(rq.getEmail());
-    expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
+    var email = NORMALIZE_EMAIL.apply(rq.getEmail());
 
     User user = userRepository.findByEmail(email)
         .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, email));
-    Optional<RestorePasswordBid> bidOptional =
-        restorePasswordBidRepository.findByEmail(rq.getEmail());
 
-    RestorePasswordBid bid;
-    if (bidOptional.isEmpty()) {
-      expect(user.getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR,
-          "Unable to change password for external user");
-      bid = RestorePasswordBidConverter.TO_BID.apply(rq);
-      restorePasswordBidRepository.save(bid);
-    } else {
-      bid = bidOptional.get();
-    }
+    var bid = restorePasswordBidRepository.findByEmail(rq.getEmail())
+        .orElseGet(() -> {
+          expect(user.getUserType(), equalTo(UserType.INTERNAL)).verify(
+              BAD_REQUEST_ERROR, "Unable to change password for external user");
+
+          RestorePasswordBid newBid = RestorePasswordBidConverter.TO_BID.apply(rq);
+          restorePasswordBidRepository.save(newBid);
+          return newBid;
+        });
 
     emailServiceFactory.getDefaultEmailService(true)
         .sendRestorePasswordEmail("Password recovery",
@@ -180,21 +140,21 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
   @Override
   public OperationCompletionRS resetPassword(ResetPasswordRQ request) {
-    RestorePasswordBid bid = restorePasswordBidRepository.findById(request.getUuid())
-        .orElseThrow(() -> new ReportPortalException(ACCESS_DENIED,
-            "The password change link is no longer valid."));
-    String email = bid.getEmail();
-    expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
-    User byEmail = userRepository.findByEmail(email)
+    var bid = restorePasswordBidRepository.findById(request.getUuid())
+        .orElseThrow(() -> new ReportPortalException(
+            ACCESS_DENIED, "The password change link is no longer valid."));
+
+    User user = userRepository.findByEmail(NORMALIZE_EMAIL.apply(bid.getEmail()))
         .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND));
-    expect(byEmail.getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR,
-        "Unable to change password for external user");
-    byEmail.setPassword(passwordEncoder.encode(request.getPassword()));
-    userRepository.save(byEmail);
+
+    expect(user.getUserType(), equalTo(UserType.INTERNAL)).verify(
+        BAD_REQUEST_ERROR, "Unable to change password for external user");
+
+    user.setPassword(passwordEncoder.encode(request.getPassword()));
+    userRepository.save(user);
     restorePasswordBidRepository.deleteById(request.getUuid());
-    OperationCompletionRS rs = new OperationCompletionRS();
-    rs.setResultMessage("Password has been changed");
-    return rs;
+
+    return new OperationCompletionRS("Password has been changed");
   }
 
   @Override
@@ -203,62 +163,15 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     return new YesNoRS(bid.isPresent());
   }
 
-  private boolean isSsoEnabled() {
-    return settingsRepository.findByKey(SERVER_USERS_SSO).map(ServerSettings::getValue)
-        .map(Boolean::parseBoolean).orElse(false);
-  }
-
-  private void normalize(CreateUserRQFull request) {
-    final String login = normalizeLogin(request.getLogin());
-    final String email = normalizeEmail(request.getEmail());
-    request.setLogin(login);
-    request.setEmail(email);
-  }
-
-  private String normalizeLogin(String login) {
-    final String normalizedLogin = getNormalized(login);
-    validateLogin(login, normalizedLogin);
-    return normalizedLogin;
-  }
-
-  private void validateLogin(String original, String normalized) {
-    Optional<User> user = userRepository.findByLogin(normalized);
-    expect(user.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS,
-        formattedSupplier("login='{}'", original));
-    expect(normalized, Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
-        formattedSupplier("Username '{}' consists only of special characters", original)
-    );
-  }
-
-  private String normalizeEmail(String email) {
-    final String normalizedEmail = getNormalized(email);
-    validateEmail(email, normalizedEmail);
-    return normalizedEmail;
-  }
-
-  private void validateEmail(String original, String normalized) {
-    expect(UserUtils.isEmailValid(normalized), equalTo(true)).verify(BAD_REQUEST_ERROR,
-        formattedSupplier("email='{}'", original));
-    Optional<User> emailUser = userRepository.findByEmail(normalized);
-    expect(emailUser.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS,
-        formattedSupplier("email='{}'", original));
-  }
-
-  private String getNormalized(String original) {
-    return normalizeId(original.trim());
-  }
-
-  private Pair<UserActivityResource, CreateUserRS> saveUser(CreateUserRQFull request,
-      User creator, boolean isSystemEvent) {
+  private User saveUser(CreateUserRQFull request) {
+    expect(userRepository.findByEmail(request.getEmail()).isEmpty(), equalTo(true))
+        .verify(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
 
     final User user = convert(request);
 
     try {
       userRepository.save(user);
-      UserActivityResource userActivityResource = getUserActivityResource(user);
-      UserCreatedEvent userCreatedEvent = new UserCreatedEvent(userActivityResource,
-          creator.getId(), creator.getLogin(), isSystemEvent);
-      eventPublisher.publishEvent(userCreatedEvent);
+      userAuthenticator.authenticate(user);
     } catch (PersistenceException pe) {
       if (pe.getCause() instanceof ConstraintViolationException) {
         fail().withError(RESOURCE_ALREADY_EXISTS,
@@ -268,68 +181,21 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     } catch (Exception exp) {
       throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
     }
-
-    userAuthenticator.authenticate(user);
-
-    // TODO: assign organization
-/*    final Project personalProject = createProjectHandler.createPersonal(user);
-    projectUserHandler.assign(user, personalProject, ProjectRole.EDITOR, creator,
-        isSystemEvent);*/
-
-    final CreateUserRS response = new CreateUserRS();
-    response.setId(user.getId());
-    response.setUuid(user.getUuid());
-    response.setExternalId(user.getExternalId());
-    response.setLogin(user.getLogin());
-    response.setEmail(user.getEmail());
-    response.setFullName(user.getFullName());
-    response.setAccountRole(user.getRole().toString());
-    response.setAccountType(user.getUserType().toString());
-    response.setActive(user.getActive());
-    return Pair.of(TO_ACTIVITY_RESOURCE.apply(user, null), response);
-  }
-
-  private void assignDefaultProject(User creator, User user,
-      String defaultProject, String role) {
-    var projectToAssign = getProjectHandler.getRaw(normalizeId(defaultProject));
-    var projectRole = forName(role).orElseThrow(
-        () -> new ReportPortalException(ROLE_NOT_FOUND, role));
-    projectUserHandler.assign(user, projectToAssign, projectRole, creator, false);
-  }
-
-  private UserActivityResource getUserActivityResource(User user) {
-    UserActivityResource userActivityResource = new UserActivityResource();
-    userActivityResource.setId(user.getId());
-    userActivityResource.setFullName(user.getLogin());
-    return userActivityResource;
+    return user;
   }
 
   private User convert(CreateUserRQFull request) {
     final UserRole userRole = UserRole.findByName(request.getAccountRole())
-        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-            "Incorrect specified Account Role parameter."));
+        .orElseThrow(() -> new ReportPortalException(
+            BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter."));
+
     User user = new UserBuilder().addCreateUserFullRQ(request)
         .addUserRole(userRole)
         .get();
-    ofNullable(request.getPassword()).ifPresent(
-        password -> user.setPassword(passwordEncoder.encode(password)));
+
+    ofNullable(request.getPassword())
+        .ifPresent(password -> user.setPassword(passwordEncoder.encode(password)));
+
     return user;
-  }
-
-  private CreateUserRQFull convertToCreateRequest(CreateUserRQConfirm request,
-      UserCreationBid bid) {
-    CreateUserRQFull createUserRQFull = new CreateUserRQFull();
-    createUserRQFull.setLogin(request.getLogin());
-    createUserRQFull.setEmail(request.getEmail());
-    createUserRQFull.setFullName(request.getFullName());
-    createUserRQFull.setPassword(request.getPassword());
-    createUserRQFull.setAccountRole(UserRole.USER.name());
-    return createUserRQFull;
-  }
-
-  private Metadata getUserCreationBidMetadata() {
-    final Map<String, Object> meta = Maps.newHashMapWithExpectedSize(1);
-    meta.put(BID_TYPE, INTERNAL_BID_TYPE);
-    return new Metadata(meta);
   }
 }

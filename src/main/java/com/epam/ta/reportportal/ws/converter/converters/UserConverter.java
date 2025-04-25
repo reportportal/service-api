@@ -29,19 +29,19 @@ import com.epam.reportportal.api.model.Link;
 import com.epam.reportportal.api.model.OrgRole;
 import com.epam.reportportal.api.model.UserLinksLinks;
 import com.epam.ta.reportportal.commons.MoreCollectors;
-import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.group.GroupProject;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.model.activity.UserActivityResource;
+import com.epam.ta.reportportal.model.user.CreateUserRS;
 import com.epam.ta.reportportal.model.user.SearchUserResource;
 import com.epam.ta.reportportal.model.user.UserResource;
 import com.google.common.collect.Lists;
 import java.net.URI;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,7 +52,6 @@ import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import javax.swing.GroupLayout.Group;
 
 /**
  * Converts user from database to resource.
@@ -169,6 +168,7 @@ public final class UserConverter {
     resource.setFullName(user.getFullName());
     return resource;
   };
+
   public static final BiFunction<User, Long, UserActivityResource> TO_ACTIVITY_RESOURCE =
       (user, projectId) -> {
         UserActivityResource resource = new UserActivityResource();
@@ -206,12 +206,23 @@ public final class UserConverter {
                   .id(orgUser.getOrganization().getId())
                   .slug(orgUser.getOrganization().getSlug())
                   .name(orgUser.getOrganization().getName())
-                  .orgRole(OrgRole.fromValue(orgUser.getOrganizationRole().getRoleName().toUpperCase())))
+                  .orgRole(
+                      OrgRole.fromValue(orgUser.getOrganizationRole().getRoleName().toUpperCase())))
               .collect(Collectors.toSet()))
           .stats(new InstanceUserStats()
               .orgStats(new InstanceUserStatsOrgStats()
                   .totalCount(user.getOrganizationUsers().size())));
 
+  public static final Function<User, CreateUserRS> TO_CREATED_USER = user -> {
+    CreateUserRS resource = new CreateUserRS();
+    resource.setId(user.getId());
+    resource.setUuid(user.getUuid());
+    resource.setExternalId(user.getExternalId());
+    resource.setLogin(user.getLogin());
+    resource.setEmail(user.getEmail());
+    resource.setFullName(user.getFullName());
+    return resource;
+  };
 
   @SneakyThrows
   private static UserLinksLinks getLinks(User user) {
@@ -222,7 +233,8 @@ public final class UserConverter {
 
     if (null != user.getAttachmentThumbnail() && StringUtils.isNotEmpty(mediaType)) {
       links.avatar(
-          new Link(new URI("/users/" + user.getId() + "/avatar"), mediaType, "User's profile picture"));
+          new Link(new URI("/users/" + user.getId() + "/avatar"), mediaType,
+              "User's profile picture"));
       return links;
     }
     return links;

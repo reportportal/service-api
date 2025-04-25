@@ -95,7 +95,8 @@ class CreateUserHandlerImplTest {
   void createByNotExistedAdmin() {
 
     final ReportPortalUser rpUser =
-        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
+        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR,
+            1L);
     when(userRepository.findRawById(rpUser.getUserId())).thenReturn(Optional.empty());
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -107,7 +108,8 @@ class CreateUserHandlerImplTest {
   @Test
   void createByNotAdmin() {
     final ReportPortalUser rpUser =
-        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
+        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR,
+            1L);
     User user = new User();
     user.setRole(UserRole.USER);
     when(userRepository.findRawById(1L)).thenReturn(Optional.of(user));
@@ -124,38 +126,21 @@ class CreateUserHandlerImplTest {
   @Test
   void createByAdminUserAlreadyExists() {
     final ReportPortalUser rpUser =
-        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
+        getRpUser("new_user@example.com", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER,
+            ProjectRole.EDITOR, 1L);
     User creator = new User();
     creator.setRole(UserRole.ADMINISTRATOR);
 
     doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
-    doReturn(Optional.of(new User())).when(userRepository).findByLogin("new_user");
+    doReturn(Optional.of(new User())).when(userRepository).findByEmail("new_user@example.com");
 
     final CreateUserRQFull request = new CreateUserRQFull();
-    request.setLogin("new_user");
+    request.setEmail("new_user@example.com");
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.createUserByAdmin(request, rpUser, "url")
     );
-    assertEquals("User with 'login='new_user'' already exists. You couldn't create the duplicate.",
-        exception.getMessage()
-    );
-  }
-
-  @Test
-  void createByAdminWithIncorrectName() {
-    final ReportPortalUser rpUser =
-        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
-    User creator = new User();
-    creator.setRole(UserRole.ADMINISTRATOR);
-    doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
-    doReturn(Optional.empty()).when(userRepository).findByLogin("#$$/");
-
-    final CreateUserRQFull request = new CreateUserRQFull();
-    request.setLogin("#$$/");
-    final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.createUserByAdmin(request, rpUser, "url")
-    );
-    assertEquals("Incorrect Request. Username '#$$/' consists only of special characters",
+    assertEquals(
+        "User with 'email='new_user@example.com'' already exists. You couldn't create the duplicate.",
         exception.getMessage()
     );
   }
@@ -163,14 +148,13 @@ class CreateUserHandlerImplTest {
   @Test
   void createByAdminWithIncorrectEmail() {
     final ReportPortalUser rpUser =
-        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
+        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR,
+            1L);
     User creator = new User();
     creator.setRole(UserRole.ADMINISTRATOR);
     doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
-    doReturn(Optional.empty()).when(userRepository).findByLogin("new_user");
 
     final CreateUserRQFull request = new CreateUserRQFull();
-    request.setLogin("new_user");
     request.setEmail("incorrect@email");
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.createUserByAdmin(request, rpUser, "url")
@@ -184,15 +168,14 @@ class CreateUserHandlerImplTest {
   @Test
   void createByAdminWithExistedEmail() {
     final ReportPortalUser rpUser =
-        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
+        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR,
+            1L);
     User creator = new User();
     creator.setRole(UserRole.ADMINISTRATOR);
     doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
-    doReturn(Optional.empty()).when(userRepository).findByLogin("new_user");
     when(userRepository.findByEmail("correct@domain.com")).thenReturn(Optional.of(new User()));
 
     final CreateUserRQFull request = new CreateUserRQFull();
-    request.setLogin("new_user");
     request.setEmail("correct@domain.com");
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.createUserByAdmin(request, rpUser, "url")
@@ -206,15 +189,14 @@ class CreateUserHandlerImplTest {
   @Test
   void createByAdminWithExistedEmailUppercase() {
     final ReportPortalUser rpUser =
-        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
+        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR,
+            1L);
     User creator = new User();
     creator.setRole(UserRole.ADMINISTRATOR);
     doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
-    doReturn(Optional.empty()).when(userRepository).findByLogin("new_user");
     when(userRepository.findByEmail("correct@domain.com")).thenReturn(Optional.of(new User()));
 
     final CreateUserRQFull request = new CreateUserRQFull();
-    request.setLogin("new_user");
     request.setEmail("CORRECT@domain.com");
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.createUserByAdmin(request, rpUser, "url")
@@ -229,7 +211,8 @@ class CreateUserHandlerImplTest {
   @Disabled("To be deleted")
   void createUserBid() {
     final ReportPortalUser rpUser =
-        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.VIEWER, 1L);
+        getRpUser("test@mail.com", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER,
+            ProjectRole.VIEWER, 1L);
     final String projectName = TEST_PROJECT_KEY;
     final String email = "email@mail.com";
     final ProjectRole role = ProjectRole.VIEWER;

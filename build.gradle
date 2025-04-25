@@ -24,7 +24,7 @@ plugins {
     id "org.openapi.generator" version "7.11.0"
 }
 
-import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
@@ -234,7 +234,6 @@ test {
     }
 }
 
-compileJava.dependsOn tasks.named('updateApiSubmodule')
 compileJava.dependsOn tasks.named('openApiGenerate')
 compileJava.dependsOn tasks.named('downloadManifestSchema')
 publish.dependsOn build

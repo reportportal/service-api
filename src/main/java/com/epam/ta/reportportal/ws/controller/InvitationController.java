@@ -32,12 +32,25 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controller for managing user invitations.
+ * This controller handles the creation, retrieval, and activation of user invitations.
+ * It provides endpoints for sending invitations to users and activating them.
+ *
+ * @author <a href="mailto:Siarhei_Hrabko@epam.com">Siarhei Hrabko</a>
+ */
 @RestController
 public class InvitationController extends BaseController implements InvitationApi {
 
   private final UserInvitationHandler userInvitationHandler;
   private final HttpServletRequest httpServletRequest;
 
+  /**
+   * Constructor for the InvitationController.
+   *
+   * @param userInvitationHandler The handler for user invitations.
+   * @param httpServletRequest    The HTTP servlet request.
+   */
   public InvitationController(UserInvitationHandler userInvitationHandler,
       HttpServletRequest httpServletRequest) {
     this.userInvitationHandler = userInvitationHandler;
@@ -71,7 +84,8 @@ public class InvitationController extends BaseController implements InvitationAp
   }
 
   @Override
-  public ResponseEntity<Invitation> putInvitationsId(String invitationId, InvitationActivation invitationActivation) {
+  public ResponseEntity<Invitation> putInvitationsId(String invitationId,
+      InvitationActivation invitationActivation) {
     return ResponseEntity
         .status(OK)
         .body(userInvitationHandler.activate(invitationActivation, invitationId));

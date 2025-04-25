@@ -16,35 +16,46 @@
 
 package com.epam.ta.reportportal.util.email;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.entity.project.ProjectUtils.getOwner;
-import static com.epam.ta.reportportal.util.UserUtils.isEmailValid;
-import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
 import static com.epam.reportportal.model.ValidationConstraints.MAX_LOGIN_LENGTH;
 import static com.epam.reportportal.model.ValidationConstraints.MAX_NAME_LENGTH;
 import static com.epam.reportportal.model.ValidationConstraints.MIN_LOGIN_LENGTH;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.entity.project.ProjectUtils.getOwner;
+import static com.epam.ta.reportportal.util.UserUtils.isEmailValid;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
+import com.google.common.base.Function;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 
 /**
+ * Validates email and launch name rules.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class EmailRulesValidator {
 
   private EmailRulesValidator() {
-
-    //static only
   }
 
+  /**
+   * Validates email address.
+   *
+   * @param project   Project
+   * @param recipient Recipient email address
+   */
   public static void validateRecipient(Project project, String recipient) {
     expect(recipient, notNull()).verify(BAD_REQUEST_ERROR,
         formattedSupplier("Provided recipient email '{}' is invalid", recipient));
@@ -68,6 +79,11 @@ public final class EmailRulesValidator {
     }
   }
 
+  /**
+   * Validate launch name.
+   *
+   * @param name Launch name
+   */
   public static void validateLaunchName(String name) {
     expect(StringUtils.isBlank(name), equalTo(false)).verify(BAD_REQUEST_ERROR,
         "Launch name values cannot be empty. Please specify it or not include in request."
@@ -79,6 +95,11 @@ public final class EmailRulesValidator {
     );
   }
 
+  /**
+   * Validate launch attribute.
+   *
+   * @param attribute Launch attribute
+   */
   public static void validateLaunchAttribute(ItemAttributeResource attribute) {
     expect(attribute, notNull()).verify(ErrorType.BAD_REQUEST_ERROR,
         "Launch attribute cannot be null.");
@@ -86,4 +107,12 @@ public final class EmailRulesValidator {
         "Attribute' values cannot be empty. Please specify them or do not include in a request."
     );
   }
+
+  public static final Function<String, String> NORMALIZE_EMAIL = email ->
+      Optional.ofNullable(email)
+          .map(String::trim)
+          .map(EntityUtils::normalizeId)
+          .filter(UserUtils::isEmailValid)
+          .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "wrong email: " + email));
+
 }

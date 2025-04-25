@@ -8,6 +8,7 @@ import com.epam.ta.reportportal.core.tms.exception.NotFoundException;
 import com.epam.ta.reportportal.core.tms.mapper.TmsProductVersionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +20,7 @@ public class ProductVersionServiceImpl implements ProductVersionService {
   private final ProductVersionRepository productVersionRepository;
 
   @Override
+  @Transactional
   public TmsProductVersionRS create(long projectId, final ProductVersionRQ inputDto) {
     final var productVersion = new TmsProductVersion(null,
         inputDto.version(), inputDto.documentation(), projectId);
@@ -26,6 +28,7 @@ public class ProductVersionServiceImpl implements ProductVersionService {
   }
 
   @Override
+  @Transactional
   public TmsProductVersionRS update(long projectId, final Long productVersionId,
       final ProductVersionRQ inputDto) {
     final var productVersion = new TmsProductVersion(productVersionId,
@@ -41,6 +44,7 @@ public class ProductVersionServiceImpl implements ProductVersionService {
   }
 
   @Override
+  @Transactional
   public void delete(long projectId, Long id) {
     productVersionRepository.deleteByIdAndProjectId(id, projectId);
   }

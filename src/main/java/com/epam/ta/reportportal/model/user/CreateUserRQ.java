@@ -41,14 +41,14 @@ public class CreateUserRQ {
   @Schema(requiredMode = RequiredMode.REQUIRED)
   private String email;
 
-	@NotBlank
-	@JsonProperty(value = "role", required = true)
-	@In(allowedValues = { "editor", "viewer" })
-	@Schema(requiredMode = RequiredMode.REQUIRED)
-	private String role;
+  @NotBlank
+  @JsonProperty(value = "role", required = true)
+  @In(allowedValues = {"editor", "viewer"})
+  @Schema(requiredMode = RequiredMode.REQUIRED)
+  private String role;
 
-	@NotBlank
-	@JsonProperty(value = "defaultProject", required = true)
-	@Schema(requiredMode = RequiredMode.NOT_REQUIRED)
-	private String defaultProject;
+  @NotBlank
+  @JsonProperty(value = "defaultProject", required = true)
+  @Schema(requiredMode = RequiredMode.NOT_REQUIRED)
+  private String defaultProject;
 }

@@ -93,4 +93,11 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     tmsTestCaseAttributeService.deleteAllByTestCaseId(testCaseId);
     tmsTestCaseRepository.deleteById(testCaseId);
   }
+
+  @Override
+  @Transactional
+  public void deleteByTestFolderId(Long projectId, Long folderId) {
+    tmsTestCaseAttributeService.deleteAllByTestFolderId(projectId, folderId);
+    tmsTestCaseRepository.deleteTestCasesByFolderId(projectId, folderId);
+  }
 }

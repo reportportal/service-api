@@ -56,11 +56,12 @@ public class ReportingTopologyConfiguration {
   public static final String DEFAULT_CONSISTENT_HASH_ROUTING_KEY = "";
   public static final String DEFAULT_QUEUE_ROUTING_KEY = "1";
   public static final String REPORTING_QUEUE_PREFIX = "q.reporting.";
-  public static final String TTL_QUEUE = "q.retry.reporting.ttl";
+//  public static final String TTL_QUEUE = "q.retry.reporting.ttl";
+  public static final String PRIORITY_TTL_QUEUE = "q.retry.reporting.priorityTtl";
   public static final String REPORTING_PARKING_LOT = "q.parkingLot.reporting";
-
   private final AmqpAdmin amqpAdmin;
-
+  @Value("${reporting.retry.max-count:20}")
+  private Integer maxRetryCount;
   @Value("${reporting.parkingLot.ttl.days:7}")
   private long parkingLotTtl;
 
@@ -112,16 +113,29 @@ public class ReportingTopologyConfiguration {
   }
 
   @Bean
-  Queue ttlQueue() {
-    return QueueBuilder.durable(TTL_QUEUE).deadLetterExchange(REPORTING_EXCHANGE)
+  Queue priorityTtlQueue() {
+    return QueueBuilder.durable(PRIORITY_TTL_QUEUE).maxPriority(maxRetryCount)
+        .deadLetterExchange(REPORTING_EXCHANGE)
         .deadLetterRoutingKey(DEFAULT_CONSISTENT_HASH_ROUTING_KEY)
         .build();
   }
 
   @Bean
-  Binding ttlQueueBinding() {
-    return BindingBuilder.bind(ttlQueue()).to(retryExchange()).with(TTL_QUEUE);
+  Binding priorityTtlQueueBinding() {
+    return BindingBuilder.bind(priorityTtlQueue()).to(retryExchange()).with(PRIORITY_TTL_QUEUE);
   }
+
+//  @Bean
+//  Queue ttlQueue() {
+//    return QueueBuilder.durable(TTL_QUEUE).deadLetterExchange(REPORTING_EXCHANGE)
+//        .deadLetterRoutingKey(DEFAULT_CONSISTENT_HASH_ROUTING_KEY)
+//        .build();
+//  }
+//
+//  @Bean
+//  Binding ttlQueueBinding() {
+//    return BindingBuilder.bind(ttlQueue()).to(retryExchange()).with(TTL_QUEUE);
+//  }
 
   @Bean
   public Queue reportingParkingLot() {

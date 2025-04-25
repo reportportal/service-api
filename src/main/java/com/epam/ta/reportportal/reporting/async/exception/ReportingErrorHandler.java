@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.reporting.async.exception;
 
+import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.PRIORITY_TTL_QUEUE;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_PARKING_LOT;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.RETRY_EXCHANGE;
-import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.TTL_QUEUE;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -85,7 +85,8 @@ public class ReportingErrorHandler implements ErrorHandler {
         if (RETRYABLE_ERROR_TYPES.contains(reportPortalException.getErrorType())) {
           failedMessage.getMessageProperties()
               .setExpiration(String.valueOf(getNextTtl(retryCount)));
-          rabbitTemplate.send(RETRY_EXCHANGE, TTL_QUEUE, failedMessage);
+          failedMessage.getMessageProperties().setPriority(retryCount);
+          rabbitTemplate.send(RETRY_EXCHANGE, PRIORITY_TTL_QUEUE, failedMessage);
           return;
         }
       }

@@ -7,4 +7,6 @@ import java.util.List;
 public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCaseRS, Long> {
 
   List<TmsTestCaseRS> getTestCaseByProjectId(long projectId);
+
+  void deleteByTestFolderId(Long projectId, Long folderId);
 }

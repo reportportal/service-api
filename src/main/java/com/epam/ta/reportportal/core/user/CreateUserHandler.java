@@ -42,7 +42,6 @@ public interface CreateUserHandler {
    */
   CreateUserRS createUserByAdmin(CreateUserRQFull request, ReportPortalUser user, String basicUrl);
 
-
   /**
    * Create restore password bid
    *

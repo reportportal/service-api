@@ -168,6 +168,7 @@ public final class UserConverter {
     resource.setFullName(user.getFullName());
     return resource;
   };
+
   public static final BiFunction<User, Long, UserActivityResource> TO_ACTIVITY_RESOURCE =
       (user, projectId) -> {
         UserActivityResource resource = new UserActivityResource();
@@ -205,13 +206,14 @@ public final class UserConverter {
                   .id(orgUser.getOrganization().getId())
                   .slug(orgUser.getOrganization().getSlug())
                   .name(orgUser.getOrganization().getName())
-                  .orgRole(OrgRole.fromValue(orgUser.getOrganizationRole().getRoleName().toUpperCase())))
+                  .orgRole(
+                      OrgRole.fromValue(orgUser.getOrganizationRole().getRoleName().toUpperCase())))
               .collect(Collectors.toSet()))
           .stats(new InstanceUserStats()
               .orgStats(new InstanceUserStatsOrgStats()
                   .totalCount(user.getOrganizationUsers().size())));
 
-public static final Function<User, CreateUserRS> TO_CREATED_USER = user -> {
+  public static final Function<User, CreateUserRS> TO_CREATED_USER = user -> {
     CreateUserRS resource = new CreateUserRS();
     resource.setId(user.getId());
     resource.setUuid(user.getUuid());
@@ -231,7 +233,8 @@ public static final Function<User, CreateUserRS> TO_CREATED_USER = user -> {
 
     if (null != user.getAttachmentThumbnail() && StringUtils.isNotEmpty(mediaType)) {
       links.avatar(
-          new Link(new URI("/users/" + user.getId() + "/avatar"), mediaType, "User's profile picture"));
+          new Link(new URI("/users/" + user.getId() + "/avatar"), mediaType,
+              "User's profile picture"));
       return links;
     }
     return links;

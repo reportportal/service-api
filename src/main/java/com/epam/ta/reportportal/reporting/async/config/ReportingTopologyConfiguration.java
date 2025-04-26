@@ -56,7 +56,9 @@ public class ReportingTopologyConfiguration {
   public static final String DEFAULT_CONSISTENT_HASH_ROUTING_KEY = "";
   public static final String DEFAULT_QUEUE_ROUTING_KEY = "1";
   public static final String REPORTING_QUEUE_PREFIX = "q.reporting.";
-  public static final String TTL_QUEUE = "q.retry.reporting.ttl";
+  public static final String TTL_QUEUE_MS = "q.retry.reporting.ttl.ms";
+  public static final String TTL_QUEUE_S = "q.retry.reporting.ttl.s";
+  public static final String TTL_QUEUE_M = "q.retry.reporting.ttl.m";
   public static final String REPORTING_PARKING_LOT = "q.parkingLot.reporting";
 
   private final AmqpAdmin amqpAdmin;
@@ -112,15 +114,42 @@ public class ReportingTopologyConfiguration {
   }
 
   @Bean
-  Queue ttlQueue() {
-    return QueueBuilder.durable(TTL_QUEUE).deadLetterExchange(REPORTING_EXCHANGE)
+    //0.5s
+  Queue ttlQueueMs() {
+    return QueueBuilder.durable(TTL_QUEUE_MS).ttl(500).deadLetterExchange(REPORTING_EXCHANGE)
         .deadLetterRoutingKey(DEFAULT_CONSISTENT_HASH_ROUTING_KEY)
         .build();
   }
 
   @Bean
-  Binding ttlQueueBinding() {
-    return BindingBuilder.bind(ttlQueue()).to(retryExchange()).with(TTL_QUEUE);
+  Binding ttlQueueMsBinding() {
+    return BindingBuilder.bind(ttlQueueMs()).to(retryExchange()).with(TTL_QUEUE_MS);
+  }
+
+  @Bean
+    //5s
+  Queue ttlQueueS() {
+    return QueueBuilder.durable(TTL_QUEUE_S).ttl(5000).deadLetterExchange(REPORTING_EXCHANGE)
+        .deadLetterRoutingKey(DEFAULT_CONSISTENT_HASH_ROUTING_KEY)
+        .build();
+  }
+
+  @Bean
+  Binding ttlQueueSBinding() {
+    return BindingBuilder.bind(ttlQueueS()).to(retryExchange()).with(TTL_QUEUE_S);
+  }
+
+  @Bean
+    //2m
+  Queue ttlQueueM() {
+    return QueueBuilder.durable(TTL_QUEUE_M).ttl(120000).deadLetterExchange(REPORTING_EXCHANGE)
+        .deadLetterRoutingKey(DEFAULT_CONSISTENT_HASH_ROUTING_KEY)
+        .build();
+  }
+
+  @Bean
+  Binding ttlQueueMBinding() {
+    return BindingBuilder.bind(ttlQueueM()).to(retryExchange()).with(TTL_QUEUE_M);
   }
 
   @Bean

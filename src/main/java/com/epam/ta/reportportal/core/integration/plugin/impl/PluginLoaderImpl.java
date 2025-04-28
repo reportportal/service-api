@@ -206,11 +206,13 @@ public class PluginLoaderImpl implements PluginLoader {
     details.put("description", descriptor.getPluginDescription());
     details.put("documentation", descriptor.getDocumentation());
     details.put("requires", descriptor.getRequires());
-    details.put("developer", Map.of("name", descriptor.getProvider()));
     details.put("metadata", descriptor.getMetadata());
     details.put("properties", descriptor.getProperties());
     details.put("binaryData", descriptor.getBinaryData());
 
+    var developer = new HashMap<String, Object>();
+    developer.put("name", descriptor.getProvider());
+    details.put("developer", developer);
     return details;
   }
 }

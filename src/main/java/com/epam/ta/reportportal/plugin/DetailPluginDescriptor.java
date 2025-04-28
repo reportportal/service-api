@@ -55,15 +55,15 @@ public class DetailPluginDescriptor implements PluginDescriptor {
   private String provider;
   private String license;
   private String documentation;
-  private final List<PluginDependency> dependencies = new ArrayList<>();
-  private final Map<String, Object> metadata = new HashMap<>();
-  private final Map<String, Object> properties = new HashMap<>();
-  private final Map<String, Object> binaryData = new HashMap<>();
+  private List<PluginDependency> dependencies = new ArrayList<>();
+  private Map<String, Object> metadata = new HashMap<>();
+  private Map<String, Object> properties = new HashMap<>();
+  private Map<String, Object> binaryData = new HashMap<>();
 
   /**
-   * Sets the plugin ID.
+   * Sets the plugin dependencies.
    *
-   * @param dependencies the plugin ID
+   * @param dependencies the plugin dependencies as a comma-separated string
    */
   protected void setDependencies(String dependencies) {
     this.dependencies.clear();
@@ -74,13 +74,12 @@ public class DetailPluginDescriptor implements PluginDescriptor {
         setDependencies(dependencies.split(","));
       }
     }
-
   }
 
   /**
    * Sets the plugin dependencies.
    *
-   * @param dependencies the plugin dependencies
+   * @param dependencies the plugin dependencies as an array of strings
    */
   protected void setDependencies(String... dependencies) {
     for (String dependency : dependencies) {
@@ -89,82 +88,11 @@ public class DetailPluginDescriptor implements PluginDescriptor {
         this.dependencies.add(new PluginDependency(dependency));
       }
     }
-
   }
 
   /**
-   * Sets the metadata for the plugin.
-   *
-   * @param key   the metadata key
-   * @param value the metadata value
-   */
-  protected void setMetadata(String key, Object value) {
-    if (key != null && !key.isEmpty()) {
-      this.metadata.put(key, value);
-    }
-
-  }
-
-  /**
-   * Sets the metadata for the plugin.
-   *
-   * @param metadata the metadata map
-   */
-  protected void setMetadata(Map<String, Object> metadata) {
-    if (!metadata.isEmpty()) {
-      this.metadata.putAll(metadata);
-    }
-  }
-
-  /**
-   * Sets the properties for the plugin.
-   *
-   * @param key   the property key
-   * @param value the property value
-   */
-  protected void setProperties(String key, Object value) {
-    if (key != null && !key.isEmpty()) {
-      this.properties.put(key, value);
-    }
-  }
-
-  /**
-   * Sets the properties for the plugin.
-   *
-   * @param properties the properties map
-   */
-  protected void setProperties(Map<String, Object> properties) {
-    if (!properties.isEmpty()) {
-      this.properties.putAll(properties);
-    }
-  }
-
-  /**
-   * Sets the binary data for the plugin.
-   *
-   * @param key   the binary data key
-   * @param value the binary data value
-   */
-  protected void setBinaryData(String key, Object value) {
-    if (key != null && !key.isEmpty()) {
-      this.binaryData.put(key, value);
-    }
-  }
-
-  /**
-   * Sets the binary data for the plugin.
-   *
-   * @param binaryData the binary data map
-   */
-  protected void setBinaryData(Map<String, Object> binaryData) {
-    if (!binaryData.isEmpty()) {
-      this.binaryData.putAll(binaryData);
-    }
-  }
-
-  /**
-   * Builder for {@link DetailPluginDescriptor}. This builder allows you to create an instance
-   * of {@link DetailPluginDescriptor} with a fluent API.
+   * Builder for {@link DetailPluginDescriptor}. This builder allows you to create an instance of
+   * {@link DetailPluginDescriptor} with a fluent API.
    */
   public static class Builder {
 
@@ -291,35 +219,11 @@ public class DetailPluginDescriptor implements PluginDescriptor {
     /**
      * Sets the plugin metadata.
      *
-     * @param key   the metadata key
-     * @param value the metadata value
-     * @return the current instance of {@link Builder}
-     */
-    public Builder metadata(String key, Object value) {
-      descriptor.setMetadata(key, value);
-      return this;
-    }
-
-    /**
-     * Sets the plugin metadata.
-     *
      * @param metadata the metadata map
      * @return the current instance of {@link Builder}
      */
     public Builder metadata(Map<String, Object> metadata) {
-      metadata.forEach(descriptor::setMetadata);
-      return this;
-    }
-
-    /**
-     * Sets the plugin properties.
-     *
-     * @param key   the property key
-     * @param value the property value
-     * @return the current instance of {@link Builder}
-     */
-    public Builder properties(String key, Object value) {
-      descriptor.setProperties(key, value);
+      descriptor.setMetadata(metadata);
       return this;
     }
 
@@ -330,19 +234,7 @@ public class DetailPluginDescriptor implements PluginDescriptor {
      * @return the current instance of {@link Builder}
      */
     public Builder properties(Map<String, Object> properties) {
-      properties.forEach(descriptor::setProperties);
-      return this;
-    }
-
-    /**
-     * Sets the plugin binary data.
-     *
-     * @param key   the binary data key
-     * @param value the binary data value
-     * @return the current instance of {@link Builder}
-     */
-    public Builder binaryData(String key, Object value) {
-      descriptor.setBinaryData(key, value);
+      descriptor.setProperties(properties);
       return this;
     }
 
@@ -353,7 +245,7 @@ public class DetailPluginDescriptor implements PluginDescriptor {
      * @return the current instance of {@link Builder}
      */
     public Builder binaryData(Map<String, Object> binaryData) {
-      binaryData.forEach(descriptor::setBinaryData);
+      descriptor.setBinaryData(binaryData);
       return this;
     }
 

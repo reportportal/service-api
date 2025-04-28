@@ -58,6 +58,7 @@ public class DetailPluginDescriptor implements PluginDescriptor {
   private final List<PluginDependency> dependencies = new ArrayList<>();
   private final Map<String, Object> metadata = new HashMap<>();
   private final Map<String, Object> properties = new HashMap<>();
+  private final Map<String, Object> binaryData = new HashMap<>();
 
   /**
    * Sets the plugin ID.
@@ -135,6 +136,29 @@ public class DetailPluginDescriptor implements PluginDescriptor {
   protected void setProperties(Map<String, Object> properties) {
     if (!properties.isEmpty()) {
       this.properties.putAll(properties);
+    }
+  }
+
+  /**
+   * Sets the binary data for the plugin.
+   *
+   * @param key   the binary data key
+   * @param value the binary data value
+   */
+  protected void setBinaryData(String key, Object value) {
+    if (key != null && !key.isEmpty()) {
+      this.binaryData.put(key, value);
+    }
+  }
+
+  /**
+   * Sets the binary data for the plugin.
+   *
+   * @param binaryData the binary data map
+   */
+  protected void setBinaryData(Map<String, Object> binaryData) {
+    if (!binaryData.isEmpty()) {
+      this.binaryData.putAll(binaryData);
     }
   }
 
@@ -311,6 +335,29 @@ public class DetailPluginDescriptor implements PluginDescriptor {
     }
 
     /**
+     * Sets the plugin binary data.
+     *
+     * @param key   the binary data key
+     * @param value the binary data value
+     * @return the current instance of {@link Builder}
+     */
+    public Builder binaryData(String key, Object value) {
+      descriptor.setBinaryData(key, value);
+      return this;
+    }
+
+    /**
+     * Sets the plugin binary data.
+     *
+     * @param binaryData the binary data map
+     * @return the current instance of {@link Builder}
+     */
+    public Builder binaryData(Map<String, Object> binaryData) {
+      binaryData.forEach(descriptor::setBinaryData);
+      return this;
+    }
+
+    /**
      * Builds the {@link DetailPluginDescriptor} instance.
      *
      * @return the built {@link DetailPluginDescriptor} instance
@@ -328,4 +375,6 @@ public class DetailPluginDescriptor implements PluginDescriptor {
   public static Builder builder() {
     return new Builder();
   }
+
+
 }

@@ -101,6 +101,7 @@ public class PluginLoaderImpl implements PluginLoader {
         .developer(descriptor.getProvider())
         .metadata(descriptor.getMetadata())
         .properties(descriptor.getProperties())
+        .binaryData(descriptor.getBinaryData())
         .build();
     return new PluginInfo(descriptor.getPluginId(), descriptor.getVersion(), details);
   }

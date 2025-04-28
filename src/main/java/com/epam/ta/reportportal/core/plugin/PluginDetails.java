@@ -47,6 +47,7 @@ public class PluginDetails implements Serializable {
   private final Map<String, Object> developer = new HashMap<>();
   private final Map<String, Object> metadata = new HashMap<>();
   private final Map<String, Object> properties = new HashMap<>();
+  private final Map<String, Object> binaryData = new HashMap<>();
 
   /**
    * Sets the developer information for the plugin.
@@ -284,6 +285,17 @@ public class PluginDetails implements Serializable {
      */
     public Builder properties(String key, Object value) {
       details.setProperties(key, value);
+      return this;
+    }
+
+    /**
+     * Sets the binary data for the plugin.
+     *
+     * @param binaryData a {@link Map} of binary data key-value pairs
+     * @return the builder instance
+     */
+    public Builder binaryData(Map<String, Object> binaryData) {
+      details.setProperties(binaryData);
       return this;
     }
 

@@ -25,7 +25,6 @@ import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
-import com.epam.ta.reportportal.core.plugin.PluginDetails;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.FeatureFlag;
@@ -42,6 +41,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.jar.JarEntry;
@@ -90,20 +91,11 @@ public class PluginLoaderImpl implements PluginLoader {
   @NotNull
   public PluginInfo extractPluginInfo(Path pluginPath) throws PluginRuntimeException {
     var descriptor = (DetailPluginDescriptor) pluginDescriptorFinder.find(pluginPath);
-    var details = PluginDetails.builder()
-        .id(descriptor.getPluginId())
-        .name(descriptor.getPluginName())
-        .version(descriptor.getVersion())
-        .license(descriptor.getLicense())
-        .description(descriptor.getPluginDescription())
-        .documentation(descriptor.getDocumentation())
-        .requires(descriptor.getRequires())
-        .developer(descriptor.getProvider())
-        .metadata(descriptor.getMetadata())
-        .properties(descriptor.getProperties())
-        .binaryData(descriptor.getBinaryData())
-        .build();
-    return new PluginInfo(descriptor.getPluginId(), descriptor.getVersion(), details);
+    return new PluginInfo(
+        descriptor.getPluginId(),
+        descriptor.getVersion(),
+        convertToDetails(descriptor)
+    );
   }
 
   @Override
@@ -205,4 +197,20 @@ public class PluginLoaderImpl implements PluginLoader {
     Files.deleteIfExists(Paths.get(pluginFileDirectory, pluginFileName));
   }
 
+  private Map<String, Object> convertToDetails(DetailPluginDescriptor descriptor) {
+    Map<String, Object> details = new HashMap<>();
+    details.put("id", descriptor.getPluginId());
+    details.put("name", descriptor.getPluginName());
+    details.put("version", descriptor.getVersion());
+    details.put("license", descriptor.getLicense());
+    details.put("description", descriptor.getPluginDescription());
+    details.put("documentation", descriptor.getDocumentation());
+    details.put("requires", descriptor.getRequires());
+    details.put("developer", Map.of("name", descriptor.getProvider()));
+    details.put("metadata", descriptor.getMetadata());
+    details.put("properties", descriptor.getProperties());
+    details.put("binaryData", descriptor.getBinaryData());
+
+    return details;
+  }
 }

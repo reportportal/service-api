@@ -96,7 +96,7 @@ class UserControllerTest extends BaseMvcTest {
   ApiKeyHandler apiKeyHandler;
 
   @Test
-  void createdUserByIdentityProvider() throws Exception  {
+  void createdUserByIdentityProvider() throws Exception {
     CreateUserRQFull rq = new CreateUserRQFull();
     rq.setFullName("Test User");
     rq.setEmail("test@test.com");
@@ -352,7 +352,7 @@ class UserControllerTest extends BaseMvcTest {
   void editExternalIdByNotAdmin() throws Exception {
     EditUserRQ editUserRQ = new EditUserRQ();
     editUserRQ.setExternalId("test");
-    mockMvc.perform(put(USERS_URL +  "/default").with(token(oAuthHelper.getDefaultToken()))
+    mockMvc.perform(put(USERS_URL + "/default").with(token(oAuthHelper.getDefaultToken()))
         .contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isOk());
   }
@@ -591,6 +591,6 @@ class UserControllerTest extends BaseMvcTest {
             .contentType(APPLICATION_JSON)
             .content("{}"))
         .andExpect(status().isOk())
-    .andExpect(jsonPath("$.total_count").value(2));
+        .andExpect(jsonPath("$.total_count").value(2));
   }
 }

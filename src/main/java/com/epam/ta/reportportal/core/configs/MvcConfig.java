@@ -16,11 +16,6 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.reportportal.rules.commons.ExceptionMappings;
-import com.epam.reportportal.rules.commons.exception.forwarding.ClientResponseForwardingExceptionHandler;
-import com.epam.reportportal.rules.commons.exception.rest.DefaultErrorResolver;
-import com.epam.reportportal.rules.commons.exception.rest.ReportPortalExceptionResolver;
-import com.epam.reportportal.rules.commons.exception.rest.RestExceptionHandler;
 import com.epam.ta.reportportal.ws.resolver.ActiveUserWebArgumentResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.JsonViewSupportFactoryBean;
@@ -35,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -43,7 +37,6 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.validation.beanvalidation.BeanValidationPostProcessor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -114,24 +107,6 @@ public class MvcConfig implements WebMvcConfigurer {
     converters.add(stringConverter());
   }
 
-  @Override
-  public void configureHandlerExceptionResolvers(
-      List<HandlerExceptionResolver> exceptionResolvers) {
-    /* to propagate exceptions from downstream services */
-    ClientResponseForwardingExceptionHandler forwardingExceptionHandler =
-        new ClientResponseForwardingExceptionHandler();
-    forwardingExceptionHandler.setOrder(Ordered.HIGHEST_PRECEDENCE);
-    exceptionResolvers.add(forwardingExceptionHandler);
-
-    RestExceptionHandler handler = new RestExceptionHandler();
-    handler.setOrder(Ordered.HIGHEST_PRECEDENCE + 1);
-
-    DefaultErrorResolver defaultErrorResolver =
-        new DefaultErrorResolver(ExceptionMappings.DEFAULT_MAPPING);
-    handler.setErrorResolver(new ReportPortalExceptionResolver(defaultErrorResolver));
-    handler.setMessageConverters(Collections.singletonList(jsonConverter()));
-    exceptionResolvers.add(handler);
-  }
 
   @Override
   public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {

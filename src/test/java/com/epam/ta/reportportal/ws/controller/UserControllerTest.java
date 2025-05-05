@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -483,7 +485,7 @@ class UserControllerTest extends BaseMvcTest {
         Page.class);
 
     Assertions.assertNotNull(userResources);
-    Assertions.assertEquals(2, userResources.getContent().size());
+    assertEquals(2, userResources.getContent().size());
   }
 
   @Test

@@ -30,8 +30,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.reportportal.api.model.FilterOperation;
+import com.epam.reportportal.api.model.SearchCriteriaRQ;
+import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
 import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.core.user.ApiKeyHandler;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
@@ -88,12 +92,13 @@ class UserControllerTest extends BaseMvcTest {
   private IssueTypeRepository issueTypeRepository;
 
   private static final String USERS_URL = "/v1/users";
+  private static final String NEW_USERS_URL = "/users";
 
   @Autowired
   ApiKeyHandler apiKeyHandler;
 
   @Test
-  void createdUserByIdentityProvider() throws Exception  {
+  void createdUserByIdentityProvider() throws Exception {
     CreateUserRQFull rq = new CreateUserRQFull();
     rq.setFullName("Test User");
     rq.setEmail("test@test.com");
@@ -349,7 +354,7 @@ class UserControllerTest extends BaseMvcTest {
   void editExternalIdByNotAdmin() throws Exception {
     EditUserRQ editUserRQ = new EditUserRQ();
     editUserRQ.setExternalId("test");
-    mockMvc.perform(put(USERS_URL +  "/default").with(token(oAuthHelper.getDefaultToken()))
+    mockMvc.perform(put(USERS_URL + "/default").with(token(oAuthHelper.getDefaultToken()))
         .contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isOk());
   }
@@ -480,7 +485,7 @@ class UserControllerTest extends BaseMvcTest {
         Page.class);
 
     Assertions.assertNotNull(userResources);
-    Assertions.assertEquals(2, userResources.getContent().size());
+    assertEquals(2, userResources.getContent().size());
   }
 
   @Test
@@ -547,5 +552,47 @@ class UserControllerTest extends BaseMvcTest {
         .with(token(oAuthHelper.getDefaultToken()))
         .contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(apiKeyRq))).andExpect(status().is4xxClientError());
+  }
+
+
+  @ParameterizedTest
+  @CsvSource(value = {
+      "uuid|NE|9a1e9d3d-3587-4bce-9cff-36db5eecb439|2",
+      "external_id|EQ|9a1e9d3d-3587-4bce-9cff-36db5eecb439|0",
+      "email|CNT|superadmin|1",
+      "full_name|CNT|ter|2",
+      "account_type|EQ|INTERNAL|2",
+      "instance_role|EQ|USER|1",
+      "active|EQ|true|2",
+      "active|EQ|false|0",
+      "created_at|GT|2025-05-05T13:26:48.856881Z|2",
+      "updated_at|GT|2025-05-05T13:26:48.856881Z|2",
+      "org_id|EQ|1|2",
+      "org_id|EQ|2|0"
+  }, delimiter = '|')
+  void getInstanceUsersPositive(String field, String op, String value, int expCount) throws Exception {
+    SearchCriteriaSearchCriteriaInner inner = new SearchCriteriaSearchCriteriaInner()
+        .filterKey(field)
+        .operation(FilterOperation.fromValue(op))
+        .value(value);
+
+    var criteria = new SearchCriteriaRQ().addSearchCriteriaItem(inner);
+
+    mockMvc.perform(post(NEW_USERS_URL + "/searches")
+            .with(token(oAuthHelper.getSuperadminToken()))
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(criteria)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.total_count").value(expCount));
+  }
+
+  @Test
+  void searchInstanceUsersPositiveEmptyRequest() throws Exception {
+    mockMvc.perform(post(NEW_USERS_URL + "/searches")
+            .with(token(oAuthHelper.getSuperadminToken()))
+            .contentType(APPLICATION_JSON)
+            .content("{}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.total_count").value(2));
   }
 }

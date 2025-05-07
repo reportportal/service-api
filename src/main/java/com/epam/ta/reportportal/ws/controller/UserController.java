@@ -17,15 +17,26 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_USER_ITSELF;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
+import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
 
 import com.epam.reportportal.api.UserApi;
+import com.epam.reportportal.api.model.InstanceUserPage;
+import com.epam.reportportal.api.model.SearchCriteriaRQ;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
+import com.epam.ta.reportportal.core.filter.OrganizationsSearchCriteriaService;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
+import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.util.ControllerUtils;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -44,14 +55,17 @@ public class UserController extends BaseController implements UserApi {
   private final GetUserHandler getUserHandler;
 
   private final HttpServletRequest httpServletRequest;
+  private final OrganizationsSearchCriteriaService searchCriteriaService;
+
 
   public UserController(GetFileHandler getFileHandler, EditUserHandler editUserHandler,
       GetUserHandler getUserHandler,
-      HttpServletRequest httpServletRequest) {
+      HttpServletRequest httpServletRequest, OrganizationsSearchCriteriaService searchCriteriaService) {
     this.getFileHandler = getFileHandler;
     this.editUserHandler = editUserHandler;
     this.getUserHandler = getUserHandler;
     this.httpServletRequest = httpServletRequest;
+    this.searchCriteriaService = searchCriteriaService;
   }
 
   // TODO: Postpone new endpoints
@@ -80,6 +94,23 @@ public class UserController extends BaseController implements UserApi {
     InstanceUser instanceUser = getUserHandler.getCurrentUser(user);
     return new ResponseEntity<>(instanceUser, HttpStatus.OK);
   }*/
+
+
+  @Transactional
+  @Override
+  @PreAuthorize(IS_ADMIN)
+  public ResponseEntity<InstanceUserPage> postUsersSearches(String accept, SearchCriteriaRQ searchCriteriaRQ) {
+    Filter filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteriaRQ, User.class);
+    Pageable pageable = ControllerUtils.getPageable(
+        StringUtils.isNotBlank(searchCriteriaRQ.getSort()) ? searchCriteriaRQ.getSort() : CRITERIA_FULL_NAME,
+        searchCriteriaRQ.getOrder() != null ? searchCriteriaRQ.getOrder().toString() : Direction.ASC.name(),
+        searchCriteriaRQ.getOffset(),
+        searchCriteriaRQ.getLimit());
+
+    return ResponseEntity
+        .ok(getUserHandler.getUsersExcluding(filter, pageable));
+  }
+
 
   @Override
   @Transactional(readOnly = true)

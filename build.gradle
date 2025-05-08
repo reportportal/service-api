@@ -36,9 +36,7 @@ apply from: "$scriptsUrl/copy-database-scripts.gradle"
 project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
 
 repositories {
-    if (!releaseMode) {
-        maven { url 'https://jitpack.io' }
-    }
+    maven { url 'https://jitpack.io' }
     mavenCentral { url "https://repo1.maven.org/maven2" }
 }
 
@@ -72,6 +70,8 @@ dependencies {
         implementation 'com.github.reportportal:commons-dao:1296d7c'
         implementation 'com.github.reportportal:plugin-api:21310d8'
     }
+    implementation 'com.github.reportportal:commons:5.14.0'
+    implementation 'com.github.reportportal:commons-reporting:5.14.0'
     implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'

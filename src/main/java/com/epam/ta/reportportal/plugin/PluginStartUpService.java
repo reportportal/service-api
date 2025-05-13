@@ -15,7 +15,11 @@
  */
 package com.epam.ta.reportportal.plugin;
 
+import static java.util.Optional.ofNullable;
+
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.google.common.collect.Lists;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
@@ -51,6 +55,9 @@ public class PluginStartUpService {
 
   private final Pf4jPluginBox pluginBox;
 
+  private final IntegrationTypeRepository integrationTypeRepository;
+
+
   @PostConstruct
   public void loadPlugins() {
     pluginBox.startUp();
@@ -67,12 +74,28 @@ public class PluginStartUpService {
   private void loadLatestVersion(UpdateManager updateManager, PluginInfo pluginInfo) {
     try {
       PluginRelease lastRelease = updateManager.getLastPluginRelease(pluginInfo.id);
+      if (isVersionUploaded(pluginInfo, lastRelease)) {
+        return;
+      }
       Path path = new SimpleFileDownloader().downloadFile(URI.create(lastRelease.url).toURL());
       pluginBox.uploadPlugin(path.getFileName().toString(), Files.newInputStream(path));
     } catch (IOException e) {
       log.warn("Can't load default remote plugin with id {}. Error: {}", pluginInfo.id,
           e.getMessage());
     }
+  }
+
+  private boolean isVersionUploaded(PluginInfo pluginInfo, PluginRelease lastRelease) {
+    var res = integrationTypeRepository.findByName(pluginInfo.id)
+        .flatMap(it -> ofNullable(it.getDetails())).flatMap(
+            typeDetails -> IntegrationTypeProperties.VERSION.getValue(typeDetails.getDetails())
+                .map(String::valueOf))
+        .filter(version -> version.equalsIgnoreCase(lastRelease.version));
+    if (res.isPresent()) {
+      log.info("Plugin with the latest version {} is already loaded", lastRelease.version);
+      return true;
+    }
+    return false;
   }
 
   private List<UpdateRepository> getDefaultPluginRepositories() {

@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_USER_ITSELF;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_OWNER;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
 
 import com.epam.reportportal.api.UserApi;
@@ -127,7 +128,7 @@ public class UserController extends BaseController implements UserApi {
 
   @Override
   @Transactional
-  @PreAuthorize(ALLOWED_TO_USER_ITSELF)
+  @PreAuthorize(ALLOWED_TO_OWNER)
   public ResponseEntity<Void> postUsersUserIdAvatar(Long userId,
       @Parameter(name = "file")
       @RequestPart(value = "file") MultipartFile file) {
@@ -138,7 +139,7 @@ public class UserController extends BaseController implements UserApi {
 
   @Override
   @Transactional
-  @PreAuthorize(ALLOWED_TO_USER_ITSELF)
+  @PreAuthorize(ALLOWED_TO_OWNER)
   public ResponseEntity<Void> deleteUsersUserIdAvatar(Long userId) {
     editUserHandler.deletePhoto(userId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);

@@ -47,6 +47,6 @@ public final class Permissions {
   public static final String INVITATION_ALLOWED = IS_ADMIN + "||"
       + "hasPermission(#invitationRequest, 'invitationAllowed')";
 
-  public static final String ALLOWED_TO_USER_ITSELF = IS_ADMIN + "||"
-      + "hasPermission(#userId, 'allowedToUserItself')";
+  public static final String ALLOWED_TO_OWNER = IS_ADMIN + "||"
+      + "hasPermission(#userId, 'allowedToOwner')";
 }

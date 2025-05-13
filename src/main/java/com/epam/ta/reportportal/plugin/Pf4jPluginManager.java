@@ -516,7 +516,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
     pluginManager.unloadPlugin(newPluginId);
 
     if (newPluginInfo.getDetails() != null) {
-      pluginDetails.setDetails(newPluginInfo.getDetails().toMap());
+      pluginDetails.setDetails(newPluginInfo.getDetails());
     }
 
     final String newPluginFileName = generatePluginFileName(newPluginInfo, uploadedPluginName);

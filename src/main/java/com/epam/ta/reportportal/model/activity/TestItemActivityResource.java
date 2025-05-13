@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.model.activity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Objects;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -136,5 +137,28 @@ public class TestItemActivityResource {
 		sb.append(", status='").append(status).append('\'');
 		sb.append('}');
 		return sb.toString();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		TestItemActivityResource that = (TestItemActivityResource) o;
+		return ignoreAnalyzer == that.ignoreAnalyzer && autoAnalyzed == that.autoAnalyzed
+				&& Objects.equals(id, that.id) && Objects.equals(projectId,
+				that.projectId) && Objects.equals(name, that.name) && Objects.equals(
+				issueDescription, that.issueDescription) && Objects.equals(issueTypeLongName,
+				that.issueTypeLongName) && Objects.equals(tickets, that.tickets)
+				&& Objects.equals(status, that.status);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, projectId, name, issueDescription, issueTypeLongName, ignoreAnalyzer,
+				autoAnalyzed, tickets, status);
 	}
 }

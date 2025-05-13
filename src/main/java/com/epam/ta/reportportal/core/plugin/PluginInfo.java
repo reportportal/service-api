@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.plugin;
 
 import java.io.Serializable;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,7 +40,7 @@ public class PluginInfo implements Serializable {
   private String fileId;
   private String fileName;
   private boolean isEnabled;
-  private PluginDetails details;
+  private Map<String, Object> details;
 
   /**
    * Constructs a {@link PluginInfo} object with the specified ID and version.
@@ -59,7 +60,7 @@ public class PluginInfo implements Serializable {
    * @param version The version of the plugin.
    * @param details The details of the plugin.
    */
-  public PluginInfo(String id, String version, PluginDetails details) {
+  public PluginInfo(String id, String version, Map<String, Object> details) {
     this.id = id;
     this.version = version;
     this.details = details;

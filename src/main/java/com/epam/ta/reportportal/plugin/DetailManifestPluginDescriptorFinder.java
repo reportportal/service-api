@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.regex.Pattern;
@@ -31,6 +32,7 @@ import org.pf4j.PluginDescriptor;
 import org.pf4j.PluginDescriptorFinder;
 import org.pf4j.PluginRuntimeException;
 import org.pf4j.util.FileUtils;
+import org.pf4j.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +60,7 @@ public class DetailManifestPluginDescriptorFinder implements PluginDescriptorFin
   public static final String PLUGIN_DOCUMENTATION = "Plugin-Documentation";
   public static final String PLUGIN_METADATA_PREFIX = "Plugin-Metadata-";
   public static final String PLUGIN_PROPERTIES_PREFIX = "Plugin-Property-";
+  public static final String PLUGIN_BINARY_DATA_PREFIX = "Plugin-Binary-Data-";
 
   @Override
   public boolean isApplicable(Path pluginPath) {
@@ -75,31 +78,6 @@ public class DetailManifestPluginDescriptorFinder implements PluginDescriptorFin
   private PluginDescriptor createPluginDescriptor(Manifest manifest) {
     var attributes = manifest.getMainAttributes();
 
-    Map<String, Object> metadata = new HashMap<>();
-    Map<String, Object> properties = new HashMap<>();
-
-    attributes.entrySet().stream()
-        .filter(entry -> entry.getKey()
-            .toString()
-            .startsWith(PLUGIN_METADATA_PREFIX)
-        )
-        .forEach(entry -> {
-          String key = entry.getKey().toString().substring(PLUGIN_METADATA_PREFIX.length());
-          String value = entry.getValue().toString();
-          metadata.put(key, parseValue(value));
-        });
-
-    attributes.entrySet().stream()
-        .filter(entry -> entry.getKey()
-            .toString()
-            .startsWith(PLUGIN_PROPERTIES_PREFIX)
-        )
-        .forEach(entry -> {
-          String key = entry.getKey().toString().substring(PLUGIN_PROPERTIES_PREFIX.length());
-          String value = entry.getValue().toString();
-          properties.put(key, parseValue(value));
-        });
-
     return DetailPluginDescriptor.builder()
         .pluginId(attributes.getValue(PLUGIN_ID))
         .pluginName(attributes.getValue(PLUGIN_NAME))
@@ -111,9 +89,28 @@ public class DetailManifestPluginDescriptorFinder implements PluginDescriptorFin
         .license(attributes.getValue(PLUGIN_LICENSE))
         .documentation(attributes.getValue(PLUGIN_DOCUMENTATION))
         .dependencies(attributes.getValue(PLUGIN_DEPENDENCIES))
-        .metadata(metadata)
-        .properties(properties)
+        .metadata(processAttributesByPrefix(attributes, PLUGIN_METADATA_PREFIX))
+        .properties(processAttributesByPrefix(attributes, PLUGIN_PROPERTIES_PREFIX))
+        .binaryData(processAttributesByPrefix(attributes, PLUGIN_BINARY_DATA_PREFIX))
         .build();
+  }
+
+  private Map<String, Object> processAttributesByPrefix(Attributes attributes, String prefix) {
+    var map = new HashMap<String, Object>();
+
+    attributes.entrySet().stream()
+        .filter(entry -> entry.getKey()
+            .toString()
+            .startsWith(prefix))
+        .forEach(entry -> {
+          String key = entry.getKey().toString().substring(prefix.length());
+          String value = entry.getValue().toString();
+          if (StringUtils.isNotNullOrEmpty(key)) {
+            map.put(key, parseValue(value));
+          }
+        });
+
+    return map;
   }
 
   private Object parseValue(String value) {

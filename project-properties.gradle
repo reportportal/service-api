@@ -77,7 +77,7 @@ project.ext {
             (migrationsUrl + '/migrations/93_settings_session_time.up.sql')            : 'V093__settings_session_time.sql',
             (migrationsUrl + '/migrations/96_create_groups_tables.up.sql')             : 'V096__create_groups_tables.sql',
             (migrationsUrl + '/migrations/97_add_groups_uuid.up.sql')                  : 'V097__add_groups_uuid.up.sql',
-            (migrationsUrl + '/migrations/98_add_plugin_type.up.sql')                  : 'V098__add_plugin_type.up.sql'
+            (migrationsUrl + '/migrations/98_add_plugin_type.up.sql')                  : 'V098__add_plugin_type.up.sql',
             (migrationsUrl + '/migrations/198_add_slugify_function.up.sql')            : 'V198__add_slugify_function.sql',
             (migrationsUrl + '/migrations/199_organization_tables.up.sql')             : 'V199__organization_tables.sql',
             (migrationsUrl + '/migrations/200_migrate_org_roles.up.sql')               : 'V200__migrate_org_roles.sql',

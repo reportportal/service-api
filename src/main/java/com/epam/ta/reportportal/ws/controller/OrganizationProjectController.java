@@ -39,6 +39,7 @@ import com.epam.ta.reportportal.util.ControllerUtils;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -138,7 +139,7 @@ public class OrganizationProjectController extends BaseController implements
 
     var pageable = ControllerUtils.getPageable(
         StringUtils.isNotBlank(searchCriteria.getSort()) ? searchCriteria.getSort() : "name",
-        searchCriteria.getOrder().toString(),
+        searchCriteria.getOrder() != null ? searchCriteria.getOrder().toString() : Direction.ASC.name(),
         searchCriteria.getOffset(),
         searchCriteria.getLimit());
 

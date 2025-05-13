@@ -202,8 +202,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
         TestItemActivityResource after =
             TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId());
 
-        events.add(
-            new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername()));
+        if (!before.equals(after)) {
+          events.add(
+              new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername()));
+        }
       } catch (BusinessRuleViolationException e) {
         errors.add(e.getMessage());
       }

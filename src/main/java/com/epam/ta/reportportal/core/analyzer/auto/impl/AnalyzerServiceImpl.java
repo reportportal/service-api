@@ -188,8 +188,10 @@ public class AnalyzerServiceImpl implements AnalyzerService {
           TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
 
           testItemRepository.save(testItem);
-          messageBus.publishActivity(
-              new ItemIssueTypeDefinedEvent(before, after, analyzerInstance, relevantItemInfo));
+          if (!before.equals(after)) {
+            messageBus.publishActivity(
+                new ItemIssueTypeDefinedEvent(before, after, analyzerInstance, relevantItemInfo));
+          }
           ofNullable(after.getTickets()).ifPresent(
               it -> messageBus.publishActivity(new LinkTicketEvent(before,
                   after,

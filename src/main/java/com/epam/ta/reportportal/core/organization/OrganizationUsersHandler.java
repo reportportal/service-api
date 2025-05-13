@@ -32,4 +32,14 @@ public interface OrganizationUsersHandler {
 
   UserAssignmentResponse assignUser(Long orgId, OrgUserAssignment request,
       ReportPortalUser user);
+
+
+  /**
+   * Unassigns a user from an organization.
+   *
+   * @param orgId          The ID of the organization.
+   * @param userToUnassign The ID of the user to unassign.
+   * @param user           The user performing the unassignment.
+   */
+  void unassignUser(Long orgId, Long userToUnassign, ReportPortalUser user);
 }

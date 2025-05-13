@@ -50,6 +50,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 class OrganizationUsersControllerTest extends BaseMvcTest {
 
   private static final String BASE_URL = "/organizations/%s/users";
+  private static final String WITH_USER_ID_URL = BASE_URL + "/%s";
   public static final Long ORG_ID_1 = 201L;
   public static final Long ORG_ID_2 = 202L;
   public static final Long ORG_ID_3 = 203L;
@@ -327,6 +328,24 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
     performAssignUserFailed(orgId, rq, noOrgUser, status().is4xxClientError());
   }
 
+  @Test
+  @DisplayName("Admin sends request to unassign user")
+  void unassignByAdmin() throws Exception {
+    performUnassignUserSuccess(203L, 104L, adminToken);
+  }
+
+  @Test
+  @DisplayName("Manager sends request to unassign user")
+  void unassignByManager() throws Exception {
+    performUnassignUserSuccess(203L, 104L, managerToken);
+  }
+
+  @Test
+  @DisplayName("Admin sends request to assign user who is already unassigned from this organization")
+  void unassignFailed() throws Exception {
+    performUnassignUserFailed(203L, 107L, adminToken, status().is4xxClientError());
+  }
+
 
   private UserAssignmentResponse performAssignUserSuccess(Long orgId, OrgUserAssignment rq,
       String token)
@@ -334,6 +353,27 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
     var result = performAssignUserRequest(BASE_URL.formatted(orgId), rq, token, status().isOk());
 
     return objectMapper.readValue(result, UserAssignmentResponse.class);
+  }
+
+  private UserAssignmentResponse performAssignUserFailed(Long orgId, OrgUserAssignment rq,
+      String token, ResultMatcher status)
+      throws Exception {
+    var result = performAssignUserRequest(BASE_URL.formatted(orgId), rq, token, status);
+
+    return objectMapper.readValue(result, UserAssignmentResponse.class);
+  }
+
+
+  private void performUnassignUserSuccess(Long orgId, Long userId, String token) throws Exception {
+    performUnassignUserRequest(WITH_USER_ID_URL.formatted(orgId, userId), token, status().isNoContent());
+
+    // check if a user is unassigned
+    assertTrue(organizationUserRepository.findByUserIdAndOrganization_Id(userId, orgId).isEmpty());
+  }
+
+  private Object performUnassignUserFailed(Long orgId, Long userId, String token, ResultMatcher status) throws Exception {
+    var result = performUnassignUserRequest(WITH_USER_ID_URL.formatted(orgId, userId), token, status);
+    return objectMapper.readValue(result, Object.class);
   }
 
   private String performAssignUserRequest(String url, OrgUserAssignment rq, String token,
@@ -349,13 +389,14 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
         .getContentAsString();
   }
 
-
-  private UserAssignmentResponse performAssignUserFailed(Long orgId, OrgUserAssignment rq,
-      String token, ResultMatcher status)
-      throws Exception {
-    var result = performAssignUserRequest(BASE_URL.formatted(orgId), rq, token, status);
-
-    return objectMapper.readValue(result, UserAssignmentResponse.class);
+  private String performUnassignUserRequest(String url, String token, ResultMatcher status) throws Exception {
+    return mockMvc.perform(MockMvcRequestBuilders
+            .delete(url)
+            .with(token(token)))
+        .andExpect(status)
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
   }
 
   private void validateAssignedRoles(long orgId, Long userId, List<UserProjectInfo> projects) {

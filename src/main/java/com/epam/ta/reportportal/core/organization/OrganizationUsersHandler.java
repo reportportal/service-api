@@ -41,5 +41,5 @@ public interface OrganizationUsersHandler {
    * @param userToUnassign The ID of the user to unassign.
    * @param user           The user performing the unassignment.
    */
-    void unassignUser(Long orgId, Long userToUnassign, ReportPortalUser user);
+  void unassignUser(Long orgId, Long userToUnassign, ReportPortalUser user);
 }

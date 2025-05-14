@@ -53,7 +53,7 @@ ext['spring-boot.version'] = "${springBootVersion}"
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.14.1' : 'com.epam.reportportal:commons-bom:5.14.1')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.14.2' : 'com.epam.reportportal:commons-bom:5.14.2')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
         mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
     }

@@ -74,7 +74,7 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         println("Using snapshot dependencies")
-        implementation 'com.github.reportportal:commons-dao:b7e1fce'
+        implementation 'com.github.reportportal:commons-dao:5.14.1'
         implementation 'com.github.reportportal:commons:b06a656'
         implementation 'com.github.reportportal:plugin-api:e945fcd'
     }

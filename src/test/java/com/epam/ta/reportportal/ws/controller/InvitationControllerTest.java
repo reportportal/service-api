@@ -221,7 +221,6 @@ class InvitationControllerTest extends BaseMvcTest {
         .getResponse().getContentAsString();
     var invitation = objectMapper.readValue(invitationAsString, Invitation.class);
 
-
     mockMvc.perform(put(INVITATIONS_ENDPOINT + "/" + invitation.getId())
             // no token required
             .content(objectMapper.writeValueAsBytes(activationRq))
@@ -262,7 +261,6 @@ class InvitationControllerTest extends BaseMvcTest {
         .getResponse().getContentAsString();
     var invitation2 = objectMapper.readValue(invitationAsString2, Invitation.class);
 
-
     mockMvc.perform(put(INVITATIONS_ENDPOINT + "/" + invitation.getId())
             // no token required
             .content(objectMapper.writeValueAsBytes(activationRq))
@@ -295,7 +293,7 @@ class InvitationControllerTest extends BaseMvcTest {
 
     assertNotNull(invitation);
     assertEquals(InvitationStatus.ACTIVATED, invitation.getStatus());
-    organizationUserRepository.findByUserIdAndOrganization_Id(108L,1L).orElseThrow();
+    organizationUserRepository.findByUserIdAndOrganization_Id(108L, 1L).orElseThrow();
 
     var prjIds = projectUserRepository.findProjectIdsByUserId(108L);
     var expectedPrjIds = rq.getOrganizations().stream()

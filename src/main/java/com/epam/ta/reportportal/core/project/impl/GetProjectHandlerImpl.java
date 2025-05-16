@@ -176,8 +176,8 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
                                                                               MembershipDetails membershipDetails, UserRole userRole, Pageable pageable) {
     checkBusinessRuleLessThan1Symbol(value);
 
-    final CompositeFilterCondition userCondition = (userRole.equals(UserRole.ADMINISTRATOR)) ?
-        getUserSearchSuggestCondition(value) : getUserSearchCondition(value);
+    final CompositeFilterCondition userCondition = (userRole.equals(UserRole.ADMINISTRATOR))
+        ? getUserSearchSuggestCondition(value) : getUserSearchCondition(value);
 
     final Filter filter = Filter.builder().withTarget(User.class).withCondition(userCondition)
         .withCondition(

@@ -25,6 +25,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 import static com.epam.ta.reportportal.util.DateTimeProvider.instantNow;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
+import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.PROJECT_PROFILE_TO_ORG_PROJECT_INFO;
 import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.PROJECT_TO_ORG_PROJECT_INFO;
 
@@ -62,7 +63,6 @@ import com.epam.ta.reportportal.entity.project.ProjectProfile;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.SlugifyUtils;
-import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -116,15 +116,15 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
   }
 
   @Override
-  public OrganizationProjectsPage getOrganizationProjectsPage(ReportPortalUser user, Long orgId,
-      Filter filter, Pageable pageable) {
+  public OrganizationProjectsPage getOrganizationProjectsPage(Long orgId, Filter filter, Pageable pageable) {
+    var rpUser = getPrincipal();
     OrganizationProjectsPage organizationProjectsPage = new OrganizationProjectsPage();
 
-    if (!user.getUserRole().equals(UserRole.ADMINISTRATOR)
-        && user.getOrganizationDetails().get(orgId.toString()).getOrgRole()
+    if (!rpUser.getUserRole().equals(UserRole.ADMINISTRATOR)
+        && rpUser.getOrganizationDetails().get(orgId.toString()).getOrgRole()
         .equals(OrganizationRole.MEMBER)) {
 
-      var projectIds = projectUserRepository.findProjectIdsByUserId(user.getUserId())
+      var projectIds = projectUserRepository.findProjectIdsByUserId(rpUser.getUserId())
           .stream()
           .map(Object::toString)
           .collect(Collectors.joining(","));
@@ -151,8 +151,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
   }
 
   @Override
-  public ProjectInfo createProject(Long orgId, ProjectBase projectBase,
-      ReportPortalUser user) {
+  public ProjectInfo createProject(Long orgId, ProjectBase projectBase) {
     Organization organization = organizationRepositoryCustom.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
@@ -180,20 +179,20 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     Project createdProject = projectRepository.save(projectToSave);
 
     applicationEventPublisher.publishEvent(new ProjectEvent(createdProject.getId(), CREATE_KEY));
-    publishProjectCreatedEvent(user, createdProject);
+    publishProjectCreatedEvent(getPrincipal(), createdProject);
 
     return PROJECT_TO_ORG_PROJECT_INFO.apply(createdProject); // backward convert to ProjectInfo
   }
 
   @Override
-  public void deleteProject(ReportPortalUser rpUser, Long orgId, Long projectId) {
+  public void deleteProject(Long orgId, Long projectId) {
     Project project = getProjectById(projectId);
     expect(project.getOrganizationId(), equalTo(orgId))
         .verify(PROJECT_NOT_FOUND, "Project " + projectId + " not found in organization " + orgId);
 
     deleteProjectWithDependants(project);
 
-    publishSpecialProjectDeletedEvent(rpUser, project);
+    publishSpecialProjectDeletedEvent(getPrincipal(), project);
   }
 
 

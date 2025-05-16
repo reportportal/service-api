@@ -86,8 +86,6 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
   private final ProjectConverter projectConverter;
 
-  @Value("${rp.environment.variable.user.suggestions:true}")
-  boolean isUserSuggestions;
 
   @Autowired
   public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
@@ -179,7 +177,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
     checkBusinessRuleLessThan1Symbol(value);
 
     final CompositeFilterCondition userCondition =
-				(userRole.equals(UserRole.ADMINISTRATOR) || isUserSuggestions)
+				(userRole.equals(UserRole.ADMINISTRATOR))
 						? getUserSearchSuggestCondition(value) : getUserSearchCondition(value);
 
     final Filter filter = Filter.builder().withTarget(User.class).withCondition(userCondition)

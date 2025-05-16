@@ -88,10 +88,9 @@ public class OrganizationUsersController extends BaseController implements Organ
   @PreAuthorize(ORGANIZATION_MANAGER)
   public ResponseEntity<UserAssignmentResponse> postOrganizationsOrgIdUsers(
       @PathVariable("org_id") Long orgId, OrgUserAssignment request) {
-    var user = getLoggedUser();
     return ResponseEntity
         .status(OK)
-        .body(organizationUsersHandler.assignUser(orgId, request, user));
+        .body(organizationUsersHandler.assignUser(orgId, request));
   }
 
 
@@ -99,8 +98,7 @@ public class OrganizationUsersController extends BaseController implements Organ
   @Transactional
   @PreAuthorize(ORGANIZATION_MEMBER)
   public ResponseEntity<Void> deleteOrganizationsOrgIdUsersUserId(Long orgId, Long userId) {
-    var user = getLoggedUser();
-    organizationUsersHandler.unassignUser(orgId, userId, user);
+    organizationUsersHandler.unassignUser(orgId, userId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 }

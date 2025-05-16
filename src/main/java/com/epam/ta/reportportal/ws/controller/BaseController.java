@@ -16,9 +16,6 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
-import org.springframework.security.core.context.SecurityContextHolder;
-
 /**
  * This class provides basic functionalities that all controllers in the application can use. It
  * contains a method to get the details of the logged-in user. It is an abstract class and is
@@ -26,16 +23,4 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 public abstract class BaseController {
 
-  /**
-   * Fetches the details of the currently logged-in user from the Spring Security context.
-   *
-   * @return the {@link ReportPortalUser} representing the currently logged-in user.
-   * @throws ClassCastException if the principal in the {@link SecurityContextHolder}'s context is
-   *                            not a {@link ReportPortalUser}
-   */
-  protected ReportPortalUser getLoggedUser() {
-    return (ReportPortalUser) SecurityContextHolder.getContext()
-        .getAuthentication()
-        .getPrincipal();
-  }
 }

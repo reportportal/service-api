@@ -206,9 +206,15 @@ public class PluginLoaderImpl implements PluginLoader {
     details.put("description", descriptor.getPluginDescription());
     details.put("documentation", descriptor.getDocumentation());
     details.put("requires", descriptor.getRequires());
-    details.put("metadata", descriptor.getMetadata());
-    details.put("properties", descriptor.getProperties());
-    details.put("binaryData", descriptor.getBinaryData());
+    Optional.ofNullable(descriptor.getMetadata())
+        .filter(metadata -> !metadata.isEmpty())
+        .ifPresent(metadata -> details.put("metadata", metadata));
+    Optional.ofNullable(descriptor.getProperties())
+        .filter(props -> !props.isEmpty())
+        .ifPresent(props -> details.put("properties", props));
+    Optional.ofNullable(descriptor.getBinaryData())
+        .filter(binaryData -> !binaryData.isEmpty())
+        .ifPresent(binaryData -> details.put("binaryData", binaryData));
 
     var developer = new HashMap<String, Object>();
     developer.put("name", descriptor.getProvider());

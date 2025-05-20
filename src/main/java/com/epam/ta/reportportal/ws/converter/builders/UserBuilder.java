@@ -68,9 +68,9 @@ public class UserBuilder implements Supplier<User> {
         it -> {
           fillUser(it.getEmail(), it.getFullName(), it.getExternalId(),
               request.getAccountType().name());
-          UserRole.findByAuthority(request.getInstanceRole().name())
+          addUserRole(UserRole.findByName(request.getInstanceRole().name())
               .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-                  "Incorrect specified Instance Role parameter."));
+                  "Incorrect specified Instance Role parameter.")));
         }
     );
     return this;

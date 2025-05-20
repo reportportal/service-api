@@ -52,7 +52,6 @@ import org.springframework.test.context.TestPropertySource;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @ExtendWith(MockitoExtension.class)
-@TestPropertySource(properties = {"rp.environment.variable.user.suggestions=true"})
 class GetProjectHandlerImplTest {
 
   @Mock

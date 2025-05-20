@@ -56,7 +56,7 @@ public class OrganizationController extends BaseController implements Organizati
   @Override
   public ResponseEntity<OrganizationInfo> getOrganizationsOrgId(Long orgId) {
     return ResponseEntity.ok()
-        .body(getOrganizationHandler.getOrganizationById(orgId, getLoggedUser()));
+        .body(getOrganizationHandler.getOrganizationById(orgId));
   }
 
 
@@ -64,7 +64,6 @@ public class OrganizationController extends BaseController implements Organizati
   @Override
   public ResponseEntity<OrganizationPage> getOrganizations(Integer offset, Integer limit,
       String order, String name, String slug, String sort) {
-    var user = getLoggedUser();
     Filter filter = new Filter(OrganizationFilter.class, Lists.newArrayList());
 
     if (StringUtils.isNotEmpty(name)) {
@@ -80,7 +79,7 @@ public class OrganizationController extends BaseController implements Organizati
 
     return ResponseEntity
         .ok()
-        .body(getOrganizationHandler.getOrganizations(user, filter, pageable));
+        .body(getOrganizationHandler.getOrganizations(filter, pageable));
   }
 
 
@@ -91,8 +90,6 @@ public class OrganizationController extends BaseController implements Organizati
     Filter filter = searchCriteriaService
         .createFilterBySearchCriteria(searchCriteria, OrganizationFilter.class);
 
-    var user = getLoggedUser();
-
     var pageable = ControllerUtils.getPageable(
         StringUtils.isNotBlank(searchCriteria.getSort()) ? searchCriteria.getSort() : "name",
         searchCriteria.getOrder().toString(),
@@ -101,7 +98,7 @@ public class OrganizationController extends BaseController implements Organizati
 
     return ResponseEntity
         .ok()
-        .body(getOrganizationHandler.getOrganizations(user, filter, pageable));
+        .body(getOrganizationHandler.getOrganizations(filter, pageable));
 
   }
 

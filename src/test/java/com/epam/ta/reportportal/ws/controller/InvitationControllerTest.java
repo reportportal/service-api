@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -34,6 +35,9 @@ import com.epam.reportportal.api.model.InvitationStatus;
 import com.epam.reportportal.api.model.OrgRole;
 import com.epam.reportportal.api.model.ProjectRole;
 import com.epam.reportportal.api.model.UserProjectInfo;
+import com.epam.ta.reportportal.dao.ProjectUserRepository;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
+import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
@@ -43,7 +47,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.jdbc.Sql;
 
+@Sql("/db/organization/full_organization_samples.sql")
 class InvitationControllerTest extends BaseMvcTest {
 
   private static final String INVITATIONS_ENDPOINT = "/invitations";
@@ -55,6 +61,11 @@ class InvitationControllerTest extends BaseMvcTest {
 
   @Autowired
   private ObjectMapper objectMapper;
+
+  @Autowired
+  OrganizationUserRepository organizationUserRepository;
+  @Autowired
+  ProjectUserRepository projectUserRepository;
 
   @ParameterizedTest
   @CsvSource(value = {
@@ -210,7 +221,6 @@ class InvitationControllerTest extends BaseMvcTest {
         .getResponse().getContentAsString();
     var invitation = objectMapper.readValue(invitationAsString, Invitation.class);
 
-
     mockMvc.perform(put(INVITATIONS_ENDPOINT + "/" + invitation.getId())
             // no token required
             .content(objectMapper.writeValueAsBytes(activationRq))
@@ -251,7 +261,6 @@ class InvitationControllerTest extends BaseMvcTest {
         .getResponse().getContentAsString();
     var invitation2 = objectMapper.readValue(invitationAsString2, Invitation.class);
 
-
     mockMvc.perform(put(INVITATIONS_ENDPOINT + "/" + invitation.getId())
             // no token required
             .content(objectMapper.writeValueAsBytes(activationRq))
@@ -265,5 +274,39 @@ class InvitationControllerTest extends BaseMvcTest {
             .contentType(APPLICATION_JSON))
         .andDo(print())
         .andExpect(status().isOk());
+  }
+
+  @Test
+  void createInvitationForExistingUserByAdmin() throws Exception {
+    var rq = getInvitationRequest(OrgRole.MANAGER, ProjectRole.EDITOR);
+    rq.setEmail("no-orgs-user@example.com");
+
+    var result = mockMvc.perform(post(INVITATIONS_ENDPOINT)
+            .content(objectMapper.writeValueAsBytes(rq))
+            .contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isCreated())
+        .andReturn()
+        .getResponse().getContentAsString();
+
+    var invitation = objectMapper.readValue(result, Invitation.class);
+
+    assertNotNull(invitation);
+    assertEquals(InvitationStatus.ACTIVATED, invitation.getStatus());
+    organizationUserRepository.findByUserIdAndOrganization_Id(108L, 1L).orElseThrow();
+
+    var prjIds = projectUserRepository.findProjectIdsByUserId(108L);
+    var expectedPrjIds = rq.getOrganizations().stream()
+        .flatMap(orgs -> orgs.getProjects().stream())
+        .map(UserProjectInfo::getId)
+        .toList();
+    assertTrue(prjIds.containsAll(expectedPrjIds));
+
+    mockMvc.perform(
+            get(INVITATIONS_ENDPOINT + "/" + invitation.getId())
+                .content(objectMapper.writeValueAsBytes(rq))
+                .contentType(APPLICATION_JSON)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound());
   }
 }

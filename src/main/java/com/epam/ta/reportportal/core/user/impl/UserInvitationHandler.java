@@ -17,16 +17,17 @@
 package com.epam.ta.reportportal.core.user.impl;
 
 import static com.epam.reportportal.api.model.InvitationStatus.ACTIVATED;
-import static com.epam.reportportal.api.model.InvitationStatus.PENDING;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
-import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_EXISTS;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateInvitationUrl;
+import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
 import static com.epam.ta.reportportal.model.settings.SettingsKeyConstants.SERVER_USERS_SSO;
 import static com.epam.ta.reportportal.util.ControllerUtils.safeParseLong;
+import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 import static com.epam.ta.reportportal.util.email.EmailRulesValidator.NORMALIZE_EMAIL;
 import static com.epam.ta.reportportal.ws.converter.builders.UserBuilder.USER_LAST_LOGIN;
 import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
@@ -36,44 +37,34 @@ import static java.util.function.Predicate.isEqual;
 import com.epam.reportportal.api.model.Invitation;
 import com.epam.reportportal.api.model.InvitationActivation;
 import com.epam.reportportal.api.model.InvitationRequest;
-import com.epam.reportportal.api.model.InvitationRequestOrganizationsInner;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.auth.authenticator.UserAuthenticator;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.events.activity.CreateInvitationLinkEvent;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
+import com.epam.ta.reportportal.core.organization.OrganizationUserService;
+import com.epam.ta.reportportal.core.user.UserInvitationService;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
-import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.entity.Metadata;
 import com.epam.ta.reportportal.entity.ServerSettings;
-import com.epam.ta.reportportal.entity.organization.Organization;
-import com.epam.ta.reportportal.entity.organization.OrganizationRole;
-import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
-import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.converters.InvitationConverter;
-import com.google.common.collect.Maps;
-import jakarta.validation.Valid;
-import java.net.URI;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -86,125 +77,77 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserInvitationHandler {
 
-  public static final String BID_TYPE = "type";
-  public static final String INTERNAL_BID_TYPE = "internal";
-
+  private final HttpServletRequest httpServletRequest;
   private final UserCreationBidRepository userCreationBidRepository;
-  private final ThreadPoolTaskExecutor emailExecutorService;
-  private final MailServiceFactory emailServiceFactory;
   private final UserRepository userRepository;
   private final ApplicationEventPublisher eventPublisher;
   private final ServerSettingsRepository settingsRepository;
   private final UserAuthenticator userAuthenticator;
   private final ProjectUserRepository projectUserRepository;
-  private final OrganizationUserRepository organizationUserRepository;
+  private final OrganizationUserService organizationUserService;
   private final OrganizationRepositoryCustom organizationRepositoryCustom;
   private final ProjectRepository projectRepository;
   private final PasswordEncoder passwordEncoder;
+  private final UserInvitationService userInvitationService;
 
   /**
    * Constructor of UserInvitationHandlerImpl.
    */
-  public UserInvitationHandler(UserCreationBidRepository userCreationBidRepository,
-      ThreadPoolTaskExecutor emailExecutorService, MailServiceFactory emailServiceFactory,
+  public UserInvitationHandler(HttpServletRequest httpServletRequest, UserCreationBidRepository userCreationBidRepository,
       UserRepository userRepository, ApplicationEventPublisher eventPublisher,
       ServerSettingsRepository settingsRepository,
       UserAuthenticator userAuthenticator,
       ProjectUserRepository projectUserRepository,
-      OrganizationUserRepository organizationUserRepository,
+      OrganizationUserService organizationUserService,
       OrganizationRepositoryCustom organizationRepositoryCustom,
-      ProjectRepository projectRepository, PasswordEncoder passwordEncoder) {
+      ProjectRepository projectRepository, PasswordEncoder passwordEncoder,
+      UserInvitationService userInvitationService) {
+    this.httpServletRequest = httpServletRequest;
     this.userCreationBidRepository = userCreationBidRepository;
-    this.emailExecutorService = emailExecutorService;
-    this.emailServiceFactory = emailServiceFactory;
     this.userRepository = userRepository;
     this.eventPublisher = eventPublisher;
     this.settingsRepository = settingsRepository;
     this.userAuthenticator = userAuthenticator;
     this.projectUserRepository = projectUserRepository;
-    this.organizationUserRepository = organizationUserRepository;
+    this.organizationUserService = organizationUserService;
     this.organizationRepositoryCustom = organizationRepositoryCustom;
     this.projectRepository = projectRepository;
     this.passwordEncoder = passwordEncoder;
+    this.userInvitationService = userInvitationService;
   }
 
   /**
-   * Create user bid (send invitation).
+   * Sends invitation for external user or assigns existing user on organizations and projects
    *
-   * @param request Create Request
-   * @param rpUser  User that creates the request
-   * @param baseUrl User registration url
+   * @param invitationRq Invitation request
    * @return Operation result
    */
-  public Invitation createUserInvitation(
-      InvitationRequest request,
-      ReportPortalUser rpUser,
-      String baseUrl
-  ) {
+  public Invitation createUserInvitation(InvitationRequest invitationRq) {
+    log.debug("User '{}' is trying to create invitation for user '{}'",
+        getPrincipal().getUsername(),
+        invitationRq.getEmail());
+
     if (isSsoEnabled()) {
       throw new ReportPortalException(ACCESS_DENIED, "Cannot invite user if SSO enabled.");
     }
 
-    log.debug("User '{}' is trying to create invitation for user '{}'",
-        rpUser.getUsername(),
-        request.getEmail());
-
-    validateInvitationRequest(request);
-
-    var user = userRepository.findById(rpUser.getUserId()).orElseThrow(
-        () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, rpUser.getUserId()));
-
-    UserCreationBid userBid = new UserCreationBid();
-    userBid.setUuid(UUID.randomUUID().toString());
-    userBid.setEmail(request.getEmail().trim());
-    userBid.setInvitingUser(user);
-    userBid.setMetadata(getUserCreationBidMetadata(request.getOrganizations()));
-
-    UserCreationBid storedUserBid;
-    try {
-      storedUserBid = userCreationBidRepository.save(userBid);
-    } catch (Exception e) {
-      throw new ReportPortalException("Error while user creation bid registering.", e);
-    }
-
-    var link = getEmailLink(baseUrl, userBid.getUuid());
-    var response = new Invitation();
-    response.setCreatedAt(storedUserBid.getLastModified());
-    response.setExpiresAt(storedUserBid.getLastModified().plus(1, ChronoUnit.DAYS));
-    response.setId(UUID.fromString(userBid.getUuid()));
-    response.setLink(link);
-    response.setEmail(request.getEmail());
-    response.setStatus(PENDING);
-    response.setUserId(user.getId());
-    response.setFullName(user.getFullName());
-
-    //  TODO: Add search organization integrations
-    emailExecutorService.execute(() -> emailServiceFactory.getDefaultEmailService(false)
-        .sendCreateUserConfirmationEmail(
-            "User registration confirmation",
-            new String[]{userBid.getEmail()}, link.toString()
-        ));
-
-    // TODO: Add org IDs to event publisher. Needs to refactor ActivityEvent.
-    eventPublisher.publishEvent(
-        new CreateInvitationLinkEvent(rpUser.getUserId(), rpUser.getUsername()));
-
-    return response;
+    return userRepository.findByEmail(NORMALIZE_EMAIL.apply(invitationRq.getEmail()))
+        .map(user -> userInvitationService.assignUser(invitationRq, user))
+        .orElse(userInvitationService.sendInvitation(invitationRq));
   }
 
   /**
    * Retrieve an invitation by its ID.
    *
    * @param invitationId the ID of the invitation to retrieve
-   * @param baseUrl      the base url of the webservice
    * @return the invitation corresponding to the given ID
    */
-  public Invitation getInvitation(String invitationId, String baseUrl) {
+  public Invitation getInvitation(String invitationId) {
     var bid = userCreationBidRepository.findById(invitationId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND, "User invitation id"));
 
     var invitation = InvitationConverter.TO_INVITATION.apply(bid);
-    invitation.setLink(getEmailLink(baseUrl, bid.getUuid()));
+    invitation.setLink(generateInvitationUrl(httpServletRequest, bid.getUuid()));
     return invitation;
   }
 
@@ -243,62 +186,12 @@ public class UserInvitationHandler {
         .status(ACTIVATED);
   }
 
-  private void saveOrganizationUser(Organization organization, User assignedUser, String role) {
-    var organizationUser = new OrganizationUser();
-    organizationUser.setOrganization(organization);
-    organizationUser.setUser(assignedUser);
-    organizationUser.setOrganizationRole(OrganizationRole.valueOf(role));
-    organizationUserRepository.save(organizationUser);
-  }
-
-  private void validateInvitationRequest(InvitationRequest request) {
-    var email = NORMALIZE_EMAIL.apply(request.getEmail());
-
-    expect(userRepository.findByEmail(email).isEmpty(), equalTo(true)).verify(
-        USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
-  }
-
-  private Metadata getUserCreationBidMetadata(
-      @Valid List<InvitationRequestOrganizationsInner> organizations) {
-    final Map<String, Object> meta = Maps.newHashMapWithExpectedSize(1);
-    meta.put(BID_TYPE, INTERNAL_BID_TYPE);
-    meta.put("organizations", getOrganizationsMetadata(organizations));
-
-    return new Metadata(meta);
-  }
-
-  private List<Map<String, Object>> getProjectsMetadata(
-      InvitationRequestOrganizationsInner organization) {
-    return organization.getProjects().stream()
-        .map(project -> {
-          Map<String, Object> obj = new HashMap<>();
-          obj.put("id", project.getId());
-          obj.put("role", project.getProjectRole().name());
-          return obj;
-        }).toList();
-  }
-
-
-  private List<Map<String, Object>> getOrganizationsMetadata(
-      List<InvitationRequestOrganizationsInner> organizations) {
-    return organizations.stream()
-        .map(org -> {
-          Map<String, Object> obj = new HashMap<>();
-          obj.put("id", org.getId());
-          obj.put("role", org.getOrgRole().name());
-          obj.put("projects", getProjectsMetadata(org));
-          return obj;
-        }).toList();
-  }
 
   private boolean isSsoEnabled() {
     return settingsRepository.findByKey(SERVER_USERS_SSO).map(ServerSettings::getValue)
         .map(Boolean::parseBoolean).orElse(false);
   }
 
-  private URI getEmailLink(String baseUrl, String invitationId) {
-    return URI.create(baseUrl + "/ui/#registration?uuid=" + invitationId);
-  }
 
   private void assignOrganizationsAndProjects(User createdUser, Metadata metadata) {
     var orgs = metadata.getMetadata().entrySet()
@@ -314,7 +207,7 @@ public class UserInvitationHandler {
         var organization = organizationRepositoryCustom.findById(orgId)
             .orElseThrow(
                 () -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, org.get("id")));
-        saveOrganizationUser(organization, createdUser, org.get("role").toString());
+        organizationUserService.saveOrganizationUser(organization, createdUser, org.get("role").toString());
 
         // assign user to projects
         assignProjects(createdUser, org, orgId);

@@ -71,7 +71,7 @@ public class ProjectExtractor {
 
     final String normalizedProjectKey = normalizeId(projectKey);
     if (user.getUserRole().equals(ADMINISTRATOR)) {
-      return extractProjectDetailsAdmin(user, projectKey);
+      return extractProjectDetailsAdmin(projectKey);
     }
     return findMembershipDetails(user, normalizedProjectKey)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
@@ -88,37 +88,33 @@ public class ProjectExtractor {
    */
   public Optional<MembershipDetails> findMembershipDetails(ReportPortalUser user,
       String projectKey) {
-    return projectUserRepository.findDetailsByUserIdAndProjectKey(user.getUserId(), projectKey);
-//        .or(() -> groupMembershipRepository.findMembershipDetails(user.getUserId(), projectKey))
-//        .map(details -> {
-//          var projectRoles = groupMembershipRepository.findUserProjectRoles(
-//              user.getUserId(),
-//              details.getProjectId()
-//          );
-//
-//          projectRoles.add(details.getProjectRole());
-//
-//          var highestRole = new ArrayList<>(projectRoles).stream()
-//              .max(ProjectRole::compareTo)
-//              .orElse(null);
-//
-//          details.setProjectRole(highestRole);
-//          return details;
-//        });
+    return projectUserRepository.findDetailsByUserIdAndProjectKey(user.getUserId(), projectKey)
+        .map(details -> {
+          var projectRoles = groupMembershipRepository.findUserProjectRoles(
+              user.getUserId(),
+              details.getProjectId()
+          );
+
+          Optional.ofNullable(details.getProjectRole()).ifPresent(projectRoles::add);
+
+          var highestRole = new ArrayList<>(projectRoles).stream()
+              .max(ProjectRole::compareTo)
+              .orElse(null);
+
+          details.setProjectRole(highestRole);
+          return details;
+        });
   }
 
   /**
    * Extracts project details for specified user by specified project name If user is ADMINISTRATOR
    * - he is added as a PROJECT_MANAGER to the project.
    *
-   * @param user       User
    * @param projectKey Project unique key
    * @return Project Details
    */
-  public MembershipDetails extractProjectDetailsAdmin(ReportPortalUser user,
-      String projectKey) {
-    final String normalizedProjectKey = normalizeId(projectKey);
-    return projectUserRepository.findAdminDetailsProjectKey(normalizeId(normalizedProjectKey))
+  public MembershipDetails extractProjectDetailsAdmin(String projectKey) {
+    return projectUserRepository.findAdminDetailsProjectKey(normalizeId(projectKey))
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
   }
 

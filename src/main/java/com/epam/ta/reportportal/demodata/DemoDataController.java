@@ -56,6 +56,6 @@ class DemoDataController {
 	@Operation(summary =  "generate")
 	public DemoDataRs generate(@PathVariable String projectKey, @Validated @RequestBody DemoDataRq demoDataRq,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return demoDataService.generate(demoDataRq, projectExtractor.extractProjectDetailsAdmin(user, projectKey), user);
+		return demoDataService.generate(demoDataRq, projectExtractor.extractProjectDetailsAdmin(projectKey), user);
 	}
 }

@@ -47,6 +47,7 @@ import com.epam.ta.reportportal.core.events.activity.ProjectDeletedEvent;
 import com.epam.ta.reportportal.core.project.OrganizationProjectHandler;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.dao.AttributeRepository;
+import com.epam.ta.reportportal.dao.GroupMembershipRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -67,6 +68,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -90,6 +92,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
   private final AttachmentBinaryDataService attachmentBinaryDataService;
   private final LogIndexer logIndexer;
   private final AnalyzerServiceClient analyzerServiceClient;
+  private final GroupMembershipRepository groupMembershipRepository;
 
 
   public OrganizationProjectHandlerImpl(OrganizationProjectRepository organizationProjectRepository,
@@ -99,7 +102,8 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
       ApplicationEventPublisher applicationEventPublisher, IssueTypeRepository issueTypeRepository,
       ContentRemover<Project> projectContentRemover, LogRepository logRepository,
       AttachmentBinaryDataService attachmentBinaryDataService, LogIndexer logIndexer,
-      AnalyzerServiceClient analyzerServiceClient) {
+      AnalyzerServiceClient analyzerServiceClient,
+      GroupMembershipRepository groupMembershipRepository) {
     this.organizationProjectRepository = organizationProjectRepository;
     this.projectUserRepository = projectUserRepository;
     this.projectRepository = projectRepository;
@@ -113,10 +117,12 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
 
     this.logIndexer = logIndexer;
     this.analyzerServiceClient = analyzerServiceClient;
+    this.groupMembershipRepository = groupMembershipRepository;
   }
 
   @Override
-  public OrganizationProjectsPage getOrganizationProjectsPage(Long orgId, Filter filter, Pageable pageable) {
+  public OrganizationProjectsPage getOrganizationProjectsPage(Long orgId, Filter filter,
+      Pageable pageable) {
     var rpUser = getPrincipal();
     OrganizationProjectsPage organizationProjectsPage = new OrganizationProjectsPage();
 
@@ -127,6 +133,17 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
       var projectIds = projectUserRepository.findProjectIdsByUserId(rpUser.getUserId())
           .stream()
           .map(Object::toString)
+          .collect(Collectors.joining(","));
+
+      var groupProjectIds = groupMembershipRepository.findAllUserProjects(rpUser.getUserId())
+          .stream()
+          .filter(project -> project.getProject().getOrganizationId().equals(orgId))
+          .map(project -> project.getProject().getId().toString())
+          .collect(Collectors.joining(","));
+
+      projectIds = Stream.of(projectIds, groupProjectIds)
+          .filter(StringUtils::isNotEmpty)
+          .distinct()
           .collect(Collectors.joining(","));
 
       if (projectIds.isEmpty()) {

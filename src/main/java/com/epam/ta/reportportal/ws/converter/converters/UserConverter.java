@@ -129,31 +129,55 @@ public final class UserConverter {
         resource.setLoaded(UserType.UPSA != user.getUserType());
         resource.setMetadata(user.getMetadata().getMetadata());
 
-        Map<String, UserResource.AssignedProject> userProjectsMap = new TreeMap<>();
+        if (CollectionUtils.isNotEmpty(user.getProjects()) ||
+            CollectionUtils.isNotEmpty(groupProjects)) {
+          Map<String, UserResource.AssignedProject> userProjectsMap = new TreeMap<>();
 
-        user.getProjects().forEach(projectUser -> {
-          UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-          assignedProject.setProjectRole(projectUser.getProjectRole().toString());
-          userProjectsMap.put(projectUser.getProject().getName(), assignedProject);
-        });
+          user.getProjects().forEach(pu -> {
+            UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
+            assignedProject.setProjectRole(pu.getProjectRole().toString());
+            assignedProject.setProjectKey(pu.getProject().getKey());
+            assignedProject.setProjectName(pu.getProject().getName());
+            assignedProject.setProjectSlug(pu.getProject().getSlug());
+            assignedProject.setOrganizationId(pu.getProject().getOrganizationId());
+            userProjectsMap.put(pu.getProject().getKey(), assignedProject);
+          });
 
-        groupProjects.forEach(project -> {
-          String projectName = project.getProject().getName();
-          UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-          assignedProject.setProjectRole(project.getProjectRole().toString());
+          groupProjects.forEach(gp -> {
+            String projectKey = gp.getProject().getKey();
+            UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
+            assignedProject.setProjectRole(gp.getProjectRole().toString());
+            assignedProject.setProjectKey(gp.getProject().getKey());
+            assignedProject.setProjectName(gp.getProject().getName());
+            assignedProject.setProjectSlug(gp.getProject().getSlug());
+            assignedProject.setOrganizationId(gp.getProject().getOrganizationId());
 
-          if (userProjectsMap.containsKey(projectName)) {
-            ProjectRole existProjectRole = ProjectRole.valueOf(
-                userProjectsMap.get(projectName).getProjectRole());
-            if (project.getProjectRole().higherThan(existProjectRole)) {
-              userProjectsMap.put(projectName, assignedProject);
-            }
-          } else {
-            userProjectsMap.put(projectName, assignedProject);
-          }
-        });
+            Optional.ofNullable(userProjectsMap.get(projectKey))
+                .map(e -> ProjectRole.valueOf(e.getProjectRole()))
+                .filter(existingRole -> !gp.getProjectRole().higherThan(existingRole))
+                .orElseGet(() -> {
+                  userProjectsMap.put(projectKey, assignedProject);
+                  return null;
+                });
+          });
 
-        resource.setAssignedProjects(userProjectsMap);
+          resource.setAssignedProjects(userProjectsMap);
+        }
+
+        if (CollectionUtils.isNotEmpty(user.getOrganizationUsers())) {
+          List<OrganizationUser> orgUsers = Lists.newArrayList(user.getOrganizationUsers());
+          Map<String, UserResource.AssignedOrganization> userOrganization = orgUsers.stream()
+              .collect(Collectors.toMap(orgUser -> orgUser.getOrganization().getSlug(), orgUser -> {
+                UserResource.AssignedOrganization assignedOrganization = new UserResource.AssignedOrganization();
+                assignedOrganization.setOrganizationId(orgUser.getOrganization().getId());
+                assignedOrganization.setOrganizationName(orgUser.getOrganization().getName());
+                assignedOrganization.setOrganizationSlug(orgUser.getOrganization().getSlug());
+                assignedOrganization.setOrganizationRole(orgUser.getOrganizationRole().name());
+                return assignedOrganization;
+              }));
+          resource.setAssignedOrganizations(userOrganization);
+        }
+
         return resource;
       };
 

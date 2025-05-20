@@ -226,7 +226,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
         .projects(new ArrayList<>())
         .id(userId);
 
-    performAssignUserFailed(nonExistentOrgId, rq, managerToken, status().isNotFound());
+    performAssignUserFailed(nonExistentOrgId, rq, managerToken, status().isForbidden());
     performAssignUserFailed(nonExistentOrgId, rq, adminToken, status().isNotFound());
   }
 

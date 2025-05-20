@@ -35,14 +35,10 @@ import org.springframework.stereotype.Component;
 public class OrganizationManagerPermission implements Permission {
 
   private final OrganizationUserRepository organizationUserRepository;
-  private final OrganizationRepositoryCustom organizationRepositoryCustom;
-
 
   @Autowired
-  OrganizationManagerPermission(OrganizationUserRepository organizationUserRepository,
-      OrganizationRepositoryCustom organizationRepositoryCustom) {
+  OrganizationManagerPermission(OrganizationUserRepository organizationUserRepository) {
     this.organizationUserRepository = organizationUserRepository;
-    this.organizationRepositoryCustom = organizationRepositoryCustom;
   }
 
   @Override
@@ -54,9 +50,6 @@ public class OrganizationManagerPermission implements Permission {
     ReportPortalUser rpUser = (ReportPortalUser) authentication.getPrincipal();
 
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
-
-    organizationRepositoryCustom.findById((Long) orgId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
     var ou = organizationUserRepository.findByUserIdAndOrganization_Id(rpUser.getUserId(),
         (Long) orgId);

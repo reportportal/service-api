@@ -30,6 +30,8 @@ import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_
 import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_CREATED_USER;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.api.model.InstanceUser;
+import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.auth.authenticator.UserAuthenticator;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -109,6 +111,11 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
         .sendCreateUserConfirmationEmail(request, basicUrl));
 
     return TO_CREATED_USER.apply(user);
+  }
+
+  @Override
+  public InstanceUser createUser(NewUserRequest request, ReportPortalUser user, String basicUrl) {
+    return null;
   }
 
   @Override

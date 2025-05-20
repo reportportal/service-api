@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.user;
 
+import com.epam.reportportal.api.model.InstanceUser;
+import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.user.CreateUserRQFull;
@@ -40,6 +42,17 @@ public interface CreateUserHandler {
    * @return Operation result
    */
   CreateUserRS createUserByAdmin(CreateUserRQFull request, ReportPortalUser user, String basicUrl);
+
+  /**
+   * Create user by administrator
+   *
+   * @param request  Create request
+   * @param user     User that creates request
+   * @param basicUrl App URL for user URL to be created
+   * @return User
+   */
+  InstanceUser createUser(NewUserRequest request, ReportPortalUser user, String basicUrl);
+
 
   /**
    * Create restore password bid

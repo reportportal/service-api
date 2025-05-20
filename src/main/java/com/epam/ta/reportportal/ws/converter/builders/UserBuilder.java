@@ -16,8 +16,11 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.api.model.NewUserRequest;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.Metadata;
 import com.epam.ta.reportportal.entity.user.User;
@@ -57,6 +60,19 @@ public class UserBuilder implements Supplier<User> {
             null,
             UserType.INTERNAL.name()
         ));
+    return this;
+  }
+
+  public UserBuilder fromNewUserRequest(NewUserRequest request) {
+    ofNullable(request).ifPresent(
+        it -> {
+          fillUser(it.getEmail(), it.getFullName(), it.getExternalId(),
+              request.getAccountType().name());
+          UserRole.findByAuthority(request.getInstanceRole().name())
+              .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+                  "Incorrect specified Instance Role parameter."));
+        }
+    );
     return this;
   }
 

@@ -20,8 +20,6 @@ import com.epam.reportportal.api.model.InstanceUser;
 import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.model.YesNoRS;
-import com.epam.ta.reportportal.model.user.CreateUserRQFull;
-import com.epam.ta.reportportal.model.user.CreateUserRS;
 import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
 import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
@@ -32,16 +30,6 @@ import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
  * @author Andrei_Ramanchuk
  */
 public interface CreateUserHandler {
-
-  /**
-   * Create completed user object by administrator
-   *
-   * @param request  Create request
-   * @param user     User that creates request
-   * @param basicUrl App URL for user URL to be created
-   * @return Operation result
-   */
-  CreateUserRS createUserByAdmin(CreateUserRQFull request, ReportPortalUser user, String basicUrl);
 
   /**
    * Create user by administrator

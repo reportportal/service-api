@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_OWNER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
+import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 
 import com.epam.reportportal.api.UserApi;
 import com.epam.reportportal.api.model.InstanceUser;
@@ -59,7 +60,6 @@ public class UserControllerNew extends BaseController implements UserApi {
   private final GetFileHandler getFileHandler;
   private final EditUserHandler editUserHandler;
   private final GetUserHandler getUserHandler;
-
   private final HttpServletRequest httpServletRequest;
   private final OrganizationsSearchCriteriaService searchCriteriaService;
 
@@ -94,7 +94,8 @@ public class UserControllerNew extends BaseController implements UserApi {
   @Override
   @PreAuthorize(IS_ADMIN)
   public ResponseEntity<InstanceUser> postUsers(NewUserRequest newUserRequest) {
-    return ResponseEntity.ok(createUserHandler.createUserByAdmin(newUserRequest));
+    return ResponseEntity.ok(createUserHandler.createUser(newUserRequest, getLoggedUser(),
+        composeBaseUrl(httpServletRequest)));
   }
 
   @Transactional

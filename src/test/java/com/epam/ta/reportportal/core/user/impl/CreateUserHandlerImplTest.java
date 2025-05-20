@@ -31,6 +31,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.CreateInvitationLinkEvent;
@@ -48,7 +49,6 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.model.user.CreateUserRQ;
-import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import java.util.Optional;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -100,7 +100,7 @@ class CreateUserHandlerImplTest {
     when(userRepository.findRawById(rpUser.getUserId())).thenReturn(Optional.empty());
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.createUserByAdmin(new CreateUserRQFull(), rpUser, "url")
+        () -> handler.createUser(new NewUserRequest(), rpUser, "url")
     );
     assertEquals("User 'admin' not found.", exception.getMessage());
   }
@@ -115,7 +115,7 @@ class CreateUserHandlerImplTest {
     when(userRepository.findRawById(1L)).thenReturn(Optional.of(user));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.createUserByAdmin(new CreateUserRQFull(), rpUser, "url")
+        () -> handler.createUser(new NewUserRequest(), rpUser, "url")
     );
     assertEquals(
         "You do not have enough permissions. Only administrator can create new user. Your role is - USER",
@@ -134,10 +134,10 @@ class CreateUserHandlerImplTest {
     doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
     doReturn(Optional.of(new User())).when(userRepository).findByEmail("new_user@example.com");
 
-    final CreateUserRQFull request = new CreateUserRQFull();
+    var request = new NewUserRequest();
     request.setEmail("new_user@example.com");
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.createUserByAdmin(request, rpUser, "url")
+        () -> handler.createUser(request, rpUser, "url")
     );
     assertEquals(
         "User with 'email='new_user@example.com'' already exists. You couldn't create the duplicate.",
@@ -154,10 +154,10 @@ class CreateUserHandlerImplTest {
     creator.setRole(UserRole.ADMINISTRATOR);
     doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
 
-    final CreateUserRQFull request = new CreateUserRQFull();
+    var request = new NewUserRequest();
     request.setEmail("incorrect@email");
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.createUserByAdmin(request, rpUser, "url")
+        () -> handler.createUser(request, rpUser, "url")
     );
     assertEquals(
         "Error in handled Request. Please, check specified parameters: 'email='incorrect@email''",
@@ -175,10 +175,10 @@ class CreateUserHandlerImplTest {
     doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
     when(userRepository.findByEmail("correct@domain.com")).thenReturn(Optional.of(new User()));
 
-    final CreateUserRQFull request = new CreateUserRQFull();
+    var request = new NewUserRequest();
     request.setEmail("correct@domain.com");
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.createUserByAdmin(request, rpUser, "url")
+        () -> handler.createUser(request, rpUser, "url")
     );
     assertEquals(
         "User with 'email='correct@domain.com'' already exists. You couldn't create the duplicate.",
@@ -196,10 +196,10 @@ class CreateUserHandlerImplTest {
     doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
     when(userRepository.findByEmail("correct@domain.com")).thenReturn(Optional.of(new User()));
 
-    final CreateUserRQFull request = new CreateUserRQFull();
+    var request = new NewUserRequest();
     request.setEmail("CORRECT@domain.com");
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.createUserByAdmin(request, rpUser, "url")
+        () -> handler.createUser(request, rpUser, "url")
     );
     assertEquals(
         "User with 'email='CORRECT@domain.com'' already exists. You couldn't create the duplicate.",

@@ -45,6 +45,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -62,25 +63,25 @@ public class TestConfig {
 
   public final static SecretKey TEST_SECRET = SIG.HS256.key().build();
 
-  @MockBean
+  @MockitoBean
   protected Client rabbitClient;
 
-  @MockBean(name = "analyzerRabbitTemplate")
+  @MockitoBean(name = "analyzerRabbitTemplate")
   protected RabbitTemplate analyzerRabbitTemplate;
 
-  @MockBean(name = "rabbitTemplate")
+  @MockitoBean(name = "rabbitTemplate")
   protected RabbitTemplate rabbitTemplate;
 
-  @MockBean(name = "connectionFactory")
+  @MockitoBean(name = "connectionFactory")
   protected ConnectionFactory connectionFactory;
 
-  @MockBean(name = "simpleRabbitListenerContainerFactoryConfigurer")
+  @MockitoBean(name = "simpleRabbitListenerContainerFactoryConfigurer")
   protected SimpleRabbitListenerContainerFactoryConfigurer simpleRabbitListenerContainerFactoryConfigurer;
 
-  @MockBean(name = "amqpAdmin")
+  @MockitoBean(name = "amqpAdmin")
   protected AmqpAdmin amqpAdmin;
 
-  @MockBean
+  @MockitoBean
   protected MessageConverter messageConverter;
 
   @Autowired

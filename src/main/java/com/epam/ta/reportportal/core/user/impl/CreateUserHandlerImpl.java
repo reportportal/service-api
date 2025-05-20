@@ -27,7 +27,6 @@ import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.util.email.EmailRulesValidator.NORMALIZE_EMAIL;
 import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_CREATED_USER;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.api.model.InstanceUser;
@@ -41,16 +40,14 @@ import com.epam.ta.reportportal.dao.RestorePasswordBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.user.RestorePasswordBid;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.model.YesNoRS;
-import com.epam.ta.reportportal.model.user.CreateUserRQFull;
-import com.epam.ta.reportportal.model.user.CreateUserRS;
 import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
 import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.RestorePasswordBidConverter;
+import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import jakarta.persistence.PersistenceException;
 import java.util.Optional;
@@ -60,7 +57,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Implementation of Create User handler.
@@ -89,33 +85,20 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   private final ApplicationEventPublisher eventPublisher;
 
   @Override
-  @Transactional
-  public CreateUserRS createUserByAdmin(
-      CreateUserRQFull request,
-      ReportPortalUser creator,
-      String basicUrl
-  ) {
+  public InstanceUser createUser(NewUserRequest request, ReportPortalUser creator,
+      String basicUrl) {
     request.setEmail(NORMALIZE_EMAIL.apply(request.getEmail()));
-    var user = saveUser(request);
-
+    User saved = saveUser(request);
     UserCreatedEvent userCreatedEvent = new UserCreatedEvent(
-        TO_ACTIVITY_RESOURCE.apply(user, null),
+        TO_ACTIVITY_RESOURCE.apply(saved, null),
         creator.getUserId(),
         creator.getEmail(),
         false
     );
-
     eventPublisher.publishEvent(userCreatedEvent);
-
     emailExecutorService.execute(() -> emailServiceFactory.getDefaultEmailService(true)
         .sendCreateUserConfirmationEmail(request, basicUrl));
-
-    return TO_CREATED_USER.apply(user);
-  }
-
-  @Override
-  public InstanceUser createUser(NewUserRequest request, ReportPortalUser user, String basicUrl) {
-    return null;
+    return UserConverter.TO_INSTANCE_USER.apply(saved);
   }
 
   @Override
@@ -170,15 +153,12 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     return new YesNoRS(bid.isPresent());
   }
 
-  private User saveUser(CreateUserRQFull request) {
+  private User saveUser(NewUserRequest request) {
     expect(userRepository.findByEmail(request.getEmail()).isEmpty(), equalTo(true))
         .verify(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
-
-    final User user = convert(request);
-
+    var user = convert(request);
     try {
       userRepository.save(user);
-      userAuthenticator.authenticate(user);
     } catch (PersistenceException pe) {
       if (pe.getCause() instanceof ConstraintViolationException) {
         fail().withError(RESOURCE_ALREADY_EXISTS,
@@ -191,18 +171,10 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     return user;
   }
 
-  private User convert(CreateUserRQFull request) {
-    final UserRole userRole = UserRole.findByName(request.getAccountRole())
-        .orElseThrow(() -> new ReportPortalException(
-            BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter."));
-
-    User user = new UserBuilder().addCreateUserFullRQ(request)
-        .addUserRole(userRole)
-        .get();
-
-    ofNullable(request.getPassword())
-        .ifPresent(password -> user.setPassword(passwordEncoder.encode(password)));
-
+  private User convert(NewUserRequest request) {
+    User user = new UserBuilder().fromNewUserRequest(request).get();
+    ofNullable(request.getPassword()).ifPresent(
+        password -> user.setPassword(passwordEncoder.encode(password)));
     return user;
   }
 }

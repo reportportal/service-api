@@ -47,8 +47,6 @@ import com.epam.ta.reportportal.model.ModelViews;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.user.ChangePasswordRQ;
-import com.epam.ta.reportportal.model.user.CreateUserRQFull;
-import com.epam.ta.reportportal.model.user.CreateUserRS;
 import com.epam.ta.reportportal.model.user.EditUserRQ;
 import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
 import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
@@ -119,18 +117,8 @@ public class UserController {
     this.apiKeyHandler = apiKeyHandler;
   }
 
-  @PostMapping
-  @ResponseStatus(CREATED)
-  @PreAuthorize(IS_ADMIN)
-  @Operation(summary =  "Create specified user", description = "Allowable only for users with administrator role")
-  public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq,
-      @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
-    return createUserMessageHandler.createUserByAdmin(rq, currentUser, composeBaseUrl(request));
-  }
-
-
   @DeleteMapping(value = "/{id}")
-  @Operation(summary =  "Delete specified user")
+  @Operation(summary = "Delete specified user")
   public OperationCompletionRS deleteUser(@PathVariable(value = "id") Long userId,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
     return deleteUserHandler.deleteUser(userId, currentUser);
@@ -148,7 +136,7 @@ public class UserController {
   @Transactional
   @PutMapping(value = "/{login}")
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
-  @Operation(summary =  "Edit specified user", description = "Only for administrators and profile's owner")
+  @Operation(summary = "Edit specified user", description = "Only for administrators and profile's owner")
   public OperationCompletionRS editUser(@PathVariable String login,
       @RequestBody @Validated EditUserRQ editUserRQ, @ActiveRole UserRole role,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
@@ -159,14 +147,14 @@ public class UserController {
   @GetMapping(value = "/{login}")
   @ResponseView(ModelViews.FullUserView.class)
   @PreAuthorize(ALLOWED_TO_EDIT_USER)
-  @Operation(summary =  "Return information about specified user", description = "Only for administrators and profile's owner")
+  @Operation(summary = "Return information about specified user", description = "Only for administrators and profile's owner")
   public UserResource getUser(@PathVariable String login,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
     return getUserHandler.getUser(EntityUtils.normalizeId(login), currentUser);
   }
 
   @Transactional(readOnly = true)
-  @GetMapping(value = { "", "/" })
+  @GetMapping(value = {"", "/"})
   @Operation(summary = "Return information about current logged-in user")
   public UserResource getMyself(@AuthenticationPrincipal ReportPortalUser currentUser) {
     return getUserHandler.getUser(currentUser);
@@ -176,7 +164,7 @@ public class UserController {
   @GetMapping(value = "/all")
   @ResponseView(ModelViews.FullUserView.class)
   @PreAuthorize(IS_ADMIN)
-  @Operation(summary =  "Return information about all users", description = "Allowable only for users with administrator role")
+  @Operation(summary = "Return information about all users", description = "Allowable only for users with administrator role")
   public Page<UserResource> getUsers(@FilterFor(User.class) Filter filter,
       @SortFor(User.class) Pageable pageable, @FilterFor(User.class) Queryable queryable,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
@@ -247,7 +235,7 @@ public class UserController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/export")
   @PreAuthorize(IS_ADMIN)
-  @Operation(summary =  "Exports information about all users", description = "Allowable only for users with administrator role")
+  @Operation(summary = "Exports information about all users", description = "Allowable only for users with administrator role")
   public void export(@Parameter(schema = @Schema(allowableValues = "csv"))
   @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
       @FilterFor(User.class) Filter filter, @FilterFor(User.class) Queryable queryable,

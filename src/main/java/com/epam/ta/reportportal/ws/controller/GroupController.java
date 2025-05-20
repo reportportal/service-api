@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 
-
 import com.epam.reportportal.api.GroupsApi;
 import com.epam.reportportal.api.model.AddProjectToGroupByIdRequest;
 import com.epam.reportportal.api.model.CreateGroupRequest;
@@ -30,14 +29,12 @@ import com.epam.reportportal.api.model.GroupUserInfo;
 import com.epam.reportportal.api.model.GroupUsersPage;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
 import org.pf4j.PluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -47,7 +44,7 @@ import org.springframework.web.server.ResponseStatusException;
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
 @RestController
-public class GroupController implements GroupsApi {
+public class GroupController extends BaseController implements GroupsApi {
 
   private final PluginManager pluginManager;
 
@@ -78,7 +75,7 @@ public class GroupController implements GroupsApi {
   public ResponseEntity<GroupInfo> createGroup(CreateGroupRequest createGroupRequest) {
     GroupInfo group = getGroupExtension().createGroup(
         createGroupRequest,
-        getPrincipal().getUserId()
+        getLoggedUser().getUserId()
     );
     return new ResponseEntity<>(group, HttpStatus.CREATED);
   }
@@ -188,12 +185,5 @@ public class GroupController implements GroupsApi {
         .orElseThrow(
             () -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED)
         );
-  }
-
-  private ReportPortalUser getPrincipal() {
-    return (ReportPortalUser) SecurityContextHolder
-        .getContext()
-        .getAuthentication()
-        .getPrincipal();
   }
 }

@@ -71,6 +71,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -84,6 +85,7 @@ import org.springframework.stereotype.Service;
  */
 @Log4j2
 @Service
+@RequiredArgsConstructor
 public class UserInvitationHandler {
 
   public static final String BID_TYPE = "type";
@@ -101,32 +103,6 @@ public class UserInvitationHandler {
   private final OrganizationRepositoryCustom organizationRepositoryCustom;
   private final ProjectRepository projectRepository;
   private final PasswordEncoder passwordEncoder;
-
-  /**
-   * Constructor of UserInvitationHandlerImpl.
-   */
-  public UserInvitationHandler(UserCreationBidRepository userCreationBidRepository,
-      ThreadPoolTaskExecutor emailExecutorService, MailServiceFactory emailServiceFactory,
-      UserRepository userRepository, ApplicationEventPublisher eventPublisher,
-      ServerSettingsRepository settingsRepository,
-      UserAuthenticator userAuthenticator,
-      ProjectUserRepository projectUserRepository,
-      OrganizationUserRepository organizationUserRepository,
-      OrganizationRepositoryCustom organizationRepositoryCustom,
-      ProjectRepository projectRepository, PasswordEncoder passwordEncoder) {
-    this.userCreationBidRepository = userCreationBidRepository;
-    this.emailExecutorService = emailExecutorService;
-    this.emailServiceFactory = emailServiceFactory;
-    this.userRepository = userRepository;
-    this.eventPublisher = eventPublisher;
-    this.settingsRepository = settingsRepository;
-    this.userAuthenticator = userAuthenticator;
-    this.projectUserRepository = projectUserRepository;
-    this.organizationUserRepository = organizationUserRepository;
-    this.organizationRepositoryCustom = organizationRepositoryCustom;
-    this.projectRepository = projectRepository;
-    this.passwordEncoder = passwordEncoder;
-  }
 
   /**
    * Create user bid (send invitation).

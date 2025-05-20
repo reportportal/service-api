@@ -34,10 +34,10 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -65,25 +65,25 @@ public abstract class BaseMvcTest {
   @Autowired
   protected MockMvc mockMvc;
 
-  @MockBean
+  @MockitoBean
   protected MessageBus messageBus;
 
-  @MockBean
+  @MockitoBean
   protected MailServiceFactory mailServiceFactory;
 
-  @MockBean
+  @MockitoBean
   protected Pf4jPluginBox pluginBox;
 
-  @MockBean(name = "pluginFilesProvider")
+  @MockitoBean(name = "pluginFilesProvider")
   protected PluginFilesProvider pluginFilesProvider;
 
-  @MockBean(name = "pluginPublicFilesProvider")
+  @MockitoBean(name = "pluginPublicFilesProvider")
   protected PluginFilesProvider pluginPublicFilesProvider;
 
-  @MockBean
+  @MockitoBean
   protected BinaryDataResponseWriter binaryDataResponseWriter;
 
-  @MockBean
+  @MockitoBean
   protected ExecuteIntegrationHandler executeIntegrationHandler;
 
   @Mock

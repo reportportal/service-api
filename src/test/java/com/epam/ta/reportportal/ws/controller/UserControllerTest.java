@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,6 +33,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.reportportal.api.model.FilterOperation;
+import com.epam.reportportal.api.model.InstanceRole;
+import com.epam.reportportal.api.model.NewUserRequest;
+import com.epam.reportportal.api.model.NewUserRequest.AccountTypeEnum;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
 import com.epam.reportportal.model.ValidationConstraints;
@@ -50,7 +52,6 @@ import com.epam.ta.reportportal.model.user.ChangePasswordRQ;
 import com.epam.ta.reportportal.model.user.CreateUserBidRS;
 import com.epam.ta.reportportal.model.user.CreateUserRQ;
 import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
-import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.model.user.CreateUserRS;
 import com.epam.ta.reportportal.model.user.EditUserRQ;
 import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
@@ -79,107 +80,18 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @Sql("/db/user/user-fill.sql")
 class UserControllerTest extends BaseMvcTest {
 
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @Autowired
-  private ProjectRepository projectRepository;
-
-  @Autowired
-  private UserRepository userRepository;
-
-  @Autowired
-  private IssueTypeRepository issueTypeRepository;
-
   private static final String USERS_URL = "/v1/users";
   private static final String NEW_USERS_URL = "/users";
-
   @Autowired
   ApiKeyHandler apiKeyHandler;
-
-  @Test
-  void createdUserByIdentityProvider() throws Exception {
-    CreateUserRQFull rq = new CreateUserRQFull();
-    rq.setFullName("Test User");
-    rq.setEmail("test@test.com");
-    rq.setAccountRole("USER");
-    rq.setProjectRole("EDITOR");
-    rq.setActive(true);
-    rq.setAccountType(UserType.INTERNAL.toString());
-    rq.setAccountType("SCIM");
-
-    MvcResult mvcResult = mockMvc.perform(
-            post("/v1/users").with(token(oAuthHelper.getSuperadminToken()))
-                .contentType(APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated())
-        .andReturn();
-
-    CreateUserRS createUserRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-        CreateUserRS.class);
-
-    assertNotNull(createUserRS.getId());
-    assertEquals(normalizeId(rq.getEmail()), createUserRS.getLogin());
-    var user = userRepository.findById(createUserRS.getId());
-    assertTrue(user.isPresent());
-    assertEquals(UserType.SCIM, user.get().getUserType());
-    assertNull(user.get().getPassword());
-
-    var projectOptional = projectRepository.findByName("default_personal");
-    assertTrue(projectOptional.isPresent());
-    assertFalse(projectOptional.get().getUsers().stream()
-        .anyMatch(config -> config.getUser().getLogin().equals("test@test.com")));
-
-  }
-
-  @Test
-  void createUserByAdminPositive() throws Exception {
-    CreateUserRQFull rq = new CreateUserRQFull();
-    rq.setPassword("testPassword%123");
-    rq.setFullName("Test User");
-    rq.setEmail("test@test.com");
-    rq.setAccountRole("USER");
-    rq.setProjectRole("EDITOR");
-    rq.setDefaultProject("default_personal");
-    rq.setActive(true);
-    rq.setAccountType(UserType.INTERNAL.toString());
-
-    MvcResult mvcResult = mockMvc.perform(
-            post(USERS_URL).with(token(oAuthHelper.getSuperadminToken()))
-                .contentType(APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated())
-        .andReturn();
-
-    CreateUserRS createUserRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-        CreateUserRS.class);
-
-    assertNotNull(createUserRS.getId());
-    assertEquals(normalizeId(rq.getEmail()), createUserRS.getLogin());
-    assertTrue(userRepository.findById(createUserRS.getId()).isPresent());
-
-    // TODO: move to the new organization endpoints test
-    /*final Optional<Project> projectOptional = projectRepository.findByName("default_personal");
-    assertTrue(projectOptional.isPresent());
-    assertTrue(projectOptional.get().getUsers().stream()
-        .anyMatch(config -> config.getUser().getLogin().equals("est@test.com")));
-
-    Optional<Project> personalProject = projectRepository.findByName("test_test_com_personal");
-    assertTrue(personalProject.isPresent(), "Personal project isn't created");
-    Project project = personalProject.get();
-
-    List<IssueType> defaultIssueTypes = issueTypeRepository.getDefaultIssueTypes();
-
-    project.getProjectAttributes()
-        .forEach(projectAttribute -> assertTrue(projectAttribute.getValue()
-            .equalsIgnoreCase(
-                ProjectAttributeEnum.findByAttributeName(projectAttribute.getAttribute().getName())
-                    .get()
-                    .getDefaultValue())));
-
-    assertTrue(defaultIssueTypes.containsAll(project.getProjectIssueTypes()
-        .stream()
-        .map(ProjectIssueType::getIssueType)
-        .collect(Collectors.toList())));*/
-  }
+  @Autowired
+  private ObjectMapper objectMapper;
+  @Autowired
+  private ProjectRepository projectRepository;
+  @Autowired
+  private UserRepository userRepository;
+  @Autowired
+  private IssueTypeRepository issueTypeRepository;
 
   @Test
   @Disabled("to be deleted")
@@ -570,7 +482,8 @@ class UserControllerTest extends BaseMvcTest {
       "org_id|EQ|1|2",
       "org_id|EQ|2|0"
   }, delimiter = '|')
-  void getInstanceUsersPositive(String field, String op, String value, int expCount) throws Exception {
+  void getInstanceUsersPositive(String field, String op, String value, int expCount)
+      throws Exception {
     SearchCriteriaSearchCriteriaInner inner = new SearchCriteriaSearchCriteriaInner()
         .filterKey(field)
         .operation(FilterOperation.fromValue(op))

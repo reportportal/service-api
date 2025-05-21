@@ -31,16 +31,19 @@ import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 
+import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
-import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.constant.IssueRegexConstant;
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,9 +54,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.AddressException;
-import jakarta.mail.internet.InternetAddress;
 import lombok.Setter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -79,8 +79,10 @@ public class EmailService extends JavaMailSenderImpl {
   private static final String COMPOSITE_ATTRIBUTE_FILTER_FORMAT =
       "%s?launchesParams=filter.has.compositeAttribute=%s";
   private static final String TEMPLATE_IMAGES_PREFIX = "templates/email/images/";
-  @Setter private TemplateEngine templateEngine;
-  @Setter private String rpHost;
+  @Setter
+  private TemplateEngine templateEngine;
+  @Setter
+  private String rpHost;
   /* Default value for FROM project notifications field */
   private InternetAddress from;
 
@@ -97,9 +99,9 @@ public class EmailService extends JavaMailSenderImpl {
    * Finish launch notification.
    *
    * @param recipients List of recipients
-   * @param project {@link Project}
-   * @param url ReportPortal URL
-   * @param launch Launch
+   * @param project    {@link Project}
+   * @param url        ReportPortal URL
+   * @param launch     Launch
    */
   public void sendLaunchFinishNotification(
       final String[] recipients, final String url, final Project project, final Launch launch) {
@@ -265,10 +267,10 @@ public class EmailService extends JavaMailSenderImpl {
   /**
    * Restore password email.
    *
-   * @param subject Letter's subject
+   * @param subject    Letter's subject
    * @param recipients Letter's recipients
-   * @param url ReportPortal URL
-   * @param login User's login
+   * @param url        ReportPortal URL
+   * @param login      User's login
    */
   public void sendRestorePasswordEmail(
       final String subject, final String[] recipients, final String url, final String login) {
@@ -295,9 +297,9 @@ public class EmailService extends JavaMailSenderImpl {
   /**
    * Sends a confirmation email to the user after changing the password.
    *
-   * @param subject the subject of the email
+   * @param subject    the subject of the email
    * @param recipients the recipients of the email
-   * @param login the login of the user
+   * @param login      the login of the user
    */
   public void sendChangePasswordConfirmation(
       final String subject, final String[] recipients, final String login) {
@@ -323,8 +325,8 @@ public class EmailService extends JavaMailSenderImpl {
   /**
    * Sends an email notification when the indexing process is finished.
    *
-   * @param subject the subject of the email
-   * @param recipient the recipient of the email
+   * @param subject          the subject of the email
+   * @param recipient        the recipient of the email
    * @param indexedLogsCount the number of logs that were indexed
    */
   public void sendIndexFinishedEmail(
@@ -341,6 +343,16 @@ public class EmailService extends JavaMailSenderImpl {
           message.setText(text, true);
         };
     this.send(preparator);
+  }
+
+  /**
+   * Gets the sender's email address.
+   *
+   * @return the sender's email address if it is set.
+   * @see InternetAddress
+   */
+  public Optional<InternetAddress> getFrom() {
+    return Optional.ofNullable(from);
   }
 
   /**
@@ -377,21 +389,11 @@ public class EmailService extends JavaMailSenderImpl {
   }
 
   /**
-   * Gets the sender's email address.
-   *
-   * @return the sender's email address if it is set.
-   * @see InternetAddress
-   */
-  public Optional<InternetAddress> getFrom() {
-    return Optional.ofNullable(from);
-  }
-
-  /**
    * User creation confirmation email.
    *
-   * @param subject Letter's subject
+   * @param subject    Letter's subject
    * @param recipients Letter's recipients
-   * @param url ReportPortal URL
+   * @param url        ReportPortal URL
    */
   public void sendCreateUserConfirmationEmail(
       final String subject, final String[] recipients, final String url) {
@@ -417,10 +419,10 @@ public class EmailService extends JavaMailSenderImpl {
   /**
    * Sends an email to the user with a confirmation link to create an account.
    *
-   * @param req the request to create a user
+   * @param req      the request to create a user
    * @param basicUrl the basic URL of the ReportPortal
    */
-  public void sendCreateUserConfirmationEmail(CreateUserRQFull req, String basicUrl) {
+  public void sendCreateUserConfirmationEmail(NewUserRequest req, String basicUrl) {
     MimeMessagePreparator preparator =
         mimeMessage -> {
           MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");

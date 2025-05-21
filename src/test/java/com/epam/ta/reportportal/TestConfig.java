@@ -16,10 +16,10 @@
 
 package com.epam.ta.reportportal;
 
-import com.epam.ta.reportportal.core.configs.security.JwtReportPortalUserConverter;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.impl.RabbitMqManagementClientTemplate;
+import com.epam.ta.reportportal.core.configs.security.JwtReportPortalUserConverter;
 import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBeanTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

@@ -45,7 +45,7 @@ import org.springframework.web.server.ResponseStatusException;
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
 @RestController
-public class GroupController extends BaseController implements GroupsApi {
+public class GroupController implements GroupsApi {
 
   private final PluginManager pluginManager;
 

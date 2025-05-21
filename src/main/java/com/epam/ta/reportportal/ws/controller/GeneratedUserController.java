@@ -55,7 +55,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @RestController
-public class GeneratedUserController extends BaseController implements UserApi {
+public class GeneratedUserController implements UserApi {
 
   private final CreateUserHandler createUserHandler;
   private final GetFileHandler getFileHandler;

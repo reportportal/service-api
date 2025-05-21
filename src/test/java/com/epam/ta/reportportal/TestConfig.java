@@ -36,6 +36,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -44,7 +45,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -62,25 +62,25 @@ public class TestConfig {
 
   public final static SecretKey TEST_SECRET = SIG.HS256.key().build();
 
-  @MockitoBean
+  @MockBean
   protected Client rabbitClient;
 
-  @MockitoBean("analyzerRabbitTemplate")
+  @MockBean(name = "analyzerRabbitTemplate")
   protected RabbitTemplate analyzerRabbitTemplate;
 
-  @MockitoBean("rabbitTemplate")
+  @MockBean(name = "rabbitTemplate")
   protected RabbitTemplate rabbitTemplate;
 
-  @MockitoBean("connectionFactory")
+  @MockBean(name = "connectionFactory")
   protected ConnectionFactory connectionFactory;
 
-  @MockitoBean("simpleRabbitListenerContainerFactoryConfigurer")
+  @MockBean(name = "simpleRabbitListenerContainerFactoryConfigurer")
   protected SimpleRabbitListenerContainerFactoryConfigurer simpleRabbitListenerContainerFactoryConfigurer;
 
-  @MockitoBean("amqpAdmin")
+  @MockBean(name = "amqpAdmin")
   protected AmqpAdmin amqpAdmin;
 
-  @MockitoBean
+  @MockBean
   protected MessageConverter messageConverter;
 
   @Autowired

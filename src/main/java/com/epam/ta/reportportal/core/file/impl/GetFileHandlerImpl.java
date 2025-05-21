@@ -83,8 +83,7 @@ public class GetFileHandlerImpl implements GetFileHandler {
       return getDefaultPhoto();
     }
     User user = userOptional.get();
-    MembershipDetails membershipDetails = projectExtractor.extractProjectDetailsAdmin(
-        loggedInUser, projectKey);
+    MembershipDetails membershipDetails = projectExtractor.extractProjectDetailsAdmin(projectKey);
     if (loggedInUser.getUserRole() != UserRole.ADMINISTRATOR) {
       expect(ProjectUtils.isAssignedToProject(user, membershipDetails.getProjectId()),
           Predicate.isEqual(true)).verify(ErrorType.ACCESS_DENIED,

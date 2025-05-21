@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.organization.impl;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
+import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.ORG_PROFILE_TO_ORG_INFO;
 
 import com.epam.reportportal.api.model.OrgType;
@@ -32,7 +33,6 @@ import com.epam.reportportal.api.model.OrganizationStatsRelationshipsUsers;
 import com.epam.reportportal.api.model.OrganizationStatsRelationshipsUsersMeta;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -66,7 +66,7 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
   }
 
   @Override
-  public OrganizationInfo getOrganizationById(Long organizationId, ReportPortalUser user) {
+  public OrganizationInfo getOrganizationById(Long organizationId) {
     Filter filter = new Filter(OrganizationFilter.class, Lists.newArrayList());
     filter.withCondition(
         new FilterCondition(Condition.EQUALS, false, organizationId.toString(), CRITERIA_ID));
@@ -79,8 +79,8 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
   }
 
   @Override
-  public OrganizationPage getOrganizations(ReportPortalUser rpUser, Queryable filter,
-      Pageable pageable) {
+  public OrganizationPage getOrganizations(Queryable filter, Pageable pageable) {
+    var rpUser = getPrincipal();
     OrganizationPage organizationProfilesPage = new OrganizationPage();
 
     if (!rpUser.getUserRole().equals(UserRole.ADMINISTRATOR)) {

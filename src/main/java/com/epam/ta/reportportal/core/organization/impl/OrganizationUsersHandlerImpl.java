@@ -24,6 +24,9 @@ import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_ASSIG
 import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
+import static com.epam.ta.reportportal.util.OrganizationUserValidator.validateUserRoles;
+import static com.epam.ta.reportportal.util.OrganizationUserValidator.validateUserType;
+import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.ORG_USER_ACCOUNT_TO_ORG_USER;
 import static java.util.function.Predicate.isEqual;
 
@@ -35,7 +38,6 @@ import com.epam.reportportal.api.model.UserAssignmentResponse;
 import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.organization.OrganizationUsersHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -51,8 +53,6 @@ import com.epam.ta.reportportal.entity.organization.OrganizationUserAccount;
 import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.util.SlugifyUtils;
 import java.util.List;
 import java.util.Map;
@@ -114,8 +114,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
   }
 
   @Override
-  public UserAssignmentResponse assignUser(Long orgId, OrgUserAssignment request,
-      ReportPortalUser rpUser) {
+  public UserAssignmentResponse assignUser(Long orgId, OrgUserAssignment request) {
     User assignedUser = userRepository.findById(request.getId())
         .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, request.getId()));
     var organization = organizationRepositoryCustom.findById(orgId)
@@ -158,11 +157,11 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
   }
 
   @Override
-  public void unassignUser(Long orgId, Long unassignUserId, ReportPortalUser user) {
+  public void unassignUser(Long orgId, Long unassignUserId) {
     OrganizationUser organizationUser = organizationUserRepository.findByUserIdAndOrganization_Id(unassignUserId, orgId)
         .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "User %s assignment".formatted(unassignUserId)));
 
-    validateUserRoles(user, organizationUser);
+    validateUserRoles(getPrincipal(), organizationUser);
     validateUserType(organizationUser.getOrganization(), organizationUser.getUser());
     validatePersonalOrganization(organizationUser.getOrganization(), organizationUser.getUser());
 
@@ -218,28 +217,6 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
             .id(entry.getKey())
             .projectRole(entry.getValue()))
         .toList();
-  }
-
-
-  private void validateUserType(Organization organization, User assignedUser) {
-    if (organization.getOrganizationType().equals(OrganizationType.EXTERNAL)
-        && assignedUser.getUserType().equals(UserType.UPSA)) {
-      throw new ReportPortalException(ErrorType.ACCESS_DENIED);
-    }
-  }
-
-  private void validateUserRoles(ReportPortalUser user, OrganizationUser organizationUser) {
-    if (user.getUserId().equals(organizationUser.getUser().getId())
-        || user.getUserRole().equals(UserRole.ADMINISTRATOR)
-        || isManager(user, organizationUser)) {
-      return;
-    }
-    throw new ReportPortalException(ErrorType.ACCESS_DENIED);
-  }
-
-  private boolean isManager(ReportPortalUser user, OrganizationUser organizationUser) {
-    return user.getOrganizationDetails().get(organizationUser.getOrganization().getId().toString()).getOrgRole()
-        .equals(OrganizationRole.MANAGER);
   }
 
 }

@@ -141,7 +141,7 @@ public class ActivityController {
       @PathVariable @Parameter(description = "The ID of the activity to be searched")
       Long activityId, @AuthenticationPrincipal ReportPortalUser user) {
     MembershipDetails membershipDetails =
-        projectExtractor.extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey));
+        projectExtractor.extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey));
     return activityHandler.getActivity(membershipDetails, activityId);
   }
 
@@ -310,7 +310,7 @@ public class ActivityController {
       + "searched") Long itemId, @FilterFor(Activity.class) Filter filter,
       @SortFor(Activity.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
     MembershipDetails membershipDetails =
-        projectExtractor.extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey));
+        projectExtractor.extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey));
     return activityHandler.getItemActivities(membershipDetails, itemId, filter, pageable);
    }
  }

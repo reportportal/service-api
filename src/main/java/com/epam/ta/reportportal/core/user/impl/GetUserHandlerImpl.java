@@ -22,16 +22,12 @@ import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaCon
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EXPIRED;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
-import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.PROJECT_PROFILE_TO_ORG_PROJECT_INFO;
 import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_INSTANCE_USER;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 
 import com.epam.reportportal.api.model.InstanceUser;
 import com.epam.reportportal.api.model.InstanceUserPage;
-import com.epam.reportportal.api.model.OrganizationProjectsPage;
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.EntityUtils;
@@ -50,11 +46,9 @@ import com.epam.ta.reportportal.entity.group.GroupProject;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectProfile;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.user.UserResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -131,10 +125,8 @@ public class GetUserHandlerImpl implements GetUserHandler {
     User user = userRepository.findByLogin(loggedInUser.getUsername())
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
-    //TODO : implement with group roles
-/*    List<GroupProject> groupProjects = groupMembershipRepository.findAllUserProjects(user.getId());
-    return UserConverter.TO_RESOURCE_WITH_GROUPS.apply(user, groupProjects);*/
-    return UserConverter.TO_RESOURCE.apply(user);
+    List<GroupProject> groupProjects = groupMembershipRepository.findAllUserProjects(user.getId());
+    return UserConverter.TO_RESOURCE_WITH_GROUPS.apply(user, groupProjects);
   }
 
   @Override

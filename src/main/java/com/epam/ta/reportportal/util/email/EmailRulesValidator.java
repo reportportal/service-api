@@ -26,7 +26,6 @@ import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.entity.project.ProjectUtils.getOwner;
-import static com.epam.ta.reportportal.util.UserUtils.isEmailValid;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -39,6 +38,7 @@ import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import com.google.common.base.Function;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.validator.routines.EmailValidator;
 
 /**
  * Validates email and launch name rules.
@@ -60,9 +60,9 @@ public final class EmailRulesValidator {
     expect(recipient, notNull()).verify(BAD_REQUEST_ERROR,
         formattedSupplier("Provided recipient email '{}' is invalid", recipient));
     if (recipient.contains("@")) {
-      expect(isEmailValid(recipient), equalTo(true)).verify(BAD_REQUEST_ERROR,
-          formattedSupplier("Provided recipient email '{}' is invalid", recipient)
-      );
+      expect(EmailValidator.getInstance().isValid(recipient), equalTo(true))
+          .verify(BAD_REQUEST_ERROR,
+              formattedSupplier("Provided recipient email '{}' is invalid", recipient));
     } else {
       final String login = recipient.trim();
       expect(MIN_LOGIN_LENGTH <= login.length() && login.length() <= MAX_LOGIN_LENGTH,

@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_GROUP;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 
-
 import com.epam.reportportal.api.GroupsApi;
 import com.epam.reportportal.api.model.AddProjectToGroupByIdRequest;
 import com.epam.reportportal.api.model.CreateGroupRequest;
@@ -31,7 +30,6 @@ import com.epam.reportportal.api.model.GroupUserInfo;
 import com.epam.reportportal.api.model.GroupUsersPage;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
-import com.epam.ta.reportportal.auth.permissions.GroupEditorPermission;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
 import org.pf4j.PluginManager;

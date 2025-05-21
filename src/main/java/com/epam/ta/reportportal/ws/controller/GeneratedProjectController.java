@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 
 import com.epam.reportportal.api.ProjectsApi;
 import com.epam.reportportal.api.model.AddProjectToGroupByIdRequest;
@@ -37,7 +38,7 @@ public class GeneratedProjectController implements ProjectsApi {
   }
 
   @Override
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public ResponseEntity<ProjectGroupsPage> getGroupsOfProject(
       String projectKey,
       Integer offset,
@@ -48,7 +49,7 @@ public class GeneratedProjectController implements ProjectsApi {
   }
 
   @Override
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public ResponseEntity<ProjectGroupInfo> getProjectGroupById(String projectKey, Long groupId) {
     var group = getGroupExtension().getProjectGroupById(projectKey, groupId).orElseThrow(
         () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
@@ -57,7 +58,7 @@ public class GeneratedProjectController implements ProjectsApi {
   }
 
   @Override
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public ResponseEntity<SuccessfulUpdate> addGroupToProjectById(
       String projectKey,
       Long groupId,
@@ -68,7 +69,7 @@ public class GeneratedProjectController implements ProjectsApi {
   }
 
   @Override
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public ResponseEntity<Void> deleteGroupFromProjectById(String projectName, Long groupId) {
     getGroupExtension().deleteGroupFromProject(projectName, groupId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);

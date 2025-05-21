@@ -16,8 +16,9 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_GROUP;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
-import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
+
 
 import com.epam.reportportal.api.GroupsApi;
 import com.epam.reportportal.api.model.AddProjectToGroupByIdRequest;
@@ -30,12 +31,15 @@ import com.epam.reportportal.api.model.GroupUserInfo;
 import com.epam.reportportal.api.model.GroupUsersPage;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
+import com.epam.ta.reportportal.auth.permissions.GroupEditorPermission;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
 import org.pf4j.PluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -65,9 +69,10 @@ public class GroupController implements GroupsApi {
       Integer offset,
       Integer limit,
       String order,
-      String sort
+      String sort,
+      Long orgId
   ) {
-    GroupPage groupPage = getGroupExtension().getGroups(offset, limit, order, sort);
+    GroupPage groupPage = getGroupExtension().getGroups(offset, limit, order, sort, orgId);
     return ResponseEntity.ok(groupPage);
   }
 
@@ -82,7 +87,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_GROUP)
   public ResponseEntity<GroupInfo> getGroupById(Long groupId) {
     GroupInfo group = getGroupExtension().getGroupById(groupId).orElseThrow(
         () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
@@ -91,7 +96,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_GROUP)
   public ResponseEntity<SuccessfulUpdate> updateGroup(
       Long groupId,
       UpdateGroupRequest updateGroupRequest
@@ -101,14 +106,14 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_GROUP)
   public ResponseEntity<Void> deleteGroup(Long groupId) {
     getGroupExtension().deleteGroup(groupId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @Override
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_GROUP)
   public ResponseEntity<GroupUsersPage> getGroupUsers(
       Long groupId,
       Integer offset,
@@ -119,7 +124,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_GROUP)
   public ResponseEntity<GroupUserInfo> getGroupUserById(Long groupId, Long userId) {
     var groupUserInfo = getGroupExtension().getGroupUserById(groupId, userId).orElseThrow(
         () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
@@ -128,21 +133,21 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_GROUP)
   public ResponseEntity<SuccessfulUpdate> addUserToGroupById(Long groupId, Long userId) {
     getGroupExtension().addUserToGroupById(groupId, userId);
     return ResponseEntity.ok(new SuccessfulUpdate("Group updated successfully"));
   }
 
   @Override
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_GROUP)
   public ResponseEntity<Void> deleteUserFromGroupById(Long groupId, Long userId) {
     getGroupExtension().deleteUserFromGroupById(groupId, userId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @Override
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_GROUP)
   public ResponseEntity<GroupProjectsPage> getGroupProjects(
       Long groupId,
       Integer offset,
@@ -154,7 +159,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_GROUP)
   public ResponseEntity<GroupProjectInfo> getGroupProjectById(Long groupId, Long projectId) {
     var groupProjectInfo = getGroupExtension().getGroupProjectById(groupId, projectId)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -162,7 +167,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_GROUP)
   public ResponseEntity<SuccessfulUpdate> addProjectToGroupById(
       Long groupId,
       Long projectId,
@@ -173,7 +178,7 @@ public class GroupController implements GroupsApi {
   }
 
   @Override
-  @PreAuthorize(IS_ADMIN)
+  @PreAuthorize(ALLOWED_TO_EDIT_GROUP)
   public ResponseEntity<Void> deleteProjectFromGroupById(Long groupId, Long projectId) {
     getGroupExtension().deleteProjectFromGroupById(groupId, projectId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -186,5 +191,12 @@ public class GroupController implements GroupsApi {
         .orElseThrow(
             () -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED)
         );
+  }
+
+  private ReportPortalUser getPrincipal() {
+    return (ReportPortalUser) SecurityContextHolder
+        .getContext()
+        .getAuthentication()
+        .getPrincipal();
   }
 }

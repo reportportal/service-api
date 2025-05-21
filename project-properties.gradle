@@ -85,6 +85,7 @@ project.ext {
             (migrationsUrl + '/migrations/202_update_project_table.up.sql')            : 'V202__update_project_table.up.sql',
             (migrationsUrl + '/migrations/203_user_table_extend.up.sql')               : 'V203__user_table_extend.up.sql',
             (migrationsUrl + '/migrations/204_bid_extend_metadata.up.sql')             : 'V204__bid_extend_metadata.up.sql',
+            (migrationsUrl + '/migrations/206_add_org_id_to_groups.up.sql')            : 'V206__add_org_id_to_groups.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

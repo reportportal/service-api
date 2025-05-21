@@ -76,10 +76,10 @@ public abstract class BaseMvcTest {
   @MockitoBean
   protected Pf4jPluginBox pluginBox;
 
-  @MockitoBean(name = "pluginFilesProvider")
+  @MockitoBean("pluginFilesProvider")
   protected PluginFilesProvider pluginFilesProvider;
 
-  @MockitoBean(name = "pluginPublicFilesProvider")
+  @MockitoBean("pluginPublicFilesProvider")
   protected PluginFilesProvider pluginPublicFilesProvider;
 
   @MockitoBean

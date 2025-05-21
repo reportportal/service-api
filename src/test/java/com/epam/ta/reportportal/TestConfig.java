@@ -16,10 +16,10 @@
 
 package com.epam.ta.reportportal;
 
-import com.epam.ta.reportportal.core.configs.security.JwtReportPortalUserConverter;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.impl.RabbitMqManagementClientTemplate;
+import com.epam.ta.reportportal.core.configs.security.JwtReportPortalUserConverter;
 import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBeanTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -36,7 +36,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -66,19 +65,19 @@ public class TestConfig {
   @MockitoBean
   protected Client rabbitClient;
 
-  @MockitoBean(name = "analyzerRabbitTemplate")
+  @MockitoBean("analyzerRabbitTemplate")
   protected RabbitTemplate analyzerRabbitTemplate;
 
-  @MockitoBean(name = "rabbitTemplate")
+  @MockitoBean("rabbitTemplate")
   protected RabbitTemplate rabbitTemplate;
 
-  @MockitoBean(name = "connectionFactory")
+  @MockitoBean("connectionFactory")
   protected ConnectionFactory connectionFactory;
 
-  @MockitoBean(name = "simpleRabbitListenerContainerFactoryConfigurer")
+  @MockitoBean("simpleRabbitListenerContainerFactoryConfigurer")
   protected SimpleRabbitListenerContainerFactoryConfigurer simpleRabbitListenerContainerFactoryConfigurer;
 
-  @MockitoBean(name = "amqpAdmin")
+  @MockitoBean("amqpAdmin")
   protected AmqpAdmin amqpAdmin;
 
   @MockitoBean

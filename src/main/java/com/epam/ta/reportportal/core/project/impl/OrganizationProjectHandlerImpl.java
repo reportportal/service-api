@@ -135,10 +135,10 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
           .map(Object::toString)
           .collect(Collectors.joining(","));
 
-      var groupProjectIds = groupMembershipRepository.findAllUserProjects(rpUser.getUserId())
+      var groupProjectIds = groupMembershipRepository
+          .findAllUserProjectsInOrganization(rpUser.getUserId(), orgId)
           .stream()
-          .filter(project -> project.getProject().getOrganizationId().equals(orgId))
-          .map(project -> project.getProject().getId().toString())
+          .map(gp -> gp.getId().getProjectId().toString())
           .collect(Collectors.joining(","));
 
       projectIds = Stream.of(projectIds, groupProjectIds)

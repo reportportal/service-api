@@ -18,22 +18,23 @@ package com.epam.ta.reportportal.reporting.async.exception;
 
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_PARKING_LOT;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.RETRY_EXCHANGE;
-import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.TTL_QUEUE;
+import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.TTL_QUEUE_M;
+import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.TTL_QUEUE_MS;
+import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.TTL_QUEUE_S;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
 import com.google.common.collect.Lists;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ErrorHandler;
 
 /**
@@ -50,6 +51,8 @@ public class ReportingErrorHandler implements ErrorHandler {
 
   private final RabbitTemplate rabbitTemplate;
 
+  private final String RETRY_COUNT_HEADER = "x-retry-count";
+
   @Value("${reporting.retry.max-count:20}")
   private Integer maxRetryCount;
 
@@ -64,7 +67,7 @@ public class ReportingErrorHandler implements ErrorHandler {
       failedMessage.getMessageProperties().getHeaders()
           .put("exception", executionFailedException.getCause().getMessage());
 
-      int retryCount = getRetryCount(failedMessage.getMessageProperties().getXDeathHeader());
+      int retryCount = getRetryCount(failedMessage.getMessageProperties());
       if (retryCount > 0) {
         log.warn(
             "Retrying reporting message. Attempt count is {}. Request Type: {}, Launch UUID: {} ",
@@ -83,9 +86,8 @@ public class ReportingErrorHandler implements ErrorHandler {
 
       if (executionFailedException.getCause() instanceof ReportPortalException reportPortalException) {
         if (RETRYABLE_ERROR_TYPES.contains(reportPortalException.getErrorType())) {
-          failedMessage.getMessageProperties()
-              .setExpiration(String.valueOf(getNextTtl(retryCount)));
-          rabbitTemplate.send(RETRY_EXCHANGE, TTL_QUEUE, failedMessage);
+          failedMessage.getMessageProperties().setHeader(RETRY_COUNT_HEADER, retryCount + 1);
+          rabbitTemplate.send(RETRY_EXCHANGE, getRetryTtlQueue(retryCount), failedMessage);
           return;
         }
       }
@@ -95,22 +97,36 @@ public class ReportingErrorHandler implements ErrorHandler {
     }
   }
 
-  private int getRetryCount(List<Map<String, ?>> xDeathHeaders) {
-    if (!CollectionUtils.isEmpty(xDeathHeaders)) {
-      var xDeath = xDeathHeaders.getFirst();
-      return Optional.ofNullable(xDeath.get("count")).map(count -> (long) count).orElse(0L)
-          .intValue();
+  /**
+   * Returns the name of the retry TTL queue based on the number of retry attempts.
+   *
+   * <p>Selection logic:
+   * <ul>
+   *   <li>If {@code retryCount} is less than or equal to 5 — use the queue with millisecond TTL ({@code TTL_QUEUE_MS}).</li>
+   *   <li>If {@code retryCount} is greater than 5 but less than or equal to 10 — use the queue with second TTL ({@code TTL_QUEUE_S}).</li>
+   *   <li>If {@code retryCount} is greater than 10 — use the queue with minute TTL ({@code TTL_QUEUE_M}).</li>
+   * </ul>
+   *
+   * @param retryCount the number of retry attempts
+   * @return the name of the appropriate TTL queue
+   */
+  private String getRetryTtlQueue(int retryCount) {
+    if (retryCount <= 5) {
+      return TTL_QUEUE_MS;
     }
-    return 0;
+    if (retryCount <= 10) {
+      return TTL_QUEUE_S;
+    }
+    return TTL_QUEUE_M;
+  }
+
+  private int getRetryCount(MessageProperties messageProperties) {
+    return Optional.ofNullable(messageProperties.getHeader(RETRY_COUNT_HEADER))
+        .map(it -> (Integer) it)
+        .orElse(0);
   }
 
   private boolean checkRetryExceeded(long retries) {
     return retries >= maxRetryCount;
-  }
-
-  private int getNextTtl(int retryCount) {
-    int initialTtl = 1000;
-    double res = initialTtl * Math.pow(1.5, retryCount);
-    return (int) res;
   }
 }

@@ -32,7 +32,6 @@ import static java.util.Optional.ofNullable;
 import com.epam.reportportal.api.model.InstanceUser;
 import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.auth.authenticator.UserAuthenticator;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
@@ -71,8 +70,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   public static final String INTERNAL_BID_TYPE = "internal";
 
   private final UserRepository userRepository;
-
-  private final UserAuthenticator userAuthenticator;
 
   private final MailServiceFactory emailServiceFactory;
 

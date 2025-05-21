@@ -63,6 +63,13 @@ public class UserBuilder implements Supplier<User> {
     return this;
   }
 
+  /**
+   * Populates the user data from the given {@link NewUserRequest}.
+   *
+   * @param request the request object containing new user data.
+   * @return the current {@code UserBuilder} instance with populated user data.
+   * @throws ReportPortalException if the specified {@code instanceRole} is invalid.
+   */
   public UserBuilder fromNewUserRequest(NewUserRequest request) {
     ofNullable(request).ifPresent(
         it -> {

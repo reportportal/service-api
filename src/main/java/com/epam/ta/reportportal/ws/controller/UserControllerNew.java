@@ -20,6 +20,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_O
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
+import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 
 import com.epam.reportportal.api.UserApi;
 import com.epam.reportportal.api.model.InstanceUser;
@@ -94,7 +95,7 @@ public class UserControllerNew extends BaseController implements UserApi {
   @Override
   @PreAuthorize(IS_ADMIN)
   public ResponseEntity<InstanceUser> postUsers(NewUserRequest newUserRequest) {
-    return ResponseEntity.ok(createUserHandler.createUser(newUserRequest, getLoggedUser(),
+    return ResponseEntity.ok(createUserHandler.createUser(newUserRequest, getPrincipal(),
         composeBaseUrl(httpServletRequest)));
   }
 

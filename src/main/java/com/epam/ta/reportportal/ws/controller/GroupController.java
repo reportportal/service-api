@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
+import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 
 import com.epam.reportportal.api.GroupsApi;
 import com.epam.reportportal.api.model.AddProjectToGroupByIdRequest;
@@ -75,7 +76,7 @@ public class GroupController extends BaseController implements GroupsApi {
   public ResponseEntity<GroupInfo> createGroup(CreateGroupRequest createGroupRequest) {
     GroupInfo group = getGroupExtension().createGroup(
         createGroupRequest,
-        getLoggedUser().getUserId()
+        getPrincipal().getUserId()
     );
     return new ResponseEntity<>(group, HttpStatus.CREATED);
   }

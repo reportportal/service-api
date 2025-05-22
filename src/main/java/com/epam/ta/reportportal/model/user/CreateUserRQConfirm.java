@@ -16,12 +16,15 @@
 
 package com.epam.ta.reportportal.model.user;
 
+import static com.epam.reportportal.model.ValidationConstraints.USER_PASSWORD_REGEXP;
+
 import com.epam.reportportal.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -37,26 +40,21 @@ import lombok.Data;
 public class CreateUserRQConfirm {
 
   @NotBlank
-  @Pattern(regexp = "[a-zA-Z0-9-_.]+")
-  @Size(min = ValidationConstraints.MIN_LOGIN_LENGTH, max = ValidationConstraints.MAX_LOGIN_LENGTH)
-  @JsonProperty(value = "login", required = true)
-  @Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
-  private String login;
-
-  @NotBlank
   @Size(min = ValidationConstraints.MIN_PASSWORD_LENGTH, max = ValidationConstraints.MAX_PASSWORD_LENGTH)
   @JsonProperty(value = "password", required = true)
   @Schema(requiredMode = RequiredMode.REQUIRED)
+  @Pattern(regexp = USER_PASSWORD_REGEXP)
   private String password;
 
   @NotBlank
-  @Pattern(regexp = "[\\pL0-9-_ \\.]+")
+  @Pattern(regexp = "[\\pL0-9-_ .]+")
   @Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)
   @JsonProperty(value = "fullName", required = true)
   @Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
   private String fullName;
 
   @NotBlank
+  @Email
   @JsonProperty(value = "email", required = true)
   @Schema(requiredMode = RequiredMode.REQUIRED)
   private String email;

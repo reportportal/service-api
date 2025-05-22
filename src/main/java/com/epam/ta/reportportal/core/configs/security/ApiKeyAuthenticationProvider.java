@@ -29,6 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -73,7 +74,7 @@ public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
           .orElseThrow();
     }
 
-    return authentication;
+    throw new AuthenticationCredentialsNotFoundException("Invalid access token");
   }
 
   @Override

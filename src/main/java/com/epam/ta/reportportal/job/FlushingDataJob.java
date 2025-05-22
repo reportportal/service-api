@@ -54,7 +54,7 @@ public class FlushingDataJob implements Job {
 
   private final Logger LOGGER = LoggerFactory.getLogger(this.getClass().getName());
   private static final String SUPERADMIN_PERSONAL = "superadmin_personal";
-  private static final String SUPERADMIN = "superadmin";
+  private static final String SUPERADMIN = "admin@reportportal.internal";
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
@@ -143,9 +143,8 @@ public class FlushingDataJob implements Job {
 
   private void createDefaultUser() {
     final CreateUserRQFull request = new CreateUserRQFull();
-    request.setLogin("default");
+    request.setEmail("default@reportportal.internal");
     request.setPassword("1q2w3e");
-    request.setEmail("defaultemail@domain.com");
     User user = new UserBuilder().addCreateUserFullRQ(request).addUserRole(UserRole.USER)
         .addPassword(passwordEncoder.encode(request.getPassword())).get();
     projectRepository.save(personalProjectService.generatePersonalProject(user));

@@ -22,6 +22,8 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.ActivityEventResource;
+import com.epam.reportportal.model.ActivityResource;
+import com.epam.ta.reportportal.model.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
@@ -64,8 +66,8 @@ public interface ActivityHandler {
    * @param pageable       Page Details
    * @return Found activities
    */
-  Iterable<ActivityEventResource> getItemActivities(MembershipDetails membershipDetails,
-      Long itemId, Filter filter, Pageable pageable);
+  Page<ActivityEventResource> getItemActivities(MembershipDetails membershipDetails,
+                                                Long itemId, Filter filter, Pageable pageable);
 
   /**
    * Load list of {@link ActivityResource} for specified

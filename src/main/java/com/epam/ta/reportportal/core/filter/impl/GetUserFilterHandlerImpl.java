@@ -69,8 +69,8 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
   }
 
   @Override
-  public Iterable<UserFilterResource> getUserFilters(String projectName, Pageable pageable,
-      Filter filter, ReportPortalUser user) {
+  public com.epam.ta.reportportal.model.Page<UserFilterResource> getUserFilters(String projectName, Pageable pageable,
+                                                                                Filter filter, ReportPortalUser user) {
     MembershipDetails membershipDetails =
         projectExtractor.extractMembershipDetails(user, projectName);
     Page<UserFilter> userFilters =
@@ -82,7 +82,7 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
   }
 
   @Override
-  public Iterable<OwnedEntityResource> getFiltersNames(
+  public com.epam.ta.reportportal.model.Page<OwnedEntityResource> getFiltersNames(
       MembershipDetails membershipDetails, Pageable pageable, Filter filter,
       ReportPortalUser user) {
     final Page<UserFilter> userFilters =

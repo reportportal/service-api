@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.launch.util;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
-import java.util.Collections;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,6 +53,11 @@ public final class LinkGenerator {
     return StringUtils.isEmpty(baseUrl) ? null : baseUrl + UI_PREFIX + projectName + LAUNCHES + id;
   }
 
+  public static URI generateInvitationUrl(HttpServletRequest httpServletRequest, String invitationId) {
+    var baseUrl = composeBaseUrl(httpServletRequest);
+    return URI.create(baseUrl + "/ui/#registration?uuid=" + invitationId);
+  }
+
   @SneakyThrows
   public static String composeBaseUrl(HttpServletRequest request) {
 
@@ -63,8 +67,14 @@ public final class LinkGenerator {
      */
 
     HttpHeaders httpHeaders = new HttpHeaders();
-    Collections.list(request.getHeaderNames())
-        .forEach(headerName-> httpHeaders.add(headerName, request.getHeader(headerName)));
+    // Only include relevant forwarding headers
+    String[] forwardedHeaders = {"x-forwarded-host", "x-forwarded-proto", "x-forwarded-port", "x-forwarded-for", "forwarded"};
+    for (String headerName : forwardedHeaders) {
+      String headerValue = request.getHeader(headerName);
+      if (headerValue != null) {
+        httpHeaders.add(headerName, headerValue);
+      }
+    }
 
     URI uri = new URI(request.getRequestURI());
 

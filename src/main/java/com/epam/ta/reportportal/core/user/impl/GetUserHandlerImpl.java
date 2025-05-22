@@ -30,8 +30,6 @@ import com.epam.reportportal.api.model.InstanceUser;
 import com.epam.reportportal.api.model.InstanceUserPage;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -51,7 +49,6 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.user.UserResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -128,10 +125,8 @@ public class GetUserHandlerImpl implements GetUserHandler {
     User user = userRepository.findByLogin(loggedInUser.getUsername())
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
-    //TODO : implement with group roles
-/*    List<GroupProject> groupProjects = groupMembershipRepository.findAllUserProjects(user.getId());
-    return UserConverter.TO_RESOURCE_WITH_GROUPS.apply(user, groupProjects);*/
-    return UserConverter.TO_RESOURCE.apply(user);
+    List<GroupProject> groupProjects = groupMembershipRepository.findAllUserProjects(user.getId());
+    return UserConverter.TO_RESOURCE_WITH_GROUPS.apply(user, groupProjects);
   }
 
   @Override
@@ -148,8 +143,8 @@ public class GetUserHandlerImpl implements GetUserHandler {
   }
 
   @Override
-  public Iterable<UserResource> getUsers(Filter filter, Pageable pageable,
-      MembershipDetails membershipDetails) {
+  public com.epam.ta.reportportal.model.Page<UserResource> getUsers(Filter filter, Pageable pageable,
+                                                                    MembershipDetails membershipDetails) {
     // Active users only
     filter.withCondition(new FilterCondition(Condition.EQUALS, false, "false", CRITERIA_EXPIRED));
     filter.withCondition(new FilterCondition(Condition.EQUALS,
@@ -191,7 +186,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
   }
 
   @Override
-  public Iterable<UserResource> getAllUsers(Queryable filter, Pageable pageable) {
+  public com.epam.ta.reportportal.model.Page<UserResource> getAllUsers(Queryable filter, Pageable pageable) {
     final Page<User> users = userRepository.findByFilter(filter, pageable);
     return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(users);
   }
@@ -227,7 +222,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
   }
 
   @Override
-  public Iterable<UserResource> searchUsers(String term, Pageable pageable) {
+  public com.epam.ta.reportportal.model.Page<UserResource> searchUsers(String term, Pageable pageable) {
 
     Filter filter = Filter.builder()
         .withTarget(User.class)

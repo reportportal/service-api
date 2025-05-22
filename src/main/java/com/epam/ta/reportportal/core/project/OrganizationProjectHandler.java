@@ -19,28 +19,22 @@ package com.epam.ta.reportportal.core.project;
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
 import com.epam.reportportal.api.model.ProjectBase;
 import com.epam.reportportal.api.model.ProjectInfo;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import org.springframework.data.domain.Pageable;
 
 public interface OrganizationProjectHandler {
 
   /**
-   * Returns a page of projects for organization based on the provided filter and pagination.
+   * Returns a page of projects for the organization based on the provided filter and pagination.
    *
-   * @param user     the {@link ReportPortalUser} whose details are used to apply the additional
-   *                 filters
    * @param orgId    the id of the organization whose projects are queried
    * @param filter   the {@link Filter} with condition(s) to be applied on the project querying
    * @param pageable the {@link Pageable} to define the pagination details for the result
    * @return an {@link OrganizationProjectsPage} represents a page of projects for the organization
    */
-  OrganizationProjectsPage getOrganizationProjectsPage(ReportPortalUser user, Long orgId,
-      Filter filter,
-      Pageable pageable);
+  OrganizationProjectsPage getOrganizationProjectsPage(Long orgId, Filter filter, Pageable pageable);
 
-  ProjectInfo createProject(Long orgId, ProjectBase projectDetails,
-      ReportPortalUser user);
+  ProjectInfo createProject(Long orgId, ProjectBase projectDetails);
 
-  void deleteProject(ReportPortalUser user, Long orgId, Long prjId);
+  void deleteProject(Long orgId, Long prjId);
 }

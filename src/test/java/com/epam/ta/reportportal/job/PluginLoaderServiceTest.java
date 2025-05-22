@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.job;
 
+import static com.epam.ta.reportportal.entity.enums.PluginTypeEnum.EXTENSION;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -133,6 +134,7 @@ class PluginLoaderServiceTest {
     jiraDetails.setDetails(jiraParams);
     jira.setEnabled(true);
     jira.setDetails(jiraDetails);
+    jira.setPluginType(EXTENSION);
 
     IntegrationType rally = new IntegrationType();
     rally.setEnabled(true);
@@ -145,6 +147,7 @@ class PluginLoaderServiceTest {
     rallyDetails.setDetails(rallyParams);
     rally.setName("rally");
     rally.setDetails(rallyDetails);
+    rally.setPluginType(EXTENSION);
 
     IntegrationType noDetails = new IntegrationType();
     noDetails.setName("NO DETAILS");

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.core.group;
 
 import com.epam.reportportal.api.model.AddProjectToGroupByIdRequest;
@@ -8,6 +24,7 @@ import com.epam.reportportal.api.model.GroupProjectInfo;
 import com.epam.reportportal.api.model.GroupProjectsPage;
 import com.epam.reportportal.api.model.GroupUserInfo;
 import com.epam.reportportal.api.model.GroupUsersPage;
+import com.epam.reportportal.api.model.OrgGroupPage;
 import com.epam.reportportal.api.model.ProjectGroupInfo;
 import com.epam.reportportal.api.model.ProjectGroupsPage;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
@@ -29,9 +46,10 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * @param limit  The number of groups to return.
    * @param order  The order of sorting.
    * @param sort   The field to sort by.
+   * @param orgId  The organization ID.
    * @return {@link GroupPage} containing a page of groups.
    */
-  GroupPage getGroups(Integer offset, Integer limit, String order, String sort);
+  GroupPage getGroups(Integer offset, Integer limit, String order, String sort, Long orgId);
 
   /**
    * Creates a group.

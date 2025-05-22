@@ -20,48 +20,26 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Dzmitry_Kavalets
  */
 @Setter
 @Getter
+@ToString
+@EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RestorePasswordRQ {
 
-	@NotBlank
-	@JsonProperty(value = "email")
-	@Schema(requiredMode = RequiredMode.REQUIRED)
-	private String email;
-
-  @Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-
-		RestorePasswordRQ that = (RestorePasswordRQ) o;
-
-		return !(email != null ? !email.equals(that.email) : that.email != null);
-
-	}
-
-	@Override
-	public int hashCode() {
-		return email != null ? email.hashCode() : 0;
-	}
-
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder("ResetPasswordRQ{");
-		sb.append("email='").append(email).append('\'');
-		sb.append('}');
-		return sb.toString();
-	}
+  @NotBlank
+  @Email
+  @JsonProperty(value = "email")
+  @Schema(requiredMode = RequiredMode.REQUIRED)
+  private String email;
 }

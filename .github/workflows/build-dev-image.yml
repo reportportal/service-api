@@ -30,6 +30,7 @@ jobs:
     with:
       aws-region: ${{ vars.AWS_REGION }}
       image-tag: 'orgs-${{ github.run_number }}'
+      additional-tag: 'orgs-latest'
       version: 'orgs-${{ github.run_number }}'
       date: ${{ needs.variables-setup.outputs.date }}
       runs-on: ubuntu-latest

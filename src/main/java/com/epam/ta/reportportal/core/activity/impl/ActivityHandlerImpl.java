@@ -113,7 +113,7 @@ public class ActivityHandlerImpl implements ActivityHandler {
 	}
 
 	@Override
-	public Iterable<ActivityEventResource> getItemActivities(
+	public com.epam.ta.reportportal.model.Page<ActivityEventResource> getItemActivities(
 			MembershipDetails membershipDetails, Long itemId, Filter filter,
 			Pageable pageable) {
 		TestItem testItem = testItemRepository.findById(itemId).orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, itemId));

@@ -19,9 +19,9 @@ package com.epam.ta.reportportal.demodata.service;
 import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 
-import com.epam.reportportal.extension.event.LaunchFinishedPluginEvent;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -115,6 +115,6 @@ public class DemoDataLaunchService {
 
     launchRepository.save(launch);
     eventPublisher.publishEvent(
-        new LaunchFinishedPluginEvent(launch.getId(), launch.getProjectId()));
+        new LaunchFinishedEvent(launch));
   }
 }

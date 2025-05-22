@@ -1,5 +1,6 @@
 def commonScriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/'
 def migrationsScriptsUrl = 'https://raw.githubusercontent.com/reportportal/migrations/'
+def schemaUrl = 'https://schema.reportportal.io/'
 
 project.ext {
     publishRepo = "https://maven.pkg.github.com/reportportal/service-api"
@@ -16,6 +17,7 @@ project.ext {
     releaseMode = project.hasProperty("releaseMode") ? project.releaseMode.toBoolean() : false
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.12.0' : 'develop')
     migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.13.0' : 'feature/EPMRPP-migrate-tms-to-feature-orgs')
+    manifestSchemaUrl = schemaUrl + ('manifest.schema.json')
     //TODO refactor with archive download
     testScriptsSrc = [
             (migrationsUrl + '/migrations/0_extensions.up.sql')                        : 'V001__extensions.sql',
@@ -73,7 +75,10 @@ project.ext {
             (migrationsUrl + '/migrations/90_add_user_fields.up.sql')                  : 'V090__scim_user_fields.sql',
             (migrationsUrl + '/migrations/91_settings_users_sso.up.sql')               : 'V091__settings_users_sso.sql',
             (migrationsUrl + '/migrations/92_round_last_login.up.sql')                 : 'V092__round_last_login.up.sql',
-            (migrationsUrl + '/migrations/93_create_groups_tables.up.sql')             : 'V093__create_groups_tables.up.sql',
+            (migrationsUrl + '/migrations/93_settings_session_time.up.sql')            : 'V093__settings_session_time.sql',
+            (migrationsUrl + '/migrations/96_create_groups_tables.up.sql')             : 'V096__create_groups_tables.sql',
+            (migrationsUrl + '/migrations/97_add_groups_uuid.up.sql')                  : 'V097__add_groups_uuid.up.sql',
+            (migrationsUrl + '/migrations/98_add_plugin_type.up.sql')                  : 'V098__add_plugin_type.up.up.sql',
             (migrationsUrl + '/migrations/96_tms_initial.up.sql')                      : 'V096__tms_initial.up.sql',
             (migrationsUrl + '/migrations/198_add_slugify_function.up.sql')            : 'V198__add_slugify_function.sql',
             (migrationsUrl + '/migrations/199_organization_tables.up.sql')             : 'V199__organization_tables.sql',
@@ -81,7 +86,8 @@ project.ext {
             (migrationsUrl + '/migrations/201_drop_table_onboarding.up.sql')           : 'V201__drop_table_onboarding.sql',
             (migrationsUrl + '/migrations/202_update_project_table.up.sql')            : 'V202__update_project_table.up.sql',
             (migrationsUrl + '/migrations/203_user_table_extend.up.sql')               : 'V203__user_table_extend.up.sql',
-            (migrationsUrl + '/migrations/204_bid_extend_metadata.up.sql')             : 'V204__bid_extend_metadata.up.sql'
+            (migrationsUrl + '/migrations/204_bid_extend_metadata.up.sql')             : 'V204__bid_extend_metadata.up.sql',
+            (migrationsUrl + '/migrations/206_add_org_id_to_groups.up.sql')            : 'V206__add_org_id_to_groups.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

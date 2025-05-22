@@ -24,6 +24,7 @@ plugins {
     id "org.openapi.generator" version "7.11.0"
 }
 
+
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
@@ -32,11 +33,6 @@ apply from: "$scriptsUrl/build-info.gradle"
 apply from: "$scriptsUrl/release-service.gradle"
 apply from: "$scriptsUrl/signing.gradle"
 apply from: "$scriptsUrl/copy-database-scripts.gradle"
-
-//replaced with drill4j
-//apply from: "$scriptsUrl/build-quality.gradle"
-//apply from: "$scriptsUrl/jacoco.gradle"
-//apply plugin: 'jacoco'
 
 project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
 
@@ -58,19 +54,18 @@ ext['spring-boot.version'] = "${springBootVersion}"
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.13.1' : 'com.epam.reportportal:commons-bom:5.13.1')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.13.4' : 'com.epam.reportportal:commons-bom:5.13.4')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
         mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
     }
 }
 
 println("Release mode: $releaseMode")
-
 dependencies {
     if (releaseMode) {
         println("Using release dependencies")
-        implementation 'com.epam.reportportal:commons-dao'
         implementation 'com.epam.reportportal:commons'
+        implementation 'com.epam.reportportal:commons-dao'
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         println("Using snapshot dependencies")
@@ -100,6 +95,11 @@ dependencies {
     implementation 'org.springframework:spring-context-support'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
 
+    //Fix CVE-2025-24813
+    implementation 'org.apache.tomcat.embed:tomcat-embed-core:10.1.40'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-el:10.1.40'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:10.1.40'
+
 
     implementation 'com.opencsv:opencsv:5.10'
     implementation "org.jooq:jooq:${jooqVersion}"
@@ -107,7 +107,7 @@ dependencies {
 
     // Optional for spring-boot-starter-amqp
     implementation "com.rabbitmq:http-client:5.3.0"
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.4.2") // supports gzip encoding
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.4.3") // supports gzip encoding
 
     // check authentication error response format for versions higher than 6.21.3
     implementation('net.sf.jasperreports:jasperreports:6.21.3') { //TODO: consider upgrade to 7.0.1+
@@ -136,6 +136,10 @@ dependencies {
 
     implementation "org.hibernate.validator:hibernate-validator:${hibernateValidatorVersion}"
 
+    implementation 'com.networknt:json-schema-validator:1.5.6'
+
+    implementation 'com.github.slugify:slugify:3.0.7'
+
     // add lombok support
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
@@ -154,6 +158,25 @@ dependencies {
 
     testImplementation 'io.jsonwebtoken:jjwt-impl:0.12.5'
     testImplementation 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs "$buildDir/generated/src/main/java"
+        }
+    }
+}
+
+
+openApiGenerate {
+    generatorName.set("spring")
+    inputSpec.set("$rootDir/api-registry/api/openapi/reportportal-api.yaml")
+    outputDir.set("${layout.buildDirectory.get()}/generated")
+    configFile.set("$rootDir/src/main/resources/openapi/config.json")
+    skipOverwrite.set(false)
+    cleanupOutput.set(true)
+    // verbose.set(true)
 }
 
 processResources {
@@ -184,6 +207,21 @@ tasks.withType(JavaCompile).configureEach {
     options.debugOptions.debugLevel = "source,lines,vars"
 }
 
+tasks.register('downloadManifestSchema') {
+    doLast {
+        def schemaDir = file("${projectDir}/src/main/resources/schema")
+        schemaDir.mkdirs()
+
+        def schemaUrl = new URI(manifestSchemaUrl).toURL()
+        def fileName = schemaUrl.path.tokenize('/').last()
+        def schemaFile = new File(schemaDir, fileName)
+
+        schemaFile.withOutputStream { out ->
+            out << schemaUrl.openStream()
+        }
+    }
+}
+
 dependencyCheck {
     formats = [ReportGenerator.Format.HTML, ReportGenerator.Format.XML]
 //    cveValidForHours = 1
@@ -211,6 +249,7 @@ test {
 }
 
 compileJava.dependsOn tasks.named('openApiGenerate')
+compileJava.dependsOn tasks.named('downloadManifestSchema')
 publish.dependsOn build
 publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts
@@ -224,11 +263,11 @@ drill {
     packagePrefixes = ["com/epam/ta/reportportal"]
     enableTestAgent {
         enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
-        version = "0.23.3"
+        version = "0.23.5"
     }
     enableAppAgent {
         enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
-        version = "0.9.4"
+        version = "0.9.7"
     }
 }
 
@@ -245,15 +284,6 @@ springBoot {
             excludes = ['time', 'artifact']
         }
     }
-}
-
-openApiGenerate {
-    generatorName = "spring"
-    inputSpec = "$rootDir/api-registry/api/openapi/reportportal-api.yaml"
-    outputDir = "${layout.buildDirectory.get()}/generated"
-    configFile = "$rootDir/src/main/resources/openapi/config.json"
-    skipOverwrite = false
-    cleanupOutput = true
 }
 
 tasks.preTagCommit.enabled = false

@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.widget;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.model.widget.WidgetResource;
 import java.util.Map;
@@ -72,6 +73,6 @@ public interface GetWidgetHandler {
 	 * @param user           User
 	 * @return List of widget names
 	 */
-	Iterable<Object> getOwnNames(MembershipDetails membershipDetails, Pageable pageable, Filter filter, ReportPortalUser user);
+	Page<Object> getOwnNames(MembershipDetails membershipDetails, Pageable pageable, Filter filter, ReportPortalUser user);
 
 }

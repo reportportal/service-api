@@ -28,13 +28,13 @@ import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.filesystem.DataStore;
+import com.epam.ta.reportportal.plugin.DetailPluginDescriptor;
 import com.epam.ta.reportportal.util.FeatureFlagHandler;
 import com.google.common.collect.Lists;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import org.junit.jupiter.api.Test;
-import org.pf4j.PluginDescriptor;
 import org.pf4j.PluginDescriptorFinder;
 import org.pf4j.PluginManager;
 import org.pf4j.PluginRuntimeException;
@@ -56,7 +56,7 @@ class PluginLoaderTest {
 
   private final PluginDescriptorFinder pluginDescriptorFinder = mock(PluginDescriptorFinder.class);
 
-  private final PluginDescriptor pluginDescriptor = mock(PluginDescriptor.class);
+  private final DetailPluginDescriptor pluginDescriptor = mock(DetailPluginDescriptor.class);
 
   private final PluginWrapper pluginWrapper = mock(PluginWrapper.class);
 

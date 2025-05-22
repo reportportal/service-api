@@ -25,6 +25,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 import static com.epam.ta.reportportal.util.DateTimeProvider.instantNow;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
+import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.PROJECT_PROFILE_TO_ORG_PROJECT_INFO;
 import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.PROJECT_TO_ORG_PROJECT_INFO;
 
@@ -46,6 +47,7 @@ import com.epam.ta.reportportal.core.events.activity.ProjectDeletedEvent;
 import com.epam.ta.reportportal.core.project.OrganizationProjectHandler;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.dao.AttributeRepository;
+import com.epam.ta.reportportal.dao.GroupMembershipRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -62,11 +64,11 @@ import com.epam.ta.reportportal.entity.project.ProjectProfile;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.SlugifyUtils;
-import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -90,6 +92,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
   private final AttachmentBinaryDataService attachmentBinaryDataService;
   private final LogIndexer logIndexer;
   private final AnalyzerServiceClient analyzerServiceClient;
+  private final GroupMembershipRepository groupMembershipRepository;
 
 
   public OrganizationProjectHandlerImpl(OrganizationProjectRepository organizationProjectRepository,
@@ -99,7 +102,8 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
       ApplicationEventPublisher applicationEventPublisher, IssueTypeRepository issueTypeRepository,
       ContentRemover<Project> projectContentRemover, LogRepository logRepository,
       AttachmentBinaryDataService attachmentBinaryDataService, LogIndexer logIndexer,
-      AnalyzerServiceClient analyzerServiceClient) {
+      AnalyzerServiceClient analyzerServiceClient,
+      GroupMembershipRepository groupMembershipRepository) {
     this.organizationProjectRepository = organizationProjectRepository;
     this.projectUserRepository = projectUserRepository;
     this.projectRepository = projectRepository;
@@ -113,20 +117,33 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
 
     this.logIndexer = logIndexer;
     this.analyzerServiceClient = analyzerServiceClient;
+    this.groupMembershipRepository = groupMembershipRepository;
   }
 
   @Override
-  public OrganizationProjectsPage getOrganizationProjectsPage(ReportPortalUser user, Long orgId,
-      Filter filter, Pageable pageable) {
+  public OrganizationProjectsPage getOrganizationProjectsPage(Long orgId, Filter filter,
+      Pageable pageable) {
+    var rpUser = getPrincipal();
     OrganizationProjectsPage organizationProjectsPage = new OrganizationProjectsPage();
 
-    if (!user.getUserRole().equals(UserRole.ADMINISTRATOR)
-        && user.getOrganizationDetails().get(orgId.toString()).getOrgRole()
+    if (!rpUser.getUserRole().equals(UserRole.ADMINISTRATOR)
+        && rpUser.getOrganizationDetails().get(orgId.toString()).getOrgRole()
         .equals(OrganizationRole.MEMBER)) {
 
-      var projectIds = projectUserRepository.findProjectIdsByUserId(user.getUserId())
+      var projectIds = projectUserRepository.findProjectIdsByUserId(rpUser.getUserId())
           .stream()
           .map(Object::toString)
+          .collect(Collectors.joining(","));
+
+      var groupProjectIds = groupMembershipRepository
+          .findAllUserProjectsInOrganization(rpUser.getUserId(), orgId)
+          .stream()
+          .map(gp -> gp.getId().getProjectId().toString())
+          .collect(Collectors.joining(","));
+
+      projectIds = Stream.of(projectIds, groupProjectIds)
+          .filter(StringUtils::isNotEmpty)
+          .distinct()
           .collect(Collectors.joining(","));
 
       if (projectIds.isEmpty()) {
@@ -151,8 +168,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
   }
 
   @Override
-  public ProjectInfo createProject(Long orgId, ProjectBase projectBase,
-      ReportPortalUser user) {
+  public ProjectInfo createProject(Long orgId, ProjectBase projectBase) {
     Organization organization = organizationRepositoryCustom.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
@@ -180,20 +196,20 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     Project createdProject = projectRepository.save(projectToSave);
 
     applicationEventPublisher.publishEvent(new ProjectEvent(createdProject.getId(), CREATE_KEY));
-    publishProjectCreatedEvent(user, createdProject);
+    publishProjectCreatedEvent(getPrincipal(), createdProject);
 
     return PROJECT_TO_ORG_PROJECT_INFO.apply(createdProject); // backward convert to ProjectInfo
   }
 
   @Override
-  public void deleteProject(ReportPortalUser rpUser, Long orgId, Long projectId) {
+  public void deleteProject(Long orgId, Long projectId) {
     Project project = getProjectById(projectId);
     expect(project.getOrganizationId(), equalTo(orgId))
         .verify(PROJECT_NOT_FOUND, "Project " + projectId + " not found in organization " + orgId);
 
     deleteProjectWithDependants(project);
 
-    publishSpecialProjectDeletedEvent(rpUser, project);
+    publishSpecialProjectDeletedEvent(getPrincipal(), project);
   }
 
 

@@ -21,7 +21,6 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION
 import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.reportportal.api.OrganizationProjectApi;
-import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
 import com.epam.reportportal.api.model.ProjectBase;
 import com.epam.reportportal.api.model.ProjectInfo;
@@ -39,6 +38,7 @@ import com.epam.ta.reportportal.util.ControllerUtils;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -100,10 +100,9 @@ public class OrganizationProjectController extends BaseController implements
       filter.withCondition(
           new FilterCondition(Condition.EQUALS, false, slug, "slug"));
     }
-    var user = getLoggedUser();
     return ResponseEntity.status(OK)
         .body(
-            organizationProjectHandler.getOrganizationProjectsPage(user, orgId, filter, pageable));
+            organizationProjectHandler.getOrganizationProjectsPage(orgId, filter, pageable));
   }
 
   @Override
@@ -112,11 +111,9 @@ public class OrganizationProjectController extends BaseController implements
   public ResponseEntity<ProjectInfo> postOrganizationsOrgIdProjects(Long orgId,
       ProjectBase projectBase
   ) {
-    var user = getLoggedUser();
-
     return ResponseEntity
         .status(OK)
-        .body(organizationProjectHandler.createProject(orgId, projectBase, user));
+        .body(organizationProjectHandler.createProject(orgId, projectBase));
   }
 
   @Override
@@ -134,18 +131,16 @@ public class OrganizationProjectController extends BaseController implements
         .withCondition(
             new FilterCondition(Condition.EQUALS, false, orgId.toString(), "organization_id"));
 
-    var user = getLoggedUser();
-
     var pageable = ControllerUtils.getPageable(
         StringUtils.isNotBlank(searchCriteria.getSort()) ? searchCriteria.getSort() : "name",
-        searchCriteria.getOrder().toString(),
+        searchCriteria.getOrder() != null ? searchCriteria.getOrder().toString() : Direction.ASC.name(),
         searchCriteria.getOffset(),
         searchCriteria.getLimit());
 
     return ResponseEntity
         .ok()
         .body(
-            organizationProjectHandler.getOrganizationProjectsPage(user, orgId, filter, pageable));
+            organizationProjectHandler.getOrganizationProjectsPage(orgId, filter, pageable));
   }
 
 
@@ -153,8 +148,7 @@ public class OrganizationProjectController extends BaseController implements
   @Transactional
   @PreAuthorize(ORGANIZATION_MANAGER)
   public ResponseEntity<Void> deleteOrganizationsOrgIdProjectsProjectId(Long orgId, Long prjId) {
-    var user = getLoggedUser();
-    organizationProjectHandler.deleteProject(user, orgId, prjId);
+    organizationProjectHandler.deleteProject(orgId, prjId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 

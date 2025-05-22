@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.model.user;
 
+import static com.epam.reportportal.model.ValidationConstraints.USER_PASSWORD_REGEXP;
+
 import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.annotations.In;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -23,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -51,26 +54,21 @@ public class CreateUserRQFull {
   @Schema(requiredMode = RequiredMode.NOT_REQUIRED, allowableValues = "INTERNAL, SCIM")
   private String accountType;
 
-  @NotBlank
-  @Pattern(regexp = "[a-zA-Z0-9-_.]+")
-  @Size(min = ValidationConstraints.MIN_LOGIN_LENGTH, max = ValidationConstraints.MAX_LOGIN_LENGTH)
-  @JsonProperty(value = "login", required = true)
-  @Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
-  private String login;
-
   @Size(max = ValidationConstraints.MAX_PASSWORD_LENGTH)
   @JsonProperty(value = "password")
   @Schema(requiredMode = RequiredMode.NOT_REQUIRED)
+  @Pattern(regexp = USER_PASSWORD_REGEXP)
   private String password;
 
   @NotBlank
-  @Pattern(regexp = "[\\pL0-9-_ \\.]+")
+  @Pattern(regexp = "[\\pL0-9-_ .]+")
   @Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)
   @JsonProperty(value = "fullName", required = true)
   @Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
   private String fullName;
 
   @NotBlank
+  @Email(message = "Invalid email format")
   @JsonProperty(value = "email", required = true)
   @Schema(requiredMode = RequiredMode.REQUIRED)
   private String email;

@@ -22,6 +22,7 @@ import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyC
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
 import com.epam.ta.reportportal.reporting.async.config.RequestType;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
@@ -40,9 +41,12 @@ import org.springframework.util.StringUtils;
 public class LaunchStartProducer implements StartLaunchHandler {
 
   private final AmqpTemplate amqpTemplate;
+  private final RerunHandler rerunHandler;
 
-  public LaunchStartProducer(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate) {
+  public LaunchStartProducer(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate,
+      RerunHandler rerunHandler) {
     this.amqpTemplate = amqpTemplate;
+    this.rerunHandler = rerunHandler;
   }
 
   @Override
@@ -50,7 +54,10 @@ public class LaunchStartProducer implements StartLaunchHandler {
       StartLaunchRQ request) {
     validateRoles(membershipDetails, request);
 
-    if (!StringUtils.hasText(request.getUuid())) {
+    if (request.isRerun()) {
+      request.setUuid(rerunHandler.getRerunLaunchUuid(request.getRerunOf(), request.getName(),
+          membershipDetails.getProjectId()));
+    } else if (!StringUtils.hasText(request.getUuid())) {
       request.setUuid(UUID.randomUUID().toString());
     }
 

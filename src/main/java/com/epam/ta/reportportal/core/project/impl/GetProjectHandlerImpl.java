@@ -86,8 +86,6 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
   private final ProjectConverter projectConverter;
 
-  @Value("${rp.environment.variable.user.suggestions:true}")
-  boolean isUserSuggestions;
 
   @Autowired
   public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
@@ -100,13 +98,13 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   }
 
   @Override
-  public Iterable<UserResource> getProjectUsers(MembershipDetails membershipDetails, Filter filter,
-      Pageable pageable, ReportPortalUser user) {
+  public com.epam.ta.reportportal.model.Page<UserResource> getProjectUsers(MembershipDetails membershipDetails, Filter filter,
+                                                                           Pageable pageable, ReportPortalUser user) {
     Project project = projectRepository.findByKey(membershipDetails.getProjectKey())
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
             membershipDetails.getProjectKey()));
     if (CollectionUtils.isEmpty(project.getUsers())) {
-      return Collections.emptyList();
+      return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(Page.empty(pageable));
     }
 
     // exclude email field from the response for non-administrator and non-manager users
@@ -174,13 +172,12 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   }
 
   @Override
-  public Iterable<SearchUserResource> getUserNames(String value,
-      MembershipDetails membershipDetails, UserRole userRole, Pageable pageable) {
+  public com.epam.ta.reportportal.model.Page<SearchUserResource> getUserNames(String value,
+                                                                              MembershipDetails membershipDetails, UserRole userRole, Pageable pageable) {
     checkBusinessRuleLessThan1Symbol(value);
 
-    final CompositeFilterCondition userCondition =
-				(userRole.equals(UserRole.ADMINISTRATOR) || isUserSuggestions)
-						? getUserSearchSuggestCondition(value) : getUserSearchCondition(value);
+    final CompositeFilterCondition userCondition = (userRole.equals(UserRole.ADMINISTRATOR))
+        ? getUserSearchSuggestCondition(value) : getUserSearchCondition(value);
 
     final Filter filter = Filter.builder().withTarget(User.class).withCondition(userCondition)
         .withCondition(

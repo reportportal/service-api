@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.organization;
 import com.epam.reportportal.api.model.OrgUserAssignment;
 import com.epam.reportportal.api.model.OrganizationUsersPage;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import org.springframework.data.domain.Pageable;
 
@@ -30,6 +29,14 @@ public interface OrganizationUsersHandler {
 
   OrganizationUsersPage getOrganizationUsers(Queryable filter, Pageable pageable);
 
-  UserAssignmentResponse assignUser(Long orgId, OrgUserAssignment request,
-      ReportPortalUser user);
+  UserAssignmentResponse assignUser(Long orgId, OrgUserAssignment request);
+
+
+  /**
+   * Unassigns a user from an organization.
+   *
+   * @param orgId          The ID of the organization.
+   * @param userToUnassign The ID of the user to unassign.
+   */
+  void unassignUser(Long orgId, Long userToUnassign);
 }

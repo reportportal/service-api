@@ -30,13 +30,13 @@ import org.springframework.stereotype.Component;
  *
  * @author Andrei Varabyeu
  */
-@Component("allowedToUserItselfPermission")
-@LookupPermission({"allowedToUserItself"})
-public class AllowedToUserItself implements Permission {
+@Component("allowedToOwnerPermission")
+@LookupPermission({"allowedToOwner"})
+public class AllowedToOwner implements Permission {
 
   private final UserRepository userRepository;
 
-  public AllowedToUserItself(UserRepository userRepository) {
+  public AllowedToOwner(UserRepository userRepository) {
     this.userRepository = userRepository;
   }
 

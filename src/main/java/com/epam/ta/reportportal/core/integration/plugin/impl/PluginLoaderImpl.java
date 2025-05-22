@@ -22,16 +22,18 @@ import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.FeatureFlag;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
+import com.epam.ta.reportportal.plugin.DetailPluginDescriptor;
 import com.epam.ta.reportportal.util.FeatureFlagHandler;
 import com.epam.ta.reportportal.ws.converter.builders.IntegrationTypeBuilder;
-import com.epam.reportportal.rules.exception.ErrorType;
+import jakarta.validation.constraints.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,14 +41,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import jakarta.validation.constraints.NotNull;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.pf4j.PluginDescriptor;
 import org.pf4j.PluginDescriptorFinder;
 import org.pf4j.PluginRuntimeException;
 import org.pf4j.PluginWrapper;
@@ -88,8 +90,12 @@ public class PluginLoaderImpl implements PluginLoader {
   @Override
   @NotNull
   public PluginInfo extractPluginInfo(Path pluginPath) throws PluginRuntimeException {
-    PluginDescriptor pluginDescriptor = pluginDescriptorFinder.find(pluginPath);
-    return new PluginInfo(pluginDescriptor.getPluginId(), pluginDescriptor.getVersion());
+    var descriptor = (DetailPluginDescriptor) pluginDescriptorFinder.find(pluginPath);
+    return new PluginInfo(
+        descriptor.getPluginId(),
+        descriptor.getVersion(),
+        convertToDetails(descriptor)
+    );
   }
 
   @Override
@@ -191,4 +197,22 @@ public class PluginLoaderImpl implements PluginLoader {
     Files.deleteIfExists(Paths.get(pluginFileDirectory, pluginFileName));
   }
 
+  private Map<String, Object> convertToDetails(DetailPluginDescriptor descriptor) {
+    Map<String, Object> details = new HashMap<>();
+    details.put("id", descriptor.getPluginId());
+    details.put("name", descriptor.getPluginName());
+    details.put("version", descriptor.getVersion());
+    details.put("license", descriptor.getLicense());
+    details.put("description", descriptor.getPluginDescription());
+    details.put("documentation", descriptor.getDocumentation());
+    details.put("requires", descriptor.getRequires());
+    details.put("metadata", descriptor.getMetadata());
+    details.put("properties", descriptor.getProperties());
+    details.put("binaryData", descriptor.getBinaryData());
+
+    var developer = new HashMap<String, Object>();
+    developer.put("name", descriptor.getProvider());
+    details.put("developer", developer);
+    return details;
+  }
 }

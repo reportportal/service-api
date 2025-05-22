@@ -19,10 +19,14 @@ package com.epam.ta.reportportal.core.organization.impl;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_ASSIGNED;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
+import static com.epam.ta.reportportal.util.OrganizationUserValidator.validateUserRoles;
+import static com.epam.ta.reportportal.util.OrganizationUserValidator.validateUserType;
+import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.ORG_USER_ACCOUNT_TO_ORG_USER;
 import static java.util.function.Predicate.isEqual;
 
@@ -34,7 +38,6 @@ import com.epam.reportportal.api.model.UserAssignmentResponse;
 import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.organization.OrganizationUsersHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -50,11 +53,12 @@ import com.epam.ta.reportportal.entity.organization.OrganizationUserAccount;
 import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.entity.user.UserType;
+import com.epam.ta.reportportal.util.SlugifyUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -110,8 +114,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
   }
 
   @Override
-  public UserAssignmentResponse assignUser(Long orgId, OrgUserAssignment request,
-      ReportPortalUser rpUser) {
+  public UserAssignmentResponse assignUser(Long orgId, OrgUserAssignment request) {
     User assignedUser = userRepository.findById(request.getId())
         .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, request.getId()));
     var organization = organizationRepositoryCustom.findById(orgId)
@@ -153,6 +156,36 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
         .message("User %s has been successfully assigned".formatted(assignedUser.getLogin()));
   }
 
+  @Override
+  public void unassignUser(Long orgId, Long unassignUserId) {
+    OrganizationUser organizationUser = organizationUserRepository.findByUserIdAndOrganization_Id(unassignUserId, orgId)
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "User %s assignment".formatted(unassignUserId)));
+
+    validateUserRoles(getPrincipal(), organizationUser);
+    validateUserType(organizationUser.getOrganization(), organizationUser.getUser());
+    validatePersonalOrganization(organizationUser.getOrganization(), organizationUser.getUser());
+
+    projectUserRepository.deleteProjectUserByProjectOrganizationId(orgId, unassignUserId);
+    organizationUserRepository.delete(organizationUser);
+  }
+
+
+  private void validatePersonalOrganization(Organization organization, User userToUnassign) {
+    if (organization.getOrganizationType().equals(OrganizationType.PERSONAL)
+        && isPersonalOrganization(organization.getName(), userToUnassign.getEmail())) {
+      throw new ReportPortalException(ErrorType.ACCESS_DENIED,
+          "User %s cannot be unassigned from personal organization".formatted(userToUnassign.getId()));
+    }
+  }
+
+  // TODO: introduce a proper way to check if the organization is personal.
+  //  e.g. extend organization_users table with is_owner field. Waiting for requirements
+  private boolean isPersonalOrganization(String orgName, String email) {
+    var username = SlugifyUtils.slugify(StringUtils.substringBefore(email, "@"));
+    var baseOrgName = StringUtils.substringBefore(orgName, "_personal").toLowerCase();
+    return username.equals(baseOrgName);
+  }
+
   public void saveOrganizationUser(Organization organization, User assignedUser, String role) {
     var organizationUser = new OrganizationUser();
     organizationUser.setOrganization(organization);
@@ -184,14 +217,6 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
             .id(entry.getKey())
             .projectRole(entry.getValue()))
         .toList();
-  }
-
-
-  private void validateUserType(Organization organization, User assignedUser) {
-    if (organization.getOrganizationType().equals(OrganizationType.EXTERNAL)
-        && assignedUser.getUserType().equals(UserType.UPSA)) {
-      throw new ReportPortalException(ErrorType.ACCESS_DENIED);
-    }
   }
 
 }

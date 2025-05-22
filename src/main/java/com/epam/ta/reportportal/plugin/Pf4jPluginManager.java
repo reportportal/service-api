@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.plugin;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.entity.enums.PluginTypeEnum.EXTENSION;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
@@ -25,19 +26,20 @@ import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.extension.event.PluginEvent;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.Plugin;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
+import com.epam.ta.reportportal.entity.enums.PluginTypeEnum;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.entity.plugin.PluginFileExtension;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.ws.converter.builders.IntegrationTypeBuilder;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import java.io.IOException;
@@ -148,6 +150,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
     integrationTypeRepository.findAll()
         .stream()
         .filter(IntegrationType::isEnabled)
+        .filter(it -> it.getPluginType() == EXTENSION)
         .forEach(integrationType -> ofNullable(integrationType.getDetails()).ifPresent(
             integrationTypeDetails -> {
               try {
@@ -465,7 +468,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
   /**
    * Add plugin file name to the uploading plugins holder
    *
-   * @param fileName Name of the plugin file to put to the {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
+   * @param fileName Name of the plugin file to put to the
+   *                 {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
    * @param path     Full path to the plugin file
    * @see com.epam.ta.reportportal.plugin.Pf4jPluginManager
    */
@@ -510,6 +514,10 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
     startUpPlugin(newPluginId);
     validateNewPluginExtensionClasses(newPluginId, uploadedPluginName);
     pluginManager.unloadPlugin(newPluginId);
+
+    if (newPluginInfo.getDetails() != null) {
+      pluginDetails.setDetails(newPluginInfo.getDetails());
+    }
 
     final String newPluginFileName = generatePluginFileName(newPluginInfo, uploadedPluginName);
     IntegrationTypeProperties.FILE_NAME.setValue(pluginDetails, newPluginFileName);
@@ -603,7 +611,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
   /**
    * Remove plugin file name from the uploading plugins holder
    *
-   * @param fileName Name of the plugin file to remove from the {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
+   * @param fileName Name of the plugin file to remove from the
+   *                 {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
    * @see com.epam.ta.reportportal.plugin.Pf4jPluginManager
    */
   private void removeUploadingPlugin(String fileName) {
@@ -639,7 +648,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
                       IntegrationTypeBuilder::new)
                   .orElseGet(IntegrationTypeBuilder::new);
               integrationTypeBuilder.setName(newLoadedPluginId)
-                  .setIntegrationGroup(IntegrationGroupEnum.OTHER);
+                  .setIntegrationGroup(IntegrationGroupEnum.OTHER)
+                  .setPluginType(PluginTypeEnum.EXTENSION);
 
               Optional<ReportPortalExtensionPoint> instance = getInstance(newLoadedPluginId,
                   ReportPortalExtensionPoint.class);

@@ -113,7 +113,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
   }
 
   @Override
-  public Iterable<LogResource> getLogs(@Nullable String path,
+  public com.epam.ta.reportportal.model.Page<LogResource> getLogs(@Nullable String path,
       MembershipDetails membershipDetails, Filter filterable, Pageable pageable) {
     ofNullable(path).ifPresent(p -> updateFilter(filterable, p));
     Page<LogFull> logFullPage =
@@ -160,7 +160,8 @@ public class GetLogHandlerImpl implements GetLogHandler {
   }
 
   @Override
-  public Iterable<?> getNestedItems(Long parentId, MembershipDetails membershipDetails,
+  public com.epam.ta.reportportal.model.Page<?> getNestedItems(Long parentId,
+      MembershipDetails membershipDetails,
       Map<String, String> params, Queryable queryable, Pageable pageable) {
 
     TestItem parentItem = testItemRepository.findById(parentId)

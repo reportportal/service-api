@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,8 +29,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.reportportal.api.model.FilterOperation;
+import com.epam.reportportal.api.model.InstanceRole;
+import com.epam.reportportal.api.model.NewUserRequest;
+import com.epam.reportportal.api.model.NewUserRequest.AccountTypeEnum;
+import com.epam.reportportal.api.model.SearchCriteriaRQ;
+import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
 import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.core.user.ApiKeyHandler;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
@@ -46,7 +52,6 @@ import com.epam.ta.reportportal.model.user.ChangePasswordRQ;
 import com.epam.ta.reportportal.model.user.CreateUserBidRS;
 import com.epam.ta.reportportal.model.user.CreateUserRQ;
 import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
-import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.model.user.CreateUserRS;
 import com.epam.ta.reportportal.model.user.EditUserRQ;
 import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
@@ -75,108 +80,18 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @Sql("/db/user/user-fill.sql")
 class UserControllerTest extends BaseMvcTest {
 
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @Autowired
-  private ProjectRepository projectRepository;
-
-  @Autowired
-  private UserRepository userRepository;
-
-  @Autowired
-  private IssueTypeRepository issueTypeRepository;
-
   private static final String USERS_URL = "/v1/users";
-
+  private static final String NEW_USERS_URL = "/users";
   @Autowired
   ApiKeyHandler apiKeyHandler;
-
-  @Test
-  void createdUserByIdentityProvider() throws Exception  {
-    CreateUserRQFull rq = new CreateUserRQFull();
-    rq.setLogin("testLogin");
-    rq.setFullName("Test User");
-    rq.setEmail("test@test.com");
-    rq.setAccountRole("USER");
-    rq.setProjectRole("EDITOR");
-    rq.setActive(true);
-    rq.setAccountType(UserType.INTERNAL.toString());
-    rq.setAccountType("SCIM");
-
-    MvcResult mvcResult = mockMvc.perform(
-            post("/v1/users").with(token(oAuthHelper.getSuperadminToken()))
-                .contentType(APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated())
-        .andReturn();
-
-    CreateUserRS createUserRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-        CreateUserRS.class);
-
-    assertNotNull(createUserRS.getId());
-    assertEquals(normalizeId(rq.getLogin()), createUserRS.getLogin());
-    var user = userRepository.findById(createUserRS.getId());
-    assertTrue(user.isPresent());
-    assertEquals(UserType.SCIM, user.get().getUserType());
-    assertNull(user.get().getPassword());
-
-    var projectOptional = projectRepository.findByName("default_personal");
-    assertTrue(projectOptional.isPresent());
-    assertFalse(projectOptional.get().getUsers().stream()
-        .anyMatch(config -> config.getUser().getLogin().equals("testlogin")));
-
-  }
-
-  @Test
-  void createUserByAdminPositive() throws Exception {
-    CreateUserRQFull rq = new CreateUserRQFull();
-    rq.setLogin("testLogin");
-    rq.setPassword("testPassword");
-    rq.setFullName("Test User");
-    rq.setEmail("test@test.com");
-    rq.setAccountRole("USER");
-    rq.setProjectRole("EDITOR");
-    rq.setDefaultProject("default_personal");
-    rq.setActive(true);
-    rq.setAccountType(UserType.INTERNAL.toString());
-
-    MvcResult mvcResult = mockMvc.perform(
-            post(USERS_URL).with(token(oAuthHelper.getSuperadminToken()))
-                .contentType(APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated())
-        .andReturn();
-
-    CreateUserRS createUserRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-        CreateUserRS.class);
-
-    assertNotNull(createUserRS.getId());
-    assertEquals(normalizeId(rq.getLogin()), createUserRS.getLogin());
-    assertTrue(userRepository.findById(createUserRS.getId()).isPresent());
-
-    // TODO: move to the new organization endpoints test
-    /*final Optional<Project> projectOptional = projectRepository.findByName("default_personal");
-    assertTrue(projectOptional.isPresent());
-    assertTrue(projectOptional.get().getUsers().stream()
-        .anyMatch(config -> config.getUser().getLogin().equals("testlogin")));
-
-    Optional<Project> personalProject = projectRepository.findByName("testlogin_personal");
-    assertTrue(personalProject.isPresent(), "Personal project isn't created");
-    Project project = personalProject.get();
-
-    List<IssueType> defaultIssueTypes = issueTypeRepository.getDefaultIssueTypes();
-
-    project.getProjectAttributes()
-        .forEach(projectAttribute -> assertTrue(projectAttribute.getValue()
-            .equalsIgnoreCase(
-                ProjectAttributeEnum.findByAttributeName(projectAttribute.getAttribute().getName())
-                    .get()
-                    .getDefaultValue())));
-
-    assertTrue(defaultIssueTypes.containsAll(project.getProjectIssueTypes()
-        .stream()
-        .map(ProjectIssueType::getIssueType)
-        .collect(Collectors.toList())));*/
-  }
+  @Autowired
+  private ObjectMapper objectMapper;
+  @Autowired
+  private ProjectRepository projectRepository;
+  @Autowired
+  private UserRepository userRepository;
+  @Autowired
+  private IssueTypeRepository issueTypeRepository;
 
   @Test
   @Disabled("to be deleted")
@@ -208,8 +123,7 @@ class UserControllerTest extends BaseMvcTest {
   @Disabled("to be deleted")
   void createUserPositive() throws Exception {
     CreateUserRQConfirm rq = new CreateUserRQConfirm();
-    rq.setLogin("testLogin");
-    rq.setPassword("testPassword");
+    rq.setPassword("testPassword%123");
     rq.setFullName("Test User");
     rq.setEmail("test@domain.com");
     MvcResult mvcResult = mockMvc.perform(
@@ -222,7 +136,7 @@ class UserControllerTest extends BaseMvcTest {
         CreateUserRS.class);
 
     assertNotNull(createUserRS.getId());
-    assertEquals(normalizeId(rq.getLogin()), createUserRS.getLogin());
+    assertEquals(normalizeId(rq.getEmail()), createUserRS.getLogin());
     assertTrue(userRepository.findById(createUserRS.getId()).isPresent());
   }
 
@@ -352,7 +266,7 @@ class UserControllerTest extends BaseMvcTest {
   void editExternalIdByNotAdmin() throws Exception {
     EditUserRQ editUserRQ = new EditUserRQ();
     editUserRQ.setExternalId("test");
-    mockMvc.perform(put(USERS_URL +  "/default").with(token(oAuthHelper.getDefaultToken()))
+    mockMvc.perform(put(USERS_URL + "/default").with(token(oAuthHelper.getDefaultToken()))
         .contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isOk());
   }
@@ -399,7 +313,7 @@ class UserControllerTest extends BaseMvcTest {
   void changePasswordPositive() throws Exception {
     ChangePasswordRQ rq = new ChangePasswordRQ();
     rq.setOldPassword("1q2w3e");
-    rq.setNewPassword("12345");
+    rq.setNewPassword("newPassword%123");
 
     when(mailServiceFactory.getDefaultEmailService(true)).thenReturn(emailService);
     doNothing().when(emailService).sendChangePasswordConfirmation(any(), any(), any());
@@ -447,7 +361,7 @@ class UserControllerTest extends BaseMvcTest {
   @Test
   void resetPassword() throws Exception {
     final ResetPasswordRQ resetPasswordRQ = new ResetPasswordRQ();
-    resetPasswordRQ.setPassword("password");
+    resetPasswordRQ.setPassword("Password%123");
     resetPasswordRQ.setUuid("e5f98deb-8966-4b2d-ba2f-35bc69d30c06");
     mockMvc.perform(post(USERS_URL + "/password/reset").with(token(oAuthHelper.getDefaultToken()))
         .contentType(APPLICATION_JSON)
@@ -483,7 +397,7 @@ class UserControllerTest extends BaseMvcTest {
         Page.class);
 
     Assertions.assertNotNull(userResources);
-    Assertions.assertEquals(2, userResources.getContent().size());
+    assertEquals(2, userResources.getContent().size());
   }
 
   @Test
@@ -550,5 +464,48 @@ class UserControllerTest extends BaseMvcTest {
         .with(token(oAuthHelper.getDefaultToken()))
         .contentType(APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(apiKeyRq))).andExpect(status().is4xxClientError());
+  }
+
+
+  @ParameterizedTest
+  @CsvSource(value = {
+      "uuid|NE|9a1e9d3d-3587-4bce-9cff-36db5eecb439|2",
+      "external_id|EQ|9a1e9d3d-3587-4bce-9cff-36db5eecb439|0",
+      "email|CNT|superadmin|1",
+      "full_name|CNT|ter|2",
+      "account_type|EQ|INTERNAL|2",
+      "instance_role|EQ|USER|1",
+      "active|EQ|true|2",
+      "active|EQ|false|0",
+      "created_at|GT|2025-05-05T13:26:48.856881Z|2",
+      "updated_at|GT|2025-05-05T13:26:48.856881Z|2",
+      "org_id|EQ|1|2",
+      "org_id|EQ|2|0"
+  }, delimiter = '|')
+  void getInstanceUsersPositive(String field, String op, String value, int expCount)
+      throws Exception {
+    SearchCriteriaSearchCriteriaInner inner = new SearchCriteriaSearchCriteriaInner()
+        .filterKey(field)
+        .operation(FilterOperation.fromValue(op))
+        .value(value);
+
+    var criteria = new SearchCriteriaRQ().addSearchCriteriaItem(inner);
+
+    mockMvc.perform(post(NEW_USERS_URL + "/searches")
+            .with(token(oAuthHelper.getSuperadminToken()))
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(criteria)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.total_count").value(expCount));
+  }
+
+  @Test
+  void searchInstanceUsersPositiveEmptyRequest() throws Exception {
+    mockMvc.perform(post(NEW_USERS_URL + "/searches")
+            .with(token(oAuthHelper.getSuperadminToken()))
+            .contentType(APPLICATION_JSON)
+            .content("{}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.total_count").value(2));
   }
 }

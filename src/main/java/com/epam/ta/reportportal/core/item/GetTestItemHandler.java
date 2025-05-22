@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.reporting.StatisticsResource;
 import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.List;
@@ -64,7 +65,7 @@ public interface GetTestItemHandler {
    * @param launchesLimit  response limit
    * @return {@link Iterable} of the {@link TestItemResource}
    */
-  Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
+  Page<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
       MembershipDetails membershipDetails, ReportPortalUser user,
       @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit);
 
@@ -75,9 +76,9 @@ public interface GetTestItemHandler {
    * @param pageable       {@link Pageable}
    * @param membershipDetails {@link MembershipDetails}
    * @param user           {@link ReportPortalUser}
-   * @return {@link Iterable} of the {@link TestItemResource}
+   * @return {@link Page} of the {@link TestItemResource}
    */
-  Iterable<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable,
+  Page<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable,
       MembershipDetails membershipDetails, ReportPortalUser user,
       Map<String, String> params);
 
@@ -128,14 +129,35 @@ public interface GetTestItemHandler {
       MembershipDetails membershipDetails, String keyPart);
 
   /**
-   * Get specified attribute keys
+   * Retrieves a list of unique attribute keys based on the provided project details, a substring of
+   * the key ({@code keyPart}), and an optional launch ID.
    *
-   * @param launchId {@link com.epam.ta.reportportal.entity.launch.Launch#id}
-   * @param value    part of the {@link com.epam.ta.reportportal.entity.ItemAttribute#key} to
-   *                 search
-   * @return {@link List} of the {@link com.epam.ta.reportportal.entity.ItemAttribute#key}
+   * <p>If {@code launchId} is {@code null}, the search spans all launches in the project.
+   *
+   * @param membershipDetails details of the project; must not be {@code null}.
+   * @param keyPart        substring used to filter keys; must not be {@code null} or empty.
+   * @param launchId       optional launch ID to restrict the search to a specific launch. If
+   *                       {@code null}, all launches within the project are considered.
+   * @return a list of unique attribute keys matching the criteria, or an empty list if none are
+   * found.
    */
-  List<String> getAttributeKeys(Long launchId, String value);
+  List<String> getUniqueAttributeKeys(MembershipDetails membershipDetails, String keyPart, Long launchId);
+
+  /**
+   * Retrieves a list of unique attribute values based on the provided project details, a substring
+   * of the value ({@code valuePart}), and an optional launch ID.
+   *
+   * <p>If {@code launchId} is {@code null}, the search spans all launches in the project.
+   *
+   * @param membershipDetails details of the project; must not be {@code null}.
+   * @param valuePart      substring used to filter values; must not be {@code null} or empty.
+   * @param launchId       optional launch ID to restrict the search to a specific launch. If
+   *                       {@code null}, all launches within the project are considered.
+   * @return a list of unique attribute values matching the criteria, or an empty list if none are
+   * found.
+   */
+  List<String> getUniqueAttributeValues(MembershipDetails membershipDetails, String key, String valuePart,
+      Long launchId);
 
   /**
    * Get specified attribute values

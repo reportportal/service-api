@@ -141,7 +141,7 @@ public class ActivityController {
       @PathVariable @Parameter(description = "The ID of the activity to be searched")
       Long activityId, @AuthenticationPrincipal ReportPortalUser user) {
     MembershipDetails membershipDetails =
-        projectExtractor.extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey));
+        projectExtractor.extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey));
     return activityHandler.getActivity(membershipDetails, activityId);
   }
 
@@ -303,14 +303,14 @@ public class ActivityController {
               "message": "Unclassified error"
           }
           """))) })
-  public Iterable<ActivityEventResource> getTestItemActivities(@PathVariable
+  public Page<ActivityEventResource> getTestItemActivities(@PathVariable
   @Parameter(description = "The name of the project for which the activities should be searched")
   String projectKey, @PathVariable
   @Parameter(description = "The ID of the test item for which all its activities should be "
       + "searched") Long itemId, @FilterFor(Activity.class) Filter filter,
       @SortFor(Activity.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
     MembershipDetails membershipDetails =
-        projectExtractor.extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey));
+        projectExtractor.extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey));
     return activityHandler.getItemActivities(membershipDetails, itemId, filter, pageable);
    }
  }

@@ -164,10 +164,10 @@ class UpdatePluginHandlerTest {
     UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
     updatePluginStateRQ.setEnabled(true);
 
-    IntegrationType emailIntegrationType = IntegrationTestUtil.getEmailIntegrationType();
+    IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
     final String wrongIntegrationTypeName = "QWEQWE";
-    emailIntegrationType.setName(wrongIntegrationTypeName);
-    when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(emailIntegrationType));
+    jiraIntegrationType.setName(wrongIntegrationTypeName);
+    when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(jiraIntegrationType));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ, user)

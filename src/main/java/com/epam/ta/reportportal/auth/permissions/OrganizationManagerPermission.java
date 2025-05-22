@@ -55,11 +55,13 @@ public class OrganizationManagerPermission implements Permission {
 
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
-    organizationRepositoryCustom.findById((Long) orgId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
-
     var ou = organizationUserRepository.findByUserIdAndOrganization_Id(rpUser.getUserId(),
         (Long) orgId);
+
+    if (ou.isEmpty()) {
+      organizationRepositoryCustom.findById((Long) orgId)
+          .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
+    }
 
     BusinessRule.expect(ou.isPresent(), Predicate.isEqual(true))
         .verify(ErrorType.ACCESS_DENIED);

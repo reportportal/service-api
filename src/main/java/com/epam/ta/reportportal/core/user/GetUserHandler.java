@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.user.UserResource;
 import java.io.OutputStream;
@@ -78,8 +79,8 @@ public interface GetUserHandler {
    * @param membershipDetails Membership details
    * @return Page of users
    */
-  Iterable<UserResource> getUsers(Filter filter, Pageable pageable,
-      MembershipDetails membershipDetails);
+  Page<UserResource> getUsers(Filter filter, Pageable pageable,
+                              MembershipDetails membershipDetails);
 
   Map<String, UserResource.AssignedProject> getUserProjects(String userName);
 
@@ -90,7 +91,7 @@ public interface GetUserHandler {
    * @param pageable Paging
    * @return Page of {@link UserResource}
    */
-  Iterable<UserResource> getAllUsers(Queryable filter, Pageable pageable);
+  Page<UserResource> getAllUsers(Queryable filter, Pageable pageable);
 
   /**
    * Get page of users with filter
@@ -111,5 +112,5 @@ public interface GetUserHandler {
    */
   void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter);
 
-  Iterable<UserResource> searchUsers(String term, Pageable pageable);
+  Page<UserResource> searchUsers(String term, Pageable pageable);
 }

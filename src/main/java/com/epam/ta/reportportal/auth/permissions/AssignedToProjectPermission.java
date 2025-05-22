@@ -25,9 +25,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 /**
- * Check whether user is organization manager or assigned to project as editor
+ * Check whether user is organization manager or assigned to project as editor.
  *
- * @author Andrei Varabyeu
+ * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
  */
 @Component("assignedToProjectPermission")
 @LookupPermission({"assignedToProject"})
@@ -45,6 +45,7 @@ class AssignedToProjectPermission implements Permission {
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
     Long projectId = Long.parseLong(String.valueOf(id));
-    return projectUserRepository.findProjectUserByUserIdAndProjectId(rpUser.getUserId(), projectId).isPresent();
+    return projectUserRepository.findProjectUserByUserIdAndProjectId(rpUser.getUserId(), projectId)
+        .isPresent();
   }
 }

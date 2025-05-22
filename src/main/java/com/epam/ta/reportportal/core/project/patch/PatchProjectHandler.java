@@ -27,22 +27,61 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * Handler for patch operations on projects within an organization. Supports patching project name
+ * and slug using specific handlers. Ensures the project exists before applying patch operations.
+ *
+ * <p>This handler is configured as a Spring service component and uses logging capabilities:
+ * <ul>
+ *   <li>{@code @Service} - Indicates this class is a Spring service component for dependency
+ *   injection
+ *   <li>{@code @Log4j2} - Enables logging capabilities using Log4j2 framework
+ * </ul>
+ *
+ * <p>The handler processes patch operations through specialized handlers for different project
+ * properties
+ * and maintains transactional integrity during the patch operations.
+ *
+ * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
+ * @see org.springframework.stereotype.Service
+ * @see lombok.extern.log4j.Log4j2
+ */
 @Service
 @Log4j2
 public class PatchProjectHandler {
 
-  private final PatchProjectNameHandler patchProjectName;
-  private final PatchProjectSlugHandler patchProjectSlug;
+  private final PatchProjectNameHandler patchProjectNameHandler;
+  private final PatchProjectSlugHandler patchProjectSlugHandler;
   private final ProjectService projectService;
 
+  /**
+   * Constructs a new PatchProjectHandler with required dependencies.
+   *
+   * @param patchProjectNameHandler handler for project name patch operations
+   * @param patchProjectSlugHandler handler for project slug patch operations
+   * @param projectService          service for project-related operations
+   */
   @Autowired
-  public PatchProjectHandler(PatchProjectNameHandler patchProjectName, PatchProjectSlugHandler patchProjectSlug, ProjectService projectService) {
-    this.patchProjectName = patchProjectName;
-    this.patchProjectSlug = patchProjectSlug;
+  public PatchProjectHandler(PatchProjectNameHandler patchProjectNameHandler,
+      PatchProjectSlugHandler patchProjectSlugHandler,
+      ProjectService projectService) {
+    this.patchProjectNameHandler = patchProjectNameHandler;
+    this.patchProjectSlugHandler = patchProjectSlugHandler;
     this.projectService = projectService;
   }
 
-  public void patchOrganizationProject(List<PatchOperation> patchOperations, Long orgId, Long projectId) {
+  /**
+   * Applies a list of patch operations to a project within an organization. Verifies that the
+   * project exists within the specified organization before applying any patches.
+   *
+   * @param patchOperations list of patch operations to be applied to the project
+   * @param orgId           ID of the organization that owns the project
+   * @param projectId       ID of the project to be patched
+   * @throws com.epam.reportportal.rules.exception.ReportPortalException if a project is not found
+   *                                                                     in the organization
+   */
+  public void patchOrganizationProject(List<PatchOperation> patchOperations, Long orgId,
+      Long projectId) {
     expect(projectService.existsByProjectIdAndOrgId(projectId, orgId), equalTo(true))
         .verify(PROJECT_NOT_FOUND, projectId);
 
@@ -52,17 +91,30 @@ public class PatchProjectHandler {
     });
   }
 
+  /**
+   * Applies a single patch operation to a project. Determines the appropriate handler based on the
+   * operation path and executes the corresponding patch operation (add, replace, or remove).
+   *
+   * @param operation the patch operation to be applied, containing the path, operation type and
+   *                  value
+   * @param projectId ID of the project to be patched
+   * @throws IllegalStateException if the operation path is invalid ("name" or "slug" expected) or
+   *                               if the operation type is not supported (ADD, REPLACE, or REMOVE
+   *                               expected)
+   */
   public void patchProject(PatchOperation operation, Long projectId) {
     BasePatchProjectHandler patchOperationHandler = switch (operation.getPath()) {
-      case "name" -> this.patchProjectName;
-      case "slug" -> this.patchProjectSlug;
-      case null, default -> throw new IllegalStateException("Unexpected value: " + operation.getPath());
+      case "name" -> this.patchProjectNameHandler;
+      case "slug" -> this.patchProjectSlugHandler;
+      case null, default ->
+          throw new IllegalStateException("Unexpected value: " + operation.getPath());
     };
 
     switch (operation.getOp()) {
       case ADD -> patchOperationHandler.add(operation, projectId);
       case REPLACE -> patchOperationHandler.replace(operation, projectId);
       case REMOVE -> patchOperationHandler.remove(operation, projectId);
+      default -> throw new IllegalStateException("Unexpected value: " + operation.getOp());
     }
 
   }

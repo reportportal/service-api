@@ -19,10 +19,21 @@ package com.epam.ta.reportportal.core.project.patch;
 import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.ta.reportportal.core.project.ProjectService;
 
+/**
+ * Abstract base class for handling patch operations on projects. Subclasses should override the
+ * add, replace, and remove methods to implement specific patch logic.
+ *
+ * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
+ */
 public abstract class BasePatchProjectHandler {
 
   protected final ProjectService projectService;
 
+  /**
+   * Constructs a new BasePatchProjectHandler with the specified project service.
+   *
+   * @param projectService service for project-related operations
+   */
   protected BasePatchProjectHandler(ProjectService projectService) {
     this.projectService = projectService;
   }

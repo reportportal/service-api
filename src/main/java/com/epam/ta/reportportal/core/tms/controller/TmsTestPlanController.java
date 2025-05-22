@@ -54,7 +54,7 @@ public class TmsTestPlanController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestPlanService.create(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testPlan);
   }
@@ -78,7 +78,7 @@ public class TmsTestPlanController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestPlanService.getByCriteria(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin( EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         environmentId,
         productVersionId,
@@ -102,7 +102,7 @@ public class TmsTestPlanController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestPlanService.update(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testPlanId,
         testPlan);
@@ -122,7 +122,7 @@ public class TmsTestPlanController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestPlanService.getById(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testPlanId);
   }
@@ -140,7 +140,7 @@ public class TmsTestPlanController {
       @AuthenticationPrincipal ReportPortalUser user) {
     tmsTestPlanService.delete(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testPlanId);
   }
@@ -161,7 +161,7 @@ public class TmsTestPlanController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestPlanService.patch(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testPlanId,
         updatedTestPlan);

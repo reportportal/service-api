@@ -54,7 +54,7 @@ public class TmsDatasetController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsDatasetService.create(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         datasetRQ);
   }
@@ -73,7 +73,7 @@ public class TmsDatasetController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsDatasetService.uploadFromFile(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         file);
   }
@@ -90,7 +90,7 @@ public class TmsDatasetController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsDatasetService.getByProjectId(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId());
   }
 
@@ -108,7 +108,7 @@ public class TmsDatasetController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsDatasetService.getById(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         datasetId);
   }
@@ -129,7 +129,7 @@ public class TmsDatasetController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsDatasetService.update(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         datasetId,
         datasetRQ);
@@ -151,7 +151,7 @@ public class TmsDatasetController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsDatasetService.patch(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         datasetId,
         tmsDatasetUpdateRQ);
@@ -170,7 +170,7 @@ public class TmsDatasetController {
       @AuthenticationPrincipal ReportPortalUser user) {
     tmsDatasetService.delete(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         datasetId);
   }

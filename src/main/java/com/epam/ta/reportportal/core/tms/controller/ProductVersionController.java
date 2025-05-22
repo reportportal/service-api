@@ -50,7 +50,7 @@ public class ProductVersionController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return productVersionService.getById(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         productVersionId);
   }
@@ -70,7 +70,7 @@ public class ProductVersionController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return productVersionService.create(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         inputDto);
   }
@@ -92,7 +92,7 @@ public class ProductVersionController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return productVersionService.update(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         productVersionId,
         inputDto);
@@ -111,7 +111,7 @@ public class ProductVersionController {
       @AuthenticationPrincipal ReportPortalUser user) {
     productVersionService.delete(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         productVersionId);
   }

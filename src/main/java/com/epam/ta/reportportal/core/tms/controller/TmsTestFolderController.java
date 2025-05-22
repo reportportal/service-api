@@ -77,7 +77,7 @@ public class TmsTestFolderController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestFolderService.create(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         inputDto);
   }
@@ -116,7 +116,7 @@ public class TmsTestFolderController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestFolderService.update(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         folderId,
         inputDto);
@@ -157,7 +157,7 @@ public class TmsTestFolderController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestFolderService.patch(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         folderId,
         inputDto);
@@ -192,7 +192,7 @@ public class TmsTestFolderController {
       @PathVariable("folderId") Long folderId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestFolderService.getById(projectExtractor
-        .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+        .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
         .getProjectId(), folderId);
   }
 
@@ -225,7 +225,7 @@ public class TmsTestFolderController {
       Pageable pageable) {
     return tmsTestFolderService.getFoldersByProjectID(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(), pageable);
   }
 
@@ -261,7 +261,7 @@ public class TmsTestFolderController {
       @Parameter(description = "Pagination parameters") Pageable pageable) {
     return tmsTestFolderService.getSubFolders(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(), folderId, pageable);
   }
 
@@ -290,7 +290,7 @@ public class TmsTestFolderController {
       @PathVariable("folderId") Long folderId) {
     tmsTestFolderService.delete(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(), folderId);
   }
 
@@ -326,7 +326,7 @@ public class TmsTestFolderController {
       HttpServletResponse response) {
     tmsTestFolderService.exportFolderById(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         folderId,
         fileType,

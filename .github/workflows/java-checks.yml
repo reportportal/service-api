@@ -3,10 +3,9 @@ name: Java checks
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    paths-ignore:
-      - '.github/**'
-      - README.md
-      - gradle.properties
+    paths:
+      - 'src/**'
+      - 'tests/**'
 
 jobs:
   call-java-checks:

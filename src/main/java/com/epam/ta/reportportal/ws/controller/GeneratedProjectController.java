@@ -40,9 +40,9 @@ public class GeneratedProjectController implements ProjectsApi {
   @Override
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public ResponseEntity<ProjectGroupsPage> getGroupsOfProject(
-      String projectKey,
-      Integer offset,
-      Integer limit
+          String projectKey,
+          Integer offset,
+          Integer limit
   ) {
     var page = getGroupExtension().getProjectGroups(projectKey, offset, limit);
     return ResponseEntity.ok(page);

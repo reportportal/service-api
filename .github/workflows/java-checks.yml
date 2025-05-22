@@ -14,7 +14,7 @@ jobs:
     uses: reportportal/.github/.github/workflows/java-checks.yaml@main
     secrets: inherit
     with:
-        checkstyle-properties-file: './checkstyle.properties'
+        checkstyle-config: './checkstyle.xml'
 
   call-release-java-checks:
     if: ${{ github.event_name == 'pull_request' && github.base_ref == 'refs/heads/master' }}

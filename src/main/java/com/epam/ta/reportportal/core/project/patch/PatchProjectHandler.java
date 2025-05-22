@@ -23,7 +23,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.ta.reportportal.core.project.ProjectService;
 import java.util.List;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
  * <ul>
  *   <li>{@code @Service} - Indicates this class is a Spring service component for dependency
  *   injection
- *   <li>{@code @Log4j2} - Enables logging capabilities using Log4j2 framework
+ *   <li>{@code @Slf4j} - Enables logging capabilities using Slf4j framework
  * </ul>
  *
  * <p>The handler processes patch operations through specialized handlers for different project
@@ -47,7 +47,7 @@ import org.springframework.stereotype.Service;
  * @see lombok.extern.log4j.Log4j2
  */
 @Service
-@Log4j2
+@Slf4j
 public class PatchProjectHandler {
 
   private final PatchProjectNameHandler patchProjectNameHandler;

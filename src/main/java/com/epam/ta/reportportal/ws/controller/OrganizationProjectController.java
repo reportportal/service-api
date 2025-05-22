@@ -41,7 +41,7 @@ import com.epam.ta.reportportal.entity.project.ProjectProfile;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.google.common.collect.Lists;
 import java.util.List;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort.Direction;
@@ -58,7 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Siarhei Hrabko
  */
-@Log4j2
+@Slf4j
 @RestController
 public class OrganizationProjectController extends BaseController implements
     OrganizationProjectApi {

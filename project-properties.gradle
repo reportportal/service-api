@@ -16,7 +16,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode") ? project.releaseMode.toBoolean() : false
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.14.0' : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.14.0' : 'develop')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.14.0' : 'feature/EPMRPP-migrate-tms-to-feature-orgs')
     manifestSchemaUrl = schemaUrl + ('manifest.schema.json')
     //TODO refactor with archive download
     testScriptsSrc = [
@@ -78,6 +78,7 @@ project.ext {
             (migrationsUrl + '/migrations/96_create_groups_tables.up.sql')             : 'V096__create_groups_tables.sql',
             (migrationsUrl + '/migrations/97_add_groups_uuid.up.sql')                  : 'V097__add_groups_uuid.up.sql',
             (migrationsUrl + '/migrations/98_add_plugin_type.up.sql')                  : 'V098__add_plugin_type.up.sql',
+            (migrationsUrl + '/migrations/102_tms_initial.up.sql')                     : 'V102__tms_initial.up.sql',
             (migrationsUrl + '/migrations/196_update_default_user_emails.up.sql')      : 'V196__update_default_user_emails.sql',
             (migrationsUrl + '/migrations/197_email_migration_to_login.up.sql')        : 'V197__email_migration_to_login.sql',
             (migrationsUrl + '/migrations/198_add_slugify_function.up.sql')            : 'V198__add_slugify_function.sql',

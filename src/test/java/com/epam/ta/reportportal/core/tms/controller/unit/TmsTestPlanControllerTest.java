@@ -97,7 +97,7 @@ public class TmsTestPlanControllerTest {
         .withProjectId(projectId)
         .withProjectKey(projectKey)
         .build();
-    given(projectExtractor.extractProjectDetailsAdmin(any(ReportPortalUser.class), anyString()))
+    given(projectExtractor.extractProjectDetailsAdmin(anyString()))
         .willReturn(membershipDetails);
   }
 
@@ -114,8 +114,7 @@ public class TmsTestPlanControllerTest {
             .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestPlanService).create(projectId, tmsTestPlanRequest);
   }
 
@@ -136,8 +135,7 @@ public class TmsTestPlanControllerTest {
             .param("size", "1"))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestPlanService).getByCriteria(projectId, List.of(1L), List.of(2L), pageable);
   }
 
@@ -157,8 +155,7 @@ public class TmsTestPlanControllerTest {
             .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestPlanService).update(projectId, testPlanId, tmsTestPlanRequest);
   }
 
@@ -172,8 +169,7 @@ public class TmsTestPlanControllerTest {
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestPlanService).getById(projectId, testPlanId);
   }
 
@@ -186,8 +182,7 @@ public class TmsTestPlanControllerTest {
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestPlanService).delete(projectId, testPlanId);
   }
 
@@ -207,8 +202,7 @@ public class TmsTestPlanControllerTest {
             .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestPlanService).patch(projectId, testPlanId, tmsTestPlanRequest);
   }
 }

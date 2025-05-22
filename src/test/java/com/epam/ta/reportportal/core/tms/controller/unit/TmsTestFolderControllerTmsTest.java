@@ -123,7 +123,7 @@ public class TmsTestFolderControllerTmsTest {
         .withProjectId(projectId)
         .withProjectKey(projectKey)
         .build();
-    given(projectExtractor.extractProjectDetailsAdmin(any(ReportPortalUser.class), anyString()))
+    given(projectExtractor.extractProjectDetailsAdmin(anyString()))
         .willReturn(membershipDetails);
   }
 
@@ -148,8 +148,7 @@ public class TmsTestFolderControllerTmsTest {
             .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestFolderService).create(projectId, request);
   }
 
@@ -176,8 +175,7 @@ public class TmsTestFolderControllerTmsTest {
             .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestFolderService).update(projectId, folderId, request);
   }
 
@@ -204,8 +202,7 @@ public class TmsTestFolderControllerTmsTest {
             .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestFolderService).patch(projectId, folderId, request);
   }
 
@@ -228,8 +225,7 @@ public class TmsTestFolderControllerTmsTest {
         .andExpect(jsonPath("$.description").value("doc"))
         .andExpect(jsonPath("$.countOfSubfolders").value(3));
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestFolderService).getById(projectId, folderId);
   }
 
@@ -269,8 +265,7 @@ public class TmsTestFolderControllerTmsTest {
         .andExpect(jsonPath("$.content[1].countOfSubfolders").value(3))
         .andExpect(jsonPath("$.totalElements").value(2));
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestFolderService).getFoldersByProjectID(projectId, pageable);
   }
 
@@ -310,8 +305,7 @@ public class TmsTestFolderControllerTmsTest {
         .andExpect(jsonPath("$.content[1].name").value("subfolder2"))
         .andExpect(jsonPath("$.totalElements").value(2));
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestFolderService).getSubFolders(projectId, parentFolderId, pageable);
   }
 
@@ -324,8 +318,7 @@ public class TmsTestFolderControllerTmsTest {
     mockMvc.perform(delete("/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestFolderService).delete(projectId, folderId);
   }
 
@@ -345,8 +338,7 @@ public class TmsTestFolderControllerTmsTest {
         .andExpect(status().isOk());
 
     // Verify
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestFolderService).exportFolderById(eq(projectId), eq(folderId), eq(fileType),
         any(HttpServletResponse.class));
   }

@@ -50,11 +50,10 @@ public class TmsDatasetController {
   @PostMapping
   @PreAuthorize(IS_ADMIN)
   public TmsDatasetRS create(@PathVariable("projectKey") String projectKey,
-      @RequestBody TmsDatasetRQ datasetRQ,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestBody TmsDatasetRQ datasetRQ) {
     return tmsDatasetService.create(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         datasetRQ);
   }
@@ -69,11 +68,10 @@ public class TmsDatasetController {
   @PostMapping(path = "/upload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   @PreAuthorize(IS_ADMIN)
   public List<TmsDatasetRS> uploadFromFile(@PathVariable("projectKey") String projectKey,
-      @RequestPart MultipartFile file,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestPart MultipartFile file) {
     return tmsDatasetService.uploadFromFile(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         file);
   }
@@ -86,11 +84,10 @@ public class TmsDatasetController {
    */
   @GetMapping
   @PreAuthorize(IS_ADMIN)
-  public List<TmsDatasetRS> getByProjectId(@PathVariable("projectKey") String projectKey,
-      @AuthenticationPrincipal ReportPortalUser user) {
+  public List<TmsDatasetRS> getByProjectId(@PathVariable("projectKey") String projectKey) {
     return tmsDatasetService.getByProjectId(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId());
   }
 
@@ -104,11 +101,10 @@ public class TmsDatasetController {
   @GetMapping("/{datasetId}")
   @PreAuthorize(IS_ADMIN)
   public TmsDatasetRS getById(@PathVariable("projectKey") String projectKey,
-      @PathVariable("datasetId") Long datasetId,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable("datasetId") Long datasetId) {
     return tmsDatasetService.getById(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         datasetId);
   }
@@ -125,11 +121,10 @@ public class TmsDatasetController {
   @PreAuthorize(IS_ADMIN)
   public TmsDatasetRS update(@PathVariable("projectKey") String projectKey,
       @PathVariable("datasetId") Long datasetId,
-      @RequestBody TmsDatasetRQ datasetRQ,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestBody TmsDatasetRQ datasetRQ) {
     return tmsDatasetService.update(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         datasetId,
         datasetRQ);
@@ -147,11 +142,10 @@ public class TmsDatasetController {
   @PreAuthorize(IS_ADMIN)
   public TmsDatasetRS patch(@PathVariable("projectKey") String projectKey,
       @PathVariable("datasetId") Long datasetId,
-      @RequestBody TmsDatasetRQ tmsDatasetUpdateRQ,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestBody TmsDatasetRQ tmsDatasetUpdateRQ) {
     return tmsDatasetService.patch(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         datasetId,
         tmsDatasetUpdateRQ);
@@ -166,11 +160,10 @@ public class TmsDatasetController {
   @DeleteMapping("/{datasetId}")
   @PreAuthorize(IS_ADMIN)
   public void delete(@PathVariable("projectKey") String projectKey,
-      @PathVariable("datasetId") Long datasetId,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable("datasetId") Long datasetId) {
     tmsDatasetService.delete(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         datasetId);
   }

@@ -73,11 +73,10 @@ public class TmsTestFolderController {
       @Parameter(description = "Project key", required = true)
       @PathVariable("projectKey") String projectKey,
       @Parameter(description = "Test folder details", required = true)
-      @RequestBody final TmsTestFolderRQ inputDto,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestBody final TmsTestFolderRQ inputDto) {
     return tmsTestFolderService.create(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         inputDto);
   }
@@ -112,11 +111,10 @@ public class TmsTestFolderController {
       @Parameter(description = "Test folder ID", required = true)
       @PathVariable("folderId") Long folderId,
       @Parameter(description = "Updated test folder details", required = true)
-      @RequestBody TmsTestFolderRQ inputDto,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestBody TmsTestFolderRQ inputDto) {
     return tmsTestFolderService.update(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         folderId,
         inputDto);
@@ -153,11 +151,10 @@ public class TmsTestFolderController {
       @Parameter(description = "Test folder ID", required = true)
       @PathVariable("folderId") Long folderId,
       @Parameter(description = "Partial test folder details for update", required = true)
-      @RequestBody final TmsTestFolderRQ inputDto,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestBody final TmsTestFolderRQ inputDto) {
     return tmsTestFolderService.patch(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         folderId,
         inputDto);
@@ -189,10 +186,9 @@ public class TmsTestFolderController {
       @Parameter(description = "Project key", required = true)
       @PathVariable("projectKey") String projectKey,
       @Parameter(description = "Test folder ID", required = true)
-      @PathVariable("folderId") Long folderId,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable("folderId") Long folderId) {
     return tmsTestFolderService.getById(projectExtractor
-        .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+        .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
         .getProjectId(), folderId);
   }
 
@@ -220,12 +216,11 @@ public class TmsTestFolderController {
   public Page<TmsTestFolderRS> getTestFolderByProject(
       @Parameter(description = "Project key", required = true)
       @PathVariable("projectKey") String projectKey,
-      @AuthenticationPrincipal ReportPortalUser user,
       @Parameter(description = "Pagination parameters")
       Pageable pageable) {
     return tmsTestFolderService.getFoldersByProjectID(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(), pageable);
   }
 
@@ -255,13 +250,12 @@ public class TmsTestFolderController {
   public Page<TmsTestFolderRS> getSubfolders(
       @Parameter(description = "Project key", required = true)
       @PathVariable("projectKey") String projectKey,
-      @AuthenticationPrincipal ReportPortalUser user,
       @Parameter(description = "Parent folder ID", required = true)
       @PathVariable("folderId") Long folderId,
       @Parameter(description = "Pagination parameters") Pageable pageable) {
     return tmsTestFolderService.getSubFolders(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(), folderId, pageable);
   }
 
@@ -285,12 +279,11 @@ public class TmsTestFolderController {
   public void deleteTestFolder(
       @Parameter(description = "Project key", required = true)
       @PathVariable("projectKey") String projectKey,
-      @AuthenticationPrincipal ReportPortalUser user,
       @Parameter(description = "Test folder ID to delete", required = true)
       @PathVariable("folderId") Long folderId) {
     tmsTestFolderService.delete(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(), folderId);
   }
 
@@ -322,11 +315,10 @@ public class TmsTestFolderController {
       @PathVariable("folderId") Long folderId,
       @Parameter(description = "Export file format", required = true)
       @PathVariable("fileType") TmsTestFolderExportFileType fileType,
-      @AuthenticationPrincipal ReportPortalUser user,
       HttpServletResponse response) {
     tmsTestFolderService.exportFolderById(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         folderId,
         fileType,

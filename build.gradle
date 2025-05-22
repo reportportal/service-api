@@ -69,8 +69,8 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
     } else {
         println("Using snapshot dependencies")
-        implementation 'com.github.reportportal:commons-dao:5.14.1'
-        implementation 'com.github.reportportal:commons:b06a656'
+        implementation 'com.github.reportportal:commons-dao:1dee5d4'
+        implementation 'com.github.reportportal:commons:75fcf17'
         implementation 'com.github.reportportal:plugin-api:e945fcd'
     }
     implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
@@ -220,6 +220,10 @@ tasks.register('downloadManifestSchema') {
             out << schemaUrl.openStream()
         }
     }
+}
+
+tasks.named('sourcesJar') {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 dependencyCheck {

@@ -46,11 +46,10 @@ public class ProductVersionController {
   @PreAuthorize(IS_ADMIN)
   @GetMapping("/{productVersionId}")
   TmsProductVersionRS getById(@PathVariable("projectKey") String projectKey,
-      @PathVariable("productVersionId") final long productVersionId,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable("productVersionId") final long productVersionId) {
     return productVersionService.getById(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         productVersionId);
   }
@@ -66,11 +65,10 @@ public class ProductVersionController {
   @PreAuthorize(IS_ADMIN)
   @PostMapping
   TmsProductVersionRS createVersion(@PathVariable("projectKey") String projectKey,
-      @RequestBody final ProductVersionRQ inputDto,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestBody final ProductVersionRQ inputDto) {
     return productVersionService.create(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         inputDto);
   }
@@ -88,11 +86,10 @@ public class ProductVersionController {
   @PutMapping("/{productVersionId}")
   TmsProductVersionRS updateVersion(@PathVariable("projectKey") String projectKey,
       @PathVariable("productVersionId") final long productVersionId,
-      @RequestBody final ProductVersionRQ inputDto,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestBody final ProductVersionRQ inputDto) {
     return productVersionService.update(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         productVersionId,
         inputDto);
@@ -107,11 +104,10 @@ public class ProductVersionController {
   @PreAuthorize(IS_ADMIN)
   @DeleteMapping("/{productVersionId}")
   void deleteVersion(@PathVariable("projectKey") String projectKey,
-      @PathVariable("productVersionId") final long productVersionId,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable("productVersionId") final long productVersionId) {
     productVersionService.delete(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         productVersionId);
   }

@@ -48,11 +48,10 @@ public class TestCaseController {
   @PreAuthorize(IS_ADMIN)
   @GetMapping("/{testCaseId}")
   public TmsTestCaseRS getTestCaseById(@PathVariable("projectKey") String projectKey,
-      @PathVariable("testCaseId") final long testCaseId,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable("testCaseId") final long testCaseId) {
     return tmsTestCaseService.getById(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testCaseId
     );
@@ -67,11 +66,10 @@ public class TestCaseController {
   @PreAuthorize(IS_ADMIN)
   @GetMapping
   public List<TmsTestCaseRS> getTestCaseByProjectId(
-      @PathVariable("projectKey") String projectKey,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @PathVariable("projectKey") String projectKey) {
     return tmsTestCaseService.getTestCaseByProjectId(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId()
     );
   }
@@ -86,11 +84,10 @@ public class TestCaseController {
   @PreAuthorize(IS_ADMIN)
   @PostMapping
   public TmsTestCaseRS createTestCase(@PathVariable("projectKey") String projectKey,
-      @RequestBody @Valid final TmsTestCaseRQ inputDto,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestBody @Valid final TmsTestCaseRQ inputDto) {
     return tmsTestCaseService.create(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         inputDto
     );
@@ -108,11 +105,10 @@ public class TestCaseController {
   @PutMapping("/{testCaseId}")
   public TmsTestCaseRS updateTestCase(@PathVariable("projectKey") String projectKey,
       @PathVariable("testCaseId") final long testCaseId,
-      @RequestBody final TmsTestCaseRQ inputDto,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestBody final TmsTestCaseRQ inputDto) {
     return tmsTestCaseService.update(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testCaseId,
         inputDto
@@ -132,11 +128,10 @@ public class TestCaseController {
   @PatchMapping("/{testCaseId}")
   public TmsTestCaseRS patchTestCase(@PathVariable("projectKey") String projectKey,
       @PathVariable("testCaseId") final long testCaseId,
-      @RequestBody final TmsTestCaseRQ inputDto,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestBody final TmsTestCaseRQ inputDto) {
     return tmsTestCaseService.patch(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testCaseId,
         inputDto

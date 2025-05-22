@@ -19,17 +19,24 @@ package com.epam.ta.reportportal.ws.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.reportportal.api.model.FilterOperation;
+import com.epam.reportportal.api.model.OperationType;
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
+import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
+import com.epam.ta.reportportal.core.project.ProjectService;
+import com.epam.ta.reportportal.util.SlugUtils;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
+import java.util.Collections;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -37,17 +44,22 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /**
  * @author Siarhei Hrabko
  */
+@Sql("/db/organization/full_organization_samples.sql")
 class OrganizationProjectControllerTest extends BaseMvcTest {
 
   private static final String ORG_SLUG = "my-organization";
 
   @Autowired
   private ObjectMapper objectMapper;
+
+  @Autowired
+  ProjectService projectService;
 
   @Test
   void getOrganizationProjectAdmin() throws Exception {
@@ -172,6 +184,132 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken()))
             .content(jsonBody.toString()))
         .andExpect(status().is4xxClientError());
+  }
+
+
+  @Test
+  void patchProjectName() throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path("name")
+        .value("correct-value");
+
+    mockMvc.perform(patch("/organizations/1/projects/1")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isOk());
+
+    var project = projectService.findProjectById(1L);
+    assertEquals("correct-value", project.getName());
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+      value = {
+          "raw-slug-value",
+          "RawSlugValue",
+          "raw---slug---value",
+          "raw_slug__val.ue",
+          "r!aw_slug__va#l$.ue"
+      },
+      delimiter = '|'
+  )
+  void patchProjectSlug(String rawSlug) throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path("slug")
+        .value(rawSlug);
+
+    mockMvc.perform(patch("/organizations/1/projects/1")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isOk());
+
+    var project = projectService.findProjectById(1L);
+    assertEquals(SlugUtils.slug(rawSlug), project.getSlug());
+  }
+
+  @Test
+  void patchWrongPath() throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path("wrong_path")
+        .value("correct-value");
+
+    mockMvc.perform(patch("/organizations/1/projects/1")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(jsonPath("$.message").value("Unclassified error [Unexpected value: wrong_path]"));
+  }
+
+
+  @ParameterizedTest
+  @CsvSource(
+      value = {
+          "name",
+          "slug"
+      },
+      delimiter = '|'
+  )
+  void patchValueTooLong(String path) throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path(path)
+        .value(RandomStringUtils.insecure().nextAlphabetic(1000));
+
+    mockMvc.perform(patch("/organizations/1/projects/1")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().is5xxServerError());
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+      value = {
+          "1nv@lid-name",
+          "!nvalid-#ame"
+      },
+      delimiter = '|'
+  )
+  void patchInvalidName(String name) throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path("name")
+        .value(name);
+
+    mockMvc.perform(patch("/organizations/1/projects/1")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().is5xxServerError());
+  }
+
+
+  @ParameterizedTest
+  @CsvSource(
+      value = {
+          "add|name",
+          "add|slug",
+          "remove|name",
+          "remove|slug"
+      },
+      delimiter = '|'
+  )
+  void patchUnsupportedOperation(String operation, String name) throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.fromValue(operation))
+        .path(name)
+        .value("validValue");
+
+    mockMvc.perform(patch("/organizations/1/projects/1")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().is5xxServerError());
   }
 
 }

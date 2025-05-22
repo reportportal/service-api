@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.BinaryDataResponseWriter;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
@@ -30,6 +31,7 @@ import lombok.extern.log4j.Log4j2;
 import org.flywaydb.test.FlywayTestExecutionListener;
 import org.flywaydb.test.annotation.FlywayTest;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +41,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -61,6 +62,13 @@ public abstract class BaseMvcTest {
 
   protected static final String DEFAULT_PROJECT_BASE_URL = "/v1/default_personal";
   protected static final String SUPERADMIN_PROJECT_BASE_URL = "/v1/superadmin_personal";
+
+  protected String adminToken;
+  protected String managerToken;
+  protected String editorToken;
+  protected String viewerToken;
+  protected String noOrgUser;
+  protected String noProjectsUser;
 
   @Autowired
   protected OAuthHelper oAuthHelper;
@@ -98,6 +106,16 @@ public abstract class BaseMvcTest {
   @FlywayTest(invokeCleanDB = false)
   @BeforeAll
   public static void before() {
+  }
+
+  @BeforeEach
+  void beforeEach() {
+    adminToken = oAuthHelper.createAccessToken("admin", "erebus", UserRole.ADMINISTRATOR);
+    managerToken = oAuthHelper.createAccessToken("user-manager", "erebus", UserRole.USER);
+    editorToken = oAuthHelper.createAccessToken("user-member-editor", "erebus", UserRole.USER);
+    viewerToken = oAuthHelper.createAccessToken("user-member-viewer", "erebus", UserRole.USER);
+    noProjectsUser = oAuthHelper.createAccessToken("no-projects-user", "erebus", UserRole.USER);
+    noOrgUser = oAuthHelper.createAccessToken("no-orgs-user", "erebus", UserRole.USER);
   }
 
   protected RequestPostProcessor token(String tokenValue) {

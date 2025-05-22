@@ -16,15 +16,18 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_ORG_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MANAGER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
 import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.reportportal.api.OrganizationProjectApi;
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
+import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.reportportal.api.model.ProjectBase;
 import com.epam.reportportal.api.model.ProjectInfo;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
+import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -32,10 +35,13 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.filter.OrganizationsSearchCriteriaService;
 import com.epam.ta.reportportal.core.project.OrganizationProjectHandler;
+import com.epam.ta.reportportal.core.project.patch.PatchProjectHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.project.ProjectProfile;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.google.common.collect.Lists;
+import java.util.List;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort.Direction;
@@ -46,12 +52,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controller class for handling organization project-related requests. * Extends the BaseController
- * and implements the ProjectsApi interface. * Provides endpoints for retrieving and managing
- * organization projects. Controller implementation for working with external systems.
+ * Controller class for handling organization project-related requests. * Extends the BaseController and implements the ProjectsApi interface. *
+ * Provides endpoints for retrieving and managing organization projects. Controller implementation for working with external systems.
  *
  * @author Siarhei Hrabko
  */
+@Log4j2
 @RestController
 public class OrganizationProjectController extends BaseController implements
     OrganizationProjectApi {
@@ -59,23 +65,24 @@ public class OrganizationProjectController extends BaseController implements
   private final OrganizationProjectHandler organizationProjectHandler;
   private final OrganizationRepositoryCustom organizationRepositoryCustom;
   private final OrganizationsSearchCriteriaService searchCriteriaService;
+  private final PatchProjectHandler patchProjectHandler;
 
   /**
    * Constructor for OrganizationProjectController.
    *
    * @param organizationProjectHandler   the handler for organization project-related operations
-   * @param organizationRepositoryCustom the custom repository for organization-related database
-   *                                     operations
+   * @param organizationRepositoryCustom the custom repository for organization-related database operations
    * @param searchCriteriaService        the service for creating filters based on search criteria
    */
   @Autowired
   public OrganizationProjectController(
       OrganizationProjectHandler organizationProjectHandler,
       OrganizationRepositoryCustom organizationRepositoryCustom,
-      OrganizationsSearchCriteriaService searchCriteriaService) {
+      OrganizationsSearchCriteriaService searchCriteriaService, PatchProjectHandler patchProjectHandler) {
     this.organizationProjectHandler = organizationProjectHandler;
     this.organizationRepositoryCustom = organizationRepositoryCustom;
     this.searchCriteriaService = searchCriteriaService;
+    this.patchProjectHandler = patchProjectHandler;
   }
 
   @Transactional(readOnly = true)
@@ -150,6 +157,13 @@ public class OrganizationProjectController extends BaseController implements
   public ResponseEntity<Void> deleteOrganizationsOrgIdProjectsProjectId(Long orgId, Long prjId) {
     organizationProjectHandler.deleteProject(orgId, prjId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+
+  @Override
+  @PreAuthorize(ALLOWED_TO_EDIT_ORG_PROJECT)
+  public ResponseEntity<SuccessfulUpdate> patchOrganizationsOrgIdProjectsProjectId(Long orgId, Long projectId, List<PatchOperation> patchOperations) {
+    patchProjectHandler.patchOrganizationProject(patchOperations, orgId, projectId);
+    return ResponseEntity.ok().body(new SuccessfulUpdate());
   }
 
 }

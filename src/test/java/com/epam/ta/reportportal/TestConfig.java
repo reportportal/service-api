@@ -21,8 +21,13 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClie
 import com.epam.ta.reportportal.core.analyzer.auto.client.impl.RabbitMqManagementClientTemplate;
 import com.epam.ta.reportportal.core.configs.security.JwtReportPortalUserConverter;
 import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBeanTest;
+import com.epam.ta.reportportal.ws.resolver.JacksonViewAwareModule;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rabbitmq.http.client.Client;
 import io.jsonwebtoken.Jwts.SIG;
@@ -115,11 +120,16 @@ public class TestConfig {
 
   @Bean
   public ObjectMapper testObjectMapper() {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper om = JsonMapper.builder()
+        .annotationIntrospector(new JacksonAnnotationIntrospector())
+        .configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true)
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+        .build();
 
-    objectMapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
-    objectMapper.registerModule(new JavaTimeModule());
+    om.registerModule(new JacksonViewAwareModule(om));
+    om.registerModule(new JavaTimeModule());
 
-    return objectMapper;
+    return om;
   }
 }

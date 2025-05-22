@@ -64,23 +64,6 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   @Autowired
   private OrganizationUserRepository organizationUserRepository;
 
-  private String adminToken;
-  private String managerToken;
-  private String editorToken;
-  private String viewerToken;
-  private String noOrgUser;
-  private String noProjectsUser;
-
-  @BeforeEach
-  void beforeEach() {
-    adminToken = oAuthHelper.createAccessToken("admin", "erebus", UserRole.ADMINISTRATOR);
-    managerToken = oAuthHelper.createAccessToken("user-manager", "erebus", UserRole.USER);
-    editorToken = oAuthHelper.createAccessToken("user-member-editor", "erebus", UserRole.USER);
-    viewerToken = oAuthHelper.createAccessToken("user-member-viewer", "erebus", UserRole.USER);
-    noProjectsUser = oAuthHelper.createAccessToken("no-projects-user", "erebus", UserRole.USER);
-    noOrgUser = oAuthHelper.createAccessToken("no-orgs-user", "erebus", UserRole.USER);
-  }
-
 
   @Test
   void getOrganizationUsersForAdmin() throws Exception {

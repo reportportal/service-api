@@ -24,7 +24,6 @@ import com.epam.reportportal.api.model.GroupProjectInfo;
 import com.epam.reportportal.api.model.GroupProjectsPage;
 import com.epam.reportportal.api.model.GroupUserInfo;
 import com.epam.reportportal.api.model.GroupUsersPage;
-import com.epam.reportportal.api.model.OrgGroupPage;
 import com.epam.reportportal.api.model.ProjectGroupInfo;
 import com.epam.reportportal.api.model.ProjectGroupsPage;
 import com.epam.reportportal.api.model.UpdateGroupRequest;

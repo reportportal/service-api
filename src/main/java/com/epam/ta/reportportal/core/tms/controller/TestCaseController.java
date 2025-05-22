@@ -52,7 +52,7 @@ public class TestCaseController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.getById(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testCaseId
     );
@@ -71,7 +71,7 @@ public class TestCaseController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.getTestCaseByProjectId(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId()
     );
   }
@@ -90,7 +90,7 @@ public class TestCaseController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.create(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         inputDto
     );
@@ -112,7 +112,7 @@ public class TestCaseController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.update(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testCaseId,
         inputDto
@@ -136,7 +136,7 @@ public class TestCaseController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.patch(
         projectExtractor
-            .extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectKey))
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testCaseId,
         inputDto

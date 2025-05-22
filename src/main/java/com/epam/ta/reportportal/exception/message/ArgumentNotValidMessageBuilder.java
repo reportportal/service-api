@@ -22,7 +22,7 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 /**
- * {@link MethodArgumentNotValidException} message builder
+ * {@link MethodArgumentNotValidException} message builder.
  *
  * @author Andrei Varabyeu
  */
@@ -30,6 +30,11 @@ public class ArgumentNotValidMessageBuilder implements ExceptionMessageBuilder<M
 
   private final ReloadableResourceBundleMessageSource messageSource;
 
+  /**
+   * Constructs a message builder that formats validation error messages.
+   *
+   * @param messageSource the source for retrieving localized validation messages from resource bundles
+   */
   public ArgumentNotValidMessageBuilder(ReloadableResourceBundleMessageSource messageSource) {
     this.messageSource = messageSource;
   }

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.exception.forwarding;
 
 import java.nio.charset.StandardCharsets;
@@ -26,7 +27,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /**
- * {@link HandlerExceptionResolver} Checks of exception contains response of downstream service and copies it to upstream response
+ * {@link HandlerExceptionResolver} Checks of exception contains response of downstream service and copies it to
+ * upstream response.
  *
  * @author Andrei Varabyeu
  */
@@ -38,6 +40,13 @@ public class ClientResponseForwardingExceptionHandler implements Ordered {
 
   private int order;
 
+  /**
+   * Resolves and forwards exceptions by converting them into appropriate HTTP responses. Attempts to cast the exception
+   * to ResponseForwardingException and create a response with the original status code, content type and body.
+   *
+   * @param ex The exception to be resolved and forwarded
+   * @return ResponseEntity containing the forwarded response, or null if forwarding fails
+   */
   public ResponseEntity<String> resolveException(Exception ex) {
     try {
       ResponseForwardingException forwardingException = (ResponseForwardingException) ex;

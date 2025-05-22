@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * Default implementation of ErrorResolver
+ * Default implementation of ErrorResolver.
  *
  * @author Andrei Varabyeu
  */
@@ -81,8 +81,8 @@ public class DefaultErrorResolver implements ErrorResolver {
   }
 
   /**
-   * Returns the config-time 'template' RestErrorDefinition instance configured for the specified
-   * Exception, or {@code null} if a match was not found.
+   * Returns the config-time 'template' RestErrorDefinition instance configured for the specified Exception, or
+   * {@code null} if a match was not found.
    * <p/>
    * The config-time template is used as the basis for the RestError constructed at runtime.
    *
@@ -112,8 +112,7 @@ public class DefaultErrorResolver implements ErrorResolver {
    *
    * @param exceptionMapping Possible exception match
    * @param ex               Exception to be checked
-   * @return 0 means ex matches exactly. Returns -1 if there's no match. Otherwise, returns depth.
-   * Lowest depth wins.
+   * @return 0 means ex matches exactly. Returns -1 if there's no match. Otherwise, returns depth. Lowest depth wins.
    */
   protected int getDepth(Class<? extends Throwable> exceptionMapping, Exception ex) {
     return getDepth(exceptionMapping, ex.getClass(), 0);

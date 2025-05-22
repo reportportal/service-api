@@ -17,15 +17,15 @@
 package com.epam.ta.reportportal.exception.message;
 
 /**
- * Builds custom exception strings from Exception. Lots of exceptions have custom data which should
- * be shown to the clients in a custom way
+ * Builds custom exception strings from Exception. Lots of exceptions have custom data which should be shown to the
+ * clients in a custom way.
  *
  * @author Andrei Varabyeu
  */
 public interface ExceptionMessageBuilder<T extends Exception> {
 
   /**
-   * Builds message string from provided exception
+   * Builds message string from provided exception.
    *
    * @param e Exception message should be built from
    * @return Built message

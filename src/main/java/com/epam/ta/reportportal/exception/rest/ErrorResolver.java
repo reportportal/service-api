@@ -25,7 +25,7 @@ package com.epam.ta.reportportal.exception.rest;
 public interface ErrorResolver {
 
   /**
-   * Create RestError from provided exception
+   * Create RestError from the provided exception.
    *
    * @param ex Exception to be resolved
    * @return Resolved {@link RestError}

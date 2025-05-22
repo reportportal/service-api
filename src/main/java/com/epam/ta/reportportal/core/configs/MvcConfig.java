@@ -43,7 +43,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Class-based Spring MVC Configuration
+ * Class-based Spring MVC Configuration.
  *
  * @author Andrei Varabyeu
  */

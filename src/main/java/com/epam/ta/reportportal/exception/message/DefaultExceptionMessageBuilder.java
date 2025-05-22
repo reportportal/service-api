@@ -20,12 +20,18 @@ package com.epam.ta.reportportal.exception.message;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Default exception builder. Just reads the exception message
- *
- * @author Andrei Varabyeu
+ * Default implementation of {@link ExceptionMessageBuilder} for formatting exception messages. This implementation
+ * simplifies multi-line exception messages by extracting only the first line of the message text (content before the
+ * first newline character) using {@link StringUtils#substringBefore}.
  */
 public class DefaultExceptionMessageBuilder implements ExceptionMessageBuilder<Exception> {
 
+  /**
+   * Builds a simplified message from the given exception by extracting only the first line.
+   *
+   * @param e the exception whose message needs to be processed
+   * @return the part of exception message before the first newline character, or null if the message is null
+   */
   @Override
   public String buildMessage(Exception e) {
     return StringUtils.substringBefore(e.getMessage(), "\n");

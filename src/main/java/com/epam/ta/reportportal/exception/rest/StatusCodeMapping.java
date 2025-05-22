@@ -23,7 +23,7 @@ import java.util.Optional;
 import org.springframework.http.HttpStatus;
 
 /**
- * {@link ErrorType} to {@link HttpStatus} mapping
+ * {@link ErrorType} to {@link HttpStatus} mapping.
  *
  * @author Andrei Varabyeu
  */
@@ -146,10 +146,25 @@ public class StatusCodeMapping {
     }
   };
 
+  /**
+   * Returns the corresponding {@link HttpStatus} for the given {@link ErrorType}. If the error type is not mapped,
+   * returns the provided default status.
+   *
+   * @param errorType     the error type to look up
+   * @param defaultStatus the default HTTP status to return if no mapping is found
+   * @return the mapped {@link HttpStatus} or the default status if not found
+   */
   public static HttpStatus getHttpStatus(ErrorType errorType, HttpStatus defaultStatus) {
     return getHttpStatus(errorType).orElse(defaultStatus);
   }
 
+  /**
+   * Returns an {@link Optional} containing the {@link HttpStatus} mapped to the given {@link ErrorType}, or an empty
+   * {@link Optional} if no mapping exists.
+   *
+   * @param errorType the error type to look up
+   * @return an {@link Optional} with the mapped {@link HttpStatus}, or empty if not found
+   */
   public static Optional<HttpStatus> getHttpStatus(ErrorType errorType) {
     return Optional.ofNullable(MAPPING.get(errorType));
   }

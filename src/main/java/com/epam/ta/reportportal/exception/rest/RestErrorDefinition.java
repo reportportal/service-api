@@ -34,6 +34,13 @@ public class RestErrorDefinition<T extends Exception> {
   private final com.epam.reportportal.rules.exception.ErrorType error;
   private final ExceptionMessageBuilder<T> exceptionMessageBuilder;
 
+  /**
+   * Creates a new REST error definition with specified HTTP status, error type and message builder.
+   *
+   * @param httpStatus              HTTP status code to be returned
+   * @param error                   Error type defining the specific error category
+   * @param exceptionMessageBuilder Builder for constructing error messages from exceptions
+   */
   public RestErrorDefinition(HttpStatus httpStatus, ErrorType error,
       ExceptionMessageBuilder<T> exceptionMessageBuilder) {
     super();
@@ -42,11 +49,24 @@ public class RestErrorDefinition<T extends Exception> {
     this.exceptionMessageBuilder = exceptionMessageBuilder;
   }
 
+  /**
+   * Alternative constructor that accepts the HTTP status as an integer.
+   *
+   * @param httpStatus              HTTP status code as an integer
+   * @param error                   Error type defining the specific error category
+   * @param exceptionMessageBuilder Builder for constructing error messages from exceptions
+   */
   public RestErrorDefinition(int httpStatus, com.epam.reportportal.rules.exception.ErrorType error,
       ExceptionMessageBuilder<T> exceptionMessageBuilder) {
     this(HttpStatus.valueOf(httpStatus), error, exceptionMessageBuilder);
   }
 
+  /**
+   * Builds an error message from the provided exception using the configured message builder.
+   *
+   * @param e The exception from which to build the error message
+   * @return A string containing the formatted error message
+   */
   public String getExceptionMessage(T e) {
     return exceptionMessageBuilder.buildMessage(e);
   }

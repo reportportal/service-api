@@ -23,7 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 /**
- * Resolver for ReportPortal Exceptions
+ * Resolver for ReportPortal Exceptions.
  *
  * @author Andrei Varabyeu
  */

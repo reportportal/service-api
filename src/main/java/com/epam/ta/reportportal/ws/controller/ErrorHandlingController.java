@@ -23,8 +23,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
-import org.springframework.web.servlet.ModelAndView;
 
+/**
+ * Global exception handler for the application's REST controllers. Provides centralized handling of various exceptions
+ * and maps them to appropriate HTTP responses.
+ */
 @RestControllerAdvice(value = "com.epam.ta.reportportal.ws.controller")
 @Log4j2
 public class ErrorHandlingController {
@@ -50,7 +53,7 @@ public class ErrorHandlingController {
   )
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ErrorRS handleCustomBadRequest(Exception exception) {
-    return defaultErrorResolver.resolveError(exception).errorRS();
+    return defaultErrorResolver.resolveError(exception).errorRs();
   }
 
   @ExceptionHandler(ReportPortalException.class)
@@ -58,19 +61,19 @@ public class ErrorHandlingController {
     var rs = reportPortalExceptionResolver.resolveError(exception);
     return ResponseEntity
         .status(rs.httpStatus())
-        .body(rs.errorRS());
+        .body(rs.errorRs());
   }
 
   @ExceptionHandler(AccessDeniedException.class)
   @ResponseStatus(HttpStatus.FORBIDDEN)
   public ErrorRS handle(AccessDeniedException exception) {
-    return defaultErrorResolver.resolveError(exception).errorRS();
+    return defaultErrorResolver.resolveError(exception).errorRs();
   }
 
   @ExceptionHandler({BadCredentialsException.class, LockedException.class})
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
   public ErrorRS handle(BadCredentialsException exception) {
-    return defaultErrorResolver.resolveError(exception).errorRS();
+    return defaultErrorResolver.resolveError(exception).errorRs();
   }
 
   @ExceptionHandler(ResponseForwardingException.class)
@@ -80,11 +83,10 @@ public class ErrorHandlingController {
   }
 
 
-
   @ExceptionHandler(Exception.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   public ErrorRS handle(Exception exception) {
-    return defaultErrorResolver.resolveError(exception).errorRS();
+    return defaultErrorResolver.resolveError(exception).errorRs();
   }
 
 }

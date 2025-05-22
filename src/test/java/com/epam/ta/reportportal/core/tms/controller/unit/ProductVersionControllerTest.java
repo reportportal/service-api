@@ -89,7 +89,7 @@ class ProductVersionControllerTest {
         .withProjectId(projectId)
         .withProjectKey(projectKey)
         .build();
-    given(projectExtractor.extractProjectDetailsAdmin(any(ReportPortalUser.class), anyString()))
+    given(projectExtractor.extractProjectDetailsAdmin(anyString()))
         .willReturn(membershipDetails);
   }
 
@@ -108,8 +108,7 @@ class ProductVersionControllerTest {
             productVersionId))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").exists());
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(productVersionService).getById(projectId, productVersionId);
   }
 
@@ -131,8 +130,7 @@ class ProductVersionControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(productVersionService).create(projectId, request);
   }
 
@@ -157,8 +155,7 @@ class ProductVersionControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(productVersionService).update(projectId, productVersionId, request);
   }
 
@@ -171,8 +168,7 @@ class ProductVersionControllerTest {
     mockMvc.perform(delete("/project/{projectKey}/tms/productversion/{productVersionId}",
             projectKey, productVersionId))
         .andExpect(status().isOk());
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(productVersionService).delete(projectId, productVersionId);
   }
 }

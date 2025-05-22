@@ -92,7 +92,7 @@ public class TmsTestCaseControllerTest {
         .withProjectId(projectId)
         .withProjectKey(projectKey)
         .build();
-    given(projectExtractor.extractProjectDetailsAdmin(any(ReportPortalUser.class), anyString()))
+    given(projectExtractor.extractProjectDetailsAdmin(anyString()))
         .willReturn(membershipDetails);
   }
 
@@ -109,8 +109,7 @@ public class TmsTestCaseControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestCaseService).getById(projectId, testCaseId);
   }
 
@@ -128,8 +127,7 @@ public class TmsTestCaseControllerTest {
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestCaseService).getTestCaseByProjectId(projectId);
   }
 
@@ -151,8 +149,7 @@ public class TmsTestCaseControllerTest {
             .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestCaseService).create(projectId, testCaseRequest);
   }
 
@@ -176,8 +173,7 @@ public class TmsTestCaseControllerTest {
                 .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestCaseService).update(projectId, testCaseId, testCaseRequest);
   }
 
@@ -201,8 +197,7 @@ public class TmsTestCaseControllerTest {
                 .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestCaseService).patch(projectId, testCaseId, testCaseRequest);
   }
 }

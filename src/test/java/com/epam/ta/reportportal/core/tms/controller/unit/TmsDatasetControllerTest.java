@@ -95,7 +95,7 @@ class TmsDatasetControllerTest {
         .withProjectId(projectId)
         .withProjectKey(projectKey)
         .build();
-    given(projectExtractor.extractProjectDetailsAdmin(any(ReportPortalUser.class), anyString()))
+    given(projectExtractor.extractProjectDetailsAdmin(anyString()))
         .willReturn(membershipDetails);
   }
 
@@ -116,8 +116,7 @@ class TmsDatasetControllerTest {
         .andExpect(jsonPath("$.id").value(expectedResponse.getId()))
         .andExpect(jsonPath("$.name").value(expectedResponse.getName()));
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsDatasetService).create(projectId, datasetRQ);
   }
 
@@ -136,8 +135,7 @@ class TmsDatasetControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(2));
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsDatasetService).uploadFromFile(eq(projectId), any());
   }
 
@@ -154,8 +152,7 @@ class TmsDatasetControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(2));
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsDatasetService).getByProjectId(projectId);
   }
 
@@ -173,8 +170,7 @@ class TmsDatasetControllerTest {
         .andExpect(jsonPath("$.id").value(mockResponse.getId()))
         .andExpect(jsonPath("$.name").value(mockResponse.getName()));
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsDatasetService).getById(projectId, datasetId);
   }
 
@@ -197,8 +193,7 @@ class TmsDatasetControllerTest {
         .andExpect(jsonPath("$.id").value(expectedResponse.getId()))
         .andExpect(jsonPath("$.name").value(expectedResponse.getName()));
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsDatasetService).update(projectId, datasetId, requestData);
   }
 
@@ -221,8 +216,7 @@ class TmsDatasetControllerTest {
         .andExpect(jsonPath("$.id").value(expectedResponse.getId()))
         .andExpect(jsonPath("$.name").value(expectedResponse.getName()));
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsDatasetService).patch(projectId, datasetId, requestData);
   }
 
@@ -235,8 +229,7 @@ class TmsDatasetControllerTest {
           delete("/project/{projectKey}/tms/dataset/{datasetId}", projectKey, datasetId))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(any(ReportPortalUser.class),
-                                                        eq(projectKey));
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsDatasetService).delete(projectId, datasetId);
   }
 }

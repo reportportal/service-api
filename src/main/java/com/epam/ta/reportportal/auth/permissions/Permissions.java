@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.auth.permissions;
 
 /**
- * Set of constants related to permissions
+ * Set of constants related to permissions.
  *
  * @author Andrei Varabyeu
  */

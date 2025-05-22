@@ -52,8 +52,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controller class for handling organization project-related requests. * Extends the BaseController and implements the ProjectsApi interface. *
- * Provides endpoints for retrieving and managing organization projects. Controller implementation for working with external systems.
+ * Controller class for handling organization project-related requests. * Extends the BaseController
+ * and implements the ProjectsApi interface. Provides endpoints for retrieving and managing
+ * organization projects. Controller implementation for working with external systems.
  *
  * @author Siarhei Hrabko
  */
@@ -71,14 +72,16 @@ public class OrganizationProjectController extends BaseController implements
    * Constructor for OrganizationProjectController.
    *
    * @param organizationProjectHandler   the handler for organization project-related operations
-   * @param organizationRepositoryCustom the custom repository for organization-related database operations
+   * @param organizationRepositoryCustom the custom repository for organization-related database
+   *                                     operations
    * @param searchCriteriaService        the service for creating filters based on search criteria
    */
   @Autowired
   public OrganizationProjectController(
       OrganizationProjectHandler organizationProjectHandler,
       OrganizationRepositoryCustom organizationRepositoryCustom,
-      OrganizationsSearchCriteriaService searchCriteriaService, PatchProjectHandler patchProjectHandler) {
+      OrganizationsSearchCriteriaService searchCriteriaService,
+      PatchProjectHandler patchProjectHandler) {
     this.organizationProjectHandler = organizationProjectHandler;
     this.organizationRepositoryCustom = organizationRepositoryCustom;
     this.searchCriteriaService = searchCriteriaService;
@@ -140,7 +143,8 @@ public class OrganizationProjectController extends BaseController implements
 
     var pageable = ControllerUtils.getPageable(
         StringUtils.isNotBlank(searchCriteria.getSort()) ? searchCriteria.getSort() : "name",
-        searchCriteria.getOrder() != null ? searchCriteria.getOrder().toString() : Direction.ASC.name(),
+        searchCriteria.getOrder() != null ? searchCriteria.getOrder().toString()
+            : Direction.ASC.name(),
         searchCriteria.getOffset(),
         searchCriteria.getLimit());
 
@@ -161,7 +165,8 @@ public class OrganizationProjectController extends BaseController implements
 
   @Override
   @PreAuthorize(ALLOWED_TO_EDIT_ORG_PROJECT)
-  public ResponseEntity<SuccessfulUpdate> patchOrganizationsOrgIdProjectsProjectId(Long orgId, Long projectId, List<PatchOperation> patchOperations) {
+  public ResponseEntity<SuccessfulUpdate> patchOrganizationsOrgIdProjectsProjectId(Long orgId,
+      Long projectId, List<PatchOperation> patchOperations) {
     patchProjectHandler.patchOrganizationProject(patchOperations, orgId, projectId);
     return ResponseEntity.ok().body(new SuccessfulUpdate());
   }

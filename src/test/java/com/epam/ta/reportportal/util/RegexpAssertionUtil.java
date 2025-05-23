@@ -16,14 +16,14 @@
 
 package com.epam.ta.reportportal.util;
 
+import jakarta.validation.constraints.Pattern;
 import java.lang.reflect.Method;
 import java.util.regex.Matcher;
-import jakarta.validation.constraints.Pattern;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 
 
-@Log4j2
+@Slf4j
 public class RegexpAssertionUtil {
 
   private RegexpAssertionUtil() {

@@ -63,7 +63,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -73,7 +73,7 @@ import org.springframework.stereotype.Service;
  *
  * @author <a href="mailto:Siarhei_Hrabko@epam.com">Siarhei Hrabko</a>
  */
-@Log4j2
+@Slf4j
 @Service
 public class UserInvitationHandler {
 

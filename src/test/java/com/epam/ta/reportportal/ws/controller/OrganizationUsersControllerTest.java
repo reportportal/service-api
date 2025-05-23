@@ -30,14 +30,12 @@ import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.entity.user.ProjectUserId;
-import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +43,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-@Log4j2
+@Slf4j
 @Sql("/db/organization/full_organization_samples.sql")
 class OrganizationUsersControllerTest extends BaseMvcTest {
 
@@ -63,23 +61,6 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   private ProjectUserRepository projectUserRepository;
   @Autowired
   private OrganizationUserRepository organizationUserRepository;
-
-  private String adminToken;
-  private String managerToken;
-  private String editorToken;
-  private String viewerToken;
-  private String noOrgUser;
-  private String noProjectsUser;
-
-  @BeforeEach
-  void beforeEach() {
-    adminToken = oAuthHelper.createAccessToken("admin", "erebus", UserRole.ADMINISTRATOR);
-    managerToken = oAuthHelper.createAccessToken("user-manager", "erebus", UserRole.USER);
-    editorToken = oAuthHelper.createAccessToken("user-member-editor", "erebus", UserRole.USER);
-    viewerToken = oAuthHelper.createAccessToken("user-member-viewer", "erebus", UserRole.USER);
-    noProjectsUser = oAuthHelper.createAccessToken("no-projects-user", "erebus", UserRole.USER);
-    noOrgUser = oAuthHelper.createAccessToken("no-orgs-user", "erebus", UserRole.USER);
-  }
 
 
   @Test

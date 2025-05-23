@@ -57,7 +57,7 @@ import com.epam.ta.reportportal.util.SlugifyUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -65,7 +65,7 @@ import org.springframework.stereotype.Service;
 
 
 @Service
-@Log4j2
+@Slf4j
 public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
 
   private final OrganizationUsersRepositoryCustom organizationUsersRepositoryCustom;

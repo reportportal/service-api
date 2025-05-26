@@ -32,7 +32,7 @@ import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
-import org.pf4j.PluginManager;
+import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,16 +49,16 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 public class GroupController implements GroupsApi {
 
-  private final PluginManager pluginManager;
+  private final Pf4jPluginBox pluginBox;
 
   /**
    * Constructor for the {@link GroupController} class.
    *
-   * @param pluginManager Plugin manager
+   * @param pluginBox The {@link Pf4jPluginBox} instance used to access plugin extensions.
    */
   @Autowired
-  public GroupController(PluginManager pluginManager) {
-    this.pluginManager = pluginManager;
+  public GroupController(Pf4jPluginBox pluginBox) {
+    this.pluginBox = pluginBox;
   }
 
   @Override
@@ -183,17 +183,12 @@ public class GroupController implements GroupsApi {
   }
 
   private GroupExtensionPoint getGroupExtension() {
-    return pluginManager.getExtensions(GroupExtensionPoint.class)
-        .stream()
-        .findFirst()
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED)
-        );
+    return pluginBox.getInstance(GroupExtensionPoint.class)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED));
   }
 
   private ReportPortalUser getPrincipal() {
-    return (ReportPortalUser) SecurityContextHolder
-        .getContext()
+    return (ReportPortalUser) SecurityContextHolder.getContext()
         .getAuthentication()
         .getPrincipal();
   }

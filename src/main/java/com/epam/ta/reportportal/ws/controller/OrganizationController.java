@@ -32,11 +32,11 @@ import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.filter.OrganizationsSearchCriteriaService;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.core.organization.OrganizationExtensionPoint;
+import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
-import org.pf4j.PluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,8 +47,8 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /**
- * Controller for managing organizations in ReportPortal.
- * Provides endpoints for creating, updating, retrieving, and deleting organizations.
+ * Controller for managing organizations in ReportPortal. Provides endpoints for creating, updating, retrieving, and
+ * deleting organizations.
  *
  * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
  */
@@ -57,24 +57,23 @@ public class OrganizationController extends BaseController implements Organizati
 
   private final GetOrganizationHandler getOrganizationHandler;
   private final OrganizationsSearchCriteriaService searchCriteriaService;
-  private final PluginManager pluginManager;
+  private final Pf4jPluginBox pluginBox;
 
   /**
    * Constructs a new OrganizationController with the specified dependencies.
    *
    * @param getOrganizationHandler The handler for retrieving organization information.
    * @param searchCriteriaService  The service for handling search criteria related to organizations.
-   * @param pluginManager          The plugin manager for managing extensions related to organizations.
+   * @param pluginBox              The plugin box for accessing organization-related extensions.
    */
   @Autowired
   public OrganizationController(
       GetOrganizationHandler getOrganizationHandler,
-      OrganizationsSearchCriteriaService searchCriteriaService,
-      PluginManager pluginManager
+      OrganizationsSearchCriteriaService searchCriteriaService, Pf4jPluginBox pluginBox
   ) {
     this.getOrganizationHandler = getOrganizationHandler;
     this.searchCriteriaService = searchCriteriaService;
-    this.pluginManager = pluginManager;
+    this.pluginBox = pluginBox;
   }
 
   @Transactional(readOnly = true)
@@ -149,12 +148,8 @@ public class OrganizationController extends BaseController implements Organizati
   }
 
   private OrganizationExtensionPoint getOrgExtension() {
-    return pluginManager.getExtensions(OrganizationExtensionPoint.class)
-        .stream()
-        .findFirst()
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED)
-        );
+    return pluginBox.getInstance(OrganizationExtensionPoint.class)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED));
   }
 
 }

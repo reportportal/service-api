@@ -164,6 +164,7 @@ public class OrganizationProjectController extends BaseController implements
   }
 
   @Override
+  @Transactional
   @PreAuthorize(ALLOWED_TO_EDIT_ORG_PROJECT)
   public ResponseEntity<SuccessfulUpdate> patchOrganizationsOrgIdProjectsProjectId(Long orgId,
       Long projectId, List<PatchOperation> patchOperations) {

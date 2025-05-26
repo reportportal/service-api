@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_GROUP;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
+import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 
 import com.epam.reportportal.api.GroupsApi;
 import com.epam.reportportal.api.model.AddProjectToGroupByIdRequest;
@@ -30,14 +31,12 @@ import com.epam.reportportal.api.model.GroupUserInfo;
 import com.epam.reportportal.api.model.GroupUsersPage;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -185,11 +184,5 @@ public class GroupController implements GroupsApi {
   private GroupExtensionPoint getGroupExtension() {
     return pluginBox.getInstance(GroupExtensionPoint.class)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED));
-  }
-
-  private ReportPortalUser getPrincipal() {
-    return (ReportPortalUser) SecurityContextHolder.getContext()
-        .getAuthentication()
-        .getPrincipal();
   }
 }

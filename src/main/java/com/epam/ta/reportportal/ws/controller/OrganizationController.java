@@ -124,6 +124,7 @@ public class OrganizationController extends BaseController implements Organizati
 
   @Override
   @PreAuthorize(IS_ADMIN)
+  @Transactional
   public ResponseEntity<OrganizationInfo> postOrganizations(OrganizationBase createRequest) {
     var org = getOrgExtension().createOrganization(createRequest);
     var location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -135,6 +136,7 @@ public class OrganizationController extends BaseController implements Organizati
 
   @Override
   @PreAuthorize(ORGANIZATION_MANAGER)
+  @Transactional
   public ResponseEntity<SuccessfulUpdate> putOrganizationsOrgId(Long orgId, OrganizationBase updateRequest) {
     getOrgExtension().updateOrganization(orgId, updateRequest);
     return ResponseEntity.ok(new SuccessfulUpdate("The update was completed successfully."));
@@ -142,6 +144,7 @@ public class OrganizationController extends BaseController implements Organizati
 
   @Override
   @PreAuthorize(IS_ADMIN)
+  @Transactional
   public ResponseEntity<Void> deleteOrganizationsOrgId(Long orgId) {
     getOrgExtension().deleteOrganization(orgId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);

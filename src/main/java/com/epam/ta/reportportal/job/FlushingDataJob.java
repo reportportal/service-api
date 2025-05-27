@@ -144,6 +144,7 @@ public class FlushingDataJob implements Job {
   private void createDefaultUser() {
     final CreateUserRQFull request = new CreateUserRQFull();
     request.setEmail("default@reportportal.internal");
+    request.setFullName("default tester");
     request.setPassword("1q2w3e");
     User user = new UserBuilder().addCreateUserFullRQ(request).addUserRole(UserRole.USER)
         .addPassword(passwordEncoder.encode(request.getPassword())).get();

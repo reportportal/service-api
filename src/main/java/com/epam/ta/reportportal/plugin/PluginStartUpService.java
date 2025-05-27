@@ -102,7 +102,7 @@ public class PluginStartUpService {
     try {
       return Lists.newArrayList(new DefaultUpdateRepository(
           "plugin-import-junit", URI.create(
-              "https://raw.githubusercontent.com/reportportal/plugin-import-junit/main/jars/plugins.json")
+              "https://raw.githubusercontent.com/reportportal/plugin-import-junit/1.1.0/jars/plugins.json")
           .toURL()));
     } catch (Exception e) {
       log.error(e.getMessage());

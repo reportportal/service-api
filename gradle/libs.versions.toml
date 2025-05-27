@@ -86,11 +86,11 @@ xerces = { group = "xerces", name = "xercesImpl", version.ref = "xerces" }
 bouncycastle = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle" }
 google-api-client = { group = "com.google.api-client", name = "google-api-client", version.ref = "google-api-client" }
 commons-validator = { group = "commons-validator", name = "commons-validator", version.ref = "commons-validator" }
-caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine" }
 apache-jclouds-filesystem = { group = "org.apache.jclouds.api", name = "filesystem", version.ref = "jclouds" }
 apache-commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "apache-commons-compress" }
 hibernate-validator = { group = "org.hibernate.validator", name = "hibernate-validator", version.ref = "hibernate-validator" }
 json-schema-validator = { group = "com.networknt", name = "json-schema-validator", version.ref = "json-schema-validator" }
+caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine" }
 
 # Lombok
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }

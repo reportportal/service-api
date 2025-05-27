@@ -9,11 +9,12 @@ import com.epam.reportportal.api.model.ProjectGroupInfo;
 import com.epam.reportportal.api.model.ProjectGroupsPage;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
-import org.pf4j.PluginManager;
+import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -25,24 +26,25 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 public class GeneratedProjectController implements ProjectsApi {
 
-  private final PluginManager pluginManager;
+  private final Pf4jPluginBox pluginBox;
 
   /**
    * Constructor for the controller.
    *
-   * @param pluginManager Plugin manager
+   * @param pluginBox The {@link Pf4jPluginBox} instance used to access plugin extensions.
    */
   @Autowired
-  public GeneratedProjectController(PluginManager pluginManager) {
-    this.pluginManager = pluginManager;
+  public GeneratedProjectController(Pf4jPluginBox pluginBox) {
+    this.pluginBox = pluginBox;
   }
 
   @Override
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
+  @Transactional(readOnly = true)
   public ResponseEntity<ProjectGroupsPage> getGroupsOfProject(
-          String projectKey,
-          Integer offset,
-          Integer limit
+      String projectKey,
+      Integer offset,
+      Integer limit
   ) {
     var page = getGroupExtension().getProjectGroups(projectKey, offset, limit);
     return ResponseEntity.ok(page);
@@ -50,6 +52,7 @@ public class GeneratedProjectController implements ProjectsApi {
 
   @Override
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
+  @Transactional(readOnly = true)
   public ResponseEntity<ProjectGroupInfo> getProjectGroupById(String projectKey, Long groupId) {
     var group = getGroupExtension().getProjectGroupById(projectKey, groupId).orElseThrow(
         () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
@@ -59,6 +62,7 @@ public class GeneratedProjectController implements ProjectsApi {
 
   @Override
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  @Transactional
   public ResponseEntity<SuccessfulUpdate> addGroupToProjectById(
       String projectKey,
       Long groupId,
@@ -70,17 +74,14 @@ public class GeneratedProjectController implements ProjectsApi {
 
   @Override
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  @Transactional
   public ResponseEntity<Void> deleteGroupFromProjectById(String projectName, Long groupId) {
     getGroupExtension().deleteGroupFromProject(projectName, groupId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   private GroupExtensionPoint getGroupExtension() {
-    return pluginManager.getExtensions(GroupExtensionPoint.class)
-        .stream()
-        .findFirst()
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED)
-        );
+    return pluginBox.getInstance(GroupExtensionPoint.class)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED));
   }
 }

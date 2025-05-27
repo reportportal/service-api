@@ -115,7 +115,9 @@ dependencies {
     }
     // JasperReport's export to XLS uses Apache POI and openpdf for PDF export
     implementation 'org.apache.poi:poi:5.4.0'
+    implementation 'org.apache.poi:poi-ooxml:5.4.0'
     implementation 'com.github.librepdf:openpdf:2.0.3'
+    implementation 'org.apache.commons:commons-csv:1.10.0'
 
     implementation 'jakarta.inject:jakarta.inject-api:2.0.1'
     implementation 'com.sun.mail:jakarta.mail:2.0.1'
@@ -143,6 +145,10 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
     testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    //mapstruct
+    implementation "org.mapstruct:mapstruct:$mapstructVersion"
+    annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion"
 
     //  Tests
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

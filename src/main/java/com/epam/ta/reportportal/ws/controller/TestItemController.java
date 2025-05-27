@@ -49,6 +49,7 @@ import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
 import com.epam.ta.reportportal.core.item.impl.TestCaseSearchHandler;
 import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.TestItemHistoryElement;
 import com.epam.ta.reportportal.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.model.item.LinkExternalIssueRQ;
@@ -103,7 +104,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/{projectName}/item")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
-@Tag(name = "test-item-controller", description = "Test Item Controller")
+@Tag(name = "Test Item", description = "Test Items API collection")
 @RequiredArgsConstructor
 public class TestItemController {
 
@@ -127,7 +128,7 @@ public class TestItemController {
 
   /* Report client API */
 
-  @PostMapping
+  @PostMapping(value = {"", "/"})
   @ResponseStatus(CREATED)
   @Operation(summary = "Start a root test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
@@ -139,7 +140,7 @@ public class TestItemController {
     );
   }
 
-  @PostMapping("/{parentItem}")
+  @PostMapping(value = {"/{parentItem}", "/{parentItem}/"})
   @ResponseStatus(CREATED)
   @Operation(summary = "Start a child test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
@@ -151,7 +152,7 @@ public class TestItemController {
     );
   }
 
-  @PutMapping("/{testItemId}")
+  @PutMapping(value = {"/{testItemId}", "/{testItemId}/"})
   @ResponseStatus(OK)
   @Operation(summary = "Finish test item")
   @PreAuthorize(ALLOWED_TO_REPORT)
@@ -243,7 +244,7 @@ public class TestItemController {
   @ResponseStatus(OK)
   @Operation(summary = "Find test items by specified filter")
   @Schema(implementation = TestItemHistoryElement.class)
-  public Iterable<TestItemResource> getTestItems(@PathVariable String projectName,
+  public Page<TestItemResource> getTestItems(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user, @Nullable
   @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
       + CRITERIA_LAUNCH_ID, required = false)
@@ -266,7 +267,7 @@ public class TestItemController {
   @GetMapping("/v2")
   @ResponseStatus(OK)
   @Operation(summary = "Find test items by specified filter")
-  public Iterable<TestItemResource> getTestItemsV2(@PathVariable String projectName,
+  public Page<TestItemResource> getTestItemsV2(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam Map<String, String> params,
       @FilterFor(TestItem.class) Filter filter,
       @FilterFor(TestItem.class) Queryable predefinedFilter,
@@ -332,7 +333,7 @@ public class TestItemController {
   @GetMapping("/history")
   @ResponseStatus(OK)
   @Operation(summary = "Load history of test items")
-  public Iterable<TestItemHistoryElement> getItemsHistory(@PathVariable String projectName,
+  public Page<TestItemHistoryElement> getItemsHistory(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user, @FilterFor(TestItem.class) Filter filter,
       @FilterFor(TestItem.class) Queryable predefinedFilter,
       @SortFor(TestItem.class) Pageable pageable, @Nullable
@@ -383,19 +384,34 @@ public class TestItemController {
         projectExtractor.extractProjectDetails(user, projectName), normalizeId(term));
   }
 
-  //TODO EPMRPP-59414
   @Transactional(readOnly = true)
   @GetMapping("/attribute/keys")
   @ResponseStatus(OK)
-  @Operation(summary = "Get all unique attribute keys of specified launch")
-  public List<String> getAttributeKeys(@PathVariable String projectName,
-      @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "launch") Long id,
-      @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT + CRITERIA_ITEM_ATTRIBUTE_KEY)
-      String value) {
-    return getTestItemHandler.getAttributeKeys(id, value);
+  @Operation(summary = "Get all unique attribute keys on the project")
+  public List<String> getUniqueAttributeKeys(@PathVariable String projectName,
+      @AuthenticationPrincipal ReportPortalUser user,
+      @RequestParam(value = "launch", required = false) Long launchId,
+      @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT
+          + CRITERIA_ITEM_ATTRIBUTE_KEY) String keyPart) {
+    return getTestItemHandler.getUniqueAttributeKeys(
+        projectExtractor.extractProjectDetails(user, projectName), keyPart, launchId);
   }
 
-  //TODO EPMRPP-59414
+  @Transactional(readOnly = true)
+  @GetMapping("/attribute/values")
+  @ResponseStatus(OK)
+  @Operation(summary = "Get all unique attribute values on the project")
+  public List<String> getAttributeValues(@PathVariable String projectName,
+      @AuthenticationPrincipal ReportPortalUser user,
+      @RequestParam(value = "launch", required = false) Long launchId,
+      @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
+          + CRITERIA_ITEM_ATTRIBUTE_KEY, required = false) String key,
+      @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT + CRITERIA_ITEM_ATTRIBUTE_VALUE)
+      String valuePart) {
+    return getTestItemHandler.getUniqueAttributeValues(
+        projectExtractor.extractProjectDetails(user, projectName), key, valuePart, launchId);
+  }
+
   @Transactional(readOnly = true)
   @GetMapping("/attribute/keys/all")
   @ResponseStatus(OK)
@@ -410,20 +426,6 @@ public class TestItemController {
     return getTestItemHandler.getAttributeKeys(launchFilterId, isLatest, launchesLimit,
         projectExtractor.extractProjectDetails(user, projectName), value
     );
-  }
-
-  //TODO EPMRPP-59414
-  @Transactional(readOnly = true)
-  @GetMapping("/attribute/values")
-  @ResponseStatus(OK)
-  @Operation(summary = "Get all unique attribute values of specified launch")
-  public List<String> getAttributeValues(@PathVariable String projectName,
-      @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "launch") Long id,
-      @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
-          + CRITERIA_ITEM_ATTRIBUTE_KEY, required = false) String key,
-      @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT + CRITERIA_ITEM_ATTRIBUTE_VALUE)
-      String value) {
-    return getTestItemHandler.getAttributeValues(id, key, value);
   }
 
   @Transactional(readOnly = true)
@@ -522,7 +524,7 @@ public class TestItemController {
   @GetMapping("/search")
   @ResponseStatus(OK)
   @Operation(summary = "Search test items by either name or attribute")
-  public Iterable<TestItemResource> getTestItems(@PathVariable String projectName,
+  public Page<TestItemResource> getTestItems(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT
           + CRITERIA_NAME, required = false) String name,

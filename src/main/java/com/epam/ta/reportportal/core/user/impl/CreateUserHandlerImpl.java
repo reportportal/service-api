@@ -22,7 +22,6 @@ import static com.epam.reportportal.rules.commons.validation.Suppliers.formatted
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
-import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.reportportal.rules.exception.ErrorType.RESOURCE_ALREADY_EXISTS;
 import static com.epam.reportportal.rules.exception.ErrorType.ROLE_NOT_FOUND;
@@ -30,10 +29,7 @@ import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_EXIST
 import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.isNull;
-import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
-import static com.epam.ta.reportportal.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.model.settings.SettingsKeyConstants.SERVER_USERS_SSO;
 import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
@@ -60,7 +56,6 @@ import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.RestorePasswordBid;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
@@ -83,10 +78,10 @@ import com.epam.ta.reportportal.ws.converter.converters.RestorePasswordBidConver
 import com.epam.ta.reportportal.ws.converter.converters.UserCreationBidConverter;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Maps;
+import jakarta.persistence.PersistenceException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
-import javax.persistence.PersistenceException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -207,15 +202,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
     final String normalizedEmail = normalizeEmail(request.getEmail());
     request.setEmail(normalizedEmail);
-
-    if (loggedInUser.getUserRole() != UserRole.ADMINISTRATOR) {
-      ProjectUser projectUser = findUserConfigByLogin(defaultProject, loggedInUser.getUsername());
-      expect(projectUser, not(isNull())).verify(ACCESS_DENIED,
-          formattedSupplier("'{}' is not your project", defaultProject.getName())
-      );
-      expect(projectUser.getProjectRole(), Predicate.isEqual(ProjectRole.PROJECT_MANAGER)).verify(
-          ACCESS_DENIED);
-    }
 
     request.setRole(forName(request.getRole()).orElseThrow(
         () -> new ReportPortalException(ROLE_NOT_FOUND, request.getRole())).name());

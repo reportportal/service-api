@@ -15,15 +15,19 @@
  */
 package com.epam.ta.reportportal.plugin;
 
+import static java.util.Optional.ofNullable;
+
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.google.common.collect.Lists;
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.pf4j.PluginManager;
@@ -33,6 +37,7 @@ import org.pf4j.update.PluginInfo.PluginRelease;
 import org.pf4j.update.SimpleFileDownloader;
 import org.pf4j.update.UpdateManager;
 import org.pf4j.update.UpdateRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -43,23 +48,35 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PluginStartUpService {
 
+  @Value("${rp.plugins.default.load}")
+  private boolean defaultPluginsLoad;
+
   private final PluginManager pluginManager;
 
   private final Pf4jPluginBox pluginBox;
 
+  private final IntegrationTypeRepository integrationTypeRepository;
+
+
   @PostConstruct
   public void loadPlugins() {
     pluginBox.startUp();
-    UpdateManager updateManager = new UpdateManager(pluginManager, getDefaultPluginRepositories());
-    if (updateManager.hasAvailablePlugins()) {
-      updateManager.getAvailablePlugins()
-          .forEach(pluginInfo -> loadLatestVersion(updateManager, pluginInfo));
+    if (defaultPluginsLoad) {
+      UpdateManager updateManager = new UpdateManager(pluginManager,
+          getDefaultPluginRepositories());
+      if (updateManager.hasAvailablePlugins()) {
+        updateManager.getAvailablePlugins()
+            .forEach(pluginInfo -> loadLatestVersion(updateManager, pluginInfo));
+      }
     }
   }
 
   private void loadLatestVersion(UpdateManager updateManager, PluginInfo pluginInfo) {
     try {
       PluginRelease lastRelease = updateManager.getLastPluginRelease(pluginInfo.id);
+      if (isVersionUploaded(pluginInfo, lastRelease)) {
+        return;
+      }
       Path path = new SimpleFileDownloader().downloadFile(URI.create(lastRelease.url).toURL());
       pluginBox.uploadPlugin(path.getFileName().toString(), Files.newInputStream(path));
     } catch (IOException e) {
@@ -68,11 +85,24 @@ public class PluginStartUpService {
     }
   }
 
+  private boolean isVersionUploaded(PluginInfo pluginInfo, PluginRelease lastRelease) {
+    var res = integrationTypeRepository.findByName(pluginInfo.id)
+        .flatMap(it -> ofNullable(it.getDetails())).flatMap(
+            typeDetails -> IntegrationTypeProperties.VERSION.getValue(typeDetails.getDetails())
+                .map(String::valueOf))
+        .filter(version -> version.equalsIgnoreCase(lastRelease.version));
+    if (res.isPresent()) {
+      log.info("Plugin with the latest version {} is already loaded", lastRelease.version);
+      return true;
+    }
+    return false;
+  }
+
   private List<UpdateRepository> getDefaultPluginRepositories() {
     try {
       return Lists.newArrayList(new DefaultUpdateRepository(
           "plugin-import-junit", URI.create(
-              "https://raw.githubusercontent.com/reportportal/plugin-import-junit/main/jars/plugins.json")
+              "https://raw.githubusercontent.com/reportportal/plugin-import-junit/1.1.0/jars/plugins.json")
           .toURL()));
     } catch (Exception e) {
       log.error(e.getMessage());

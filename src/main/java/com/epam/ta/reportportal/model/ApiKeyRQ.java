@@ -19,32 +19,26 @@ package com.epam.ta.reportportal.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Api key representation for request
  *
  * @author Andrei Piankouski
  */
+@Setter
+@Getter
 @JsonInclude(Include.NON_NULL)
+@ToString
 public class ApiKeyRQ {
 
   @NotNull
   @JsonProperty(value = "name", required = true)
+  @Pattern(regexp = "[A-Za-z0-9-._~+/]+$")
   private String name;
 
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  @Override
-  public String toString() {
-    return "ApiKeyRQ{"
-        + "name='" + name + '\''
-        + '}';
-  }
 }

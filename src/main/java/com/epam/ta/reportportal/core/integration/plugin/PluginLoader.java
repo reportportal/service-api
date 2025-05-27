@@ -34,7 +34,7 @@ public interface PluginLoader {
    * Extract info about the plugin from the provided path
    *
    * @param pluginPath Plugin's path
-   * @return {@link PluginInfo} with {@link PluginInfo#getId()} and {@link PluginInfo#getVersion()}
+   * @return {@link PluginInfo} with {@link PluginInfo}.getId() and {@link PluginInfo}.getVersion()
    * @throws PluginRuntimeException if there is an issue in loading the plugin or the plugin is not found in the specified path
    */
   PluginInfo extractPluginInfo(Path pluginPath) throws PluginRuntimeException;
@@ -42,8 +42,8 @@ public interface PluginLoader {
   /**
    * Creates the {@link IntegrationTypeDetails} object based on the params of the plugin
    *
-   * @param pluginInfo {@link PluginInfo} with {@link PluginInfo#getId()} and
-   *                   {@link PluginInfo#getVersion()}
+   * @param pluginInfo {@link PluginInfo} with {@link PluginInfo}.getId() and
+   *                   {@link PluginInfo}.getVersion()
    * @return {@link IntegrationTypeDetails}
    */
   IntegrationTypeDetails resolvePluginDetails(PluginInfo pluginInfo);
@@ -107,7 +107,7 @@ public interface PluginLoader {
 
   /**
    * Remove the plugin file from the temporary directory and file name from the
-   * {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
+   * {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager}
    *
    * @param pluginFileDirectory Path to the temporary directory with the plugin file
    * @param pluginFileName      Name of the plugin file

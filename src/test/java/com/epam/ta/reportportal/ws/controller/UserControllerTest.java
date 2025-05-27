@@ -32,6 +32,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.reportportal.model.ValidationConstraints;
+import com.epam.ta.reportportal.core.user.ApiKeyHandler;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -40,8 +42,8 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
-import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserType;
+import com.epam.ta.reportportal.model.ApiKeyRQ;
 import com.epam.ta.reportportal.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.user.ChangePasswordRQ;
@@ -54,7 +56,6 @@ import com.epam.ta.reportportal.model.user.EditUserRQ;
 import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
 import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.reportportal.model.ValidationConstraints;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -63,6 +64,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
@@ -84,6 +87,9 @@ class UserControllerTest extends BaseMvcTest {
 
   @Autowired
   private IssueTypeRepository issueTypeRepository;
+
+  @Autowired
+  ApiKeyHandler apiKeyHandler;
 
   @Test
   void createdUserByIdentityProvider() throws Exception  {
@@ -355,8 +361,10 @@ class UserControllerTest extends BaseMvcTest {
 
   @Test
   void getUserPositiveUsingApiToken() throws Exception {
+    var apikeyRs = apiKeyHandler.createApiKey("test", 1L);
+
     mockMvc.perform(get("/users/default").with(
-            token("test__ET4Byc1QUqO8VV8kiCGSP3O4SERb5MJWIowQQ3SiEqHO6hjicoPw-vm1tnrQI5V")))
+            token(apikeyRs.getApiKey())))
         .andExpect(status().isOk());
   }
 
@@ -478,5 +486,42 @@ class UserControllerTest extends BaseMvcTest {
   void exportUsers() throws Exception {
     mockMvc.perform(get("/users/export").with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
+  }
+
+  @ParameterizedTest
+  @CsvSource(value = {
+      "abcABC123",
+      "abcABC123-",
+      "abcABC123.",
+      "abcABC123_",
+      "abcABC123~",
+      "abcABC123+",
+      "abcABC123/"
+  }, delimiter = '|')
+  void createApiKey(String name) throws Exception {
+    var apiKeyRq = new ApiKeyRQ();
+    apiKeyRq.setName(name);
+    mockMvc.perform(post("/users/1/api-keys")
+        .with(token(oAuthHelper.getSuperadminToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(apiKeyRq))).andExpect(status().isCreated());
+  }
+
+  @ParameterizedTest
+  @CsvSource(value = {
+      "abcABC123,",
+      "abcABC123!",
+      "abcABC123{",
+      "abcABC123-._~+/,!{}",
+      "abcABC123=",
+      "abcABC 123"
+  }, delimiter = '|')
+  void createApiKeyWrongPattern(String name) throws Exception {
+    var apiKeyRq = new ApiKeyRQ();
+    apiKeyRq.setName(name);
+    mockMvc.perform(post("/users/1/api-keys")
+        .with(token(oAuthHelper.getDefaultToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(apiKeyRq))).andExpect(status().is4xxClientError());
   }
 }

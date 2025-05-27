@@ -16,18 +16,20 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.CRITERIA_ITEM_LAUNCH_ID;
-import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PATH;
-import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_RETRY_PARENT_LAUNCH_ID;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.reportportal.rules.exception.ErrorType.LOG_NOT_FOUND;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.CRITERIA_ITEM_LAUNCH_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PATH;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_RETRY_PARENT_LAUNCH_ID;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -52,13 +54,11 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.log.GetLogsUnderRq;
 import com.epam.ta.reportportal.model.log.LogResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Lists;
 import java.util.AbstractMap;
 import java.util.Collections;
@@ -73,7 +73,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
@@ -112,7 +112,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
   }
 
   @Override
-  public Iterable<LogResource> getLogs(@Nullable String path,
+  public com.epam.ta.reportportal.model.Page<LogResource> getLogs(@Nullable String path,
       ReportPortalUser.ProjectDetails projectDetails, Filter filterable, Pageable pageable) {
     ofNullable(path).ifPresent(p -> updateFilter(filterable, p));
     Page<LogFull> logFullPage =
@@ -159,7 +159,8 @@ public class GetLogHandlerImpl implements GetLogHandler {
   }
 
   @Override
-  public Iterable<?> getNestedItems(Long parentId, ReportPortalUser.ProjectDetails projectDetails,
+  public com.epam.ta.reportportal.model.Page<?> getNestedItems(Long parentId,
+      ReportPortalUser.ProjectDetails projectDetails,
       Map<String, String> params, Queryable queryable, Pageable pageable) {
 
     TestItem parentItem = testItemRepository.findById(parentId)

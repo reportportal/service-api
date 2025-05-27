@@ -20,6 +20,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.NOT_CUSTOMER;
 
+import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.file.DeleteFilesHandler;
@@ -32,9 +33,10 @@ import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.net.HttpHeaders;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Size;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -56,7 +58,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @RestController
 @RequestMapping("/v1/data")
-@Tag(name = "file-storage-controller", description = "File Storage Controller")
+@Tag(name = "File Storage", description = "Files Storage API collection")
 public class FileStorageController {
 
   private final ProjectExtractor projectExtractor;
@@ -98,7 +100,7 @@ public class FileStorageController {
   @GetMapping(value = "/{projectName}/userphoto")
   @Operation(summary = "Get user's photo")
   public void getUserPhoto(@PathVariable String projectName,
-      @RequestParam(value = "login") String username,
+      @RequestParam(value = "login") @Size(min = ValidationConstraints.MIN_LOGIN_LENGTH, max = ValidationConstraints.MAX_LOGIN_LENGTH) String username,
       @RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail,
       HttpServletResponse response,
       @AuthenticationPrincipal ReportPortalUser user) {

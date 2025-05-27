@@ -25,8 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -38,6 +37,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
  *
  * @author Andrei Varabyeu
  */
+@Log4j2
 public class UserRoleHierarchy implements RoleHierarchy {
 
   public static final String ROLE_REGISTERED = "ROLE_REGISTERED";
@@ -46,8 +46,6 @@ public class UserRoleHierarchy implements RoleHierarchy {
    * Special additional role for other microservices
    */
   public static final String ROLE_COMPONENT = "ROLE_COMPONENT";
-
-  private static final Logger logger = LoggerFactory.getLogger(UserRoleHierarchy.class);
 
   private Map<GrantedAuthority, Set<GrantedAuthority>> authoritiesMap;
 
@@ -74,12 +72,11 @@ public class UserRoleHierarchy implements RoleHierarchy {
         .flatMap(authority -> authoritiesMap.get(authority).stream())
         .collect(Collectors.toList());
 
-    if (logger.isDebugEnabled()) {
-      logger.debug(
-          "getReachableGrantedAuthorities() - From the roles " + authorities + " one can reach "
-              + reachableRoles
-              + " in zero or more steps.");
-    }
+
+      log.debug(
+          "getReachableGrantedAuthorities() - From the roles {} one can reach {} in zero or more steps.",
+          authorities, reachableRoles);
+
 
     return reachableRoles;
   }

@@ -22,16 +22,19 @@ import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
+import com.epam.ta.reportportal.core.plugin.PluginDetails;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.FeatureFlag;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
+import com.epam.ta.reportportal.plugin.DetailPluginDescriptor;
 import com.epam.ta.reportportal.util.FeatureFlagHandler;
 import com.epam.ta.reportportal.ws.converter.builders.IntegrationTypeBuilder;
-import com.epam.reportportal.rules.exception.ErrorType;
+import jakarta.validation.constraints.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,10 +46,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import javax.validation.constraints.NotNull;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.pf4j.PluginDescriptor;
 import org.pf4j.PluginDescriptorFinder;
 import org.pf4j.PluginRuntimeException;
 import org.pf4j.PluginWrapper;
@@ -88,8 +89,20 @@ public class PluginLoaderImpl implements PluginLoader {
   @Override
   @NotNull
   public PluginInfo extractPluginInfo(Path pluginPath) throws PluginRuntimeException {
-    PluginDescriptor pluginDescriptor = pluginDescriptorFinder.find(pluginPath);
-    return new PluginInfo(pluginDescriptor.getPluginId(), pluginDescriptor.getVersion());
+    var descriptor = (DetailPluginDescriptor) pluginDescriptorFinder.find(pluginPath);
+    var details = PluginDetails.builder()
+        .id(descriptor.getPluginId())
+        .name(descriptor.getPluginName())
+        .version(descriptor.getVersion())
+        .license(descriptor.getLicense())
+        .description(descriptor.getPluginDescription())
+        .documentation(descriptor.getDocumentation())
+        .requires(descriptor.getRequires())
+        .developer(descriptor.getProvider())
+        .metadata(descriptor.getMetadata())
+        .properties(descriptor.getProperties())
+        .build();
+    return new PluginInfo(descriptor.getPluginId(), descriptor.getVersion(), details);
   }
 
   @Override

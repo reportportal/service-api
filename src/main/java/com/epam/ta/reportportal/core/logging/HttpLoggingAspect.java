@@ -24,8 +24,9 @@ import java.lang.reflect.Parameter;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -55,6 +56,8 @@ public class HttpLoggingAspect {
   private static final String BODY_BINARY_MARK = "<binary body>";
 
   private static final AtomicLong COUNTER = new AtomicLong();
+
+  private static final List<String> SENSITIVE_HEADERS = List.of(HttpHeaders.AUTHORIZATION);
 
   @Autowired
   private ObjectMapper objectMapper;
@@ -103,14 +106,14 @@ public class HttpLoggingAspect {
       Object arg = args[i];
 
       if (arg != null) {
-        if (arg instanceof MultipartHttpServletRequest) {
+        if (arg instanceof MultipartHttpServletRequest request) {
           body = BODY_BINARY_MARK;
           break;
         } else if (parameters[i].isAnnotationPresent(RequestBody.class)) {
           body = arg;
           break;
-        } else if (arg instanceof HttpEntity) {
-          body = ((HttpEntity) arg).getBody();
+        } else if (arg instanceof HttpEntity httpEntity) {
+          body = httpEntity.getBody();
           break;
         }
       }
@@ -134,6 +137,9 @@ public class HttpLoggingAspect {
       Enumeration<String> names = request.getHeaderNames();
       while (names.hasMoreElements()) {
         String name = names.nextElement();
+        if (containsSensitive(name)) {
+          continue;
+        }
         Enumeration<String> values = request.getHeaders(name);
         record.append(NEWLINE).append(' ').append(name).append(':');
         boolean comma = false;
@@ -161,6 +167,11 @@ public class HttpLoggingAspect {
     return record.toString();
   }
 
+  private boolean containsSensitive(String name) {
+    return SENSITIVE_HEADERS.stream()
+        .anyMatch(sh -> sh.equalsIgnoreCase(name));
+  }
+
   protected String formatResponseRecord(long count, String prefix, Object response,
       HttpLogging annotation, long executionTime) throws Exception {
     boolean binaryBody = false;
@@ -171,13 +182,13 @@ public class HttpLoggingAspect {
       record.append(" (").append(executionTime).append(" ms)");
     }
 
-    if (response instanceof ResponseEntity) {
-      HttpStatus status = ((ResponseEntity) response).getStatusCode();
+    if (response instanceof ResponseEntity responseEntity) {
+      HttpStatus status = HttpStatus.resolve(responseEntity.getStatusCode().value());
       record.append(NEWLINE).append(' ').append(status).append(" - ")
           .append(status.getReasonPhrase());
 
       if (annotation.logHeaders()) {
-        HttpHeaders headers = ((ResponseEntity) response).getHeaders();
+        HttpHeaders headers = responseEntity.getHeaders();
         for (String name : headers.keySet()) {
           record.append(NEWLINE).append(' ').append(name).append(':');
           boolean comma = false;

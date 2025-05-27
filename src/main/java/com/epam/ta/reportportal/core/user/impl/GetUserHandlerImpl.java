@@ -24,6 +24,8 @@ import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTE
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -32,23 +34,22 @@ import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
+import com.epam.ta.reportportal.dao.GroupMembershipRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.group.GroupProject;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.user.UserBidRS;
 import com.epam.ta.reportportal.model.user.UserResource;
-import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.base.Preconditions;
 import java.io.OutputStream;
 import java.util.List;
@@ -66,7 +67,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /**
- * Implementation for GET user operations
+ * Implementation for GET user operations.
  *
  * @author Andrei_Ramanchuk
  */
@@ -75,23 +76,35 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
   private final UserRepository userRepository;
 
-  private final UserCreationBidRepository userCreationBidRepository;
-
   private final ProjectRepository projectRepository;
 
-  private final PersonalProjectService personalProjectService;
+  private final GroupMembershipRepository groupMembershipRepository;
+
+  private final UserCreationBidRepository userCreationBidRepository;
 
   private final GetJasperReportHandler<User> jasperReportHandler;
 
+  /**
+   * Constructor.
+   *
+   * @param userRepo                  User repository
+   * @param projectRepository         Project repository
+   * @param groupMembershipRepository Group project repository
+   * @param userCreationBidRepository User creation bid repository
+   * @param jasperReportHandler       Jasper report handler
+   */
   @Autowired
-  public GetUserHandlerImpl(UserRepository userRepo,
+  public GetUserHandlerImpl(
+      UserRepository userRepo,
+      ProjectRepository projectRepository,
+      GroupMembershipRepository groupMembershipRepository,
       UserCreationBidRepository userCreationBidRepository,
-      ProjectRepository projectRepository, PersonalProjectService personalProjectService,
-      @Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler) {
+      @Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler
+  ) {
     this.userRepository = Preconditions.checkNotNull(userRepo);
+    this.groupMembershipRepository = groupMembershipRepository;
     this.userCreationBidRepository = Preconditions.checkNotNull(userCreationBidRepository);
     this.projectRepository = projectRepository;
-    this.personalProjectService = personalProjectService;
     this.jasperReportHandler = jasperReportHandler;
   }
 
@@ -108,12 +121,13 @@ public class GetUserHandlerImpl implements GetUserHandler {
     User user = userRepository.findByLogin(loggedInUser.getUsername())
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
-    return UserConverter.TO_RESOURCE.apply(user);
+    List<GroupProject> groupProjects = groupMembershipRepository.findAllUserProjects(user.getId());
+    return UserConverter.TO_RESOURCE_WITH_GROUPS.apply(user, groupProjects);
   }
 
   @Override
-  public Iterable<UserResource> getUsers(Filter filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails) {
+  public com.epam.ta.reportportal.model.Page<UserResource> getUsers(Filter filter, Pageable pageable,
+                                                                    ReportPortalUser.ProjectDetails projectDetails) {
     // Active users only
     filter.withCondition(new FilterCondition(Condition.EQUALS, false, "false", CRITERIA_EXPIRED));
     filter.withCondition(new FilterCondition(Condition.EQUALS,
@@ -172,7 +186,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
   }
 
   @Override
-  public Iterable<UserResource> getAllUsers(Queryable filter, Pageable pageable) {
+  public com.epam.ta.reportportal.model.Page<UserResource> getAllUsers(Queryable filter, Pageable pageable) {
     final Page<User> users = userRepository.findByFilter(filter, pageable);
     return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(users);
   }
@@ -194,7 +208,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
   }
 
   @Override
-  public Iterable<UserResource> searchUsers(String term, Pageable pageable) {
+  public com.epam.ta.reportportal.model.Page<UserResource> searchUsers(String term, Pageable pageable) {
 
     Filter filter = Filter.builder()
         .withTarget(User.class)

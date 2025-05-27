@@ -48,6 +48,7 @@ import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -64,9 +65,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
   @Autowired
   public UpdateUserFilterHandlerImpl(ProjectExtractor projectExtractor,
-      UserFilterRepository userFilterRepository,
-
-      MessageBus messageBus) {
+      UserFilterRepository userFilterRepository, MessageBus messageBus) {
     this.projectExtractor = projectExtractor;
     this.userFilterRepository = userFilterRepository;
     this.messageBus = messageBus;
@@ -210,13 +209,9 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
   private void validateFilterName(UpdateUserFilterRQ createFilterRQ,
       Long projectId) {
-    int maxIterations = 100;
-    int count = 0;
-    while (userFilterRepository.existsByNameAndProjectId(createFilterRQ.getName(), projectId)
-        && count < maxIterations) {
-      createFilterRQ.setName(createFilterRQ.getName() + "_copy");
-      count++;
-    }
+    IntStream.range(0, 100)
+        .takeWhile(i -> userFilterRepository.existsByNameAndProjectId(createFilterRQ.getName(), projectId))
+        .forEach(i -> createFilterRQ.setName(createFilterRQ.getName() + "_copy"));
   }
 
   private String cutAttributesToMaxLength(String keyAndValue) {

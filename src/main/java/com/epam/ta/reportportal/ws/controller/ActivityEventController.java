@@ -33,8 +33,8 @@ import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -58,7 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping("/v1/activities")
-@Tag(name = "activity-event-controller", description = "Activity Event Controller")
+@Tag(name = "Activity Event", description = "Activity Events API collection")
 public class ActivityEventController {
 
   private final ActivityEventHandler activityEventHandler;

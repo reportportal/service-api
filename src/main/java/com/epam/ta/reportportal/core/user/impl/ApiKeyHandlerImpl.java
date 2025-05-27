@@ -20,24 +20,23 @@ import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 
-import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.core.user.ApiKeyHandler;
 import com.epam.ta.reportportal.dao.ApiKeyRepository;
 import com.epam.ta.reportportal.entity.user.ApiKey;
 import com.epam.ta.reportportal.model.ApiKeyRS;
 import com.epam.ta.reportportal.model.ApiKeysRS;
 import com.epam.ta.reportportal.ws.converter.converters.ApiKeyConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.xml.bind.DatatypeConverter;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
-import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,8 +89,8 @@ public class ApiKeyHandlerImpl implements ApiKeyHandler {
   }
 
   @Override
-  public OperationCompletionRS deleteApiKey(Long id) {
-    expect(apiKeyRepository.existsById(id), Predicates.equalTo(true))
+  public OperationCompletionRS deleteApiKey(Long id, Long userId) {
+    expect(apiKeyRepository.existsByIdAndUserId(id, userId), Predicates.equalTo(true))
         .verify(NOT_FOUND, "Api key");
     apiKeyRepository.deleteById(id);
     return new OperationCompletionRS("Api key with ID = '" + id + "' was successfully deleted.");

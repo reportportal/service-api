@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.model.validation;
 
 import com.epam.ta.reportportal.ws.annotations.NotBlankWithSize;
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import org.apache.commons.lang3.StringUtils;
 
 /**

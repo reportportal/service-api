@@ -57,7 +57,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/{projectName}/activity")
 @Transactional(readOnly = true)
 @PreAuthorize(ASSIGNED_TO_PROJECT)
-@Tag(name = "activity-controller", description = "Activity Controller")
+@Tag(name = "Activity", description = "Activities API collection")
 public class ActivityController {
 
   private final ActivityHandler activityHandler;
@@ -302,7 +302,7 @@ public class ActivityController {
               "message": "Unclassified error"
           }
           """))) })
-  public Iterable<ActivityEventResource> getTestItemActivities(@PathVariable
+  public Page<ActivityEventResource> getTestItemActivities(@PathVariable
   @Parameter(description = "The name of the project for which the activities should be searched")
   String projectName, @PathVariable
   @Parameter(description = "The ID of the test item for which all its activities should be "

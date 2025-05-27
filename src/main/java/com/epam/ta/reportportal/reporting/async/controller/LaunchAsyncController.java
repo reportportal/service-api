@@ -42,7 +42,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -65,7 +65,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v2/{projectName}/launch")
-@Tag(name = "launch-async-controller", description = "Launch Async Controller. Puts events to the queues")
+@Tag(name = "Launch Async", description = "Launches Async API collection")
 public class LaunchAsyncController {
 
   private final ProjectExtractor projectExtractor;

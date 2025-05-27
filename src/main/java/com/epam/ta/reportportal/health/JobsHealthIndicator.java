@@ -39,14 +39,14 @@ public class JobsHealthIndicator extends AbstractHealthIndicator {
 
   private static Logger LOGGER = LoggerFactory.getLogger(JobsHealthIndicator.class);
   private static final String ERROR_MESSAGE = "Jobs service health check failed";
-  RestTemplate restTemplate;
+  private final RestTemplate restTemplate;
 
   @Value("${rp.jobs.baseUrl}")
   private String jobsBaseUrl;
 
-  public JobsHealthIndicator() {
+  public JobsHealthIndicator(RestTemplate restTemplate) {
     super(ERROR_MESSAGE);
-    this.restTemplate = new RestTemplate();
+    this.restTemplate = restTemplate;
   }
 
   @Override

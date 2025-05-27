@@ -43,8 +43,8 @@ public class JobsInfoContributor implements InfoContributor {
   @Value("${rp.jobs.baseUrl}")
   private String jobsBaseUrl;
 
-  public JobsInfoContributor() {
-    this.restTemplate = new RestTemplate();
+  public JobsInfoContributor(RestTemplate restTemplate) {
+    this.restTemplate = restTemplate;
   }
 
   @Override

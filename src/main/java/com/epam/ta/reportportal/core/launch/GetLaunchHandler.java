@@ -22,11 +22,12 @@ import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.reporting.LaunchResource;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Pageable;
 
 //import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
@@ -71,9 +72,9 @@ public interface GetLaunchHandler {
    * @param userName       Name of User
    * @return Response Data
    */
-  Iterable<LaunchResource> getProjectLaunches(ReportPortalUser.ProjectDetails projectDetails,
-      Filter filter, Pageable pageable,
-      String userName);
+  Page<LaunchResource> getProjectLaunches(ReportPortalUser.ProjectDetails projectDetails,
+                                          Filter filter, Pageable pageable,
+                                          String userName);
 
   /**
    * Get debug launches
@@ -83,7 +84,7 @@ public interface GetLaunchHandler {
    * @param pageable       Page details
    * @return Response Data
    */
-  Iterable<LaunchResource> getDebugLaunches(ReportPortalUser.ProjectDetails projectDetails,
+  Page<LaunchResource> getDebugLaunches(ReportPortalUser.ProjectDetails projectDetails,
       Filter filter, Pageable pageable);
 
   /**
@@ -163,7 +164,7 @@ public interface GetLaunchHandler {
    * @param pageable       Page details
    * @return Response Data
    */
-  Iterable<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails,
+  Page<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails,
       Filter filter, Pageable pageable);
 
   /**
@@ -174,7 +175,7 @@ public interface GetLaunchHandler {
    * @param pageable       Pagination information for the results
    * @return {@link ClusterInfoResource}
    */
-  Iterable<ClusterInfoResource> getClusters(String launchId,
+  Page<ClusterInfoResource> getClusters(String launchId,
       ReportPortalUser.ProjectDetails projectDetails, Pageable pageable);
 
   boolean hasItemsWithIssues(Launch launch);

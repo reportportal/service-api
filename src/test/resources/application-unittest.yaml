@@ -4,6 +4,8 @@ datastore:
 rp:
   plugins:
     rooDir: ${java.io.tmpdir}/reportportal/plugins
+    default:
+      load: false
 logging:
   file:
     name: ${java.io.tmpdir}/reportportal/logs/${spring.application.name}.log
@@ -12,3 +14,6 @@ embedded:
     dir: ${java.io.tmpdir}/reportportal/embedded-postgres
     clean: true
     port: 0
+spring:
+  flyway:
+    clean-disabled: false

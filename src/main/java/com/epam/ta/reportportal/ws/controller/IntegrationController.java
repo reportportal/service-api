@@ -36,7 +36,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Map;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -57,7 +57,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping(value = "/v1/integration")
-@Tag(name = "integration-controller", description = "Integration Controller")
+@Tag(name = "Integration", description = "Integrations API collection")
 public class IntegrationController {
 
   private final ProjectExtractor projectExtractor;
@@ -80,7 +80,7 @@ public class IntegrationController {
   }
 
   @Transactional(readOnly = true)
-  @GetMapping("/global/all")
+  @GetMapping({"/global/all", "/global/all/"}) // TODO: fix on UI side and remove the second one
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get available global integrations")
   public List<IntegrationResource> getGlobalIntegrations(

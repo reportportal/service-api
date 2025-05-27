@@ -40,10 +40,11 @@ public interface ApiKeyHandler {
   /**
    * Delete users ApiKey by id.
    *
-   * @param id Api Key id
+   * @param id     Api Key id
+   * @param userId user id
    * @return {@link OperationCompletionRS}
    */
-  OperationCompletionRS deleteApiKey(Long id);
+  OperationCompletionRS deleteApiKey(Long id, Long userId);
 
   /**
    * Return all users ApiKeys.

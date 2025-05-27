@@ -23,7 +23,6 @@ import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 
-import com.epam.reportportal.extension.event.LaunchFinishedPluginEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
@@ -104,8 +103,6 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
         String.valueOf(launch.getId())
     );
 
-    eventPublisher.publishEvent(
-        new LaunchFinishedPluginEvent(launch.getId(), launch.getProjectId(), launchLink));
     eventPublisher.publishEvent(new LaunchFinishedEvent(launch, user, baseUrl));
 
     FinishLaunchRS response = new FinishLaunchRS();

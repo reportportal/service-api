@@ -117,6 +117,7 @@ public final class TestItemConverter {
     resource.setPatternTemplates(item.getPatternTemplates());
     resource.setPath(item.getPath());
     resource.setStatisticsResource(item.getStatisticsResource());
+    resource.setRetries(item.getRetries());
     return resource;
   };
 

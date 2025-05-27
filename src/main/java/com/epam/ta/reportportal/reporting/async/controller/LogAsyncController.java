@@ -39,8 +39,8 @@ import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Validator;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Validator;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -65,7 +65,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/v2/{projectName}/log")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
-@Tag(name = "log-async-controller", description = "Log Async Controller")
+@Tag(name = "Log Async", description = "Logs Async API collection")
 public class LogAsyncController {
 
   private final ProjectExtractor projectExtractor;

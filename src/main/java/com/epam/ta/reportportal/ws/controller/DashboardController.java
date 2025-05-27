@@ -20,6 +20,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
+import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.dashboard.CreateDashboardHandler;
@@ -29,10 +30,11 @@ import com.epam.ta.reportportal.core.dashboard.UpdateDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.impl.DashboardPreconfiguredService;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.dashboard.AddWidgetRq;
-import com.epam.ta.reportportal.model.dashboard.DashboardPreconfiguredRq;
 import com.epam.ta.reportportal.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.model.dashboard.DashboardConfigResource;
+import com.epam.ta.reportportal.model.dashboard.DashboardPreconfiguredRq;
 import com.epam.ta.reportportal.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.model.dashboard.UpdateDashboardRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -41,6 +43,7 @@ import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -64,7 +67,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 @RequestMapping("/v1/{projectName}/dashboard")
-@Tag(name = "dashboard-controller", description = "Dashboard Controller")
+@Tag(name = "Dashboard", description = "Dashboards API collection")
 public class DashboardController {
 
   private final ProjectExtractor projectExtractor;
@@ -89,7 +92,7 @@ public class DashboardController {
   @GetMapping
   @ResponseStatus(OK)
   @Operation(summary = "Get all permitted dashboard resources for specified project")
-  public Iterable<DashboardResource> getAllDashboards(@PathVariable String projectName,
+  public Page<DashboardResource> getAllDashboards(@PathVariable String projectName,
       @SortFor(Dashboard.class) Pageable pageable, @FilterFor(Dashboard.class) Filter filter,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getDashboardHandler.getDashboards(
@@ -164,7 +167,8 @@ public class DashboardController {
   @PostMapping(value = "/preconfigured")
   @ResponseStatus(OK)
   @Operation(summary = "Create Dashboard with provided configuration including its widgets and filters if any")
-  public EntryCreatedRS createPreconfigured(@PathVariable String projectName,
+  public EntryCreatedRS createPreconfigured(
+      @PathVariable @Size(min = ValidationConstraints.MIN_NAME_LENGTH, max = ValidationConstraints.MAX_NAME_LENGTH) String projectName,
       @RequestBody @Validated DashboardPreconfiguredRq rq,
       @AuthenticationPrincipal ReportPortalUser user) {
     return dashboardPreconfiguredService.createDashboard(

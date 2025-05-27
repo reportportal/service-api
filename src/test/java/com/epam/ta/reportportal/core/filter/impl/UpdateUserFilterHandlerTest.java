@@ -32,9 +32,9 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
+import com.epam.ta.reportportal.dao.GroupMembershipRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
-import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -62,10 +62,14 @@ class UpdateUserFilterHandlerTest {
   private Project project = mock(Project.class);
 
   private ProjectUserRepository projectUserRepository = mock(ProjectUserRepository.class);
+  private GroupMembershipRepository groupMembershipRepository = mock(
+      GroupMembershipRepository.class);
 
-  private ProjectExtractor projectExtractor = new ProjectExtractor(projectUserRepository);
+  private ProjectExtractor projectExtractor = new ProjectExtractor(
+      projectUserRepository,
+      groupMembershipRepository
+  );
   private UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
-  private WidgetRepository widgetRepository = mock(WidgetRepository.class);
   private MessageBus messageBus = mock(MessageBus.class);
   private UpdateUserFilterHandler updateUserFilterHandler =
       new UpdateUserFilterHandlerImpl(projectExtractor, userFilterRepository, messageBus);

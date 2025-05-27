@@ -31,6 +31,7 @@ import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -139,7 +140,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   }
 
   @Override
-  public Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
+  public com.epam.ta.reportportal.model.Page<TestItemResource> getTestItems(Queryable filter,
+      Pageable pageable,
       ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
       @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit) {
 
@@ -169,7 +171,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   }
 
   @Override
-  public Iterable<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable,
+  public com.epam.ta.reportportal.model.Page<TestItemResource> getTestItemsByProvider(
+      Queryable filter, Pageable pageable,
       ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
       Map<String, String> params) {
     DataProviderType dataProviderType = DataProviderType.findByName(params.get(PROVIDER_TYPE_PARAM))
@@ -278,8 +281,17 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   }
 
   @Override
-  public List<String> getAttributeKeys(Long launchId, String value) {
-    return itemAttributeRepository.findTestItemAttributeKeys(launchId, value, false);
+  public List<String> getUniqueAttributeKeys(ProjectDetails projectDetails, String keyPart,
+      Long launchId) {
+    return itemAttributeRepository.findUniqueAttributeKeysByPart(projectDetails.getProjectId(),
+        keyPart, launchId, false);
+  }
+
+  @Override
+  public List<String> getUniqueAttributeValues(ProjectDetails projectDetails, String key,
+      String valuePart, Long launchId) {
+    return itemAttributeRepository.findUniqueAttributeValuesByPart(projectDetails.getProjectId(),
+        key, valuePart, launchId, false);
   }
 
   @Override

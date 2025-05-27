@@ -53,7 +53,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/bts")
-@Tag(name = "bug-tracking-system-controller", description = "Bug Tracking System Controller")
+@Tag(name = "Bug Tracking System", description = "Bug Tracking Systems API collection")
 public class BugTrackingSystemController {
 
   private final ProjectExtractor projectExtractor;

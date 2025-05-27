@@ -23,15 +23,15 @@ import com.epam.reportportal.events.StartChildItemRqEvent;
 import com.epam.reportportal.events.StartLaunchRqEvent;
 import com.epam.reportportal.events.StartRootItemRqEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
-import com.epam.ta.reportportal.core.item.StartTestItemHandler;
-import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
-import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
+import com.epam.ta.reportportal.core.launch.impl.StartLaunchHandlerImpl;
 import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
-import com.epam.ta.reportportal.core.log.CreateLogHandler;
+import com.epam.ta.reportportal.reporting.async.producer.ItemFinishProducer;
+import com.epam.ta.reportportal.reporting.async.producer.ItemStartProducer;
+import com.epam.ta.reportportal.reporting.async.producer.LaunchFinishProducer;
+import com.epam.ta.reportportal.reporting.async.producer.LogProducer;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -49,15 +49,15 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @RequiredArgsConstructor
 public class EventBasedReporting {
 
-  private final StartLaunchHandler startLaunchHandler;
+  private final StartLaunchHandlerImpl startLaunchHandler;
 
-  private final FinishLaunchHandler finishLaunchHandler;
+  private final LaunchFinishProducer finishLaunchHandler;
 
-  private final StartTestItemHandler startTestItemHandler;
+  private final ItemStartProducer startTestItemHandler;
 
-  private final FinishTestItemHandler finishTestItemHandler;
+  private final ItemFinishProducer finishTestItemHandler;
 
-  private final CreateLogHandler createLogHandler;
+  private final LogProducer createLogHandler;
 
   private final ProjectExtractor projectExtractor;
 
@@ -117,8 +117,8 @@ public class EventBasedReporting {
 
   private Optional<HttpServletRequest> extractCurrentHttpRequest() {
     RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-    if (requestAttributes instanceof ServletRequestAttributes) {
-      return Optional.of(((ServletRequestAttributes) requestAttributes).getRequest());
+    if (requestAttributes instanceof ServletRequestAttributes servletRequestAttributes) {
+      return Optional.of(servletRequestAttributes.getRequest());
     }
     log.debug("Not called in the context of an HTTP request");
     return Optional.empty();

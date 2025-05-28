@@ -50,6 +50,10 @@ public class ErrorHandlingController {
       HttpMessageNotReadableException.class,
       MissingServletRequestPartException.class,
       MissingServletRequestParameterException.class,
+      IllegalArgumentException.class,
+      UnsupportedOperationException.class,
+      org.hibernate.exception.ConstraintViolationException.class,
+      jakarta.validation.ConstraintViolationException.class,
       RestClientException.class}
   )
   @ResponseStatus(HttpStatus.BAD_REQUEST)

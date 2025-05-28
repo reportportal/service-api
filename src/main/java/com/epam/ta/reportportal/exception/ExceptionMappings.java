@@ -66,6 +66,14 @@ public final class ExceptionMappings {
       .put(LockedException.class, new RestErrorDefinition<>(403, ErrorType.ADDRESS_LOCKED, DEFAULT_MESSAGE_BUILDER))
       .put(RestClientException.class,
           new RestErrorDefinition<>(400, ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, DEFAULT_MESSAGE_BUILDER))
+      .put(IllegalArgumentException.class,
+          new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
+      .put(UnsupportedOperationException.class,
+          new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
+      .put(org.hibernate.exception.ConstraintViolationException.class,
+          new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
+      .put(jakarta.validation.ConstraintViolationException.class,
+          new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
       .put(Throwable.class, new RestErrorDefinition<>(500, ErrorType.UNCLASSIFIED_ERROR, DEFAULT_MESSAGE_BUILDER))
       .build();
 }

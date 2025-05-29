@@ -162,9 +162,11 @@ dependencyCheck {
 }
 
 bootJar {
-    duplicatesStrategy = duplicatesStrategy.EXCLUDE
-    project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('' + 'exec')
+    project.hasProperty('gcp') ?
+            getArchiveFileName().set('app.jar') :
+            archiveClassifier.set('' + 'exec')
 }
+
 jar.enabled(true)
 jar.archiveClassifier.set('')
 

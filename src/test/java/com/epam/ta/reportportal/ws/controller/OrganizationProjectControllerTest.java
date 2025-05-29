@@ -242,7 +242,9 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
             .contentType(MediaType.APPLICATION_JSON)
             .with(token(adminToken))
             .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
-        .andExpect(jsonPath("$.message").value("Unclassified error [Unexpected value: wrong_path]"));
+        .andExpect(status().is4xxClientError())
+        .andExpect(jsonPath("$.message")
+            .value("Incorrect Request. Unexpected value: wrong_path"));
   }
 
 
@@ -264,7 +266,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
             .contentType(MediaType.APPLICATION_JSON)
             .with(token(adminToken))
             .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
-        .andExpect(status().is5xxServerError());
+        .andExpect(status().is4xxClientError());
   }
 
   @ParameterizedTest
@@ -285,7 +287,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
             .contentType(MediaType.APPLICATION_JSON)
             .with(token(adminToken))
             .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
-        .andExpect(status().is5xxServerError());
+        .andExpect(status().is4xxClientError());
   }
 
 
@@ -309,7 +311,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
             .contentType(MediaType.APPLICATION_JSON)
             .with(token(adminToken))
             .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
-        .andExpect(status().is5xxServerError());
+        .andExpect(status().is4xxClientError());
   }
 
 }

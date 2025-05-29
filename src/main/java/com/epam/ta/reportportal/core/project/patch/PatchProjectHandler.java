@@ -28,8 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * Handler for patch operations on projects within an organization. Supports patching project name
- * and slug using specific handlers. Ensures the project exists before applying patch operations.
+ * Handler for patch operations on projects within an organization. Supports patching project name and slug using
+ * specific handlers. Ensures the project exists before applying patch operations.
  *
  * <p>This handler is configured as a Spring service component and uses logging capabilities:
  * <ul>
@@ -71,14 +71,13 @@ public class PatchProjectHandler {
   }
 
   /**
-   * Applies a list of patch operations to a project within an organization. Verifies that the
-   * project exists within the specified organization before applying any patches.
+   * Applies a list of patch operations to a project within an organization. Verifies that the project exists within the
+   * specified organization before applying any patches.
    *
    * @param patchOperations list of patch operations to be applied to the project
    * @param orgId           ID of the organization that owns the project
    * @param projectId       ID of the project to be patched
-   * @throws com.epam.reportportal.rules.exception.ReportPortalException if a project is not found
-   *                                                                     in the organization
+   * @throws com.epam.reportportal.rules.exception.ReportPortalException if a project is not found in the organization
    */
   public void patchOrganizationProject(List<PatchOperation> patchOperations, Long orgId,
       Long projectId) {
@@ -92,29 +91,26 @@ public class PatchProjectHandler {
   }
 
   /**
-   * Applies a single patch operation to a project. Determines the appropriate handler based on the
-   * operation path and executes the corresponding patch operation (add, replace, or remove).
+   * Applies a single patch operation to a project. Determines the appropriate handler based on the operation path and
+   * executes the corresponding patch operation (add, replace, or remove).
    *
-   * @param operation the patch operation to be applied, containing the path, operation type and
-   *                  value
+   * @param operation the patch operation to be applied, containing the path, operation type and value
    * @param projectId ID of the project to be patched
-   * @throws IllegalStateException if the operation path is invalid ("name" or "slug" expected) or
-   *                               if the operation type is not supported (ADD, REPLACE, or REMOVE
-   *                               expected)
+   * @throws IllegalArgumentException if the operation path is invalid ("name" or "slug" expected) or if the operation
+   *                                  type is not supported (ADD, REPLACE, or REMOVE expected)
    */
   public void patchProject(PatchOperation operation, Long projectId) {
     BasePatchProjectHandler patchOperationHandler = switch (operation.getPath()) {
       case "name" -> this.patchProjectNameHandler;
       case "slug" -> this.patchProjectSlugHandler;
-      case null, default ->
-          throw new IllegalStateException("Unexpected value: " + operation.getPath());
+      case null, default -> throw new IllegalArgumentException("Unexpected value: " + operation.getPath());
     };
 
     switch (operation.getOp()) {
       case ADD -> patchOperationHandler.add(operation, projectId);
       case REPLACE -> patchOperationHandler.replace(operation, projectId);
       case REMOVE -> patchOperationHandler.remove(operation, projectId);
-      default -> throw new IllegalStateException("Unexpected value: " + operation.getOp());
+      default -> throw new IllegalArgumentException("Unexpected value: " + operation.getOp());
     }
 
   }

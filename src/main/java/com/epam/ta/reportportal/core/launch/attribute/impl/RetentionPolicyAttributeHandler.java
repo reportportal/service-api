@@ -55,7 +55,9 @@ public class RetentionPolicyAttributeHandler implements AttributeHandler {
    * @param launch Launch that should be handled
    */
   public void handleLaunchStart(Launch launch) {
-    if (launch == null || launch.getAttributes() == null) {
+    if (launch == null || launch.getAttributes() == null
+        || serverSettingsService.checkServerSettingsState(IMPORTANT_SETTINGS_KEY,
+        Boolean.FALSE.toString())) {
       return;
     }
 

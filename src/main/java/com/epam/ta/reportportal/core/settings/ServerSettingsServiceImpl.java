@@ -66,6 +66,7 @@ public class ServerSettingsServiceImpl implements ServerSettingsService {
         .orElse(Boolean.FALSE);
   }
 
+
   @Override
   public OperationCompletionRS saveAnalyticsSettings(AnalyticsResource analyticsResource, ReportPortalUser user) {
     String analyticsType = analyticsResource.getType();

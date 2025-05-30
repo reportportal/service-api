@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
  * Add new handlers by implementing {@link ServerSettingHandler} and annotating with {@code @Service}
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
+ * @Component}.
  */
 @Component
 public class ServerSettingsRegistry {

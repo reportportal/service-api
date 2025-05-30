@@ -17,32 +17,29 @@
 package com.epam.ta.reportportal.auth.permissions;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Validates this is {@link ProjectRole#MEMBER} or higher authority in the authentication context
+ * Check whether user is organization manager or assigned to project
  *
  * @author Andrei Varabyeu
  */
-@Component
-@LookupPermission({"notCustomerPermission"})
-public class NotCustomerPermission extends BaseProjectPermission {
+@Component("allowedToViewProjectPermission")
+@LookupPermission({"allowedToViewProject"})
+class AllowedToViewProjectPermission extends BaseProjectPermission {
 
   @Autowired
-  public NotCustomerPermission(ProjectExtractor projectExtractor) {
+  AllowedToViewProjectPermission(ProjectExtractor projectExtractor) {
     super(projectExtractor);
   }
 
-  /**
-   * Validates this is not a {@link ProjectRole#CUSTOMER} or higher authority in the authentication
-   * context
-   */
   @Override
-  protected boolean checkAllowed(ReportPortalUser user, String project, ProjectRole role) {
-    return (null != role) && role.compareTo(ProjectRole.CUSTOMER) != 0;
+  public boolean checkAllowed(ReportPortalUser user, MembershipDetails membershipDetails) {
+    return OrganizationRole.MANAGER == membershipDetails.getOrgRole()
+        || membershipDetails.getProjectRole() != null;
   }
-
 }

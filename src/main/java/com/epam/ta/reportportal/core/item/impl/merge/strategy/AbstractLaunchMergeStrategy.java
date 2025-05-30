@@ -37,6 +37,7 @@ import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
@@ -76,10 +77,10 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
     this.identifierGenerator = identifierGenerator;
   }
 
-  protected Launch createNewLaunch(ReportPortalUser.ProjectDetails projectDetails,
+  protected Launch createNewLaunch(MembershipDetails membershipDetails,
       ReportPortalUser user, MergeLaunchesRQ rq, List<Launch> launchesList) {
     Launch newLaunch =
-        createResultedLaunch(projectDetails.getProjectId(), user.getUserId(), rq, launchesList);
+        createResultedLaunch(membershipDetails.getProjectId(), user.getUserId(), rq, launchesList);
     boolean isNameChanged = !newLaunch.getName().equals(launchesList.get(0).getName());
     updateChildrenOfLaunches(newLaunch, rq.getLaunches(), rq.isExtendSuitesDescription(),
         isNameChanged

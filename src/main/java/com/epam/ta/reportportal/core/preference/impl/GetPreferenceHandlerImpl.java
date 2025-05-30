@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.preference.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.preference.GetPreferenceHandler;
 import com.epam.ta.reportportal.dao.UserPreferenceRepository;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.preference.UserPreference;
 import com.epam.ta.reportportal.model.filter.UserFilterResource;
 import com.epam.ta.reportportal.model.preference.PreferenceResource;
@@ -44,15 +45,15 @@ public class GetPreferenceHandlerImpl implements GetPreferenceHandler {
   }
 
   @Override
-  public PreferenceResource getPreference(ReportPortalUser.ProjectDetails projectDetails,
+  public PreferenceResource getPreference(MembershipDetails membershipDetails,
       ReportPortalUser user) {
     List<UserPreference> userPreferences =
-        userPreferenceRepository.findByProjectIdAndUserId(projectDetails.getProjectId(),
+        userPreferenceRepository.findByProjectIdAndUserId(membershipDetails.getProjectId(),
             user.getUserId()
         );
     PreferenceResource preferenceResource = new PreferenceResource();
     preferenceResource.setUserId(user.getUserId());
-    preferenceResource.setProjectId(projectDetails.getProjectId());
+    preferenceResource.setProjectId(membershipDetails.getProjectId());
     List<UserFilterResource> filters = userPreferences.stream()
         .map(it -> UserFilterConverter.TO_FILTER_RESOURCE.apply(it.getFilter()))
         .collect(Collectors.toList());

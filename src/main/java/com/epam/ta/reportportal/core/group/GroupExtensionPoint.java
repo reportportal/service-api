@@ -45,9 +45,10 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * @param limit  The number of groups to return.
    * @param order  The order of sorting.
    * @param sort   The field to sort by.
+   * @param orgId  The organization ID.
    * @return {@link GroupPage} containing a page of groups.
    */
-  GroupPage getGroups(Integer offset, Integer limit, String order, String sort);
+  GroupPage getGroups(Integer offset, Integer limit, String order, String sort, Long orgId);
 
   /**
    * Creates a group.

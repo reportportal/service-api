@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
 
 import com.epam.ta.reportportal.entity.activity.Activity;
@@ -53,7 +54,7 @@ class ProjectIndexEventTest {
   @Test
   void generate() {
     final boolean indexing = true;
-    final Activity actual = new ProjectIndexEvent(1L, "user", 3L, "test_project",
+    final Activity actual = new ProjectIndexEvent(1L, "user", 3L, TEST_PROJECT_KEY,
         indexing).toActivity();
     final Activity expected = getExpectedActivity(EventAction.GENERATE, indexing);
     checkActivity(expected, actual);
@@ -62,7 +63,7 @@ class ProjectIndexEventTest {
   @Test
   void delete() {
     final boolean indexing = false;
-    final Activity actual = new ProjectIndexEvent(1L, "user", 3L, "test_project",
+    final Activity actual = new ProjectIndexEvent(1L, "user", 3L, TEST_PROJECT_KEY,
         indexing).toActivity();
     final Activity expected = getExpectedActivity(EventAction.DELETE, indexing);
     checkActivity(expected, actual);

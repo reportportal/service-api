@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.widget;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.widget.WidgetRQ;
 
@@ -29,11 +30,11 @@ public interface CreateWidgetHandler {
    * Creates a new widget
    *
    * @param createWidgetRQ Widget details
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param user           User
    * @return EntryCreatedRS
    */
   EntryCreatedRS createWidget(WidgetRQ createWidgetRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+      MembershipDetails membershipDetails, ReportPortalUser user);
 
 }

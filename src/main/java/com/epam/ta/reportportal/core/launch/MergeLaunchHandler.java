@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.reporting.LaunchResource;
 import com.epam.ta.reportportal.ws.reporting.MergeLaunchesRQ;
 
@@ -30,12 +31,12 @@ public interface MergeLaunchHandler {
   /**
    * Merges launches.
    *
-   * @param projectDetails  Project Details
+   * @param membershipDetails Membership details
    * @param user            User
    * @param mergeLaunchesRQ Request data
    * @return OperationCompletionsRS
    */
-  LaunchResource mergeLaunches(ReportPortalUser.ProjectDetails projectDetails,
+  LaunchResource mergeLaunches(MembershipDetails membershipDetails,
       ReportPortalUser user, MergeLaunchesRQ mergeLaunchesRQ);
 
 }

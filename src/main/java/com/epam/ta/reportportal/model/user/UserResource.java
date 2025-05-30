@@ -19,9 +19,13 @@ package com.epam.ta.reportportal.model.user;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.Data;
 
 /**
@@ -31,6 +35,9 @@ import lombok.Data;
  */
 @Data
 @JsonInclude(Include.NON_NULL)
+@Getter
+@Setter
+@ToString
 public class UserResource {
 
   @NotNull
@@ -72,13 +79,35 @@ public class UserResource {
   private Object metadata;
 
   @JsonProperty(value = "assignedProjects")
-  private Map<String, AssignedProject> assignedProjects;
+  private Map<String, AssignedProject> assignedProjects = new HashMap<>();
 
-  @Data
+  @JsonProperty(value = "assignedOrganizations")
+  private Map<String, AssignedOrganization> assignedOrganizations = new HashMap<>();
+
+  @Getter
+  @Setter
+  @ToString
   public static class AssignedProject {
 
     private String projectRole;
     private String entryType;
+    private String projectKey;
+    private String projectSlug;
+    private String projectName;
+    private Long organizationId;
 
   }
+
+  @Getter
+  @Setter
+  @ToString
+  public static class AssignedOrganization {
+
+    private Long organizationId;
+    private String organizationSlug;
+    private String organizationRole;
+    private String organizationName;
+
+  }
+
 }

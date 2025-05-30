@@ -28,6 +28,8 @@ import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Create project request initial model
@@ -36,6 +38,8 @@ import jakarta.validation.constraints.Size;
  * @author Andrei_Ramanchuk
  */
 @JsonInclude(Include.NON_NULL)
+@Getter
+@Setter
 public class CreateProjectRQ {
 
 	@NotBlank
@@ -45,34 +49,14 @@ public class CreateProjectRQ {
 	@Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
 	private String projectName;
 
-	@NotBlank
-	@JsonProperty(value = "entryType", required = true)
-	@In(allowedValues = "internal")
-	@Schema(required = true, allowableValues = "INTERNAL")
-	private String entryType;
 
-	public String getProjectName() {
-		return projectName;
-	}
+  @JsonProperty(value = "organizationId")
+  private Long organizationId;
 
-	public void setProjectName(String projectName) {
-		this.projectName = projectName;
-	}
+  @Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$")
+  @Size(min = ValidationConstraints.MIN_NAME_LENGTH, max = ValidationConstraints.MAX_NAME_LENGTH)
+  @JsonProperty(value = "projectSlug", required = true)
+  @Schema(requiredMode = RequiredMode.REQUIRED)
+  private String projectSlug;
 
-	public String getEntryType() {
-		return entryType;
-	}
-
-	public void setEntryType(String value) {
-		this.entryType = value;
-	}
-
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder("CreateProjectRQ{");
-		sb.append("projectName='").append(projectName).append('\'');
-		sb.append(", entryType='").append(entryType).append('\'');
-		sb.append('}');
-		return sb.toString();
-	}
 }

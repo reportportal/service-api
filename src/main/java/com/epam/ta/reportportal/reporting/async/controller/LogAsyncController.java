@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.reporting.async.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.ta.reportportal.util.ControllerUtils.findByFileName;
 import static com.epam.ta.reportportal.util.ControllerUtils.getUploadedFiles;
 import static com.epam.ta.reportportal.util.ControllerUtils.validateSaveRQ;
@@ -63,8 +63,8 @@ import org.springframework.web.multipart.MultipartFile;
  * @author Pavel Bortnik
  */
 @RestController
-@RequestMapping("/v2/{projectName}/log")
-@PreAuthorize(ASSIGNED_TO_PROJECT)
+@RequestMapping("/v2/{projectKey}/log")
+@PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
 @Tag(name = "Log Async", description = "Logs Async API collection")
 public class LogAsyncController {
 
@@ -91,26 +91,26 @@ public class LogAsyncController {
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
   @ResponseStatus(CREATED)
   @Hidden
-  @PreAuthorize(ALLOWED_TO_REPORT)
-  public EntryCreatedAsyncRS createLog(@PathVariable String projectName,
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  public EntryCreatedAsyncRS createLog(@PathVariable String projectKey,
       @RequestBody SaveLogRQ createLogRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     validateSaveRQ(validator, createLogRQ);
     return createLogHandler.createLog(createLogRQ, null,
-        projectExtractor.extractProjectDetails(user, projectName));
+        projectExtractor.extractMembershipDetails(user, projectKey));
   }
 
   @HttpLogging
   @PostMapping(value = "/entry", consumes = {MediaType.APPLICATION_JSON_VALUE})
   @ResponseStatus(CREATED)
   @Operation(description = "Create log")
-  @PreAuthorize(ALLOWED_TO_REPORT)
-  public EntryCreatedAsyncRS createLogEntry(@PathVariable String projectName,
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  public EntryCreatedAsyncRS createLogEntry(@PathVariable String projectKey,
       @RequestBody SaveLogRQ createLogRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     validateSaveRQ(validator, createLogRQ);
     return createLogHandler.createLog(createLogRQ, null,
-        projectExtractor.extractProjectDetails(user, projectName));
+        projectExtractor.extractMembershipDetails(user, projectKey));
   }
 
   @HttpLogging
@@ -119,8 +119,8 @@ public class LogAsyncController {
   // Specific handler should be added for springfox in case of similar POST
   // request mappings
   //	@Async
-  @PreAuthorize(ALLOWED_TO_REPORT)
-  public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectName,
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectKey,
       @RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs,
       HttpServletRequest request,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -142,7 +142,7 @@ public class LogAsyncController {
            * There is no filename in request. Use simple save
            * method
            */
-          responseItem = createLog(projectName, createLogRq, user);
+          responseItem = createLog(projectKey, createLogRq, user);
 
         } else {
           /* Find by request part */
@@ -157,7 +157,7 @@ public class LogAsyncController {
            * data
            */
           responseItem = createLogHandler.createLog(createLogRq, data,
-              projectExtractor.extractProjectDetails(user, projectName));
+              projectExtractor.extractMembershipDetails(user, projectKey));
         }
         response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
       } catch (Exception e) {

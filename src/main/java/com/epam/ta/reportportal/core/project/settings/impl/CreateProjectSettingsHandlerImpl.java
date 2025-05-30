@@ -109,10 +109,10 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
   }
 
   @Override
-  public IssueSubTypeCreatedRS createProjectIssueSubType(String projectName, ReportPortalUser user,
+  public IssueSubTypeCreatedRS createProjectIssueSubType(String projectKey, ReportPortalUser user,
       CreateIssueSubTypeRQ rq) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
 
     expect(NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(rq.getTypeRef()), equalTo(false)).verify(
         INCORRECT_REQUEST, "Impossible to create sub-type for 'Not Issue' type.");
@@ -172,11 +172,11 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
   }
 
   @Override
-  public EntryCreatedRS createPatternTemplate(String projectName,
+  public EntryCreatedRS createPatternTemplate(String projectKey,
       CreatePatternTemplateRQ createPatternTemplateRQ, ReportPortalUser user) {
 
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 
     PatternTemplate patternTemplate = createPatternTemplateMapping.get(
         PatternTemplateType.fromString(createPatternTemplateRQ.getType()).orElseThrow(

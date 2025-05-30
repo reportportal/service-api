@@ -16,13 +16,33 @@
 
 package com.epam.ta.reportportal.core.project.settings.impl;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.reportportal.rules.exception.ErrorType.ISSUE_TYPE_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.ta.reportportal.commons.Predicates.in;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.AUTOMATION_BUG;
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NO_DEFECT;
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.PRODUCT_BUG;
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.SYSTEM_ISSUE;
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
+import static com.epam.ta.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
+
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeDeletedEvent;
 import com.epam.ta.reportportal.core.events.activity.PatternDeletedEvent;
 import com.epam.ta.reportportal.core.project.settings.DeleteProjectSettingsHandler;
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.dao.IssueEntityRepository;
+import com.epam.ta.reportportal.dao.IssueTypeRepository;
+import com.epam.ta.reportportal.dao.PatternTemplateRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.StatisticsFieldRepository;
+import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
@@ -30,27 +50,17 @@ import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.activity.PatternTemplateActivityResource;
 import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Sets;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.commons.Predicates.in;
-import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.*;
-import static com.epam.ta.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.reportportal.rules.exception.ErrorType.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -91,9 +101,9 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 	}
 
 	@Override
-	public OperationCompletionRS deleteProjectIssueSubType(String projectName, ReportPortalUser user, Long id) {
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+	public OperationCompletionRS deleteProjectIssueSubType(String projectKey, ReportPortalUser user, Long id) {
+		Project project = projectRepository.findByKey(projectKey)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
 
 		ProjectIssueType type = project.getProjectIssueTypes()
 				.stream()
@@ -161,10 +171,10 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 	}
 
 	@Override
-	public OperationCompletionRS deletePatternTemplate(String projectName, ReportPortalUser user, Long id) {
+	public OperationCompletionRS deletePatternTemplate(String projectKey, ReportPortalUser user, Long id) {
 
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+		Project project = projectRepository.findByKey(projectKey)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 
 		PatternTemplate patternTemplate = patternTemplateRepository.findByIdAndProjectId(id, project.getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT, id, project.getName()));

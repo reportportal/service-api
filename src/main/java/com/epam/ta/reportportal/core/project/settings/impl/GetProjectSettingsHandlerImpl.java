@@ -34,17 +34,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class GetProjectSettingsHandlerImpl implements GetProjectSettingsHandler {
 
-  private final ProjectRepository repository;
+  private final ProjectRepository projectRepository;
 
   @Autowired
   public GetProjectSettingsHandlerImpl(ProjectRepository repository) {
-    this.repository = repository;
+    this.projectRepository = repository;
   }
 
   @Override
-  public ProjectSettingsResource getProjectSettings(String projectName) {
-    Project project = repository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+  public ProjectSettingsResource getProjectSettings(String projectKey) {
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
     return ProjectSettingsConverter.TO_PROJECT_SETTINGS_RESOURCE.apply(project);
   }
 }

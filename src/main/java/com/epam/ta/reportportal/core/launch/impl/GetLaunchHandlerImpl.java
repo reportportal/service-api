@@ -71,8 +71,8 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -149,12 +149,12 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public LaunchResource getLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails) {
-    final Launch launch = findLaunch(launchId, projectDetails);
+  public LaunchResource getLaunch(String launchId, MembershipDetails membershipDetails) {
+    final Launch launch = findLaunch(launchId, membershipDetails);
     return getLaunchResource(launch);
   }
 
-  private Launch findLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails) {
+  private Launch findLaunch(String launchId, MembershipDetails membershipDetails) {
     Launch launch;
     try {
       launch = get(Long.parseLong(launchId));
@@ -162,15 +162,15 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
       launch = launchRepository.findByUuid(launchId)
           .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
     }
-    validate(launch, projectDetails);
+    validate(launch, membershipDetails);
     return launch;
   }
 
   @Override
-  public LaunchResource getLaunchByProjectName(String projectName, Pageable pageable, Filter filter,
+  public LaunchResource getLaunchByProjectKey(String projectKey, Pageable pageable, Filter filter,
       String username) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 
     Page<Launch> launches =
         launchRepository.findByFilter(ProjectFilter.of(filter, project.getId()), pageable);
@@ -187,12 +187,12 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
   @Override
   public com.epam.ta.reportportal.model.Page<LaunchResource> getProjectLaunches(
-      ReportPortalUser.ProjectDetails projectDetails,
+      MembershipDetails membershipDetails,
       Filter filter, Pageable pageable, String userName) {
     validateModeConditions(filter);
-    Project project = projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
+    Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
         () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
-            projectDetails.getProjectId()
+            membershipDetails.getProjectId()
         ));
 
     filter = addLaunchCommonCriteria(Mode.DEFAULT, filter);
@@ -207,43 +207,43 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
    */
   @Override
   public com.epam.ta.reportportal.model.Page<LaunchResource> getDebugLaunches(
-      ReportPortalUser.ProjectDetails projectDetails,
+      MembershipDetails membershipDetails,
       Filter filter, Pageable pageable) {
     validateModeConditions(filter);
     filter = addLaunchCommonCriteria(Mode.DEBUG, filter);
     Page<Launch> launches =
-        launchRepository.findByFilter(ProjectFilter.of(filter, projectDetails.getProjectId()),
+        launchRepository.findByFilter(ProjectFilter.of(filter, membershipDetails.getProjectId()),
             pageable
         );
     return getLaunchResources(launches);
   }
 
   @Override
-  public List<String> getAttributeKeys(ReportPortalUser.ProjectDetails projectDetails,
+  public List<String> getAttributeKeys(MembershipDetails membershipDetails,
       String value) {
-    return itemAttributeRepository.findLaunchAttributeKeys(projectDetails.getProjectId(), value,
+    return itemAttributeRepository.findLaunchAttributeKeys(membershipDetails.getProjectId(), value,
         false
     );
   }
 
   @Override
-  public List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String key,
+  public List<String> getAttributeValues(MembershipDetails membershipDetails, String key,
       String value) {
-    return itemAttributeRepository.findLaunchAttributeValues(projectDetails.getProjectId(), key,
+    return itemAttributeRepository.findLaunchAttributeValues(membershipDetails.getProjectId(), key,
         value, false
     );
   }
 
   @Override
   public com.epam.ta.reportportal.model.Page<LaunchResource> getLatestLaunches(
-      ReportPortalUser.ProjectDetails projectDetails,
+      MembershipDetails membershipDetails,
       Filter filter, Pageable pageable) {
 
     validateModeConditions(filter);
 
-    Project project = projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
+    Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
         () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
-            projectDetails.getProjectId()
+            membershipDetails.getProjectId()
         ));
 
     filter = addLaunchCommonCriteria(Mode.DEFAULT, filter);
@@ -256,8 +256,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   @Override
   @Transactional(readOnly = true)
   public com.epam.ta.reportportal.model.Page<ClusterInfoResource> getClusters(String launchId,
-      ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
-    final Launch launch = findLaunch(launchId, projectDetails);
+      MembershipDetails membershipDetails, Pageable pageable) {
+    final Launch launch = findLaunch(launchId, membershipDetails);
     return getClusterHandler.getResources(launch, pageable);
   }
 
@@ -276,20 +276,20 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public List<String> getLaunchNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
+  public List<String> getLaunchNames(MembershipDetails membershipDetails, String value) {
     expect(value.length() <= MAX_LAUNCH_NAME_LENGTH, equalTo(true)).verify(
         INCORRECT_FILTER_PARAMETERS,
         formattedSupplier("Length of the launch name string '{}' more than {} symbols", value,
             MAX_LAUNCH_NAME_LENGTH
         )
     );
-    return launchRepository.getLaunchNamesByModeExcludedByStatus(projectDetails.getProjectId(),
+    return launchRepository.getLaunchNamesByModeExcludedByStatus(membershipDetails.getProjectId(),
         value, LaunchModeEnum.DEFAULT, StatusEnum.IN_PROGRESS
     );
   }
 
   @Override
-  public List<String> getOwners(ReportPortalUser.ProjectDetails projectDetails, String value,
+  public List<String> getOwners(MembershipDetails membershipDetails, String value,
       String mode) {
     expect(value.length() > 2, equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
         formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
@@ -300,12 +300,12 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
             formattedSupplier("Mode - {} doesn't exist.", mode)
         ));
 
-    return launchRepository.getOwnerNames(projectDetails.getProjectId(), value, launchMode.name());
+    return launchRepository.getOwnerNames(membershipDetails.getProjectId(), value, launchMode.name());
   }
 
   @Override
   public Map<String, List<ChartStatisticsContent>> getLaunchesComparisonInfo(
-      ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {
+      MembershipDetails membershipDetails, Long[] ids) {
 
     List<String> contentFields =
         Lists.newArrayList(DEFECTS_AUTOMATION_BUG_TOTAL, DEFECTS_NO_DEFECT_TOTAL,
@@ -317,7 +317,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
         new FilterCondition(Condition.IN, false,
             Arrays.stream(ids).map(String::valueOf).collect(Collectors.joining(",")), CRITERIA_ID
         )).withCondition(
-        new FilterCondition(EQUALS, false, String.valueOf(projectDetails.getProjectId()),
+        new FilterCondition(EQUALS, false, String.valueOf(membershipDetails.getProjectId()),
             CRITERIA_PROJECT_ID
         )).build();
 
@@ -331,9 +331,9 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public Map<String, String> getStatuses(ReportPortalUser.ProjectDetails projectDetails,
+  public Map<String, String> getStatuses(MembershipDetails membershipDetails,
       Long[] ids) {
-    return launchRepository.getStatuses(projectDetails.getProjectId(), ids);
+    return launchRepository.getStatuses(membershipDetails.getProjectId(), ids);
   }
 
   @Override
@@ -361,18 +361,14 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   /**
-   * Validate user credentials and launch affiliation to the project
+   * Validate launch affiliation to the project
    *
    * @param launch         {@link Launch}
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    */
-  private void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails) {
-    expect(launch.getProjectId(), Predicates.equalTo(projectDetails.getProjectId())).verify(
-        ACCESS_DENIED);
-    if (LaunchModeEnum.DEBUG.equals(launch.getMode())) {
-      expect(projectDetails.getProjectRole(), not(Predicates.equalTo(ProjectRole.CUSTOMER))).verify(
-          ACCESS_DENIED);
-    }
+  private void validate(Launch launch, MembershipDetails membershipDetails) {
+    expect(launch.getProjectId(), Predicates.equalTo(membershipDetails.getProjectId()))
+        .verify(ACCESS_DENIED);
   }
 
   /**

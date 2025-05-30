@@ -17,32 +17,34 @@
 package com.epam.ta.reportportal.auth.permissions;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Validates this is {@link ProjectRole#PROJECT_MANAGER} or higher authority in the authentication
- * context
+ * Check whether user is organization manager or assigned to project as editor
  *
  * @author Andrei Varabyeu
  */
-@Component
-@LookupPermission({"projectManagerPermission"})
-public class ProjectManagerPermission extends BaseProjectPermission {
+@Component("allowedToEditProjectPermission")
+@LookupPermission({"allowedToEditProject"})
+class AllowedToEditProjectPermission extends BaseProjectPermission {
 
   @Autowired
-  public ProjectManagerPermission(ProjectExtractor projectExtractor) {
+  AllowedToEditProjectPermission(ProjectExtractor projectExtractor) {
     super(projectExtractor);
   }
 
   /**
-   * Validates this is {@link ProjectRole#PROJECT_MANAGER} or higher authority in the authentication
-   * context
+   * Check whether user is organization manager or assigned to project
    */
   @Override
-  protected boolean checkAllowed(ReportPortalUser user, String project, ProjectRole role) {
-    return role.sameOrHigherThan(ProjectRole.PROJECT_MANAGER);
+  public boolean checkAllowed(ReportPortalUser rpUser, MembershipDetails membershipDetails) {
+    return OrganizationRole.MANAGER == membershipDetails.getOrgRole()
+        || ProjectRole.EDITOR == membershipDetails.getProjectRole();
   }
+
 }

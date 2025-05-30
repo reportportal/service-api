@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.model.Page;
@@ -40,16 +41,17 @@ public interface GetProjectHandler {
   /**
    * Get project users info
    *
-   * @param projectName {@link com.epam.ta.reportportal.entity.project.Project#name}
-   * @param filter      {@link Filter}
-   * @param pageable    {@link Pageable}
+   * @param membershipDetails {@link MembershipDetails}
+   * @param pageable   {@link Pageable}
+   * @param user       {@link ReportPortalUser}
    * @return list of {@link UserResource}
    */
-  Page<UserResource> getProjectUsers(String projectName, Filter filter, Pageable pageable);
+  Page<UserResource> getProjectUsers(MembershipDetails membershipDetails, Filter filter, Pageable pageable,
+      ReportPortalUser user);
 
   boolean exists(Long id);
 
-  Project get(ReportPortalUser.ProjectDetails projectDetails);
+  Project get(MembershipDetails membershipDetails);
 
   Project get(Long id);
 
@@ -66,32 +68,33 @@ public interface GetProjectHandler {
   /**
    * Get project resource information
    *
-   * @param projectName Project name
+   * @param projectKey Project name
    * @param user        User
    * @return {@link ProjectResource}
    */
-  ProjectResource getResource(String projectName, ReportPortalUser user);
+  ProjectResource getResource(String projectKey, ReportPortalUser user);
 
   /**
    * Get list of specified usernames
    *
-   * @param projectDetails Project name
+   * @param membershipDetails Membership details
    * @param value          Login
    * @return List of found user logins
    */
-  List<String> getUserNames(ReportPortalUser.ProjectDetails projectDetails, String value);
+  List<String> getUserNames(MembershipDetails membershipDetails, String value);
 
   /**
    * Performs global search for user
    *
    * @param value          login OR full name of user
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param pageable       {@link Pageable} Page Details
    * @return Page of found user resources
    */
   Page<SearchUserResource> getUserNames(String value,
-     UserRole userRole,
-      ReportPortalUser.ProjectDetails projectDetails, Pageable pageable);
+      MembershipDetails membershipDetails,
+      UserRole userRole,
+      Pageable pageable);
 
   /**
    * Get all project names

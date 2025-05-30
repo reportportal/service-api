@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.List;
@@ -59,7 +60,7 @@ public class CumulativeTestItemDataProviderImpl implements DataProviderHandler {
 
   @Override
   public Page<TestItem> getTestItems(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails,
+      MembershipDetails membershipDetails,
       ReportPortalUser user, Map<String, String> params) {
     filter = updateFilter(filter, params);
     return testItemRepository.findByFilter(filter, pageable);
@@ -68,7 +69,7 @@ public class CumulativeTestItemDataProviderImpl implements DataProviderHandler {
 
   @Override
   public Set<Statistics> accumulateStatistics(Queryable filter,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      MembershipDetails membershipDetails, ReportPortalUser user,
       Map<String, String> params) {
     filter = updateFilter(filter, params);
     return testItemRepository.accumulateStatisticsByFilter(filter);

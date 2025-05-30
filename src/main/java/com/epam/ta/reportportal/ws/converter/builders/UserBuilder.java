@@ -16,8 +16,11 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.api.model.NewUserRequest;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.Metadata;
 import com.epam.ta.reportportal.entity.user.User;
@@ -26,7 +29,6 @@ import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
 import com.epam.ta.reportportal.model.user.CreateUserRQFull;
 import java.time.Instant;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -52,15 +54,43 @@ public class UserBuilder implements Supplier<User> {
 
   public UserBuilder addCreateUserRQ(CreateUserRQConfirm request) {
     ofNullable(request).ifPresent(
-        r -> fillUser(r.getLogin(), r.getEmail(), r.getFullName(), null, true,
-            UserType.INTERNAL.name()));
+        r -> fillUser(
+            r.getEmail(),
+            r.getFullName(),
+            null,
+            UserType.INTERNAL.name()
+        ));
+    return this;
+  }
+
+  /**
+   * Populates the user data from the given {@link NewUserRequest}.
+   *
+   * @param request the request object containing new user data.
+   * @return the current {@code UserBuilder} instance with populated user data.
+   * @throws ReportPortalException if the specified {@code instanceRole} is invalid.
+   */
+  public UserBuilder fromNewUserRequest(NewUserRequest request) {
+    ofNullable(request).ifPresent(
+        it -> {
+          fillUser(it.getEmail(), it.getFullName(), it.getExternalId(),
+              request.getAccountType().name());
+          addUserRole(UserRole.findByName(request.getInstanceRole().name())
+              .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+                  "Incorrect specified Instance Role parameter.")));
+        }
+    );
     return this;
   }
 
   public UserBuilder addCreateUserFullRQ(CreateUserRQFull request) {
     ofNullable(request).ifPresent(
-        it -> fillUser(it.getLogin(), it.getEmail(), it.getFullName(), it.getExternalId(),
-            it.isActive(), request.getAccountType()));
+        it -> fillUser(
+            it.getEmail(),
+            it.getFullName(),
+            it.getExternalId(),
+            request.getAccountType()
+        ));
     return this;
   }
 
@@ -79,10 +109,13 @@ public class UserBuilder implements Supplier<User> {
     return user;
   }
 
-  private void fillUser(String login, String email, String fullName, String externalId,
-      boolean active, String type) {
-    user.setLogin(EntityUtils.normalizeId(login));
-    ofNullable(email).map(String::trim).map(EntityUtils::normalizeId).ifPresent(user::setEmail);
+  private void fillUser(String email, String fullName, String externalId, String type) {
+    var normalizedEmail = ofNullable(email).map(String::trim)
+        .map(EntityUtils::normalizeId)
+        .orElse(null);
+
+    user.setLogin(normalizedEmail);
+    user.setEmail(normalizedEmail);
     user.setFullName(fullName);
     user.setExternalId(externalId);
     user.setUserType(UserType.valueOf(ofNullable(type).orElse("INTERNAL")));

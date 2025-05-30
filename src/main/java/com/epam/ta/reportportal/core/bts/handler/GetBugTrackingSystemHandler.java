@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.bts.handler;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import java.util.Optional;
 
 /**
@@ -25,10 +26,10 @@ import java.util.Optional;
  */
 public interface GetBugTrackingSystemHandler {
 
-  Optional<Integration> getEnabledProjectIntegration(ReportPortalUser.ProjectDetails projectDetails,
+  Optional<Integration> getEnabledProjectIntegration(MembershipDetails membershipDetails,
       String url, String btsProject);
 
-  Optional<Integration> getEnabledProjectIntegration(ReportPortalUser.ProjectDetails projectDetails,
+  Optional<Integration> getEnabledProjectIntegration(MembershipDetails membershipDetails,
       Long integrationId);
 
   Optional<Integration> getEnabledGlobalIntegration(String url, String btsProject);

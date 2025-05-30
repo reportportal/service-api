@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 import com.epam.reportportal.model.externalsystem.PostTicketRQ;
 import com.epam.reportportal.model.externalsystem.Ticket;
@@ -70,17 +71,17 @@ public class CreateTicketHandlerImpl implements CreateTicketHandler {
 
   @Override
   public Ticket createIssue(PostTicketRQ postTicketRQ, Long integrationId,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
     validatePostTicketRQ(postTicketRQ);
 
     List<TestItem> testItems = ofNullable(postTicketRQ.getBackLinks()).map(
         links -> testItemRepository.findAllById(links.keySet())).orElseGet(Collections::emptyList);
     List<TestItemActivityResource> before =
-        testItems.stream().map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
+        testItems.stream().map(it -> TO_ACTIVITY_RESOURCE.apply(it, membershipDetails.getProjectId()))
             .collect(Collectors.toList());
 
     Integration integration =
-        getIntegrationHandler.getEnabledBtsIntegration(projectDetails, integrationId);
+        getIntegrationHandler.getEnabledBtsIntegration(membershipDetails, integrationId);
 
     expect(BtsConstants.DEFECT_FORM_FIELDS.getParam(integration.getParams()), notNull()).verify(
         BAD_REQUEST_ERROR, "There aren't any submitted BTS fields!");

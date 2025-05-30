@@ -7,10 +7,10 @@ import static org.springframework.util.StringUtils.hasText;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.Page.PageMetadata;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
@@ -36,20 +36,20 @@ public class TestCaseSearchHandler {
   private final List<ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource>> resourceUpdaterProviders;
 
   public Page<TestItemResource> searchTestItems(String namePart, String attribute,
-      String statuses, Pageable pageable, ProjectDetails projectDetails) {
+      String statuses, Pageable pageable, MembershipDetails membershipDetails) {
     pageable = validateInputParameters(namePart, attribute, pageable);
     Slice<TestItem> result;
     try {
       if (hasText(attribute)) {
-        result = searchByAttribute(attribute, statuses, pageable, projectDetails);
+        result = searchByAttribute(attribute, statuses, pageable, membershipDetails);
       } else {
-        result = searchByName(namePart, statuses, pageable, projectDetails);
+        result = searchByName(namePart, statuses, pageable, membershipDetails);
       }
     } catch (QueryTimeoutException e) {
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST,
           "Please refine your search by providing a more specific or unique test case name / attribute.");
     }
-    var resourceUpdaters = getResourceUpdaters(projectDetails.getProjectId(), result.getContent());
+    var resourceUpdaters = getResourceUpdaters(membershipDetails.getProjectId(), result.getContent());
     return new com.epam.ta.reportportal.model.Page<>(result.stream().map(item -> {
       var testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
       resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
@@ -59,17 +59,17 @@ public class TestCaseSearchHandler {
   }
 
   private Slice<TestItem> searchByName(String namePart, String statuses, Pageable pageable,
-      ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
     if (hasText(statuses)) {
       return testItemRepository.findTestItemsContainsNameAndStatuses(namePart,
-          projectDetails.getProjectId(), parseStatuses(statuses), pageable);
+          membershipDetails.getProjectId(), parseStatuses(statuses), pageable);
     }
     return testItemRepository.findTestItemsContainsName(namePart,
-        projectDetails.getProjectId(), pageable);
+        membershipDetails.getProjectId(), pageable);
   }
 
   private Slice<TestItem> searchByAttribute(String attribute, String statuses, Pageable pageable,
-      ProjectDetails projectDetails) {
+      MembershipDetails projectDetails) {
     if (attribute.contains(":")) {
       var attributeSplit = attribute.split(":");
       if (hasText(statuses)) {

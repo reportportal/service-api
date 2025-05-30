@@ -16,7 +16,9 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -34,6 +36,7 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -80,21 +83,21 @@ class StartTestItemHandlerImplTest {
 
   @Test
   void startRootItemUnderNotExistedLaunch() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     when(launchRepository.findByUuid("1")).thenReturn(Optional.empty());
     final StartTestItemRQ rq = new StartTestItemRQ();
     rq.setLaunchUuid("1");
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), rq)
+        () -> handler.startRootItem(rpUser, rpUserToMembership(rpUser), rq)
     );
     assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
   }
 
   @Test
   void startRootItemUnderLaunchFromAnotherProject() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
     startTestItemRQ.setStartTime(Instant.now());
@@ -104,7 +107,7 @@ class StartTestItemHandlerImplTest {
     when(launchRepository.findByUuid("1")).thenReturn(Optional.of(launch));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"),
+        () -> handler.startRootItem(rpUser, rpUserToMembership(rpUser),
             startTestItemRQ)
     );
     assertEquals("You do not have enough permissions.", exception.getMessage());
@@ -113,7 +116,7 @@ class StartTestItemHandlerImplTest {
   @Test
   @Disabled
   void startRootItemUnderFinishedLaunch() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
 
@@ -121,7 +124,7 @@ class StartTestItemHandlerImplTest {
         Optional.of(getLaunch(1L, StatusEnum.PASSED)));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"),
+        () -> handler.startRootItem(rpUser, rpUserToMembership(rpUser),
             startTestItemRQ)
     );
     assertEquals("Start test item is not allowed. Launch '1' is not in progress",
@@ -130,7 +133,7 @@ class StartTestItemHandlerImplTest {
 
   @Test
   void startRootItemEarlierThanLaunch() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
     startTestItemRQ.setStartTime(Instant.now());
@@ -140,14 +143,14 @@ class StartTestItemHandlerImplTest {
     when(launchRepository.findByUuid("1")).thenReturn(Optional.of(launch));
 
     assertThrows(ReportPortalException.class,
-        () -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"),
+        () -> handler.startRootItem(rpUser, rpUserToMembership(rpUser),
             startTestItemRQ)
     );
   }
 
   @Test
   void startChildItemUnderNotExistedParent() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     StartTestItemRQ rq = new StartTestItemRQ();
     rq.setLaunchUuid("1");
@@ -157,7 +160,7 @@ class StartTestItemHandlerImplTest {
     when(testItemRepository.findByUuid("1")).thenReturn(Optional.empty());
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), rq, "1")
+        () -> handler.startChildItem(rpUser, rpUserToMembership(rpUser), rq, "1")
     );
     assertEquals("Test Item '1' not found. Did you use correct Test Item ID?",
         exception.getMessage());
@@ -166,7 +169,7 @@ class StartTestItemHandlerImplTest {
   @Test
   void startChildItemEarlierThanParent() {
 
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
     startTestItemRQ.setStartTime(Instant.now());
@@ -180,14 +183,14 @@ class StartTestItemHandlerImplTest {
         .validate(any(StartTestItemRQ.class), any(TestItem.class));
 
     assertThrows(ReportPortalException.class,
-        () -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"),
+        () -> handler.startChildItem(rpUser, rpUserToMembership(rpUser),
             startTestItemRQ, "1")
     );
   }
 
   @Test
   void startChildItemUnderFinishedParent() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
     startTestItemRQ.setStartTime(Instant.now());
@@ -209,7 +212,7 @@ class StartTestItemHandlerImplTest {
     )).when(validator).validate(any(StartTestItemRQ.class), any(TestItem.class));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"),
+        () -> handler.startChildItem(rpUser, rpUserToMembership(rpUser),
             startTestItemRQ, "1")
     );
     assertEquals("Error in handled Request. Please, check specified parameters: "
@@ -219,7 +222,7 @@ class StartTestItemHandlerImplTest {
 
   @Test
   void startChildItemWithNotExistedLaunch() {
-    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     startTestItemRQ.setLaunchUuid("1");
     startTestItemRQ.setStartTime(Instant.now());
@@ -228,7 +231,7 @@ class StartTestItemHandlerImplTest {
     when(launchRepository.findByUuid("1")).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"),
+        () -> handler.startChildItem(rpUser, rpUserToMembership(rpUser),
             startTestItemRQ, "1")
     );
 

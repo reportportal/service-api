@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.demodata.service.generator.SuiteGeneratorResolve
 import com.epam.ta.reportportal.demodata.service.generator.model.SuiteGeneratorType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -81,14 +82,14 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 
   @Override
   public List<Long> generateDemoLaunches(ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
     return CompletableFuture.supplyAsync(
         () -> Stream.of(sources).map(source -> resourceFolder + source).map(source -> {
           try {
             final DemoLaunch demoLaunch = objectMapper.readValue(ResourceUtils.getURL(source),
                 new TypeReference<DemoLaunch>() {
                 });
-            return generateLaunch(demoLaunch, user, projectDetails);
+            return generateLaunch(demoLaunch, user, membershipDetails);
           } catch (IOException e) {
             throw new ReportPortalException("Unable to load suites description. " + e.getMessage(),
                 e);
@@ -97,23 +98,23 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
   }
 
   private Long generateLaunch(DemoLaunch demoLaunch, ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
 
     final User creator = userRepository.findById(user.getUserId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUsername()));
 
-    final Launch launch = demoDataLaunchService.startLaunch(NAME, creator, projectDetails);
+    final Launch launch = demoDataLaunchService.startLaunch(NAME, creator, membershipDetails);
 
     demoLaunch.getSuites().forEach(suite -> {
       final SuiteGeneratorType suiteGeneratorType = SuiteGeneratorType.valueOf(suite.getType());
       final SuiteGenerator suiteGenerator = suiteGeneratorResolver.resolve(suiteGeneratorType);
-      suiteGenerator.generateSuites(suite, RootMetaData.of(launch.getUuid(), user, projectDetails));
+      suiteGenerator.generateSuites(suite, RootMetaData.of(launch.getUuid(), user, membershipDetails));
     });
 
     final List<Log> logs = demoLogsService.generateLaunchLogs(LAUNCH_LOGS_COUNT, launch.getUuid(),
         launch.getStatus());
     demoDataLaunchService.finishLaunch(launch.getUuid());
-    demoLogsService.attachFiles(logs, projectDetails.getProjectId(), launch.getUuid());
+    demoLogsService.attachFiles(logs, membershipDetails.getProjectId(), launch.getUuid());
     return launch.getId();
   }
 }

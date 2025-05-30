@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.bts.handler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.model.externalsystem.PostFormField;
 import com.epam.reportportal.model.externalsystem.Ticket;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import java.util.List;
 
 /**
@@ -33,24 +34,24 @@ public interface GetTicketHandler {
    * <b>Note: resulting object returned from cache.</b>
    *
    * @param ticketId       Ticket ID
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param btsUrl         URL of the bug tracking system to get ticket from
    * @param btsProject     Project in the bug tracking system to get ticket from
    * @return Ticket
    */
   Ticket getTicket(String ticketId, String btsUrl, String btsProject,
-      ReportPortalUser.ProjectDetails projectDetails);
+      MembershipDetails membershipDetails);
 
   /**
    * Get set of fields of external system to submit a ticket
    *
    * @param ticketType     Ticket Type
    * @param integrationId  Integration id
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @return Found fields
    */
   List<PostFormField> getSubmitTicketFields(String ticketType, Long integrationId,
-      ReportPortalUser.ProjectDetails projectDetails);
+      MembershipDetails membershipDetails);
 
   List<PostFormField> getSubmitTicketFields(String issueType, Long integrationId);
 
@@ -58,11 +59,11 @@ public interface GetTicketHandler {
    * Get allowable issue types
    *
    * @param integrationId  Integration id
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @return Fields
    */
   List<String> getAllowableIssueTypes(Long integrationId,
-      ReportPortalUser.ProjectDetails projectDetails);
+      MembershipDetails membershipDetails);
 
   List<String> getAllowableIssueTypes(Long integrationId);
 }

@@ -17,61 +17,28 @@
 package com.epam.ta.reportportal.model.activity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 public class UserActivityResource {
 
   @JsonProperty(value = "id", required = true)
   private Long id;
 
-  @JsonProperty(value = "defaultProjectId", required = true)
+  @JsonProperty(value = "defaultProjectId")
   private Long defaultProjectId;
 
   @JsonProperty(value = "fullName", required = true)
   private String fullName;
-
-  public UserActivityResource() {
-  }
-
-  public UserActivityResource(Long id, Long defaultProjectId, String fullName) {
-    this.id = id;
-    this.defaultProjectId = defaultProjectId;
-    this.fullName = fullName;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public Long getDefaultProjectId() {
-    return defaultProjectId;
-  }
-
-  public void setDefaultProjectId(Long defaultProjectId) {
-    this.defaultProjectId = defaultProjectId;
-  }
-
-  public String getFullName() {
-    return fullName;
-  }
-
-  public void setFullName(String fullName) {
-    this.fullName = fullName;
-  }
-
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder("UserActivityResource{");
-    sb.append("id=").append(id);
-    sb.append(", defaultProjectId=").append(defaultProjectId);
-    sb.append(", fullName='").append(fullName).append('\'');
-    sb.append('}');
-    return sb.toString();
-  }
 }

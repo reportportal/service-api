@@ -20,8 +20,8 @@ import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyC
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
 import com.epam.ta.reportportal.reporting.async.config.RequestType;
@@ -50,13 +50,13 @@ public class LaunchStartProducer implements StartLaunchHandler {
   }
 
   @Override
-  public StartLaunchRS startLaunch(ReportPortalUser user, ProjectDetails projectDetails,
+  public StartLaunchRS startLaunch(ReportPortalUser user, MembershipDetails membershipDetails,
       StartLaunchRQ request) {
-    validateRoles(projectDetails, request);
+    validateRoles(membershipDetails, request);
 
     if (request.isRerun()) {
       request.setUuid(rerunHandler.getRerunLaunchUuid(request.getRerunOf(), request.getName(),
-          projectDetails.getProjectId()));
+          membershipDetails.getProjectId()));
     } else if (!StringUtils.hasText(request.getUuid())) {
       request.setUuid(UUID.randomUUID().toString());
     }
@@ -67,7 +67,7 @@ public class LaunchStartProducer implements StartLaunchHandler {
           headers.put(MessageHeaders.HASH_ON, request.getUuid());
           headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_LAUNCH);
           headers.put(MessageHeaders.USERNAME, user.getUsername());
-          headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
+          headers.put(MessageHeaders.PROJECT_KEY, membershipDetails.getProjectKey());
           return message;
         });
 

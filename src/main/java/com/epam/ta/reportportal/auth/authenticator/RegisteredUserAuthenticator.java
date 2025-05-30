@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
+@Deprecated(since = "ACL logic was removed", forRemoval = true)
 public class RegisteredUserAuthenticator implements UserAuthenticator {
 
   /**

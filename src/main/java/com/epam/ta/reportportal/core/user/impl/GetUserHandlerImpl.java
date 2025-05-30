@@ -16,14 +16,18 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EMAIL;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EXPIRED;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER;
-import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
+import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
+import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_INSTANCE_USER;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 
+import com.epam.reportportal.api.model.InstanceUser;
+import com.epam.reportportal.api.model.InstanceUserPage;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.EntityUtils;
@@ -40,17 +44,17 @@ import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.group.GroupProject;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.model.YesNoRS;
-import com.epam.ta.reportportal.model.user.UserBidRS;
 import com.epam.ta.reportportal.model.user.UserResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
@@ -126,13 +130,26 @@ public class GetUserHandlerImpl implements GetUserHandler {
   }
 
   @Override
+  public InstanceUser getCurrentUser(ReportPortalUser loggedInUser) {
+    Filter filterById = new Filter(User.class, Lists.newArrayList());
+    filterById.withCondition(
+        new FilterCondition(Condition.EQUALS, false, loggedInUser.getUserId().toString(), CRITERIA_ID));
+    User user = userRepository.findByFilter(filterById).stream()
+        .findFirst()
+        .orElseThrow(
+            () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
+    return UserConverter.TO_INSTANCE_USER.apply(user);
+
+  }
+
+  @Override
   public com.epam.ta.reportportal.model.Page<UserResource> getUsers(Filter filter, Pageable pageable,
-                                                                    ReportPortalUser.ProjectDetails projectDetails) {
+                                                                    MembershipDetails membershipDetails) {
     // Active users only
     filter.withCondition(new FilterCondition(Condition.EQUALS, false, "false", CRITERIA_EXPIRED));
     filter.withCondition(new FilterCondition(Condition.EQUALS,
         false,
-        String.valueOf(projectDetails.getProjectId()),
+        String.valueOf(membershipDetails.getProjectId()),
         CRITERIA_PROJECT_ID
     ));
 
@@ -140,22 +157,6 @@ public class GetUserHandlerImpl implements GetUserHandler {
         .apply(userRepository.findByFilterExcluding(filter, pageable, "email"));
   }
 
-  @Override
-  public UserBidRS getBidInformation(String uuid) {
-    Optional<UserCreationBid> bid = userCreationBidRepository.findByUuidAndType(uuid,
-        INTERNAL_BID_TYPE);
-    return bid.map(b -> {
-      UserBidRS rs = new UserBidRS();
-      rs.setIsActive(true);
-      rs.setEmail(b.getEmail());
-      rs.setUuid(b.getUuid());
-      return rs;
-    }).orElseGet(() -> {
-      UserBidRS rs = new UserBidRS();
-      rs.setIsActive(false);
-      return rs;
-    });
-  }
 
   @Override
   public YesNoRS validateInfo(String username, String email) {
@@ -174,7 +175,6 @@ public class GetUserHandlerImpl implements GetUserHandler {
     return projectRepository.findUserProjects(userName).stream()
         .collect(toMap(Project::getName, it -> {
           UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-          assignedProject.setEntryType(it.getProjectType().name());
           ProjectUser projectUser = ProjectUtils.findUserConfigByLogin(it, userName);
 
           ofNullable(ofNullable(projectUser).orElseThrow(
@@ -189,6 +189,20 @@ public class GetUserHandlerImpl implements GetUserHandler {
   public com.epam.ta.reportportal.model.Page<UserResource> getAllUsers(Queryable filter, Pageable pageable) {
     final Page<User> users = userRepository.findByFilter(filter, pageable);
     return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(users);
+  }
+
+  @Override
+  public InstanceUserPage getUsersExcluding(Queryable filter, Pageable pageable,
+      String... excludeFields) {
+    final Page<User> users = userRepository.findByFilterExcluding(filter, pageable, excludeFields);
+
+    var items = users.getContent().stream()
+        .map(TO_INSTANCE_USER)
+        .toList();
+    InstanceUserPage instanceUserPage = new InstanceUserPage()
+        .items(items);
+
+    return responseWithPageParameters(instanceUserPage, pageable, users.getTotalElements());
   }
 
   @Override

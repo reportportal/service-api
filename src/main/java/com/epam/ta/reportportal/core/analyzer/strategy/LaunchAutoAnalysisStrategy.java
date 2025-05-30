@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
@@ -54,7 +55,7 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
     this.manualAnalysisStarter = manualAnalysisStarter;
   }
 
-  public void analyze(AnalyzeLaunchRQ analyzeRQ, ReportPortalUser.ProjectDetails projectDetails,
+  public void analyze(AnalyzeLaunchRQ analyzeRQ, MembershipDetails membershipDetails,
       ReportPortalUser user) {
 
     final AnalyzeMode analyzeMode = AnalyzeMode.fromString(analyzeRQ.getAnalyzerHistoryMode())
@@ -68,10 +69,10 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
 
     Launch launch = launchRepository.findById(analyzeRQ.getLaunchId())
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, analyzeRQ.getLaunchId()));
-    validateLaunch(launch, projectDetails);
+    validateLaunch(launch, membershipDetails);
 
-    Project project = projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
-        () -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+    Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
+        () -> new ReportPortalException(PROJECT_NOT_FOUND, membershipDetails.getProjectId()));
 
     AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
     analyzerConfig.setAnalyzerMode(analyzeMode.getValue());

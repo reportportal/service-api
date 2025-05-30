@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.ItemAttribute;
@@ -25,6 +24,7 @@ import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.reporting.StatisticsResource;
 import com.epam.ta.reportportal.ws.reporting.TestItemResource;
@@ -45,11 +45,11 @@ public interface GetTestItemHandler {
    * Get {@link TestItem} instance
    *
    * @param testItemId     {@link TestItem#uuid}
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param user           {@link ReportPortalUser}
    * @return {@link TestItemResource}
    */
-  TestItemResource getTestItem(String testItemId, ReportPortalUser.ProjectDetails projectDetails,
+  TestItemResource getTestItem(String testItemId, MembershipDetails membershipDetails,
       ReportPortalUser user);
 
   /**
@@ -57,7 +57,7 @@ public interface GetTestItemHandler {
    *
    * @param filter         {@link Filter}
    * @param pageable       {@link Pageable}
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param user           {@link ReportPortalUser}
    * @param launchId       Launch id
    * @param filterId       Filter id
@@ -66,7 +66,7 @@ public interface GetTestItemHandler {
    * @return {@link Iterable} of the {@link TestItemResource}
    */
   Page<TestItemResource> getTestItems(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      MembershipDetails membershipDetails, ReportPortalUser user,
       @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit);
 
   /**
@@ -74,24 +74,24 @@ public interface GetTestItemHandler {
    *
    * @param filter         {@link Filter}
    * @param pageable       {@link Pageable}
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param user           {@link ReportPortalUser}
    * @return {@link Page} of the {@link TestItemResource}
    */
   Page<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      MembershipDetails membershipDetails, ReportPortalUser user,
       Map<String, String> params);
 
   /**
    * Gets accumulated statistics of items by data provider
    *
    * @param filter         {@link Filter}
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param user           {@link ReportPortalUser}
    * @return Accumulated statistics
    */
   StatisticsResource getStatisticsByProvider(Queryable filter,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      MembershipDetails membershipDetails, ReportPortalUser user,
       Map<String, String> providerParams);
 
   /**
@@ -106,11 +106,11 @@ public interface GetTestItemHandler {
   /**
    * Get tickets that contains a term as a part inside for specified project
    *
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param term           part of {@link Ticket#getTicketId()} to search
    * @return {@link List} of {@link Ticket#getTicketId()}
    */
-  List<String> getTicketIds(ReportPortalUser.ProjectDetails projectDetails, String term);
+  List<String> getTicketIds(MembershipDetails membershipDetails, String term);
 
   /**
    * Get specified attribute keys of all test items and launches for project with provided id
@@ -121,12 +121,12 @@ public interface GetTestItemHandler {
    * @param isLatest       Flag defines whether all or latest launches launches will be included in
    *                       the query condition
    * @param launchesLimit  Launches limit
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param keyPart        Part of the {@link ItemAttribute#getKey()} to search
    * @return {@link List} of the {@link ItemAttribute#getKey()}
    */
   List<String> getAttributeKeys(Long launchFilterId, boolean isLatest, int launchesLimit,
-      ReportPortalUser.ProjectDetails projectDetails, String keyPart);
+      MembershipDetails membershipDetails, String keyPart);
 
   /**
    * Retrieves a list of unique attribute keys based on the provided project details, a substring of
@@ -134,14 +134,14 @@ public interface GetTestItemHandler {
    *
    * <p>If {@code launchId} is {@code null}, the search spans all launches in the project.
    *
-   * @param projectDetails details of the project; must not be {@code null}.
+   * @param membershipDetails details of the project; must not be {@code null}.
    * @param keyPart        substring used to filter keys; must not be {@code null} or empty.
    * @param launchId       optional launch ID to restrict the search to a specific launch. If
    *                       {@code null}, all launches within the project are considered.
    * @return a list of unique attribute keys matching the criteria, or an empty list if none are
    * found.
    */
-  List<String> getUniqueAttributeKeys(ProjectDetails projectDetails, String keyPart, Long launchId);
+  List<String> getUniqueAttributeKeys(MembershipDetails membershipDetails, String keyPart, Long launchId);
 
   /**
    * Retrieves a list of unique attribute values based on the provided project details, a substring
@@ -149,14 +149,14 @@ public interface GetTestItemHandler {
    *
    * <p>If {@code launchId} is {@code null}, the search spans all launches in the project.
    *
-   * @param projectDetails details of the project; must not be {@code null}.
+   * @param membershipDetails details of the project; must not be {@code null}.
    * @param valuePart      substring used to filter values; must not be {@code null} or empty.
    * @param launchId       optional launch ID to restrict the search to a specific launch. If
    *                       {@code null}, all launches within the project are considered.
    * @return a list of unique attribute values matching the criteria, or an empty list if none are
    * found.
    */
-  List<String> getUniqueAttributeValues(ProjectDetails projectDetails, String key, String valuePart,
+  List<String> getUniqueAttributeValues(MembershipDetails membershipDetails, String key, String valuePart,
       Long launchId);
 
   /**
@@ -174,33 +174,33 @@ public interface GetTestItemHandler {
    * Get attributes keys of test items under launches with provided name under
    * {@link com.epam.ta.reportportal.entity.project.Project} specified by `projectDetails`
    *
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param launchName     {@link Launch#getName()}
    * @param keyPart        part of the {@link ItemAttribute#getKey()} to search
    * @return {@link List} of the {@link ItemAttribute#getKey()}
    */
-  List<String> getAttributeKeys(ReportPortalUser.ProjectDetails projectDetails, String launchName,
+  List<String> getAttributeKeys(MembershipDetails membershipDetails, String launchName,
       String keyPart);
 
   /**
    * Get attributes values of test items under launches with provided name under
    * {@link com.epam.ta.reportportal.entity.project.Project} specified by `projectDetails`
    *
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param launchName     {@link Launch#getName()}
    * @param key            {@link ItemAttribute#getKey()}
    * @param valuePart      part of the {@link ItemAttribute#getValue()} to search
    * @return {@link List} of the {@link ItemAttribute#getValue()}
    */
-  List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String launchName,
+  List<String> getAttributeValues(MembershipDetails membershipDetails, String launchName,
       String key, String valuePart);
 
   /**
    * @param ids            array of the {@link com.epam.ta.reportportal.entity.launch.Launch#id}
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param user           {@link ReportPortalUser}
    * @return {@link List} of the {@link TestItemResource}
    */
-  List<TestItemResource> getTestItems(Long[] ids, ReportPortalUser.ProjectDetails projectDetails,
+  List<TestItemResource> getTestItems(Long[] ids, MembershipDetails membershipDetails,
       ReportPortalUser user);
 }

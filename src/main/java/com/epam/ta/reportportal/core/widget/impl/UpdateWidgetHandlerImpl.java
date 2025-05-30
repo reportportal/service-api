@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.core.widget.content.updater.validator.WidgetVali
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.activity.WidgetActivityResource;
@@ -75,11 +76,11 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 
   @Override
   public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-    Widget widget = widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
+      MembershipDetails membershipDetails, ReportPortalUser user) {
+    Widget widget = widgetRepository.findByIdAndProjectId(widgetId, membershipDetails.getProjectId())
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT, widgetId,
-                projectDetails.getProjectName()
+                membershipDetails.getProjectName()
             ));
 
     widgetContentFieldsValidator.validate(widget);
@@ -87,14 +88,14 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
     if (!widget.getName().equals(updateRQ.getName())) {
       BusinessRule.expect(
           widgetRepository.existsByNameAndOwnerAndProjectId(updateRQ.getName(), user.getUsername(),
-              projectDetails.getProjectId()
+              membershipDetails.getProjectId()
           ), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, updateRQ.getName());
     }
 
     WidgetActivityResource before = TO_ACTIVITY_RESOURCE.apply(widget);
 
     List<UserFilter> userFilter =
-        getUserFilters(updateRQ.getFilterIds(), projectDetails.getProjectId());
+        getUserFilters(updateRQ.getFilterIds(), membershipDetails.getProjectId());
     String widgetOptionsBefore = parseWidgetOptions(widget);
 
     widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilter).get();

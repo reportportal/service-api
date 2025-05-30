@@ -60,7 +60,8 @@ class DashboardControllerTest extends BaseMvcTest {
     createDashboardRQ.setName("dashboard");
     createDashboardRQ.setDescription("description");
     final MvcResult mvcResult = mockMvc.perform(
-        post(DEFAULT_PROJECT_BASE_URL + "/dashboard").with(token(oAuthHelper.getDefaultToken()))
+        post(DEFAULT_PROJECT_BASE_URL + "/dashboard")
+            .with(token(oAuthHelper.getDefaultToken()))
             .content(objectMapper.writeValueAsBytes(createDashboardRQ))
             .contentType(APPLICATION_JSON)).andExpect(status().isCreated()).andReturn();
     final EntryCreatedRS entryCreatedRS =

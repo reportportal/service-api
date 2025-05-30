@@ -44,6 +44,7 @@ import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
@@ -103,7 +104,7 @@ class RerunHandlerImplTest {
     long projectId = 1L;
     request.setRerun(true);
     request.setName(launchName);
-    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,
         projectId);
 
     when(launchRepository.findLatestByNameAndProjectId(launchName, projectId)).thenReturn(
@@ -125,7 +126,7 @@ class RerunHandlerImplTest {
     request.setRerun(true);
     request.setRerunOf(uuid);
     request.setName(launchName);
-    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 
         projectId);
 
     when(launchRepository.findByUuid(uuid)).thenReturn(Optional.empty());
@@ -146,7 +147,7 @@ class RerunHandlerImplTest {
     request.setMode(Mode.DEFAULT);
     request.setDescription("desc");
     request.setAttributes(Sets.newHashSet(new ItemAttributesRQ("test", "test")));
-    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 
         projectId);
 
     when(launchRepository.findLatestByNameAndProjectId("launch", projectId)).thenReturn(

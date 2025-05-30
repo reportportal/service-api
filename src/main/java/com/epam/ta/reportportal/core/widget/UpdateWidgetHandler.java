@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.widget;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 
@@ -30,11 +31,11 @@ public interface UpdateWidgetHandler {
    *
    * @param widgetId       The ID of the widget to be updated
    * @param updateRQ       The {@link WidgetRQ} containing the updated information for the widget
-   * @param projectDetails The {@link ReportPortalUser.ProjectDetails} for the project associated with the widget
+   * @param membershipDetails Membership details
    * @param user           The {@link ReportPortalUser} who is updating the widget
    * @return An {@link OperationCompletionRS} instance indicating the result of the update operation
    */
   OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+      MembershipDetails membershipDetails, ReportPortalUser user);
 
 }

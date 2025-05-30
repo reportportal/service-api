@@ -34,7 +34,11 @@ public enum FilterOperation {
   CNT(FilterCondition.builder().withCondition(Condition.CONTAINS)),
   NON_CNT(FilterCondition.builder().withCondition(Condition.CONTAINS).withNegative(true)),
   BTW(FilterCondition.builder().withCondition(Condition.BETWEEN)),
-  IN(FilterCondition.builder().withCondition(Condition.IN));
+  IN(FilterCondition.builder().withCondition(Condition.IN)),
+  GT(FilterCondition.builder().withCondition(Condition.GREATER_THAN)),
+  GTE(FilterCondition.builder().withCondition(Condition.GREATER_THAN_OR_EQUALS)),
+  LT(FilterCondition.builder().withCondition(Condition.LOWER_THAN)),
+  LTE(FilterCondition.builder().withCondition(Condition.LOWER_THAN_OR_EQUALS));
 
   private final ConditionBuilder conditionBuilder;
 

@@ -16,13 +16,15 @@
 
 package com.epam.ta.reportportal.core.user;
 
+import com.epam.reportportal.api.model.InstanceUser;
+import com.epam.reportportal.api.model.InstanceUserPage;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.YesNoRS;
-import com.epam.ta.reportportal.model.user.UserBidRS;
 import com.epam.ta.reportportal.model.user.UserResource;
 import java.io.OutputStream;
 import java.util.Map;
@@ -52,12 +54,13 @@ public interface GetUserHandler {
   UserResource getUser(ReportPortalUser currentUser);
 
   /**
-   * Get information about user registration bid
+   * Get logged-in user info
    *
-   * @param uuid UUID
-   * @return {@link UserBidRS}
+   * @param currentUser Logged-in username
+   * @return {@link UserResource}
    */
-  UserBidRS getBidInformation(String uuid);
+  InstanceUser getCurrentUser(ReportPortalUser currentUser);
+
 
   /**
    * Validate existence of username or email
@@ -73,11 +76,11 @@ public interface GetUserHandler {
    *
    * @param filter         Filter
    * @param pageable       Paging
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @return Page of users
    */
   Page<UserResource> getUsers(Filter filter, Pageable pageable,
-                              ReportPortalUser.ProjectDetails projectDetails);
+                              MembershipDetails membershipDetails);
 
   Map<String, UserResource.AssignedProject> getUserProjects(String userName);
 
@@ -89,6 +92,16 @@ public interface GetUserHandler {
    * @return Page of {@link UserResource}
    */
   Page<UserResource> getAllUsers(Queryable filter, Pageable pageable);
+
+  /**
+   * Get page of users with filter
+   *
+   * @param filter   Filter
+   * @param pageable Paging
+   * @param excludeFields fields to exclude from response
+   * @return Page of {@link UserResource}
+   */
+  InstanceUserPage getUsersExcluding(Queryable filter, Pageable pageable, String... excludeFields);
 
   /**
    * Export Users info according to the {@link ReportFormat} type

@@ -33,11 +33,8 @@ public class CreateInvitationLinkEvent extends AbstractEvent implements Activity
 
   private static final String EVENT_NAME = "createInvitationLink";
 
-  private final Long projectId;
-
-  public CreateInvitationLinkEvent(Long userId, String userLogin, Long projectId) {
+  public CreateInvitationLinkEvent(Long userId, String userLogin) {
     super(userId, userLogin);
-    this.projectId = projectId;
   }
 
   @Override
@@ -52,7 +49,6 @@ public class CreateInvitationLinkEvent extends AbstractEvent implements Activity
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)
-        .addProjectId(projectId)
         .get();
   }
 }

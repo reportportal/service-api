@@ -16,18 +16,22 @@
 
 package com.epam.ta.reportportal.util;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
-import org.springframework.stereotype.Component;
+import java.time.temporal.ChronoUnit;
 
 /**
  * Class to ease writing/testing of date-based logic.
  *
  * @author Dzianis_Shybeka
  */
-@Component
 public class DateTimeProvider {
 
   public LocalDateTime localDateTimeNow() {
     return LocalDateTime.now();
+  }
+
+  public static Instant instantNow() {
+    return Instant.now().truncatedTo(ChronoUnit.MICROS);
   }
 }

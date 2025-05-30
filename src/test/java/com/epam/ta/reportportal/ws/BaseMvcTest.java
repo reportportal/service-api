@@ -23,12 +23,15 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.BinaryDataResponseWriter;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.test.FlywayTestExecutionListener;
 import org.flywaydb.test.annotation.FlywayTest;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@Slf4j
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -58,6 +62,13 @@ public abstract class BaseMvcTest {
 
   protected static final String DEFAULT_PROJECT_BASE_URL = "/v1/default_personal";
   protected static final String SUPERADMIN_PROJECT_BASE_URL = "/v1/superadmin_personal";
+
+  protected String adminToken;
+  protected String managerToken;
+  protected String editorToken;
+  protected String viewerToken;
+  protected String noOrgUser;
+  protected String noProjectsUser;
 
   @Autowired
   protected OAuthHelper oAuthHelper;
@@ -95,6 +106,16 @@ public abstract class BaseMvcTest {
   @FlywayTest(invokeCleanDB = false)
   @BeforeAll
   public static void before() {
+  }
+
+  @BeforeEach
+  void beforeEach() {
+    adminToken = oAuthHelper.createAccessToken("admin", "erebus", UserRole.ADMINISTRATOR);
+    managerToken = oAuthHelper.createAccessToken("user-manager", "erebus", UserRole.USER);
+    editorToken = oAuthHelper.createAccessToken("user-member-editor", "erebus", UserRole.USER);
+    viewerToken = oAuthHelper.createAccessToken("user-member-viewer", "erebus", UserRole.USER);
+    noProjectsUser = oAuthHelper.createAccessToken("no-projects-user", "erebus", UserRole.USER);
+    noOrgUser = oAuthHelper.createAccessToken("no-orgs-user", "erebus", UserRole.USER);
   }
 
   protected RequestPostProcessor token(String tokenValue) {

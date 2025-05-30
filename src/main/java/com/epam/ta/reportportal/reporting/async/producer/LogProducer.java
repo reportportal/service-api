@@ -23,9 +23,9 @@ import static java.util.Optional.ofNullable;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.configs.rabbit.DeserializablePair;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTaskAsync;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
 import com.epam.ta.reportportal.reporting.async.config.RequestType;
@@ -66,7 +66,7 @@ public class LogProducer implements CreateLogHandler {
   @Nonnull
   @Override
   public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, @Nullable MultipartFile file,
-      ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
 
     validate(request);
     if (!StringUtils.hasText(request.getUuid())) {
@@ -77,10 +77,10 @@ public class LogProducer implements CreateLogHandler {
       CompletableFuture.supplyAsync(saveLogBinaryDataTask.get()
               .withRequest(request)
               .withFile(file)
-              .withProjectId(projectDetails.getProjectId()), taskExecutor)
-          .thenAccept(metaInfo -> sendMessage(request, metaInfo, projectDetails.getProjectId()));
+              .withProjectId(membershipDetails.getProjectId()), taskExecutor)
+          .thenAccept(metaInfo -> sendMessage(request, metaInfo, membershipDetails.getProjectId()));
     } else {
-      sendMessage(request, null, projectDetails.getProjectId());
+      sendMessage(request, null, membershipDetails.getProjectId());
     }
 
     EntryCreatedAsyncRS response = new EntryCreatedAsyncRS();

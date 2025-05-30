@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2025 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,62 +17,35 @@
 package com.epam.ta.reportportal.auth.permissions;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.reportportal.rules.exception.ErrorType;
-import com.google.common.collect.Maps;
-import java.util.Map;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import java.util.Objects;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 /**
- * Check whether user assigned to project
+ * Check whether user is organization manager or assigned to project as editor.
  *
- * @author Andrei Varabyeu
+ * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
  */
 @Component("assignedToProjectPermission")
-@LookupPermission({"isAssignedToProject"})
+@LookupPermission({"assignedToProject"})
 class AssignedToProjectPermission implements Permission {
 
-  /*
-   * Due to Spring's framework flow, Security API loads first. So, context
-   * doesn't know anything about Repository beans. We have to load this beans
-   * lazily
-   */
-  private final ProjectExtractor projectExtractor;
+  private final ProjectUserRepository projectUserRepository;
 
-  @Autowired
-  AssignedToProjectPermission(ProjectExtractor projectExtractor) {
-    this.projectExtractor = projectExtractor;
+  AssignedToProjectPermission(ProjectUserRepository projectUserRepository) {
+    this.projectUserRepository = projectUserRepository;
   }
 
-  /**
-   * Check whether user assigned to project<br> Or user is ADMIN who is GOD of ReportPortal
-   */
   @Override
-  public boolean isAllowed(Authentication authentication, Object targetDomainObject) {
-    if (!authentication.isAuthenticated()) {
-      return false;
-    }
+  public boolean isAllowed(Authentication authentication, Object id) {
     ReportPortalUser rpUser = (ReportPortalUser) authentication.getPrincipal();
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
-    final String resolvedProjectName = String.valueOf(targetDomainObject);
-    final Optional<ReportPortalUser.ProjectDetails> projectDetails = projectExtractor.findProjectDetails(
-        rpUser, resolvedProjectName);
-    projectDetails.ifPresent(
-        details -> fillProjectDetails(rpUser, resolvedProjectName, details));
-    return projectDetails.isPresent();
-  }
-
-  private void fillProjectDetails(ReportPortalUser rpUser, String resolvedProjectName,
-      ReportPortalUser.ProjectDetails projectDetails) {
-    final Map<String, ReportPortalUser.ProjectDetails> projectDetailsMapping = Maps.newHashMapWithExpectedSize(
-        1);
-    projectDetailsMapping.put(resolvedProjectName, projectDetails);
-    rpUser.setProjectDetails(projectDetailsMapping);
+    Long projectId = Long.parseLong(String.valueOf(id));
+    return projectUserRepository.findProjectUserByUserIdAndProjectId(rpUser.getUserId(), projectId)
+        .isPresent();
   }
 }

@@ -1,18 +1,19 @@
 package com.epam.ta.reportportal.demodata.model;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 
 public class RootMetaData {
 
   private final String launchUuid;
   private final ReportPortalUser user;
-  private final ReportPortalUser.ProjectDetails projectDetails;
+  private final MembershipDetails membershipDetails;
 
   private RootMetaData(String launchUuid, ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
     this.launchUuid = launchUuid;
     this.user = user;
-    this.projectDetails = projectDetails;
+    this.membershipDetails = membershipDetails;
   }
 
   public String getLaunchUuid() {
@@ -23,12 +24,12 @@ public class RootMetaData {
     return user;
   }
 
-  public ReportPortalUser.ProjectDetails getProjectDetails() {
-    return projectDetails;
+  public MembershipDetails getProjectDetails() {
+    return membershipDetails;
   }
 
   public static RootMetaData of(String launchUuid, ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails) {
-    return new RootMetaData(launchUuid, user, projectDetails);
+      MembershipDetails membershipDetails) {
+    return new RootMetaData(launchUuid, user, membershipDetails);
   }
 }

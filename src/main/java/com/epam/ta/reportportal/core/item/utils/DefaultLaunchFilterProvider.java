@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.PageRequest;
@@ -45,14 +46,14 @@ import org.springframework.data.domain.Sort;
 public class DefaultLaunchFilterProvider {
 
   public static Pair<Queryable, Pageable> createDefaultLaunchQueryablePair(
-      ReportPortalUser.ProjectDetails projectDetails,
+      MembershipDetails membershipDetails,
       UserFilter userFilter, int launchesLimit) {
-    Queryable launchFilter = createLaunchFilter(projectDetails, userFilter);
+    Queryable launchFilter = createLaunchFilter(membershipDetails, userFilter);
     Pageable launchPageable = createLaunchPageable(userFilter, launchesLimit);
     return Pair.of(launchFilter, launchPageable);
   }
 
-  private static Filter createLaunchFilter(ReportPortalUser.ProjectDetails projectDetails,
+  private static Filter createLaunchFilter(MembershipDetails membershipDetails,
       UserFilter launchFilter) {
 
     validateLaunchFilterTarget(launchFilter);
@@ -60,7 +61,8 @@ public class DefaultLaunchFilterProvider {
     Filter filter = Filter.builder()
         .withTarget(launchFilter.getTargetClass().getClassObject())
         .withCondition(FilterCondition.builder()
-            .eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build())
+            .eq(CRITERIA_PROJECT_ID, String.valueOf(membershipDetails.getProjectId()))
+            .build())
         .withCondition(FilterCondition.builder()
             .withCondition(Condition.NOT_EQUALS)
             .withSearchCriteria(CRITERIA_LAUNCH_STATUS)

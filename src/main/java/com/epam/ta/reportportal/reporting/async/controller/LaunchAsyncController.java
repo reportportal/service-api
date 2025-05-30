@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.reporting.async.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -64,7 +64,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Pavel Bortnik
  */
 @RestController
-@RequestMapping("/v2/{projectName}/launch")
+@RequestMapping("/v2/{projectKey}/launch")
 @Tag(name = "Launch Async", description = "Launches Async API collection")
 public class LaunchAsyncController {
 
@@ -89,22 +89,22 @@ public class LaunchAsyncController {
 
   @HttpLogging
   @PostMapping
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(CREATED)
   @Operation(summary = "Starts launch for specified project")
-  public StartLaunchRS startLaunch(@PathVariable String projectName,
+  public StartLaunchRS startLaunch(@PathVariable String projectKey,
       @Parameter(description = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return startLaunchHandler.startLaunch(user,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), startLaunchRQ);
   }
 
   @HttpLogging
   @PutMapping(value = "/{launchId}/finish")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(description = "Finish launch for specified project")
-  public FinishLaunchRS finishLaunch(@PathVariable String projectName,
+  public FinishLaunchRS finishLaunch(@PathVariable String projectKey,
       @PathVariable String launchId,
       @RequestBody @Validated FinishExecutionRQ finishLaunchRQ,
       @AuthenticationPrincipal ReportPortalUser user,
@@ -112,7 +112,7 @@ public class LaunchAsyncController {
     return finishLaunchHandler.finishLaunch(
         launchId,
         finishLaunchRQ,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectName)),
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)),
         user,
         composeBaseUrl(request)
     );
@@ -121,17 +121,17 @@ public class LaunchAsyncController {
   @HttpLogging
   @Transactional
   @PostMapping(value = "/merge", produces = "application/x.reportportal.launch.v2+json")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Merge set of specified launches in common one", description =
       "This operation merges a set of launches into a common one. "
           + "The IDs of the launches to be merged should be provided in the 'launches' "
           + "field of the request body.")
-  public LaunchResource mergeLaunches(@PathVariable String projectName,
+  public LaunchResource mergeLaunches(@PathVariable String projectKey,
       @Parameter(description = "Merge launches request body", required = true) @RequestBody @Validated
           MergeLaunchesRQ mergeLaunchesRQ, @AuthenticationPrincipal ReportPortalUser user) {
     return mergeLaunchesHandler.mergeLaunches(
-        projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user,
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
         mergeLaunchesRQ
     );
   }
@@ -139,7 +139,7 @@ public class LaunchAsyncController {
   @HttpLogging
   @Transactional
   @PostMapping(value = "/merge")
-  @PreAuthorize(ALLOWED_TO_REPORT)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Merge set of specified launches in common one", description =
       "This operation merges a set of launches into a common one. "
@@ -152,11 +152,11 @@ public class LaunchAsyncController {
           + "'Accept: application/x.reportportal.launch.v2+json' is used.",
       content = @Content(mediaType = "application/json", schema = @Schema(implementation = LaunchResourceOld.class))
   )
-  public LaunchResourceOld mergeLaunchesOldUuid(@PathVariable String projectName,
+  public LaunchResourceOld mergeLaunchesOldUuid(@PathVariable String projectKey,
       @Parameter(description = "Merge launches request body", required = true) @RequestBody
       @Validated MergeLaunchesRQ mergeLaunchesRQ, @AuthenticationPrincipal ReportPortalUser user) {
     var launchResource = mergeLaunchesHandler.mergeLaunches(
-        projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user,
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
         mergeLaunchesRQ
     );
     return launchConverter.TO_RESOURCE_OLD.apply(launchResource);

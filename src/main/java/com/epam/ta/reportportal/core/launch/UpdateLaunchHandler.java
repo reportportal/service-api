@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.BulkRQ;
 import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.model.launch.UpdateLaunchRQ;
@@ -38,43 +39,43 @@ public interface UpdateLaunchHandler {
    * Update specified by id launch.
    *
    * @param launchId       ID of Launch object
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param user           Recipient user
    * @param rq             Request Data
    * @return OperationCompletionRS - Response Data
    */
-  OperationCompletionRS updateLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails,
+  OperationCompletionRS updateLaunch(Long launchId, MembershipDetails membershipDetails,
       ReportPortalUser user,
       UpdateLaunchRQ rq);
 
   /**
    * Start launch analyzer on demand
    *
-   * @param projectDetails  Project Details
+   * @param membershipDetails Membership details
    * @param analyzeLaunchRQ Launch analyze rq
    * @param user            User started analysis
    * @return OperationCompletionRS - Response Data
    */
   OperationCompletionRS startLaunchAnalyzer(AnalyzeLaunchRQ analyzeLaunchRQ,
-      ReportPortalUser.ProjectDetails projectDetails,
+      MembershipDetails membershipDetails,
       ReportPortalUser user);
 
   OperationCompletionRS createClusters(CreateClustersRQ createClustersRQ,
-      ReportPortalUser.ProjectDetails projectDetails,
+      MembershipDetails membershipDetails,
       ReportPortalUser user);
 
   /**
    * Bulk launch update.
    *
    * @param rq             Bulk request
-   * @param projectDetails Project Details
+   * @param membershipDetails Membership details
    * @param user           User
    * @return OperationCompletionRS
    */
   List<OperationCompletionRS> updateLaunch(BulkRQ<Long, UpdateLaunchRQ> rq,
-      ReportPortalUser.ProjectDetails projectDetails,
+      MembershipDetails membershipDetails,
       ReportPortalUser user);
 
   OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq,
-      ReportPortalUser.ProjectDetails projectDetails);
+      MembershipDetails membershipDetails);
 }

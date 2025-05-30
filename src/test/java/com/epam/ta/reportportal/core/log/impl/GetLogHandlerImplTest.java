@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.log.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.CRITERIA_ITEM_LAUNCH_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PATH;
@@ -22,6 +23,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import java.util.List;
@@ -53,7 +55,7 @@ class GetLogHandlerTest {
   void getLogs() {
 
     Long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER,
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,
         projectId);
 
     String wrongPath = "1";
@@ -84,7 +86,7 @@ class GetLogHandlerTest {
         logService.findByFilter(queryableArgumentCaptor.capture(), any(Pageable.class))).thenReturn(
         Page.empty(pageable));
 
-    getLogHandler.getLogs(correctPath, extractProjectDetails(user, "test_project"), idFilter,
+    getLogHandler.getLogs(correctPath, extractProjectDetails(user, TEST_PROJECT_KEY), idFilter,
         pageable);
 
     Queryable updatedFilter = queryableArgumentCaptor.getValue();

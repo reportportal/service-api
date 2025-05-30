@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -55,24 +56,24 @@ public class LaunchBaselineHistoryProvider implements HistoryProvider {
   @Override
   public Page<TestItemHistory> provide(Queryable filter, Pageable pageable,
       HistoryRequestParams historyRequestParams,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean usingHash) {
+      MembershipDetails membershipDetails, ReportPortalUser user, boolean usingHash) {
     return historyRequestParams.getLaunchId().map(launchId -> {
       Launch launch = launchRepository.findById(launchId)
           .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-      launchAccessValidator.validate(launch.getId(), projectDetails, user);
+      launchAccessValidator.validate(launch.getId(), membershipDetails, user);
 
       return historyRequestParams.getHistoryType()
           .filter(HistoryRequestParams.HistoryTypeEnum.LINE::equals)
           .map(type -> testItemRepository.loadItemsHistoryPage(filter,
               pageable,
-              projectDetails.getProjectId(),
+              membershipDetails.getProjectId(),
               launch.getName(),
               historyRequestParams.getHistoryDepth(),
               usingHash
           ))
           .orElseGet(() -> testItemRepository.loadItemsHistoryPage(filter,
               pageable,
-              projectDetails.getProjectId(),
+              membershipDetails.getProjectId(),
               historyRequestParams.getHistoryDepth(),
               usingHash
           ));

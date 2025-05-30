@@ -36,7 +36,8 @@ public class ApiKeyReportPortalUserConverter implements
         .withPassword(rpUser.getPassword())
         .withAuthorities(AuthUtils.AS_AUTHORITIES.apply(rpUser.getUserRole()))
         .withUserId(rpUser.getUserId()).withUserRole(rpUser.getUserRole())
-        .withProjectDetails(Maps.newHashMapWithExpectedSize(1)).withEmail(rpUser.getEmail())
+        .withOrganizationDetails(Maps.newHashMapWithExpectedSize(1))
+        .withEmail(rpUser.getEmail())
         .build();
 
     return new UsernamePasswordAuthenticationToken(

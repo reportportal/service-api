@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.core.item.impl.filter.updater.FilterUpdater;
 import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ControllerUtils;
@@ -60,21 +61,21 @@ public class LaunchDataProviderHandlerImpl implements DataProviderHandler {
 
   @Override
   public Page<TestItem> getTestItems(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails,
+      MembershipDetails membershipDetails,
       ReportPortalUser user, Map<String, String> params) {
-    filter = updateFilter(filter, projectDetails, user, params);
+    filter = updateFilter(filter, membershipDetails, user, params);
     return testItemRepository.findByFilter(filter, pageable);
   }
 
   @Override
   public Set<Statistics> accumulateStatistics(Queryable filter,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      MembershipDetails membershipDetails, ReportPortalUser user,
       Map<String, String> params) {
-    filter = updateFilter(filter, projectDetails, user, params);
+    filter = updateFilter(filter, membershipDetails, user, params);
     return testItemRepository.accumulateStatisticsByFilter(filter);
   }
 
-  private Queryable updateFilter(Queryable filter, ReportPortalUser.ProjectDetails projectDetails,
+  private Queryable updateFilter(Queryable filter, MembershipDetails membershipDetails,
       ReportPortalUser user,
       Map<String, String> params) {
     Long launchId = Optional.ofNullable(params.get(LAUNCH_ID_PARAM))
@@ -82,7 +83,7 @@ public class LaunchDataProviderHandlerImpl implements DataProviderHandler {
         .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
             "Launch id must be provided for launch based items provider"
         ));
-    launchAccessValidator.validate(launchId, projectDetails, user);
+    launchAccessValidator.validate(launchId, membershipDetails, user);
     Queryable launchBasedFilter = Filter.builder()
         .withTarget(TestItem.class)
         .withCondition(

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -34,20 +35,20 @@ import lombok.Data;
 @JsonInclude(Include.NON_NULL)
 public class CreateUserRQ {
 
-	@NotBlank
-	@JsonProperty(value = "email", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED)
-	private String email;
+  @NotBlank
+  @Email(message = "Invalid email format")
+  @JsonProperty(value = "email", required = true)
+  @Schema(requiredMode = RequiredMode.REQUIRED)
+  private String email;
 
-	@NotBlank
-	@JsonProperty(value = "role", required = true)
-	@In(allowedValues = { "operator", "customer", "member", "project_manager" })
-	@Schema(requiredMode = RequiredMode.REQUIRED)
-	private String role;
+  @NotBlank
+  @JsonProperty(value = "role", required = true)
+  @In(allowedValues = {"editor", "viewer"})
+  @Schema(requiredMode = RequiredMode.REQUIRED)
+  private String role;
 
-	@NotBlank
-	@JsonProperty(value = "defaultProject", required = true)
-	@Schema(requiredMode = RequiredMode.REQUIRED)
-	private String defaultProject;
-
+  @NotBlank
+  @JsonProperty(value = "defaultProject", required = true)
+  @Schema(requiredMode = RequiredMode.NOT_REQUIRED)
+  private String defaultProject;
 }

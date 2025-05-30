@@ -64,7 +64,8 @@ class LogControllerTest extends BaseMvcTest {
     rq.setSearchMode("currentLaunch");
     rq.setFilterId(1L);
     mockMvc.perform(
-            post(DEFAULT_PROJECT_BASE_URL + "/log/search/1").with(token(oAuthHelper.getDefaultToken()))
+            post(DEFAULT_PROJECT_BASE_URL + "/log/search/1")
+                .with(token(oAuthHelper.getDefaultToken()))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(rq)))
         .andExpect(

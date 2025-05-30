@@ -66,9 +66,9 @@ public class PatchProjectSlugHandler extends BasePatchProjectHandler {
    * @see SlugUtils#slug(String)
    */
   @Override
-  public void replace(PatchOperation operation, Long projectId) {
+  public void replace(PatchOperation operation, Long orgId, Long projectId) {
     var slug = SlugUtils.slug((String) operation.getValue());
-    projectService.updateProjectSlug(projectId, slug);
+    projectService.updateProjectSlug(orgId, projectId, slug);
   }
 
 }

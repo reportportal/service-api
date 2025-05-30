@@ -20,8 +20,8 @@ import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.ta.reportportal.core.project.ProjectService;
 
 /**
- * Abstract base class for handling patch operations on projects. Subclasses should override the
- * adding, replace, and remove methods to implement specific patch logic.
+ * Abstract base class for handling patch operations on projects. Subclasses should override the adding, replace, and
+ * remove methods to implement specific patch logic.
  *
  * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
  */
@@ -38,15 +38,15 @@ public abstract class BasePatchProjectHandler {
     this.projectService = projectService;
   }
 
-  void replace(PatchOperation operation, Long projectId) {
+  void replace(PatchOperation operation, Long orgId, Long projectId) {
     throw new UnsupportedOperationException("'Replace' operation is not supported");
   }
 
-  void add(PatchOperation operation, Long projectId) {
+  void add(PatchOperation operation, Long orgId, Long projectId) {
     throw new UnsupportedOperationException("'Add' operation is not supported");
   }
 
-  void remove(PatchOperation operation, Long projectId) {
+  void remove(PatchOperation operation, Long orgId, Long projectId) {
     throw new UnsupportedOperationException("'Remove' operation is not supported");
   }
 

@@ -52,7 +52,6 @@ public class ErrorHandlingController {
       MissingServletRequestParameterException.class,
       IllegalArgumentException.class,
       UnsupportedOperationException.class,
-      org.hibernate.exception.ConstraintViolationException.class,
       jakarta.validation.ConstraintViolationException.class,
       RestClientException.class}
   )

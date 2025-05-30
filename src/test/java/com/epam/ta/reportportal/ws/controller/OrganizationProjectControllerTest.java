@@ -244,7 +244,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
             .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
         .andExpect(status().is4xxClientError())
         .andExpect(jsonPath("$.message")
-            .value("Incorrect Request. Unexpected value: wrong_path"));
+            .value("Incorrect Request. Unexpected path: wrong_path"));
   }
 
 
@@ -312,6 +312,48 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
             .with(token(adminToken))
             .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
         .andExpect(status().is4xxClientError());
+  }
+
+  @Test
+  void patchWrongUrl() throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path("name")
+        .value("validValue");
+
+    mockMvc.perform(patch("/organizations/1/projects/string")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().is4xxClientError());
+  }
+
+  @Test
+  void patchExistingNameSameOrg() throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path("name")
+        .value("superadmin_personal");
+
+    mockMvc.perform(patch("/organizations/1/projects/2")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isConflict());
+  }
+
+  @Test
+  void patchTheSameName() throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path("name")
+        .value("superadmin_personal");
+
+    mockMvc.perform(patch("/organizations/1/projects/1")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isOk());
   }
 
 }

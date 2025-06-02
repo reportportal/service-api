@@ -17,7 +17,10 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_CREATED_AT;
+import static org.springframework.data.domain.Sort.Direction.ASC;
 
+import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
@@ -27,14 +30,15 @@ import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.model.ActivityEventResource;
 import com.epam.ta.reportportal.model.PagedResponse;
-import com.epam.ta.reportportal.model.SearchCriteriaRQ;
+import com.epam.ta.reportportal.util.ControllerUtils;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -46,7 +50,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -57,7 +60,6 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Validated
 @RestController
-@RequestMapping("/v1/activities")
 @Tag(name = "Activity Event", description = "Activity Events API collection")
 public class ActivityEventController {
 
@@ -80,28 +82,30 @@ public class ActivityEventController {
    * @param order          Order by
    * @param sort           Sort by
    * @param searchCriteria Search criteria
-   * @param user           Authorized user
    * @return Event Activity Page
    */
   @PreAuthorize(IS_ADMIN)
-  @PostMapping("/searches")
+  @PostMapping("/activities/searches")
   @Operation(summary = "Get activities by search criteria")
   public PagedResponse<ActivityEventResource> getActivities(
       @RequestParam @Min(0) @Max(300) int limit, @RequestParam @Min(0) int offset,
       @RequestParam Direction order, @RequestParam String sort,
-      @RequestBody SearchCriteriaRQ searchCriteria,
-      @AuthenticationPrincipal ReportPortalUser user) {
+      @RequestBody SearchCriteriaRQ searchCriteria) {
 
     Queryable filter =
         searchCriteriaService.createFilterBySearchCriteria(searchCriteria, Activity.class,
             PredefinedFilterType.ACTIVITIES
         );
-    Pageable pageable = PageRequest.of(offset / limit, limit, Sort.by(order, sort));
+    var pageable = ControllerUtils.getPageable(
+        StringUtils.isNotBlank(sort) ? sort : CRITERIA_CREATED_AT,
+        order != null ? order.toString() : ASC.toString(),
+        offset,
+        limit);
 
     return activityEventHandler.getActivityEventsHistory(filter, pageable);
   }
 
-  @GetMapping("/{projectKey}/subjectName")
+  @GetMapping("/v1/activities/{projectKey}/subjectName")
   @PreAuthorize(IS_ADMIN)
   @Operation(summary =  "Load project activities subjectNames by filter", description = "Only for current project")
   public List<String> getProjectSubjectName(@PathVariable String projectKey,

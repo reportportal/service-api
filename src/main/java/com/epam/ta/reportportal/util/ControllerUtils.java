@@ -16,17 +16,16 @@
 
 package com.epam.ta.reportportal.util;
 
-import com.epam.reportportal.api.model.Order;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Path;
 import jakarta.validation.Validator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.springframework.data.domain.Pageable;

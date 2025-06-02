@@ -20,6 +20,7 @@ import com.epam.reportportal.api.model.OrganizationProjectsPage;
 import com.epam.reportportal.api.model.ProjectBase;
 import com.epam.reportportal.api.model.ProjectInfo;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import org.springframework.data.domain.Pageable;
 
 public interface OrganizationProjectHandler {
@@ -32,7 +33,7 @@ public interface OrganizationProjectHandler {
    * @param pageable the {@link Pageable} to define the pagination details for the result
    * @return an {@link OrganizationProjectsPage} represents a page of projects for the organization
    */
-  OrganizationProjectsPage getOrganizationProjectsPage(Long orgId, Filter filter, Pageable pageable);
+  OrganizationProjectsPage getOrganizationProjectsPage(Long orgId, Queryable filter, Pageable pageable);
 
   ProjectInfo createProject(Long orgId, ProjectBase projectDetails);
 

@@ -19,8 +19,13 @@ package com.epam.ta.reportportal.core.filter.impl;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_EVENT_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.epam.reportportal.api.model.FilterOperation;
+import com.epam.reportportal.api.model.SearchCriteriaRQ;
+import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -28,10 +33,7 @@ import com.epam.ta.reportportal.commons.querygen.FilterTarget;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.model.SearchCriteria;
-import com.epam.ta.reportportal.model.SearchCriteriaRQ;
-import java.util.Set;
+import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,62 +58,49 @@ class SearchCriteriaServiceTest {
         PredefinedFilterType.ACTIVITIES
     );
 
-    assertTrue(filter instanceof Filter);
+    assertInstanceOf(Filter.class, filter);
     assertTrue(CollectionUtils.isEmpty(filter.getFilterConditions()));
     assertEquals(FilterTarget.ACTIVITY_TARGET, filter.getTarget());
   }
 
   @Test
   void testCreateFilterBySearchCriteria_criteriaWithoutPredefinedFilter() {
-    Set<SearchCriteria> criteriaList =
-        Set.of(new SearchCriteria("sampleKey1", "EQ", "sampleValue1"),
-            new SearchCriteria("sampleKey2", "IN", "sampleValue2")
+    List<SearchCriteriaSearchCriteriaInner> criteriaList =
+        List.of(new SearchCriteriaSearchCriteriaInner("sampleKey1", FilterOperation.EQ, "sampleValue1"),
+            new SearchCriteriaSearchCriteriaInner("sampleKey2", FilterOperation.IN, "sampleValue2")
         );
-    searchCriteriaRQ.setCriteriaList(criteriaList);
+    searchCriteriaRQ.setSearchCriteria(criteriaList);
 
     Queryable filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteriaRQ, target,
         PredefinedFilterType.ACTIVITIES
     );
 
-    assertTrue(filter instanceof Filter);
+    assertInstanceOf(Filter.class, filter);
     assertEquals(2, filter.getFilterConditions().size());
   }
 
   @Test
   void testCreateFilterBySearchCriteria_criteriaWithPredefinedFilter() {
-    Set<SearchCriteria> criteriaList =
-        Set.of(new SearchCriteria("predefinedFilter", null, "predefinedValue"),
-            new SearchCriteria("sampleKey3", "EQ", "sampleValue3")
+    List<SearchCriteriaSearchCriteriaInner> criteriaList =
+        List.of(new SearchCriteriaSearchCriteriaInner("predefinedFilter", null, "predefinedValue"),
+            new SearchCriteriaSearchCriteriaInner("sampleKey3", FilterOperation.EQ, "sampleValue3")
         );
-    searchCriteriaRQ.setCriteriaList(criteriaList);
+    searchCriteriaRQ.setSearchCriteria(criteriaList);
 
     Queryable filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteriaRQ, target,
         PredefinedFilterType.ACTIVITIES
     );
 
-    assertTrue(filter instanceof CompositeFilter);
+    assertInstanceOf(CompositeFilter.class, filter);
     assertEquals(6, filter.getFilterConditions().size());
   }
 
-  @Test
-  void testCreateFilterBySearchCriteria_wrongOperation_throwException() {
-    Set<SearchCriteria> criteriaList =
-        Set.of(new SearchCriteria("sampleKey1", "WRONG", "sampleValue1"));
-    searchCriteriaRQ.setCriteriaList(criteriaList);
-
-    Assertions.assertThrows(ReportPortalException.class,
-        () -> searchCriteriaService.createFilterBySearchCriteria(searchCriteriaRQ, target,
-            PredefinedFilterType.ACTIVITIES
-        )
-    );
-
-  }
 
   @Test
   void testNormalizeValueSpaces() {
-    Set<SearchCriteria> criteriaList =
-        Set.of(new SearchCriteria("predefinedFilter", "CNT", "sample Value1"));
-    searchCriteriaRQ.setCriteriaList(criteriaList);
+    List<SearchCriteriaSearchCriteriaInner> criteriaList =
+        List.of(new SearchCriteriaSearchCriteriaInner("predefinedFilter", FilterOperation.CNT, "sample Value1"));
+    searchCriteriaRQ.setSearchCriteria(criteriaList);
     Queryable filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteriaRQ, target,
         PredefinedFilterType.ACTIVITIES
     );

@@ -33,7 +33,8 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.core.filter.OrganizationsSearchCriteriaService;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.core.filter.SearchCriteriaService;
 import com.epam.ta.reportportal.core.project.OrganizationProjectHandler;
 import com.epam.ta.reportportal.core.project.patch.PatchProjectHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
@@ -65,7 +66,7 @@ public class OrganizationProjectController extends BaseController implements
 
   private final OrganizationProjectHandler organizationProjectHandler;
   private final OrganizationRepositoryCustom organizationRepositoryCustom;
-  private final OrganizationsSearchCriteriaService searchCriteriaService;
+  private final SearchCriteriaService searchCriteriaService;
   private final PatchProjectHandler patchProjectHandler;
 
   /**
@@ -80,7 +81,7 @@ public class OrganizationProjectController extends BaseController implements
   public OrganizationProjectController(
       OrganizationProjectHandler organizationProjectHandler,
       OrganizationRepositoryCustom organizationRepositoryCustom,
-      OrganizationsSearchCriteriaService searchCriteriaService,
+      SearchCriteriaService searchCriteriaService,
       PatchProjectHandler patchProjectHandler) {
     this.organizationProjectHandler = organizationProjectHandler;
     this.organizationRepositoryCustom = organizationRepositoryCustom;
@@ -136,22 +137,19 @@ public class OrganizationProjectController extends BaseController implements
     organizationRepositoryCustom.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
-    Filter filter = searchCriteriaService
-        .createFilterBySearchCriteria(searchCriteria, ProjectProfile.class)
-        .withCondition(
-            new FilterCondition(Condition.EQUALS, false, orgId.toString(), "organization_id"));
+    Queryable filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteria, ProjectProfile.class);
+    filter.getFilterConditions()
+        .add(new FilterCondition(Condition.EQUALS, false, orgId.toString(), "organization_id"));
 
     var pageable = ControllerUtils.getPageable(
         StringUtils.isNotBlank(searchCriteria.getSort()) ? searchCriteria.getSort() : "name",
-        searchCriteria.getOrder() != null ? searchCriteria.getOrder().toString()
-            : Direction.ASC.name(),
+        searchCriteria.getOrder() != null ? searchCriteria.getOrder().toString() : Direction.ASC.name(),
         searchCriteria.getOffset(),
         searchCriteria.getLimit());
 
     return ResponseEntity
         .ok()
-        .body(
-            organizationProjectHandler.getOrganizationProjectsPage(orgId, filter, pageable));
+        .body(organizationProjectHandler.getOrganizationProjectsPage(orgId, filter, pageable));
   }
 
 

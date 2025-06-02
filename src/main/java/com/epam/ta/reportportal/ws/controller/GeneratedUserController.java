@@ -27,9 +27,9 @@ import com.epam.reportportal.api.model.InstanceUser;
 import com.epam.reportportal.api.model.InstanceUserPage;
 import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
-import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
-import com.epam.ta.reportportal.core.filter.OrganizationsSearchCriteriaService;
+import com.epam.ta.reportportal.core.filter.SearchCriteriaService;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
@@ -62,24 +62,23 @@ public class GeneratedUserController implements UserApi {
   private final EditUserHandler editUserHandler;
   private final GetUserHandler getUserHandler;
   private final HttpServletRequest httpServletRequest;
-  private final OrganizationsSearchCriteriaService searchCriteriaService;
+  private final SearchCriteriaService searchCriteriaService;
 
   // TODO: Postpone new endpoints
-/*  @Override
-  @PreAuthorize(IS_ADMIN)
-  @Transactional(readOnly = true)
-  public ResponseEntity<InstanceUserPage> getUsers(String excludeFields, Integer offset,
-      Integer limit, Order order, String accept, String sort, String email, UUID uuid,
-      String externalId, String fullName, InstanceRole instanceRole, AccountType accountType) {
+  /*@Override
+    @PreAuthorize(IS_ADMIN)
+    @Transactional(readOnly = true)
+    public ResponseEntity<InstanceUserPage> getUsers(String excludeFields, Integer offset,
+        Integer limit, Order order, String accept, String sort, String email, UUID uuid,
+        String externalId, String fullName, InstanceRole instanceRole, AccountType accountType) {
 
-    String[] excludeArray = excludeFields != null ? excludeFields.split(",") : new String[0];
-    Filter filter = new DefaultUserFilter(email, uuid, externalId, fullName, instanceRole, accountType)
-        .getFilter();
-    var pageable = ControllerUtils.getPageable(sort, order, offset, limit);
+      String[] excludeArray = excludeFields != null ? excludeFields.split(",") : new String[0];
+      Filter filter = new DefaultUserFilter(email, uuid, externalId, fullName, instanceRole, accountType)
+          .getFilter();
+      var pageable = ControllerUtils.getPageable(sort, order, offset, limit);
 
-    InstanceUserPage users = getUserHandler.getUsersExcluding(filter, pageable, excludeArray);
-    return new ResponseEntity<>(users, HttpStatus.OK);
-
+      InstanceUserPage users = getUserHandler.getUsersExcluding(filter, pageable, excludeArray);
+      return new ResponseEntity<>(users, HttpStatus.OK);
   }
 
 
@@ -102,17 +101,14 @@ public class GeneratedUserController implements UserApi {
   @Transactional
   @Override
   @PreAuthorize(IS_ADMIN)
-  public ResponseEntity<InstanceUserPage> postUsersSearches(String accept,
-      SearchCriteriaRQ searchCriteriaRQ) {
-    Filter filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteriaRQ,
+  public ResponseEntity<InstanceUserPage> postUsersSearches(String accept, SearchCriteriaRQ searchCriteriaRq) {
+    Queryable filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteriaRq,
         User.class);
     Pageable pageable = ControllerUtils.getPageable(
-        StringUtils.isNotBlank(searchCriteriaRQ.getSort()) ? searchCriteriaRQ.getSort()
-            : CRITERIA_FULL_NAME,
-        searchCriteriaRQ.getOrder() != null ? searchCriteriaRQ.getOrder().toString()
-            : Direction.ASC.name(),
-        searchCriteriaRQ.getOffset(),
-        searchCriteriaRQ.getLimit());
+        StringUtils.isNotBlank(searchCriteriaRq.getSort()) ? searchCriteriaRq.getSort() : CRITERIA_FULL_NAME,
+        searchCriteriaRq.getOrder() != null ? searchCriteriaRq.getOrder().toString() : Direction.ASC.name(),
+        searchCriteriaRq.getOffset(),
+        searchCriteriaRq.getLimit());
 
     return ResponseEntity
         .ok(getUserHandler.getUsersExcluding(filter, pageable));

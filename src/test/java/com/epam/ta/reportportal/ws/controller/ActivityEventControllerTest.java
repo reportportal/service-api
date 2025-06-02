@@ -28,6 +28,8 @@ import org.springframework.test.context.jdbc.Sql;
 @Sql("/db/activity/activity-fill.sql")
 class ActivityEventControllerTest extends BaseMvcTest {
 
+  public static final String BASE_ACTIVITIES_ENDPOINT = "/activities/searches";
+
   @Test
   void testGetActivities_actionByAdminWithPredefinedFilter() throws Exception {
     int limit = 2;
@@ -35,10 +37,10 @@ class ActivityEventControllerTest extends BaseMvcTest {
     String order = "ASC";
     String sort = "id";
 
-    String searchCriteriaJsonString = "{\"search_criterias\":["
+    String searchCriteriaJsonString = "{\"search_criteria\":["
         + "{\"filter_key\":\"predefinedFilter\",\"operation\":\"IN\",\"value\":\"create\"}]}";
 
-    mockMvc.perform(post("/v1/activities/searches")
+    mockMvc.perform(post(BASE_ACTIVITIES_ENDPOINT)
             .param("limit", String.valueOf(limit))
             .param("offset", String.valueOf(offset))
             .param("order", order)
@@ -61,11 +63,11 @@ class ActivityEventControllerTest extends BaseMvcTest {
     String order = "ASC";
     String sort = "id";
 
-    String searchCriteriaJsonString = "{\"search_criterias\":["
+    String searchCriteriaJsonString = "{\"search_criteria\":["
         + "{\"filter_key\":\"eventName\",\"operation\":\"IN\",\"value\":\"updateDashboard\"},"
         + "{\"filter_key\":\"predefinedFilter\",\"operation\":\"IN\",\"value\":\"user\"}]}";
 
-    mockMvc.perform(post("/v1/activities/searches")
+    mockMvc.perform(post(BASE_ACTIVITIES_ENDPOINT)
             .param("limit", String.valueOf(limit))
             .param("offset", String.valueOf(offset))
             .param("order", order)
@@ -83,9 +85,9 @@ class ActivityEventControllerTest extends BaseMvcTest {
     String order = "ASC";
     String sort = "id";
 
-    String searchCriteriaJsonString = "{\"search_criterias\":[]}";
+    String searchCriteriaJsonString = "{\"search_criteria\":[]}";
 
-    mockMvc.perform(post("/v1/activities/searches")
+    mockMvc.perform(post(BASE_ACTIVITIES_ENDPOINT)
             .param("limit", String.valueOf(limit))
             .param("offset", String.valueOf(offset))
             .param("order", order)
@@ -108,11 +110,11 @@ class ActivityEventControllerTest extends BaseMvcTest {
     String order = "ASC";
     String sort = "id";
 
-    String searchCriteriaJsonString = "{\"search_criterias\":["
+    String searchCriteriaJsonString = "{\"search_criteria\":["
         + "{\"filter_key\":\"eventName\",\"operation\":\"IN\",\"value\":\"updateDashboard\"},"
         + "{\"filter_key\":\"predefinedFilter\",\"operation\":\"IN\",\"value\":\"user\"}]}";
 
-    mockMvc.perform(post("/v1/activities/searches")
+    mockMvc.perform(post(BASE_ACTIVITIES_ENDPOINT)
             .param("limit", String.valueOf(limit))
             .param("offset", String.valueOf(offset))
             .param("order", order)

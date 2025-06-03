@@ -40,9 +40,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * Uploads a plugin in JSON format.
- * Validates the plugin manifest against a JSON schema and saves the integration type to the
- * database.
+ * Uploads a plugin in JSON format. Validates the plugin manifest against a JSON schema and saves the integration type
+ * to the database.
  *
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
@@ -75,9 +74,12 @@ public class JsonPluginUploader implements PluginUploader {
   public IntegrationType uploadPlugin(String fileName, InputStream inputStream) throws IOException {
     try {
       var manifest = parseManifest(inputStream);
-      validateManifest(manifest);
+      var plugin = buildIntegrationType(manifest);
 
-      return integrationTypeRepository.save(buildIntegrationType(manifest));
+      integrationTypeRepository.findByName(getPluginId(manifest))
+          .ifPresent(e -> plugin.setId(e.getId()));
+
+      return integrationTypeRepository.saveAndFlush(plugin);
     } catch (ConstraintViolationException e) {
       throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
           e.getCause().getMessage()
@@ -92,7 +94,9 @@ public class JsonPluginUploader implements PluginUploader {
   }
 
   private Map<String, Object> parseManifest(InputStream input) throws IOException {
-    return objectMapper.readValue(input, new TypeReference<>() {});
+    Map<String, Object> manifest = objectMapper.readValue(input, new TypeReference<>() {});
+    validateManifest(manifest);
+    return manifest;
   }
 
   private void validateManifest(Map<String, Object> manifest) throws IOException {
@@ -117,23 +121,27 @@ public class JsonPluginUploader implements PluginUploader {
     var details = new IntegrationTypeDetails();
     details.setDetails(manifest);
 
-    var name = ofNullable(manifest.get("id"))
-        .map(Object::toString)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-            Suppliers.formattedSupplier("Plugin id is not specified in manifest file"))
-        );
-
-    var group = ofNullable(manifest.get("group"))
-        .map(Object::toString)
-        .flatMap(IntegrationGroupEnum::findByName)
-        .orElse(OTHER);
-
     return new IntegrationTypeBuilder()
-        .setName(name)
-        .setIntegrationGroup(group)
+        .setName(getPluginId(manifest))
+        .setIntegrationGroup(getPluginGroup(manifest))
         .setDetails(details)
         .setEnabled(true)
         .setPluginType(REMOTE)
         .get();
+  }
+
+  private String getPluginId(Map<String, Object> manifest) {
+    return ofNullable(manifest.get("id"))
+        .map(Object::toString)
+        .orElseThrow(() -> new ReportPortalException(
+            ErrorType.PLUGIN_UPLOAD_ERROR,
+            Suppliers.formattedSupplier("Plugin id is not specified in manifest file")));
+  }
+
+  private IntegrationGroupEnum getPluginGroup(Map<String, Object> manifest) {
+    return ofNullable(manifest.get("group"))
+        .map(Object::toString)
+        .flatMap(IntegrationGroupEnum::findByName)
+        .orElse(OTHER);
   }
 }

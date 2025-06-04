@@ -1,4 +1,4 @@
-package com.epam.ta.reportportal.ws.controller;
+package com.epam.ta.reportportal.exception.handler;
 
 import com.epam.reportportal.rules.exception.ErrorRS;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -28,10 +28,12 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
  * Global exception handler for the application's REST controllers. Provides centralized handling of various exceptions
  * and maps them to appropriate HTTP responses.
  */
-@RestControllerAdvice(value = {"com.epam.ta.reportportal.ws.controller",
-    "com.epam.ta.reportportal.reporting.async.controller"})
+@RestControllerAdvice(value = {
+    "com.epam.ta.reportportal.ws.controller",
+    "com.epam.ta.reportportal.reporting.async.controller"
+})
 @Log4j2
-public class ErrorHandlingController {
+public class GlobalExceptionHandler {
 
   private final DefaultErrorResolver defaultErrorResolver;
   @Autowired
@@ -39,10 +41,9 @@ public class ErrorHandlingController {
   @Autowired
   ClientResponseForwardingExceptionHandler clientResponseForwardingExceptionHandler;
 
-  public ErrorHandlingController() {
+  public GlobalExceptionHandler() {
     this.defaultErrorResolver = new DefaultErrorResolver(ExceptionMappings.DEFAULT_MAPPING);
   }
-
 
   @ExceptionHandler({
       MethodArgumentNotValidException.class,
@@ -53,8 +54,10 @@ public class ErrorHandlingController {
       IllegalArgumentException.class,
       UnsupportedOperationException.class,
       jakarta.validation.ConstraintViolationException.class,
-      RestClientException.class}
+      RestClientException.class
+    }
   )
+
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ErrorRS handleCustomBadRequest(Exception exception) {
     return defaultErrorResolver.resolveError(exception).errorRs();
@@ -85,7 +88,6 @@ public class ErrorHandlingController {
   public ResponseEntity<String> handle(ResponseForwardingException exception) {
     return clientResponseForwardingExceptionHandler.resolveException(exception);
   }
-
 
   @ExceptionHandler(Exception.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

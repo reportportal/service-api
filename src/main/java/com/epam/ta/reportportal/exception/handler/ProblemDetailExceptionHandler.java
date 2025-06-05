@@ -141,12 +141,13 @@ public class ProblemDetailExceptionHandler {
   }
 
   private ResponseEntity<ProblemDetail> toReportPortalProblemDetail(ProblemDetail problem, WebRequest request) {
-    problem.setType(URI.create(TYPE_URL + HttpStatus.BAD_REQUEST.name()));
+    var statusName = HttpStatus.valueOf(problem.getStatus());
+    problem.setType(URI.create(TYPE_URL + statusName.name()));
     problem.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
     problem.setProperty("timestamp", Instant.now());
 
     return ResponseEntity
-        .status(HttpStatus.BAD_REQUEST)
+        .status(statusName)
         .contentType(MediaType.APPLICATION_PROBLEM_JSON)
         .body(problem);
   }

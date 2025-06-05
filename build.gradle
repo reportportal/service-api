@@ -37,8 +37,8 @@ project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from
 
 repositories {
     if (!releaseMode) {
-        maven { url 'https://jitpack.io' }
     }
+    maven { url 'https://jitpack.io' }
     mavenCentral { url "https://repo1.maven.org/maven2" }
 }
 

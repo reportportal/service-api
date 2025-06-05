@@ -25,7 +25,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.converter.HttpMessageConversionException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -64,58 +65,48 @@ public class ProblemDetailExceptionHandler {
   public ResponseEntity<ProblemDetail> handleResponseStatusException(ResponseStatusException e, WebRequest request) {
     log.error("ResponseStatusException occurred", e);
 
-    ProblemDetail problem = e.getBody();
-    problem.setType(URI.create(TYPE_URL + ((HttpStatus) e.getStatusCode()).name()));
-    problem.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
-    problem.setProperty("timestamp", Instant.now());
-
-    return ResponseEntity
-        .status(e.getStatusCode())
-        .contentType(MediaType.APPLICATION_PROBLEM_JSON)
-        .body(problem);
+    return toReportPortalProblemDetail(e.getBody(), request);
   }
 
   @ExceptionHandler(ReportPortalException.class)
   public ResponseEntity<ProblemDetail> handleReportPortalException(ReportPortalException e, WebRequest request) {
     log.error("ReportPortalException occurred", e);
 
-    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
-    problem.setType(URI.create(TYPE_URL + e.getErrorType().name()));
-    problem.setTitle("Report Portal Exception");
-    problem.setDetail(e.getMessage());
-    problem.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
-    problem.setProperty("timestamp", Instant.now());
-
-    return ResponseEntity
-        .status(HttpStatus.BAD_REQUEST)
-        .contentType(MediaType.APPLICATION_PROBLEM_JSON)
-        .body(problem);
+    return createProblemDetailResponse(HttpStatus.BAD_REQUEST, e.getMessage(), request);
   }
 
   /**
-   * Handles {@link HttpMessageNotReadableException} and returns a {@link ProblemDetail} response.
+   * Handles {@link HttpMessageConversionException} and returns a {@link ProblemDetail} response.
    *
    * @param e       The exception to handle.
    * @param request The current web request.
    * @return A {@link ResponseEntity} containing the {@link ProblemDetail}.
    */
-  @ExceptionHandler(HttpMessageNotReadableException.class)
-  public  ResponseEntity<ProblemDetail> handleHttpMessageNotReadableException(
-      HttpMessageNotReadableException e,
+  @ExceptionHandler(HttpMessageConversionException.class)
+  public ResponseEntity<ProblemDetail> handleHttpMessageConversionException(
+      HttpMessageConversionException e,
       WebRequest request
   ) {
-    log.error("HttpMessageNotReadableException occurred", e);
+    log.error("HttpMessageConversionException occurred", e);
 
-    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
-    problem.setType(URI.create(TYPE_URL + HttpStatus.BAD_REQUEST.name()));
-    problem.setTitle(HttpStatus.BAD_REQUEST.getReasonPhrase());
-    problem.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
-    problem.setProperty("timestamp", Instant.now());
+    return createProblemDetailResponse(HttpStatus.BAD_REQUEST, e.getMessage(), request);
+  }
 
-    return ResponseEntity
-        .status(HttpStatus.BAD_REQUEST)
-        .contentType(MediaType.APPLICATION_PROBLEM_JSON)
-        .body(problem);
+  /**
+   * Handles {@link MethodArgumentNotValidException} and returns a {@link ProblemDetail} response.
+   *
+   * @param e       The exception to handle.
+   * @param request The current web request.
+   * @return A {@link ResponseEntity} containing the {@link ProblemDetail}.
+   */
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<ProblemDetail> handleMethodArgumentNotValidException(
+      MethodArgumentNotValidException e,
+      WebRequest request
+  ) {
+    log.error("MethodArgumentNotValidException occurred", e);
+
+    return toReportPortalProblemDetail(e.getBody(), request);
   }
 
   /**
@@ -129,14 +120,33 @@ public class ProblemDetailExceptionHandler {
   public ResponseEntity<ProblemDetail> handleGeneralException(Exception e, WebRequest request) {
     log.error("Unhandled exception", e);
 
-    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
-    problem.setType(URI.create(TYPE_URL + HttpStatus.INTERNAL_SERVER_ERROR.name()));
-    problem.setTitle(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
+    return createProblemDetailResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", request);
+  }
+
+  private ResponseEntity<ProblemDetail> createProblemDetailResponse(
+      HttpStatus status,
+      String detail,
+      WebRequest request
+  ) {
+    var problem = ProblemDetail.forStatusAndDetail(status, detail);
+    problem.setType(URI.create(TYPE_URL + status.name()));
+    problem.setTitle(status.getReasonPhrase());
     problem.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
     problem.setProperty("timestamp", Instant.now());
 
     return ResponseEntity
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .status(status)
+        .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+        .body(problem);
+  }
+
+  private ResponseEntity<ProblemDetail> toReportPortalProblemDetail(ProblemDetail problem, WebRequest request) {
+    problem.setType(URI.create(TYPE_URL + HttpStatus.BAD_REQUEST.name()));
+    problem.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
+    problem.setProperty("timestamp", Instant.now());
+
+    return ResponseEntity
+        .status(HttpStatus.BAD_REQUEST)
         .contentType(MediaType.APPLICATION_PROBLEM_JSON)
         .body(problem);
   }

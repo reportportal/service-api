@@ -82,7 +82,10 @@ public class OrganizationGroupController implements OrganizationGroupApi {
 
   private GroupExtensionPoint getGroupExtension() {
     return pluginBox.getInstance(GroupExtensionPoint.class)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED));
+        .orElseThrow(() -> new ResponseStatusException(
+            HttpStatus.PAYMENT_REQUIRED,
+            "Group management is not available. Please install the 'group' plugin."
+        ));
   }
 
   private CreateGroupRequest toCreateGroupRequest(CreateOrgGroupRequest request, Long orgId) {

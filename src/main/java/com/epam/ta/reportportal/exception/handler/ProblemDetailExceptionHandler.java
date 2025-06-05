@@ -65,7 +65,7 @@ public class ProblemDetailExceptionHandler {
     log.error("ResponseStatusException occurred", e);
 
     ProblemDetail problem = e.getBody();
-    problem.setType(URI.create(TYPE_URL + e.getStatusCode().value()));
+    problem.setType(URI.create(TYPE_URL + ((HttpStatus) e.getStatusCode()).name()));
     problem.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
     problem.setProperty("timestamp", Instant.now());
 

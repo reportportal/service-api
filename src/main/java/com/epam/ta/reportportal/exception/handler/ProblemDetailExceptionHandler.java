@@ -79,7 +79,7 @@ public class ProblemDetailExceptionHandler {
     log.error("ReportPortalException occurred", e);
 
     var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
-    problem.setType(URI.create(TYPE_URL + e.getClass().getSimpleName()));
+    problem.setType(URI.create(TYPE_URL + e.getErrorType().name()));
     problem.setTitle("Report Portal Exception");
     problem.setDetail(e.getMessage());
     problem.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
@@ -103,8 +103,8 @@ public class ProblemDetailExceptionHandler {
     log.error("Unhandled exception", e);
 
     var problem = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
-    problem.setType(URI.create(TYPE_URL + e.getClass().getSimpleName()));
-    problem.setTitle("Internal Server Error");
+    problem.setType(URI.create(TYPE_URL + HttpStatus.INTERNAL_SERVER_ERROR.name()));
+    problem.setTitle(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
     problem.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
     problem.setProperty("timestamp", Instant.now());
 

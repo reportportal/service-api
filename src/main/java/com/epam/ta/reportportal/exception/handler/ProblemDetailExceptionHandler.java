@@ -25,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -82,6 +83,32 @@ public class ProblemDetailExceptionHandler {
     problem.setType(URI.create(TYPE_URL + e.getErrorType().name()));
     problem.setTitle("Report Portal Exception");
     problem.setDetail(e.getMessage());
+    problem.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
+    problem.setProperty("timestamp", Instant.now());
+
+    return ResponseEntity
+        .status(HttpStatus.BAD_REQUEST)
+        .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+        .body(problem);
+  }
+
+  /**
+   * Handles {@link HttpMessageNotReadableException} and returns a {@link ProblemDetail} response.
+   *
+   * @param e       The exception to handle.
+   * @param request The current web request.
+   * @return A {@link ResponseEntity} containing the {@link ProblemDetail}.
+   */
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public  ResponseEntity<ProblemDetail> handleHttpMessageNotReadableException(
+      HttpMessageNotReadableException e,
+      WebRequest request
+  ) {
+    log.error("HttpMessageNotReadableException occurred", e);
+
+    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
+    problem.setType(URI.create(TYPE_URL + HttpStatus.BAD_REQUEST.name()));
+    problem.setTitle(HttpStatus.BAD_REQUEST.getReasonPhrase());
     problem.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
     problem.setProperty("timestamp", Instant.now());
 

@@ -63,9 +63,9 @@ println("Release mode: $releaseMode")
 dependencies {
     if (releaseMode) {
         println("Using release dependencies")
-        implementation 'com.epam.reportportal:commons'
-        implementation 'com.epam.reportportal:commons-dao'
-        implementation 'com.epam.reportportal:plugin-api'
+        implementation 'com.github.reportportal:commons:fdfdcdf'
+        implementation 'com.github.reportportal:commons-dao:392eb1b'
+        implementation 'com.github.reportportal:plugin-api:f8e5bea'
     } else {
         println("Using snapshot dependencies")
         implementation 'com.github.reportportal:commons:fdfdcdf'

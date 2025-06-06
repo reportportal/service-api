@@ -146,7 +146,10 @@ public class OrganizationController extends BaseController implements Organizati
 
   private OrganizationExtensionPoint getOrgExtension() {
     return pluginBox.getInstance(OrganizationExtensionPoint.class)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED));
+        .orElseThrow(() -> new ResponseStatusException(
+            HttpStatus.PAYMENT_REQUIRED,
+            "Organization management is not available. Please install the 'organization' plugin."
+        ));
   }
 
 }

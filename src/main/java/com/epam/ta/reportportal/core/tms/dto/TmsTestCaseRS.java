@@ -20,6 +20,8 @@ public class TmsTestCaseRS {
 
   private String description;
 
+  private String priority;
+
   private Set<TmsTestCaseVersionRS> versions;
 
   private Set<TmsTestPlanAttributeRS> tags;

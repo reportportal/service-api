@@ -1,6 +1,5 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsDataset;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
@@ -18,7 +17,6 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTestCaseRS> {
 
   @Mapping(target = "testFolder", expression = "java(convertToTmsTestFolder(tmsTestCaseRQ.getTestFolderId(), projectId))")
-  @Mapping(target = "dataset", expression = "java(convertToTmsDataset(tmsTestCaseRQ.getDatasetId()))")
   @Mapping(target = "tags", ignore = true)
   @Mapping(target = "versions", ignore = true)
   public abstract TmsTestCase convertFromRQ(Long projectId, TmsTestCaseRQ tmsTestCaseRQ);
@@ -35,15 +33,6 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "id", ignore = true)
   public abstract void patch(@MappingTarget TmsTestCase existingTestCase,
       TmsTestCase tmsTestCase);
-
-  protected TmsDataset convertToTmsDataset(Long datasetId) { //TODO use tmsDatasetMapper
-    if (datasetId == null) {
-      return null;
-    }
-    var tmsDataset = new TmsDataset();
-    tmsDataset.setId(datasetId);
-    return tmsDataset;
-  }
 
   protected TmsTestFolder convertToTmsTestFolder(Long tmsTestFolderId,
       Long projectId) {  //TODO use tmsTestFolderMapper

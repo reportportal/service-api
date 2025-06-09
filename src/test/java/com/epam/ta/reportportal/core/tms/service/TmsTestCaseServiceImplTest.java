@@ -61,7 +61,6 @@ class TmsTestCaseServiceImplTest {
     testCaseRQ.setDescription("Description");
     testCaseRQ.setTestFolderId(4L);
     testCaseRQ.setTags(attributes);
-    testCaseRQ.setDatasetId(5L);
 
     testCase = new TmsTestCase();
     testCase.setId(testCaseId);

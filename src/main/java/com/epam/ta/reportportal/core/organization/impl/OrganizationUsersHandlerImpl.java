@@ -28,10 +28,13 @@ import static com.epam.ta.reportportal.util.OrganizationUserValidator.validateUs
 import static com.epam.ta.reportportal.util.OrganizationUserValidator.validateUserType;
 import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.ORG_USER_ACCOUNT_TO_ORG_USER;
+import static com.epam.ta.reportportal.ws.converter.converters.OrganizationUserConverter.MEMBERSHIP_TO_ORG_USER_PROJECT;
 import static java.util.function.Predicate.isEqual;
 
 import com.epam.reportportal.api.model.OrgRole;
 import com.epam.reportportal.api.model.OrgUserAssignment;
+import com.epam.reportportal.api.model.OrgUserProjectPage;
+import com.epam.reportportal.api.model.OrganizationProjectsPage;
 import com.epam.reportportal.api.model.OrganizationUsersPage;
 import com.epam.reportportal.api.model.ProjectRole;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
@@ -47,6 +50,7 @@ import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationUsersRepositoryCustom;
 import com.epam.ta.reportportal.entity.enums.OrganizationType;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.organization.OrganizationUserAccount;
@@ -57,6 +61,7 @@ import com.epam.ta.reportportal.util.SlugifyUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
@@ -169,6 +174,18 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     organizationUserRepository.delete(organizationUser);
   }
 
+  @Override
+  public OrgUserProjectPage findUserProjectsInOrganization(Long userId, Long organizationId, Pageable pageable) {
+    OrgUserProjectPage orgUserProjectPage = new OrgUserProjectPage();
+
+    Page<MembershipDetails> userProjectsInOrganization = projectUserRepository.findUserProjectsInOrganization(
+        userId, organizationId, pageable);
+    orgUserProjectPage.items(userProjectsInOrganization.getContent().stream().map(MEMBERSHIP_TO_ORG_USER_PROJECT).collect(
+        Collectors.toList()));
+
+    return responseWithPageParameters(orgUserProjectPage, pageable,
+        userProjectsInOrganization.getTotalElements());
+  }
 
   private void validatePersonalOrganization(Organization organization, User userToUnassign) {
     if (organization.getOrganizationType().equals(OrganizationType.PERSONAL)

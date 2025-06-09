@@ -17,9 +17,12 @@
 package com.epam.ta.reportportal.core.organization;
 
 import com.epam.reportportal.api.model.OrgUserAssignment;
+import com.epam.reportportal.api.model.OrgUserProjectPage;
 import com.epam.reportportal.api.model.OrganizationUsersPage;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
@@ -39,4 +42,6 @@ public interface OrganizationUsersHandler {
    * @param userToUnassign The ID of the user to unassign.
    */
   void unassignUser(Long orgId, Long userToUnassign);
+
+  OrgUserProjectPage findUserProjectsInOrganization(Long userId, Long organizationId, Pageable pageable);
 }

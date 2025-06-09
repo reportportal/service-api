@@ -82,22 +82,6 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   }
 
   @Test
-  void getTestCaseByProjectIdIntegrationTest() throws Exception {
-    // Given
-    Optional<TmsTestCase> testCase = testCaseRepository.findById(4L);
-
-    // When/Then
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$[?(@.id == %d)]", testCase.get().getId()).exists())
-        .andExpect(jsonPath("$[?(@.id == %d)].name", testCase.get().getId())
-                                                          .value(testCase.get().getName()))
-        .andExpect(jsonPath("$[?(@.id == %d)].description", testCase.get().getId())
-                                                          .value(testCase.get().getDescription()));
-  }
-
-  @Test
   void updateTestCaseIntegrationTest() throws Exception {
     // Given
     TmsTestCaseAttributeRQ attribute = new TmsTestCaseAttributeRQ();

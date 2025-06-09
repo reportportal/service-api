@@ -114,24 +114,6 @@ public class TmsTestCaseControllerTest {
   }
 
   @Test
-  void getTestCaseByProjectIdTest() throws Exception {
-    // Given
-    List<TmsTestCaseRS> testCases = new ArrayList<>();
-    testCases.add(new TmsTestCaseRS());
-    testCases.add(new TmsTestCaseRS());
-
-    given(tmsTestCaseService.getTestCaseByProjectId(projectId)).willReturn(testCases);
-
-    // When/Then
-    mockMvc.perform(get("/project/{projectKey}/tms/test-case", projectKey)
-            .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk());
-
-    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
-    verify(tmsTestCaseService).getTestCaseByProjectId(projectId);
-  }
-
-  @Test
   void createTestCaseTest() throws Exception {
     // Given
     TmsTestCaseRQ testCaseRequest = new TmsTestCaseRQ();

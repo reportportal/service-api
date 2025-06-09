@@ -21,8 +21,6 @@ import com.epam.reportportal.api.model.OrgUserProjectPage;
 import com.epam.reportportal.api.model.OrganizationUsersPage;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
-import com.epam.ta.reportportal.entity.organization.MembershipDetails;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
@@ -43,5 +41,14 @@ public interface OrganizationUsersHandler {
    */
   void unassignUser(Long orgId, Long userToUnassign);
 
+
+  /**
+   *
+   *
+   * @param userId         The ID of the user.
+   * @param organizationId The ID of the organization.
+   * @param pageable       Page Details
+   * @return
+   */
   OrgUserProjectPage findUserProjectsInOrganization(Long userId, Long organizationId, Pageable pageable);
 }

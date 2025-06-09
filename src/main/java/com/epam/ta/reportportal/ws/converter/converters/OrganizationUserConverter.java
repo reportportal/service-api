@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.reportportal.api.model.OrgUserProject;
@@ -21,6 +22,8 @@ import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import java.util.function.Function;
 
 /**
+ * Converts project entity into OrgUserProject api model.
+ *
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
 public class OrganizationUserConverter {

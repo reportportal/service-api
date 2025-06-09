@@ -34,7 +34,6 @@ import static java.util.function.Predicate.isEqual;
 import com.epam.reportportal.api.model.OrgRole;
 import com.epam.reportportal.api.model.OrgUserAssignment;
 import com.epam.reportportal.api.model.OrgUserProjectPage;
-import com.epam.reportportal.api.model.OrganizationProjectsPage;
 import com.epam.reportportal.api.model.OrganizationUsersPage;
 import com.epam.reportportal.api.model.ProjectRole;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
@@ -175,13 +174,16 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
   }
 
   @Override
-  public OrgUserProjectPage findUserProjectsInOrganization(Long userId, Long organizationId, Pageable pageable) {
+  public OrgUserProjectPage findUserProjectsInOrganization(Long userId, Long organizationId,
+      Pageable pageable) {
     OrgUserProjectPage orgUserProjectPage = new OrgUserProjectPage();
 
-    Page<MembershipDetails> userProjectsInOrganization = projectUserRepository.findUserProjectsInOrganization(
-        userId, organizationId, pageable);
-    orgUserProjectPage.items(userProjectsInOrganization.getContent().stream().map(MEMBERSHIP_TO_ORG_USER_PROJECT).collect(
-        Collectors.toList()));
+    Page<MembershipDetails> userProjectsInOrganization = projectUserRepository
+        .findUserProjectsInOrganization(userId, organizationId, pageable);
+    orgUserProjectPage.items(
+        userProjectsInOrganization.getContent().stream().map(MEMBERSHIP_TO_ORG_USER_PROJECT)
+            .collect(
+                Collectors.toList()));
 
     return responseWithPageParameters(orgUserProjectPage, pageable,
         userProjectsInOrganization.getTotalElements());

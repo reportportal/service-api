@@ -111,7 +111,7 @@ public class OrganizationUsersController extends BaseController implements Organ
 
   @Override
   @Transactional
-  @PreAuthorize(ORGANIZATION_MANAGER)
+  @PreAuthorize(ORGANIZATION_MEMBER)
   public ResponseEntity<OrgUserProjectPage> getOrgUserProjects(Long orgId, Long userId,
       Integer offset, Integer limit, String order, String sort) {
 

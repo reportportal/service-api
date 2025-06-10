@@ -95,12 +95,13 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
 
     //Fix CVE-2025-24813
-    implementation 'org.apache.tomcat.embed:tomcat-embed-core:10.1.40'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-el:10.1.40'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:10.1.40'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-core:10.1.41'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-el:10.1.41'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:10.1.41'
 
 
     implementation 'com.opencsv:opencsv:5.10'
+    implementation 'commons-beanutils:commons-beanutils:1.11.0'
     implementation "org.jooq:jooq:${jooqVersion}"
 
     // Optional for spring-boot-starter-amqp

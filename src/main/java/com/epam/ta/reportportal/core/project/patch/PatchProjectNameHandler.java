@@ -53,8 +53,8 @@ public class PatchProjectNameHandler extends BasePatchProjectHandler {
    * @param projectId identifier of the project to be updated
    */
   @Override
-  public void replace(PatchOperation operation, Long projectId) {
-    projectService.updateProjectName(projectId, (String) operation.getValue());
+  public void replace(PatchOperation operation, Long orgId, Long projectId) {
+    projectService.updateProjectName(orgId, projectId, (String) operation.getValue());
   }
 
 }

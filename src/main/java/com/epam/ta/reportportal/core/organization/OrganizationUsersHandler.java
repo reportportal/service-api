@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.organization;
 
 import com.epam.reportportal.api.model.OrgUserAssignment;
+import com.epam.reportportal.api.model.OrgUserProjectPage;
 import com.epam.reportportal.api.model.OrganizationUsersPage;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
@@ -39,4 +40,15 @@ public interface OrganizationUsersHandler {
    * @param userToUnassign The ID of the user to unassign.
    */
   void unassignUser(Long orgId, Long userToUnassign);
+
+
+  /**
+   *
+   *
+   * @param userId         The ID of the user.
+   * @param organizationId The ID of the organization.
+   * @param pageable       Page Details
+   * @return
+   */
+  OrgUserProjectPage findUserProjectsInOrganization(Long userId, Long organizationId, Pageable pageable);
 }

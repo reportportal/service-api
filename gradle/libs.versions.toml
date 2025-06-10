@@ -2,7 +2,7 @@
 # Development versions
 commons-dev = "75fcf17"
 commons-dao-dev = "005c65b"
-plugin-api-dev = "199aaf7"
+plugin-api-dev = "0d59e38"
 
 # Platform versions
 commons-bom = "5.13.4"
@@ -102,8 +102,8 @@ jjwt-impl = { group = "io.jsonwebtoken", name = "jjwt-impl", version.ref = "jjwt
 jjwt-jackson = { group = "io.jsonwebtoken", name = "jjwt-jackson", version.ref = "jjwt" }
 
 [bundles]
-reportportal = ["reportportal-commons", "reportportal-commons-dao", "reportportal-plugin-api"]
-reportportal-dev = ["reportportal-commons-dev", "reportportal-commons-dao-dev", "reportportal-plugin-api-dev"]
+reportportal = ["reportportal-commons", "reportportal-commons-dao"]
+reportportal-dev = ["reportportal-commons-dev", "reportportal-commons-dao-dev"]
 
 spring-boot-starters = [
     "spring-boot-starter-aop",

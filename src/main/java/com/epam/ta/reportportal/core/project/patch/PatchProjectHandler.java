@@ -86,7 +86,7 @@ public class PatchProjectHandler {
 
     patchOperations.forEach(operation -> {
       log.debug("Patch operation: {}", operation);
-      this.patchProject(operation, projectId);
+      this.patchProject(operation, orgId, projectId);
     });
   }
 
@@ -95,22 +95,23 @@ public class PatchProjectHandler {
    * executes the corresponding patch operation (add, replace, or remove).
    *
    * @param operation the patch operation to be applied, containing the path, operation type and value
+   * @param orgId ID of the organization
    * @param projectId ID of the project to be patched
    * @throws IllegalArgumentException if the operation path is invalid ("name" or "slug" expected) or if the operation
    *                                  type is not supported (ADD, REPLACE, or REMOVE expected)
    */
-  public void patchProject(PatchOperation operation, Long projectId) {
+  public void patchProject(PatchOperation operation, Long orgId, Long projectId) {
     BasePatchProjectHandler patchOperationHandler = switch (operation.getPath()) {
       case "name" -> this.patchProjectNameHandler;
       case "slug" -> this.patchProjectSlugHandler;
-      case null, default -> throw new IllegalArgumentException("Unexpected value: " + operation.getPath());
+      case null, default -> throw new IllegalArgumentException("Unexpected path: " + operation.getPath());
     };
 
     switch (operation.getOp()) {
-      case ADD -> patchOperationHandler.add(operation, projectId);
-      case REPLACE -> patchOperationHandler.replace(operation, projectId);
-      case REMOVE -> patchOperationHandler.remove(operation, projectId);
-      default -> throw new IllegalArgumentException("Unexpected value: " + operation.getOp());
+      case ADD -> patchOperationHandler.add(operation, orgId, projectId);
+      case REPLACE -> patchOperationHandler.replace(operation, orgId, projectId);
+      case REMOVE -> patchOperationHandler.remove(operation, orgId, projectId);
+      default -> throw new IllegalArgumentException("Unexpected operation: " + operation.getOp());
     }
 
   }

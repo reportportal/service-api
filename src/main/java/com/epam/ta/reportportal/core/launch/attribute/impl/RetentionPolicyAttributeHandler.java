@@ -16,11 +16,9 @@
 
 package com.epam.ta.reportportal.core.launch.attribute.impl;
 
-import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.ta.reportportal.core.settings.ImportantLaunchSettingHandler.IMPORTANT_SETTINGS_KEY;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.MarkLaunchAsImportantEvent;
@@ -95,11 +93,9 @@ public class RetentionPolicyAttributeHandler implements AttributeHandler {
    */
   @Override
   public void handleLaunchUpdate(Launch launch, ReportPortalUser user) {
-    if (serverSettingsService.checkServerSettingsState(IMPORTANT_SETTINGS_KEY,
+    if (launch == null || launch.getAttributes() == null || serverSettingsService.checkServerSettingsState(
+        IMPORTANT_SETTINGS_KEY,
         Boolean.FALSE.toString())) {
-      throw new ReportPortalException(FORBIDDEN_OPERATION, "Feature is disabled");
-    }
-    if (launch == null || launch.getAttributes() == null) {
       return;
     }
 

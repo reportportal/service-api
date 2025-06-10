@@ -2,15 +2,14 @@ package com.epam.ta.reportportal.core.launch.util;
 
 import static com.epam.ta.reportportal.core.settings.ImportantLaunchSettingHandler.IMPORTANT_SETTINGS_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.MarkLaunchAsImportantEvent;
@@ -162,12 +161,9 @@ public class RetentionPolicyAttributeHandlerTest {
     when(serverSettingsService.checkServerSettingsState(IMPORTANT_SETTINGS_KEY,
         Boolean.FALSE.toString())).thenReturn(true);
 
-    ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> retentionPolicyAttributeHandler.handleLaunchUpdate(launch, user)
-    );
+    retentionPolicyAttributeHandler.handleLaunchUpdate(launch, user);
 
-    assertEquals("Forbidden operation. Feature is disabled",
-        exception.getMessage());
+    verifyNoInteractions(messageBus);
   }
 
   private ItemAttribute createSystemAttribute(String value) {

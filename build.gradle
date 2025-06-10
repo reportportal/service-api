@@ -48,9 +48,15 @@ dependencies {
     if (releaseMode) {
         println("Using release dependencies")
         implementation(libs.bundles.reportportal)
+        implementation(libs.reportportal.plugin.api) {
+            exclude group: 'com.github.reportportal', module: 'commons-dao'
+        }
     } else {
         println("Using snapshot dependencies")
         implementation(libs.bundles.reportportal.dev)
+        implementation(libs.reportportal.plugin.api.dev) {
+            exclude group: 'com.github.reportportal', module: 'commons-dao'
+        }
     }
     api(platform(libs.spring.boot.bom))
     implementation(platform(libs.reportportal.commons.bom))

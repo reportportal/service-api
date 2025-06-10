@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MANAGER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
+import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.reportportal.api.OrganizationUserApi;
@@ -26,15 +27,20 @@ import com.epam.reportportal.api.model.OrgUserAssignment;
 import com.epam.reportportal.api.model.OrgUserProjectPage;
 import com.epam.reportportal.api.model.OrganizationUsersPage;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.Predicates;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.organization.OrganizationUsersHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.organization.OrganizationUserFilter;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.google.common.collect.Lists;
 import io.swagger.v3.oas.annotations.Operation;
@@ -114,6 +120,13 @@ public class OrganizationUsersController extends BaseController implements Organ
   @PreAuthorize(ORGANIZATION_MEMBER)
   public ResponseEntity<OrgUserProjectPage> getOrgUserProjects(Long orgId, Long userId,
       Integer offset, Integer limit, String order, String sort) {
+    ReportPortalUser principal = getPrincipal();
+    BusinessRule.expect(
+        principal.getUserRole().equals(UserRole.ADMINISTRATOR) || principal.getUserId()
+            .equals(userId) || (principal.getOrganizationDetails().containsKey(orgId.toString())
+            && OrganizationRole.MANAGER.equals(
+            principal.getOrganizationDetails().get(orgId.toString()).getOrgRole())),
+        Predicates.equalTo(true)).verify(ErrorType.ACCESS_DENIED);
 
     var pageable = ControllerUtils.getPageable(sort, order, offset, limit);
 

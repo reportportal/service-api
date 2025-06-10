@@ -1,8 +1,8 @@
 [versions]
 # Development versions
 commons-dev = "75fcf17"
-commons-dao-dev = "de4c71f"
-plugin-api-dev = "73594bc"
+commons-dao-dev = "c7b92b7"
+plugin-api-dev = "0d59e38"
 
 # Platform versions
 commons-bom = "5.13.4"
@@ -45,9 +45,9 @@ reportportal-commons-dao-dev = { group = "com.github.reportportal", name = "comm
 reportportal-plugin-api-dev = { group = "com.github.reportportal", name = "plugin-api", version.ref = "plugin-api-dev" }
 
 # Production libs
-reportportal-commons = { group = "com.epam.reportportal", name = "commons" }
-reportportal-commons-dao = { group = "com.epam.reportportal", name = "commons-dao" }
-reportportal-plugin-api = { group = "com.epam.reportportal", name = "plugin-api" }
+reportportal-commons = { group = "com.github.reportportal", name = "commons", version.ref = "commons-dev" }
+reportportal-commons-dao = { group = "com.github.reportportal", name = "commons-dao", version.ref = "commons-dao-dev" }
+reportportal-plugin-api = { group = "com.github.reportportal", name = "plugin-api", version.ref = "plugin-api-dev" }
 
 # Platforms
 spring-boot-bom = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring-boot" }

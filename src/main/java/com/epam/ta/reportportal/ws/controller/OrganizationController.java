@@ -33,7 +33,7 @@ import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.filter.OrganizationsSearchCriteriaService;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.core.organization.OrganizationExtensionPoint;
-import com.epam.ta.reportportal.core.organization.impl.OrganizationSettingsHandler;
+import com.epam.ta.reportportal.core.organization.settings.OrganizationSettingsHandler;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
 import com.epam.ta.reportportal.util.ControllerUtils;

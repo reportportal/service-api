@@ -19,11 +19,16 @@ package com.epam.ta.reportportal.exception.rest;
 
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedMessage;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.exception.ExceptionMappings.MESSAGE_SOURCE;
 
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.base.Preconditions;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 
 /**
@@ -62,14 +67,23 @@ public class DefaultErrorResolver implements ErrorResolver {
 
     RestError.Builder errorBuilder = new RestError.Builder();
     String message;
-    if (formattedMessage(errorDefinition.getError().getDescription())) {
+    if (ex instanceof MethodArgumentNotValidException notValidException) {
+      StringBuilder sb = new StringBuilder();
+      sb.append(ErrorType.INCORRECT_REQUEST.getDescription());
+      for (ObjectError error : notValidException.getBindingResult().getAllErrors()) {
+        sb.append("[")
+            .append(MESSAGE_SOURCE.getMessage(error, LocaleContextHolder.getLocale()))
+            .append("] ");
+      }
+      message = formattedSupplier(sb.toString()).get();
+    } else if (formattedMessage(errorDefinition.getError().getDescription())) {
       message = formattedSupplier(errorDefinition.getError().getDescription(),
           errorDefinition.getExceptionMessage(ex)).get();
     } else {
-      message = new StringBuilder(errorDefinition.getError().getDescription())
-          .append(" [")
-          .append(errorDefinition.getExceptionMessage(ex))
-          .append("]").toString();
+      message = errorDefinition.getError().getDescription()
+          + " ["
+          + errorDefinition.getExceptionMessage(ex)
+          + "]";
     }
     errorBuilder.setError(errorDefinition.getError())
         .setMessage(message)

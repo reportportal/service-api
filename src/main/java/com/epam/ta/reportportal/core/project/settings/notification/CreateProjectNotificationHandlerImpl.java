@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.project.settings.notification;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.NotificationsConfigUpdatedEvent;
@@ -32,7 +33,6 @@ import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO
 import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 
@@ -81,7 +81,8 @@ public class CreateProjectNotificationHandlerImpl implements CreateProjectNotifi
     projectNotificationConfigDTO.getSenderCases().add(createNotificationRQ);
 
     messageBus.publishActivity(new NotificationsConfigUpdatedEvent(projectResource,
-        projectResource.getConfiguration().getProjectConfig(), user.getUserId(), user.getUsername()
+        projectResource.getConfiguration().getProjectConfig(), user.getUserId(), user.getUsername(),
+        project.getOrganizationId()
     ));
 
     return new EntryCreatedRS(senderCase.getId());

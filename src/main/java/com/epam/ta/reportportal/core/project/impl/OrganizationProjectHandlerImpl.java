@@ -253,7 +253,8 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
         user.getUserId(),
         user.getUsername(),
         project.getId(),
-        project.getName());
+        project.getName(),
+        project.getOrganizationId());
     applicationEventPublisher.publishEvent(event);
   }
 

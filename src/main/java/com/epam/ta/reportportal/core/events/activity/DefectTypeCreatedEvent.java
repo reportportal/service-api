@@ -33,15 +33,18 @@ public class DefectTypeCreatedEvent extends AbstractEvent implements ActivityEve
 
   private IssueTypeActivityResource issueTypeActivityResource;
   private Long projectId;
+  private Long orgId;
+
 
   public DefectTypeCreatedEvent() {
   }
 
   public DefectTypeCreatedEvent(IssueTypeActivityResource issueTypeActivityResource, Long userId,
-      String userLogin, Long projectId) {
+      String userLogin, Long projectId, Long orgId) {
     super(userId, userLogin);
     this.issueTypeActivityResource = issueTypeActivityResource;
     this.projectId = projectId;
+    this.orgId = orgId;
   }
 
   public IssueTypeActivityResource getIssueTypeActivityResource() {
@@ -62,11 +65,17 @@ public class DefectTypeCreatedEvent extends AbstractEvent implements ActivityEve
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow().addAction(EventAction.CREATE)
-        .addEventName(ActivityAction.CREATE_DEFECT.getValue()).addPriority(EventPriority.LOW)
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.CREATE)
+        .addEventName(ActivityAction.CREATE_DEFECT.getValue())
+        .addPriority(EventPriority.LOW)
         .addObjectId(issueTypeActivityResource.getId())
         .addObjectName(issueTypeActivityResource.getLongName())
-        .addObjectType(EventObject.DEFECT_TYPE).addProjectId(projectId).addSubjectId(getUserId())
-        .addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER).get();
+        .addObjectType(EventObject.DEFECT_TYPE)
+        .addProjectId(projectId).addSubjectId(getUserId())
+        .addOrganizationId(orgId)
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER).get();
   }
 }

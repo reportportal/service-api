@@ -137,8 +137,7 @@ public class UserInvitationServiceImpl implements UserInvitationService {
         ));
 
     // TODO: Add org IDs to event publisher. Needs to refactor ActivityEvent.
-    eventPublisher.publishEvent(
-        new CreateInvitationLinkEvent(rpUser.getUserId(), rpUser.getUsername()));
+    eventPublisher.publishEvent(new CreateInvitationLinkEvent(rpUser.getUserId(), rpUser.getUsername()));
     return invitation;
   }
 

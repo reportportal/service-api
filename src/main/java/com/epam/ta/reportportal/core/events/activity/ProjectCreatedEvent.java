@@ -35,11 +35,13 @@ public class ProjectCreatedEvent extends AbstractEvent implements ActivityEvent 
 
   private final Long projectId;
   private final String projectName;
+  private Long orgId;
 
-  public ProjectCreatedEvent(Long userId, String userLogin, Long projectId, String projectName) {
+  public ProjectCreatedEvent(Long userId, String userLogin, Long projectId, String projectName, Long orgId) {
     super(userId, userLogin);
     this.projectId = projectId;
     this.projectName = projectName;
+    this.orgId = orgId;
   }
 
   @Override
@@ -53,6 +55,7 @@ public class ProjectCreatedEvent extends AbstractEvent implements ActivityEvent 
         .addObjectName(projectName)
         .addObjectType(EventObject.PROJECT)
         .addProjectId(projectId)
+        .addOrganizationId(orgId)
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(Objects.isNull(getUserId()) ? EventSubject.APPLICATION : EventSubject.USER)

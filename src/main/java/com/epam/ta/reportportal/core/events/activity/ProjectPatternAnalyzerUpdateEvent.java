@@ -35,13 +35,15 @@ import java.util.Map;
  */
 public class ProjectPatternAnalyzerUpdateEvent
     extends AroundEvent<ProjectAttributesActivityResource> implements ActivityEvent {
+  private Long orgId;
 
   public ProjectPatternAnalyzerUpdateEvent() {
   }
 
   public ProjectPatternAnalyzerUpdateEvent(ProjectAttributesActivityResource before,
-      ProjectAttributesActivityResource after, Long userId, String userLogin) {
+      ProjectAttributesActivityResource after, Long userId, String userLogin, Long orgId) {
     super(userId, userLogin, before, after);
+    this.orgId = orgId;
   }
 
   @Override
@@ -51,14 +53,20 @@ public class ProjectPatternAnalyzerUpdateEvent
     final Map<String, String> oldConfig = before.getConfig();
     final Map<String, String> newConfig = after.getConfig();
 
-    final ActivityBuilder activityBuilder =
-        new ActivityBuilder().addCreatedNow().addAction(EventAction.UPDATE)
-            .addEventName(ActivityAction.UPDATE_PATTERN_ANALYZER.getValue())
-            .addPriority(EventPriority.LOW).addObjectId(before.getProjectId())
-            .addObjectName("pattern").addObjectType(EventObject.PROJECT)
-            .addProjectId(before.getProjectId()).addSubjectId(getUserId())
-            .addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER).addHistoryField(
-                processParameter(oldConfig, newConfig, AUTO_PATTERN_ANALYZER_ENABLED.getAttribute()));
+    final ActivityBuilder activityBuilder = new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_PATTERN_ANALYZER.getValue())
+        .addPriority(EventPriority.LOW)
+        .addObjectId(before.getProjectId())
+        .addObjectName("pattern")
+        .addObjectType(EventObject.PROJECT)
+        .addProjectId(before.getProjectId())
+        .addOrganizationId(orgId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
+        .addHistoryField(processParameter(oldConfig, newConfig, AUTO_PATTERN_ANALYZER_ENABLED.getAttribute()));
     return activityBuilder.get();
   }
 }

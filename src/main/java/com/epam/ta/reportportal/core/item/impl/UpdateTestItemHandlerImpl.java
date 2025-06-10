@@ -49,6 +49,7 @@ import com.epam.ta.reportportal.core.item.ExternalTicketHandler;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
+import com.epam.ta.reportportal.core.project.ProjectService;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -124,6 +125,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
   private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
   private final DefectUpdateStatisticsService defectUpdateStatisticsService;
+  private final ProjectService projectService;
+
 
 
   @Autowired
@@ -133,7 +136,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
       MessageBus messageBus, LogIndexerService logIndexerService,
       IssueEntityRepository issueEntityRepository,
       Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping,
-      DefectUpdateStatisticsService defectUpdateStatisticsService) {
+      DefectUpdateStatisticsService defectUpdateStatisticsService, ProjectService projectService) {
     this.testItemService = testItemService;
     this.projectRepository = projectRepository;
     this.testItemRepository = testItemRepository;
@@ -144,6 +147,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     this.issueEntityRepository = issueEntityRepository;
     this.statusChangingStrategyMapping = statusChangingStrategyMapping;
     this.defectUpdateStatisticsService = defectUpdateStatisticsService;
+    this.projectService = projectService;
   }
 
   @Override
@@ -204,8 +208,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
         TestItemActivityResource after =
             TO_ACTIVITY_RESOURCE.apply(testItem, membershipDetails.getProjectId());
 
-        events.add(
-            new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername()));
+        events.add(new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername(),
+            membershipDetails.getOrgId()));
       } catch (BusinessRuleViolationException e) {
         errors.add(e.getMessage());
       }
@@ -335,6 +339,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
   @Override
   public void resetItemsIssue(List<Long> itemIds, Long projectId, ReportPortalUser user) {
+    var project = projectService.findProjectById(projectId);
     itemIds.forEach(itemId -> {
       TestItem item = testItemRepository.findById(itemId)
           .orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, itemId));
@@ -354,7 +359,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
       if (!StringUtils.equalsIgnoreCase(
           before.getIssueTypeLongName(), after.getIssueTypeLongName())) {
         ItemIssueTypeDefinedEvent event =
-            new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername());
+            new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername(),
+                project.getOrganizationId());
         messageBus.publishActivity(event);
       }
     });

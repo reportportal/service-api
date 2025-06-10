@@ -100,7 +100,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
     messageBus.publishActivity(new DashboardUpdatedEvent(before,
         TO_ACTIVITY_RESOURCE.apply(dashboard),
         user.getUserId(),
-        user.getUsername()
+        user.getUsername(), membershipDetails.getOrgId()
     ));
     return new OperationCompletionRS(
         "Dashboard with ID = '" + dashboard.getId() + "' successfully updated");
@@ -178,7 +178,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
       messageBus.publishActivity(
           new WidgetDeletedEvent(WidgetConverter.TO_ACTIVITY_RESOURCE.apply(widget),
               user.getUserId(),
-              user.getUsername()
+              user.getUsername(), membershipDetails.getOrgId()
           ));
       return result;
     }

@@ -17,10 +17,12 @@
 package com.epam.ta.reportportal.core.events.activity.item;
 
 import com.epam.ta.reportportal.core.events.Event;
+import lombok.Getter;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@Getter
 public class ItemRetryEvent implements Event {
 
   private final Long projectId;
@@ -33,18 +35,6 @@ public class ItemRetryEvent implements Event {
     this.projectId = projectId;
     this.launchId = launchId;
     this.itemId = itemId;
-  }
-
-  public Long getProjectId() {
-    return projectId;
-  }
-
-  public Long getLaunchId() {
-    return launchId;
-  }
-
-  public Long getItemId() {
-    return itemId;
   }
 
   public static ItemRetryEvent of(Long projectId, Long launchId, Long itemId) {

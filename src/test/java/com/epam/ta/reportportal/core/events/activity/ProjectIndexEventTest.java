@@ -45,6 +45,7 @@ class ProjectIndexEventTest {
     activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
     activity.setObjectId(3L);
+    activity.setOrganizationId(1L);
     activity.setCreatedAt(Instant.now());
     activity.setObjectName(StringUtils.EMPTY);
     activity.setDetails(new ActivityDetails());
@@ -55,7 +56,7 @@ class ProjectIndexEventTest {
   void generate() {
     final boolean indexing = true;
     final Activity actual = new ProjectIndexEvent(1L, "user", 3L, TEST_PROJECT_KEY,
-        indexing).toActivity();
+        indexing, 1L).toActivity();
     final Activity expected = getExpectedActivity(EventAction.GENERATE, indexing);
     checkActivity(expected, actual);
   }
@@ -64,7 +65,7 @@ class ProjectIndexEventTest {
   void delete() {
     final boolean indexing = false;
     final Activity actual = new ProjectIndexEvent(1L, "user", 3L, TEST_PROJECT_KEY,
-        indexing).toActivity();
+        indexing, 1L).toActivity();
     final Activity expected = getExpectedActivity(EventAction.DELETE, indexing);
     checkActivity(expected, actual);
   }

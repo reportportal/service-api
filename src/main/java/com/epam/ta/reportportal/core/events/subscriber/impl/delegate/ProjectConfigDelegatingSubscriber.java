@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.core.events.ProjectIdAwareEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.ta.reportportal.core.events.subscriber.EventSubscriber;
 import com.epam.ta.reportportal.core.project.config.ProjectConfigProvider;
-import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.launch.LaunchResourceAttributeLogger;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -45,7 +44,7 @@ public class ProjectConfigDelegatingSubscriber<T extends ProjectIdAwareEvent> im
 
   @Override
   public void handleEvent(T event) {
-    final Map<String, String> projectConfig = projectConfigProvider.provide(event.getProjectId());
+    final Map<String, String> projectConfig = projectConfigProvider.provide(event.projectId());
     eventHandlers.forEach(h -> {
       try {
         h.handle(event, projectConfig);

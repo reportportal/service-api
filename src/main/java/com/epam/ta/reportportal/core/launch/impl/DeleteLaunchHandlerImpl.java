@@ -117,7 +117,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
     messageBus.publishActivity(
         new LaunchDeletedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(),
-            user.getUsername()
+            user.getUsername(), membershipDetails.getOrgId()
         ));
     eventPublisher.publishEvent(
         new ElementsDeletedEvent(launchId, launch.getProjectId(), numberOfLaunchElements));
@@ -160,7 +160,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
     toDelete.entrySet().forEach(entry -> {
       LaunchActivityResource launchActivity = TO_ACTIVITY_RESOURCE.apply(entry.getKey());
       messageBus.publishActivity(
-          new LaunchDeletedEvent(launchActivity, user.getUserId(), user.getUsername()));
+          new LaunchDeletedEvent(launchActivity, user.getUserId(), user.getUsername(), membershipDetails.getOrgId()));
       eventPublisher.publishEvent(
           new ElementsDeletedEvent(entry.getKey().getId(), entry.getKey().getProjectId(),
               entry.getValue()

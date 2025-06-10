@@ -19,9 +19,11 @@ package com.epam.ta.reportportal.core.integration.impl;
 import static com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.IntegrationCreatedEvent;
 import com.epam.ta.reportportal.core.events.activity.IntegrationUpdatedEvent;
 import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
@@ -32,11 +34,9 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.activity.IntegrationActivityResource;
 import com.epam.ta.reportportal.model.integration.IntegrationRQ;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Map;
 import org.apache.commons.lang3.BooleanUtils;
@@ -66,7 +66,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
   @Autowired
   public CreateIntegrationHandlerImpl(@Qualifier("integrationServiceMapping")
-  Map<String, IntegrationService> integrationServiceMapping,
+      Map<String, IntegrationService> integrationServiceMapping,
       IntegrationRepository integrationRepository, ProjectRepository projectRepository,
       ApplicationEventPublisher eventPublisher, IntegrationTypeRepository integrationTypeRepository,
       @Qualifier("basicIntegrationServiceImpl") IntegrationService integrationService) {
@@ -244,14 +244,15 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
       IntegrationActivityResource beforeUpdate, Integration updatedIntegration) {
     eventPublisher.publishEvent(
         new IntegrationUpdatedEvent(user.getUserId(), user.getUsername(), beforeUpdate,
-            TO_ACTIVITY_RESOURCE.apply(updatedIntegration)
+            TO_ACTIVITY_RESOURCE.apply(updatedIntegration), null
         ));
   }
 
   private void publishCreationActivity(Integration integration, ReportPortalUser user) {
+    var orgId = integration.getProject() != null ? integration.getProject().getOrganizationId() : null;
     eventPublisher.publishEvent(
         new IntegrationCreatedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId(),
-            user.getUsername()
+            user.getUsername(), orgId
         ));
   }
 

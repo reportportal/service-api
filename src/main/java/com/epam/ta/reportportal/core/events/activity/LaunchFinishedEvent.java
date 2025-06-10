@@ -30,12 +30,17 @@ import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Lifecycle events.
  *
  * @author Andrei Varabyeu
  */
+
+@Getter
+@Setter
 public class LaunchFinishedEvent extends AbstractEvent implements ActivityEvent,
     ProjectIdAwareEvent {
 
@@ -48,84 +53,37 @@ public class LaunchFinishedEvent extends AbstractEvent implements ActivityEvent,
   private ReportPortalUser user;
 
   private String baseUrl;
+  private Long orgId;
 
   private final boolean isSystemEvent;
 
-  public LaunchFinishedEvent(Launch launch) {
-    this(launch, null, null, true);
+  public LaunchFinishedEvent(Launch launch, Long orgId) {
+    this(launch, null, null, true, orgId);
     this.id = launch.getId();
     this.name = launch.getName();
     this.mode = launch.getMode();
     this.projectId = launch.getProjectId();
   }
 
-  public LaunchFinishedEvent(Launch launch, Long userId, String userLogin, boolean isSystemEvent) {
+  public LaunchFinishedEvent(Launch launch, Long userId, String userLogin, boolean isSystemEvent, Long orgId) {
     super(userId, userLogin);
     this.id = launch.getId();
     this.name = launch.getName();
     this.mode = launch.getMode();
     this.projectId = launch.getProjectId();
     this.isSystemEvent = isSystemEvent;
+    this.orgId = orgId;
   }
 
-  public LaunchFinishedEvent(Launch launch, Long userId, String userLogin, String baseUrl) {
-    this(launch, userId, userLogin, false);
+  public LaunchFinishedEvent(Launch launch, Long userId, String userLogin, String baseUrl, Long orgId) {
+    this(launch, userId, userLogin, false, orgId);
     this.baseUrl = baseUrl;
   }
 
-  public LaunchFinishedEvent(Launch launch, ReportPortalUser user, String baseUrl) {
-    this(launch, user.getUserId(), user.getUsername(), false);
+  public LaunchFinishedEvent(Launch launch, ReportPortalUser user, String baseUrl, Long orgId) {
+    this(launch, user.getUserId(), user.getUsername(), false, orgId);
     this.user = user;
     this.baseUrl = baseUrl;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public LaunchModeEnum getMode() {
-    return mode;
-  }
-
-  public void setMode(LaunchModeEnum mode) {
-    this.mode = mode;
-  }
-
-  @Override
-  public Long getProjectId() {
-    return projectId;
-  }
-
-  public void setProjectId(Long projectId) {
-    this.projectId = projectId;
-  }
-
-  public String getBaseUrl() {
-    return baseUrl;
-  }
-
-  public void setBaseUrl(String baseUrl) {
-    this.baseUrl = baseUrl;
-  }
-
-  public ReportPortalUser getUser() {
-    return user;
-  }
-
-  public void setUser(ReportPortalUser user) {
-    this.user = user;
   }
 
   @Override
@@ -139,9 +97,15 @@ public class LaunchFinishedEvent extends AbstractEvent implements ActivityEvent,
         .addObjectName(name)
         .addObjectType(EventObject.LAUNCH)
         .addProjectId(projectId)
+        .addOrganizationId(orgId)
         .addSubjectId(isSystemEvent ? null : getUserId())
         .addSubjectName(isSystemEvent ? RP_SUBJECT_NAME : getUserLogin())
         .addSubjectType(isSystemEvent ? EventSubject.APPLICATION : EventSubject.USER)
         .get();
+  }
+
+  @Override
+  public Long projectId() {
+    return projectId;
   }
 }

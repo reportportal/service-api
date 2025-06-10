@@ -68,7 +68,7 @@ public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
     dashboardRepository.save(dashboard);
     messageBus.publishActivity(
         new DashboardCreatedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(),
-            user.getUsername()
+            user.getUsername(), membershipDetails.getOrgId()
         ));
     return new EntryCreatedRS(dashboard.getId());
   }

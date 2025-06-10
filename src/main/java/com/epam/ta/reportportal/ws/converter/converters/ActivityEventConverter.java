@@ -42,4 +42,13 @@ public final class ActivityEventConverter {
           .subjectId(Objects.toString(activity.getSubjectId(), null)).details(activity.getDetails())
           .build();
 
+  public static final Function<Activity, com.epam.reportportal.api.model.Activity> TO_ACTIVITY_RESOURCE =
+      activity -> new com.epam.reportportal.api.model.Activity()
+          .id(activity.getId())
+          .createdAt(activity.getCreatedAt())
+          .eventName(activity.getEventName()).objectId(activity.getObjectId())
+          .objectName(activity.getObjectName()).objectType(activity.getObjectType().getValue())
+          .projectId(activity.getProjectId()).projectName(activity.getProjectName())
+          .subjectName(activity.getSubjectName()).subjectType(activity.getSubjectType().getValue());
+
 }

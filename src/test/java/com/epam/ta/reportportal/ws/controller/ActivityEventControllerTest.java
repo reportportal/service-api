@@ -32,19 +32,23 @@ class ActivityEventControllerTest extends BaseMvcTest {
 
   @Test
   void testGetActivities_actionByAdminWithPredefinedFilter() throws Exception {
-    int limit = 2;
-    int offset = 0;
-    String order = "ASC";
-    String sort = "id";
-
-    String searchCriteriaJsonString = "{\"search_criteria\":["
-        + "{\"filter_key\":\"predefinedFilter\",\"operation\":\"IN\",\"value\":\"create\"}]}";
+    String searchCriteriaJsonString = """
+        {
+          "search_criteria": [
+            {
+              "filter_key": "predefinedFilter",
+              "operation": "IN",
+              "value": "create"
+            }
+          ],
+          "limit": 2,
+          "offset": 0,
+          "order": "ASC",
+          "sort": "id"
+        }
+        """;
 
     mockMvc.perform(post(BASE_ACTIVITIES_ENDPOINT)
-            .param("limit", String.valueOf(limit))
-            .param("offset", String.valueOf(offset))
-            .param("order", order)
-            .param("sort", sort)
             .contentType(MediaType.APPLICATION_JSON)
             .with(token(oAuthHelper.getSuperadminToken()))
             .content(searchCriteriaJsonString))
@@ -85,7 +89,15 @@ class ActivityEventControllerTest extends BaseMvcTest {
     String order = "ASC";
     String sort = "id";
 
-    String searchCriteriaJsonString = "{\"search_criteria\":[]}";
+    String searchCriteriaJsonString = """
+        {
+          "search_criteria": [],
+          "limit": 2,
+          "offset": 0,
+          "order": "ASC",
+          "sort": "id"
+        }
+        """;
 
     mockMvc.perform(post(BASE_ACTIVITIES_ENDPOINT)
             .param("limit", String.valueOf(limit))
@@ -105,20 +117,21 @@ class ActivityEventControllerTest extends BaseMvcTest {
 
   @Test
   void testGetActivities_actionByAdminWithPredefinedFilterAndEventName() throws Exception {
-    int limit = 2;
-    int offset = 0;
-    String order = "ASC";
-    String sort = "id";
-
-    String searchCriteriaJsonString = "{\"search_criteria\":["
-        + "{\"filter_key\":\"eventName\",\"operation\":\"IN\",\"value\":\"updateDashboard\"},"
-        + "{\"filter_key\":\"predefinedFilter\",\"operation\":\"IN\",\"value\":\"user\"}]}";
+    String searchCriteriaJsonString =
+        """
+            {
+              "search_criteria": [
+                 {"filter_key":"eventName","operation":"IN","value":"updateDashboard"},
+                 {"filter_key":"predefinedFilter","operation":"IN","value":"user"}
+              ],
+              "limit": 2,
+              "offset": 0,
+              "order": "ASC",
+              "sort": "id"
+            }
+            """;
 
     mockMvc.perform(post(BASE_ACTIVITIES_ENDPOINT)
-            .param("limit", String.valueOf(limit))
-            .param("offset", String.valueOf(offset))
-            .param("order", order)
-            .param("sort", sort)
             .contentType(MediaType.APPLICATION_JSON)
             .with(token(oAuthHelper.getSuperadminToken()))
             .content(searchCriteriaJsonString))

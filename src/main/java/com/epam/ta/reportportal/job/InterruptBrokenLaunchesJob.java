@@ -100,7 +100,7 @@ public class InterruptBrokenLaunchesJob implements Job {
                        * There are no test items for this launch. Just INTERRUPT
                        * this launch
                        */
-                      interruptLaunch(launchId);
+                      interruptLaunch(launchId, project.getOrganizationId());
                     } else {
                       /*
                        * Well, there are some test items started for specified
@@ -121,13 +121,13 @@ public class InterruptBrokenLaunchesJob implements Job {
                            */
                           if (!logRepository.hasLogsAddedLately(maxDuration, launchId,
                               StatusEnum.IN_PROGRESS)) {
-                            interruptItems(launchId);
+                            interruptItems(launchId, project.getOrganizationId());
                           }
                         } else {
                           /*
                            * If not just INTERRUPT all found items and launch
                            */
-                          interruptItems(launchId);
+                          interruptItems(launchId, project.getOrganizationId());
                         }
                       }
                     }
@@ -141,22 +141,23 @@ public class InterruptBrokenLaunchesJob implements Job {
     );
   }
 
-  private void interruptLaunch(Long launchId) {
+  private void interruptLaunch(Long launchId, Long organizationId) {
     launchRepository.findById(launchId).ifPresent(launch -> {
       launch.setStatus(StatusEnum.INTERRUPTED);
       launch.setEndTime(Instant.now());
+
       launchRepository.save(launch);
-      publishFinishEvent(launch);
+      publishFinishEvent(launch, organizationId);
     });
   }
 
-  private void publishFinishEvent(Launch launch) {
-    final LaunchFinishedEvent launchFinishedEvent = new LaunchFinishedEvent(launch);
+  private void publishFinishEvent(Launch launch, Long organizationId) {
+    final LaunchFinishedEvent launchFinishedEvent = new LaunchFinishedEvent(launch, organizationId);
     eventPublisher.publishEvent(launchFinishedEvent);
   }
 
-  private void interruptItems(Long launchId) {
+  private void interruptItems(Long launchId, Long orgId) {
     testItemRepository.interruptInProgressItems(launchId);
-    interruptLaunch(launchId);
+    interruptLaunch(launchId, orgId);
   }
 }

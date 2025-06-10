@@ -44,6 +44,7 @@ class DefectTypeEventsTest {
     activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
     activity.setObjectId(2L);
+    activity.setOrganizationId(1L);
     activity.setCreatedAt(Instant.now());
     activity.setObjectName(name);
     activity.setDetails(new ActivityDetails());
@@ -52,14 +53,14 @@ class DefectTypeEventsTest {
 
   @Test
   void created() {
-    final Activity actual = new DefectTypeCreatedEvent(getIssueType(), 1L, "user", 3L).toActivity();
+    final Activity actual = new DefectTypeCreatedEvent(getIssueType(), 1L, "user", 3L, 1L).toActivity();
     final Activity expected = getExpectedActivity(EventAction.CREATE, "test long name");
     checkActivity(expected, actual);
   }
 
   @Test
   void deleted() {
-    final Activity actual = new DefectTypeDeletedEvent(getIssueType(), 1L, "user", 3L).toActivity();
+    final Activity actual = new DefectTypeDeletedEvent(getIssueType(), 1L, "user", 3L, 1L).toActivity();
     final Activity expected = getExpectedActivity(EventAction.DELETE, "test long name");
     expected.setPriority(EventPriority.MEDIUM);
     checkActivity(expected, actual);
@@ -74,7 +75,7 @@ class DefectTypeEventsTest {
 
   @Test
   void updated() {
-    final Activity actual = new DefectTypeUpdatedEvent(getIssueType(), 1L, "user", 3L).toActivity();
+    final Activity actual = new DefectTypeUpdatedEvent(getIssueType(), 1L, "user", 3L, 1L).toActivity();
     final Activity expected = getExpectedActivity(EventAction.UPDATE, "test long name");
     checkActivity(expected, actual);
   }

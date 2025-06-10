@@ -40,30 +40,40 @@ import com.epam.ta.reportportal.model.activity.ProjectAttributesActivityResource
 public class ProjectUpdatedEvent extends AroundEvent<ProjectAttributesActivityResource>
     implements ActivityEvent {
 
+  private Long orgId;
+
   public ProjectUpdatedEvent() {
   }
 
   public ProjectUpdatedEvent(ProjectAttributesActivityResource before,
-      ProjectAttributesActivityResource after, Long userId, String userLogin) {
+      ProjectAttributesActivityResource after, Long userId, String userLogin, Long orgId) {
     super(userId, userLogin, before, after);
+    this.orgId = orgId;
   }
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow().addAction(EventAction.UPDATE)
-        .addEventName(ActivityAction.UPDATE_PROJECT.getValue()).addPriority(EventPriority.HIGH)
-        .addObjectId(getBefore().getProjectId()).addObjectName(getBefore().getProjectName())
-        .addObjectType(EventObject.PROJECT).addProjectId(getBefore().getProjectId())
-        .addSubjectId(getUserId()).addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER)
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_PROJECT.getValue())
+        .addPriority(EventPriority.HIGH)
+        .addObjectId(getBefore().getProjectId())
+        .addObjectName(getBefore().getProjectName())
+        .addObjectType(EventObject.PROJECT)
+        .addProjectId(getBefore().getProjectId())
+        .addOrganizationId(orgId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
         .addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(),
-            INTERRUPT_JOB_TIME.getAttribute()
-        )).addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(),
-            KEEP_SCREENSHOTS.getAttribute()
-        )).addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(),
-            KEEP_LOGS.getAttribute()
-        )).addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(),
-            KEEP_LAUNCHES.getAttribute()
-        )).get();
+            INTERRUPT_JOB_TIME.getAttribute()))
+        .addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(),
+            KEEP_SCREENSHOTS.getAttribute()))
+        .addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), KEEP_LOGS.getAttribute()))
+        .addHistoryField(
+            processParameter(getBefore().getConfig(), getAfter().getConfig(), KEEP_LAUNCHES.getAttribute()))
+        .get();
   }
 
 }

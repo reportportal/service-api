@@ -21,30 +21,6 @@ import com.epam.ta.reportportal.core.events.ProjectIdAwareEvent;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class IssueResolvedEvent implements ProjectIdAwareEvent {
+public record IssueResolvedEvent(Long itemId, Long launchId, Long projectId) implements ProjectIdAwareEvent {
 
-  private final Long itemId;
-
-  private final Long launchId;
-
-  private final Long projectId;
-
-  public IssueResolvedEvent(Long itemId, Long launchId, Long projectId) {
-    this.itemId = itemId;
-    this.launchId = launchId;
-    this.projectId = projectId;
-  }
-
-  public Long getItemId() {
-    return itemId;
-  }
-
-  public Long getLaunchId() {
-    return launchId;
-  }
-
-  @Override
-  public Long getProjectId() {
-    return projectId;
-  }
 }

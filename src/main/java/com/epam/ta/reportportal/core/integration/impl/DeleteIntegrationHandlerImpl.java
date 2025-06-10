@@ -68,7 +68,7 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
     Integration integration = integrationRepository.findGlobalById(integrationId)
         .orElseThrow(
             () -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
-    publishActivities(List.of(integration), user);
+    publishActivities(List.of(integration), user, null);
 
     integrationRepository.deleteById(integration.getId());
     return new OperationCompletionRS(
@@ -85,7 +85,7 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
     List<Integration> integrations = integrationRepository.findAllGlobalInIntegrationTypeIds(
         Collections.singletonList(integrationType.getId())
     );
-    publishActivities(integrations, user);
+    publishActivities(integrations, user, null);
 
     integrationRepository.deleteAllGlobalByIntegrationTypeId(integrationType.getId());
     return new OperationCompletionRS(
@@ -106,7 +106,7 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
     integrationRepository.deleteById(integration.getId());
     eventPublisher.publishEvent(new IntegrationDeletedEvent(TO_ACTIVITY_RESOURCE.apply(integration),
         user.getUserId(),
-        user.getUsername()
+        user.getUsername(), project.getOrganizationId()
     ));
     return new OperationCompletionRS(
         "Integration with ID = '" + integrationId + "' has been successfully deleted.");
@@ -123,7 +123,7 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
         project.getId(),
         Collections.singletonList(integrationType.getId())
     );
-    publishActivities(integrations, user);
+    publishActivities(integrations, user, project.getOrganizationId());
 
     integrationRepository.deleteAllByProjectIdAndIntegrationTypeId(project.getId(),
         integrationType.getId());
@@ -132,10 +132,10 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
             + "' have been successfully deleted");
   }
 
-  private void publishActivities(List<Integration> integrations, ReportPortalUser user) {
+  private void publishActivities(List<Integration> integrations, ReportPortalUser user, Long orgId) {
     integrations.stream()
         .map(TO_ACTIVITY_RESOURCE)
         .forEach(it -> eventPublisher.publishEvent(
-            new IntegrationDeletedEvent(it, user.getUserId(), user.getUsername())));
+            new IntegrationDeletedEvent(it, user.getUserId(), user.getUsername(), orgId)));
   }
 }

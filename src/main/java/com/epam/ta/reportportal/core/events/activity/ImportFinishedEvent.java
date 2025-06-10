@@ -24,38 +24,28 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Pavel Bortnik
  */
+@Setter
+@Getter
 public class ImportFinishedEvent extends AbstractEvent implements ActivityEvent {
 
   private Long projectId;
   private String fileName;
+  private Long orgId;
 
   public ImportFinishedEvent() {
   }
 
-  public ImportFinishedEvent(Long userId, String userLogin, Long projectId, String fileName) {
+  public ImportFinishedEvent(Long userId, String userLogin, Long projectId, String fileName, Long orgId) {
     super(userId, userLogin);
     this.projectId = projectId;
     this.fileName = fileName;
-  }
-
-  public Long getProjectId() {
-    return projectId;
-  }
-
-  public void setProjectId(Long projectId) {
-    this.projectId = projectId;
-  }
-
-  public String getFileName() {
-    return fileName;
-  }
-
-  public void setFileName(String fileName) {
-    this.fileName = fileName;
+    this.orgId = orgId;
   }
 
   @Override
@@ -68,6 +58,7 @@ public class ImportFinishedEvent extends AbstractEvent implements ActivityEvent 
         .addObjectName(fileName)
         .addObjectType(EventObject.IMPORT)
         .addProjectId(projectId)
+        .addOrganizationId(orgId)
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)

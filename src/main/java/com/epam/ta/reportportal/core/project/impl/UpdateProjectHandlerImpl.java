@@ -228,7 +228,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
     messageBus.publishActivity(
         new NotificationsConfigUpdatedEvent(before, updateProjectNotificationConfigRQ,
-            user.getUserId(), user.getUsername()
+            user.getUserId(), user.getUsername(), project.getOrganizationId()
         ));
     return new OperationCompletionRS(
         "Notification configuration of project - '" + projectKey + "' is successfully updated.");
@@ -333,7 +333,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
     messageBus.publishActivity(
         new ProjectIndexEvent(user.getUserId(), user.getUsername(), project.getId(),
-            project.getName(), true
+            project.getName(), true, project.getOrganizationId()
         ));
     return new OperationCompletionRS("Log indexing has been started");
   }
@@ -387,7 +387,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
     UnassignUserEvent unassignUserEvent =
         new UnassignUserEvent(convertUserToResource(userForUnassign, projectUser),
-            authorizedUser.getUserId(), authorizedUser.getUsername()
+            authorizedUser.getUserId(), authorizedUser.getUsername(), project.getOrganizationId()
         );
     applicationEventPublisher.publishEvent(unassignUserEvent);
 
@@ -445,7 +445,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
     AssignUserEvent assignUserEvent =
         new AssignUserEvent(convertUserToResource(modifyingUser, projectUser),
-            authorizedUser.getUserId(), authorizedUser.getUsername(), false
+            authorizedUser.getUserId(), authorizedUser.getUsername(), false, project.getOrganizationId()
         );
     applicationEventPublisher.publishEvent(assignUserEvent);
   }
@@ -514,10 +514,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
   private ChangeRoleEvent getChangeRoleEvent(User updatingUser, Long projectId,
       ReportPortalUser loggedUser, String oldRole, String newRole) {
+    Project project = projectRepository.findById(projectId)
+        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectId));
     UserActivityResource userActivityResource =
         new UserActivityResource(updatingUser.getId(), projectId, updatingUser.getLogin());
     return new ChangeRoleEvent(userActivityResource, oldRole, newRole, loggedUser.getUserId(),
-        loggedUser.getUsername()
+        loggedUser.getUsername(), project.getOrganizationId()
     );
   }
 
@@ -620,9 +622,11 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
       ProjectAttributesActivityResource after, ReportPortalUser user,
       ProjectConfigurationUpdate updateConfiguration) {
 
+    Project project = projectRepository.findById(before.getProjectId())
+        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, before.getProjectId()));
     if (ActivityDetailsUtil.configChanged(before.getConfig(), after.getConfig(), Prefix.JOB)) {
       applicationEventPublisher.publishEvent(
-          new ProjectUpdatedEvent(before, after, user.getUserId(), user.getUsername()));
+          new ProjectUpdatedEvent(before, after, user.getUserId(), user.getUsername(), project.getOrganizationId()));
     }
 
     if (ActivityDetailsUtil.configChanged(before.getConfig(), after.getConfig(), Prefix.ANALYZER)) {
@@ -630,11 +634,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
           AUTO_PATTERN_ANALYZER_ENABLED.getAttribute()
       ).isEmpty()) {
         applicationEventPublisher.publishEvent(
-            new ProjectAnalyzerConfigEvent(before, after, user.getUserId(), user.getUsername()));
+            new ProjectAnalyzerConfigEvent(before, after, user.getUserId(), user.getUsername(),
+                project.getOrganizationId()));
       } else {
         applicationEventPublisher.publishEvent(
             new ProjectPatternAnalyzerUpdateEvent(before, after, user.getUserId(),
-                user.getUsername()
+                user.getUsername(), project.getOrganizationId()
             ));
       }
     }

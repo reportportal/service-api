@@ -33,41 +33,35 @@ import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.model.analyzer.RelevantItemInfo;
 import java.util.Optional;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Andrei Varabyeu
  */
+@Setter
+@Getter
 public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResource> implements
     ActivityEvent {
 
   private RelevantItemInfo relevantItemInfo;
+  private Long orgId;
 
   public ItemIssueTypeDefinedEvent() {
   }
 
   public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after,
-      Long userId, String userLogin) {
+      Long userId, String userLogin, Long  orgId) {
     super(userId, userLogin, before, after);
-  }
-
-  public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after,
-      String userLogin) {
-    super(null, userLogin, before, after);
+    this.orgId = orgId;
   }
 
   public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after,
       String userLogin,
-      RelevantItemInfo relevantItemInfo) {
+      RelevantItemInfo relevantItemInfo, Long orgId) {
     super(null, userLogin, before, after);
     this.relevantItemInfo = relevantItemInfo;
-  }
-
-  public RelevantItemInfo getRelevantItemInfo() {
-    return relevantItemInfo;
-  }
-
-  public void setRelevantItemInfo(RelevantItemInfo relevantItemInfo) {
-    this.relevantItemInfo = relevantItemInfo;
+    this.orgId = orgId;
   }
 
   public boolean isAutoAnalyzed() {
@@ -87,6 +81,7 @@ public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResou
         .addObjectName(getAfter().getName())
         .addObjectType(EventObject.ITEM_ISSUE)
         .addProjectId(getAfter().getProjectId())
+        .addOrganizationId(orgId)
         .addSubjectId(isAutoAnalyzed() ? null : getUserId())
         .addSubjectName(isAutoAnalyzed() ? "analyzer" : getUserLogin())
         .addSubjectType(isAutoAnalyzed() ? EventSubject.APPLICATION : EventSubject.USER)

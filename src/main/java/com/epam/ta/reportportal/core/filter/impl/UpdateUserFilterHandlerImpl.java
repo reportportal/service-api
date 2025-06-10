@@ -94,7 +94,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
     userFilterRepository.save(filter);
     messageBus.publishActivity(
         new FilterCreatedEvent(TO_ACTIVITY_RESOURCE.apply(filter), user.getUserId(),
-            user.getUsername()
+            user.getUsername(), membershipDetails.getOrgId()
         ));
     return new EntryCreatedRS(filter.getId());
   }
@@ -115,7 +115,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
     userFilterRepository.save(filter);
     messageBus.publishActivity(
         new FilterCreatedEvent(TO_ACTIVITY_RESOURCE.apply(filter), user.getUserId(),
-            user.getUsername()
+            user.getUsername(), membershipDetails.getOrgId()
         ));
     return new EntryCreatedRS(filter.getId());
   }
@@ -149,7 +149,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
     messageBus.publishActivity(
         new FilterUpdatedEvent(before, TO_ACTIVITY_RESOURCE.apply(updated), user.getUserId(),
-            user.getUsername()
+            user.getUsername(), membershipDetails.getOrgId()
         ));
     return new OperationCompletionRS(
         "User filter with ID = '" + updated.getId() + "' successfully updated.");

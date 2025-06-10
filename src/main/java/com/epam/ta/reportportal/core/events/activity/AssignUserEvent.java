@@ -30,31 +30,33 @@ import com.epam.ta.reportportal.model.activity.UserActivityResource;
 
 public class AssignUserEvent extends AbstractEvent implements ActivityEvent {
 
+
   private UserActivityResource userActivityResource;
 
   private final boolean isSystemEvent;
+  private Long orgId;
+
 
   public AssignUserEvent(UserActivityResource userActivityResource, Long userId, String userLogin,
-      boolean isSystemEvent) {
+      boolean isSystemEvent, Long orgId) {
     super(userId, userLogin);
     this.userActivityResource = userActivityResource;
     this.isSystemEvent = isSystemEvent;
-  }
-
-  public UserActivityResource getUserActivityResource() {
-    return userActivityResource;
-  }
-
-  public void setUserActivityResource(UserActivityResource userActivityResource) {
-    this.userActivityResource = userActivityResource;
+    this.orgId = orgId;
   }
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow().addAction(EventAction.ASSIGN)
-        .addEventName(ASSIGN_USER.getValue()).addPriority(EventPriority.HIGH)
-        .addObjectId(userActivityResource.getId()).addObjectName(userActivityResource.getFullName())
-        .addObjectType(EventObject.USER).addProjectId(userActivityResource.getDefaultProjectId())
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.ASSIGN)
+        .addEventName(ASSIGN_USER.getValue())
+        .addPriority(EventPriority.HIGH)
+        .addObjectId(userActivityResource.getId())
+        .addObjectName(userActivityResource.getFullName())
+        .addObjectType(EventObject.USER)
+        .addProjectId(userActivityResource.getDefaultProjectId())
+        .addOrganizationId(orgId)
         .addSubjectId(isSystemEvent ? null : getUserId())
         .addSubjectName(isSystemEvent ? RP_SUBJECT_NAME : getUserLogin())
         .addSubjectType(isSystemEvent ? EventSubject.APPLICATION : EventSubject.USER).get();

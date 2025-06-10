@@ -32,11 +32,14 @@ import com.epam.ta.reportportal.model.activity.WidgetActivityResource;
 public class WidgetDeletedEvent extends BeforeEvent<WidgetActivityResource> implements
     ActivityEvent {
 
+  private Long orgId;
+
   public WidgetDeletedEvent() {
   }
 
-  public WidgetDeletedEvent(WidgetActivityResource before, Long userId, String userLogin) {
+  public WidgetDeletedEvent(WidgetActivityResource before, Long userId, String userLogin, Long orgId) {
     super(userId, userLogin, before);
+    this.orgId = orgId;
   }
 
   @Override
@@ -50,6 +53,7 @@ public class WidgetDeletedEvent extends BeforeEvent<WidgetActivityResource> impl
         .addObjectName(getBefore().getName())
         .addObjectType(EventObject.WIDGET)
         .addProjectId(getBefore().getProjectId())
+        .addOrganizationId(orgId)
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)

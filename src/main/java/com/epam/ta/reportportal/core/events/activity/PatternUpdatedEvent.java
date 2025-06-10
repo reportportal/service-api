@@ -36,12 +36,15 @@ import com.epam.ta.reportportal.model.activity.PatternTemplateActivityResource;
 public class PatternUpdatedEvent extends AroundEvent<PatternTemplateActivityResource> implements
     ActivityEvent {
 
+  private Long orgId;
+
   public PatternUpdatedEvent() {
   }
 
   public PatternUpdatedEvent(Long userId, String userLogin, PatternTemplateActivityResource before,
-      PatternTemplateActivityResource after) {
+      PatternTemplateActivityResource after, Long orgId) {
     super(userId, userLogin, before, after);
+    this.orgId = orgId;
   }
 
   @Override
@@ -55,6 +58,7 @@ public class PatternUpdatedEvent extends AroundEvent<PatternTemplateActivityReso
         .addObjectName(getAfter().getName())
         .addObjectType(EventObject.PATTERN)
         .addProjectId(getAfter().getProjectId())
+        .addOrganizationId(orgId)
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)

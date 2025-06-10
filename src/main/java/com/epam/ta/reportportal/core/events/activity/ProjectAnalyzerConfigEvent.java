@@ -43,13 +43,15 @@ import java.util.stream.Stream;
  */
 public class ProjectAnalyzerConfigEvent extends AroundEvent<ProjectAttributesActivityResource>
     implements ActivityEvent {
+  private Long orgId;
 
   public ProjectAnalyzerConfigEvent() {
   }
 
   public ProjectAnalyzerConfigEvent(ProjectAttributesActivityResource before,
-      ProjectAttributesActivityResource after, Long userId, String userLogin) {
+      ProjectAttributesActivityResource after, Long userId, String userLogin, Long orgId) {
     super(userId, userLogin, before, after);
+    this.orgId = orgId;
   }
 
   @Override
@@ -61,11 +63,18 @@ public class ProjectAnalyzerConfigEvent extends AroundEvent<ProjectAttributesAct
     final Map<String, String> newConfig = after.getConfig();
 
     final ActivityBuilder activityBuilder =
-        new ActivityBuilder().addCreatedNow().addAction(EventAction.UPDATE)
-            .addEventName(ActivityAction.UPDATE_ANALYZER.getValue()).addPriority(EventPriority.LOW)
-            .addObjectId(before.getProjectId()).addObjectName("analyzer")
-            .addObjectType(EventObject.PROJECT).addProjectId(before.getProjectId())
-            .addSubjectId(getUserId()).addSubjectName(getUserLogin())
+        new ActivityBuilder()
+            .addCreatedNow()
+            .addAction(EventAction.UPDATE)
+            .addEventName(ActivityAction.UPDATE_ANALYZER.getValue())
+            .addPriority(EventPriority.LOW)
+            .addObjectId(before.getProjectId())
+            .addObjectName("analyzer")
+            .addObjectType(EventObject.PROJECT)
+            .addProjectId(before.getProjectId())
+            .addOrganizationId(orgId)
+            .addSubjectId(getUserId())
+            .addSubjectName(getUserLogin())
             .addSubjectType(EventSubject.USER);
 
     Stream.of(AUTO_ANALYZER_MODE, MIN_SHOULD_MATCH, SEARCH_LOGS_MIN_SHOULD_MATCH,

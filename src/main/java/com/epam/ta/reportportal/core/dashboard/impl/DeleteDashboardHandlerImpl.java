@@ -19,6 +19,8 @@ package com.epam.ta.reportportal.core.dashboard.impl;
 import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.stream.Collectors.toSet;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.DeleteDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -31,8 +33,6 @@ import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.List;
 import java.util.Set;
@@ -46,44 +46,50 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
-	private final DashboardRepository dashboardRepository;
-	private final DashboardWidgetRepository dashboardWidgetRepository;
-	private final WidgetRepository widgetRepository;
-	private final WidgetContentRemover widgetContentRemover;
-	private final MessageBus messageBus;
 
-	@Autowired
-	public DeleteDashboardHandlerImpl(DashboardRepository dashboardRepository, DashboardWidgetRepository dashboardWidgetRepository,
-			WidgetRepository widgetRepository, @Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover,
-			MessageBus messageBus) {
-		this.dashboardRepository = dashboardRepository;
-		this.dashboardWidgetRepository = dashboardWidgetRepository;
-		this.widgetRepository = widgetRepository;
-		this.widgetContentRemover = widgetContentRemover;
-		this.messageBus = messageBus;
-	}
+  private final DashboardRepository dashboardRepository;
+  private final DashboardWidgetRepository dashboardWidgetRepository;
+  private final WidgetRepository widgetRepository;
+  private final WidgetContentRemover widgetContentRemover;
+  private final MessageBus messageBus;
 
-	@Override
-	public OperationCompletionRS deleteDashboard(Long dashboardId, MembershipDetails membershipDetails, ReportPortalUser user) {
-		Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, membershipDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
-						dashboardId,
+  @Autowired
+  public DeleteDashboardHandlerImpl(DashboardRepository dashboardRepository,
+      DashboardWidgetRepository dashboardWidgetRepository,
+      WidgetRepository widgetRepository,
+      @Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover,
+      MessageBus messageBus) {
+    this.dashboardRepository = dashboardRepository;
+    this.dashboardWidgetRepository = dashboardWidgetRepository;
+    this.widgetRepository = widgetRepository;
+    this.widgetContentRemover = widgetContentRemover;
+    this.messageBus = messageBus;
+  }
+
+  @Override
+  public OperationCompletionRS deleteDashboard(Long dashboardId, MembershipDetails membershipDetails,
+      ReportPortalUser user) {
+    Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, membershipDetails.getProjectId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
+            dashboardId,
             membershipDetails.getProjectName()
-				));
+        ));
 
-		Set<DashboardWidget> dashboardWidgets = dashboard.getWidgets();
-		List<Widget> widgets = dashboardWidgets.stream()
-				.filter(DashboardWidget::isCreatedOn)
-				.map(DashboardWidget::getWidget)
-				.peek(widgetContentRemover::removeContent)
-				.collect(Collectors.toList());
-		dashboardWidgets.addAll(widgets.stream().flatMap(w -> w.getDashboardWidgets().stream()).collect(toSet()));
+    Set<DashboardWidget> dashboardWidgets = dashboard.getWidgets();
+    List<Widget> widgets = dashboardWidgets.stream()
+        .filter(DashboardWidget::isCreatedOn)
+        .map(DashboardWidget::getWidget)
+        .peek(widgetContentRemover::removeContent)
+        .collect(Collectors.toList());
+    dashboardWidgets.addAll(widgets.stream().flatMap(w -> w.getDashboardWidgets().stream()).collect(toSet()));
 
-		dashboardWidgetRepository.deleteAll(dashboardWidgets);
-		dashboardRepository.delete(dashboard);
-		widgetRepository.deleteAll(widgets);
+    dashboardWidgetRepository.deleteAll(dashboardWidgets);
+    dashboardRepository.delete(dashboard);
+    widgetRepository.deleteAll(widgets);
 
-		messageBus.publishActivity(new DashboardDeletedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(), user.getUsername()));
-		return new OperationCompletionRS("Dashboard with ID = '" + dashboardId + "' successfully deleted.");
-	}
+    messageBus.publishActivity(
+        new DashboardDeletedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(), user.getUsername(),
+            membershipDetails.getOrgId()));
+    return new OperationCompletionRS("Dashboard with ID = '" + dashboardId + "' successfully deleted.");
+  }
 }

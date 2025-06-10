@@ -49,6 +49,7 @@ public class PatternTemplateEventsTest {
     activity.setSubjectName("user");
     activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
+    activity.setOrganizationId(1L);
     activity.setObjectId(2L);
     activity.setCreatedAt(Instant.now());
     activity.setObjectName(name);
@@ -79,7 +80,7 @@ public class PatternTemplateEventsTest {
     final String name = "name";
 
     final Activity actual = new PatternCreatedEvent(1L, "user",
-        getTestPatternTemplate(name, false)).toActivity();
+        getTestPatternTemplate(name, false), 1L).toActivity();
     final Activity expected = getExpectedPatternTemplateActivity(EventAction.CREATE, name);
     checkActivity(actual, expected);
   }
@@ -89,7 +90,7 @@ public class PatternTemplateEventsTest {
     final String name = "name";
 
     final Activity actual = new PatternDeletedEvent(1L, "user",
-        getTestPatternTemplate(name, false)).toActivity();
+        getTestPatternTemplate(name, false), 1L).toActivity();
     final Activity expected = getExpectedPatternTemplateActivity(EventAction.DELETE, name);
     checkActivity(actual, expected);
   }
@@ -104,7 +105,7 @@ public class PatternTemplateEventsTest {
     final Activity actual = new PatternUpdatedEvent(1L,
         "user",
         getTestPatternTemplate(oldName, oldEnabled),
-        getTestPatternTemplate(newName, newEnabled)
+        getTestPatternTemplate(newName, newEnabled), 1L
     ).toActivity();
     final Activity expected = getExpectedPatternTemplateActivity(EventAction.UPDATE, newName);
     expected.getDetails()

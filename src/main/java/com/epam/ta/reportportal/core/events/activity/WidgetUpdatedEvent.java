@@ -44,47 +44,40 @@ public class WidgetUpdatedEvent extends AroundEvent<WidgetActivityResource>
 
   private String widgetOptionsBefore;
   private String widgetOptionsAfter;
+  private Long orgId;
 
   public WidgetUpdatedEvent() {
   }
 
   public WidgetUpdatedEvent(WidgetActivityResource before, WidgetActivityResource after,
-      String widgetOptionsBefore, String widgetOptionsAfter, Long userId, String userLogin) {
+      String widgetOptionsBefore, String widgetOptionsAfter, Long userId, String userLogin, Long orgId) {
     super(userId, userLogin, before, after);
     this.widgetOptionsBefore = widgetOptionsBefore;
     this.widgetOptionsAfter = widgetOptionsAfter;
+    this.orgId = orgId;
   }
 
-  public String getWidgetOptionsBefore() {
-    return widgetOptionsBefore;
-  }
-
-  public void setWidgetOptionsBefore(String widgetOptionsBefore) {
-    this.widgetOptionsBefore = widgetOptionsBefore;
-  }
-
-  public String getWidgetOptionsAfter() {
-    return widgetOptionsAfter;
-  }
-
-  public void setWidgetOptionsAfter(String widgetOptionsAfter) {
-    this.widgetOptionsAfter = widgetOptionsAfter;
-  }
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow().addAction(EventAction.UPDATE)
-        .addEventName(ActivityAction.UPDATE_WIDGET.getValue()).addPriority(EventPriority.LOW)
-        .addObjectId(getAfter().getId()).addObjectName(getAfter().getName())
-        .addObjectType(EventObject.WIDGET).addProjectId(getAfter().getProjectId())
-        .addSubjectId(getUserId()).addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER)
-        .addHistoryField(processName(getBefore().getName(), getAfter().getName())).addHistoryField(
-            processDescription(getBefore().getDescription(), getAfter().getDescription()))
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_WIDGET.getValue())
+        .addPriority(EventPriority.LOW)
+        .addObjectId(getAfter().getId())
+        .addObjectName(getAfter().getName())
+        .addObjectType(EventObject.WIDGET)
+        .addProjectId(getAfter().getProjectId())
+        .addOrganizationId(orgId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
+        .addHistoryField(processName(getBefore().getName(), getAfter().getName()))
+        .addHistoryField(processDescription(getBefore().getDescription(), getAfter().getDescription()))
         .addHistoryField(processItemsCount(getBefore().getItemsCount(), getAfter().getItemsCount()))
-        .addHistoryField(
-            processFields(getBefore().getContentFields(), getAfter().getContentFields()))
-        .addHistoryField(
-            Optional.of(HistoryField.of(WIDGET_OPTIONS, widgetOptionsBefore, widgetOptionsAfter)))
+        .addHistoryField(processFields(getBefore().getContentFields(), getAfter().getContentFields()))
+        .addHistoryField(Optional.of(HistoryField.of(WIDGET_OPTIONS, widgetOptionsBefore, widgetOptionsAfter)))
         .get();
   }
 

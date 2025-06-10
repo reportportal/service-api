@@ -49,7 +49,7 @@ public class LaunchUniqueErrorAnalysisRunner implements
         projectConfig.get(AUTO_UNIQUE_ERROR_ANALYZER_ENABLED.getAttribute()));
     if (enabled) {
       uniqueErrorAnalysisStarter.start(
-          ClusterEntityContext.of(launchFinishedEvent.getId(), launchFinishedEvent.getProjectId()),
+          ClusterEntityContext.of(launchFinishedEvent.getId(), launchFinishedEvent.projectId()),
           projectConfig
       );
     }

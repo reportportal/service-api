@@ -86,6 +86,8 @@ project.ext {
             (migrationsUrl + '/migrations/203_user_table_extend.up.sql')               : 'V203__user_table_extend.up.sql',
             (migrationsUrl + '/migrations/204_bid_extend_metadata.up.sql')             : 'V204__bid_extend_metadata.up.sql',
             (migrationsUrl + '/migrations/206_add_org_id_to_groups.up.sql')            : 'V206__add_org_id_to_groups.sql',
+            (migrationsUrl + '/migrations/208_unique_group_slug_by_org.up.sql')        : 'V208__unique_group_slug_by_org.sql',
+            (migrationsUrl + '/migrations/209_add_activity_org_id.up.sql')             : 'V209__add_activity_org_id.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

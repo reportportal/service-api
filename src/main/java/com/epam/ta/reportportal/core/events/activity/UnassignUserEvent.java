@@ -27,18 +27,24 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.model.activity.UserActivityResource;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 public class UnassignUserEvent extends AbstractEvent implements ActivityEvent {
 
   private UserActivityResource userActivityResource;
   private boolean isSystemEvent;
+  private Long orgId;
 
   public UnassignUserEvent() {
   }
 
   public UnassignUserEvent(UserActivityResource userActivityResource, Long userId,
-      String userLogin) {
+      String userLogin, Long orgId) {
     this(userActivityResource, userId, userLogin, false);
+    this.orgId = orgId;
   }
 
   public UnassignUserEvent(UserActivityResource userActivityResource) {
@@ -52,28 +58,17 @@ public class UnassignUserEvent extends AbstractEvent implements ActivityEvent {
     this.isSystemEvent = isSystemEvent;
   }
 
-  public UserActivityResource getUserActivityResource() {
-    return userActivityResource;
-  }
-
-  public void setUserActivityResource(UserActivityResource userActivityResource) {
-    this.userActivityResource = userActivityResource;
-  }
-
-  public boolean isSystemEvent() {
-    return isSystemEvent;
-  }
-
-  public void setSystemEvent(boolean systemEvent) {
-    isSystemEvent = systemEvent;
-  }
-
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow().addAction(EventAction.UNASSIGN)
-        .addEventName(UNASSIGN_USER.getValue()).addPriority(EventPriority.MEDIUM)
-        .addObjectId(userActivityResource.getId()).addObjectName(userActivityResource.getFullName())
-        .addObjectType(EventObject.USER).addProjectId(userActivityResource.getDefaultProjectId())
+    return new ActivityBuilder().addCreatedNow()
+        .addAction(EventAction.UNASSIGN)
+        .addEventName(UNASSIGN_USER.getValue())
+        .addPriority(EventPriority.MEDIUM)
+        .addObjectId(userActivityResource.getId())
+        .addObjectName(userActivityResource.getFullName())
+        .addObjectType(EventObject.USER)
+        .addProjectId(userActivityResource.getDefaultProjectId())
+        .addOrganizationId(orgId)
         .addSubjectId(isSystemEvent ? null : getUserId())
         .addSubjectName(isSystemEvent ? RP_SUBJECT_NAME : getUserLogin())
         .addSubjectType(isSystemEvent ? EventSubject.APPLICATION : EventSubject.USER).get();

@@ -16,10 +16,14 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.google.common.base.Preconditions;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Andrei Varabyeu
  */
+@Setter
+@Getter
 public class AroundEvent<T> extends BeforeEvent<T> {
 
   private T after;
@@ -32,11 +36,4 @@ public class AroundEvent<T> extends BeforeEvent<T> {
     this.after = Preconditions.checkNotNull(after);
   }
 
-  public T getAfter() {
-    return after;
-  }
-
-  public void setAfter(T after) {
-    this.after = after;
-  }
 }

@@ -24,7 +24,6 @@ import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
-import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.model.activity.IntegrationActivityResource;
@@ -37,6 +36,8 @@ import org.apache.commons.lang3.StringUtils;
 public class IntegrationUpdatedEvent extends AroundEvent<IntegrationActivityResource> implements
     ActivityEvent {
 
+  private Long orgId;
+
   public IntegrationUpdatedEvent() {
   }
 
@@ -44,6 +45,13 @@ public class IntegrationUpdatedEvent extends AroundEvent<IntegrationActivityReso
       IntegrationActivityResource after) {
     super(userId, userLogin, before, after);
   }
+
+  public IntegrationUpdatedEvent(Long userId, String userLogin, IntegrationActivityResource before,
+      IntegrationActivityResource after, Long orgId) {
+    super(userId, userLogin, before, after);
+    this.orgId = orgId;
+  }
+
 
   @Override
   public Activity toActivity() {
@@ -64,6 +72,7 @@ public class IntegrationUpdatedEvent extends AroundEvent<IntegrationActivityReso
         .addObjectName(getAfter().getTypeName())
         .addObjectType(EventObject.INTEGRATION)
         .addProjectId(getAfter().getProjectId())
+        .addOrganizationId(orgId)
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)

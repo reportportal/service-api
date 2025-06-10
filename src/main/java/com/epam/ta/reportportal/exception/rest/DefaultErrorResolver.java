@@ -69,7 +69,7 @@ public class DefaultErrorResolver implements ErrorResolver {
     String message;
     if (ex instanceof MethodArgumentNotValidException notValidException) {
       StringBuilder sb = new StringBuilder();
-      sb.append(ErrorType.INCORRECT_REQUEST.getDescription());
+      sb.append("Incorrect Request. ");
       for (ObjectError error : notValidException.getBindingResult().getAllErrors()) {
         sb.append("[")
             .append(MESSAGE_SOURCE.getMessage(error, LocaleContextHolder.getLocale()))

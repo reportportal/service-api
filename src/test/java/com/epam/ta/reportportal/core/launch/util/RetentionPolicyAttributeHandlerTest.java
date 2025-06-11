@@ -26,8 +26,6 @@ import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 
 public class RetentionPolicyAttributeHandlerTest {
 
@@ -41,7 +39,9 @@ public class RetentionPolicyAttributeHandlerTest {
   public void setUp() {
     messageBus = mock(MessageBus.class);
     projectService = mock(ProjectService.class);
-    retentionPolicyAttributeHandler = new RetentionPolicyAttributeHandler(messageBus, projectService, serverSettingsService);
+    serverSettingsService = mock(ServerSettingsService.class);
+    retentionPolicyAttributeHandler = new RetentionPolicyAttributeHandler(messageBus, projectService,
+        serverSettingsService);
   }
 
   @Test

@@ -3,7 +3,7 @@ name: Build develop Docker image
 on:
   push:
     branches:
-      - feature/orgs
+      - develop
     paths-ignore:
       - '.github/**'
       - README.md
@@ -29,9 +29,9 @@ jobs:
     uses: reportportal/.github/.github/workflows/build-docker-image.yaml@main
     with:
       aws-region: ${{ vars.AWS_REGION }}
-      image-tag: 'orgs-${{ github.run_number }}'
-      additional-tag: 'orgs-latest'
-      version: 'orgs-${{ github.run_number }}'
+      image-tag: 'develop-${{ github.run_number }}'
+      additional-tag: 'develop-latest'
+      version: 'develop-${{ github.run_number }}'
       date: ${{ needs.variables-setup.outputs.date }}
       runs-on: ubuntu-latest
     secrets: inherit

@@ -23,10 +23,13 @@ import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBas
 import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 
 import com.epam.reportportal.api.UserApi;
+import com.epam.reportportal.api.model.AccountType;
+import com.epam.reportportal.api.model.InstanceRole;
 import com.epam.reportportal.api.model.InstanceUser;
 import com.epam.reportportal.api.model.InstanceUserPage;
 import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
 import com.epam.ta.reportportal.core.filter.SearchCriteriaService;
@@ -35,8 +38,10 @@ import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.util.ControllerUtils;
+import com.epam.ta.reportportal.util.DefaultUserFilter;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.InputStreamResource;
@@ -53,6 +58,10 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+
+/**
+ * REST controller for user-related operations.
+ */
 @RequiredArgsConstructor
 @RestController
 public class GeneratedUserController implements UserApi {
@@ -64,31 +73,29 @@ public class GeneratedUserController implements UserApi {
   private final HttpServletRequest httpServletRequest;
   private final SearchCriteriaService searchCriteriaService;
 
-  // TODO: Postpone new endpoints
-  /*@Override
-    @PreAuthorize(IS_ADMIN)
-    @Transactional(readOnly = true)
-    public ResponseEntity<InstanceUserPage> getUsers(String excludeFields, Integer offset,
-        Integer limit, Order order, String accept, String sort, String email, UUID uuid,
-        String externalId, String fullName, InstanceRole instanceRole, AccountType accountType) {
+  @Override
+  @PreAuthorize(IS_ADMIN)
+  @Transactional(readOnly = true)
+  public ResponseEntity<InstanceUserPage> getUsers(String excludeFields, Integer offset, Integer limit, String order,
+      String accept, String sort, String email, UUID uuid, String externalId, String fullName,
+      InstanceRole instanceRole, AccountType accountType) {
+    String[] excludeArray = excludeFields != null ? excludeFields.split(",") : new String[0];
+    Filter filter = new DefaultUserFilter(email, uuid, externalId, fullName, instanceRole, accountType)
+        .getFilter();
+    var pageable = ControllerUtils.getPageable(sort, order, offset, limit);
 
-      String[] excludeArray = excludeFields != null ? excludeFields.split(",") : new String[0];
-      Filter filter = new DefaultUserFilter(email, uuid, externalId, fullName, instanceRole, accountType)
-          .getFilter();
-      var pageable = ControllerUtils.getPageable(sort, order, offset, limit);
-
-      InstanceUserPage users = getUserHandler.getUsersExcluding(filter, pageable, excludeArray);
-      return new ResponseEntity<>(users, HttpStatus.OK);
+    InstanceUserPage users = getUserHandler.getUsersExcluding(filter, pageable, excludeArray);
+    return new ResponseEntity<>(users, HttpStatus.OK);
   }
 
 
   @Override
   @Transactional(readOnly = true)
   public ResponseEntity<InstanceUser> getUsersMe(String excludeFields) {
-    var user = getLoggedUser();
+    var user = getPrincipal();
     InstanceUser instanceUser = getUserHandler.getCurrentUser(user);
     return new ResponseEntity<>(instanceUser, HttpStatus.OK);
-  }*/
+  }
 
   @Transactional
   @Override

@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,17 +88,17 @@ public class JsonPluginUploaderTest {
     InputStream manifestStream = new ByteArrayInputStream(manifestJson.getBytes());
 
     IntegrationType mockIntegrationType = new IntegrationType();
-    when(integrationTypeRepository.save(any(IntegrationType.class))).thenReturn(
-        mockIntegrationType);
-    when(jsonSchemaValidator.validate(any(String.class), any(JsonNode.class))).thenReturn(
-        Collections.emptySet());
+    when(integrationTypeRepository.findByName(any())).thenReturn(Optional.empty());
+    when(integrationTypeRepository.saveAndFlush(any(IntegrationType.class))).thenReturn(mockIntegrationType);
+    when(jsonSchemaValidator.validate(any(String.class), any(JsonNode.class))).thenReturn(Collections.emptySet());
 
     IntegrationType result = jsonPluginUploader.uploadPlugin("manifest.json", manifestStream);
 
     assertNotNull(result, "Resulting IntegrationType should not be null");
-    verify(integrationTypeRepository).save(any(IntegrationType.class));
+    verify(integrationTypeRepository).findByName(any());
+    verify(integrationTypeRepository).saveAndFlush(any(IntegrationType.class));
     verify(jsonSchemaValidator).validate(any(String.class), any(JsonNode.class));
-    verify(integrationTypeRepository).save(argThat(type ->
+    verify(integrationTypeRepository).saveAndFlush(argThat(type ->
         type.getIntegrationGroup().name().equals("BTS")));
   }
 
@@ -141,14 +142,16 @@ public class JsonPluginUploaderTest {
     InputStream manifestStream = new ByteArrayInputStream(manifestJson.getBytes());
 
     IntegrationType mockIntegrationType = new IntegrationType();
-    when(integrationTypeRepository.save(any(IntegrationType.class)))
+    when(integrationTypeRepository.findByName(any())).thenReturn(Optional.empty());
+    when(integrationTypeRepository.saveAndFlush(any(IntegrationType.class)))
         .thenReturn(mockIntegrationType);
     when(jsonSchemaValidator.validate(any(String.class), any(JsonNode.class)))
         .thenReturn(Collections.emptySet());
 
     jsonPluginUploader.uploadPlugin("manifest.json", manifestStream);
 
-    verify(integrationTypeRepository).save(argThat(type ->
+    verify(integrationTypeRepository).findByName(any());
+    verify(integrationTypeRepository).saveAndFlush(argThat(type ->
         type.getIntegrationGroup().name().equals("OTHER")));
   }
 }

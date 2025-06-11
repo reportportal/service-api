@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.admin.ServerAdminHandler;
+import com.epam.ta.reportportal.core.settings.ServerSettingsService;
 import com.epam.ta.reportportal.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.model.settings.UpdateSettingsRq;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
@@ -50,10 +50,10 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Settings", description = "Settings API collection")
 public class SettingsController {
 
-  private final ServerAdminHandler serverHandler;
+  private final ServerSettingsService serverHandler;
 
   @Autowired
-  public SettingsController(ServerAdminHandler serverHandler) {
+  public SettingsController(ServerSettingsService serverHandler) {
     this.serverHandler = serverHandler;
   }
 

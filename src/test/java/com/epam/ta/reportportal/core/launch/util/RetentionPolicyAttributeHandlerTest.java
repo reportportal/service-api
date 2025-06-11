@@ -1,6 +1,8 @@
 package com.epam.ta.reportportal.core.launch.util;
 
+import static com.epam.ta.reportportal.core.settings.ImportantLaunchSettingHandler.IMPORTANT_SETTINGS_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -8,12 +10,14 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.MarkLaunchAsImportantEvent;
 import com.epam.ta.reportportal.core.events.activity.UnmarkLaunchAsImportantEvent;
 import com.epam.ta.reportportal.core.launch.attribute.impl.RetentionPolicyAttributeHandler;
 import com.epam.ta.reportportal.core.project.ProjectService;
+import com.epam.ta.reportportal.core.settings.ServerSettingsService;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.RetentionPolicyEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -29,13 +33,15 @@ public class RetentionPolicyAttributeHandlerTest {
 
   RetentionPolicyAttributeHandler retentionPolicyAttributeHandler;
   MessageBus messageBus;
+  ServerSettingsService serverSettingsService;
   ProjectService projectService;
+
 
   @BeforeEach
   public void setUp() {
     messageBus = mock(MessageBus.class);
     projectService = mock(ProjectService.class);
-    retentionPolicyAttributeHandler = new RetentionPolicyAttributeHandler(messageBus, projectService);
+    retentionPolicyAttributeHandler = new RetentionPolicyAttributeHandler(messageBus, projectService, serverSettingsService);
   }
 
   @Test
@@ -148,6 +154,27 @@ public class RetentionPolicyAttributeHandlerTest {
     assertTrue(launch.getAttributes().iterator().next().isSystem());
 
     verify(messageBus, never()).publishActivity(any());
+  }
+
+  @Test
+  public void testDoNotHandleImportantUpdateIfFeatureDisabled() {
+    Launch launch = new Launch();
+    launch.setRetentionPolicy(RetentionPolicyEnum.REGULAR);
+    Set<ItemAttribute> attributes = new HashSet<>();
+    attributes.add(createSystemAttribute("regular"));
+    attributes.add(createAttribute("regular"));
+    launch.setAttributes(attributes);
+    ReportPortalUser user = mock(ReportPortalUser.class);
+
+    when(serverSettingsService.checkServerSettingsState(IMPORTANT_SETTINGS_KEY,
+        Boolean.FALSE.toString())).thenReturn(true);
+
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> retentionPolicyAttributeHandler.handleLaunchUpdate(launch, user)
+    );
+
+    assertEquals("Forbidden operation. Feature is disabled",
+        exception.getMessage());
   }
 
   private ItemAttribute createSystemAttribute(String value) {

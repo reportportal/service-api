@@ -60,6 +60,7 @@ class ProjectConfigEventTest {
     activity.setSubjectName("user");
     activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
+    activity.setOrganizationId(1L);
     activity.setObjectId(3L);
     activity.setCreatedAt(Instant.now());
     activity.setObjectName("analyzer");
@@ -77,7 +78,7 @@ class ProjectConfigEventTest {
         getAnalyzerConfig(ANALYZER_MODE.getRight(), MIN_SHOULD_MATCH.getRight(),
             NUMBER_OF_LOG_LINES.getRight(), AUTO_ANALYZED_ENABLED.getRight(),
             ALL_MESSAGES_SHOULD_MATCH.getRight()
-        )), 1L, "user").toActivity();
+        )), 1L, "user", 1L).toActivity();
     final Activity expected = getExpectedActivity(EventAction.UPDATE);
     expected.getDetails().setHistory(
         getAnalyzerConfigHistory(ANALYZER_MODE, MIN_SHOULD_MATCH, NUMBER_OF_LOG_LINES,
@@ -125,7 +126,7 @@ class ProjectConfigEventTest {
             INTERRUPT_JOB_TIME.getLeft()
         )), getProjectAttributes(getProjectConfig(KEEP_LOGS.getRight(), KEEP_SCREENSHOTS.getRight(),
         INTERRUPT_JOB_TIME.getRight()
-    )), 1L, "user").toActivity();
+    )), 1L, "user", 1L).toActivity();
     final Activity expected = getExpectedActivity(EventAction.UPDATE);
     expected.setPriority(EventPriority.HIGH);
     expected.getDetails()

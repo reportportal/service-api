@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.events.activity;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
@@ -24,7 +25,6 @@ import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
-import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.model.activity.IntegrationActivityResource;
@@ -36,14 +36,16 @@ import java.util.Optional;
 public class IntegrationCreatedEvent extends AbstractEvent implements ActivityEvent {
 
   private IntegrationActivityResource integrationActivityResource;
+  private Long orgId;
 
   public IntegrationCreatedEvent() {
   }
 
   public IntegrationCreatedEvent(IntegrationActivityResource integrationActivityResource,
-      Long userId, String userLogin) {
+      Long userId, String userLogin, Long orgId) {
     super(userId, userLogin);
     this.integrationActivityResource = integrationActivityResource;
+    this.orgId = orgId;
   }
 
   public IntegrationActivityResource getIntegrationActivityResource() {
@@ -62,17 +64,16 @@ public class IntegrationCreatedEvent extends AbstractEvent implements ActivityEv
         .addCreatedNow()
         .addAction(EventAction.CREATE)
         .addEventName(ActivityAction.CREATE_INTEGRATION.getValue())
-        .addPriority(
-            IntegrationActivityPriorityResolver.resolvePriority(integrationActivityResource))
+        .addPriority(IntegrationActivityPriorityResolver.resolvePriority(integrationActivityResource))
         .addObjectId(integrationActivityResource.getId())
         .addObjectName(integrationActivityResource.getTypeName())
         .addObjectType(EventObject.INTEGRATION)
         .addProjectId(integrationActivityResource.getProjectId())
+        .addOrganizationId(orgId)
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)
-        .addHistoryField(
-            Optional.of(HistoryField.of(NAME, null, integrationActivityResource.getName())))
+        .addHistoryField(Optional.of(HistoryField.of(NAME, null, integrationActivityResource.getName())))
         .get();
   }
 }

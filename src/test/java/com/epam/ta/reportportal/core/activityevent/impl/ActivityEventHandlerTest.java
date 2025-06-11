@@ -65,13 +65,12 @@ class ActivityEventHandlerTest {
 
     when(activityRepository.findByFilter(filter, pageable)).thenReturn(activityPage);
 
-    PagedResponse<ActivityEventResource> pagedResponse =
-        activityEventHandler.getActivityEventsHistory(filter, pageable);
+    var pagedResponse = activityEventHandler.getActivityEventsHistory(filter, pageable);
 
-    assertEquals(activityPage.getPageable().getOffset(), pagedResponse.getOffset());
+    assertEquals(activityPage.getPageable().getOffset(), (long)pagedResponse.getOffset());
     assertEquals(activityPage.getSize(), pagedResponse.getLimit());
     assertEquals(activityPage.getNumber(), pagedResponse.getOffset() / pagedResponse.getLimit());
-    assertEquals(activityPage.getTotalElements(), pagedResponse.getTotalCount());
+    assertEquals(activityPage.getTotalElements(), (long) pagedResponse.getTotalCount());
   }
 
   private Activity createActivity(Long id) {

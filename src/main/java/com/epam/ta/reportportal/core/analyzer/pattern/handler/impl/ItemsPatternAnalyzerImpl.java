@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.analyzer.pattern.handler.impl;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.PatternAnalysisSelector;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.PatternMatchedEvent;
+import com.epam.ta.reportportal.core.project.ProjectService;
 import com.epam.ta.reportportal.dao.PatternTemplateRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
@@ -45,15 +46,17 @@ public class ItemsPatternAnalyzerImpl {
   private final Map<PatternTemplateType, PatternAnalysisSelector> patternAnalysisSelectorMapping;
 
   private final TestItemRepository testItemRepository;
+  private final ProjectService projectService;
 
   private final MessageBus messageBus;
 
   public ItemsPatternAnalyzerImpl(PatternTemplateRepository patternTemplateRepository,
       Map<PatternTemplateType, PatternAnalysisSelector> patternAnalysisSelectorMapping,
-      TestItemRepository testItemRepository, MessageBus messageBus) {
+      TestItemRepository testItemRepository, ProjectService projectService, MessageBus messageBus) {
     this.patternTemplateRepository = patternTemplateRepository;
     this.patternAnalysisSelectorMapping = patternAnalysisSelectorMapping;
     this.testItemRepository = testItemRepository;
+    this.projectService = projectService;
     this.messageBus = messageBus;
   }
 
@@ -95,13 +98,14 @@ public class ItemsPatternAnalyzerImpl {
       List<PatternTemplateTestItemPojo> patternTemplateTestItems) {
     final PatternTemplateActivityResource patternTemplateActivityResource = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(
         patternTemplate);
+    var project = projectService.findProjectById(patternTemplate.getProjectId());
     patternTemplateTestItems.forEach(patternItem -> {
       Long testItemId = patternItem.getTestItemId();
       Optional<String> itemNameByItemId = testItemRepository.findItemNameByItemId(testItemId);
       PatternMatchedEvent patternMatchedEvent = new PatternMatchedEvent(
           itemNameByItemId.orElse(StringUtils.EMPTY),
           testItemId,
-          patternTemplateActivityResource
+          patternTemplateActivityResource, project.getOrganizationId()
       );
       messageBus.publishActivity(patternMatchedEvent);
     });

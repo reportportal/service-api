@@ -153,14 +153,15 @@ public class PluginController {
         rq -> executionParams.put(ENTITY_PARAM, launchImportRq),
         () -> executionParams.put(ENTITY_PARAM, new LaunchImportRQ())
     );
-    var projectDetails = projectExtractor.extractMembershipDetails(user, projectKey);
+    var membershipDetails = projectExtractor.extractMembershipDetails(user, projectKey);
     var importResult = executeIntegrationHandler.executeCommand(
-        projectDetails, pluginName, "import",
+        membershipDetails, pluginName, "import",
         executionParams);
     messageBus.publishActivity(new ImportFinishedEvent(user.getUserId(),
         user.getUsername(),
-        projectDetails.getProjectId(),
-        file.getOriginalFilename()
+        membershipDetails.getProjectId(),
+        file.getOriginalFilename(),
+        membershipDetails.getOrgId()
     ));
     return importResult;
   }

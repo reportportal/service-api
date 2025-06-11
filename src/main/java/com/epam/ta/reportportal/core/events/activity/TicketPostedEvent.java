@@ -30,50 +30,46 @@ import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 import com.epam.reportportal.model.externalsystem.Ticket;
 import com.google.common.base.Strings;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Andrei Varabyeu
  */
+@Setter
+@Getter
 public class TicketPostedEvent extends AbstractEvent implements ActivityEvent {
 
   private Ticket ticket;
   private TestItemActivityResource testItemActivityResource;
+  private Long orgId;
 
   public TicketPostedEvent() {
   }
 
   public TicketPostedEvent(Ticket ticket, Long userId, String userLogin,
-      TestItemActivityResource testItemActivityResource) {
+      TestItemActivityResource testItemActivityResource, Long  orgId) {
     super(userId, userLogin);
     this.ticket = ticket;
     this.testItemActivityResource = testItemActivityResource;
-  }
 
-  public Ticket getTicket() {
-    return ticket;
-  }
-
-  public void setTicket(Ticket ticket) {
-    this.ticket = ticket;
-  }
-
-  public TestItemActivityResource getTestItemActivityResource() {
-    return testItemActivityResource;
-  }
-
-  public void setTestItemActivityResource(TestItemActivityResource testItemActivityResource) {
-    this.testItemActivityResource = testItemActivityResource;
   }
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow().addAction(EventAction.POST)
-        .addEventName(ActivityAction.POST_ISSUE.getValue()).addPriority(EventPriority.LOW)
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.POST)
+        .addEventName(ActivityAction.POST_ISSUE.getValue())
+        .addPriority(EventPriority.LOW)
         .addObjectId(testItemActivityResource.getId())
-        .addObjectName(testItemActivityResource.getName()).addObjectType(EventObject.ITEM_ISSUE)
-        .addProjectId(testItemActivityResource.getProjectId()).addSubjectId(getUserId())
-        .addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER).addHistoryField(
-            TICKET_ID, Strings.isNullOrEmpty(testItemActivityResource.getTickets()) ? EMPTY_STRING :
+        .addObjectName(testItemActivityResource.getName())
+        .addObjectType(EventObject.ITEM_ISSUE)
+        .addProjectId(testItemActivityResource.getProjectId())
+        .addOrganizationId(orgId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER)
+        .addHistoryField(TICKET_ID, Strings.isNullOrEmpty(testItemActivityResource.getTickets()) ? EMPTY_STRING :
                 testItemActivityResource.getTickets(),
             Strings.isNullOrEmpty(testItemActivityResource.getTickets()) ?
                 ticket.getId() + ":" + ticket.getTicketUrl() :

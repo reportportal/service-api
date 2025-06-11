@@ -6,29 +6,36 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.MarkLaunchAsImportantEvent;
 import com.epam.ta.reportportal.core.events.activity.UnmarkLaunchAsImportantEvent;
 import com.epam.ta.reportportal.core.launch.attribute.impl.RetentionPolicyAttributeHandler;
+import com.epam.ta.reportportal.core.project.ProjectService;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.RetentionPolicyEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.project.Project;
 import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
 public class RetentionPolicyAttributeHandlerTest {
 
-  private RetentionPolicyAttributeHandler retentionPolicyAttributeHandler;
-  private MessageBus messageBus;
+  RetentionPolicyAttributeHandler retentionPolicyAttributeHandler;
+  MessageBus messageBus;
+  ProjectService projectService;
 
   @BeforeEach
   public void setUp() {
     messageBus = mock(MessageBus.class);
-    retentionPolicyAttributeHandler = new RetentionPolicyAttributeHandler(messageBus);
+    projectService = mock(ProjectService.class);
+    retentionPolicyAttributeHandler = new RetentionPolicyAttributeHandler(messageBus, projectService);
   }
 
   @Test
@@ -94,6 +101,7 @@ public class RetentionPolicyAttributeHandlerTest {
     attributes.add(createAttribute("regular"));
     launch.setAttributes(attributes);
     ReportPortalUser user = mock(ReportPortalUser.class);
+    when(projectService.findProjectById(any())).thenReturn(new Project());
 
     retentionPolicyAttributeHandler.handleLaunchUpdate(launch, user);
 
@@ -113,6 +121,7 @@ public class RetentionPolicyAttributeHandlerTest {
     launch.setAttributes(attributes);
     ReportPortalUser user = mock(ReportPortalUser.class);
 
+    when(projectService.findProjectById(any())).thenReturn(new Project());
     retentionPolicyAttributeHandler.handleLaunchUpdate(launch, user);
 
     assertEquals(RetentionPolicyEnum.IMPORTANT, launch.getRetentionPolicy());

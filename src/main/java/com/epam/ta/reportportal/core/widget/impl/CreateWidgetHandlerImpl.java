@@ -96,7 +96,7 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 
     messageBus.publishActivity(
         new WidgetCreatedEvent(TO_ACTIVITY_RESOURCE.apply(widget), user.getUserId(),
-            user.getUsername()
+            user.getUsername(), membershipDetails.getOrgId()
         ));
     return new EntryCreatedRS(widget.getId());
   }

@@ -192,7 +192,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
     logIndexer.deleteIndex(project.getId());
     messageBus.publishActivity(
         new ProjectIndexEvent(user.getId(), user.getLogin(), project.getId(), project.getName(),
-            false
+            false, project.getOrganizationId()
         ));
     return new OperationCompletionRS(
         "Project index with key = '" + projectKey + "' is successfully deleted.");

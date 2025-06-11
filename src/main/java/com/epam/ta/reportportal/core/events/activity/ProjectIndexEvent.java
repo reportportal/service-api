@@ -24,50 +24,33 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Pavel Bortnik
  */
+@Setter
+@Getter
 public class ProjectIndexEvent extends AbstractEvent implements ActivityEvent {
 
   private Long projectId;
   private String projectName;
   private boolean indexing;
+  private Long orgId;
+
 
   public ProjectIndexEvent() {
   }
 
   public ProjectIndexEvent(Long userId, String userLogin, Long projectId, String projectName,
-      boolean indexing) {
+      boolean indexing, Long orgId) {
     super(userId, userLogin);
     this.projectId = projectId;
     this.projectName = projectName;
     this.indexing = indexing;
-  }
-
-  public Long getProjectId() {
-    return projectId;
-  }
-
-  public void setProjectId(Long projectId) {
-    this.projectId = projectId;
-  }
-
-  public String getProjectName() {
-    return projectName;
-  }
-
-  public void setProjectName(String projectName) {
-    this.projectName = projectName;
-  }
-
-  public boolean isIndexing() {
-    return indexing;
-  }
-
-  public void setIndexing(boolean indexing) {
-    this.indexing = indexing;
+    this.orgId = orgId;
   }
 
   @Override
@@ -82,6 +65,7 @@ public class ProjectIndexEvent extends AbstractEvent implements ActivityEvent {
         .addObjectName(StringUtils.EMPTY)
         .addObjectType(EventObject.INDEX)
         .addProjectId(projectId)
+        .addOrganizationId(orgId)
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)

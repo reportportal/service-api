@@ -22,10 +22,15 @@ public class PluginDeletedEvent extends BeforeEvent<PluginActivityResource>
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow().addAction(EventAction.DELETE)
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.DELETE)
         .addEventName(ActivityAction.DELETE_PLUGIN.getValue())
-        .addObjectId(getBefore().getId()).addObjectName(getBefore().getName())
-        .addObjectType(EventObject.PLUGIN).addSubjectId(getUserId()).addSubjectName(getUserLogin())
-        .addSubjectType(EventSubject.USER).addPriority(EventPriority.CRITICAL).get();
+        .addObjectId(getBefore().getId())
+        .addObjectName(getBefore().getName())
+        .addObjectType(EventObject.PLUGIN).addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
+        .addPriority(EventPriority.CRITICAL).get();
   }
 }

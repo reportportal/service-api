@@ -24,29 +24,27 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.model.activity.LaunchActivityResource;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Andrei Varabyeu
  */
+@Setter
+@Getter
 public class MarkLaunchAsImportantEvent extends AbstractEvent implements ActivityEvent {
 
   private LaunchActivityResource launchActivityResource;
+  private Long orgId;
 
   public MarkLaunchAsImportantEvent() {
   }
 
   public MarkLaunchAsImportantEvent(LaunchActivityResource launchActivityResource, Long userId,
-      String userLogin) {
+      String userLogin, Long orgId) {
     super(userId, userLogin);
     this.launchActivityResource = launchActivityResource;
-  }
-
-  public LaunchActivityResource getLaunchActivityResource() {
-    return launchActivityResource;
-  }
-
-  public void setLaunchActivityResource(LaunchActivityResource launchActivityResource) {
-    this.launchActivityResource = launchActivityResource;
+    this.orgId = orgId;
   }
 
   @Override
@@ -60,6 +58,7 @@ public class MarkLaunchAsImportantEvent extends AbstractEvent implements Activit
         .addObjectName(launchActivityResource.getName())
         .addObjectType(EventObject.LAUNCH)
         .addProjectId(launchActivityResource.getProjectId())
+        .addOrganizationId(orgId)
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)

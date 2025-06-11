@@ -32,31 +32,32 @@ import com.epam.ta.reportportal.model.activity.WidgetActivityResource;
 public class WidgetCreatedEvent extends AbstractEvent implements ActivityEvent {
 
   private WidgetActivityResource widgetActivityResource;
+  private Long orgId;
 
   public WidgetCreatedEvent() {
   }
 
   public WidgetCreatedEvent(WidgetActivityResource widgetActivityResource, Long userId,
-      String userLogin) {
+      String userLogin, Long orgId) {
     super(userId, userLogin);
     this.widgetActivityResource = widgetActivityResource;
-  }
-
-  public WidgetActivityResource getWidgetActivityResource() {
-    return widgetActivityResource;
-  }
-
-  public void setWidgetActivityResource(WidgetActivityResource widgetActivityResource) {
-    this.widgetActivityResource = widgetActivityResource;
+    this.orgId = orgId;
   }
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow().addAction(EventAction.CREATE)
-        .addEventName(ActivityAction.CREATE_WIDGET.getValue()).addPriority(EventPriority.LOW)
-        .addObjectId(widgetActivityResource.getId()).addObjectName(widgetActivityResource.getName())
-        .addObjectType(EventObject.WIDGET).addProjectId(widgetActivityResource.getProjectId())
-        .addSubjectId(getUserId()).addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER)
+    return new ActivityBuilder().addCreatedNow()
+        .addAction(EventAction.CREATE)
+        .addEventName(ActivityAction.CREATE_WIDGET.getValue())
+        .addPriority(EventPriority.LOW)
+        .addObjectId(widgetActivityResource.getId())
+        .addObjectName(widgetActivityResource.getName())
+        .addObjectType(EventObject.WIDGET)
+        .addProjectId(widgetActivityResource.getProjectId())
+        .addOrganizationId(orgId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
         .get();
   }
 

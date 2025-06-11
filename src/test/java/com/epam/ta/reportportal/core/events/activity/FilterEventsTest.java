@@ -50,6 +50,7 @@ class FilterEventsTest {
     activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
     activity.setObjectId(2L);
+    activity.setOrganizationId(1L);
     activity.setCreatedAt(Instant.now());
     activity.setObjectName(name);
     activity.setDetails(new ActivityDetails());
@@ -60,7 +61,7 @@ class FilterEventsTest {
   void created() {
     final String name = "name";
     final Activity actual =
-        new FilterCreatedEvent(getUserFilter(name, true, "description"), 1L, "user").toActivity();
+        new FilterCreatedEvent(getUserFilter(name, true, "description"), 1L, "user", 1L).toActivity();
     final Activity expected = getExpectedActivity(EventAction.CREATE, name);
     checkActivity(expected, actual);
   }
@@ -69,7 +70,7 @@ class FilterEventsTest {
   void deleted() {
     final String name = "name";
     final Activity actual =
-        new FilterDeletedEvent(getUserFilter(name, true, "description"), 1L, "user").toActivity();
+        new FilterDeletedEvent(getUserFilter(name, true, "description"), 1L, "user", 1L).toActivity();
     final Activity expected = getExpectedActivity(EventAction.DELETE, name);
     checkActivity(expected, actual);
   }
@@ -94,7 +95,7 @@ class FilterEventsTest {
     final String newDescription = "newDescription";
     final Activity actual =
         new FilterUpdatedEvent(getUserFilter(oldName, oldShared, oldDescription),
-            getUserFilter(newName, newShared, newDescription), 1L, "user"
+            getUserFilter(newName, newShared, newDescription), 1L, "user", 1L
         ).toActivity();
     final Activity expected = getExpectedActivity(EventAction.UPDATE, newName);
     expected.getDetails().setHistory(

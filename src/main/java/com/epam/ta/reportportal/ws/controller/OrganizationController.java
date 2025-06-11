@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MANAGER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
+import static org.springframework.data.domain.Sort.Direction.ASC;
 
 import com.epam.reportportal.api.OrganizationApi;
 import com.epam.reportportal.api.model.OrganizationBase;
@@ -30,7 +31,8 @@ import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.core.filter.OrganizationsSearchCriteriaService;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.core.filter.SearchCriteriaService;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.core.organization.OrganizationExtensionPoint;
 import com.epam.ta.reportportal.core.organization.settings.OrganizationSettingsHandler;
@@ -59,7 +61,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class OrganizationController extends BaseController implements OrganizationApi {
 
   private final GetOrganizationHandler getOrganizationHandler;
-  private final OrganizationsSearchCriteriaService searchCriteriaService;
+  private final SearchCriteriaService searchCriteriaService;
   private final Pf4jPluginBox pluginBox;
   private final OrganizationSettingsHandler organizationSettingsHandler;
 
@@ -97,14 +99,14 @@ public class OrganizationController extends BaseController implements Organizati
 
   @Transactional(readOnly = true)
   @Override
-  public ResponseEntity<OrganizationPage> postOrganizationsSearches(String accept, SearchCriteriaRQ searchCriteria) {
-    Filter filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteria, OrganizationFilter.class);
+  public ResponseEntity<OrganizationPage> postOrganizationsSearches(String accept, SearchCriteriaRQ criteriaRq) {
+    Queryable filter = searchCriteriaService.createFilterBySearchCriteria(criteriaRq, OrganizationFilter.class);
 
     var pageable = ControllerUtils.getPageable(
-        StringUtils.isNotBlank(searchCriteria.getSort()) ? searchCriteria.getSort() : "name",
-        searchCriteria.getOrder().toString(),
-        searchCriteria.getOffset(),
-        searchCriteria.getLimit());
+        StringUtils.isNotBlank(criteriaRq.getSort()) ? criteriaRq.getSort() : "name",
+        criteriaRq.getOrder() != null ? criteriaRq.getOrder().toString() : ASC.toString(),
+        criteriaRq.getOffset(),
+        criteriaRq.getLimit());
 
     return ResponseEntity.ok().body(getOrganizationHandler.getOrganizations(filter, pageable));
   }

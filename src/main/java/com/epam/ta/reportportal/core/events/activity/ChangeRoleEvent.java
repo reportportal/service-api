@@ -32,16 +32,18 @@ public class ChangeRoleEvent extends AbstractEvent implements ActivityEvent {
   private UserActivityResource userActivityResource;
   private String oldRole;
   private String newRole;
+  private Long orgId;
 
   public ChangeRoleEvent() {
   }
 
   public ChangeRoleEvent(UserActivityResource userActivityResource, String oldRole, String newRole,
-      Long userId, String userLogin) {
+      Long userId, String userLogin, Long orgId) {
     super(userId, userLogin);
     this.userActivityResource = userActivityResource;
     this.oldRole = oldRole;
     this.newRole = newRole;
+    this.orgId = orgId;
   }
 
   public UserActivityResource getUserActivityResource() {
@@ -54,11 +56,18 @@ public class ChangeRoleEvent extends AbstractEvent implements ActivityEvent {
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow().addAction(EventAction.CHANGE_ROLE)
-        .addEventName(CHANGE_ROLE.getValue()).addPriority(EventPriority.HIGH)
-        .addObjectId(userActivityResource.getId()).addObjectName(userActivityResource.getFullName())
-        .addObjectType(EventObject.USER).addProjectId(userActivityResource.getDefaultProjectId())
-        .addSubjectId(getUserId()).addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER)
+    return new ActivityBuilder().addCreatedNow()
+        .addAction(EventAction.CHANGE_ROLE)
+        .addEventName(CHANGE_ROLE.getValue())
+        .addPriority(EventPriority.HIGH)
+        .addObjectId(userActivityResource.getId())
+        .addObjectName(userActivityResource.getFullName())
+        .addObjectType(EventObject.USER)
+        .addProjectId(userActivityResource.getDefaultProjectId())
+        .addOrganizationId(orgId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
         .addHistoryField("projectRole", oldRole, newRole).get();
   }
 

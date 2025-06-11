@@ -89,7 +89,7 @@ class TicketPostedEventTest {
   @Test
   void toActivity() {
     final Activity actual =
-        new TicketPostedEvent(getTicket(), 1L, "user", getTestItem()).toActivity();
+        new TicketPostedEvent(getTicket(), 1L, "user", getTestItem(), 1L).toActivity();
     final Activity expected = getExpectedActivity();
     checkActivity(expected, actual);
   }

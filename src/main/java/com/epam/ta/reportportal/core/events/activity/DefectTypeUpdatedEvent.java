@@ -25,48 +25,45 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.model.activity.IssueTypeActivityResource;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Andrei Varabyeu
  */
+@Setter
+@Getter
 public class DefectTypeUpdatedEvent extends AbstractEvent implements ActivityEvent {
 
   private IssueTypeActivityResource issueTypeActivityResource;
   private Long projectId;
+  private Long orgId;
 
   public DefectTypeUpdatedEvent() {
   }
 
   public DefectTypeUpdatedEvent(IssueTypeActivityResource issueTypeActivityResource, Long userId,
-      String userLogin, Long projectId) {
+      String userLogin, Long projectId, Long orgId) {
     super(userId, userLogin);
     this.issueTypeActivityResource = issueTypeActivityResource;
     this.projectId = projectId;
-  }
-
-  public IssueTypeActivityResource getIssueTypeActivityResource() {
-    return issueTypeActivityResource;
-  }
-
-  public void setIssueTypeActivityResource(IssueTypeActivityResource issueTypeActivityResource) {
-    this.issueTypeActivityResource = issueTypeActivityResource;
-  }
-
-  public Long getProjectId() {
-    return projectId;
-  }
-
-  public void setProjectId(Long projectId) {
-    this.projectId = projectId;
+    this.orgId = orgId;
   }
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow().addAction(EventAction.UPDATE)
-        .addEventName(ActivityAction.UPDATE_DEFECT.getValue()).addPriority(EventPriority.LOW)
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_DEFECT.getValue())
+        .addPriority(EventPriority.LOW)
         .addObjectId(issueTypeActivityResource.getId())
         .addObjectName(issueTypeActivityResource.getLongName())
-        .addObjectType(EventObject.DEFECT_TYPE).addProjectId(projectId).addSubjectId(getUserId())
-        .addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER).get();
+        .addObjectType(EventObject.DEFECT_TYPE)
+        .addProjectId(projectId)
+        .addOrganizationId(orgId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER).get();
   }
 }

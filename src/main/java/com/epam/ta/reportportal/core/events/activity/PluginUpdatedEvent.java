@@ -27,14 +27,18 @@ public class PluginUpdatedEvent extends AroundEvent<PluginActivityResource>
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow().addAction(EventAction.UPDATE)
-        .addEventName(ActivityAction.UPDATE_PLUGIN.getValue()).addPriority(EventPriority.MEDIUM)
-        .addObjectId(getAfter().getId()).addObjectName(getAfter().getName())
-        .addObjectType(EventObject.PLUGIN).addSubjectId(getUserId()).addSubjectName(getUserLogin())
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_PLUGIN.getValue())
+        .addPriority(EventPriority.MEDIUM)
+        .addObjectId(getAfter().getId())
+        .addObjectName(getAfter().getName())
+        .addObjectType(EventObject.PLUGIN)
+        .addSubjectId(getUserId()).addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)
-        .addHistoryField(processName(getBefore().getName(), getAfter().getName())).addHistoryField(
-            processBoolean(ActivityDetailsUtil.ENABLED, getBefore().isEnabled(),
-                getAfter().isEnabled()
-            )).get();
+        .addHistoryField(processName(getBefore().getName(), getAfter().getName()))
+        .addHistoryField(processBoolean(ActivityDetailsUtil.ENABLED, getBefore().isEnabled(), getAfter().isEnabled()))
+        .get();
   }
 }

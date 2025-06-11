@@ -24,44 +24,44 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.model.activity.DashboardActivityResource;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author pavel_bortnik
  */
+@Setter
+@Getter
 public class DashboardCreatedEvent extends AbstractEvent implements ActivityEvent {
 
-	private DashboardActivityResource dashboardActivityResource;
+  private DashboardActivityResource dashboardActivityResource;
+  private Long orgId;
 
-	public DashboardCreatedEvent() {
-	}
+  public DashboardCreatedEvent() {
+  }
 
-	public DashboardCreatedEvent(DashboardActivityResource dashboardActivityResource, Long userId, String userLogin) {
-		super(userId, userLogin);
-		this.dashboardActivityResource = dashboardActivityResource;
-	}
+  public DashboardCreatedEvent(DashboardActivityResource dashboardActivityResource, Long userId, String userLogin,
+      Long orgId) {
+    super(userId, userLogin);
+    this.dashboardActivityResource = dashboardActivityResource;
+    this.orgId = orgId;
+  }
 
-	public DashboardActivityResource getDashboardActivityResource() {
-		return dashboardActivityResource;
-	}
-
-	public void setDashboardActivityResource(DashboardActivityResource dashboardActivityResource) {
-		this.dashboardActivityResource = dashboardActivityResource;
-	}
-
-	@Override
-	public Activity toActivity() {
-		return new ActivityBuilder()
-				.addCreatedNow()
-				.addAction(EventAction.CREATE)
-				.addEventName(ActivityAction.CREATE_DASHBOARD.getValue())
-				.addPriority(EventPriority.LOW)
-				.addObjectId(dashboardActivityResource.getId())
-				.addObjectName(dashboardActivityResource.getName())
-				.addObjectType(EventObject.DASHBOARD)
-				.addProjectId(dashboardActivityResource.getProjectId())
-				.addSubjectId(getUserId())
-				.addSubjectName(getUserLogin())
-				.addSubjectType(EventSubject.USER)
-				.get();
-	}
+  @Override
+  public Activity toActivity() {
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.CREATE)
+        .addEventName(ActivityAction.CREATE_DASHBOARD.getValue())
+        .addPriority(EventPriority.LOW)
+        .addObjectId(dashboardActivityResource.getId())
+        .addObjectName(dashboardActivityResource.getName())
+        .addObjectType(EventObject.DASHBOARD)
+        .addProjectId(dashboardActivityResource.getProjectId())
+        .addOrganizationId(orgId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
+        .get();
+  }
 }

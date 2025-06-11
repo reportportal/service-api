@@ -34,7 +34,7 @@ public class ProjectUserHandlerImpl implements ProjectUserHandler {
 
     AssignUserEvent assignUserEvent =
         new AssignUserEvent(getUserActivityResource(user, project), creator.getId(),
-            creator.getLogin(), isSystemEvent
+            creator.getLogin(), isSystemEvent, project.getOrganizationId()
         );
     eventPublisher.publishEvent(assignUserEvent);
 

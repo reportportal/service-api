@@ -38,8 +38,8 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
-import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.events.activity.ProjectCreatedEvent;
@@ -121,7 +121,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
   }
 
   @Override
-  public OrganizationProjectsPage getOrganizationProjectsPage(Long orgId, Filter filter,
+  public OrganizationProjectsPage getOrganizationProjectsPage(Long orgId, Queryable filter,
       Pageable pageable) {
     var rpUser = getPrincipal();
     OrganizationProjectsPage organizationProjectsPage = new OrganizationProjectsPage();
@@ -150,8 +150,8 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
         // return empty response
         return responseWithPageParameters(organizationProjectsPage, pageable, 0);
       } else {
-        filter.withCondition(
-            new FilterCondition(Condition.IN, false, projectIds, CRITERIA_PROJECT_ID));
+        filter.getFilterConditions()
+            .add(new FilterCondition(Condition.IN, false, projectIds, CRITERIA_PROJECT_ID));
       }
     }
 
@@ -253,7 +253,8 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
         user.getUserId(),
         user.getUsername(),
         project.getId(),
-        project.getName());
+        project.getName(),
+        project.getOrganizationId());
     applicationEventPublisher.publishEvent(event);
   }
 

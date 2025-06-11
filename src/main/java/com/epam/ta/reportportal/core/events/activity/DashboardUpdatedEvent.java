@@ -34,12 +34,15 @@ import com.epam.ta.reportportal.model.activity.DashboardActivityResource;
 public class DashboardUpdatedEvent extends AroundEvent<DashboardActivityResource> implements
     ActivityEvent {
 
+  private Long orgId;
+
   public DashboardUpdatedEvent() {
   }
 
   public DashboardUpdatedEvent(DashboardActivityResource before, DashboardActivityResource after,
-      Long userId, String userLogin) {
+      Long userId, String userLogin, Long orgId) {
     super(userId, userLogin, before, after);
+    this.orgId = orgId;
   }
 
   @Override
@@ -53,12 +56,12 @@ public class DashboardUpdatedEvent extends AroundEvent<DashboardActivityResource
         .addObjectName(getAfter().getName())
         .addObjectType(EventObject.DASHBOARD)
         .addProjectId(getAfter().getProjectId())
+        .addOrganizationId(orgId)
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)
         .addHistoryField(processName(getBefore().getName(), getAfter().getName()))
-        .addHistoryField(
-            processDescription(getBefore().getDescription(), getAfter().getDescription()))
+        .addHistoryField(processDescription(getBefore().getDescription(), getAfter().getDescription()))
         .get();
   }
 }

@@ -54,6 +54,7 @@ class WidgetEventsTest {
     activity.setSubjectName("user");
     activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
+    activity.setOrganizationId(1L);
     activity.setObjectId(2L);
     activity.setCreatedAt(Instant.now());
     activity.setObjectName(name);
@@ -83,7 +84,7 @@ class WidgetEventsTest {
 
     final Activity actual =
         new WidgetCreatedEvent(getWidget(name, shared, description, 2, getBeforeContentFields()),
-            1L, "user"
+            1L, "user", 1L
         ).toActivity();
     final Activity expected = getExpectedActivity(EventAction.CREATE, name);
     expected.setEventName("createWidget");
@@ -127,7 +128,7 @@ class WidgetEventsTest {
 
     final Activity actual =
         new WidgetDeletedEvent(getWidget(name, shared, description, 3, getBeforeContentFields()),
-            1L, "user"
+            1L, "user", 1L
         ).toActivity();
     final Activity expected = getExpectedActivity(EventAction.DELETE, name);
     expected.setEventName("deleteWidget");
@@ -146,7 +147,7 @@ class WidgetEventsTest {
     final Activity actual = new WidgetUpdatedEvent(
         getWidget(oldName, oldShared, oldDescription, 2, getBeforeContentFields()),
         getWidget(newName, newShared, newDescription, 4, getAfterContentFields()),
-        getBeforeOptions(), getAfterOptions(), 1L, "user"
+        getBeforeOptions(), getAfterOptions(), 1L, "user", 1L
     ).toActivity();
     final Activity expected = getExpectedActivity(EventAction.UPDATE, newName);
     expected.getDetails().setHistory(

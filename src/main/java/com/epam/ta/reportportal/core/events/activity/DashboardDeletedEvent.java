@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.builder.ActivityBuilder;
@@ -31,11 +32,14 @@ import com.epam.ta.reportportal.model.activity.DashboardActivityResource;
 public class DashboardDeletedEvent extends BeforeEvent<DashboardActivityResource> implements
     ActivityEvent {
 
+  private Long orgId;
+
   public DashboardDeletedEvent() {
   }
 
-  public DashboardDeletedEvent(DashboardActivityResource before, Long userId, String userLogin) {
+  public DashboardDeletedEvent(DashboardActivityResource before, Long userId, String userLogin, Long orgId) {
     super(userId, userLogin, before);
+    this.orgId = orgId;
   }
 
   @Override
@@ -48,6 +52,7 @@ public class DashboardDeletedEvent extends BeforeEvent<DashboardActivityResource
         .addObjectName(getBefore().getName())
         .addObjectType(EventObject.DASHBOARD)
         .addProjectId(getBefore().getProjectId())
+        .addOrganizationId(orgId)
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)

@@ -36,14 +36,16 @@ import java.util.Optional;
 public class IntegrationDeletedEvent extends AbstractEvent implements ActivityEvent {
 
   private IntegrationActivityResource integrationActivityResource;
+  private Long orgId;
 
   public IntegrationDeletedEvent() {
   }
 
   public IntegrationDeletedEvent(IntegrationActivityResource integrationActivityResource,
-      Long userId, String userLogin) {
+      Long userId, String userLogin, Long orgId) {
     super(userId, userLogin);
     this.integrationActivityResource = integrationActivityResource;
+    this.orgId = orgId;
   }
 
   public IntegrationActivityResource getIntegrationActivityResource() {
@@ -62,17 +64,16 @@ public class IntegrationDeletedEvent extends AbstractEvent implements ActivityEv
         .addCreatedNow()
         .addAction(EventAction.DELETE)
         .addEventName(ActivityAction.DELETE_INTEGRATION.getValue())
-        .addPriority(
-            IntegrationActivityPriorityResolver.resolvePriority(integrationActivityResource))
+        .addPriority(IntegrationActivityPriorityResolver.resolvePriority(integrationActivityResource))
         .addObjectId(integrationActivityResource.getId())
         .addObjectName(integrationActivityResource.getTypeName())
         .addObjectType(EventObject.INTEGRATION)
         .addProjectId(integrationActivityResource.getProjectId())
+        .addOrganizationId(orgId)
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)
-        .addHistoryField(
-            Optional.of(HistoryField.of(NAME, integrationActivityResource.getName(), null)))
+        .addHistoryField(Optional.of(HistoryField.of(NAME, integrationActivityResource.getName(), null)))
         .get();
   }
 }

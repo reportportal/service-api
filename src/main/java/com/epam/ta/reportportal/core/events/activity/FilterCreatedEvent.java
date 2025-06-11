@@ -25,38 +25,43 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.model.activity.UserFilterActivityResource;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author pavel_bortnik
  */
+@Setter
+@Getter
 public class FilterCreatedEvent extends AbstractEvent implements ActivityEvent {
 
   private UserFilterActivityResource userFilterActivityResource;
+  private Long orgId;
 
   public FilterCreatedEvent() {
   }
 
   public FilterCreatedEvent(UserFilterActivityResource userFilterActivityResource, Long userId,
-      String userLogin) {
+      String userLogin, Long orgId) {
     super(userId, userLogin);
     this.userFilterActivityResource = userFilterActivityResource;
-  }
-
-  public UserFilterActivityResource getUserFilterActivityResource() {
-    return userFilterActivityResource;
-  }
-
-  public void setUserFilterActivityResource(UserFilterActivityResource userFilterActivityResource) {
-    this.userFilterActivityResource = userFilterActivityResource;
+    this.orgId = orgId;
   }
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow().addAction(EventAction.CREATE)
-        .addEventName(ActivityAction.CREATE_FILTER.getValue()).addPriority(EventPriority.LOW)
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.CREATE)
+        .addEventName(ActivityAction.CREATE_FILTER.getValue())
+        .addPriority(EventPriority.LOW)
         .addObjectId(userFilterActivityResource.getId())
-        .addObjectName(userFilterActivityResource.getName()).addObjectType(EventObject.FILTER)
-        .addProjectId(userFilterActivityResource.getProjectId()).addSubjectId(getUserId())
-        .addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER).get();
+        .addObjectName(userFilterActivityResource.getName())
+        .addObjectType(EventObject.FILTER)
+        .addProjectId(userFilterActivityResource.getProjectId())
+        .addOrganizationId(orgId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER).get();
   }
 }

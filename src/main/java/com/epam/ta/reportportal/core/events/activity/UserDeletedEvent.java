@@ -21,10 +21,16 @@ public class UserDeletedEvent extends BeforeEvent<UserActivityResource> implemen
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow().addAction(EventAction.DELETE)
-        .addEventName(ActivityAction.DELETE_USER.getValue()).addObjectId(getBefore().getId())
-        .addObjectName(getBefore().getFullName()).addObjectType(EventObject.USER)
-        .addSubjectId(getUserId()).addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER)
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.DELETE)
+        .addEventName(ActivityAction.DELETE_USER.getValue())
+        .addObjectId(getBefore().getId())
+        .addObjectName(getBefore().getFullName())
+        .addObjectType(EventObject.USER)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
         .addPriority(EventPriority.HIGH).get();
   }
 }

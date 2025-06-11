@@ -86,7 +86,7 @@ public class StartLaunchHandlerImpl implements StartLaunchHandler {
     eventPublisher.publishEvent(new StartLaunchEvent(savedLaunch.getId()));
     messageBus.publishActivity(
         new LaunchStartedEvent(TO_ACTIVITY_RESOURCE.apply(savedLaunch), user.getUserId(),
-            user.getUsername()
+            user.getUsername(), membershipDetails.getOrgId()
         ));
 
     StartLaunchRS response = new StartLaunchRS();

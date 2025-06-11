@@ -58,8 +58,8 @@ public class TestItemUniqueErrorAnalysisRunner
       clustersConfig.setAnalyzerConfig(analyzerConfig);
 
       final ClusterEntityContext entityContext =
-          ClusterEntityContext.of(event.getLaunchId(), event.getProjectId(),
-              List.of(event.getItemId())
+          ClusterEntityContext.of(event.launchId(), event.projectId(),
+              List.of(event.itemId())
           );
       clustersConfig.setEntityContext(entityContext);
 

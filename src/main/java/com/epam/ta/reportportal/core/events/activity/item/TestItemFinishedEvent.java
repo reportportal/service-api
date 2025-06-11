@@ -37,7 +37,7 @@ public class TestItemFinishedEvent implements ProjectIdAwareEvent {
   }
 
   @Override
-  public Long getProjectId() {
+  public Long projectId() {
     return projectId;
   }
 }

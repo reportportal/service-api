@@ -53,7 +53,7 @@ class LaunchAutoAnalysisRunnerTest {
     final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
     final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,
         launch.getProjectId());
-    final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl");
+    final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl", 1L);
 
     final Map<String, String> projectConfig = ImmutableMap.<String, String>builder()
         .put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), "true")

@@ -16,15 +16,17 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.isPresent;
 import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 
 import com.epam.reportportal.extension.event.ProjectEvent;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.ProjectCreatedEvent;
 import com.epam.ta.reportportal.core.project.CreateProjectHandler;
 import com.epam.ta.reportportal.dao.AttributeRepository;
@@ -40,12 +42,10 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.project.CreateProjectRQ;
 import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.util.SlugifyUtils;
-import com.epam.reportportal.rules.exception.ErrorType;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
@@ -153,7 +153,8 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
   private void publishProjectCreatedEvent(Long userId, String userLogin, Project project) {
     Long projectId = project.getId();
     String projectName = project.getName();
-    ProjectCreatedEvent event = new ProjectCreatedEvent(userId, userLogin, projectId, projectName);
+    ProjectCreatedEvent event = new ProjectCreatedEvent(userId, userLogin, projectId, projectName,
+        project.getOrganizationId());
     applicationEventPublisher.publishEvent(event);
   }
 

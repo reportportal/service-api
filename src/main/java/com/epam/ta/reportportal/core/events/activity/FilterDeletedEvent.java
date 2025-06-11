@@ -32,20 +32,30 @@ import com.epam.ta.reportportal.model.activity.UserFilterActivityResource;
 public class FilterDeletedEvent extends BeforeEvent<UserFilterActivityResource>
     implements ActivityEvent {
 
+  private Long orgId;
+
   public FilterDeletedEvent() {
   }
 
-  public FilterDeletedEvent(UserFilterActivityResource before, Long userId, String userLogin) {
+  public FilterDeletedEvent(UserFilterActivityResource before, Long userId, String userLogin, Long orgId) {
     super(userId, userLogin, before);
+    this.orgId = orgId;
   }
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow().addAction(EventAction.DELETE)
-        .addEventName(ActivityAction.DELETE_FILTER.getValue()).addPriority(EventPriority.LOW)
-        .addObjectId(getBefore().getId()).addObjectName(getBefore().getName())
-        .addObjectType(EventObject.FILTER).addProjectId(getBefore().getProjectId())
-        .addSubjectId(getUserId()).addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER)
+    return new ActivityBuilder()
+        .addCreatedNow().addAction(EventAction.DELETE)
+        .addEventName(ActivityAction.DELETE_FILTER.getValue())
+        .addPriority(EventPriority.LOW)
+        .addObjectId(getBefore().getId())
+        .addObjectName(getBefore().getName())
+        .addObjectType(EventObject.FILTER)
+        .addProjectId(getBefore().getProjectId())
+        .addOrganizationId(orgId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
         .get();
   }
 }

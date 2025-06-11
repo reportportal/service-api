@@ -47,6 +47,7 @@ class IntegrationEventsTest {
     activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
     activity.setObjectId(2L);
+    activity.setOrganizationId(1L);
     activity.setCreatedAt(Instant.now());
     activity.setObjectName("type");
     ActivityDetails expected = new ActivityDetails();
@@ -68,14 +69,14 @@ class IntegrationEventsTest {
 
   @Test
   void created() {
-    final Activity actual = new IntegrationCreatedEvent(getIntegration(), 1L, "user").toActivity();
+    final Activity actual = new IntegrationCreatedEvent(getIntegration(), 1L, "user", 1L).toActivity();
     final Activity expected = getExpectedActivity(EventAction.CREATE);
     checkActivity(expected, actual);
   }
 
   @Test
   void deleted() {
-    final Activity actual = new IntegrationDeletedEvent(getIntegration(), 1L, "user").toActivity();
+    final Activity actual = new IntegrationDeletedEvent(getIntegration(), 1L, "user", 1L).toActivity();
     final Activity expected = getExpectedActivity(EventAction.DELETE);
     checkActivity(expected, actual);
   }
@@ -93,7 +94,7 @@ class IntegrationEventsTest {
   @Test
   void updated() {
     final Activity actual = new IntegrationUpdatedEvent(1L, "user", getIntegration(),
-        getIntegration()).toActivity();
+        getIntegration(), 1L).toActivity();
     final Activity expected = getExpectedActivity(EventAction.UPDATE);
     checkActivity(expected, actual);
   }

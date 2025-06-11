@@ -16,24 +16,26 @@
 
 package com.epam.ta.reportportal.core.project.settings.impl;
 
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.reportportal.rules.exception.ErrorType.ISSUE_TYPE_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.in;
 import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.AUTOMATION_BUG;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NO_DEFECT;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.PRODUCT_BUG;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.SYSTEM_ISSUE;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
-import static com.epam.reportportal.rules.exception.ErrorType.ISSUE_TYPE_NOT_FOUND;
-import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeUpdatedEvent;
 import com.epam.ta.reportportal.core.events.activity.PatternUpdatedEvent;
@@ -45,14 +47,12 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.activity.IssueTypeActivityResource;
 import com.epam.ta.reportportal.model.activity.PatternTemplateActivityResource;
 import com.epam.ta.reportportal.model.project.config.UpdateIssueSubTypeRQ;
 import com.epam.ta.reportportal.model.project.config.UpdateOneIssueSubTypeRQ;
 import com.epam.ta.reportportal.model.project.config.pattern.UpdatePatternTemplateRQ;
 import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Sets;
 import java.util.List;
@@ -102,7 +102,8 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 
     projectRepository.save(project);
     issueTypeActivityResources.forEach(it -> messageBus.publishActivity(
-        new DefectTypeUpdatedEvent(it, user.getUserId(), user.getUsername(), project.getId())));
+        new DefectTypeUpdatedEvent(it, user.getUserId(), user.getUsername(), project.getId(),
+            project.getOrganizationId())));
     return new OperationCompletionRS("Issue sub-type(s) was updated successfully.");
   }
 
@@ -137,7 +138,7 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
         PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate);
 
     messageBus.publishActivity(
-        new PatternUpdatedEvent(user.getUserId(), user.getUsername(), before, after));
+        new PatternUpdatedEvent(user.getUserId(), user.getUsername(), before, after, project.getOrganizationId()));
 
     return new OperationCompletionRS(
         Suppliers.formattedSupplier("Pattern template with ID = '{}' has been successfully updated",

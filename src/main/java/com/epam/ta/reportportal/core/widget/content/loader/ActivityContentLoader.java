@@ -16,28 +16,30 @@
 
 package com.epam.ta.reportportal.core.widget.content.loader;
 
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_CREATED_AT;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_EVENT_NAME;
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ACTION_TYPE;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.CONTENT_FIELDS_DELIMITER;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.USER;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
+import static com.epam.ta.reportportal.dao.util.WidgetContentUtil.ACTIVITY_MAPPER;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.model.ActivityResource;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.reportportal.model.ActivityResource;
-import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -55,69 +57,73 @@ import org.springframework.stereotype.Service;
 @Service
 public class ActivityContentLoader implements LoadContentStrategy {
 
-	private final UserRepository userRepository;
+  private final UserRepository userRepository;
+  private final ActivityRepository activityRepository;
 
-	private final WidgetContentRepository widgetContentRepository;
+  private final WidgetContentRepository widgetContentRepository;
 
-	@Autowired
-	public ActivityContentLoader(UserRepository userRepository, WidgetContentRepository widgetContentRepository) {
-		this.userRepository = userRepository;
-		this.widgetContentRepository = widgetContentRepository;
-	}
+  @Autowired
+  public ActivityContentLoader(UserRepository userRepository, ActivityRepository activityRepository,
+      WidgetContentRepository widgetContentRepository) {
+    this.userRepository = userRepository;
+    this.activityRepository = activityRepository;
+    this.widgetContentRepository = widgetContentRepository;
+  }
 
-	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			int limit) {
+  @Override
+  public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping,
+      WidgetOptions widgetOptions,
+      int limit) {
 
-		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
+    Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 
-		Sort sort = Sort.by(Sort.Direction.DESC, CRITERIA_CREATED_AT);
+    Sort sort = Sort.by(Sort.Direction.DESC, CRITERIA_CREATED_AT);
 
-		ofNullable(widgetOptions).ifPresent(wo -> modifyFilterWithUserCriteria(filter, wo));
+    ofNullable(widgetOptions).ifPresent(wo -> modifyFilterWithUserCriteria(filter, wo));
 
-		final List<String> actionTypes = (List<String>) widgetOptions.getOptions().get(ACTION_TYPE);
+    final List<String> actionTypes = (List<String>) widgetOptions.getOptions().get(ACTION_TYPE);
 
-		expect(actionTypes, CollectionUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR,
-				"At least 1 action type should be provided.");
+    expect(actionTypes, CollectionUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR,
+        "At least 1 action type should be provided.");
 
-		filter.withCondition(
-				new FilterCondition(Condition.IN, false, String.join(CONTENT_FIELDS_DELIMITER, actionTypes),
-						CRITERIA_EVENT_NAME));
+    filter.withCondition(
+        new FilterCondition(Condition.IN, false, String.join(CONTENT_FIELDS_DELIMITER, actionTypes),
+            CRITERIA_EVENT_NAME));
 
-		List<ActivityResource> activityContents = widgetContentRepository.activityStatistics(filter,
-				sort, limit);
+    List<ActivityResource> activityContents = widgetContentRepository.activityStatistics(filter,
+        sort, limit);
 
-		return activityContents.isEmpty() ? emptyMap() : singletonMap(RESULT, activityContents);
-	}
+    return activityContents.isEmpty() ? emptyMap() : singletonMap(RESULT, activityContents);
+  }
 
-	/**
-	 * Add username criteria for the filter if there are any username options in the {@link WidgetOptions#getOptions()}
-	 *
-	 * @param filter        {@link Filter}
-	 * @param widgetOptions {@link WidgetOptions}
-	 */
-	private void modifyFilterWithUserCriteria(Filter filter, WidgetOptions widgetOptions) {
+  /**
+   * Add username criteria for the filter if there are any username options in the {@link WidgetOptions#getOptions()}
+   *
+   * @param filter        {@link Filter}
+   * @param widgetOptions {@link WidgetOptions}
+   */
+  private void modifyFilterWithUserCriteria(Filter filter, WidgetOptions widgetOptions) {
 
-		ofNullable(widgetOptions.getOptions()).ifPresent(wo -> ofNullable(wo.get(USER)).ifPresent(users -> {
+    ofNullable(widgetOptions.getOptions()).ifPresent(wo -> ofNullable(wo.get(USER)).ifPresent(users -> {
 
-			if (StringUtils.isNotBlank(String.valueOf(users))) {
-				Set<String> usernameCriteria = Arrays.stream(String.valueOf(users).split(CONTENT_FIELDS_DELIMITER))
-						.map(String::trim)
-						.collect(Collectors.toSet());
+      if (StringUtils.isNotBlank(String.valueOf(users))) {
+        Set<String> usernameCriteria = Arrays.stream(String.valueOf(users).split(CONTENT_FIELDS_DELIMITER))
+            .map(String::trim)
+            .collect(Collectors.toSet());
 
-				usernameCriteria.forEach(username -> userRepository.findByLogin(username)
-						.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND,
-								"User with login " + username + " was not found"
-						)));
+        usernameCriteria.forEach(username -> userRepository.findByLogin(username)
+            .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND,
+                "User with login " + username + " was not found"
+            )));
 
-				filter.withCondition(new FilterCondition(Condition.IN,
-						false,
-						String.join(CONTENT_FIELDS_DELIMITER, usernameCriteria),
-						USER
-				));
-			}
+        filter.withCondition(new FilterCondition(Condition.IN,
+            false,
+            String.join(CONTENT_FIELDS_DELIMITER, usernameCriteria),
+            USER
+        ));
+      }
 
-		}));
-	}
+    }));
+  }
 
 }

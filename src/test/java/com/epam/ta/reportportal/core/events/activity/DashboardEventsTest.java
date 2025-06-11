@@ -50,6 +50,7 @@ class DashboardEventsTest {
     activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
     activity.setObjectId(2L);
+    activity.setOrganizationId(1L);
     activity.setCreatedAt(Instant.now());
     activity.setObjectName(name);
     activity.setDetails(new ActivityDetails());
@@ -61,7 +62,7 @@ class DashboardEventsTest {
     final String name = "name";
 
     final Activity actual = new DashboardCreatedEvent(getTestDashboard(name, false, "description"),
-        1L, "user").toActivity();
+        1L, "user", 1L).toActivity();
     final Activity expected = getExpectedDashboardActivity(EventAction.CREATE, name);
     checkActivity(expected, actual);
   }
@@ -71,7 +72,7 @@ class DashboardEventsTest {
     final String name = "name";
 
     final Activity actual = new DashboardDeletedEvent(getTestDashboard(name, false, "description"),
-        1L, "user").toActivity();
+        1L, "user", 1L).toActivity();
     final Activity expected = getExpectedDashboardActivity(EventAction.DELETE, name);
     checkActivity(actual, expected);
   }
@@ -98,7 +99,7 @@ class DashboardEventsTest {
         getTestDashboard(oldName, oldShared, oldDescription),
         getTestDashboard(newName, newShared, newDescription),
         1L,
-        "user"
+        "user", 1L
     ).toActivity();
     final Activity expected = getExpectedDashboardActivity(EventAction.UPDATE,
         newName);

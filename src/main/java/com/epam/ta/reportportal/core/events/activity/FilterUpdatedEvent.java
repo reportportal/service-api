@@ -35,22 +35,34 @@ import com.epam.ta.reportportal.model.activity.UserFilterActivityResource;
 public class FilterUpdatedEvent extends AroundEvent<UserFilterActivityResource>
     implements ActivityEvent {
 
+  private Long orgId;
+
   public FilterUpdatedEvent() {
   }
 
   public FilterUpdatedEvent(UserFilterActivityResource before, UserFilterActivityResource after,
-      Long userId, String userLogin) {
+      Long userId, String userLogin, Long orgId) {
     super(userId, userLogin, before, after);
+    this.orgId = orgId;
   }
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow().addAction(EventAction.UPDATE)
-        .addEventName(ActivityAction.UPDATE_FILTER.getValue()).addPriority(EventPriority.LOW)
-        .addObjectId(getAfter().getId()).addObjectName(getAfter().getName())
-        .addObjectType(EventObject.FILTER).addProjectId(getAfter().getProjectId())
-        .addSubjectId(getUserId()).addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER)
-        .addHistoryField(processName(getBefore().getName(), getAfter().getName())).addHistoryField(
-            processDescription(getBefore().getDescription(), getAfter().getDescription())).get();
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_FILTER.getValue())
+        .addPriority(EventPriority.LOW)
+        .addObjectId(getAfter().getId())
+        .addObjectName(getAfter().getName())
+        .addObjectType(EventObject.FILTER)
+        .addProjectId(getAfter().getProjectId())
+        .addOrganizationId(orgId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
+        .addHistoryField(processName(getBefore().getName(), getAfter().getName()))
+        .addHistoryField(processDescription(getBefore().getDescription(), getAfter().getDescription()))
+        .get();
   }
 }

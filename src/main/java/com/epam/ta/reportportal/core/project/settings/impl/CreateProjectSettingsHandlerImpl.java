@@ -145,7 +145,7 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 
     messageBus.publishActivity(
         new DefectTypeCreatedEvent(TO_ACTIVITY_RESOURCE.apply(subType), user.getUserId(),
-            user.getUsername(), project.getId()
+            user.getUsername(), project.getId(), project.getOrganizationId()
         ));
     return new IssueSubTypeCreatedRS(subType.getId(), subType.getLocator());
   }
@@ -187,7 +187,7 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
             ))).createPatternTemplate(project.getId(), createPatternTemplateRQ);
 
     messageBus.publishActivity(new PatternCreatedEvent(user.getUserId(), user.getUsername(),
-        PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate)
+        PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate), project.getOrganizationId()
     ));
     return new EntryCreatedRS(patternTemplate.getId());
   }

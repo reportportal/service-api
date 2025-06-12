@@ -22,7 +22,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaCon
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 
-import com.epam.reportportal.api.UserApi;
+import com.epam.reportportal.api.UsersApi;
 import com.epam.reportportal.api.model.AccountType;
 import com.epam.reportportal.api.model.InstanceRole;
 import com.epam.reportportal.api.model.InstanceUser;
@@ -64,7 +64,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @RequiredArgsConstructor
 @RestController
-public class GeneratedUserController implements UserApi {
+public class GeneratedUserController implements UsersApi {
 
   private final CreateUserHandler createUserHandler;
   private final GetFileHandler getFileHandler;

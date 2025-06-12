@@ -21,7 +21,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 
-import com.epam.reportportal.api.OrganizationApi;
+import com.epam.reportportal.api.OrganizationsApi;
 import com.epam.reportportal.api.model.OrganizationBase;
 import com.epam.reportportal.api.model.OrganizationInfo;
 import com.epam.reportportal.api.model.OrganizationPage;
@@ -58,7 +58,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
  */
 @RestController
 @RequiredArgsConstructor
-public class OrganizationController extends BaseController implements OrganizationApi {
+public class OrganizationController extends BaseController implements OrganizationsApi {
 
   private final GetOrganizationHandler getOrganizationHandler;
   private final SearchCriteriaService searchCriteriaService;

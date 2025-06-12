@@ -32,7 +32,7 @@ public enum FilterOperation {
   EQ(FilterCondition.builder().withCondition(Condition.EQUALS)),
   NE(FilterCondition.builder().withCondition(Condition.NOT_EQUALS)),
   CNT(FilterCondition.builder().withCondition(Condition.CONTAINS)),
-  NON_CNT(FilterCondition.builder().withCondition(Condition.CONTAINS).withNegative(true)),
+  NOT_CNT(FilterCondition.builder().withCondition(Condition.CONTAINS).withNegative(true)),
   BTW(FilterCondition.builder().withCondition(Condition.BETWEEN)),
   IN(FilterCondition.builder().withCondition(Condition.IN)),
   GT(FilterCondition.builder().withCondition(Condition.GREATER_THAN)),

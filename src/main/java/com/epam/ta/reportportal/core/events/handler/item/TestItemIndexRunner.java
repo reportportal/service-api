@@ -48,9 +48,9 @@ public class TestItemIndexRunner implements
     final AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(projectConfig);
 
     logIndexer.indexItemsLogs(
-        event.getProjectId(),
-        event.getLaunchId(),
-        Lists.newArrayList(event.getItemId()),
+        event.projectId(),
+        event.launchId(),
+        Lists.newArrayList(event.itemId()),
         analyzerConfig
     );
   }

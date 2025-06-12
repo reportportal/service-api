@@ -29,15 +29,20 @@ import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.model.activity.PatternTemplateActivityResource;
 import java.util.Optional;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+@Setter
+@Getter
 public class PatternMatchedEvent extends AbstractEvent implements ActivityEvent {
 
   private String itemName;
 
   private Long itemId;
+  private Long orgId;
 
   private PatternTemplateActivityResource patternTemplateActivityResource;
 
@@ -45,35 +50,11 @@ public class PatternMatchedEvent extends AbstractEvent implements ActivityEvent 
   }
 
   public PatternMatchedEvent(String itemName, Long itemId,
-      PatternTemplateActivityResource patternTemplateActivityResource) {
+      PatternTemplateActivityResource patternTemplateActivityResource, Long orgId) {
     this.itemName = itemName;
     this.itemId = itemId;
     this.patternTemplateActivityResource = patternTemplateActivityResource;
-  }
-
-  public String getItemName() {
-    return itemName;
-  }
-
-  public void setItemName(String itemName) {
-    this.itemName = itemName;
-  }
-
-  public Long getItemId() {
-    return itemId;
-  }
-
-  public void setItemId(Long itemId) {
-    this.itemId = itemId;
-  }
-
-  public PatternTemplateActivityResource getPatternTemplateActivityResource() {
-    return patternTemplateActivityResource;
-  }
-
-  public void setPatternTemplateActivityResource(
-      PatternTemplateActivityResource patternTemplateActivityResource) {
-    this.patternTemplateActivityResource = patternTemplateActivityResource;
+    this.orgId = orgId;
   }
 
   @Override
@@ -91,6 +72,7 @@ public class PatternMatchedEvent extends AbstractEvent implements ActivityEvent 
         .addObjectName(itemName)
         .addObjectType(EventObject.ITEM_ISSUE)
         .addProjectId(patternTemplateActivityResource.getProjectId())
+        .addOrganizationId(orgId)
         .addSubjectName("Pattern Analysis")
         .addSubjectType(EventSubject.RULE)
         .addHistoryField(Optional.of(patternNameField))

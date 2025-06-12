@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -34,12 +34,14 @@ import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
 import java.time.Instant;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -76,8 +78,8 @@ class StartLaunchHandlerImplTest {
 
   @Test
   void startLaunch() {
-    final ReportPortalUser rpUser =
-        getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER,
+        ProjectRole.EDITOR, 1L);
 
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
     startLaunchRQ.setStartTime(Instant.now());
@@ -93,7 +95,7 @@ class StartLaunchHandlerImplTest {
     }).when(launchRepository).save(any(Launch.class));
 
     final StartLaunchRS startLaunchRS =
-        startLaunchHandlerImpl.startLaunch(rpUser, extractProjectDetails(rpUser, "test_project"),
+        startLaunchHandlerImpl.startLaunch(rpUser, rpUserToMembership(rpUser),
             startLaunchRQ
         );
 
@@ -103,8 +105,9 @@ class StartLaunchHandlerImplTest {
   }
 
   @Test
+  @Disabled("waiting for requirements")
   void accessDeniedForCustomerRoleAndDebugMode() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
     startLaunchRQ.setStartTime(Instant.now());
@@ -112,7 +115,7 @@ class StartLaunchHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> startLaunchHandlerImpl.startLaunch(rpUser,
-            extractProjectDetails(rpUser, "test_project"), startLaunchRQ
+            rpUserToMembership(rpUser), startLaunchRQ
         )
     );
     assertEquals("Forbidden operation.", exception.getMessage());

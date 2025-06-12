@@ -16,7 +16,9 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -43,6 +45,7 @@ import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -96,10 +99,10 @@ class FinishTestItemHandlerImplTest {
 
   @Test
   void finishNotExistedTestItem() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     when(repository.findByUuid("1")).thenReturn(Optional.empty());
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+        () -> handler.finishTestItem(rpUser, rpUserToMembership(rpUser), "1",
             new FinishTestItemRQ()
         )
     );
@@ -110,7 +113,7 @@ class FinishTestItemHandlerImplTest {
 
   @Test
   void finishTestItemUnderNotExistedLaunch() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     TestItem item = new TestItem();
     TestItemResults results = new TestItemResults();
     results.setStatus(StatusEnum.IN_PROGRESS);
@@ -119,7 +122,7 @@ class FinishTestItemHandlerImplTest {
     when(repository.findByUuid("1")).thenReturn(Optional.of(item));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+        () -> handler.finishTestItem(rpUser, rpUserToMembership(rpUser), "1",
             new FinishTestItemRQ()
         )
     );
@@ -128,7 +131,7 @@ class FinishTestItemHandlerImplTest {
 
   @Test
   void finishTestItemByNotLaunchOwner() {
-    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER , 1L);
     TestItem item = new TestItem();
     Launch launch = new Launch();
     launch.setId(1L);
@@ -148,7 +151,7 @@ class FinishTestItemHandlerImplTest {
     when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+        () -> handler.finishTestItem(rpUser, rpUserToMembership(rpUser), "1",
             new FinishTestItemRQ()
         )
     );
@@ -159,7 +162,7 @@ class FinishTestItemHandlerImplTest {
 
   @Test
   void finishStepItemWithoutProvidedStatus() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     TestItem item = new TestItem();
     item.setItemId(1L);
     item.setStartTime(Instant.now());
@@ -180,13 +183,13 @@ class FinishTestItemHandlerImplTest {
 
     final FinishTestItemRQ rq = new FinishTestItemRQ();
     rq.setEndTime(Instant.now());
-    handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+    handler.finishTestItem(rpUser, rpUserToMembership(rpUser), "1",
         rq);
   }
 
   @Test
   void updateFinishedItemTest() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     TestItem item = new TestItem();
     item.setItemId(1L);
     TestItemResults results = new TestItemResults();
@@ -222,7 +225,7 @@ class FinishTestItemHandlerImplTest {
     finishExecutionRQ.setEndTime(Instant.now());
 
     OperationCompletionRS operationCompletionRS =
-        handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
+        handler.finishTestItem(rpUser, rpUserToMembership(rpUser), "1",
             finishExecutionRQ
         );
 

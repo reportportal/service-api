@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.converter.builders.LogFullBuilder;
 import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -89,11 +90,11 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
   @Nonnull
   //TODO check saving an attachment of the item of the project A in the project's B directory
   public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, MultipartFile file,
-      ReportPortalUser.ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
     validate(request);
 
     final LogFullBuilder logFullBuilder =
-        new LogFullBuilder().addSaveLogRq(request).addProjectId(projectDetails.getProjectId());
+        new LogFullBuilder().addSaveLogRq(request).addProjectId(membershipDetails.getProjectId());
 
     final Launch launch = testItemRepository.findByUuid(request.getItemUuid()).map(item -> {
       logFullBuilder.addTestItem(item);

@@ -54,37 +54,25 @@ class FileStorageControllerTest extends BaseMvcTest {
   @Test
   void userPhoto() throws Exception {
     final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
-            "/v1/data/photo")
+            "/users/2/avatar")
         .file(new MockMultipartFile("file", "file", "image/png",
             new ClassPathResource("image/image.png").getInputStream()))
         .contentType(MediaType.MULTIPART_FORM_DATA);
 
     mockMvc.perform(requestBuilder.with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isCreated());
+
+    mockMvc.perform(get("/users/2/avatar").with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk());
 
-    mockMvc.perform(get("/v1/data/photo").with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
-
-    mockMvc.perform(get("/v1/data/default_personal/userphoto?login=default").with(
-            token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
-
-    mockMvc.perform(delete("/v1/data/photo").with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  @Sql("/db/user/user-customer.sql")
-  public void testUserPhotoAccessDeniedForCustomer() throws Exception {
-    mockMvc.perform(get("/v1/data/default_personal/userphoto?login=default").with(
-            token(oAuthHelper.getCustomerToken())))
-        .andExpect(status().isForbidden());
+    mockMvc.perform(delete("/users/2/avatar").with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isNoContent());
   }
 
   @Test
   void uploadLargeUserPhoto() throws Exception {
     final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
-            "/v1/data/photo")
+            "/users/2/avatar")
         .file(new MockMultipartFile("file",
             new ClassPathResource("image/large_image.png").getInputStream()))
         .contentType(MediaType.MULTIPART_FORM_DATA);
@@ -118,7 +106,7 @@ class FileStorageControllerTest extends BaseMvcTest {
   @Test
   void uploadNotImage() throws Exception {
     final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
-            "/v1/data/photo")
+            "/users/2/avatar")
         .file(new MockMultipartFile("file", "text.txt", "text/plain",
             "test".getBytes(StandardCharsets.UTF_8)))
         .contentType(MediaType.MULTIPART_FORM_DATA);
@@ -157,23 +145,11 @@ class FileStorageControllerTest extends BaseMvcTest {
         .andExpect(status().isOk());
   }
 
-  @Test
-  void getUserPhotoNegative() throws Exception {
-    mockMvc.perform(get("/v1/data/photo").with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  void getUserPhotoByLoginNegative() throws Exception {
-    mockMvc.perform(get("/v1/data/superadmin_personal/userphoto?login=superadmin").with(
-            token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
-  }
 
   @Test
   void getNotExistUserPhoto() throws Exception {
     mockMvc.perform(
-            get("/v1/data/userphoto?login=not_exist")
+            get("/users/999/avatar")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound());
   }

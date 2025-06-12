@@ -28,6 +28,7 @@ import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATIO
 import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_EXISTS;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.entity.user.UserType.INTERNAL;
+import static com.epam.ta.reportportal.util.email.EmailRulesValidator.NORMALIZE_EMAIL;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
@@ -48,7 +49,6 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.model.user.ChangePasswordRQ;
 import com.epam.ta.reportportal.model.user.EditUserRQ;
-import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.awt.Dimension;
@@ -74,7 +74,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * Edit user handler
+ * Edit user handler.
  *
  * @author Aliaksandr_Kazantsau
  * @author Andrei_Ramanchuk
@@ -98,6 +98,17 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
   private final ApplicationEventPublisher eventPublisher;
 
+  /**
+   * Constructor.
+   *
+   * @param passwordEncoder       Password encoder
+   * @param userRepository        User repository
+   * @param projectRepository     Project repository
+   * @param userBinaryDataService User binary data service
+   * @param autoDetectParser      Auto detect parser
+   * @param emailServiceFactory   Email service factory
+   * @param eventPublisher        Event publisher
+   */
   @Autowired
   public EditUserHandlerImpl(PasswordEncoder passwordEncoder, UserRepository userRepository,
       ProjectRepository projectRepository,
@@ -120,36 +131,13 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
     updateRestrictedFields(editor, user, editUserRq);
 
-    if (null != editUserRq.getEmail() && !editUserRq.getEmail().equalsIgnoreCase(user.getEmail())) {
-      String updEmail = editUserRq.getEmail().toLowerCase().trim();
-      if (!editor.getUserRole().equals(UserRole.ADMINISTRATOR)) {
-        expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED,
-            "Unable to change email for external user");
-      }
-      expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR,
-          " wrong email: " + updEmail);
-      final Optional<User> byEmail = userRepository.findByEmail(updEmail);
+    ofNullable(editUserRq.getEmail())
+        .map(NORMALIZE_EMAIL)
+        .filter(email -> !email.equals(user.getEmail()))
+        .ifPresent(email -> updateEmail(email, user, editor));
 
-      expect(byEmail, Predicates.not(Optional::isPresent)).verify(USER_ALREADY_EXISTS, updEmail);
-
-      List<Project> userProjects = projectRepository.findUserProjects(username);
-      userProjects.forEach(
-          project -> ProjectUtils.updateProjectRecipients(user.getEmail(), updEmail, project));
-      user.setEmail(updEmail);
-      try {
-        projectRepository.saveAll(userProjects);
-      } catch (Exception exp) {
-        throw new ReportPortalException("PROJECT update exception while USER editing.", exp);
-      }
-    }
-
-    if (null != editUserRq.getFullName()) {
-      if (!editor.getUserRole().equals(UserRole.ADMINISTRATOR)) {
-        expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED,
-            "Unable to change full name for external user");
-      }
-      user.setFullName(editUserRq.getFullName());
-    }
+    ofNullable(editUserRq.getFullName())
+        .ifPresent(fullName -> updateFullName(fullName, user, editor));
 
     ofNullable(editUserRq.getExternalId()).ifPresent(user::setExternalId);
 
@@ -160,13 +148,25 @@ public class EditUserHandlerImpl implements EditUserHandler {
     }
 
     return new OperationCompletionRS(
-        "User with login = '" + user.getLogin() + "' successfully updated");
+        "User with login = '"
+            + user.getLogin()
+            + "' successfully updated"
+    );
   }
 
   @Override
   public OperationCompletionRS uploadPhoto(String username, MultipartFile file) {
     User user = userRepository.findByLogin(username)
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
+    validatePhoto(file);
+    userBinaryDataService.saveUserPhoto(user, file);
+    return new OperationCompletionRS("Profile photo has been uploaded successfully");
+  }
+
+  @Override
+  public OperationCompletionRS uploadPhoto(Long userId, MultipartFile file) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
     validatePhoto(file);
     userBinaryDataService.saveUserPhoto(user, file);
     return new OperationCompletionRS("Profile photo has been uploaded successfully");
@@ -180,6 +180,15 @@ public class EditUserHandlerImpl implements EditUserHandler {
         "Unable to change photo for external user");
     userBinaryDataService.deleteUserPhoto(user);
     return new OperationCompletionRS("Profile photo has been deleted successfully");
+  }
+
+  @Override
+  public void deletePhoto(Long userId) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
+    expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED,
+        "Unable to change photo for external user");
+    userBinaryDataService.deleteUserPhoto(user);
   }
 
   @Override
@@ -211,11 +220,43 @@ public class EditUserHandlerImpl implements EditUserHandler {
     return new OperationCompletionRS("Password has been changed successfully");
   }
 
+  private void updateEmail(String email, User user, ReportPortalUser editor) {
+    if (!editor.getUserRole().equals(UserRole.ADMINISTRATOR)) {
+      expect(user.getUserType(), equalTo(INTERNAL))
+          .verify(ACCESS_DENIED, "Unable to change email for external user");
+    }
+
+    expect(userRepository.findByEmail(email), Predicates.not(Optional::isPresent))
+        .verify(USER_ALREADY_EXISTS, email);
+
+    List<Project> userProjects = projectRepository.findUserProjects(user.getLogin());
+
+    userProjects.forEach(
+        project -> ProjectUtils.updateProjectRecipients(user.getEmail(), email, project));
+
+    user.setEmail(email);
+    user.setLogin(email);
+
+    try {
+      projectRepository.saveAll(userProjects);
+    } catch (Exception exp) {
+      throw new ReportPortalException("PROJECT update exception while USER editing.", exp);
+    }
+  }
+
+  private void updateFullName(String fullName, User user, ReportPortalUser editor) {
+    if (!editor.getUserRole().equals(UserRole.ADMINISTRATOR)) {
+      expect(user.getUserType(), equalTo(INTERNAL)).verify(
+          ACCESS_DENIED, "Unable to change full name for external user");
+    }
+    user.setFullName(fullName);
+  }
+
   private void updateRestrictedFields(ReportPortalUser editor, User user, EditUserRQ editUserRq) {
     ofNullable(editUserRq.getRole()).ifPresent(role -> {
       checkPossibilityToEdit(editor, user, "role");
-      UserRole newRole = UserRole.findByName(role)
-          .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+      UserRole newRole = UserRole.findByName(role).orElseThrow(
+          () -> new ReportPortalException(BAD_REQUEST_ERROR,
               "Incorrect specified Account Role parameter."));
       publishChangeUserTypeEvent(user, editor, newRole);
       user.setRole(newRole);
@@ -291,8 +332,13 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
   private void publishChangeUserTypeEvent(User user, ReportPortalUser editor, UserRole newRole) {
     eventPublisher.publishEvent(
-        new ChangeUserTypeEvent(user.getId(), user.getLogin(),
-            user.getRole(), newRole, editor.getUserId(), editor.getUsername()));
+        new ChangeUserTypeEvent(
+            user.getId(),
+            user.getLogin(),
+            user.getRole(),
+            newRole,
+            editor.getUserId(),
+            editor.getUsername()));
   }
 
   private void checkPossibilityToEdit(ReportPortalUser editor, User user, String fieldName) {

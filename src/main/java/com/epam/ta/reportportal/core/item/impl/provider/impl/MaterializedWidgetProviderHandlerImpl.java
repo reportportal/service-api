@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
@@ -59,29 +60,29 @@ public class MaterializedWidgetProviderHandlerImpl implements DataProviderHandle
 	private WidgetRepository widgetRepository;
 
 	@Override
-	public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
+	public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, MembershipDetails membershipDetails,
 			ReportPortalUser user, Map<String, String> providerParams) {
-		WidgetType widgetType = updateProviderParams(projectDetails, providerParams);
-		return testItemWidgetDataProviders.get(widgetType).getTestItems(filter, pageable, projectDetails, user, providerParams);
+		WidgetType widgetType = updateProviderParams(membershipDetails, providerParams);
+		return testItemWidgetDataProviders.get(widgetType).getTestItems(filter, pageable, membershipDetails, user, providerParams);
 	}
 
 	@Override
-	public Set<Statistics> accumulateStatistics(Queryable filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+	public Set<Statistics> accumulateStatistics(Queryable filter, MembershipDetails membershipDetails, ReportPortalUser user,
 			Map<String, String> providerParams) {
-		WidgetType widgetType = updateProviderParams(projectDetails, providerParams);
-		return testItemWidgetDataProviders.get(widgetType).accumulateStatistics(filter, projectDetails, user, providerParams);
+		WidgetType widgetType = updateProviderParams(membershipDetails, providerParams);
+		return testItemWidgetDataProviders.get(widgetType).accumulateStatistics(filter, membershipDetails, user, providerParams);
 	}
 
-	private WidgetType updateProviderParams(ReportPortalUser.ProjectDetails projectDetails, Map<String, String> providerParams) {
+	private WidgetType updateProviderParams(MembershipDetails membershipDetails, Map<String, String> providerParams) {
 		Long widgetId = Optional.ofNullable(providerParams.get(WIDGET_ID_PARAM))
 				.map(ControllerUtils::safeParseLong)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
 						"Widget id must be provided for widget based items provider"
 				));
-		Widget widget = widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
+		Widget widget = widgetRepository.findByIdAndProjectId(widgetId, membershipDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
 						widgetId,
-						projectDetails.getProjectName()
+            membershipDetails.getProjectName()
 				));
 		validateState(widget.getWidgetOptions());
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())

@@ -107,12 +107,12 @@ public class LaunchNotificationRunner
 
     if (isNotificationsEnabled) {
       getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(
-              launchFinishedEvent.getProjectId(), IntegrationGroupEnum.NOTIFICATION)
+              launchFinishedEvent.projectId(), IntegrationGroupEnum.NOTIFICATION)
           .filter(integration -> EMAIL_INTEGRATION_NAME.equalsIgnoreCase(integration.getName()))
           .flatMap(mailServiceFactory::getDefaultEmailService)
           .ifPresentOrElse(emailService -> sendEmail(launchFinishedEvent, emailService),
               () -> LOGGER.warn("Unable to find {} integration for project {}",
-                  IntegrationGroupEnum.NOTIFICATION, launchFinishedEvent.getProjectId()
+                  IntegrationGroupEnum.NOTIFICATION, launchFinishedEvent.projectId()
               )
           );
     }
@@ -285,7 +285,7 @@ public class LaunchNotificationRunner
   }
 
   private void sendNotificationEvent(LaunchFinishedEvent launchFinishedEvent) {
-    final Project project = getProjectHandler.get(launchFinishedEvent.getProjectId());
+    final Project project = getProjectHandler.get(launchFinishedEvent.projectId());
 
     String launchLink = generateLaunchLink(launchFinishedEvent.getBaseUrl(), project.getName(),
         String.valueOf(launchFinishedEvent.getId())
@@ -293,6 +293,6 @@ public class LaunchNotificationRunner
 
     eventPublisher.publishEvent(
         new LaunchFinishedPluginEvent(launchFinishedEvent.getId(),
-            launchFinishedEvent.getProjectId(), launchLink));
+            launchFinishedEvent.projectId(), launchLink));
   }
 }

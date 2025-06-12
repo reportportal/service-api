@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -42,13 +43,13 @@ public abstract class AbstractLaunchAnalysisStrategy implements LaunchAnalysisSt
     this.launchRepository = launchRepository;
   }
 
-  protected void validateLaunch(Launch launch, ReportPortalUser.ProjectDetails projectDetails) {
+  protected void validateLaunch(Launch launch, MembershipDetails membershipDetails) {
 
-    expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
+    expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId())).verify(
         FORBIDDEN_OPERATION,
         Suppliers.formattedSupplier("Launch with ID '{}' is not under '{}' project.",
             launch.getId(),
-            projectDetails.getProjectName()
+            membershipDetails.getProjectName()
         )
     );
 

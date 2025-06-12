@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.filter;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.OwnedEntityResource;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.filter.UserFilterResource;
@@ -36,10 +37,10 @@ public interface GetUserFilterHandler {
    * Get {@link UserFilterResource} by provided id
    *
    * @param id             Provided id
-   * @param projectDetails Projcet details
+   * @param membershipDetails Membership details
    * @return {@link UserFilterResource}
    */
-  UserFilterResource getUserFilter(Long id, ReportPortalUser.ProjectDetails projectDetails);
+  UserFilterResource getUserFilter(Long id, MembershipDetails membershipDetails);
 
   /**
    * Get {@link UserFilterResource} objects
@@ -56,13 +57,13 @@ public interface GetUserFilterHandler {
   /**
    * Get all {@link com.epam.ta.reportportal.entity.filter.UserFilter}'s names
    *
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param pageable       Page request
    * @param filter         Filter representation
    * @param user           ReportPortal user
    * @return List of {@link OwnedEntityResource}
    */
-  Page<OwnedEntityResource> getFiltersNames(ReportPortalUser.ProjectDetails projectDetails,
+  Page<OwnedEntityResource> getFiltersNames(MembershipDetails membershipDetails,
       Pageable pageable, Filter filter, ReportPortalUser user);
 
   /**
@@ -71,10 +72,10 @@ public interface GetUserFilterHandler {
    * objects
    *
    * @param ids            Filter IDs
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param user           ReportPortal user
    * @return Found filters
    */
-  List<UserFilter> getFiltersById(Long[] ids, ReportPortalUser.ProjectDetails projectDetails,
+  List<UserFilter> getFiltersById(Long[] ids, MembershipDetails membershipDetails,
       ReportPortalUser user);
 }

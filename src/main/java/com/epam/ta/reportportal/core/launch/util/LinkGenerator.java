@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.launch.util;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
-import java.util.Collections;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,6 +51,11 @@ public final class LinkGenerator {
 
   public static String generateLaunchLink(String baseUrl, String projectName, String id) {
     return StringUtils.isEmpty(baseUrl) ? null : baseUrl + UI_PREFIX + projectName + LAUNCHES + id;
+  }
+
+  public static URI generateInvitationUrl(HttpServletRequest httpServletRequest, String invitationId) {
+    var baseUrl = composeBaseUrl(httpServletRequest);
+    return URI.create(baseUrl + "/ui/#registration?uuid=" + invitationId);
   }
 
   @SneakyThrows

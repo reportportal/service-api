@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.strategy;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
 
 /**
@@ -24,6 +25,6 @@ import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
  */
 public interface LaunchAnalysisStrategy {
 
-  void analyze(AnalyzeLaunchRQ analyzeLaunchRequest, ReportPortalUser.ProjectDetails projectDetails,
+  void analyze(AnalyzeLaunchRQ analyzeLaunchRequest, MembershipDetails membershipDetails,
       ReportPortalUser user);
 }

@@ -46,8 +46,11 @@ public class ProjectResource {
   @JsonProperty(value = "projectName", required = true)
   private String projectName;
 
-  @JsonProperty(value = "entryType", required = true)
-  private String entryType;
+  @JsonProperty(value = "projectKey")
+  private String projectKey;
+
+  @JsonProperty(value = "projectSlug")
+  private String projectSlug;
 
   @NotNull
   @JsonProperty(value = "configuration", required = true)
@@ -61,6 +64,9 @@ public class ProjectResource {
 
   @JsonProperty(value = "organization")
   private String organization;
+
+  @JsonProperty(value = "organizationId")
+  private Long organizationId;
 
   @JsonProperty(value = "allocatedStorage")
   private Long allocatedStorage;

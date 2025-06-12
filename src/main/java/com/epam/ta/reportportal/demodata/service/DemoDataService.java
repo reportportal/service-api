@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.demodata.service;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.demodata.model.DemoDataRq;
 import com.epam.ta.reportportal.demodata.model.DemoDataRs;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,13 +40,13 @@ public class DemoDataService {
     this.demoDataFacade = demoDataFacade;
   }
 
-  public DemoDataRs generate(DemoDataRq demoDataRq, ReportPortalUser.ProjectDetails projectDetails,
+  public DemoDataRs generate(DemoDataRq demoDataRq, MembershipDetails membershipDetails,
       ReportPortalUser user) {
     DemoDataRs demoDataRs = new DemoDataRs();
-    final List<Long> launchIds = demoDataFacade.generateDemoLaunches(user, projectDetails);
+    final List<Long> launchIds = demoDataFacade.generateDemoLaunches(user, membershipDetails);
     demoDataRs.setLaunchIds(launchIds);
     if (demoDataRq.isCreateDashboard()) {
-      demoDashboardsService.generate(user, projectDetails.getProjectId())
+      demoDashboardsService.generate(user, membershipDetails.getProjectId())
           .ifPresent(it -> demoDataRs.setDashboardId(it.getId()));
     }
 

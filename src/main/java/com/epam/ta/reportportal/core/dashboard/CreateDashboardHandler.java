@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.dashboard;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.dashboard.CreateDashboardRQ;
 
@@ -28,12 +29,12 @@ public interface CreateDashboardHandler {
   /**
    * Creates a new dashboard.
    *
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @param rq             Dashboard details
    * @param user           User
    * @return EntryCreatedRS
    */
-  EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails,
+  EntryCreatedRS createDashboard(MembershipDetails membershipDetails,
       CreateDashboardRQ rq, ReportPortalUser user);
 
 }

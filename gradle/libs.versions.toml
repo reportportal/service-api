@@ -1,0 +1,137 @@
+[versions]
+# Development versions
+commons-dev = "f6d9a56"
+commons-dao-dev = "9b8b695"
+plugin-api-dev = "f59b724"
+
+# Platform versions
+commons-bom = "5.13.4"
+spring-boot = "3.4.6"
+zonky-postgres-bom = "16.2.0"
+
+# Plugin versions
+owasp-dependencycheck = "11.1.1"
+drill-integration = "0.1.6"
+openapi-generator = "7.11.0"
+
+# Library versions
+springdoc-openapi = "2.8.8"
+opencsv = "5.10"
+rabbitmq-http = "5.3.0"
+httpclient5 = "5.4.3"
+jasperreports = "6.21.3"
+apache-poi = "5.4.0"
+openpdf = "2.0.3"
+jakarta-inject = "2.0.1"
+jakarta-mail = "2.0.1"
+xerces = "2.12.2"
+bouncycastle = "1.80"
+google-api-client = "2.6.0"
+commons-validator = "1.9.0"
+apache-commons-compress = "1.27.1"
+json-schema-validator = "1.5.6"
+slugify = "3.0.7"
+flyway-spring-test = "10.0.0"
+jjwt = "0.12.5"
+lombok = "1.18.36"
+jooq = "3.19.18"
+jclouds = "2.6.0"
+hibernate-validator = "8.0.2.Final"
+
+[libraries]
+# Development libs
+reportportal-commons-dev = { group = "com.github.reportportal", name = "commons", version.ref = "commons-dev" }
+reportportal-commons-dao-dev = { group = "com.github.reportportal", name = "commons-dao", version.ref = "commons-dao-dev" }
+reportportal-plugin-api-dev = { group = "com.github.reportportal", name = "plugin-api", version.ref = "plugin-api-dev" }
+
+# Production libs
+reportportal-commons = { group = "com.epam.reportportal", name = "commons" }
+reportportal-commons-dao = { group = "com.epam.reportportal", name = "commons-dao" }
+reportportal-plugin-api = { group = "com.epam.reportportal", name = "plugin-api" }
+
+# Platforms
+spring-boot-bom = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring-boot" }
+reportportal-commons-bom = { group = "com.epam.reportportal", name = "commons-bom", version.ref = "commons-bom" }
+zonky-postgres-bom = { group = "io.zonky.test.postgres", name = "embedded-postgres-binaries-bom", version.ref = "zonky-postgres-bom" }
+
+# Spring Boot
+spring-boot-starter-aop = { group = "org.springframework.boot", name = "spring-boot-starter-aop" }
+spring-boot-starter-web = { group = "org.springframework.boot", name = "spring-boot-starter-web" }
+spring-boot-starter-quartz = { group = "org.springframework.boot", name = "spring-boot-starter-quartz" }
+spring-boot-starter-freemarker = { group = "org.springframework.boot", name = "spring-boot-starter-freemarker" }
+spring-boot-starter-actuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator" }
+spring-boot-starter-amqp = { group = "org.springframework.boot", name = "spring-boot-starter-amqp" }
+spring-boot-starter-batch = { group = "org.springframework.boot", name = "spring-boot-starter-batch" }
+spring-boot-starter-security = { group = "org.springframework.boot", name = "spring-boot-starter-security" }
+spring-boot-starter-oauth2-client = { group = "org.springframework.boot", name = "spring-boot-starter-oauth2-client" }
+spring-boot-starter-test = { group = "org.springframework.boot", name = "spring-boot-starter-test" }
+
+# Spring Security
+spring-security-acl = { group = "org.springframework.security", name = "spring-security-acl" }
+spring-security-oauth2-resource-server = { group = "org.springframework.security", name = "spring-security-oauth2-resource-server" }
+
+# Other libraries
+springdoc-openapi = { group = "org.springdoc", name = "springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc-openapi" }
+opencsv = { group = "com.opencsv", name = "opencsv", version.ref = "opencsv" }
+jooq = { group = "org.jooq", name = "jooq", version.ref = "jooq" }
+slugify = { group = "com.github.slugify", name = "slugify", version.ref = "slugify" }
+rabbitmq-http-client = { group = "com.rabbitmq", name = "http-client", version.ref = "rabbitmq-http" }
+httpclient5 = { group = "org.apache.httpcomponents.client5", name = "httpclient5", version.ref = "httpclient5" }
+jasperreports = { group = "net.sf.jasperreports", name = "jasperreports", version.ref = "jasperreports" }
+apache-poi = { group = "org.apache.poi", name = "poi", version.ref = "apache-poi" }
+openpdf = { group = "com.github.librepdf", name = "openpdf", version.ref = "openpdf" }
+jakarta-inject-api = { group = "jakarta.inject", name = "jakarta.inject-api", version.ref = "jakarta-inject" }
+jakarta-mail = { group = "com.sun.mail", name = "jakarta.mail", version.ref = "jakarta-mail" }
+xerces = { group = "xerces", name = "xercesImpl", version.ref = "xerces" }
+bouncycastle = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle" }
+google-api-client = { group = "com.google.api-client", name = "google-api-client", version.ref = "google-api-client" }
+commons-validator = { group = "commons-validator", name = "commons-validator", version.ref = "commons-validator" }
+apache-jclouds-filesystem = { group = "org.apache.jclouds.api", name = "filesystem", version.ref = "jclouds" }
+apache-commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "apache-commons-compress" }
+hibernate-validator = { group = "org.hibernate.validator", name = "hibernate-validator", version.ref = "hibernate-validator" }
+json-schema-validator = { group = "com.networknt", name = "json-schema-validator", version.ref = "json-schema-validator" }
+caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine" }
+
+# Lombok
+lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
+
+# Test libraries
+spring-test = { group = "org.springframework", name = "spring-test" }
+flyway-spring-test = { group = "org.flywaydb.flyway-test-extensions", name = "flyway-spring-test", version.ref = "flyway-spring-test" }
+jjwt-impl = { group = "io.jsonwebtoken", name = "jjwt-impl", version.ref = "jjwt" }
+jjwt-jackson = { group = "io.jsonwebtoken", name = "jjwt-jackson", version.ref = "jjwt" }
+
+[bundles]
+reportportal = ["reportportal-commons", "reportportal-commons-dao"]
+reportportal-dev = ["reportportal-commons-dev", "reportportal-commons-dao-dev"]
+
+spring-boot-starters = [
+    "spring-boot-starter-aop",
+    "spring-boot-starter-web",
+    "spring-boot-starter-quartz",
+    "spring-boot-starter-freemarker",
+    "spring-boot-starter-actuator",
+    "spring-boot-starter-amqp",
+    "spring-boot-starter-batch",
+    "spring-boot-starter-security",
+    "spring-boot-starter-oauth2-client"
+]
+
+spring-security = [
+    "spring-security-acl",
+    "spring-security-oauth2-resource-server"
+]
+
+test-libs = [
+    "spring-boot-starter-test",
+    "flyway-spring-test",
+    "jjwt-impl",
+    "jjwt-jackson"
+]
+
+[plugins]
+java-library = { id = "java-library" }
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+owasp-dependencycheck = { id = "org.owasp.dependencycheck", version.ref = "owasp-dependencycheck" }
+drill-integration = { id = "com.epam.drill.integration.cicd", version.ref = "drill-integration" }
+openapi-generator = { id = "org.openapi.generator", version.ref = "openapi-generator" }

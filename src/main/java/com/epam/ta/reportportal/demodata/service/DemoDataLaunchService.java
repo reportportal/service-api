@@ -20,13 +20,16 @@ import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
+import com.epam.ta.reportportal.core.project.ProjectService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributesRQ;
@@ -50,19 +53,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class DemoDataLaunchService {
 
   private final String[] platformValues =
-      { "linux", "windows", "macos", "ios", "android", "windows mobile", "ubuntu", "mint", "arch",
-          "windows 10", "windows 7", "windows server", "debian", "alpine" };
+      {"linux", "windows", "macos", "ios", "android", "windows mobile", "ubuntu", "mint", "arch",
+          "windows 10", "windows 7", "windows server", "debian", "alpine"};
 
   private final LaunchRepository launchRepository;
+  private final ProjectService projectService;
   private final TestItemRepository testItemRepository;
   private final ApplicationEventPublisher eventPublisher;
   private final LaunchAttributeHandlerService launchAttributeHandlerService;
 
   @Autowired
-  public DemoDataLaunchService(LaunchRepository launchRepository,
+  public DemoDataLaunchService(LaunchRepository launchRepository, ProjectService projectService,
       TestItemRepository testItemRepository, ApplicationEventPublisher eventPublisher,
       LaunchAttributeHandlerService launchAttributeHandlerService) {
     this.launchRepository = launchRepository;
+    this.projectService = projectService;
     this.testItemRepository = testItemRepository;
     this.eventPublisher = eventPublisher;
     this.launchAttributeHandlerService = launchAttributeHandlerService;
@@ -70,7 +75,7 @@ public class DemoDataLaunchService {
 
   @Transactional
   public Launch startLaunch(String name, User user,
-      ReportPortalUser.ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
     StartLaunchRQ rq = new StartLaunchRQ();
     rq.setMode(Mode.DEFAULT);
     rq.setDescription(ContentUtils.getLaunchDescription());
@@ -85,7 +90,7 @@ public class DemoDataLaunchService {
             + now.getSecond()
     ));
     Launch launch = new LaunchBuilder().addStartRQ(rq).addAttributes(attributes)
-        .addProject(projectDetails.getProjectId()).get();
+        .addProject(membershipDetails.getProjectId()).get();
     launchAttributeHandlerService.handleLaunchStart(launch);
     launch.setUserId(user.getId());
     launchRepository.save(launch);
@@ -97,7 +102,6 @@ public class DemoDataLaunchService {
   public void finishLaunch(String launchId) {
     Launch launch = launchRepository.findByUuid(launchId)
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
-
     if (testItemRepository.hasItemsInStatusByLaunch(launch.getId(), StatusEnum.IN_PROGRESS)) {
       testItemRepository.interruptInProgressItems(launch.getId());
     }
@@ -113,7 +117,8 @@ public class DemoDataLaunchService {
     launch.setStatus(fromStatisticsStatus);
 
     launchRepository.save(launch);
-    eventPublisher.publishEvent(
-        new LaunchFinishedEvent(launch));
+
+    Project project = projectService.findProjectById(launch.getProjectId());
+    eventPublisher.publishEvent(new LaunchFinishedEvent(launch, project.getOrganizationId()));
   }
 }

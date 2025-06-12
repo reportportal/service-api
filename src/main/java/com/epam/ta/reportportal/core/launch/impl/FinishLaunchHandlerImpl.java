@@ -16,13 +16,14 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validate;
 import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validateRoles;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateLaunchLink;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
-import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
@@ -30,7 +31,7 @@ import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
@@ -68,11 +69,11 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
   @Override
   public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
+      MembershipDetails membershipDetails, ReportPortalUser user, String baseUrl) {
     Launch launch = launchRepository.findByUuid(launchId)
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 
-    validateRoles(launch, user, projectDetails);
+    validateRoles(launch, user, membershipDetails);
     validate(launch, finishLaunchRQ);
 
     Optional<StatusEnum> status = StatusEnum.fromValue(finishLaunchRQ.getStatus());
@@ -81,7 +82,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
     final int finishedCount =
         finishHierarchyHandler.finishDescendants(launch, status.orElse(StatusEnum.INTERRUPTED),
-            finishLaunchRQ.getEndTime(), user, projectDetails
+            finishLaunchRQ.getEndTime(), user, membershipDetails
         );
     if (finishedCount > 0) {
       launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(id, StatusEnum.PASSED.name(),
@@ -99,11 +100,11 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
         .addAttributes(finishLaunchRQ.getAttributes()).addEndTime(finishLaunchRQ.getEndTime())
         .get();
 
-    String launchLink = generateLaunchLink(baseUrl, projectDetails.getProjectName(),
+    String launchLink = generateLaunchLink(baseUrl, membershipDetails.getProjectKey(),
         String.valueOf(launch.getId())
     );
 
-    eventPublisher.publishEvent(new LaunchFinishedEvent(launch, user, baseUrl));
+    eventPublisher.publishEvent(new LaunchFinishedEvent(launch, user, baseUrl, membershipDetails.getOrgId()));
 
     FinishLaunchRS response = new FinishLaunchRS();
     response.setId(launch.getUuid());

@@ -27,10 +27,14 @@ import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 import com.google.common.base.Strings;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Andrei Varabyeu
  */
+@Setter
+@Getter
 public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> implements
     ActivityEvent {
 
@@ -51,14 +55,6 @@ public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> imple
       boolean isLinkedByAnalyzer) {
     super(null, userLogin, before, after);
     this.isLinkedByAnalyzer = isLinkedByAnalyzer;
-  }
-
-  public boolean isLinkedByAnalyzer() {
-    return isLinkedByAnalyzer;
-  }
-
-  public void setLinkedByAnalyzer(boolean linkedByAnalyzer) {
-    isLinkedByAnalyzer = linkedByAnalyzer;
   }
 
   @Override

@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.integration.IntegrationResource;
@@ -73,9 +74,9 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
   }
 
   @Override
-  public IntegrationResource getProjectIntegrationById(Long integrationId, String projectName) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+  public IntegrationResource getProjectIntegrationById(Long integrationId, String projectKey) {
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
     Integration integration =
         integrationRepository.findByIdAndProjectId(integrationId, project.getId()).orElseThrow(
             () -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
@@ -116,16 +117,16 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
   }
 
   @Override
-  public Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails,
+  public Integration getEnabledBtsIntegration(MembershipDetails membershipDetails,
       String url, String btsProject) {
 
-    Project project = projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
+    Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
         () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
-            projectDetails.getProjectName()
+            membershipDetails.getProjectName()
         ));
 
     Integration integration =
-        getBugTrackingSystemHandler.getEnabledProjectIntegration(projectDetails, url, btsProject)
+        getBugTrackingSystemHandler.getEnabledProjectIntegration(membershipDetails, url, btsProject)
             .orElseGet(() -> {
               Integration globalIntegration =
                   getBugTrackingSystemHandler.getEnabledGlobalIntegration(url, btsProject)
@@ -143,16 +144,16 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
   }
 
   @Override
-  public Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails,
+  public Integration getEnabledBtsIntegration(MembershipDetails membershipDetails,
       Long integrationId) {
 
-    Project project = projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
+    Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
         () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
-            projectDetails.getProjectName()
+            membershipDetails.getProjectName()
         ));
 
     Integration integration =
-        getBugTrackingSystemHandler.getEnabledProjectIntegration(projectDetails, integrationId)
+        getBugTrackingSystemHandler.getEnabledProjectIntegration(membershipDetails, integrationId)
             .orElseGet(() -> {
               Integration globalIntegration =
                   getBugTrackingSystemHandler.getEnabledGlobalIntegration(integrationId)
@@ -194,17 +195,17 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
   }
 
   @Override
-  public List<IntegrationResource> getProjectIntegrations(String projectName) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+  public List<IntegrationResource> getProjectIntegrations(String projectKey) {
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
     return integrationRepository.findAllByProjectIdOrderByCreationDateDesc(project.getId()).stream()
         .map(TO_INTEGRATION_RESOURCE).collect(Collectors.toList());
   }
 
   @Override
-  public List<IntegrationResource> getProjectIntegrations(String pluginName, String projectName) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+  public List<IntegrationResource> getProjectIntegrations(String pluginName, String projectKey) {
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
     IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
     return integrationRepository.findAllByProjectIdAndTypeOrderByCreationDateDesc(project.getId(),
@@ -213,9 +214,9 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
   }
 
   @Override
-  public boolean testConnection(Long integrationId, String projectName) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+  public boolean testConnection(Long integrationId, String projectKey) {
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 
     Integration integration =
         integrationRepository.findByIdAndProjectId(integrationId, project.getId()).orElseGet(

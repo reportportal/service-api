@@ -16,19 +16,19 @@
 
 package com.epam.ta.reportportal.core.activityevent.impl;
 
+import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
+
+import com.epam.reportportal.api.model.ActivitiesSearch200Response;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.activityevent.ActivityEventHandler;
 import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.model.ActivityEventResource;
-import com.epam.ta.reportportal.model.PagedResponse;
-import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.converter.converters.ActivityEventConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -52,18 +52,23 @@ public class ActivityEventHandlerImpl implements ActivityEventHandler {
   }
 
   @Override
-  public PagedResponse<ActivityEventResource> getActivityEventsHistory(Queryable filter,
-      Pageable pageable) {
+  public ActivitiesSearch200Response getActivityEventsHistory(Queryable filter, Pageable pageable) {
     Page<Activity> activityPage = activityRepository.findByFilter(filter, pageable);
-    return PagedResourcesAssembler.pagedResponseConverter(ActivityEventConverter.TO_RESOURCE)
-        .apply(activityPage);
+
+    var activities = activityPage.getContent().stream()
+        .map(ActivityEventConverter.TO_ACTIVITY_RESOURCE)
+        .toList();
+    ActivitiesSearch200Response response = new ActivitiesSearch200Response()
+        .items(activities);
+
+    return responseWithPageParameters(response, pageable, activityPage.getTotalElements());
   }
 
   @Override
-  public List<String> getSubjectNames(ProjectDetails projectDetails, String value) {
+  public List<String> getSubjectNames(MembershipDetails membershipDetails, String value) {
     checkBusinessRuleLessThan1Symbol(value);
     return activityRepository.findSubjectNameByProjectIdAndSubjectName(
-        projectDetails.getProjectId(), value.toLowerCase());
+        membershipDetails.getProjectId(), value.toLowerCase());
   }
 
   private void checkBusinessRuleLessThan1Symbol(String value) {

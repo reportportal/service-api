@@ -15,13 +15,11 @@
  */
 
 plugins {
-    id 'io.spring.dependency-management' version '1.1.7'
-    id 'java'
-    id 'java-library'
-    id 'org.owasp.dependencycheck' version '11.1.1'
-    id 'org.springframework.boot' version "${springBootVersion}"
-    id "com.epam.drill.integration.cicd" version "0.1.6"
-    id "org.openapi.generator" version "7.11.0"
+    alias(libs.plugins.java.library)
+    alias(libs.plugins.owasp.dependencycheck)
+    alias(libs.plugins.drill.integration)
+    alias(libs.plugins.openapi.generator)
+    alias(libs.plugins.spring.boot)
 }
 
 import org.owasp.dependencycheck.reporting.ReportGenerator
@@ -33,14 +31,9 @@ apply from: "$scriptsUrl/release-service.gradle"
 apply from: "$scriptsUrl/signing.gradle"
 apply from: "$scriptsUrl/copy-database-scripts.gradle"
 
-project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
-
-repositories {
-    if (!releaseMode) {
-        maven { url 'https://jitpack.io' }
-    }
-    mavenCentral { url "https://repo1.maven.org/maven2" }
-}
+project.hasProperty('sealightsSession') && sealightsSession?.trim() ?
+        apply(from: 'sealights.gradle') :
+        println('No sealights session')
 
 java {
     targetCompatibility = JavaVersion.VERSION_21
@@ -49,114 +42,71 @@ java {
     }
 }
 
-ext['spring-boot.version'] = "${springBootVersion}"
-
-dependencyManagement {
-    imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.14.2' : 'com.epam.reportportal:commons-bom:5.14.2')
-        mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
-        mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
-    }
-}
-
 println("Release mode: $releaseMode")
+
 dependencies {
     if (releaseMode) {
         println("Using release dependencies")
-        implementation 'com.epam.reportportal:commons'
-        implementation 'com.epam.reportportal:commons-dao'
-        implementation 'com.epam.reportportal:plugin-api'
+        implementation(libs.bundles.reportportal)
+        implementation(libs.reportportal.plugin.api) {
+            exclude group: 'com.github.reportportal', module: 'commons-dao'
+        }
     } else {
         println("Using snapshot dependencies")
-        implementation 'com.github.reportportal:commons:fcee2e2'
-        implementation 'com.github.reportportal:commons-dao:392eb1b'
-        implementation 'com.github.reportportal:plugin-api:f8e5bea'
+        implementation(libs.bundles.reportportal.dev)
+        implementation(libs.reportportal.plugin.api.dev) {
+            exclude group: 'com.github.reportportal', module: 'commons-dao'
+        }
     }
-    implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
+    api(platform(libs.spring.boot.bom))
+    implementation(platform(libs.reportportal.commons.bom))
+    implementation(platform(libs.zonky.postgres.bom))
+    implementation(libs.bundles.spring.boot.starters)
+    implementation(libs.bundles.spring.security)
 
-    implementation 'org.springframework.boot:spring-boot-starter-aop'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-quartz'
-    implementation 'org.springframework.boot:spring-boot-starter-freemarker'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.boot:spring-boot-starter-amqp'
-    implementation 'org.springframework.boot:spring-boot-starter-batch'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
+    // MultipartFileUtils requires org.springframework.mock.web.MockMultipartFile
+    // TODO: implement own MultipartFile class
+    implementation(libs.spring.test)
 
-    implementation 'org.springframework.security:spring-security-acl'
-    implementation 'org.springframework.security:spring-security-core'
-    implementation 'org.springframework.security:spring-security-oauth2-core'
-    implementation 'org.springframework.security:spring-security-oauth2-client'
-    implementation 'org.springframework.security:spring-security-oauth2-resource-server'
-    implementation 'org.springframework.security:spring-security-web'
-    implementation 'org.springframework:spring-context-support'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
-
-    //Fix CVE-2025-24813
-    implementation 'org.apache.tomcat.embed:tomcat-embed-core:10.1.40'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-el:10.1.40'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:10.1.40'
-
-
-    implementation 'com.opencsv:opencsv:5.10'
-    implementation "org.jooq:jooq:${jooqVersion}"
+    implementation(libs.springdoc.openapi)
+    implementation(libs.opencsv)
+    implementation(libs.jooq)
+    implementation(libs.slugify)
 
     // Optional for spring-boot-starter-amqp
-    implementation "com.rabbitmq:http-client:5.3.0"
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.4.3") // supports gzip encoding
+    implementation(libs.rabbitmq.http.client)
+    implementation(libs.httpclient5) // supports gzip encoding
 
-    // check authentication error response format for versions higher than 6.21.3
-    implementation('net.sf.jasperreports:jasperreports:6.21.3') { //TODO: consider upgrade to 7.0.1+
+    // Check authentication error response format for versions higher than 6.21.3 TODO: consider upgrade to 7.0.1+
+    implementation(libs.jasperreports) {
         exclude group: 'com.fasterxml.jackson.dataformat', module: 'jackson-dataformat-xml'
     }
+
     // JasperReport's export to XLS uses Apache POI and openpdf for PDF export
-    implementation 'org.apache.poi:poi:5.4.0'
-    implementation 'com.github.librepdf:openpdf:2.0.3'
-
-    implementation 'jakarta.inject:jakarta.inject-api:2.0.1'
-    implementation 'com.sun.mail:jakarta.mail:2.0.1'
-
-    implementation 'xerces:xercesImpl:2.12.2'
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.80'
-    implementation 'com.google.api-client:google-api-client:2.6.0'
-
-    implementation('commons-validator:commons-validator:1.9.0') {
+    implementation(libs.apache.poi)
+    implementation(libs.openpdf)
+    implementation(libs.jakarta.inject.api)
+    implementation(libs.jakarta.mail)
+    implementation(libs.xerces)
+    implementation(libs.bouncycastle)
+    implementation(libs.google.api.client)
+    implementation(libs.commons.validator) {
         exclude group: 'commons-beanutils', module: 'commons-beanutils'
     }
-    implementation 'com.github.ben-manes.caffeine:caffeine'
+    implementation(libs.caffeine)
+    implementation(libs.apache.jclouds.filesystem)
+    implementation(libs.apache.commons.compress)
+    implementation(libs.hibernate.validator)
+    implementation(libs.json.schema.validator)
 
-    implementation "org.apache.jclouds.api:filesystem:${jcloudsVersion}"
-    implementation 'org.apache.commons:commons-compress:1.27.1'
-
-    implementation "org.hibernate.validator:hibernate-validator:${hibernateValidatorVersion}"
-
-    implementation 'com.networknt:json-schema-validator:1.5.6'
-
-    implementation 'com.github.slugify:slugify:3.0.7'
-
-    // add lombok support
-    compileOnly "org.projectlombok:lombok:${lombokVersion}"
-    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
-    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    // Add lombok support
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
 
     //  Tests
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    implementation 'org.springframework:spring-web'
-    implementation 'org.springframework:spring-test'
-    testImplementation 'org.flywaydb.flyway-test-extensions:flyway-spring-test:10.0.0'
-
-    testImplementation 'io.jsonwebtoken:jjwt-impl:0.12.5'
-    testImplementation 'io.jsonwebtoken:jjwt-jackson:0.12.5'
-}
-
-processResources {
-    dependsOn(gitInfo)
-    filesMatching('application.properties') {
-        expand(project.properties)
-    }
+    testImplementation(libs.bundles.test.libs)
+    testCompileOnly(libs.lombok)
+    testAnnotationProcessor(libs.lombok)
 }
 
 sourceSets {
@@ -164,6 +114,23 @@ sourceSets {
         java {
             srcDirs "$buildDir/generated/src/main/java"
         }
+    }
+}
+
+openApiGenerate {
+    generatorName.set("spring")
+    inputSpec.set("$rootDir/api-registry/api/openapi/reportportal-api.yaml")
+    outputDir.set("${layout.buildDirectory.get()}/generated")
+    configFile.set("$rootDir/src/main/resources/openapi/config.json")
+    skipOverwrite.set(false)
+    cleanupOutput.set(true)
+    // verbose.set(true)
+}
+
+processResources {
+    dependsOn(gitInfo)
+    filesMatching('application.properties') {
+        expand(project.properties)
     }
 }
 
@@ -196,14 +163,13 @@ tasks.register('downloadManifestSchema') {
 }
 
 dependencyCheck {
-    formats = [ReportGenerator.Format.HTML, ReportGenerator.Format.XML]
+    formats = [ReportGenerator.Format.HTML, ReportGenerator.Format.XML] as List<String>
 //    cveValidForHours = 1
 }
 
 bootJar {
     duplicatesStrategy = duplicatesStrategy.EXCLUDE
-    project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('' +
-            'exec')
+    project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('' + 'exec')
 }
 jar.enabled(true)
 jar.archiveClassifier.set('')
@@ -257,15 +223,6 @@ springBoot {
             excludes = ['time', 'artifact']
         }
     }
-}
-
-openApiGenerate {
-    generatorName = "spring"
-    inputSpec = "$rootDir/api-registry/api/openapi/reportportal-api.yaml"
-    outputDir = "${layout.buildDirectory.get()}/generated"
-    configFile = "$rootDir/src/main/resources/openapi/config.json"
-    skipOverwrite = false
-    cleanupOutput = true
 }
 
 tasks.preTagCommit.enabled = false

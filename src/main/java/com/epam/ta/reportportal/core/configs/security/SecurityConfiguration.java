@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2025 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,7 +100,7 @@ class SecurityConfiguration {
   public SecurityFilterChain web(HttpSecurity http) throws Exception {
     http.authorizeHttpRequests(authorize -> authorize
             .requestMatchers("/**/user**/registration/info*",
-                "/**/user**/registration**",
+                "/**/invitations/**",
                 "/**/user**/password/reset/*",
                 "/**/user**/password/reset**",
                 "/**/user**/password/restore**",

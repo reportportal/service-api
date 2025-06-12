@@ -41,6 +41,8 @@ import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -85,10 +87,10 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
   }
 
   @Override
-  public LaunchResource mergeLaunches(ReportPortalUser.ProjectDetails projectDetails,
+  public LaunchResource mergeLaunches(MembershipDetails membershipDetails,
       ReportPortalUser user, MergeLaunchesRQ rq) {
-    Project project = projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
-        () -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectName()));
+    Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
+        () -> new ReportPortalException(PROJECT_NOT_FOUND, membershipDetails.getProjectName()));
 
     Set<Long> launchesIds = rq.getLaunches();
 
@@ -105,13 +107,13 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
         "Not all launches with provided ids were found"
     );
 
-    validateMergingLaunches(launchesList, user, projectDetails);
+    validateMergingLaunches(launchesList, user, membershipDetails);
 
     MergeStrategyType type = MergeStrategyType.fromValue(rq.getMergeStrategyType());
     expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
 
     Launch newLaunch = launchMergeFactory.getLaunchMergeStrategy(type)
-        .mergeLaunches(projectDetails, user, rq, launchesList);
+        .mergeLaunches(membershipDetails, user, rq, launchesList);
     newLaunch.setStatus(StatisticsHelper.getStatusFromStatistics(newLaunch.getStatistics()));
 
     launchRepository.deleteAll(launchesList);
@@ -126,18 +128,18 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
    *
    * @param launches       {@link List} of the {@link Launch}
    * @param user           {@link ReportPortalUser}
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    */
   private void validateMergingLaunches(List<Launch> launches, ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
 
     /*
      * ADMINISTRATOR and PROJECT_MANAGER+ users have permission to merge not-only-own
      * launches
      */
-    boolean isUserValidate =
-        !(user.getUserRole().equals(ADMINISTRATOR) || projectDetails.getProjectRole()
-            .sameOrHigherThan(ProjectRole.PROJECT_MANAGER));
+    boolean isUserValidate = !(user.getUserRole().equals(ADMINISTRATOR)
+            || membershipDetails.getOrgRole().sameOrHigherThan(OrganizationRole.MANAGER)
+    );
 
     launches.forEach(launch -> {
       expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launch);
@@ -149,7 +151,7 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
           )
       );
 
-      expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
+      expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId())).verify(
           FORBIDDEN_OPERATION, "Impossible to merge launches from different projects.");
 
       if (isUserValidate) {

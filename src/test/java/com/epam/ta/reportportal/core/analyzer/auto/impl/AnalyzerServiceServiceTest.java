@@ -37,6 +37,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
+import com.epam.ta.reportportal.core.project.ProjectService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
@@ -57,6 +58,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.springframework.security.core.parameters.P;
 
 /**
  * @author Pavel Bortnik
@@ -78,11 +82,12 @@ class AnalyzerServiceServiceTest {
   private LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
 
   private AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
+  private ProjectService projectService = mock(ProjectService.class);
 
   private AnalyzerServiceImpl issuesAnalyzer =
       new AnalyzerServiceImpl(100, analyzerStatusCache, launchPreparerService,
           analyzerServiceClient, issueTypeHandler, testItemRepository, messageBus, launchRepository,
-          defectUpdateStatisticsService);
+          defectUpdateStatisticsService, projectService);
 
   @Test
   void hasAnalyzers() {
@@ -113,6 +118,10 @@ class AnalyzerServiceServiceTest {
     indexLaunch.setTestItems(indexTestItems);
 
     when(testItemRepository.findAllById(anyList())).thenReturn(items);
+
+    var mockProject = new Project();
+    mockProject.setOrganizationId(1L);
+    when(projectService.findProjectById(any())).thenReturn(mockProject);
 
     when(launchPreparerService.prepare(any(Launch.class), anyList(),
         any(AnalyzerConfig.class)

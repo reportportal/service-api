@@ -81,7 +81,7 @@ class DefectTypeDeletedHandlerTest {
 
     ReportPortalException exception =
         assertThrows(ReportPortalException.class, () -> handler.handleDefectTypeDeleted(
-            new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId)));
+            new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId, 1L)));
 
     assertEquals("Project '2' not found. Did you use correct project name?",
         exception.getMessage()
@@ -96,7 +96,7 @@ class DefectTypeDeletedHandlerTest {
     when(analyzerServiceClient.hasClients()).thenReturn(false);
 
     handler.handleDefectTypeDeleted(
-        new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId));
+        new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId, 1L));
 
     verifyNoInteractions(logIndexer);
   }
@@ -114,7 +114,7 @@ class DefectTypeDeletedHandlerTest {
 
     ReportPortalException exception =
         assertThrows(ReportPortalException.class, () -> handler.handleDefectTypeDeleted(
-            new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId)));
+            new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId, 1L)));
     assertEquals("Forbidden operation. Index can not be removed until auto-analysis proceeds.",
         exception.getMessage()
     );
@@ -132,7 +132,7 @@ class DefectTypeDeletedHandlerTest {
     List<Long> launchIds = Arrays.asList(1L, 2L, 3L);
 
     handler.handleDefectTypeDeleted(
-        new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId));
+        new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId, 1L));
 
     verify(logIndexer, times(1)).index(eq(projectId), any(AnalyzerConfig.class));
   }

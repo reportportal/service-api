@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,13 +44,13 @@ public class GetBugTrackingSystemHandlerImpl implements GetBugTrackingSystemHand
 
   @Override
   public Optional<Integration> getEnabledProjectIntegration(
-      ReportPortalUser.ProjectDetails projectDetails, String url,
+      MembershipDetails membershipDetails, String url,
       String btsProject) {
 
     Optional<Integration> integration = integrationRepository.findProjectBtsByUrlAndLinkedProject(
         url,
         btsProject,
-        projectDetails.getProjectId()
+        membershipDetails.getProjectId()
     );
     integration.ifPresent(this::validateBtsIntegration);
     return integration;
@@ -57,10 +58,10 @@ public class GetBugTrackingSystemHandlerImpl implements GetBugTrackingSystemHand
 
   @Override
   public Optional<Integration> getEnabledProjectIntegration(
-      ReportPortalUser.ProjectDetails projectDetails, Long integrationId) {
+      MembershipDetails membershipDetails, Long integrationId) {
 
     Optional<Integration> integration = integrationRepository.findByIdAndProjectId(integrationId,
-        projectDetails.getProjectId());
+        membershipDetails.getProjectId());
     integration.ifPresent(this::validateBtsIntegration);
     return integration;
   }

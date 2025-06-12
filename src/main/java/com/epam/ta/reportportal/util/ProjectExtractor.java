@@ -22,12 +22,11 @@ import static com.epam.ta.reportportal.entity.user.UserRole.ADMINISTRATOR;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.dao.GroupMembershipRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,7 +47,7 @@ public class ProjectExtractor {
   /**
    * Constructor for ProjectExtractor.
    *
-   * @param projectUserRepository  ProjectUserRepository
+   * @param projectUserRepository     ProjectUserRepository
    * @param groupMembershipRepository GroupMembershipRepository
    */
   @Autowired
@@ -63,45 +62,46 @@ public class ProjectExtractor {
   /**
    * Extracts project details for specified user by specified project name.
    *
-   * @param user        User
-   * @param projectName Project name
+   * @param user       User
+   * @param projectKey Project name
    * @return Project Details
    */
-  public ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user,
-      String projectName) {
-    final String normalizedProjectName = normalizeId(projectName);
+  public MembershipDetails extractMembershipDetails(ReportPortalUser user,
+      String projectKey) {
 
+    final String normalizedProjectKey = normalizeId(projectKey);
     if (user.getUserRole().equals(ADMINISTRATOR)) {
-      return extractProjectDetailsAdmin(user, projectName);
+      return extractProjectDetailsAdmin(projectKey);
     }
-    return user.getProjectDetails().computeIfAbsent(normalizedProjectName,
-        k -> findProjectDetails(user, normalizedProjectName).orElseThrow(
-            () -> new ReportPortalException(ErrorType.ACCESS_DENIED,
-                "Please check the list of your available projects."
-            ))
-    );
+    return findMembershipDetails(user, normalizedProjectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
+            "Please check the list of your available projects."
+        ));
   }
 
   /**
    * Find project details for specified user by specified project name.
    *
-   * @param user        User
-   * @param projectName Project name
+   * @param user       User
+   * @param projectKey Project unique key
    * @return {@link Optional} with Project Details found in ProjectUserRepository or GroupRepository
    */
-  public Optional<ProjectDetails> findProjectDetails(ReportPortalUser user,
-      String projectName) {
-
-    return projectUserRepository.findDetailsByUserIdAndProjectName(user.getUserId(), projectName)
-        .or(() -> groupMembershipRepository.findProjectDetails(user.getUserId(), projectName))
+  public Optional<MembershipDetails> findMembershipDetails(ReportPortalUser user,
+      String projectKey) {
+    return projectUserRepository.findDetailsByUserIdAndProjectKey(user.getUserId(), projectKey)
         .map(details -> {
-          List<ProjectRole> projectRoles = new ArrayList<>(
-              groupMembershipRepository.findUserProjectRoles(
-                  user.getUserId(),
-                  details.getProjectId()
-              ));
-          projectRoles.add(details.getProjectRole());
-          details.setHighestRole(projectRoles);
+          var projectRoles = groupMembershipRepository.findUserProjectRoles(
+              user.getUserId(),
+              details.getProjectId()
+          );
+
+          Optional.ofNullable(details.getProjectRole()).ifPresent(projectRoles::add);
+
+          var highestRole = new ArrayList<>(projectRoles).stream()
+              .max(ProjectRole::compareTo)
+              .orElse(null);
+
+          details.setProjectRole(highestRole);
           return details;
         });
   }
@@ -110,28 +110,12 @@ public class ProjectExtractor {
    * Extracts project details for specified user by specified project name If user is ADMINISTRATOR
    * - he is added as a PROJECT_MANAGER to the project.
    *
-   * @param user        User
-   * @param projectName Project name
+   * @param projectKey Project unique key
    * @return Project Details
    */
-  public ReportPortalUser.ProjectDetails extractProjectDetailsAdmin(ReportPortalUser user,
-      String projectName) {
-
-    //dirty hack to allow everything for user with 'admin' authority
-    if (user.getUserRole().getAuthority().equals(ADMINISTRATOR.getAuthority())) {
-      ReportPortalUser.ProjectDetails projectDetails = projectUserRepository
-          .findAdminDetailsProjectName(normalizeId(projectName))
-          .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
-      user.getProjectDetails().put(
-          normalizeId(projectName),
-          projectDetails
-      );
-    }
-
-    return Optional.ofNullable(user.getProjectDetails().get(normalizeId(projectName))).orElseThrow(
-        () -> new ReportPortalException(ErrorType.ACCESS_DENIED,
-            "Please check the list of your available projects."
-        ));
+  public MembershipDetails extractProjectDetailsAdmin(String projectKey) {
+    return projectUserRepository.findAdminDetailsProjectKey(normalizeId(projectKey))
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
   }
 
 

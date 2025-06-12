@@ -36,6 +36,8 @@ import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_PATTERN_ANALYZER_ENABLED;
 import static com.epam.ta.reportportal.entity.enums.SendCase.findByName;
+import static com.epam.ta.reportportal.entity.organization.OrganizationRole.MANAGER;
+import static com.epam.ta.reportportal.entity.organization.OrganizationRole.MEMBER;
 import static com.epam.ta.reportportal.ws.converter.converters.ProjectActivityConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -69,15 +71,19 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
+import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
+import com.epam.ta.reportportal.entity.enums.OrganizationType;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.Prefix;
-import com.epam.ta.reportportal.entity.enums.ProjectType;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
+import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -108,6 +114,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -119,6 +126,7 @@ import org.springframework.stereotype.Service;
  * @author Pavel Bortnik
  */
 @Service
+@Slf4j
 public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
   private static final String UPDATE_EVENT = "update";
@@ -136,6 +144,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
   private final UserPreferenceRepository preferenceRepository;
 
   private final ProjectUserRepository projectUserRepository;
+  private final OrganizationUserRepository organizationUserRepository;
+  private final OrganizationRepositoryCustom organizationRepositoryCustom;
 
   private final MessageBus messageBus;
 
@@ -157,7 +167,9 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
   public UpdateProjectHandlerImpl(ProjectExtractor projectExtractor,
       ProjectAttributeValidator projectAttributeValidator, ProjectRepository projectRepository,
       UserRepository userRepository, UserPreferenceRepository preferenceRepository,
+      OrganizationUserRepository organizationUserRepository,
       MessageBus messageBus, ProjectUserRepository projectUserRepository,
+      OrganizationRepositoryCustom organizationRepositoryCustom,
       ApplicationEventPublisher applicationEventPublisher, MailServiceFactory mailServiceFactory,
       AnalyzerStatusCache analyzerStatusCache, IndexerStatusCache indexerStatusCache,
       AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer,
@@ -167,8 +179,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     this.projectRepository = projectRepository;
     this.userRepository = userRepository;
     this.preferenceRepository = preferenceRepository;
+    this.organizationUserRepository = organizationUserRepository;
     this.messageBus = messageBus;
     this.projectUserRepository = projectUserRepository;
+    this.organizationRepositoryCustom = organizationRepositoryCustom;
     this.applicationEventPublisher = applicationEventPublisher;
     this.mailServiceFactory = mailServiceFactory;
     this.analyzerStatusCache = analyzerStatusCache;
@@ -180,10 +194,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
   }
 
   @Override
-  public OperationCompletionRS updateProject(String projectName, UpdateProjectRQ updateProjectRQ,
+  public OperationCompletionRS updateProject(String projectKey, UpdateProjectRQ updateProjectRQ,
       ReportPortalUser user) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
     ProjectAttributesActivityResource before = TO_ACTIVITY_RESOURCE.apply(project);
     updateProjectConfiguration(updateProjectRQ.getConfiguration(), project);
     ofNullable(updateProjectRQ.getUserRoles()).ifPresent(
@@ -199,10 +213,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
   }
 
   @Override
-  public OperationCompletionRS updateProjectNotificationConfig(String projectName,
+  public OperationCompletionRS updateProjectNotificationConfig(String projectKey,
       ReportPortalUser user, ProjectNotificationConfigDTO updateProjectNotificationConfigRQ) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
     ProjectResource before = projectConverter.TO_PROJECT_RESOURCE.apply(project);
 
     updateSenderCases(project, updateProjectNotificationConfigRQ.getSenderCases());
@@ -214,20 +228,20 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
     messageBus.publishActivity(
         new NotificationsConfigUpdatedEvent(before, updateProjectNotificationConfigRQ,
-            user.getUserId(), user.getUsername()
+            user.getUserId(), user.getUsername(), project.getOrganizationId()
         ));
     return new OperationCompletionRS(
-        "Notification configuration of project - '" + projectName + "' is successfully updated.");
+        "Notification configuration of project - '" + projectKey + "' is successfully updated.");
   }
 
   @Override
-  public OperationCompletionRS unassignUsers(String projectName, UnassignUsersRQ unassignUsersRQ,
+  public OperationCompletionRS unassignUsers(String projectKey, UnassignUsersRQ unassignUsersRQ,
       ReportPortalUser user) {
     expect(unassignUsersRQ.getUsernames(), not(List::isEmpty)).verify(BAD_REQUEST_ERROR,
         "Request should contain at least one username."
     );
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
     User modifier = userRepository.findById(user.getUserId())
         .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, user.getUsername()));
     if (!UserRole.ADMINISTRATOR.equals(modifier.getRole())) {
@@ -249,11 +263,11 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
   }
 
   @Override
-  public OperationCompletionRS assignUsers(String projectName, AssignUsersRQ assignUsersRQ,
+  public OperationCompletionRS assignUsers(String projectKey, AssignUsersRQ assignUsersRQ,
       ReportPortalUser user) {
     if (UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
-      Project project = projectRepository.findByName(normalizeId(projectName)).orElseThrow(
-          () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectName)));
+      Project project = projectRepository.findByKey(normalizeId(projectKey)).orElseThrow(
+          () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectKey)));
 
       List<String> assignedUsernames =
           project.getUsers().stream().map(u -> u.getUser().getLogin()).collect(toList());
@@ -269,10 +283,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
           "User should not assign himself to project."
       );
 
-      ReportPortalUser.ProjectDetails projectDetails =
-          projectExtractor.extractProjectDetails(user, projectName);
-      Project project = projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
-          () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectName)));
+      MembershipDetails membershipDetails =
+          projectExtractor.extractMembershipDetails(user, projectKey);
+      Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
+          () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectKey)));
 
       List<String> assignedUsernames =
           project.getUsers().stream().map(u -> u.getUser().getLogin()).collect(toList());
@@ -280,25 +294,23 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
         ProjectRole projectRole = ProjectRole.forName(role)
             .orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, role));
-        ProjectRole modifierRole = projectDetails.getProjectRole();
-        expect(modifierRole.sameOrHigherThan(projectRole), BooleanUtils::isTrue).verify(
-            ACCESS_DENIED);
+
         assignUser(name, projectRole, assignedUsernames, project, user);
       });
     }
 
     return new OperationCompletionRS(
         "User(s) with username='" + assignUsersRQ.getUserNames().keySet()
-            + "' was successfully assigned to project='" + normalizeId(projectName) + "'");
+            + "' was successfully assigned to project='" + normalizeId(projectKey) + "'");
   }
 
   @Override
-  public OperationCompletionRS indexProjectData(String projectName, ReportPortalUser user) {
+  public OperationCompletionRS indexProjectData(String projectKey, ReportPortalUser user) {
     expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(
         ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "There are no analyzer deployed.");
 
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
 
     expect(ofNullable(indexerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(
         false), equalTo(false)).verify(ErrorType.FORBIDDEN_OPERATION,
@@ -321,7 +333,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
     messageBus.publishActivity(
         new ProjectIndexEvent(user.getUserId(), user.getUsername(), project.getId(),
-            project.getName(), true
+            project.getName(), true, project.getOrganizationId()
         ));
     return new OperationCompletionRS("Log indexing has been started");
   }
@@ -339,8 +351,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
       });
     } else {
-      ReportPortalUser.ProjectDetails projectDetails =
-          projectExtractor.extractProjectDetails(user, project.getName());
+      MembershipDetails membershipDetails =
+          projectExtractor.extractMembershipDetails(user, project.getKey());
 
       usernames.forEach(username -> {
         User userForUnassign = userRepository.findByLogin(username)
@@ -352,7 +364,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
             ));
 
         expect(
-            projectDetails.getProjectRole().sameOrHigherThan(projectUser.getProjectRole()),
+            membershipDetails.getProjectRole().sameOrHigherThan(projectUser.getProjectRole()),
             BooleanUtils::isTrue
         ).verify(ACCESS_DENIED);
 
@@ -375,7 +387,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
     UnassignUserEvent unassignUserEvent =
         new UnassignUserEvent(convertUserToResource(userForUnassign, projectUser),
-            authorizedUser.getUserId(), authorizedUser.getUsername()
+            authorizedUser.getUserId(), authorizedUser.getUsername(), project.getOrganizationId()
         );
     applicationEventPublisher.publishEvent(unassignUserEvent);
 
@@ -395,43 +407,51 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     expect(name, not(in(assignedUsernames))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
         formattedSupplier("User '{}' cannot be assigned to project twice.", name)
     );
-    if (ProjectType.UPSA.equals(project.getProjectType()) && UserType.UPSA.equals(
-        modifyingUser.getUserType())) {
+
+    var organization = organizationRepositoryCustom.findById(project.getOrganizationId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND,
+            project.getOrganizationId()));
+
+    if (OrganizationType.EXTERNAL == organization.getOrganizationType()
+        && UserType.UPSA.equals(modifyingUser.getUserType())) {
       fail().withError(
           UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
-          "Please verify user assignment to the project in EPAM internal system: delivery.epam.com"
+          "Please verify organization user assignment in EPAM internal system: delivery.epam.com"
       );
     }
+
     ProjectUser projectUser = new ProjectUser();
     projectUser.setProjectRole(projectRole);
+    // assign user to organization if not assigned yet
+    organizationUserRepository.findByUserIdAndOrganization_Id(modifyingUser.getId(),
+            project.getOrganizationId())
+        .ifPresentOrElse(orgUser -> {
+          if (orgUser.getOrganizationRole().sameOrHigherThan(MANAGER)) {
+            projectUser.setProjectRole(ProjectRole.EDITOR);
+          }
+        }, () -> {
+          log.debug("Assigning user {} to organization {}",
+              modifyingUser.getLogin(), organization.getName());
+          var organizationUser = new OrganizationUser();
+          organizationUser.setOrganization(organization);
+          organizationUser.setUser(modifyingUser);
+          organizationUser.setOrganizationRole(MEMBER);
+          organizationUserRepository.save(organizationUser);
+        });
+
     projectUser.setUser(modifyingUser);
     projectUser.setProject(project);
     project.getUsers().add(projectUser);
 
     AssignUserEvent assignUserEvent =
         new AssignUserEvent(convertUserToResource(modifyingUser, projectUser),
-            authorizedUser.getUserId(), authorizedUser.getUsername(), false
+            authorizedUser.getUserId(), authorizedUser.getUsername(), false, project.getOrganizationId()
         );
     applicationEventPublisher.publishEvent(assignUserEvent);
   }
 
   private void validateUnassigningUser(User modifier, User userForUnassign, Long projectId,
       Project project) {
-    if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(),
-        userForUnassign.getLogin()
-    )) {
-      fail().withError(
-          UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
-          "Unable to unassign user from his personal project"
-      );
-    }
-    if (ProjectType.UPSA.equals(project.getProjectType()) && UserType.UPSA.equals(
-        userForUnassign.getUserType())) {
-      fail().withError(
-          UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
-          "Please verify user assignment to the project in EPAM internal system: delivery.epam.com"
-      );
-    }
     if (!ProjectUtils.doesHaveUser(project, userForUnassign.getLogin())) {
       fail().withError(USER_NOT_FOUND, userForUnassign.getLogin(),
           String.format("User not found in project %s", project.getName())
@@ -459,7 +479,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
         if (UserRole.ADMINISTRATOR != user.getUserRole()) {
           ProjectRole principalRole =
-              projectExtractor.extractProjectDetails(user, project.getName()).getProjectRole();
+              projectExtractor.extractMembershipDetails(user, project.getName()).getProjectRole();
           ProjectRole updatingUserRole =
               ofNullable(ProjectUtils.findUserConfigByLogin(project, key)).orElseThrow(
                   () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, key)).getProjectRole();
@@ -494,10 +514,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
   private ChangeRoleEvent getChangeRoleEvent(User updatingUser, Long projectId,
       ReportPortalUser loggedUser, String oldRole, String newRole) {
+    Project project = projectRepository.findById(projectId)
+        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectId));
     UserActivityResource userActivityResource =
         new UserActivityResource(updatingUser.getId(), projectId, updatingUser.getLogin());
     return new ChangeRoleEvent(userActivityResource, oldRole, newRole, loggedUser.getUserId(),
-        loggedUser.getUsername()
+        loggedUser.getUsername(), project.getOrganizationId()
     );
   }
 
@@ -600,9 +622,11 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
       ProjectAttributesActivityResource after, ReportPortalUser user,
       ProjectConfigurationUpdate updateConfiguration) {
 
+    Project project = projectRepository.findById(before.getProjectId())
+        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, before.getProjectId()));
     if (ActivityDetailsUtil.configChanged(before.getConfig(), after.getConfig(), Prefix.JOB)) {
       applicationEventPublisher.publishEvent(
-          new ProjectUpdatedEvent(before, after, user.getUserId(), user.getUsername()));
+          new ProjectUpdatedEvent(before, after, user.getUserId(), user.getUsername(), project.getOrganizationId()));
     }
 
     if (ActivityDetailsUtil.configChanged(before.getConfig(), after.getConfig(), Prefix.ANALYZER)) {
@@ -610,11 +634,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
           AUTO_PATTERN_ANALYZER_ENABLED.getAttribute()
       ).isEmpty()) {
         applicationEventPublisher.publishEvent(
-            new ProjectAnalyzerConfigEvent(before, after, user.getUserId(), user.getUsername()));
+            new ProjectAnalyzerConfigEvent(before, after, user.getUserId(), user.getUsername(),
+                project.getOrganizationId()));
       } else {
         applicationEventPublisher.publishEvent(
             new ProjectPatternAnalyzerUpdateEvent(before, after, user.getUserId(),
-                user.getUsername()
+                user.getUsername(), project.getOrganizationId()
             ));
       }
     }

@@ -1,10 +1,10 @@
 -- Activities
 insert into activity(id, created_at, action, event_name, priority, object_id, object_name, object_type, subject_id,
-subject_name, subject_type, project_id)
-values (1, now(), 'START', 'startLaunch', 'LOW', 1, 'objectName', 'LAUNCH', 1, 'superadmin', 'USER', 1),
-       (2, now(), 'UPDATE', 'updateItem', 'MEDIUM', 2, 'objectName', 'ITEM', 1, 'superadmin', 'USER', 1),
-       (3, now(), 'DELETE', 'deleteLaunch', 'MEDIUM', 1, 'objectName', 'LAUNCH', 1, 'superadmin', 'USER', 1),
-       (4, now(), 'DELETE', 'deleteLaunch', 'MEDIUM', 1, 'objectName', 'LAUNCH', 2, 'user', 'USER', 2);
+subject_name, subject_type, project_id, organization_id)
+values (1, now(), 'START', 'startLaunch', 'LOW', 1, 'objectName', 'LAUNCH', 1, 'superadmin', 'USER', 1, 1),
+       (2, now(), 'UPDATE', 'updateItem', 'MEDIUM', 2, 'objectName', 'ITEM', 1, 'superadmin', 'USER', 1, 1),
+       (3, now(), 'DELETE', 'deleteLaunch', 'MEDIUM', 1, 'objectName', 'LAUNCH', 1, 'superadmin', 'USER', 1, 1),
+       (4, now(), 'DELETE', 'deleteLaunch', 'MEDIUM', 1, 'objectName', 'LAUNCH', 2, 'user', 'USER', 2, 1);
 
 -- Filter and widget
 INSERT INTO public.owned_entity (id, owner, project_id)

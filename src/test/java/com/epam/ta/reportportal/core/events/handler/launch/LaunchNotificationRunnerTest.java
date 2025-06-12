@@ -37,6 +37,7 @@ import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -76,9 +77,9 @@ class LaunchNotificationRunnerTest {
   void shouldNotSendWhenNotificationsDisabled() {
 
     final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER,
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,
         launch.getProjectId());
-    final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl");
+    final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl", 1L);
 
     final Map<String, String> mapping = ImmutableMap.<String, String>builder()
         .put(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute(), "false")
@@ -87,7 +88,7 @@ class LaunchNotificationRunnerTest {
     runner.handle(event, mapping);
 
     verify(getIntegrationHandler, times(0)).getEnabledByProjectIdOrGlobalAndIntegrationGroup(
-        event.getProjectId(),
+        event.projectId(),
         IntegrationGroupEnum.NOTIFICATION
     );
 
@@ -98,9 +99,9 @@ class LaunchNotificationRunnerTest {
 
     final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
     launch.setName("name1");
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER,
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,
         launch.getProjectId());
-    final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl");
+    final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl", 1L);
 
     final Map<String, String> mapping = ImmutableMap.<String, String>builder()
         .put(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute(), "true")
@@ -114,7 +115,7 @@ class LaunchNotificationRunnerTest {
     when(emailIntegration.getName()).thenReturn("email server");
 
     when(
-        getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(event.getProjectId(),
+        getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(event.projectId(),
             IntegrationGroupEnum.NOTIFICATION
         )).thenReturn(Optional.ofNullable(emailIntegration));
 
@@ -123,7 +124,7 @@ class LaunchNotificationRunnerTest {
         Optional.ofNullable(emailService));
 
     when(getLaunchHandler.get(event.getId())).thenReturn(launch);
-    when(getProjectHandler.get(event.getProjectId())).thenReturn(project);
+    when(getProjectHandler.get(event.projectId())).thenReturn(project);
     when(getLaunchHandler.hasItemsWithIssues(launch)).thenReturn(Boolean.TRUE);
 
     runner.handle(event, mapping);

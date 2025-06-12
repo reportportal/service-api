@@ -86,7 +86,7 @@ class ReportPortalPermissionEvaluator implements PermissionEvaluator {
     if (!permissionNameToPermissionMap.containsKey(permissionKey)) {
       throw new PermissionNotDefinedException(
           "No permission with key " + permissionKey + " is defined in " + this.getClass()
-              .toString());
+              .getName());
     }
   }
 

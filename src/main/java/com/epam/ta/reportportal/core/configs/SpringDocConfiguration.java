@@ -23,6 +23,8 @@ import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterTarget;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.core.configs.doc.DefaultPropertyCustomizer;
+import com.epam.ta.reportportal.core.configs.doc.PropertyHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -52,6 +54,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
+import jakarta.servlet.ServletContext;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -62,10 +65,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import jakarta.servlet.ServletContext;
 import org.apache.commons.lang3.StringUtils;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.customizers.OperationCustomizer;
+import org.springdoc.core.customizers.PropertyCustomizer;
 import org.springdoc.core.utils.SpringDocUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -78,11 +81,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 /**
+ * Configuration class for SpringDoc/OpenAPI documentation setup. Provides beans and customizations for OpenAPI schema,
+ * operations, and parameters.
+ *
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
 @Configuration
 @ComponentScan(basePackages = "com.epam.ta.reportportal.ws.controller")
 public class SpringDocConfiguration {
+
+  private final Map<String, PropertyHandler> propertyHandlerStrategy;
 
   static {
     SpringDocUtils.getConfig().addAnnotationsToIgnore(AuthenticationPrincipal.class);
@@ -109,6 +117,16 @@ public class SpringDocConfiguration {
 
   @Value("${server.servlet.context-path:/api}")
   private String pathValue;
+
+  /**
+   * Creates a new instance of SpringDocConfiguration.
+   *
+   * @param propertyHandlerStrategy Map of property handlers indexed by property type names used to customize OpenAPI
+   *                                schema properties
+   */
+  public SpringDocConfiguration(Map<String, PropertyHandler> propertyHandlerStrategy) {
+    this.propertyHandlerStrategy = propertyHandlerStrategy;
+  }
 
   @Bean
   public OpenAPI openAPI() {
@@ -207,6 +225,17 @@ public class SpringDocConfiguration {
     return title.substring(0, 1).toUpperCase(Locale.ROOT) + title.substring(1).trim();
   }
 
+  /**
+   * Provides a customizer for OpenAPI schema properties.
+   *
+   * @return A {@link PropertyCustomizer} that uses the {@link DefaultPropertyCustomizer} implementation with the
+   * provided property handler strategy.
+   */
+  @Bean
+  public PropertyCustomizer propertyCustomizer() {
+    return new DefaultPropertyCustomizer(propertyHandlerStrategy);
+  }
+
   @Bean
   @Order(1)
   public OperationCustomizer customizeParameters() {
@@ -291,6 +320,6 @@ public class SpringDocConfiguration {
   }
 
   private String getPathValue() {
-    return StringUtils.isEmpty(pathValue) || pathValue.equals("/")  ? "/api" : pathValue;
+    return StringUtils.isEmpty(pathValue) || pathValue.equals("/") ? "/api" : pathValue;
   }
 }

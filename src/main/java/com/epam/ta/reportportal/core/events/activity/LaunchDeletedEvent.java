@@ -30,12 +30,14 @@ import com.epam.ta.reportportal.model.activity.LaunchActivityResource;
  */
 public class LaunchDeletedEvent extends BeforeEvent<LaunchActivityResource> implements
     ActivityEvent {
+  private Long orgId;
 
   public LaunchDeletedEvent() {
   }
 
-  public LaunchDeletedEvent(LaunchActivityResource before, Long userId, String userLogin) {
+  public LaunchDeletedEvent(LaunchActivityResource before, Long userId, String userLogin, Long orgId) {
     super(userId, userLogin, before);
+    this.orgId = orgId;
   }
 
   @Override
@@ -49,6 +51,7 @@ public class LaunchDeletedEvent extends BeforeEvent<LaunchActivityResource> impl
         .addObjectName(getBefore().getName())
         .addObjectType(EventObject.LAUNCH)
         .addProjectId(getBefore().getProjectId())
+        .addOrganizationId(orgId)
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)

@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.cluster.Cluster;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
@@ -87,15 +88,15 @@ public class SuggestItemService {
 
   @Transactional(readOnly = true)
   public List<SuggestedItem> suggestItems(Long testItemId,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
 
     TestItem testItem = testItemRepository.findById(testItemId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
 
     validateTestItem(testItem);
 
-    Launch launch = getLaunch(testItem.getLaunchId(), projectDetails, user);
-    Project project = getProjectHandler.get(projectDetails);
+    Launch launch = getLaunch(testItem.getLaunchId(), membershipDetails, user);
+    Project project = getProjectHandler.get(membershipDetails);
 
     SuggestRq suggestRq = prepareSuggestRq(testItem, launch, project);
     return getSuggestedItems(suggestRq);
@@ -111,18 +112,18 @@ public class SuggestItemService {
 
   @Transactional(readOnly = true)
   public List<SuggestedItem> suggestClusterItems(Long clusterId,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
     final Cluster cluster = getClusterHandler.getById(clusterId);
-    final Launch launch = getLaunch(cluster.getLaunchId(), projectDetails, user);
-    final Project project = getProjectHandler.get(projectDetails);
+    final Launch launch = getLaunch(cluster.getLaunchId(), membershipDetails, user);
+    final Project project = getProjectHandler.get(membershipDetails);
     final SuggestRq suggestRq = prepareSuggestRq(cluster, launch, project);
     return getSuggestedItems(suggestRq);
   }
 
-  private Launch getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails,
+  private Launch getLaunch(Long launchId, MembershipDetails membershipDetails,
       ReportPortalUser user) {
     Launch launch = getLaunchHandler.get(launchId);
-    launchAccessValidator.validate(launch, projectDetails, user);
+    launchAccessValidator.validate(launch, membershipDetails, user);
     return launch;
   }
 

@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import com.epam.ta.reportportal.core.events.activity.ChangeUserTypeEvent;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -68,20 +69,20 @@ class EditUserHandlerImplTest {
 
   @Test
   void uploadNotExistUserPhoto() {
-    when(userRepository.findByLogin("not_exists")).thenReturn(Optional.empty());
+    when(userRepository.findById(4004L)).thenReturn(Optional.empty());
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.uploadPhoto("not_exists", new MockMultipartFile("photo", new byte[100]))
+        () -> handler.uploadPhoto(4004L, new MockMultipartFile("photo", new byte[100]))
     );
-    assertEquals("User 'not_exists' not found.", exception.getMessage());
+    assertEquals("User '4004' not found.", exception.getMessage());
   }
 
   @Test
   void uploadOversizePhoto() {
-    when(userRepository.findByLogin("test")).thenReturn(Optional.of(new User()));
+    when(userRepository.findById(1L)).thenReturn(Optional.of(new User()));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.uploadPhoto("test",
+        () -> handler.uploadPhoto(1L,
             new MockMultipartFile("photo", new byte[1024 * 1024 + 10])
         )
     );
@@ -118,7 +119,7 @@ class EditUserHandlerImplTest {
     when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.changePassword(getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L),
+        () -> handler.changePassword(getRpUser("not_exist", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L),
             new ChangePasswordRQ()
         )
     );
@@ -133,7 +134,7 @@ class EditUserHandlerImplTest {
     when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.changePassword(getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L),
+        () -> handler.changePassword(getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L),
             new ChangePasswordRQ()
         )
     );
@@ -154,7 +155,7 @@ class EditUserHandlerImplTest {
     changePasswordRQ.setOldPassword("wrongPass");
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.changePassword(getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L),
+        () -> handler.changePassword(getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L),
             changePasswordRQ
         )
     );
@@ -169,7 +170,7 @@ class EditUserHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.editUser("not_exist", new EditUserRQ(),
-            getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L)
+            getRpUser("not_exist", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.VIEWER, 1L)
         )
     );
     assertEquals("User 'not_exist' not found.", exception.getMessage());
@@ -185,7 +186,7 @@ class EditUserHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.editUser("test", editUserRQ,
-            getRpUser("not_exist", UserRole.ADMINISTRATOR, ProjectRole.MEMBER, 1L)
+            getRpUser("not_exist", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L)
         )
     );
     assertEquals(
@@ -206,7 +207,7 @@ class EditUserHandlerImplTest {
 
     //when
     handler.editUser("test", editUserRQ,
-        getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.MEMBER, 1L)
+        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.VIEWER, 1L)
     );
 
     //then
@@ -223,7 +224,7 @@ class EditUserHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.editUser("test", editUserRQ,
-            getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L)
+            getRpUser("not_exist", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.VIEWER, 1L)
         )
     );
     assertEquals("You do not have enough permissions. Unable to change email for external user",
@@ -241,11 +242,11 @@ class EditUserHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.editUser("test", editUserRQ,
-            getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L)
+            getRpUser("not_exist", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.VIEWER, 1L)
         )
     );
     assertEquals(
-        "Error in handled Request. Please, check specified parameters: ' wrong email: incorrect#domain.com'",
+        "Error in handled Request. Please, check specified parameters: 'wrong email: incorrect#domain.com'",
         exception.getMessage()
     );
   }
@@ -261,7 +262,7 @@ class EditUserHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.editUser("test", editUserRQ,
-            getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L)
+            getRpUser("not_exist", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.VIEWER, 1L)
         )
     );
     assertEquals(
@@ -280,7 +281,7 @@ class EditUserHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.editUser("test", editUserRQ,
-            getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L)
+            getRpUser("not_exist", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.VIEWER, 1L)
         )
     );
     assertEquals(

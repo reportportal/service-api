@@ -76,7 +76,8 @@ public class DeleteProjectNotificationHandlerImpl implements DeleteProjectNotifi
     project.getSenderCases().removeIf(sc -> sc.getId().equals(notificationId));
 
     messageBus.publishActivity(new NotificationsConfigUpdatedEvent(projectResource,
-        projectResource.getConfiguration().getProjectConfig(), user.getUserId(), user.getUsername()
+        projectResource.getConfiguration().getProjectConfig(), user.getUserId(), user.getUsername(),
+        project.getOrganizationId()
     ));
 
     return new OperationCompletionRS("Notification rule was deleted successfully.");

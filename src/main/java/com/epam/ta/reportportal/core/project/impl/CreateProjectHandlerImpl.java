@@ -16,15 +16,17 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.isPresent;
 import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 
 import com.epam.reportportal.extension.event.ProjectEvent;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.ProjectCreatedEvent;
 import com.epam.ta.reportportal.core.project.CreateProjectHandler;
 import com.epam.ta.reportportal.dao.AttributeRepository;
@@ -32,18 +34,18 @@ import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.entity.enums.ProjectType;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
+import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.project.CreateProjectRQ;
 import com.epam.ta.reportportal.util.PersonalProjectService;
-import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.util.SlugifyUtils;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
@@ -73,13 +75,15 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
   private final ApplicationEventPublisher applicationEventPublisher;
 
   private final ProjectUserRepository projectUserRepository;
+  private final OrganizationRepositoryCustom organizationRepositoryCustom;
 
   @Autowired
   public CreateProjectHandlerImpl(PersonalProjectService personalProjectService,
       ProjectRepository projectRepository, UserRepository userRepository,
       AttributeRepository attributeRepository, IssueTypeRepository issueTypeRepository,
       ApplicationEventPublisher applicationEventPublisher,
-      ProjectUserRepository projectUserRepository) {
+      ProjectUserRepository projectUserRepository,
+      OrganizationRepositoryCustom organizationRepositoryCustom) {
     this.personalProjectService = personalProjectService;
     this.projectRepository = projectRepository;
     this.userRepository = userRepository;
@@ -87,11 +91,13 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
     this.issueTypeRepository = issueTypeRepository;
     this.applicationEventPublisher = applicationEventPublisher;
     this.projectUserRepository = projectUserRepository;
+    this.organizationRepositoryCustom = organizationRepositoryCustom;
   }
 
   @Override
   public EntryCreatedRS createProject(CreateProjectRQ createProjectRQ, ReportPortalUser user) {
     String projectName = createProjectRQ.getProjectName().toLowerCase().trim();
+    Long orgId = createProjectRQ.getOrganizationId();
 
     expect(projectName, not(equalTo(RESERVED_PROJECT_NAME))).verify(ErrorType.INCORRECT_REQUEST,
         Suppliers.formattedSupplier("Project with name '{}' is reserved by system", projectName)
@@ -105,21 +111,22 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
         )
     );
 
-    Optional<Project> existProject = projectRepository.findByName(projectName);
-    expect(existProject, not(isPresent())).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectName);
+    Organization organization = organizationRepositoryCustom.findById(orgId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
+    var projectSlug = SlugifyUtils.slugify(projectName);
+    var projectKey = generateProjectKey(organization, projectSlug);
 
-    ProjectType projectType = ProjectType.findByName(createProjectRQ.getEntryType()).orElseThrow(
-        () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-            createProjectRQ.getEntryType()
-        ));
-    expect(projectType, equalTo(ProjectType.INTERNAL)).verify(ErrorType.BAD_REQUEST_ERROR,
-        "Only internal projects can be created via API"
-    );
+    Optional<Project> existProject = projectRepository.findByKey(projectKey);
+    expect(existProject, not(isPresent())).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectName);
 
     User dbUser = userRepository.findRawById(user.getUserId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUsername()));
 
     Project project = new Project();
+
+    project.setOrganizationId(organization.getId());
+    project.setKey(projectKey);
+    project.setSlug(projectSlug);
     project.setName(projectName);
     project.setCreationDate(Instant.now());
 
@@ -129,12 +136,10 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
         attributeRepository.getDefaultProjectAttributes()
     );
 
-    project.setProjectType(projectType);
-
     project.setProjectAttributes(projectAttributes);
 
     ProjectUser projectUser = new ProjectUser().withProject(project).withUser(dbUser)
-        .withProjectRole(ProjectRole.PROJECT_MANAGER);
+        .withProjectRole(ProjectRole.EDITOR);
 
     projectRepository.save(project);
     projectUserRepository.save(projectUser);
@@ -148,7 +153,8 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
   private void publishProjectCreatedEvent(Long userId, String userLogin, Project project) {
     Long projectId = project.getId();
     String projectName = project.getName();
-    ProjectCreatedEvent event = new ProjectCreatedEvent(userId, userLogin, projectId, projectName);
+    ProjectCreatedEvent event = new ProjectCreatedEvent(userId, userLogin, projectId, projectName,
+        project.getOrganizationId());
     applicationEventPublisher.publishEvent(event);
   }
 
@@ -160,5 +166,9 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
     projectRepository.save(personalProject);
     publishProjectCreatedEvent(null, RP_SUBJECT_NAME, personalProject);
     return personalProject;
+  }
+
+  private String generateProjectKey(Organization organization, String projectSlug) {
+    return organization.getSlug() + "." + projectSlug;
   }
 }

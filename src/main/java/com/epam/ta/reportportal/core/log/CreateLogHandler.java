@@ -18,12 +18,12 @@ package com.epam.ta.reportportal.core.log;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 
-import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
-import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.commons.Predicates;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -36,12 +36,12 @@ public interface CreateLogHandler {
    *
    * @param createLogRQ    Log details
    * @param file           file with log
-   * @param projectDetails Project details
+   * @param membershipDetails Membership details
    * @return EntryCreatedRS
    */
   @Nonnull
   EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ createLogRQ, @Nullable MultipartFile file,
-      @Nullable ReportPortalUser.ProjectDetails projectDetails);
+      @Nullable MembershipDetails membershipDetails);
 
   /**
    * Validates business rules related to test item of this log

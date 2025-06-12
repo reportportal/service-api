@@ -17,9 +17,9 @@ package com.epam.ta.reportportal.core.widget;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.model.widget.WidgetConfigResource;
 import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
@@ -38,13 +38,13 @@ public class WidgetConfigurationService {
   private final WidgetRepository widgetRepository;
 
   public List<WidgetConfigResource> getWidgetsConfiguration(Dashboard dashboard,
-      ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
     return dashboard.getWidgets().stream()
-        .map(widget -> getWidgetConfig(widget, projectDetails)).collect(Collectors.toList());
+        .map(widget -> getWidgetConfig(widget, membershipDetails)).collect(Collectors.toList());
   }
 
   private WidgetConfigResource getWidgetConfig(DashboardWidget dashboardWidget,
-      ProjectDetails projectDetails) {
+      MembershipDetails projectDetails) {
     var widgetId = dashboardWidget.getWidget().getId();
     var widget = widgetRepository.findByIdAndProjectId(widgetId,
         projectDetails.getProjectId()).orElseThrow(

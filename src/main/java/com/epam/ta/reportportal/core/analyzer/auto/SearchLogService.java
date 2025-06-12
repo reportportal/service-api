@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.auto;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.log.SearchLogRq;
 import com.epam.ta.reportportal.model.log.SearchLogRs;
 
@@ -26,5 +27,5 @@ import com.epam.ta.reportportal.model.log.SearchLogRs;
 public interface SearchLogService {
 
   Iterable<SearchLogRs> search(Long itemId, SearchLogRq request,
-      ReportPortalUser.ProjectDetails projectDetails);
+      MembershipDetails membershipDetails);
 }

@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_KEY;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EMAIL;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER;
@@ -38,6 +38,8 @@ import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
@@ -84,8 +86,6 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
   private final ProjectConverter projectConverter;
 
-  @Value("${rp.environment.variable.user.suggestions:true}")
-  boolean isUserSuggestions;
 
   @Autowired
   public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
@@ -98,18 +98,25 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   }
 
   @Override
-  public com.epam.ta.reportportal.model.Page<UserResource> getProjectUsers(String projectName, Filter filter,
-                                                                           Pageable pageable) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+  public com.epam.ta.reportportal.model.Page<UserResource> getProjectUsers(MembershipDetails membershipDetails, Filter filter,
+                                                                           Pageable pageable, ReportPortalUser user) {
+    Project project = projectRepository.findByKey(membershipDetails.getProjectKey())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
+            membershipDetails.getProjectKey()));
     if (CollectionUtils.isEmpty(project.getUsers())) {
       return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(Page.empty(pageable));
     }
+
+    // exclude email field from the response for non-administrator and non-manager users
+    var isAdminOrManager = user.getUserRole().equals(UserRole.ADMINISTRATOR)
+        || membershipDetails.getOrgRole().equals(OrganizationRole.MANAGER);
+    var excludeFieldsArray = isAdminOrManager ? new String[0] : new String[]{"email"};
+
     filter.withCondition(
-        new FilterCondition(Condition.EQUALS, false, String.valueOf(project.getId()),
-            CRITERIA_PROJECT_ID
-        ));
-    Page<User> users = userRepository.findByFilterExcluding(filter, pageable, "email");
+        new FilterCondition(Condition.EQUALS, false, project.getKey(), CRITERIA_PROJECT_KEY));
+    Page<User> users = userRepository.findProjectUsersByFilterExcluding(project.getKey(), filter,
+        pageable, excludeFieldsArray);
+
     return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(users);
   }
 
@@ -119,9 +126,9 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   }
 
   @Override
-  public Project get(ReportPortalUser.ProjectDetails projectDetails) {
-    return projectRepository.findById(projectDetails.getProjectId()).orElseThrow(
-        () -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectName()));
+  public Project get(MembershipDetails membershipDetails) {
+    return projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
+        () -> new ReportPortalException(PROJECT_NOT_FOUND, membershipDetails.getProjectName()));
   }
 
   @Override
@@ -132,7 +139,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
   @Override
   public Project get(String name) {
-    return projectRepository.findByName(name)
+    return projectRepository.findByKey(name)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, name));
   }
 
@@ -143,18 +150,18 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   }
 
   @Override
-  public ProjectResource getResource(String projectName, ReportPortalUser user) {
+  public ProjectResource getResource(String projectKey, ReportPortalUser user) {
 
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 
     return projectConverter.TO_PROJECT_RESOURCE.apply(project);
   }
 
   @Override
-  public List<String> getUserNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
+  public List<String> getUserNames(MembershipDetails membershipDetails, String value) {
     checkBusinessRuleLessThan1Symbol(value);
-    return userRepository.findNamesByProject(projectDetails.getProjectId(), value);
+    return userRepository.findNamesByProject(membershipDetails.getProjectId(), value);
   }
 
   private void checkBusinessRuleLessThan1Symbol(String value) {
@@ -166,16 +173,15 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
   @Override
   public com.epam.ta.reportportal.model.Page<SearchUserResource> getUserNames(String value,
-                                                                              UserRole userRole, ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
+                                                                              MembershipDetails membershipDetails, UserRole userRole, Pageable pageable) {
     checkBusinessRuleLessThan1Symbol(value);
 
-    final CompositeFilterCondition userCondition =
-				(userRole.equals(UserRole.ADMINISTRATOR) || isUserSuggestions)
-						? getUserSearchSuggestCondition(value) : getUserSearchCondition(value);
+    final CompositeFilterCondition userCondition = (userRole.equals(UserRole.ADMINISTRATOR))
+        ? getUserSearchSuggestCondition(value) : getUserSearchCondition(value);
 
     final Filter filter = Filter.builder().withTarget(User.class).withCondition(userCondition)
         .withCondition(
-            new FilterCondition(Operator.AND, Condition.ANY, true, projectDetails.getProjectName(),
+            new FilterCondition(Operator.AND, Condition.ANY, true, membershipDetails.getProjectName(),
                 CRITERIA_PROJECT
             )).build();
 

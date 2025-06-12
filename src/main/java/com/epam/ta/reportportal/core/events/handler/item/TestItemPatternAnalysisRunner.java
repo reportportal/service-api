@@ -42,7 +42,7 @@ public class TestItemPatternAnalysisRunner implements
   @Override
   public void handle(TestItemFinishedEvent event, Map<String, String> config) {
     if (isImmediatePaProvided(event)) {
-      patternsAnalyzer.analyze(event.getProjectId(), event.getTestItem().getLaunchId(),
+      patternsAnalyzer.analyze(event.projectId(), event.getTestItem().getLaunchId(),
           Collections.singletonList(event.getTestItem().getItemId()));
     }
   }

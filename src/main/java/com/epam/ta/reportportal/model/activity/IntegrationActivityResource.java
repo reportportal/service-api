@@ -17,76 +17,27 @@
 package com.epam.ta.reportportal.model.activity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@Data
 public class IntegrationActivityResource {
 
-	@JsonProperty(value = "id", required = true)
-	private Long id;
+  @JsonProperty(value = "id", required = true)
+  private Long id;
 
-	@JsonProperty(value = "projectId", required = true)
-	private Long projectId;
+  @JsonProperty(value = "projectId", required = true)
+  private Long projectId;
 
-	@JsonProperty(value = "name")
-	private String name;
+  @JsonProperty(value = "name")
+  private String name;
 
-	@JsonProperty(value = "projectName", required = true)
-	private String projectName;
+  @JsonProperty(value = "projectName", required = true)
+  private String projectName;
 
-	@JsonProperty(value = "typeName", required = true)
-	private String typeName;
+  @JsonProperty(value = "typeName", required = true)
+  private String typeName;
 
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public Long getProjectId() {
-		return projectId;
-	}
-
-	public void setProjectId(Long projectId) {
-		this.projectId = projectId;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getProjectName() {
-		return projectName;
-	}
-
-	public void setProjectName(String projectName) {
-		this.projectName = projectName;
-	}
-
-	public String getTypeName() {
-		return typeName;
-	}
-
-	public void setTypeName(String typeName) {
-		this.typeName = typeName;
-	}
-
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder("IntegrationActivityResource{");
-		sb.append("id=").append(id);
-		sb.append(", projectId=").append(projectId);
-		sb.append(", name='").append(name).append('\'');
-		sb.append(", projectName='").append(projectName).append('\'');
-		sb.append(", typeName='").append(typeName).append('\'');
-		sb.append('}');
-		return sb.toString();
-	}
 }

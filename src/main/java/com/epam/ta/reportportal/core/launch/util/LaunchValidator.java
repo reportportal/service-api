@@ -16,25 +16,27 @@
 
 package com.epam.ta.reportportal.core.launch.util;
 
-import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.SKIPPED;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.FINISH_LAUNCH_NOT_ALLOWED;
 import static com.epam.reportportal.rules.exception.ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_FINISH_STATUS;
+import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.SKIPPED;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import java.util.function.Predicate;
@@ -75,13 +77,16 @@ public class LaunchValidator {
    *
    * @param launch         {@link Launch}
    * @param user           {@link ReportPortalUser}
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails Membership details
    */
   public static void validateRoles(Launch launch, ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
     if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-      expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
-      if (!launch.isRerun() && projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
+      expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId()))
+          .verify(ACCESS_DENIED);
+      if (!launch.isRerun()
+          && membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER)
+          && membershipDetails.getProjectRole().sameOrLowerThan(ProjectRole.VIEWER)) {
         expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED,
             "You are not launch owner.");
       }

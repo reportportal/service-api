@@ -46,6 +46,7 @@ class LaunchEventsTest {
     activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
     activity.setObjectId(2L);
+    activity.setOrganizationId(1L);
     activity.setCreatedAt(Instant.now());
     activity.setObjectName("name");
     activity.setDetails(new ActivityDetails());
@@ -55,7 +56,7 @@ class LaunchEventsTest {
   @Test
   void started() {
     final String name = "name";
-    final Activity actual = new LaunchStartedEvent(getLaunch(name), 1L, "user").toActivity();
+    final Activity actual = new LaunchStartedEvent(getLaunch(name), 1L, "user", 1L).toActivity();
     final Activity expected = getExpectedActivity(EventAction.START, EventPriority.LOW);
     checkActivity(expected, actual);
   }
@@ -68,7 +69,7 @@ class LaunchEventsTest {
     launch.setName(name);
     launch.setProjectId(3L);
     launch.setMode(LaunchModeEnum.DEFAULT);
-    final Activity actual = new LaunchFinishedEvent(launch, 1L, "user", false).toActivity();
+    final Activity actual = new LaunchFinishedEvent(launch, 1L, "user", false, 1L).toActivity();
     final Activity expected = getExpectedActivity(EventAction.FINISH, EventPriority.LOW);
     checkActivity(expected, actual);
   }
@@ -84,7 +85,7 @@ class LaunchEventsTest {
   @Test
   void deleted() {
     final String name = "name";
-    final Activity actual = new LaunchDeletedEvent(getLaunch(name), 1L, "user").toActivity();
+    final Activity actual = new LaunchDeletedEvent(getLaunch(name), 1L, "user", 1L).toActivity();
     final Activity expected = getExpectedActivity(EventAction.DELETE, EventPriority.MEDIUM);
     checkActivity(expected, actual);
   }

@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.BooleanUtils;
@@ -69,20 +70,20 @@ public class TestItemBaselineHistoryProvider implements HistoryProvider {
   @Override
   public Page<TestItemHistory> provide(Queryable filter, Pageable pageable,
       HistoryRequestParams historyRequestParams,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean usingHash) {
+      MembershipDetails membershipDetails, ReportPortalUser user, boolean usingHash) {
 
     return historyRequestParams.getParentId()
         .map(parentId -> loadHistory(resolveFilter(filter, parentId),
             pageable,
             parentId,
             historyRequestParams,
-            projectDetails,
+            membershipDetails,
             user,
             usingHash
         ))
         .orElseGet(() -> historyRequestParams.getItemId()
             .map(itemId -> loadHistory(filter, pageable, itemId, historyRequestParams,
-                projectDetails, user, usingHash))
+                membershipDetails, user, usingHash))
             .orElseGet(() -> Page.empty(pageable)));
   }
 
@@ -126,24 +127,24 @@ public class TestItemBaselineHistoryProvider implements HistoryProvider {
 
   private Page<TestItemHistory> loadHistory(Queryable filter, Pageable pageable, Long itemId,
       HistoryRequestParams historyRequestParams,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean usingHash) {
+      MembershipDetails membershipDetails, ReportPortalUser user, boolean usingHash) {
     TestItem testItem = testItemRepository.findById(itemId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
     Launch launch = testItemService.getEffectiveLaunch(testItem);
-    launchAccessValidator.validate(launch.getId(), projectDetails, user);
+    launchAccessValidator.validate(launch.getId(), membershipDetails, user);
 
     return historyRequestParams.getHistoryType()
         .filter(HistoryRequestParams.HistoryTypeEnum.LINE::equals)
         .map(type -> testItemRepository.loadItemsHistoryPage(filter,
             pageable,
-            projectDetails.getProjectId(),
+            membershipDetails.getProjectId(),
             launch.getName(),
             historyRequestParams.getHistoryDepth(),
             usingHash
         ))
         .orElseGet(() -> testItemRepository.loadItemsHistoryPage(filter,
             pageable,
-            projectDetails.getProjectId(),
+            membershipDetails.getProjectId(),
             historyRequestParams.getHistoryDepth(),
             usingHash
         ));

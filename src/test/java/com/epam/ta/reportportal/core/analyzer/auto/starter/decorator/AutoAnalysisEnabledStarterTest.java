@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.model.project.AnalyzerConfig;
@@ -43,7 +44,7 @@ class AutoAnalysisEnabledStarterTest {
   @Test
   void shouldRunWhenAutoAnalysisEnabled() {
 
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     final AnalyzerConfig analyzerConfig = new AnalyzerConfig();
     analyzerConfig.setIsAutoAnalyzerEnabled(true);
 
@@ -60,7 +61,7 @@ class AutoAnalysisEnabledStarterTest {
 
   @Test
   void shouldNotRunWhenAutoAnalysisDisabled() {
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     final AnalyzerConfig analyzerConfig = new AnalyzerConfig();
     analyzerConfig.setIsAutoAnalyzerEnabled(false);
 

@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.auth.permissions;
 
 /**
- * Set of constants related to permissions
+ * Set of constants related to permissions.
  *
  * @author Andrei Varabyeu
  */
@@ -27,25 +27,33 @@ public final class Permissions {
     // constants holder
   }
 
-  public static final String ADMIN_ONLY = "hasRole('ADMINISTRATOR')";
+  public static final String IS_ADMIN = "hasRole('ADMINISTRATOR')";
 
   public static final String ALLOWED_TO_EDIT_USER =
-      "(#login.toLowerCase() == authentication.name)" + "||" + ADMIN_ONLY;
+      "(#login.toLowerCase() == authentication.name)" + "||" + IS_ADMIN;
 
-  public static final String ALLOWED_TO_REPORT =
-      "hasPermission(#projectName.toLowerCase(), 'reporterPermission')" + "||" + ADMIN_ONLY;
+  public static final String ORGANIZATION_MANAGER =
+      "hasPermission(#orgId, 'organizationManager')" + "||" + IS_ADMIN;
 
-  public static final String ASSIGNED_TO_PROJECT = "hasPermission(#projectName.toLowerCase(), 'isAssignedToProject')";
+  public static final String ORGANIZATION_MEMBER =
+      "hasPermission(#orgId, 'organizationMember')" + "||" + IS_ADMIN;
 
-  public static final String PROJECT_MANAGER =
-      "hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')" + "||" + ADMIN_ONLY;
+  public static final String ALLOWED_TO_EDIT_PROJECT =
+      "hasPermission(#projectKey.toLowerCase(), 'allowedToEditProject')" + "||" + IS_ADMIN;
 
-  public static final String NOT_CUSTOMER =
-      "hasPermission(#projectName.toLowerCase(), 'notCustomerPermission')" + "||" + ADMIN_ONLY;
+  public static final String ALLOWED_TO_VIEW_PROJECT =
+      "hasPermission(#projectKey.toLowerCase(), 'allowedToViewProject')" + "||" + IS_ADMIN;
 
-  public static final String PROJECT_MANAGER_OR_ADMIN =
-      "hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')" + "||" + ADMIN_ONLY;
+  public static final String INVITATION_ALLOWED = IS_ADMIN + "||"
+      + "hasPermission(#invitationRequest, 'invitationAllowed')";
 
-  public static final String ALLOWED_TO_OWNER = ADMIN_ONLY + "||"
+  public static final String ALLOWED_TO_OWNER = IS_ADMIN + "||"
       + "hasPermission(#userId, 'allowedToOwner')";
+
+  public static final String ALLOWED_TO_EDIT_GROUP =
+      "hasPermission(#groupId, 'groupEditor')" + "||" + IS_ADMIN;
+
+  public static final String ALLOWED_TO_EDIT_ORG_PROJECT = IS_ADMIN
+      + "||" + "(hasPermission(#orgId, 'organizationManager') || hasPermission(#projectId, 'projectEditor'))";
+
 }

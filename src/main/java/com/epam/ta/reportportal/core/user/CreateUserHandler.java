@@ -16,13 +16,10 @@
 
 package com.epam.ta.reportportal.core.user;
 
+import com.epam.reportportal.api.model.InstanceUser;
+import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.model.YesNoRS;
-import com.epam.ta.reportportal.model.user.CreateUserBidRS;
-import com.epam.ta.reportportal.model.user.CreateUserRQ;
-import com.epam.ta.reportportal.model.user.CreateUserRQConfirm;
-import com.epam.ta.reportportal.model.user.CreateUserRQFull;
-import com.epam.ta.reportportal.model.user.CreateUserRS;
 import com.epam.ta.reportportal.model.user.ResetPasswordRQ;
 import com.epam.ta.reportportal.model.user.RestorePasswordRQ;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
@@ -35,33 +32,15 @@ import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 public interface CreateUserHandler {
 
   /**
-   * Create completed user object by administrator
+   * Create user by administrator
    *
    * @param request  Create request
    * @param user     User that creates request
    * @param basicUrl App URL for user URL to be created
-   * @return Operation result
+   * @return User
    */
-  CreateUserRS createUserByAdmin(CreateUserRQFull request, ReportPortalUser user, String basicUrl);
+  InstanceUser createUser(NewUserRequest request, ReportPortalUser user, String basicUrl);
 
-  /**
-   * Create new User (confirm invitation)
-   *
-   * @param request Create request
-   * @param uuid    Create UUID
-   * @return Operation result
-   */
-  CreateUserRS createUser(CreateUserRQConfirm request, String uuid);
-
-  /**
-   * Create user bid (send invitation)
-   *
-   * @param request    Create Request
-   * @param username   Username/User that creates the request
-   * @param userRegURL User registration url
-   * @return Operation result
-   */
-  CreateUserBidRS createUserBid(CreateUserRQ request, ReportPortalUser username, String userRegURL);
 
   /**
    * Create restore password bid

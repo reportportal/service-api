@@ -31,13 +31,15 @@ import com.epam.ta.reportportal.model.activity.PatternTemplateActivityResource;
  */
 public class PatternDeletedEvent extends BeforeEvent<PatternTemplateActivityResource> implements
     ActivityEvent {
+  private Long orgId;
 
   public PatternDeletedEvent() {
   }
 
   public PatternDeletedEvent(Long userId, String userLogin,
-      PatternTemplateActivityResource before) {
+      PatternTemplateActivityResource before, Long orgId) {
     super(userId, userLogin, before);
+    this.orgId = orgId;
   }
 
   @Override
@@ -51,6 +53,7 @@ public class PatternDeletedEvent extends BeforeEvent<PatternTemplateActivityReso
         .addObjectName(getBefore().getName())
         .addObjectType(EventObject.PATTERN)
         .addProjectId(getBefore().getProjectId())
+        .addOrganizationId(orgId)
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)

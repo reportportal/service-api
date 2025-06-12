@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.reportportal.model.ActivityResource;
@@ -27,7 +27,8 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.activity.ActivityHandler;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.model.ActivityEventResource;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+ import com.epam.ta.reportportal.model.ActivityEventResource;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
@@ -44,9 +45,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -54,9 +55,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Ihar_Kahadouski
  */
 @RestController
-@RequestMapping("/v1/{projectName}/activity")
+@RequestMapping("/v1/{projectKey}/activity")
 @Transactional(readOnly = true)
-@PreAuthorize(ASSIGNED_TO_PROJECT)
+@PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
 @Tag(name = "Activity", description = "Activities API collection")
 public class ActivityController {
 
@@ -70,7 +71,7 @@ public class ActivityController {
     this.projectExtractor = projectExtractor;
   }
 
-  @RequestMapping(value = "/{activityId}", method = RequestMethod.GET)
+  @GetMapping(value = "/{activityId}")
   @ResponseStatus(OK)
   @Operation(summary = "Get an activity by its ID in a specific project", description = """
       Fetches the activity details by its ID for a specific project.""", responses = {
@@ -136,15 +137,15 @@ public class ActivityController {
           """))) })
   public ActivityResource getActivity(@PathVariable
   @Parameter(description = "The name of the project for which the activity should be searched")
-  String projectName,
+  String projectKey,
       @PathVariable @Parameter(description = "The ID of the activity to be searched")
       Long activityId, @AuthenticationPrincipal ReportPortalUser user) {
-    ReportPortalUser.ProjectDetails projectDetails =
-        projectExtractor.extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectName));
-    return activityHandler.getActivity(projectDetails, activityId);
+    MembershipDetails membershipDetails =
+        projectExtractor.extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey));
+    return activityHandler.getActivity(membershipDetails, activityId);
   }
 
-  @RequestMapping(value = "/item/{itemId}", method = RequestMethod.GET)
+  @GetMapping(value = "/item/{itemId}")
   @ResponseStatus(OK)
   @Operation(summary = "Get a list of item activities for a specific project", description = """
       Fetches a list of item activities for a specific project.
@@ -304,12 +305,12 @@ public class ActivityController {
           """))) })
   public Page<ActivityEventResource> getTestItemActivities(@PathVariable
   @Parameter(description = "The name of the project for which the activities should be searched")
-  String projectName, @PathVariable
+  String projectKey, @PathVariable
   @Parameter(description = "The ID of the test item for which all its activities should be "
       + "searched") Long itemId, @FilterFor(Activity.class) Filter filter,
       @SortFor(Activity.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-    ReportPortalUser.ProjectDetails projectDetails =
-        projectExtractor.extractProjectDetailsAdmin(user, EntityUtils.normalizeId(projectName));
-    return activityHandler.getItemActivities(projectDetails, itemId, filter, pageable);
-  }
-}
+    MembershipDetails membershipDetails =
+        projectExtractor.extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey));
+    return activityHandler.getItemActivities(membershipDetails, itemId, filter, pageable);
+   }
+ }

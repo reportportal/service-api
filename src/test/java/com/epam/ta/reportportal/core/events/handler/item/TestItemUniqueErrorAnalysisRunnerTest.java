@@ -59,9 +59,9 @@ class TestItemUniqueErrorAnalysisRunnerTest {
 
     final GenerateClustersConfig config = configArgumentCaptor.getValue();
 
-    assertEquals(event.getLaunchId(), config.getEntityContext().getLaunchId());
-    assertEquals(event.getProjectId(), config.getEntityContext().getProjectId());
-    assertEquals(event.getItemId(), config.getEntityContext().getItemIds().get(0));
+    assertEquals(event.launchId(), config.getEntityContext().getLaunchId());
+    assertEquals(event.projectId(), config.getEntityContext().getProjectId());
+    assertEquals(event.itemId(), config.getEntityContext().getItemIds().get(0));
     assertTrue(config.isForUpdate());
     assertTrue(config.isCleanNumbers());
   }

@@ -25,38 +25,44 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.model.activity.IssueTypeActivityResource;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Andrei Varabyeu
  */
+@Setter
+@Getter
 public class DefectTypeDeletedEvent extends BeforeEvent<IssueTypeActivityResource>
     implements ActivityEvent {
 
   private Long projectId;
+  private Long orgId;
 
   public DefectTypeDeletedEvent() {
   }
 
   public DefectTypeDeletedEvent(IssueTypeActivityResource before, Long userId, String userLogin,
-      Long projectId) {
+      Long projectId, Long orgId) {
     super(userId, userLogin, before);
     this.projectId = projectId;
-  }
-
-  public Long getProjectId() {
-    return projectId;
-  }
-
-  public void setProjectId(Long projectId) {
-    this.projectId = projectId;
+    this.orgId = orgId;
   }
 
   @Override
   public Activity toActivity() {
-    return new ActivityBuilder().addCreatedNow().addAction(EventAction.DELETE)
-        .addEventName(ActivityAction.DELETE_DEFECT.getValue()).addPriority(EventPriority.MEDIUM)
-        .addObjectId(getBefore().getId()).addObjectName(getBefore().getLongName())
-        .addObjectType(EventObject.DEFECT_TYPE).addProjectId(projectId).addSubjectId(getUserId())
-        .addSubjectName(getUserLogin()).addSubjectType(EventSubject.USER).get();
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.DELETE)
+        .addEventName(ActivityAction.DELETE_DEFECT.getValue())
+        .addPriority(EventPriority.MEDIUM)
+        .addObjectId(getBefore().getId())
+        .addObjectName(getBefore().getLongName())
+        .addObjectType(EventObject.DEFECT_TYPE)
+        .addProjectId(projectId)
+        .addOrganizationId(orgId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER).get();
   }
 }

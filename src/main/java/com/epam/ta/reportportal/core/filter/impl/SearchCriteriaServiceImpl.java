@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
+import com.epam.reportportal.api.model.SearchCriteriaRQ;
+import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -24,9 +27,6 @@ import com.epam.ta.reportportal.core.filter.FilterOperation;
 import com.epam.ta.reportportal.core.filter.SearchCriteriaService;
 import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType;
 import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilters;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.model.SearchCriteria;
-import com.epam.ta.reportportal.model.SearchCriteriaRQ;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
@@ -46,48 +46,55 @@ public class SearchCriteriaServiceImpl implements SearchCriteriaService {
   private static final String PREDEFINED_FILTER = "predefinedFilter";
 
   @Override
-  public Queryable createFilterBySearchCriteria(SearchCriteriaRQ searchCriteriaRQ, Class<?> target,
+  public Queryable createFilterBySearchCriteria(SearchCriteriaRQ searchCriteriaRq, Class<?> target,
       PredefinedFilterType predefinedFilterType) {
 
     Filter filter = new Filter(target, Lists.newArrayList());
 
-    if (CollectionUtils.isEmpty(searchCriteriaRQ.getCriteriaList())) {
+    if (CollectionUtils.isEmpty(searchCriteriaRq.getSearchCriteria())) {
       return filter;
     }
 
-    filter.withConditions(collectConditions(searchCriteriaRQ));
+    filter.withConditions(collectConditions(searchCriteriaRq));
 
-    Optional<SearchCriteria> predefinedFilter = getPredefinedFilterIfExist(searchCriteriaRQ);
+    Optional<SearchCriteriaSearchCriteriaInner> predefinedFilter = getPredefinedFilterIfExist(searchCriteriaRq);
 
-    return predefinedFilter.isPresent() ?
-        createCompositeFilter(predefinedFilterType, filter, predefinedFilter.get()) : filter;
+    return predefinedFilter.isPresent()
+        ? createCompositeFilter(predefinedFilterType, filter, predefinedFilter.get()) : filter;
   }
 
-  private List<ConvertibleCondition> collectConditions(SearchCriteriaRQ searchCriteriaRQ) {
-    return searchCriteriaRQ.getCriteriaList().stream()
+  @Override
+  public Queryable createFilterBySearchCriteria(SearchCriteriaRQ searchCriteriaRq, Class<?> target) {
+    return createFilterBySearchCriteria(searchCriteriaRq, target, null);
+  }
+
+  private List<ConvertibleCondition> collectConditions(SearchCriteriaRQ searchCriteriaRq) {
+    return searchCriteriaRq.getSearchCriteria().stream()
         .filter(criteria -> !PREDEFINED_FILTER.equalsIgnoreCase(criteria.getFilterKey()))
         .map(this::mapCriteriaToCondition).collect(Collectors.toList());
   }
 
-  private ConvertibleCondition mapCriteriaToCondition(SearchCriteria searchCriteria) {
-    return FilterOperation.fromString(searchCriteria.getOperation()).map(
-        operation -> operation.getConditionBuilder()
-            .withSearchCriteria(searchCriteria.getFilterKey()).withValue(searchCriteria.getValue())
-            .build()).orElseThrow(() -> new ReportPortalException(
-        String.format("Can not convert operation type %s.", searchCriteria.getOperation())));
+  private ConvertibleCondition mapCriteriaToCondition(
+      SearchCriteriaSearchCriteriaInner searchCriteria) {
+    return FilterOperation.fromString(searchCriteria.getOperation().toString())
+        .map(operation -> operation.getConditionBuilder()
+            .withSearchCriteria(searchCriteria.getFilterKey())
+            .withValue(searchCriteria.getValue())
+            .build())
+        .orElseThrow(() -> new ReportPortalException(
+            String.format("Can not convert operation type %s.", searchCriteria.getOperation())));
   }
 
-  private Optional<SearchCriteria> getPredefinedFilterIfExist(SearchCriteriaRQ searchCriteriaRQ) {
-    return searchCriteriaRQ.getCriteriaList().stream()
+  private Optional<SearchCriteriaSearchCriteriaInner> getPredefinedFilterIfExist(SearchCriteriaRQ searchCriteriaRq) {
+    return searchCriteriaRq.getSearchCriteria().stream()
         .filter(criteria -> PREDEFINED_FILTER.equalsIgnoreCase(criteria.getFilterKey()))
         .findFirst();
   }
 
   private CompositeFilter createCompositeFilter(PredefinedFilterType predefinedFilterType,
-      Filter filter, SearchCriteria predefinedFilter) {
-    String[] params = { predefinedFilter.getValue() };
-    Queryable activityPredefinedFilter =
-        PredefinedFilters.buildFilter(predefinedFilterType, params);
+      Filter filter, SearchCriteriaSearchCriteriaInner predefinedFilter) {
+    String[] params = {predefinedFilter.getValue()};
+    Queryable activityPredefinedFilter = PredefinedFilters.buildFilter(predefinedFilterType, params);
     return new CompositeFilter(Operator.AND, filter, activityPredefinedFilter);
   }
 

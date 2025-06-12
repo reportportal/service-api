@@ -27,9 +27,11 @@ import com.epam.ta.reportportal.core.events.activity.MarkLaunchAsImportantEvent;
 import com.epam.ta.reportportal.core.events.activity.UnmarkLaunchAsImportantEvent;
 import com.epam.ta.reportportal.core.launch.attribute.AttributeHandler;
 import com.epam.ta.reportportal.core.settings.ServerSettingsService;
+import com.epam.ta.reportportal.core.project.ProjectService;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.RetentionPolicyEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.project.Project;
 import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +45,7 @@ import org.springframework.stereotype.Component;
 public class RetentionPolicyAttributeHandler implements AttributeHandler {
 
   private final MessageBus messageBus;
+  private final ProjectService projectService;
 
   private final ServerSettingsService serverSettingsService;
 
@@ -125,17 +128,18 @@ public class RetentionPolicyAttributeHandler implements AttributeHandler {
           retentionPolicyOldAttribute.getValue(), retentionPolicyNewAttribute.getValue())) {
         return;
       }
+      Project project = projectService.findProjectById(launch.getProjectId());
       if ("important".equalsIgnoreCase(retentionPolicyNewAttribute.getValue())) {
         launch.setRetentionPolicy(RetentionPolicyEnum.IMPORTANT);
         messageBus.publishActivity(
             new MarkLaunchAsImportantEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(),
-                user.getUsername()
+                user.getUsername(), project.getOrganizationId()
             ));
       } else if ("regular".equalsIgnoreCase(retentionPolicyNewAttribute.getValue())) {
         launch.setRetentionPolicy(RetentionPolicyEnum.REGULAR);
         messageBus.publishActivity(
             new UnmarkLaunchAsImportantEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(),
-                user.getUsername()
+                user.getUsername(), project.getOrganizationId()
             ));
       }
     }

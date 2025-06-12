@@ -41,6 +41,7 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -108,10 +109,10 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
   @Override
   public ItemCreatedRS startRootItem(ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq) {
+      MembershipDetails membershipDetails, StartTestItemRQ rq) {
     Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
-    validate(user, projectDetails, rq, launch);
+    validate(user, membershipDetails, rq, launch);
 
     if (launch.isRerun()) {
       Optional<ItemCreatedRS> rerunCreatedRs = rerunHandler.handleRootItem(rq, launch);
@@ -131,7 +132,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
   @Override
   public ItemCreatedRS startChildItem(ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq,
+      MembershipDetails membershipDetails, StartTestItemRQ rq,
       String parentId) {
     boolean isRetry =
         BooleanUtils.toBoolean(rq.getRetry()) || StringUtils.isNotBlank(rq.getRetryOf());
@@ -218,14 +219,14 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
    * affiliation to the {@link Project}
    *
    * @param user           {@link ReportPortalUser}
-   * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+   * @param membershipDetails {@link MembershipDetails}
    * @param rq             {@link StartTestItemRQ}
    * @param launch         {@link Launch}
    */
-  private void validate(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
+  private void validate(ReportPortalUser user, MembershipDetails membershipDetails,
       StartTestItemRQ rq, Launch launch) {
     if (!UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
-      expect(projectDetails.getProjectId(), equalTo(launch.getProjectId())).verify(ACCESS_DENIED);
+      expect(membershipDetails.getProjectId(), equalTo(launch.getProjectId())).verify(ACCESS_DENIED);
     }
     expect(rq.getStartTime(), Preconditions.sameTimeOrLater(launch.getStartTime())).verify(
         CHILD_START_TIME_EARLIER_THAN_PARENT,

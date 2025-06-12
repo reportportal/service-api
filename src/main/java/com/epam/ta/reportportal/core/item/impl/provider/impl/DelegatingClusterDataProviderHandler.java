@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Map;
@@ -47,19 +48,19 @@ public class DelegatingClusterDataProviderHandler implements DataProviderHandler
 
   @Override
   public Page<TestItem> getTestItems(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails,
+      MembershipDetails membershipDetails,
       ReportPortalUser user, Map<String, String> params) {
     validateClusterCondition(filter);
     validatePageSize(pageable);
-    return delegate.getTestItems(filter, pageable, projectDetails, user, params);
+    return delegate.getTestItems(filter, pageable, membershipDetails, user, params);
   }
 
   @Override
   public Set<Statistics> accumulateStatistics(Queryable filter,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      MembershipDetails membershipDetails, ReportPortalUser user,
       Map<String, String> params) {
     validateClusterCondition(filter);
-    return delegate.accumulateStatistics(filter, projectDetails, user, params);
+    return delegate.accumulateStatistics(filter, membershipDetails, user, params);
   }
 
   private void validateClusterCondition(Queryable filter) {

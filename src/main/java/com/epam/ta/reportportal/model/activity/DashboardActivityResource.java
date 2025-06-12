@@ -17,64 +17,27 @@
 package com.epam.ta.reportportal.model.activity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@Data
 public class DashboardActivityResource {
 
-	@JsonProperty(value = "id", required = true)
-	private Long id;
+  @JsonProperty(value = "id", required = true)
+  private Long id;
 
-	@JsonProperty(value = "name", required = true)
-	private String name;
+  @JsonProperty(value = "name", required = true)
+  private String name;
 
-	@JsonProperty(value = "projectId", required = true)
-	private Long projectId;
+  @JsonProperty(value = "projectId", required = true)
+  private Long projectId;
 
-	@JsonProperty(value = "description")
-	private String description;
+  @JsonProperty(value = "organizationId", required = true)
+  private Long organizationId;
 
-	public Long getId() {
-		return id;
-	}
+  @JsonProperty(value = "description")
+  private String description;
 
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public Long getProjectId() {
-		return projectId;
-	}
-
-	public void setProjectId(Long projectId) {
-		this.projectId = projectId;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder("DashboardActivityResource{");
-		sb.append("id=").append(id);
-		sb.append(", name='").append(name).append('\'');
-		sb.append(", projectId=").append(projectId);
-		sb.append(", description='").append(description).append('\'');
-		sb.append('}');
-		return sb.toString();
-	}
 }

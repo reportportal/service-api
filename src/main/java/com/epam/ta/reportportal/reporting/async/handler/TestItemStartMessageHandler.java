@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.reporting.async.handler;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
 import com.epam.ta.reportportal.reporting.async.message.MessageRetriever;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -57,12 +58,12 @@ public class TestItemStartMessageHandler implements ReportingMessageHandler {
 
     startTestItemRQ.ifPresent(rq -> {
       String username = (String) headers.get(MessageHeaders.USERNAME);
-      String projectName = (String) headers.get(MessageHeaders.PROJECT_NAME);
+      String projectKey = (String) headers.get(MessageHeaders.PROJECT_KEY);
       String parentId = (String) headers.get(MessageHeaders.PARENT_ITEM_ID);
 
       ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-      ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user,
-          projectName);
+      MembershipDetails projectDetails = projectExtractor.extractMembershipDetails(user,
+          projectKey);
 
       if (!Strings.isNullOrEmpty(parentId)) {
         startTestItemHandler.startChildItem(user, projectDetails, rq, parentId);

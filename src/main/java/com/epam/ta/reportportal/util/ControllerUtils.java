@@ -16,18 +16,21 @@
 
 package com.epam.ta.reportportal.util;
 
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Path;
 import jakarta.validation.Validator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -44,7 +47,8 @@ public class ControllerUtils {
    * @param files    Files map
    * @return Found file
    */
-  public static MultipartFile findByFileName(String filename, MultiValuedMap<String, MultipartFile> files) {
+  public static MultipartFile findByFileName(String filename,
+      MultiValuedMap<String, MultipartFile> files) {
     /* Request part name? */
     if (files.containsKey(filename)) {
       var multipartFile = files.get(filename).stream()
@@ -108,5 +112,18 @@ public class ControllerUtils {
       }
     }
     return uploadedFiles;
+  }
+
+  public static Direction parseSortDirection(String order) {
+    if (order == null) {
+      return Direction.ASC;
+    }
+    return order.equalsIgnoreCase(Direction.DESC.name()) ? Direction.DESC : Direction.ASC;
+  }
+
+  public static Pageable getPageable(String sortBy, String order, int offset, int limit) {
+    var sortDirection = parseSortDirection(order);
+    //TODO: switch to ScrollPosition after migration to Spring Data 3.1
+    return OffsetRequest.of(offset, limit, Sort.by(sortDirection, sortBy));
   }
 }

@@ -16,21 +16,18 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
-import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import java.util.function.Predicate;
 import org.springframework.stereotype.Service;
 
 /**
@@ -47,30 +44,26 @@ public class LaunchAccessValidatorImpl implements LaunchAccessValidator {
 
   @Override
   //TODO separate project validation from launch state validation (mode)
-  public void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails,
+  public void validate(Launch launch, MembershipDetails membershipDetails,
       ReportPortalUser user) {
     if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-      expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
+      expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId())).verify(
           FORBIDDEN_OPERATION,
           formattedSupplier(
               "Specified launch with id '{}' not referenced to specified project with id '{}'",
               launch.getId(),
-              projectDetails.getProjectId()
+              membershipDetails.getProjectId()
           )
       );
-      expect(
-          projectDetails.getProjectRole() == OPERATOR && launch.getMode() == LaunchModeEnum.DEBUG,
-          Predicate.isEqual(false)
-      ).verify(ACCESS_DENIED);
     }
   }
 
   @Override
-  public void validate(Long launchId, ReportPortalUser.ProjectDetails projectDetails,
+  public void validate(Long launchId, MembershipDetails membershipDetails,
       ReportPortalUser user) {
     Launch launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
-    validate(launch, projectDetails, user);
+    validate(launch, membershipDetails, user);
   }
 
 }

@@ -36,32 +36,28 @@ import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Andrei Varabyeu
  */
+@Setter
+@Getter
 public class NotificationsConfigUpdatedEvent extends BeforeEvent<ProjectResource> implements
     ActivityEvent {
 
   private ProjectNotificationConfigDTO updateProjectNotificationConfigRQ;
+  private Long orgId;
 
   public NotificationsConfigUpdatedEvent() {
   }
 
   public NotificationsConfigUpdatedEvent(ProjectResource before,
       ProjectNotificationConfigDTO updateProjectNotificationConfigRQ,
-      Long userId, String userLogin) {
+      Long userId, String userLogin, Long orgId) {
     super(userId, userLogin, before);
-    this.updateProjectNotificationConfigRQ = updateProjectNotificationConfigRQ;
-  }
-
-  public ProjectNotificationConfigDTO getUpdateProjectNotificationConfigRQ() {
-    return updateProjectNotificationConfigRQ;
-  }
-
-  public void setUpdateProjectNotificationConfigRQ(
-      ProjectNotificationConfigDTO updateProjectNotificationConfigRQ) {
     this.updateProjectNotificationConfigRQ = updateProjectNotificationConfigRQ;
   }
 
@@ -79,6 +75,7 @@ public class NotificationsConfigUpdatedEvent extends BeforeEvent<ProjectResource
         .addObjectName(StringUtils.EMPTY)
         .addObjectType(EventObject.EMAIL_CONFIG)
         .addProjectId(getBefore().getProjectId())
+        .addOrganizationId(orgId)
         .addDetails(details)
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
@@ -89,7 +86,7 @@ public class NotificationsConfigUpdatedEvent extends BeforeEvent<ProjectResource
   private void processEmailConfiguration(ActivityDetails details, ProjectResource project,
       ProjectNotificationConfigDTO updateProjectNotificationConfigRQ) {
     /*
-     * Request contains EmailCases block and its not equal for stored project one
+     * Request contains EmailCases block and it's not equal for stored project one
      */
 
     ofNullable(project.getConfiguration().getProjectConfig()).ifPresent(cfg -> {

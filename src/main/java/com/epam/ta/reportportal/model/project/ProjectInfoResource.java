@@ -85,4 +85,15 @@ public class ProjectInfoResource {
   @JsonProperty(value = "organization")
   private String organization;
 
+  @NotBlank
+  @JsonProperty(value = "projectKey")
+  private String projectKey;
+
+  @NotBlank
+  @JsonProperty(value = "projectSlug")
+  private String projectSlug;
+
+  @JsonProperty(value = "organizationId")
+  private String organizationId;
+
 }

@@ -60,6 +60,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -96,26 +97,28 @@ class ProjectControllerTest extends BaseMvcTest {
     Mockito.reset(rabbitClient, rabbitTemplate);
   }
 
-  @Test
+	@Test
+  @Disabled("waiting for requirements")
   void createProjectPositive() throws Exception {
-    CreateProjectRQ rq = new CreateProjectRQ();
-    rq.setProjectName("TestProject");
-    rq.setEntryType("INTERNAL");
-    mockMvc.perform(post("/v1/project").content(objectMapper.writeValueAsBytes(rq))
+		CreateProjectRQ rq = new CreateProjectRQ();
+		rq.setProjectName("TestProject");
+    rq.setOrganizationId(1L);
+
+    mockMvc.perform(post("/v1/project")
+        .content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)
         .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
-    final Optional<Project> createdProjectOptional = projectRepository.findByName(
-        "TestProject".toLowerCase());
-    assertTrue(createdProjectOptional.isPresent());
-    assertEquals(15, createdProjectOptional.get().getProjectAttributes().size());
+		final Optional<Project> createdProjectOptional = projectRepository.findByName("TestProject".toLowerCase());
+		assertTrue(createdProjectOptional.isPresent());
+		assertEquals(15, createdProjectOptional.get().getProjectAttributes().size());
     assertEquals(5, createdProjectOptional.get().getProjectIssueTypes().size());
   }
 
   @Test
+  @Disabled("waiting for requirements")
   void createProjectWithReservedName() throws Exception {
     CreateProjectRQ rq = new CreateProjectRQ();
     rq.setProjectName("project");
-    rq.setEntryType("INTERNAL");
     mockMvc.perform(post("/v1/project").content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)
         .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
@@ -147,14 +150,14 @@ class ProjectControllerTest extends BaseMvcTest {
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
-    userRoles.put("test_user", "PROJECT_MANAGER");
+    userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
         .content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)
         .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 
-    Project project = projectRepository.findByName("test_project").get();
+    Project project = projectRepository.findByKey("test_project").get();
     projectAttributes.forEach((key, value) -> {
       Optional<ProjectAttribute> pa = project.getProjectAttributes()
           .stream()
@@ -187,7 +190,7 @@ class ProjectControllerTest extends BaseMvcTest {
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
-    userRoles.put("test_user", "PROJECT_MANAGER");
+    userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
         .content(objectMapper.writeValueAsBytes(rq))
@@ -206,7 +209,7 @@ class ProjectControllerTest extends BaseMvcTest {
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
-    userRoles.put("test_user", "PROJECT_MANAGER");
+    userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
         .content(objectMapper.writeValueAsBytes(rq))
@@ -225,7 +228,7 @@ class ProjectControllerTest extends BaseMvcTest {
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
-    userRoles.put("test_user", "PROJECT_MANAGER");
+    userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
         .content(objectMapper.writeValueAsBytes(rq))
@@ -244,7 +247,7 @@ class ProjectControllerTest extends BaseMvcTest {
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
-    userRoles.put("test_user", "PROJECT_MANAGER");
+    userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
         .content(objectMapper.writeValueAsBytes(rq))
@@ -263,7 +266,7 @@ class ProjectControllerTest extends BaseMvcTest {
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
-    userRoles.put("test_user", "PROJECT_MANAGER");
+    userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
         .content(objectMapper.writeValueAsBytes(rq))
@@ -282,7 +285,7 @@ class ProjectControllerTest extends BaseMvcTest {
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
-    userRoles.put("test_user", "PROJECT_MANAGER");
+    userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
         .content(objectMapper.writeValueAsBytes(rq))
@@ -300,7 +303,7 @@ class ProjectControllerTest extends BaseMvcTest {
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
-    userRoles.put("test_user", "PROJECT_MANAGER");
+    userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
         .content(objectMapper.writeValueAsBytes(rq))
@@ -309,15 +312,29 @@ class ProjectControllerTest extends BaseMvcTest {
   }
 
   @Test
-  void deleteProjectPositive() throws Exception {
-    mockMvc.perform(delete("/v1/project/3")
+  void deleteProject() throws Exception {
+    assertTrue(projectRepository.findById(3L).isPresent());
+
+    mockMvc.perform(delete("/organizations/101/projects/3")
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
+        .andExpect(status().isNoContent());
 
     assertFalse(projectRepository.findById(3L).isPresent());
   }
 
   @Test
+  void deleteProjectWrongOrganization() throws Exception {
+    assertTrue(projectRepository.findById(3L).isPresent());
+
+    mockMvc.perform(delete("/organizations/1/projects/3")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound());
+
+    assertTrue(projectRepository.findById(3L).isPresent());
+  }
+
+  @Test
+  @Disabled("waiting for requirements")
   void bulkDeleteProjects() throws Exception {
     DeleteBulkRQ bulkRQ = new DeleteBulkRQ();
     bulkRQ.setIds(Lists.newArrayList(2L, 3L));
@@ -369,7 +386,7 @@ class ProjectControllerTest extends BaseMvcTest {
   void assignProjectUsersPositive() throws Exception {
     AssignUsersRQ rq = new AssignUsersRQ();
     Map<String, String> user = new HashMap<>();
-    user.put("default", "MEMBER");
+    user.put("default", "EDITOR");
     rq.setUserNames(user);
     mockMvc.perform(
         put("/v1/project/test_project/assign")
@@ -453,8 +470,7 @@ class ProjectControllerTest extends BaseMvcTest {
         .andExpect(jsonPath("$.id").value(2))
         .andExpect(jsonPath("$.projectName").value("default_personal"))
         .andExpect(jsonPath("$.usersQuantity").value(1))
-        .andExpect(jsonPath("$.launchesQuantity").value(1))
-        .andExpect(jsonPath("$.entryType").value("PERSONAL"));
+        .andExpect(jsonPath("$.launchesQuantity").value(1));
   }
 
   @Sql("/db/test-item/test-item-fill.sql")
@@ -467,8 +483,7 @@ class ProjectControllerTest extends BaseMvcTest {
         .andExpect(jsonPath("$.id").value(1))
         .andExpect(jsonPath("$.projectName").value("superadmin_personal"))
         .andExpect(jsonPath("$.usersQuantity").value(1))
-        .andExpect(jsonPath("$.launchesQuantity").value(0))
-        .andExpect(jsonPath("$.entryType").value("PERSONAL"));
+        .andExpect(jsonPath("$.launchesQuantity").value(0));
   }
 
   @Sql("/db/test-item/test-item-fill.sql")

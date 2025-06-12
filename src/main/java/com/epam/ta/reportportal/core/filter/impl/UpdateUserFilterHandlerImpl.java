@@ -37,6 +37,7 @@ import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.CollectionsRQ;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
 import com.epam.ta.reportportal.model.activity.UserFilterActivityResource;
@@ -74,26 +75,26 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
   @Override
   public EntryCreatedRS createFilter(UpdateUserFilterRQ createFilterRQ, String projectName,
       ReportPortalUser user) {
-    ReportPortalUser.ProjectDetails projectDetails =
-        projectExtractor.extractProjectDetails(user, projectName);
+    MembershipDetails membershipDetails =
+        projectExtractor.extractMembershipDetails(user, projectName);
 
     validateFilterRq(createFilterRQ);
 
     BusinessRule.expect(
-            userFilterRepository.existsByNameAndProjectId(createFilterRQ.getName(),
-                projectDetails.getProjectId()
+            userFilterRepository.existsByNameAndOwnerAndProjectId(createFilterRQ.getName(),
+                user.getUsername(), membershipDetails.getProjectId()
             ), BooleanUtils::isFalse)
         .verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName(), user.getUsername(),
             projectName
         );
 
     UserFilter filter = new UserFilterBuilder().addFilterRq(createFilterRQ)
-        .addProject(projectDetails.getProjectId()).addOwner(user.getUsername()).get();
+        .addProject(membershipDetails.getProjectId()).addOwner(user.getUsername()).get();
 
     userFilterRepository.save(filter);
     messageBus.publishActivity(
         new FilterCreatedEvent(TO_ACTIVITY_RESOURCE.apply(filter), user.getUserId(),
-            user.getUsername()
+            user.getUsername(), membershipDetails.getOrgId()
         ));
     return new EntryCreatedRS(filter.getId());
   }
@@ -101,45 +102,45 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
   @Override
   public EntryCreatedRS createFilterCopyOnDuplicate(UpdateUserFilterRQ createFilterRQ,
-      String projectName,
+      String projectKey,
       ReportPortalUser user) {
-    ReportPortalUser.ProjectDetails projectDetails =
-        projectExtractor.extractProjectDetails(user, projectName);
+    MembershipDetails membershipDetails = projectExtractor.extractMembershipDetails(user, projectKey);
 
     validateFilterRq(createFilterRQ);
-    validateFilterName(createFilterRQ, projectDetails.getProjectId());
+    validateFilterName(createFilterRQ, membershipDetails.getProjectId());
 
     UserFilter filter = new UserFilterBuilder().addFilterRq(createFilterRQ)
-        .addProject(projectDetails.getProjectId()).addOwner(user.getUsername()).get();
+        .addProject(membershipDetails.getProjectId()).addOwner(user.getUsername()).get();
 
     userFilterRepository.save(filter);
     messageBus.publishActivity(
         new FilterCreatedEvent(TO_ACTIVITY_RESOURCE.apply(filter), user.getUserId(),
-            user.getUsername()
+            user.getUsername(), membershipDetails.getOrgId()
         ));
     return new EntryCreatedRS(filter.getId());
   }
 
   @Override
   public OperationCompletionRS updateUserFilter(Long userFilterId, UpdateUserFilterRQ updateRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
     validateFilterRq(updateRQ);
     UserFilter userFilter =
-        userFilterRepository.findByIdAndProjectId(userFilterId, projectDetails.getProjectId())
+        userFilterRepository.findByIdAndProjectId(userFilterId, membershipDetails.getProjectId())
             .orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
-                userFilterId, projectDetails.getProjectName()
+                userFilterId, membershipDetails.getProjectName()
             ));
     expect(
-        userFilter.getProject().getId(), Predicate.isEqual(projectDetails.getProjectId())).verify(
-        USER_FILTER_NOT_FOUND, userFilterId, projectDetails.getProjectId(), user.getUserId());
+        userFilter.getProject().getId(), Predicate.isEqual(membershipDetails.getProjectId())).verify(
+        USER_FILTER_NOT_FOUND, userFilterId, membershipDetails.getProjectId(), user.getUserId());
 
     if (!userFilter.getName().equals(updateRQ.getName())) {
 
       BusinessRule.expect(
-              userFilterRepository.existsByNameAndProjectId(updateRQ.getName(),
-                  projectDetails.getProjectId()), BooleanUtils::isFalse)
+              userFilterRepository.existsByNameAndOwnerAndProjectId(updateRQ.getName(),
+                  userFilter.getOwner(), membershipDetails.getProjectId()
+              ), BooleanUtils::isFalse)
           .verify(ErrorType.USER_FILTER_ALREADY_EXISTS, updateRQ.getName(), userFilter.getOwner(),
-              projectDetails.getProjectName()
+              membershipDetails.getProjectName()
           );
     }
 
@@ -148,7 +149,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
     messageBus.publishActivity(
         new FilterUpdatedEvent(before, TO_ACTIVITY_RESOURCE.apply(updated), user.getUserId(),
-            user.getUsername()
+            user.getUsername(), membershipDetails.getOrgId()
         ));
     return new OperationCompletionRS(
         "User filter with ID = '" + updated.getId() + "' successfully updated.");
@@ -156,7 +157,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
   @Override
   public List<OperationCompletionRS> updateUserFilter(CollectionsRQ<BulkUpdateFilterRQ> updateRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+      MembershipDetails membershipDetails, ReportPortalUser user) {
     throw new UnsupportedOperationException("Not implemented");
   }
 
@@ -207,8 +208,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
   }
 
 
-  private void validateFilterName(UpdateUserFilterRQ createFilterRQ,
-      Long projectId) {
+  private void validateFilterName(UpdateUserFilterRQ createFilterRQ, Long projectId) {
     IntStream.range(0, 100)
         .takeWhile(i -> userFilterRepository.existsByNameAndProjectId(createFilterRQ.getName(), projectId))
         .forEach(i -> createFilterRQ.setName(createFilterRQ.getName() + "_copy"));

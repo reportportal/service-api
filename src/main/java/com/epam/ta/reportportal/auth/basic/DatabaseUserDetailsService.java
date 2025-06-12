@@ -61,7 +61,7 @@ public class DatabaseUserDetailsService implements UserDetailsService {
         .withUserDetails(userDetails)
         .withUserId(user.getUserId())
         .withUserRole(user.getUserRole())
-        .withProjectDetails(Maps.newHashMapWithExpectedSize(1))
+        .withOrganizationDetails(Maps.newHashMapWithExpectedSize(1))
         .withEmail(user.getEmail())
         .build();
   }

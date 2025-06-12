@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.entity.statistics.StatisticsField;
 import com.google.common.base.Suppliers;
@@ -54,7 +55,7 @@ class ClusterItemDataProviderMockTest {
   private final Supplier<List<TestItem>> itemSupplier = Suppliers.memoize(this::getItems);
 
   public Page<TestItem> getTestItems(Queryable filter, Pageable pageable,
-      ReportPortalUser.ProjectDetails projectDetails,
+      MembershipDetails membershipDetails,
       ReportPortalUser user, Map<String, String> params) {
     final List<TestItem> testItems = itemSupplier.get();
     final List<TestItem> content = testItems.stream()
@@ -65,7 +66,7 @@ class ClusterItemDataProviderMockTest {
   }
 
   public Set<Statistics> accumulateStatistics(Queryable filter,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+      MembershipDetails membershipDetails, ReportPortalUser user,
       Map<String, String> params) {
     final List<TestItem> testItems = itemSupplier.get();
 

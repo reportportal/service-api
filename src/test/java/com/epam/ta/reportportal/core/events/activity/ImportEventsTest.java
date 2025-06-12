@@ -44,6 +44,7 @@ class ImportEventsTest {
     activity.setSubjectName("user");
     activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
+    activity.setOrganizationId(1L);
     activity.setCreatedAt(Instant.now());
     activity.setObjectName(ImportEventsTest.FILE_NAME);
     activity.setDetails(new ActivityDetails());
@@ -52,7 +53,7 @@ class ImportEventsTest {
 
   @Test
   void finished() {
-    final Activity actual = new ImportFinishedEvent(1L, "user", 3L, FILE_NAME).toActivity();
+    final Activity actual = new ImportFinishedEvent(1L, "user", 3L, FILE_NAME, 1L).toActivity();
     final Activity expected = getExpectedActivity(EventAction.FINISH);
     checkActivity(expected, actual);
   }

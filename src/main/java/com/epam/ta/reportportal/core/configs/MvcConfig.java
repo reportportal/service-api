@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.validation.beanvalidation.BeanValidationPostProcessor;
@@ -101,6 +102,7 @@ public class MvcConfig implements WebMvcConfigurer {
   @Override
   public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
     converters.clear();
+    converters.add(resourceConverter());
     converters.add(byteArrayConverter());
     converters.add(jsonConverter());
     converters.add(openMetricsTextStringConverter());
@@ -133,6 +135,11 @@ public class MvcConfig implements WebMvcConfigurer {
     StringHttpMessageConverter converter = new StringHttpMessageConverter();
     converter.setSupportedMediaTypes(Collections.singletonList(MediaType.TEXT_PLAIN));
     return converter;
+  }
+
+  @Bean
+  public ResourceHttpMessageConverter resourceConverter() {
+    return new ResourceHttpMessageConverter();
   }
 
   @Bean

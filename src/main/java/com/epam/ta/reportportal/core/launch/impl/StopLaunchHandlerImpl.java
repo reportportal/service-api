@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.BulkRQ;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -65,11 +66,11 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
 
   @Override
   public OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
+      MembershipDetails membershipDetails, ReportPortalUser user, String baseUrl) {
     Launch launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 
-    validateRoles(launch, user, projectDetails);
+    validateRoles(launch, user, membershipDetails);
     validate(launch, finishLaunchRQ);
 
     launch = new LaunchBuilder(launch).addDescription(
@@ -84,15 +85,15 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
     testItemRepository.interruptInProgressItems(launch.getId());
 
     eventPublisher.publishEvent(
-        new LaunchFinishedEvent(launch, user.getUserId(), user.getUsername(), baseUrl));
+        new LaunchFinishedEvent(launch, user.getUserId(), user.getUsername(), baseUrl, membershipDetails.getOrgId()));
     return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully stopped.");
   }
 
   @Override
   public List<OperationCompletionRS> stopLaunch(BulkRQ<Long, FinishExecutionRQ> bulkRQ,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
+      MembershipDetails membershipDetails, ReportPortalUser user, String baseUrl) {
     return bulkRQ.getEntities().entrySet().stream()
-        .map(entry -> stopLaunch(entry.getKey(), entry.getValue(), projectDetails, user, baseUrl))
+        .map(entry -> stopLaunch(entry.getKey(), entry.getValue(), membershipDetails, user, baseUrl))
         .collect(toList());
   }
 }

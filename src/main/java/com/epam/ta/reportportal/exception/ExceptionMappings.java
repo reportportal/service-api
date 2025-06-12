@@ -31,6 +31,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 /**
@@ -53,6 +54,8 @@ public final class ExceptionMappings {
       .<Class<? extends Throwable>, RestErrorDefinition>builder()
       .put(MethodArgumentNotValidException.class, new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST,
           new ArgumentNotValidMessageBuilder(MESSAGE_SOURCE)))
+      .put(MethodArgumentTypeMismatchException.class,
+          new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
       .put(HttpMessageNotReadableException.class,
           new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
       .put(MissingServletRequestPartException.class,
@@ -66,6 +69,12 @@ public final class ExceptionMappings {
       .put(LockedException.class, new RestErrorDefinition<>(403, ErrorType.ADDRESS_LOCKED, DEFAULT_MESSAGE_BUILDER))
       .put(RestClientException.class,
           new RestErrorDefinition<>(400, ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, DEFAULT_MESSAGE_BUILDER))
+      .put(IllegalArgumentException.class,
+          new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
+      .put(UnsupportedOperationException.class,
+          new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
+      .put(jakarta.validation.ConstraintViolationException.class,
+          new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
       .put(Throwable.class, new RestErrorDefinition<>(500, ErrorType.UNCLASSIFIED_ERROR, DEFAULT_MESSAGE_BUILDER))
       .build();
 }

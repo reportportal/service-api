@@ -16,7 +16,8 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -65,8 +66,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RequiredArgsConstructor
 @RestController
-@PreAuthorize(ASSIGNED_TO_PROJECT)
-@RequestMapping("/v1/{projectName}/dashboard")
+@RequestMapping("/v1/{projectKey}/dashboard")
 @Tag(name = "Dashboard", description = "Dashboards API collection")
 public class DashboardController {
 
@@ -79,99 +79,108 @@ public class DashboardController {
 
   @Transactional
   @PostMapping
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(CREATED)
   @Operation(summary = "Create dashboard for specified project")
-  public EntryCreatedRS createDashboard(@PathVariable String projectName,
+  public EntryCreatedRS createDashboard(@PathVariable String projectKey,
       @RequestBody @Validated CreateDashboardRQ createRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return createDashboardHandler.createDashboard(
-        projectExtractor.extractProjectDetails(user, projectName), createRQ, user);
+        projectExtractor.extractMembershipDetails(user, projectKey), createRQ, user);
   }
 
   @Transactional(readOnly = true)
   @GetMapping
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Get all permitted dashboard resources for specified project")
-  public Page<DashboardResource> getAllDashboards(@PathVariable String projectName,
+  public Page<DashboardResource> getAllDashboards(@PathVariable String projectKey,
       @SortFor(Dashboard.class) Pageable pageable, @FilterFor(Dashboard.class) Filter filter,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getDashboardHandler.getDashboards(
-        projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
+        projectExtractor.extractMembershipDetails(user, projectKey), pageable, filter, user);
   }
 
   @Transactional
   @PutMapping("/{dashboardId}/add")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Add widget to specified dashboard")
-  public OperationCompletionRS addWidget(@PathVariable String projectName,
+  public OperationCompletionRS addWidget(@PathVariable String projectKey,
       @PathVariable Long dashboardId, @RequestBody @Validated AddWidgetRq addWidgetRq,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateDashboardHandler.addWidget(
-        dashboardId, projectExtractor.extractProjectDetails(user, projectName), addWidgetRq, user);
+        dashboardId, projectExtractor.extractMembershipDetails(user, projectKey), addWidgetRq, user);
   }
 
   @Transactional
   @DeleteMapping("/{dashboardId}/{widgetId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Remove widget from specified dashboard")
-  public OperationCompletionRS removeWidget(@PathVariable String projectName,
+  public OperationCompletionRS removeWidget(@PathVariable String projectKey,
       @PathVariable Long dashboardId, @PathVariable Long widgetId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateDashboardHandler.removeWidget(
-        widgetId, dashboardId, projectExtractor.extractProjectDetails(user, projectName), user);
+        widgetId, dashboardId, projectExtractor.extractMembershipDetails(user, projectKey), user);
   }
 
   @Transactional
   @PutMapping(value = "/{dashboardId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Update specified dashboard for specified project")
-  public OperationCompletionRS updateDashboard(@PathVariable String projectName,
+  public OperationCompletionRS updateDashboard(@PathVariable String projectKey,
       @PathVariable Long dashboardId, @RequestBody @Validated UpdateDashboardRQ updateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateDashboardHandler.updateDashboard(
-        projectExtractor.extractProjectDetails(user, projectName), updateRQ, dashboardId, user);
+        projectExtractor.extractMembershipDetails(user, projectKey), updateRQ, dashboardId, user);
   }
 
   @Transactional
   @DeleteMapping(value = "/{dashboardId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Delete specified dashboard by ID for specified project")
-  public OperationCompletionRS deleteDashboard(@PathVariable String projectName,
+  public OperationCompletionRS deleteDashboard(@PathVariable String projectKey,
       @PathVariable Long dashboardId, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteDashboardHandler.deleteDashboard(
-        dashboardId, projectExtractor.extractProjectDetails(user, projectName), user);
+        dashboardId, projectExtractor.extractMembershipDetails(user, projectKey), user);
   }
 
   @Transactional
   @GetMapping(value = "/{dashboardId}")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @ResponseStatus(OK)
   @Operation(summary = "Get specified dashboard by ID for specified project")
-  public DashboardResource getDashboard(@PathVariable String projectName,
+  public DashboardResource getDashboard(@PathVariable String projectKey,
       @PathVariable Long dashboardId, @AuthenticationPrincipal ReportPortalUser user) {
     return getDashboardHandler.getDashboard(
-        dashboardId, projectExtractor.extractProjectDetails(user, projectName));
+        dashboardId, projectExtractor.extractMembershipDetails(user, projectKey));
   }
 
 
   @Transactional
   @GetMapping(value = "/{dashboardId}/config")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get Dashboard configuration including its widgets and filters if any")
-  public DashboardConfigResource getDashboardConfig(@PathVariable String projectName,
+  public DashboardConfigResource getDashboardConfig(@PathVariable String projectKey,
       @PathVariable Long dashboardId, @AuthenticationPrincipal ReportPortalUser user) {
     return getDashboardHandler.getDashboardConfig(
-        dashboardId, projectExtractor.extractProjectDetails(user, projectName));
+        dashboardId, projectExtractor.extractMembershipDetails(user, projectKey));
   }
 
   @Transactional
   @PostMapping(value = "/preconfigured")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Create Dashboard with provided configuration including its widgets and filters if any")
   public EntryCreatedRS createPreconfigured(
-      @PathVariable @Size(min = ValidationConstraints.MIN_NAME_LENGTH, max = ValidationConstraints.MAX_NAME_LENGTH) String projectName,
+      @PathVariable @Size(min = ValidationConstraints.MIN_NAME_LENGTH, max = ValidationConstraints.MAX_NAME_LENGTH) String projectKey,
       @RequestBody @Validated DashboardPreconfiguredRq rq,
       @AuthenticationPrincipal ReportPortalUser user) {
     return dashboardPreconfiguredService.createDashboard(
-        projectExtractor.extractProjectDetails(user, projectName), rq, user);
+        projectExtractor.extractMembershipDetails(user, projectKey), rq, user);
   }
 }

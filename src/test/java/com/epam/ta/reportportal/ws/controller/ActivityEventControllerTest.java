@@ -28,21 +28,27 @@ import org.springframework.test.context.jdbc.Sql;
 @Sql("/db/activity/activity-fill.sql")
 class ActivityEventControllerTest extends BaseMvcTest {
 
+  public static final String BASE_ACTIVITIES_ENDPOINT = "/activities/searches";
+
   @Test
   void testGetActivities_actionByAdminWithPredefinedFilter() throws Exception {
-    int limit = 2;
-    int offset = 0;
-    String order = "ASC";
-    String sort = "id";
+    String searchCriteriaJsonString = """
+        {
+          "search_criteria": [
+            {
+              "filter_key": "predefinedFilter",
+              "operation": "IN",
+              "value": "create"
+            }
+          ],
+          "limit": 2,
+          "offset": 0,
+          "order": "ASC",
+          "sort": "id"
+        }
+        """;
 
-    String searchCriteriaJsonString = "{\"search_criterias\":["
-        + "{\"filter_key\":\"predefinedFilter\",\"operation\":\"IN\",\"value\":\"create\"}]}";
-
-    mockMvc.perform(post("/v1/activities/searches")
-            .param("limit", String.valueOf(limit))
-            .param("offset", String.valueOf(offset))
-            .param("order", order)
-            .param("sort", sort)
+    mockMvc.perform(post(BASE_ACTIVITIES_ENDPOINT)
             .contentType(MediaType.APPLICATION_JSON)
             .with(token(oAuthHelper.getSuperadminToken()))
             .content(searchCriteriaJsonString))
@@ -61,11 +67,11 @@ class ActivityEventControllerTest extends BaseMvcTest {
     String order = "ASC";
     String sort = "id";
 
-    String searchCriteriaJsonString = "{\"search_criterias\":["
+    String searchCriteriaJsonString = "{\"search_criteria\":["
         + "{\"filter_key\":\"eventName\",\"operation\":\"IN\",\"value\":\"updateDashboard\"},"
         + "{\"filter_key\":\"predefinedFilter\",\"operation\":\"IN\",\"value\":\"user\"}]}";
 
-    mockMvc.perform(post("/v1/activities/searches")
+    mockMvc.perform(post(BASE_ACTIVITIES_ENDPOINT)
             .param("limit", String.valueOf(limit))
             .param("offset", String.valueOf(offset))
             .param("order", order)
@@ -83,9 +89,17 @@ class ActivityEventControllerTest extends BaseMvcTest {
     String order = "ASC";
     String sort = "id";
 
-    String searchCriteriaJsonString = "{\"search_criterias\":[]}";
+    String searchCriteriaJsonString = """
+        {
+          "search_criteria": [],
+          "limit": 2,
+          "offset": 0,
+          "order": "ASC",
+          "sort": "id"
+        }
+        """;
 
-    mockMvc.perform(post("/v1/activities/searches")
+    mockMvc.perform(post(BASE_ACTIVITIES_ENDPOINT)
             .param("limit", String.valueOf(limit))
             .param("offset", String.valueOf(offset))
             .param("order", order)
@@ -103,20 +117,21 @@ class ActivityEventControllerTest extends BaseMvcTest {
 
   @Test
   void testGetActivities_actionByAdminWithPredefinedFilterAndEventName() throws Exception {
-    int limit = 2;
-    int offset = 0;
-    String order = "ASC";
-    String sort = "id";
+    String searchCriteriaJsonString =
+        """
+            {
+              "search_criteria": [
+                 {"filter_key":"eventName","operation":"IN","value":"updateDashboard"},
+                 {"filter_key":"predefinedFilter","operation":"IN","value":"user"}
+              ],
+              "limit": 2,
+              "offset": 0,
+              "order": "ASC",
+              "sort": "id"
+            }
+            """;
 
-    String searchCriteriaJsonString = "{\"search_criterias\":["
-        + "{\"filter_key\":\"eventName\",\"operation\":\"IN\",\"value\":\"updateDashboard\"},"
-        + "{\"filter_key\":\"predefinedFilter\",\"operation\":\"IN\",\"value\":\"user\"}]}";
-
-    mockMvc.perform(post("/v1/activities/searches")
-            .param("limit", String.valueOf(limit))
-            .param("offset", String.valueOf(offset))
-            .param("order", order)
-            .param("sort", sort)
+    mockMvc.perform(post(BASE_ACTIVITIES_ENDPOINT)
             .contentType(MediaType.APPLICATION_JSON)
             .with(token(oAuthHelper.getSuperadminToken()))
             .content(searchCriteriaJsonString))

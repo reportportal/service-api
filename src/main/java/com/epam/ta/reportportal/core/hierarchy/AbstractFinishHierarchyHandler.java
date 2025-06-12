@@ -40,6 +40,7 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.job.PageUtil;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import java.time.Instant;
@@ -113,13 +114,13 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
   @Override
   public int finishDescendants(T parentEntity, StatusEnum status, Instant endDate,
       ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails) {
+      MembershipDetails membershipDetails) {
 
     expect(status, s -> s != IN_PROGRESS).verify(INCORRECT_REQUEST,
         "Unable to update current status to - " + IN_PROGRESS);
 
     final int withoutChildren = updateDescendantsWithoutChildren(parentEntity,
-        projectDetails.getProjectId(), status, endDate, user);
+        membershipDetails.getProjectId(), status, endDate, user);
     final int withChildren = updateDescendantsWithChildren(parentEntity, endDate);
     return withoutChildren + withChildren;
   }

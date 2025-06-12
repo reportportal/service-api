@@ -25,30 +25,27 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.model.activity.PatternTemplateActivityResource;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+@Setter
+@Getter
 public class PatternCreatedEvent extends AbstractEvent implements ActivityEvent {
 
   private PatternTemplateActivityResource patternTemplateActivityResource;
+  private Long orgId;
 
   public PatternCreatedEvent() {
   }
 
   public PatternCreatedEvent(Long userId, String userLogin,
-      PatternTemplateActivityResource patternTemplateActivityResource) {
+      PatternTemplateActivityResource patternTemplateActivityResource, Long orgId) {
     super(userId, userLogin);
     this.patternTemplateActivityResource = patternTemplateActivityResource;
-  }
-
-  public PatternTemplateActivityResource getPatternTemplateActivityResource() {
-    return patternTemplateActivityResource;
-  }
-
-  public void setPatternTemplateActivityResource(
-      PatternTemplateActivityResource patternTemplateActivityResource) {
-    this.patternTemplateActivityResource = patternTemplateActivityResource;
+    this.orgId = orgId;
   }
 
   @Override
@@ -62,6 +59,7 @@ public class PatternCreatedEvent extends AbstractEvent implements ActivityEvent 
         .addObjectName(patternTemplateActivityResource.getName())
         .addObjectType(EventObject.PATTERN)
         .addProjectId(patternTemplateActivityResource.getProjectId())
+        .addOrganizationId(orgId)
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)

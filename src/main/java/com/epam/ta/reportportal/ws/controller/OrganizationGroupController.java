@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MANAGER;
 import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 
-import com.epam.reportportal.api.OrganizationGroupApi;
+import com.epam.reportportal.api.OrganizationGroupsApi;
 import com.epam.reportportal.api.model.CreateGroupRequest;
 import com.epam.reportportal.api.model.CreateOrgGroupRequest;
 import com.epam.reportportal.api.model.GroupInfo;
@@ -41,7 +41,7 @@ import org.springframework.web.server.ResponseStatusException;
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
 @RestController
-public class OrganizationGroupController implements OrganizationGroupApi {
+public class OrganizationGroupController implements OrganizationGroupsApi {
 
   private final Pf4jPluginBox pluginBox;
 

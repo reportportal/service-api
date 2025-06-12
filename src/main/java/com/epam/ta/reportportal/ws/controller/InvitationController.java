@@ -20,7 +20,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.INVITATION_A
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
-import com.epam.reportportal.api.InvitationApi;
+import com.epam.reportportal.api.InvitationsApi;
 import com.epam.reportportal.api.model.Invitation;
 import com.epam.reportportal.api.model.InvitationActivation;
 import com.epam.reportportal.api.model.InvitationRequest;
@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author <a href="mailto:Siarhei_Hrabko@epam.com">Siarhei Hrabko</a>
  */
 @RestController
-public class InvitationController extends BaseController implements InvitationApi {
+public class InvitationController extends BaseController implements InvitationsApi {
 
   private final UserInvitationHandler userInvitationHandler;
 

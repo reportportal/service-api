@@ -175,11 +175,19 @@ values (104, 202, 'MANAGER');
 insert into organization_user (user_id, organization_id, organization_role)
 values (104, 203, 'MANAGER');
 
+insert into project_user (user_id, project_id, project_role)
+values (104, 301, 'EDITOR');
+insert into project_user (user_id, project_id, project_role)
+values (104, 302, 'VIEWER');
+
 -- assign user-member-editor
 insert into organization_user (user_id, organization_id, organization_role)
 values (105, 201, 'MEMBER');
 insert into organization_user (user_id, organization_id, organization_role)
 values (105, 202, 'MEMBER');
+
+insert into project_user (user_id, project_id, project_role)
+values (105, 301, 'EDITOR');
 
 -- assign user-member-viewer
 insert into organization_user (user_id, organization_id, organization_role)

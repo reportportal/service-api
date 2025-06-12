@@ -46,10 +46,10 @@ import com.epam.ta.reportportal.model.filter.UpdateUserFilterRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.stream.IntStream;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -208,10 +208,33 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
   }
 
 
-  private void validateFilterName(UpdateUserFilterRQ createFilterRQ, Long projectId) {
-    IntStream.range(0, 100)
-        .takeWhile(i -> userFilterRepository.existsByNameAndProjectId(createFilterRQ.getName(), projectId))
-        .forEach(i -> createFilterRQ.setName(createFilterRQ.getName() + "_copy"));
+  @VisibleForTesting
+  void validateFilterName(UpdateUserFilterRQ createFilterRQ, Long projectId) {
+    String originalName = createFilterRQ.getName();
+    String baseName = originalName;
+    int counter = 0;
+
+    if (originalName.matches(".*_copy(?:_\\d+)?$")) {
+      baseName = originalName.replaceFirst("_copy(?:_\\d+)?$", "");
+      if (originalName.matches(".*_copy_\\d+$")) {
+        String suffix = originalName.substring(originalName.lastIndexOf("_copy_") + 6);
+        counter = Integer.parseInt(suffix) + 1;
+      } else {
+        counter = 1;
+      }
+    }
+
+    String newName;
+    do {
+      if (counter == 0) {
+        newName = baseName + "_copy";
+      } else {
+        newName = baseName + "_copy_" + counter;
+      }
+      counter++;
+    } while (userFilterRepository.existsByNameAndProjectId(newName, projectId));
+
+    createFilterRQ.setName(newName);
   }
 
   private String cutAttributesToMaxLength(String keyAndValue) {

@@ -74,7 +74,7 @@ public class ProjectService {
    */
   public void updateProjectName(Long orgId, Long projectId,
       @Valid @NotNull @Pattern(regexp = "^[A-Za-z0-9.'_\\- ]+$") @Size(min = 3, max = 60) String name) {
-    validateForExistingName(orgId, projectId, name);
+    checkForExistingName(orgId, projectId, name);
     projectRepository.updateProjectName(name, projectId);
   }
 
@@ -87,6 +87,7 @@ public class ProjectService {
    */
   public void updateProjectSlug(Long orgId, Long projectId,
       @Valid @Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$") @Size(min = 3, max = 60) String slug) {
+    checkForExistingSlug(orgId, projectId, slug);
     projectRepository.updateProjectSlug(slug, projectId);
   }
 
@@ -123,11 +124,28 @@ public class ProjectService {
    * @param name      the project name to validate
    * @throws ReportPortalException if another project with the same name already exists in the organization
    */
-  public void validateForExistingName(Long orgId, Long projectId, String name) {
+  public void checkForExistingName(Long orgId, Long projectId, String name) {
     projectRepository.findByNameAndOrganizationId(name, orgId)
         .filter(prj -> !prj.getId().equals(projectId))
         .ifPresent(v -> {
           throw new ReportPortalException(RESOURCE_ALREADY_EXISTS, "project name");
+        });
+  }
+
+
+  /**
+   * Validates that a project slug doesn't already exist within an organization (except for the current project).
+   *
+   * @param orgId     the ID of the organization
+   * @param projectId the ID of the current project (to exclude from validation)
+   * @param slug      the project slug to validate
+   * @throws ReportPortalException if another project with the same slug already exists in the organization
+   */
+  public void checkForExistingSlug(Long orgId, Long projectId, String slug) {
+    projectRepository.findBySlugAndOrganizationId(slug, orgId)
+        .filter(prj -> !prj.getId().equals(projectId))
+        .ifPresent(v -> {
+          throw new ReportPortalException(RESOURCE_ALREADY_EXISTS, "project slug");
         });
   }
 }

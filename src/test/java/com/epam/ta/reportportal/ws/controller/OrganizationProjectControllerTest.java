@@ -356,4 +356,18 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
         .andExpect(status().isOk());
   }
 
+  @Test
+  void patchExistingSlugSameOrg() throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path("slug")
+        .value("superadmin_personal");
+
+    mockMvc.perform(patch("/organizations/1/projects/2")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isConflict());
+  }
+
 }

@@ -54,7 +54,6 @@ public final class Permissions {
       "hasPermission(#groupId, 'groupEditor')" + "||" + IS_ADMIN;
 
   public static final String ALLOWED_TO_EDIT_ORG_PROJECT = IS_ADMIN
-      + "||"
-      + "(hasPermission(#orgId, 'organizationMember') && hasPermission(#projectId, 'assignedToProject'))";
+      + "||" + "(hasPermission(#orgId, 'organizationManager') || hasPermission(#projectId, 'projectEditor'))";
 
 }

@@ -187,6 +187,46 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   }
 
 
+
+  @Test
+  void patchWithAllowedRoles() throws Exception {
+    var projectId = 301L;
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path("name")
+        .value("correct-value");
+
+    mockMvc.perform(patch("/organizations/201/projects/" + projectId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(managerToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isOk());
+
+    mockMvc.perform(patch("/organizations/201/projects/" + projectId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(editorToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isOk());
+
+    var project = projectService.findProjectById(projectId);
+    assertEquals("correct-value", project.getName());
+  }
+
+  @Test
+  void patchWithAccessDenied() throws Exception {
+    var projectId = 301L;
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path("name")
+        .value("correct-value");
+
+    mockMvc.perform(patch("/organizations/201/projects/" + projectId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(viewerToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isForbidden());
+  }
+
   @Test
   void patchProjectName() throws Exception {
     PatchOperation patchOperation = new PatchOperation()

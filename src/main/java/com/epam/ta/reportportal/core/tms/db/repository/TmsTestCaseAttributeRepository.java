@@ -3,6 +3,7 @@ package com.epam.ta.reportportal.core.tms.db.repository;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseAttribute;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseAttributeId;
 import com.epam.ta.reportportal.dao.ReportPortalRepository;
+import java.util.List;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,7 +12,14 @@ public interface TmsTestCaseAttributeRepository extends
     ReportPortalRepository<TmsTestCaseAttribute, TmsTestCaseAttributeId> {
 
   @Modifying
-  void deleteAllById_TestCaseId(Long testCaseId);
+  @Query(value = "DELETE FROM TmsTestCaseAttribute tca "
+      + "WHERE tca.id.testCaseId = :testCaseId")
+  void deleteAllByTestCaseId(@Param("testCaseId") Long testCaseId);
+
+  @Modifying
+  @Query(value = "DELETE FROM TmsTestCaseAttribute tca "
+      + "WHERE tca.id.testCaseId IN (:testCaseIds)")
+  void deleteAllByTestCaseIds(@Param("testCaseIds") List<Long> testCaseIds);
 
   /**
    * Deletes all test case attributes associated with test cases that belong to the specified folder

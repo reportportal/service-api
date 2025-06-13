@@ -230,6 +230,31 @@ class InvitationControllerTest extends BaseMvcTest {
   }
 
   @Test
+  void activateManagerViewerInvitation() throws Exception {
+    var rq = getInvitationRequest(OrgRole.MANAGER, ProjectRole.VIEWER);
+
+    var invitationAsString = mockMvc.perform(post(INVITATIONS_ENDPOINT)
+            .content(objectMapper.writeValueAsBytes(rq))
+            .contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isCreated())
+        .andReturn()
+        .getResponse().getContentAsString();
+    var invitation = objectMapper.readValue(invitationAsString, Invitation.class);
+
+    var response = objectMapper.readValue(mockMvc.perform(put(INVITATIONS_ENDPOINT + "/" + invitation.getId())
+            // no token required
+            .content(objectMapper.writeValueAsBytes(activationRq))
+            .contentType(APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andReturn().getResponse().getContentAsString(), Invitation.class);
+    var pu = projectUserRepository.findProjectUserByUserIdAndProjectId(response.getUserId(), 1L).get();
+    assertEquals(com.epam.ta.reportportal.entity.project.ProjectRole.EDITOR, pu.getProjectRole() );
+
+  }
+
+  @Test
   void activateInvitationNotFound() throws Exception {
     mockMvc.perform(put(INVITATIONS_ENDPOINT + "/" + UUID.randomUUID())
             // no token required

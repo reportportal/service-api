@@ -51,6 +51,9 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.Metadata;
 import com.epam.ta.reportportal.entity.ServerSettings;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
@@ -93,7 +96,8 @@ public class UserInvitationHandler {
   /**
    * Constructor of UserInvitationHandlerImpl.
    */
-  public UserInvitationHandler(HttpServletRequest httpServletRequest, UserCreationBidRepository userCreationBidRepository,
+  public UserInvitationHandler(HttpServletRequest httpServletRequest,
+      UserCreationBidRepository userCreationBidRepository,
       UserRepository userRepository, ApplicationEventPublisher eventPublisher,
       ServerSettingsRepository settingsRepository,
       UserAuthenticator userAuthenticator,
@@ -117,7 +121,7 @@ public class UserInvitationHandler {
   }
 
   /**
-   * Sends invitation for external user or assigns existing user on organizations and projects
+   * Sends invitation for external user or assigns existing user on organizations and projects.
    *
    * @param invitationRq Invitation request
    * @return Operation result
@@ -166,7 +170,7 @@ public class UserInvitationHandler {
 
     var createdUser = saveUser(invitationActivation, bid);
     assignOrganizationsAndProjects(createdUser, bid.getMetadata());
-    userCreationBidRepository.delete(bid);
+    userCreationBidRepository.deleteByUuid(bid.getUuid());
 
     var userCreatedEvent = new UserCreatedEvent(
         TO_ACTIVITY_RESOURCE.apply(createdUser, null),
@@ -207,29 +211,30 @@ public class UserInvitationHandler {
         var organization = organizationRepositoryCustom.findById(orgId)
             .orElseThrow(
                 () -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, org.get("id")));
-        organizationUserService.saveOrganizationUser(organization, createdUser, org.get("role").toString());
+        var orgUser =
+            organizationUserService.saveOrganizationUser(organization, createdUser, org.get("role").toString());
 
-        // assign user to projects
-        assignProjects(createdUser, org, orgId);
+        assignProjects(createdUser, org, orgUser);
       } catch (Exception e) {
         log.warn("Failed to assign organization {}. {}", org.get("id").toString(), e.getMessage());
       }
     });
   }
 
-  private void assignProjects(User createdUser, Map<String, Object> org, Long orgId) {
-    if (org.get("projects") != null) {
-      ((List<Map<String, Object>>) org.get("projects"))
+  private void assignProjects(User createdUser, Map<String, Object> orgFields, OrganizationUser orgUser) {
+    if (orgFields.get("projects") != null) {
+      ((List<Map<String, Object>>) orgFields.get("projects"))
           .forEach(project -> {
             Long projectId = safeParseLong(project.get("id").toString());
 
             var projectEntity = projectRepository.findById(projectId)
-                .orElseThrow(
-                    () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
-            expect(projectEntity.getOrganizationId(), equalTo(orgId)).verify(BAD_REQUEST_ERROR,
-                formattedSupplier("Project '{}' does not belong to organization {}", projectId,
-                    orgId)
-            );
+                .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
+            expect(projectEntity.getOrganizationId(), equalTo(orgUser.getOrganization().getId()))
+                .verify(BAD_REQUEST_ERROR,
+                    formattedSupplier("Project '{}' does not belong to organization {}",
+                        projectId,
+                        orgUser.getOrganization().getName())
+                );
 
             var projectUser = projectUserRepository
                 .findProjectUserByUserIdAndProjectId(createdUser.getId(), projectId);
@@ -238,11 +243,16 @@ public class UserInvitationHandler {
 
             projectUserRepository.save(new ProjectUser()
                 .withProject(projectEntity)
-                .withProjectRole(com.epam.ta.reportportal.entity.project.ProjectRole.valueOf(
-                    project.get("role").toString()))
+                .withProjectRole(calculateProjectRole(orgUser.getOrganizationRole(), project.get("role").toString()))
                 .withUser(createdUser));
           });
     }
+  }
+
+  private ProjectRole calculateProjectRole(OrganizationRole orgRole, String projectRole) {
+    return orgRole.equals(OrganizationRole.MANAGER)
+        ? ProjectRole.EDITOR
+        : com.epam.ta.reportportal.entity.project.ProjectRole.valueOf(projectRole);
   }
 
   private User saveUser(InvitationActivation activationRq, UserCreationBid bid) {

@@ -19,7 +19,9 @@ package com.epam.ta.reportportal.core.filter.impl;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -31,7 +33,6 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.dao.GroupMembershipRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
@@ -71,7 +72,7 @@ class UpdateUserFilterHandlerTest {
   );
   private UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
   private MessageBus messageBus = mock(MessageBus.class);
-  private UpdateUserFilterHandler updateUserFilterHandler =
+  private UpdateUserFilterHandlerImpl updateUserFilterHandler =
       new UpdateUserFilterHandlerImpl(projectExtractor, userFilterRepository, messageBus);
 
   @Test
@@ -166,6 +167,126 @@ class UpdateUserFilterHandlerTest {
         "User filter with name '{}' already exists for user '{}' under the project '{}'. You couldn't create the duplicate.",
         ANOTHER_NAME, "user", projectDetails.getProjectName()
     ).get(), exception.getMessage());
+  }
+
+  @Test
+  void validateFilterName_shouldAddCopySuffix_ifNameExistsOnce() {
+    // Given
+    UpdateUserFilterRQ request = new UpdateUserFilterRQ();
+    request.setName("existing_filter");
+    Long projectId = 1L;
+
+    when(userFilterRepository.existsByNameAndProjectId("existing_filter", projectId))
+        .thenReturn(true);
+    when(userFilterRepository.existsByNameAndProjectId("existing_filter_copy", projectId))
+        .thenReturn(false);
+
+    // When
+    updateUserFilterHandler.validateFilterName(request, projectId);
+
+    // Then
+    assertThat(request.getName()).isEqualTo("existing_filter_copy");
+  }
+
+  @Test
+  void validateFilterName_shouldAddCopyWithIncrementingNumber_ifNameExistsMultipleTimes() {
+    // Given
+    UpdateUserFilterRQ request = new UpdateUserFilterRQ();
+    request.setName("popular_filter");
+    Long projectId = 1L;
+
+    when(userFilterRepository.existsByNameAndProjectId("popular_filter", projectId))
+        .thenReturn(true);
+    when(userFilterRepository.existsByNameAndProjectId("popular_filter_copy", projectId))
+        .thenReturn(true);
+    when(userFilterRepository.existsByNameAndProjectId("popular_filter_copy_1", projectId))
+        .thenReturn(true);
+    when(userFilterRepository.existsByNameAndProjectId("popular_filter_copy_2", projectId))
+        .thenReturn(false);
+
+    // When
+    updateUserFilterHandler.validateFilterName(request, projectId);
+
+    // Then
+    assertThat(request.getName()).isEqualTo("popular_filter_copy_2");
+  }
+
+  @Test
+  void validateFilterName_shouldHandleExistingCopySuffixCorrectly() {
+    // Given
+    UpdateUserFilterRQ request = new UpdateUserFilterRQ();
+    request.setName("filter_with_copy_in_middle");
+    Long projectId = 1L;
+
+    when(userFilterRepository.existsByNameAndProjectId("filter_with_copy_in_middle", projectId))
+        .thenReturn(true);
+    when(userFilterRepository.existsByNameAndProjectId("filter_with_copy_in_middle_copy", projectId))
+        .thenReturn(false);
+
+    // When
+    updateUserFilterHandler.validateFilterName(request, projectId);
+
+    // Then
+    assertThat(request.getName()).isEqualTo("filter_with_copy_in_middle_copy");
+  }
+
+  @Test
+  void validateFilterName_shouldNotAddCopySufix() {
+    // Given
+    UpdateUserFilterRQ request = new UpdateUserFilterRQ();
+    request.setName("filter_copy");
+    Long projectId = 1L;
+
+    when(userFilterRepository.existsByNameAndProjectId("filter_copy", projectId))
+        .thenReturn(true);
+    when(userFilterRepository.existsByNameAndProjectId("filter_copy_copy_1", projectId))
+        .thenReturn(false);
+
+    // When
+    updateUserFilterHandler.validateFilterName(request, projectId);
+
+    // Then
+    assertNotEquals("filter_copy_copy", request.getName());
+  }
+
+  @Test
+  void validateFilterName_shouldAddCount() {
+    // Given
+    UpdateUserFilterRQ request = new UpdateUserFilterRQ();
+    request.setName("filter_copy_10");
+    Long projectId = 1L;
+
+    when(userFilterRepository.existsByNameAndProjectId("filter_copy_10", projectId))
+        .thenReturn(false);
+    when(userFilterRepository.existsByNameAndProjectId("filter_copy_copy_1", projectId))
+        .thenReturn(false);
+
+    // When
+    updateUserFilterHandler.validateFilterName(request, projectId);
+
+    // Then
+    assertEquals("filter_copy_11", request.getName());
+  }
+
+  @Test
+  void validateFilterName_shouldAddCopySufixTest() {
+    // Given
+    UpdateUserFilterRQ request = new UpdateUserFilterRQ();
+    request.setName("filter_copy");
+    Long projectId = 1L;
+
+    when(userFilterRepository.existsByNameAndProjectId("filter_copy", projectId))
+        .thenReturn(true);
+    when(userFilterRepository.existsByNameAndProjectId("filter_copy_1", projectId))
+        .thenReturn(true);
+    when(userFilterRepository.existsByNameAndProjectId("filter_copy_2", projectId))
+        .thenReturn(false);
+
+    // When
+    updateUserFilterHandler.validateFilterName(request, projectId);
+
+    // Then
+    assertThat(request.getName()).isEqualTo("filter_copy_2");
   }
 
   private UpdateUserFilterRQ getUpdateRequest(String name) {

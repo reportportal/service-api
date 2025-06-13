@@ -61,6 +61,7 @@ public class InvitationController extends BaseController implements InvitationsA
 
 
   @Override
+  @Transactional
   public ResponseEntity<Invitation> getInvitationsId(String invitationId) {
     return ResponseEntity
         .status(OK)
@@ -69,6 +70,7 @@ public class InvitationController extends BaseController implements InvitationsA
   }
 
   @Override
+  @Transactional
   public ResponseEntity<Invitation> putInvitationsId(String invitationId,
       InvitationActivation invitationActivation) {
     return ResponseEntity

@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.project.patch;
 import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.ta.reportportal.core.project.ProjectService;
 import com.epam.ta.reportportal.util.SlugUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -68,7 +69,11 @@ public class PatchProjectSlugHandler extends BasePatchProjectHandler {
   @Override
   public void replace(PatchOperation operation, Long orgId, Long projectId) {
     var slug = SlugUtils.slug((String) operation.getValue());
-    projectService.updateProjectSlug(orgId, projectId, slug);
+    if (StringUtils.isEmpty(slug)) {
+      projectService.regenerateProjectSlug(projectId);
+    } else {
+      projectService.updateProjectSlug(orgId, projectId, slug);
+    }
   }
 
 }

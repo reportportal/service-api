@@ -284,7 +284,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
             .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
         .andExpect(status().is4xxClientError())
         .andExpect(jsonPath("$.message")
-            .value("Incorrect Request. Unexpected path: wrong_path"));
+            .value("Incorrect Request. Unexpected path: 'wrong_path'"));
   }
 
 

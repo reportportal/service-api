@@ -22,6 +22,7 @@ import static com.epam.reportportal.rules.exception.ErrorType.RESOURCE_ALREADY_E
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.util.SlugUtils;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -148,4 +149,15 @@ public class ProjectService {
           throw new ReportPortalException(RESOURCE_ALREADY_EXISTS, "project slug");
         });
   }
+
+  /**
+   * Regenerates the slug for a project based on its current name.
+   *
+   * @param projectId the ID of the project whose slug should be regenerated
+   */
+  public void regenerateProjectSlug(Long projectId) {
+    var project = findProjectById(projectId);
+    project.setSlug(SlugUtils.slug(project.getName()));
+  }
+
 }

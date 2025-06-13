@@ -23,8 +23,8 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.ta.reportportal.core.project.ProjectService;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -48,27 +48,13 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class PatchProjectHandler {
 
   private final PatchProjectNameHandler patchProjectNameHandler;
   private final PatchProjectSlugHandler patchProjectSlugHandler;
+  private final PatchProjectNoPathHandler patchProjectNoPathHandler;
   private final ProjectService projectService;
-
-  /**
-   * Constructs a new PatchProjectHandler with required dependencies.
-   *
-   * @param patchProjectNameHandler handler for project name patch operations
-   * @param patchProjectSlugHandler handler for project slug patch operations
-   * @param projectService          service for project-related operations
-   */
-  @Autowired
-  public PatchProjectHandler(PatchProjectNameHandler patchProjectNameHandler,
-      PatchProjectSlugHandler patchProjectSlugHandler,
-      ProjectService projectService) {
-    this.patchProjectNameHandler = patchProjectNameHandler;
-    this.patchProjectSlugHandler = patchProjectSlugHandler;
-    this.projectService = projectService;
-  }
 
   /**
    * Applies a list of patch operations to a project within an organization. Verifies that the project exists within the
@@ -95,7 +81,7 @@ public class PatchProjectHandler {
    * executes the corresponding patch operation (add, replace, or remove).
    *
    * @param operation the patch operation to be applied, containing the path, operation type and value
-   * @param orgId ID of the organization
+   * @param orgId     ID of the organization
    * @param projectId ID of the project to be patched
    * @throws IllegalArgumentException if the operation path is invalid ("name" or "slug" expected) or if the operation
    *                                  type is not supported (ADD, REPLACE, or REMOVE expected)
@@ -104,14 +90,15 @@ public class PatchProjectHandler {
     BasePatchProjectHandler patchOperationHandler = switch (operation.getPath()) {
       case "name" -> this.patchProjectNameHandler;
       case "slug" -> this.patchProjectSlugHandler;
-      case null, default -> throw new IllegalArgumentException("Unexpected path: " + operation.getPath());
+      case null -> this.patchProjectNoPathHandler;
+      default -> throw new IllegalArgumentException("Unexpected path: '%s'".formatted(operation.getPath()));
     };
 
     switch (operation.getOp()) {
       case ADD -> patchOperationHandler.add(operation, orgId, projectId);
       case REPLACE -> patchOperationHandler.replace(operation, orgId, projectId);
       case REMOVE -> patchOperationHandler.remove(operation, orgId, projectId);
-      default -> throw new IllegalArgumentException("Unexpected operation: " + operation.getOp());
+      default -> throw new IllegalArgumentException("Unexpected operation: '%s'".formatted(operation.getOp()));
     }
 
   }

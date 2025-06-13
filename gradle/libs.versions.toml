@@ -1,8 +1,8 @@
 [versions]
 # Development versions
-commons-dev = "f6d9a56"
-commons-dao-dev = "9b8b695"
-plugin-api-dev = "f59b724"
+commons-dev = "c6f3174"
+commons-dao-dev = "b69a85f"
+plugin-api-dev = "a0fd0c2"
 
 # Platform versions
 commons-bom = "5.13.4"

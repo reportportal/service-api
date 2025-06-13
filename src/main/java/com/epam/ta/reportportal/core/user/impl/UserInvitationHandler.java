@@ -166,7 +166,7 @@ public class UserInvitationHandler {
 
     var createdUser = saveUser(invitationActivation, bid);
     assignOrganizationsAndProjects(createdUser, bid.getMetadata());
-    userCreationBidRepository.delete(bid);
+    userCreationBidRepository.deleteByUuid(bid.getUuid());
 
     var userCreatedEvent = new UserCreatedEvent(
         TO_ACTIVITY_RESOURCE.apply(createdUser, null),

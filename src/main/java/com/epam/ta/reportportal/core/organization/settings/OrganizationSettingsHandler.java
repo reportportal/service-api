@@ -17,6 +17,9 @@
 package com.epam.ta.reportportal.core.organization.settings;
 
 import com.epam.reportportal.api.model.OrganizationSettings;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.dao.organization.OrganizationSettingsRepository;
 import com.epam.ta.reportportal.entity.organization.OrganizationSetting;
 import java.util.stream.Collectors;
@@ -32,6 +35,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class OrganizationSettingsHandler {
 
+  private final OrganizationRepositoryCustom organizationRepository;
   private final OrganizationSettingsRepository settingsRepository;
   private final OrganizationRetentionPolicyHandler organizationRetentionPolicyHandler;
 
@@ -42,6 +46,8 @@ public class OrganizationSettingsHandler {
    * @return an {@link OrganizationSettings} object populated with relevant configuration
    */
   public OrganizationSettings getOrganizationSettings(Long orgId) {
+    organizationRepository.findById(orgId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
     var organizationSettings = settingsRepository.findByOrganizationId(orgId).stream()
         .collect(Collectors.toMap(OrganizationSetting::getSettingKey, it -> it));
     return OrganizationSettings.builder()

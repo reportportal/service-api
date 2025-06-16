@@ -24,8 +24,6 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
@@ -36,7 +34,6 @@ import com.epam.ta.reportportal.core.launch.MergeLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StopLaunchHandler;
 import com.epam.ta.reportportal.core.launch.UpdateLaunchHandler;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.model.BulkRQ;
@@ -58,7 +55,6 @@ import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
-import com.google.common.net.HttpHeaders;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -70,6 +66,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -478,9 +479,12 @@ public class LaunchController {
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Export specified launch",
       description = "Only following formats are supported: pdf (by default), xls, html.")
-  public void getLaunchReport(@PathVariable String projectKey, @PathVariable Long launchId,
+  public void getLaunchReport(
+      @PathVariable String projectKey,
+      @PathVariable Long launchId,
       @Parameter(schema = @Schema(allowableValues = {"pdf", "xls", "html"}))
       @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
+      @RequestParam(value = "includeAttachments", required = false, defaultValue = "false") boolean includeAttachments,
       @AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
 
     ReportFormat format = getJasperHandler.getReportFormat(view);
@@ -493,9 +497,8 @@ public class LaunchController {
     );
 
     try (OutputStream outputStream = response.getOutputStream()) {
-      getLaunchMessageHandler.exportLaunch(launchId, format, outputStream, user,
-          projectExtractor.extractMembershipDetails(user,
-              normalizeId(projectKey)));
+      getLaunchMessageHandler.exportLaunch(launchId, view, includeAttachments, response, user);
+
     } catch (IOException e) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "Unable to write data to the response."

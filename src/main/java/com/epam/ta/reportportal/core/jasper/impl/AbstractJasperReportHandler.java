@@ -16,15 +16,13 @@
 
 package com.epam.ta.reportportal.core.jasper.impl;
 
-import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
-
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
-import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.Set;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -32,7 +30,6 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.export.HtmlExporter;
 import net.sf.jasperreports.engine.export.JRCsvExporter;
 import net.sf.jasperreports.engine.export.JRXlsExporter;
-import net.sf.jasperreports.export.HtmlExporterOutput;
 import net.sf.jasperreports.export.SimpleCsvExporterConfiguration;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleHtmlExporterOutput;
@@ -66,7 +63,7 @@ public abstract class AbstractJasperReportHandler<T> implements GetJasperReportH
   @Override
   public ReportFormat getReportFormat(String view) {
     ReportFormat reportFormat = ReportFormat.findByValue(view)
-        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
             Suppliers.formattedSupplier("Unexpected report format: {}", view)
         ));
 
@@ -80,25 +77,26 @@ public abstract class AbstractJasperReportHandler<T> implements GetJasperReportH
   }
 
   @Override
-  public void writeReport(ReportFormat format, OutputStream outputStream, JasperPrint jasperPrint) {
+  public byte[] exportReportBytes(ReportFormat format, JasperPrint jasperPrint) {
     try {
       switch (format) {
         case PDF:
-          JasperExportManager.exportReportToPdfStream(jasperPrint, outputStream);
-          break;
+          return JasperExportManager.exportReportToPdf(jasperPrint);
         case HTML:
+          ByteArrayOutputStream htmlOutput = new ByteArrayOutputStream();
           HtmlExporter exporter = new HtmlExporter();
           exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
-          HtmlExporterOutput exporterOutput = new SimpleHtmlExporterOutput(outputStream);
-          exporter.setExporterOutput(exporterOutput);
+          exporter.setExporterOutput(new SimpleHtmlExporterOutput(htmlOutput));
 
           SimpleHtmlReportConfiguration htmlConfig = new SimpleHtmlReportConfiguration();
           htmlConfig.setWhitePageBackground(false);
           htmlConfig.setRemoveEmptySpaceBetweenRows(true);
           exporter.setConfiguration(htmlConfig);
           exporter.exportReport();
-          break;
+          return htmlOutput.toByteArray();
         case XLS:
+          ByteArrayOutputStream xlsOutput = new ByteArrayOutputStream();
+
           SimpleXlsReportConfiguration configuration = new SimpleXlsReportConfiguration();
           configuration.setOnePagePerSheet(false);
           configuration.setDetectCellType(true);
@@ -107,19 +105,22 @@ public abstract class AbstractJasperReportHandler<T> implements GetJasperReportH
 
           JRXlsExporter xlsExporter = new JRXlsExporter();
           xlsExporter.setExporterInput(new SimpleExporterInput(jasperPrint));
-          xlsExporter.setExporterOutput(new SimpleOutputStreamExporterOutput(outputStream));
+          xlsExporter.setExporterOutput(new SimpleOutputStreamExporterOutput(xlsOutput));
           xlsExporter.setConfiguration(configuration);
           xlsExporter.exportReport();
-          break;
+          return xlsOutput.toByteArray();
         case CSV:
         case TEXT_CSV:
+          ByteArrayOutputStream csvOutput = new ByteArrayOutputStream();
+
           JRCsvExporter jrCsvExporter = new JRCsvExporter();
           jrCsvExporter.setExporterInput(new SimpleExporterInput(jasperPrint));
-          jrCsvExporter.setExporterOutput(new SimpleWriterExporterOutput(outputStream));
+          jrCsvExporter.setExporterOutput(new SimpleWriterExporterOutput(csvOutput));
+
           SimpleCsvExporterConfiguration csvExporterConfiguration = new SimpleCsvExporterConfiguration();
           jrCsvExporter.setConfiguration(csvExporterConfiguration);
           jrCsvExporter.exportReport();
-          break;
+          return csvOutput.toByteArray();
         default:
           throw new UnsupportedOperationException(format.getValue());
       }
@@ -134,6 +135,7 @@ public abstract class AbstractJasperReportHandler<T> implements GetJasperReportH
               )
           );
     }
+    return new byte[]{};
   }
 
   /**

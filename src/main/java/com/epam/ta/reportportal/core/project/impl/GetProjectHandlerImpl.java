@@ -16,15 +16,16 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
-import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT;
 import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_KEY;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EMAIL;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
-import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilterCondition;
@@ -32,8 +33,6 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
-import com.epam.reportportal.rules.commons.validation.BusinessRule;
-import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -44,7 +43,6 @@ import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.model.project.ProjectResource;
 import com.epam.ta.reportportal.model.user.SearchUserResource;
@@ -52,19 +50,15 @@ import com.epam.ta.reportportal.model.user.UserResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
-import java.io.OutputStream;
-import java.util.Collections;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import net.sf.jasperreports.engine.JRDataSource;
-import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -91,7 +85,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   @Autowired
   public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
       @Qualifier("projectJasperReportHandler")
-      GetJasperReportHandler<ProjectInfo> jasperReportHandler, ProjectConverter projectConverter) {
+          GetJasperReportHandler<ProjectInfo> jasperReportHandler, ProjectConverter projectConverter) {
     this.projectRepository = projectRepository;
     this.userRepository = userRepository;
     this.jasperReportHandler = jasperReportHandler;
@@ -100,7 +94,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
   @Override
   public com.epam.ta.reportportal.model.Page<UserResource> getProjectUsers(MembershipDetails membershipDetails, Filter filter,
-                                                                           Pageable pageable, ReportPortalUser user) {
+      Pageable pageable, ReportPortalUser user) {
     Project project = projectRepository.findByKey(membershipDetails.getProjectKey())
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
             membershipDetails.getProjectKey()));
@@ -129,7 +123,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   @Override
   public Project get(MembershipDetails membershipDetails) {
     return projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
-        () -> new ReportPortalException(PROJECT_NOT_FOUND, membershipDetails.getProjectName()));
+        () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, membershipDetails.getProjectName()));
   }
 
   @Override
@@ -174,7 +168,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
   @Override
   public com.epam.ta.reportportal.model.Page<SearchUserResource> getUserNames(String value,
-                                                                              MembershipDetails membershipDetails, UserRole userRole, Pageable pageable) {
+      MembershipDetails membershipDetails, UserRole userRole, Pageable pageable) {
     checkBusinessRuleLessThan1Symbol(value);
 
     final CompositeFilterCondition userCondition = (userRole.equals(UserRole.ADMINISTRATOR))
@@ -190,18 +184,19 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
         .apply(userRepository.findByFilterExcludingProjects(filter, pageable));
   }
 
-	private CompositeFilterCondition getUserSearchSuggestCondition(String value) {
-		return new CompositeFilterCondition(List.of(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER),
-				new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_FULL_NAME),
-				new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_EMAIL)
-		), Operator.AND);
-	}
+  private CompositeFilterCondition getUserSearchSuggestCondition(String value) {
+    return new CompositeFilterCondition(
+        List.of(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER),
+            new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_FULL_NAME),
+            new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_EMAIL)
+        ), Operator.AND);
+  }
 
-	private CompositeFilterCondition getUserSearchCondition(String value) {
-		return new CompositeFilterCondition(List.of(
-				new FilterCondition(Operator.OR, Condition.EQUALS, false, value, CRITERIA_EMAIL)
-		), Operator.AND);
-	}
+  private CompositeFilterCondition getUserSearchCondition(String value) {
+    return new CompositeFilterCondition(List.of(
+        new FilterCondition(Operator.OR, Condition.EQUALS, false, value, CRITERIA_EMAIL)
+    ), Operator.AND);
+  }
 
   @Override
   public List<String> getAllProjectNames() {
@@ -215,19 +210,21 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
   @Override
   public void exportProjects(ReportFormat reportFormat, Queryable filter,
-      OutputStream outputStream) {
-
-    List<ProjectInfo> projects = projectRepository.findProjectInfoByFilter(filter);
-
-    List<? extends Map<String, ?>> data =
-        projects.stream().map(jasperReportHandler::convertParams).collect(Collectors.toList());
-
-    JRDataSource jrDataSource = new JRBeanCollectionDataSource(data);
+      HttpServletResponse outputStream) {
+    var projects = projectRepository.findProjectInfoByFilter(filter);
+    var data = projects.stream().map(jasperReportHandler::convertParams).collect(Collectors.toList());
+    var jrDataSource = new JRBeanCollectionDataSource(data);
 
     //don't provide any params to not overwrite params from the Jasper template
-    JasperPrint jasperPrint = jasperReportHandler.getJasperPrint(null, jrDataSource);
+    var jasperPrint = jasperReportHandler.getJasperPrint(null, jrDataSource);
 
-    jasperReportHandler.writeReport(reportFormat, outputStream, jasperPrint);
+    var bytes = jasperReportHandler.exportReportBytes(reportFormat, jasperPrint);
+    try (var output = outputStream.getOutputStream()) {
+      output.write(bytes);
+    } catch (IOException e) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response."
+      );
+    }
   }
 
   @Override

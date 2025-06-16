@@ -48,6 +48,7 @@ import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.entity.Metadata;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
@@ -146,13 +147,13 @@ public class UserInvitationServiceImpl implements UserInvitationService {
     invitationRq.getOrganizations().forEach(orgInfo -> {
       var organization = organizationRepositoryCustom.findById(orgInfo.getId())
           .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgInfo.getId()));
-      organizationUserRepository.findByUserIdAndOrganization_Id(userToAssign.getId(), organization.getId())
+      var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(userToAssign.getId(), organization.getId())
           .orElseGet(() -> {
             validateUserType(organization, userToAssign);
             return organizationUserService.saveOrganizationUser(organization, userToAssign, OrganizationRole.MEMBER.toString());
           });
 
-      assignProjects(orgInfo.getProjects(), organization.getId(), userToAssign);
+      assignProjects(orgInfo.getProjects(), orgUser, userToAssign);
     });
 
     var invitation = new Invitation();
@@ -164,7 +165,8 @@ public class UserInvitationServiceImpl implements UserInvitationService {
     return invitation;
   }
 
-  private void assignProjects(List<UserProjectInfo> projects, Long orgId, User user) {
+  private void assignProjects(List<UserProjectInfo> projects, OrganizationUser orgUser, User user) {
+    var orgId = orgUser.getOrganization().getId();
     projects.forEach(project -> {
       var projectEntity = projectRepository.findById(project.getId())
           .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, project.getId()));
@@ -174,7 +176,7 @@ public class UserInvitationServiceImpl implements UserInvitationService {
       projectUserRepository.findProjectUserByUserIdAndProjectId(user.getId(), project.getId())
           .orElse(projectUserRepository.save(new ProjectUser()
               .withProject(projectEntity)
-              .withProjectRole(ProjectRole.valueOf(project.getProjectRole().toString()))
+              .withProjectRole(calculateProjectRole(orgUser.getOrganizationRole(), project.getProjectRole().getValue()))
               .withUser(user)));
     });
 
@@ -210,6 +212,12 @@ public class UserInvitationServiceImpl implements UserInvitationService {
           obj.put("projects", getProjectsMetadata(org));
           return obj;
         }).toList();
+  }
+
+  private ProjectRole calculateProjectRole(OrganizationRole orgRole, String projectRole) {
+    return orgRole.equals(OrganizationRole.MANAGER)
+        ? ProjectRole.EDITOR
+        : com.epam.ta.reportportal.entity.project.ProjectRole.valueOf(projectRole);
   }
 
 }

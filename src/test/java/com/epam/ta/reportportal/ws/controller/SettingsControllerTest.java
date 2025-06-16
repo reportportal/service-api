@@ -23,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.epam.ta.reportportal.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.model.settings.UpdateSettingsRq;
+import com.epam.ta.reportportal.model.settings.UpdateSettingsRq.SettingsKey;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -46,7 +47,7 @@ class SettingsControllerTest extends BaseMvcTest {
   @Test
   void updateSettingsNegative() throws Exception {
     UpdateSettingsRq mockRequest = new UpdateSettingsRq();
-    mockRequest.setKey("invalid_key");
+    mockRequest.setKey(SettingsKey.valueOf("invalid_key"));
     mockRequest.setValue("true");
     mockMvc.perform(put("/v1/settings").with(token(oAuthHelper.getSuperadminToken()))
             .contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(mockRequest)))
@@ -56,7 +57,7 @@ class SettingsControllerTest extends BaseMvcTest {
   @Test
   void updateSettings() throws Exception {
     UpdateSettingsRq mockRequest = new UpdateSettingsRq();
-    mockRequest.setKey("server.users.sso");
+    mockRequest.setKey(SettingsKey.valueOf("server.users.sso"));
     mockRequest.setValue("true");
 
     mockMvc.perform(put("/v1/settings").with(token(oAuthHelper.getSuperadminToken()))

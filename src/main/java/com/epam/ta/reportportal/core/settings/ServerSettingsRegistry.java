@@ -27,10 +27,9 @@ import org.springframework.stereotype.Component;
  * <p>
  * Supports dynamic and extensible handler registration using Spring DI.
  * <p>
- * Add new handlers by implementing {@link ServerSettingHandler} and annotating with {@code
+ * Add new handlers by implementing {@link ServerSettingHandler} and annotating with {@code @Service}
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
- * @Component}.
  */
 @Component
 public class ServerSettingsRegistry {

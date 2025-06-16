@@ -20,6 +20,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.organization.OrganizationExtensionPoint;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.settings.ServerSettingHandler;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,7 +47,15 @@ public class PersonalOrganizationSettingHandler implements ServerSettingHandler 
             "Organization management is not available. Please install the 'organization' plugin."
         ));
 
-    log.info("Personal organization setting is set to '{}'", value);
+    var enabled = Optional.ofNullable(value)
+        .filter(v -> "true".equalsIgnoreCase(v) || "false".equalsIgnoreCase(v))
+        .map(Boolean::parseBoolean)
+        .orElseThrow(() -> new ReportPortalException(
+            ErrorType.BAD_REQUEST_ERROR,
+            "Invalid boolean value for personal organization setting: " + value
+        ));
+
+    log.info("Personal organization setting is set to '{}'", enabled);
   }
 
   @Override

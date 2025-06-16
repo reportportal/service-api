@@ -25,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -38,15 +40,12 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
-import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
 import java.util.List;
 import java.util.Optional;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -249,7 +248,7 @@ class GetLaunchHandlerImplTest {
     when(launchRepository.findById(launchId)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.exportLaunch(launchId, ReportFormat.PDF, null, user)
+        () -> handler.exportLaunch(launchId, "pdf", false, null, user)
     );
     assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
   }
@@ -265,7 +264,7 @@ class GetLaunchHandlerImplTest {
     when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.exportLaunch(launchId, ReportFormat.PDF, null, user)
+        () -> handler.exportLaunch(launchId, "pdf", false, null, user)
     );
     assertEquals("User '1' not found.", exception.getMessage());
   }

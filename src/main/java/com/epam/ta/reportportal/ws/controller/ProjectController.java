@@ -355,7 +355,7 @@ public class ProjectController {
 
     try (OutputStream outputStream = response.getOutputStream()) {
       getProjectHandler.exportProjects(format,
-          new CompositeFilter(Operator.AND, filter, predefinedFilter), outputStream
+          new CompositeFilter(Operator.AND, filter, predefinedFilter), response
       );
     } catch (IOException e) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,

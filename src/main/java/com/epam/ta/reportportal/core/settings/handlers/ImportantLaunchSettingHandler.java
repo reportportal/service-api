@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.ta.reportportal.core.settings;
+package com.epam.ta.reportportal.core.settings.handlers;
 
 
 import static com.epam.ta.reportportal.core.launch.attribute.AttributeHandler.RETENTION_POLICY_KEY;
 
+import com.epam.ta.reportportal.core.settings.ServerSettingHandler;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.RetentionPolicyEnum;

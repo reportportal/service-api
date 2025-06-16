@@ -28,7 +28,8 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
 
 /**
- * Validator utility class for organization user operations. Provides methods to validate user types, roles and permissions within organizations.
+ * Validator utility class for organization user operations. Provides methods to validate user types, roles and
+ * permissions within organizations.
  */
 public class OrganizationUserValidator {
 
@@ -40,7 +41,8 @@ public class OrganizationUserValidator {
 
 
   /**
-   * Validates if the user type is compatible with the organization type. Prevents UPSA users from being assigned to external organizations.
+   * Validates if the user type is compatible with the organization type. Prevents UPSA users from being assigned to
+   * external organizations.
    *
    * @param organization the organization to validate against
    * @param assignedUser the user being assigned to the organization
@@ -49,13 +51,13 @@ public class OrganizationUserValidator {
   public static void validateUserType(Organization organization, User assignedUser) {
     if (organization.getOrganizationType().equals(OrganizationType.EXTERNAL)
         && assignedUser.getUserType().equals(UserType.UPSA)) {
-      throw new ReportPortalException(ErrorType.ACCESS_DENIED);
+      throw new ReportPortalException(ErrorType.UPSA_USER_DENIED);
     }
   }
 
   /**
-   * Validates if the user has sufficient permissions for organization operations. Access is granted for administrators, organization managers or the
-   * user themselves.
+   * Validates if the user has sufficient permissions for organization operations. Access is granted for administrators,
+   * organization managers or the user themselves.
    *
    * @param user             the user attempting the operation
    * @param organizationUser the organization user being operated on

@@ -20,6 +20,7 @@ import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
 import java.util.Objects;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -29,13 +30,13 @@ import org.springframework.stereotype.Component;
  *
  * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
  */
-@Component("assignedToProjectPermission")
-@LookupPermission({"assignedToProject"})
-class AssignedToProjectPermission implements Permission {
+@Component("projectEditorPermission")
+@LookupPermission({"projectEditor"})
+class ProjectEditorPermission implements Permission {
 
   private final ProjectUserRepository projectUserRepository;
 
-  AssignedToProjectPermission(ProjectUserRepository projectUserRepository) {
+  ProjectEditorPermission(ProjectUserRepository projectUserRepository) {
     this.projectUserRepository = projectUserRepository;
   }
 
@@ -46,6 +47,7 @@ class AssignedToProjectPermission implements Permission {
 
     Long projectId = Long.parseLong(String.valueOf(id));
     return projectUserRepository.findProjectUserByUserIdAndProjectId(rpUser.getUserId(), projectId)
+        .filter(projectUser -> projectUser.getProjectRole().equals(ProjectRole.EDITOR))
         .isPresent();
   }
 }

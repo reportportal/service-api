@@ -187,6 +187,46 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   }
 
 
+
+  @Test
+  void patchWithAllowedRoles() throws Exception {
+    var projectId = 301L;
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path("name")
+        .value("correct-value");
+
+    mockMvc.perform(patch("/organizations/201/projects/" + projectId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(managerToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isOk());
+
+    mockMvc.perform(patch("/organizations/201/projects/" + projectId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(editorToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isOk());
+
+    var project = projectService.findProjectById(projectId);
+    assertEquals("correct-value", project.getName());
+  }
+
+  @Test
+  void patchWithAccessDenied() throws Exception {
+    var projectId = 301L;
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path("name")
+        .value("correct-value");
+
+    mockMvc.perform(patch("/organizations/201/projects/" + projectId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(viewerToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isForbidden());
+  }
+
   @Test
   void patchProjectName() throws Exception {
     PatchOperation patchOperation = new PatchOperation()
@@ -244,7 +284,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
             .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
         .andExpect(status().is4xxClientError())
         .andExpect(jsonPath("$.message")
-            .value("Incorrect Request. Unexpected path: wrong_path"));
+            .value("Incorrect Request. Unexpected path: 'wrong_path'"));
   }
 
 
@@ -354,6 +394,44 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
             .with(token(adminToken))
             .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
         .andExpect(status().isOk());
+  }
+
+  @Test
+  void patchExistingSlugSameOrg() throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path("slug")
+        .value("superadmin_personal");
+
+    mockMvc.perform(patch("/organizations/1/projects/2")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isConflict());
+  }
+
+  @Test
+  void patchRegenerateSlug() throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path("slug")
+        .value("newslug");
+
+    mockMvc.perform(patch("/organizations/1/projects/2")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isOk());
+    patchOperation.setValue(null);
+    assertEquals("newslug", projectService.findProjectById(2L).getSlug());
+
+    mockMvc.perform(patch("/organizations/1/projects/2")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isOk());
+    assertEquals("default-personal", projectService.findProjectById(2L).getSlug());
+
   }
 
 }

@@ -19,11 +19,12 @@ package com.epam.ta.reportportal.core.project.patch;
 import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.ta.reportportal.core.project.ProjectService;
 import com.epam.ta.reportportal.util.SlugUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 /**
- * Handler for updating the project slugs through patch operations. This handler specifically
- * manages the modification of project-URL-friendly identifiers (slugs).
+ * Handler for updating the project slugs through patch operations. This handler specifically manages the modification
+ * of project-URL-friendly identifiers (slugs).
  *
  * <p>This handler extends the base patch project handler and is configured as a Spring service
  * component to handle slug-specific patch operations on projects:
@@ -50,8 +51,8 @@ public class PatchProjectSlugHandler extends BasePatchProjectHandler {
   }
 
   /**
-   * Replaces the current project slug with a new value. The operation value is converted to a valid
-   * URL-friendly slug format before updating the project.
+   * Replaces the current project slug with a new value. The operation value is converted to a valid URL-friendly slug
+   * format before updating the project.
    *
    * <p>This method performs the following steps:
    * <ul>
@@ -68,7 +69,11 @@ public class PatchProjectSlugHandler extends BasePatchProjectHandler {
   @Override
   public void replace(PatchOperation operation, Long orgId, Long projectId) {
     var slug = SlugUtils.slug((String) operation.getValue());
-    projectService.updateProjectSlug(orgId, projectId, slug);
+    if (StringUtils.isEmpty(slug)) {
+      projectService.regenerateProjectSlug(projectId);
+    } else {
+      projectService.updateProjectSlug(orgId, projectId, slug);
+    }
   }
 
 }

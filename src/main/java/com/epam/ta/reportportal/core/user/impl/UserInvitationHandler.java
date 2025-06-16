@@ -19,13 +19,11 @@ package com.epam.ta.reportportal.core.user.impl;
 import static com.epam.reportportal.api.model.InvitationStatus.ACTIVATED;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateInvitationUrl;
 import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
-import static com.epam.ta.reportportal.model.settings.SettingsKeyConstants.SERVER_USERS_SSO;
 import static com.epam.ta.reportportal.util.ControllerUtils.safeParseLong;
 import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 import static com.epam.ta.reportportal.util.email.EmailRulesValidator.NORMALIZE_EMAIL;
@@ -45,12 +43,10 @@ import com.epam.ta.reportportal.core.organization.OrganizationUserService;
 import com.epam.ta.reportportal.core.user.UserInvitationService;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
-import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.Metadata;
-import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.OrganizationUser;
@@ -84,7 +80,6 @@ public class UserInvitationHandler {
   private final UserCreationBidRepository userCreationBidRepository;
   private final UserRepository userRepository;
   private final ApplicationEventPublisher eventPublisher;
-  private final ServerSettingsRepository settingsRepository;
   private final UserAuthenticator userAuthenticator;
   private final ProjectUserRepository projectUserRepository;
   private final OrganizationUserService organizationUserService;
@@ -99,7 +94,6 @@ public class UserInvitationHandler {
   public UserInvitationHandler(HttpServletRequest httpServletRequest,
       UserCreationBidRepository userCreationBidRepository,
       UserRepository userRepository, ApplicationEventPublisher eventPublisher,
-      ServerSettingsRepository settingsRepository,
       UserAuthenticator userAuthenticator,
       ProjectUserRepository projectUserRepository,
       OrganizationUserService organizationUserService,
@@ -110,7 +104,6 @@ public class UserInvitationHandler {
     this.userCreationBidRepository = userCreationBidRepository;
     this.userRepository = userRepository;
     this.eventPublisher = eventPublisher;
-    this.settingsRepository = settingsRepository;
     this.userAuthenticator = userAuthenticator;
     this.projectUserRepository = projectUserRepository;
     this.organizationUserService = organizationUserService;
@@ -130,10 +123,6 @@ public class UserInvitationHandler {
     log.debug("User '{}' is trying to create invitation for user '{}'",
         getPrincipal().getUsername(),
         invitationRq.getEmail());
-
-    if (isSsoEnabled()) {
-      throw new ReportPortalException(ACCESS_DENIED, "Cannot invite user if SSO enabled.");
-    }
 
     return userRepository.findByEmail(NORMALIZE_EMAIL.apply(invitationRq.getEmail()))
         .map(user -> userInvitationService.assignUser(invitationRq, user))
@@ -188,12 +177,6 @@ public class UserInvitationHandler {
         .fullName(createdUser.getFullName())
         .email(bid.getEmail())
         .status(ACTIVATED);
-  }
-
-
-  private boolean isSsoEnabled() {
-    return settingsRepository.findByKey(SERVER_USERS_SSO).map(ServerSettings::getValue)
-        .map(Boolean::parseBoolean).orElse(false);
   }
 
 

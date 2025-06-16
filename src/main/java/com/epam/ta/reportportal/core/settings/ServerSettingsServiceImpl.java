@@ -91,15 +91,19 @@ public class ServerSettingsServiceImpl implements ServerSettingsService {
   @Override
   public OperationCompletionRS updateServerSettings(UpdateSettingsRq request, ReportPortalUser user) {
     ServerSettings serverSettings = serverSettingsRepository.findByKey(request.getKey().getName())
-        .orElseThrow(() -> new ReportPortalException(ErrorType.SERVER_SETTINGS_NOT_FOUND, request.getKey()));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.SERVER_SETTINGS_NOT_FOUND, request.getKey().getName()));
     ServerSettingsResource before = TO_RESOURCE.apply(serverSettings);
 
     serverSettings.setValue(request.getValue());
     serverSettingsRepository.save(serverSettings);
     settingsRegistry.getHandler(serverSettings.getKey())
         .ifPresent(handler -> handler.handle(serverSettings.getValue()));
-    messageBus.publishActivity(new SettingsUpdatedEvent(before, TO_RESOURCE.apply(serverSettings),
-        user.getUserId(), user.getUsername()));
+    messageBus.publishActivity(new SettingsUpdatedEvent(
+        before,
+        TO_RESOURCE.apply(serverSettings),
+        user.getUserId(),
+        user.getUsername()
+    ));
     return new OperationCompletionRS("Server Settings were successfully updated.");
   }
 

@@ -19,17 +19,15 @@ package com.epam.ta.reportportal.auth.permissions;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.isNull;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.entity.organization.OrganizationRole.MANAGER;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.EDITOR;
+import static com.epam.ta.reportportal.entity.project.ProjectRole.VIEWER;
 import static com.epam.ta.reportportal.entity.project.ProjectUtils.findUserConfigByLogin;
 import static java.util.function.Predicate.isEqual;
 
 import com.epam.reportportal.api.model.InvitationRequest;
 import com.epam.reportportal.api.model.InvitationRequestOrganizationsInner;
-import com.epam.reportportal.api.model.ProjectRole;
 import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
@@ -132,16 +130,10 @@ public class InvitationPermission implements Permission {
       expect(projectUser, not(isNull()))
           .verify(ACCESS_DENIED, formattedSupplier("'{}' is not your project", prj.getId()));
 
-      if (EDITOR.equals(projectUser.getProjectRole())) {
-        expect(assigningPrj.getProjectRole(), equalTo(ProjectRole.VIEWER))
-            .verify(ACCESS_DENIED, formattedSupplier(
-                "You can invite users on the project '{}' with the role 'VIEWER' only",
-                prj.getId()));
-      } else {
+      if (VIEWER.equals(projectUser.getProjectRole())) {
         throw new ReportPortalException(ErrorType.ACCESS_DENIED,
-            Suppliers.formattedSupplier(
-                    "You don't have permissions to invite users on the project '{}'", prj.getId())
-                .get());
+            Suppliers.formattedSupplier("You don't have permissions to invite users on the project '{}'",
+                prj.getId()).get());
       }
     }
 

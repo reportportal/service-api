@@ -46,18 +46,17 @@ class SettingsControllerTest extends BaseMvcTest {
 
   @Test
   void updateSettingsNegative() throws Exception {
-    UpdateSettingsRq mockRequest = new UpdateSettingsRq();
-    mockRequest.setKey(SettingsKey.valueOf("invalid_key"));
-    mockRequest.setValue("true");
+    String json = "{\"key\":\"server.nonexistent.setting\",\"value\":\"true\"}";
     mockMvc.perform(put("/v1/settings").with(token(oAuthHelper.getSuperadminToken()))
-            .contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(mockRequest)))
-        .andExpect(status().isNotFound());
+            .contentType(APPLICATION_JSON)
+            .content(json))
+        .andExpect(status().isBadRequest());
   }
 
   @Test
   void updateSettings() throws Exception {
     UpdateSettingsRq mockRequest = new UpdateSettingsRq();
-    mockRequest.setKey(SettingsKey.valueOf("server.users.sso"));
+    mockRequest.setKey(SettingsKey.fromValue("server.users.sso"));
     mockRequest.setValue("true");
 
     mockMvc.perform(put("/v1/settings").with(token(oAuthHelper.getSuperadminToken()))

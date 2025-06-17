@@ -176,7 +176,7 @@ public class UserInvitationServiceImpl implements UserInvitationService {
       projectUserRepository.findProjectUserByUserIdAndProjectId(user.getId(), project.getId())
           .orElse(projectUserRepository.save(new ProjectUser()
               .withProject(projectEntity)
-              .withProjectRole(calculateProjectRole(orgUser.getOrganizationRole(), project.getProjectRole().getValue()))
+              .withProjectRole(resolveProjectRole(orgUser.getOrganizationRole(), project.getProjectRole().getValue()))
               .withUser(user)));
     });
 
@@ -214,7 +214,7 @@ public class UserInvitationServiceImpl implements UserInvitationService {
         }).toList();
   }
 
-  private ProjectRole calculateProjectRole(OrganizationRole orgRole, String projectRole) {
+  private ProjectRole resolveProjectRole(OrganizationRole orgRole, String projectRole) {
     return orgRole.equals(OrganizationRole.MANAGER)
         ? ProjectRole.EDITOR
         : com.epam.ta.reportportal.entity.project.ProjectRole.valueOf(projectRole);

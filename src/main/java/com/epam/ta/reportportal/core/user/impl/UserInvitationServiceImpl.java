@@ -20,11 +20,13 @@ import static com.epam.reportportal.api.model.InvitationStatus.ACTIVATED;
 import static com.epam.reportportal.api.model.InvitationStatus.PENDING;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateInvitationUrl;
 import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.BID_TYPE;
 import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
+import static com.epam.ta.reportportal.model.settings.SettingsKeyConstants.SERVER_USERS_SSO;
 import static com.epam.ta.reportportal.util.DateTimeProvider.instantNow;
 import static com.epam.ta.reportportal.util.OrganizationUserValidator.validateUserType;
 import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
@@ -41,11 +43,13 @@ import com.epam.ta.reportportal.core.organization.OrganizationUserService;
 import com.epam.ta.reportportal.core.user.UserInvitationService;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
+import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.entity.Metadata;
+import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.OrganizationUser;
@@ -80,13 +84,16 @@ public class UserInvitationServiceImpl implements UserInvitationService {
   private final OrganizationUserService organizationUserService;
   private final OrganizationRepositoryCustom organizationRepositoryCustom;
   private final ProjectRepository projectRepository;
+  private final ServerSettingsRepository settingsRepository;
 
 
   public UserInvitationServiceImpl(HttpServletRequest httpServletRequest, ThreadPoolTaskExecutor emailExecutorService,
-      MailServiceFactory emailServiceFactory, UserRepository userRepository, UserCreationBidRepository userCreationBidRepository,
-      ApplicationEventPublisher eventPublisher, ProjectUserRepository projectUserRepository, OrganizationUserRepository organizationUserRepository,
+      MailServiceFactory emailServiceFactory, UserRepository userRepository,
+      UserCreationBidRepository userCreationBidRepository,
+      ApplicationEventPublisher eventPublisher, ProjectUserRepository projectUserRepository,
+      OrganizationUserRepository organizationUserRepository,
       OrganizationUserService organizationUserService, OrganizationRepositoryCustom organizationRepositoryCustom,
-      ProjectRepository projectRepository) {
+      ProjectRepository projectRepository, ServerSettingsRepository settingsRepository) {
     this.httpServletRequest = httpServletRequest;
     this.emailExecutorService = emailExecutorService;
     this.emailServiceFactory = emailServiceFactory;
@@ -98,10 +105,15 @@ public class UserInvitationServiceImpl implements UserInvitationService {
     this.organizationUserService = organizationUserService;
     this.organizationRepositoryCustom = organizationRepositoryCustom;
     this.projectRepository = projectRepository;
+    this.settingsRepository = settingsRepository;
   }
 
   @Override
   public Invitation sendInvitation(InvitationRequest invitationRq) {
+    if (isSsoEnabled()) {
+      throw new ReportPortalException(ACCESS_DENIED, "Cannot invite user if SSO enabled.");
+    }
+
     var rpUser = getPrincipal();
     var invitation = new Invitation();
 
@@ -212,6 +224,11 @@ public class UserInvitationServiceImpl implements UserInvitationService {
           obj.put("projects", getProjectsMetadata(org));
           return obj;
         }).toList();
+  }
+
+  private boolean isSsoEnabled() {
+    return settingsRepository.findByKey(SERVER_USERS_SSO).map(ServerSettings::getValue)
+        .map(Boolean::parseBoolean).orElse(false);
   }
 
   private ProjectRole resolveProjectRole(OrganizationRole orgRole, String projectRole) {

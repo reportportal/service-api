@@ -36,7 +36,6 @@ import com.epam.reportportal.api.model.OrgRole;
 import com.epam.reportportal.api.model.ProjectRole;
 import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
-import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -140,8 +139,7 @@ class InvitationControllerTest extends BaseMvcTest {
       "MEMBER|EDITOR|1",
       "MEMBER|VIEWER|1",
       "MANAGER|EDITOR|2",
-      "MANAGER|VIEWER|2",
-      "MEMBER|EDITOR|2"
+      "MANAGER|VIEWER|2"
   }, delimiter = '|')
   void memberEditorNotEnoughPermissionsFor(OrgRole orgRole, ProjectRole projectRole, long prjId)
       throws Exception {

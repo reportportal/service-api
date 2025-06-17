@@ -123,10 +123,14 @@ public class UserInvitationHandler {
     log.debug("User '{}' is trying to create invitation for user '{}'",
         getPrincipal().getUsername(),
         invitationRq.getEmail());
-
-    return userRepository.findByEmail(NORMALIZE_EMAIL.apply(invitationRq.getEmail()))
-        .map(user -> userInvitationService.assignUser(invitationRq, user))
-        .orElse(userInvitationService.sendInvitation(invitationRq));
+    var userOptional = userRepository.findByEmail(NORMALIZE_EMAIL.apply(invitationRq.getEmail()));
+    if (userOptional.isPresent()) {
+      return userOptional
+          .map(user -> userInvitationService.assignUser(invitationRq, user))
+          .get();
+    } else {
+      return userInvitationService.sendInvitation(invitationRq);
+    }
   }
 
   /**

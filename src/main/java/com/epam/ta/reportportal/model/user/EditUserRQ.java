@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.model.user;
 
-import com.epam.ta.reportportal.ws.annotations.In;
 import com.epam.reportportal.annotations.NotBlankString;
 import com.epam.reportportal.model.ValidationConstraints;
+import com.epam.ta.reportportal.ws.annotations.In;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -29,7 +29,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
- * Edit User request model
+ * Edit User request model.
  *
  * @author Aliaksandr_Kazantsau
  * @author Andrei_Ramanchuk
@@ -59,7 +59,7 @@ public class EditUserRQ {
 
   @NotBlankString
   @Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)
-  @Pattern(regexp = "(\\s*[\\pL0-9-_\\.]+\\s*)+")
+  @Pattern(regexp = "^[A-Za-z0-9.'_\\- ]+$")
   @JsonProperty(value = "fullName")
   @Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
   private String fullName;

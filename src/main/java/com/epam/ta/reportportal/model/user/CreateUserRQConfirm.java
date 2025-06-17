@@ -31,7 +31,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
- * Confirmation resource of user creation with user-data
+ * Confirmation resource of user creation with user-data.
  *
  * @author Andrei_Ramanchuk
  */
@@ -47,7 +47,7 @@ public class CreateUserRQConfirm {
   private String password;
 
   @NotBlank
-  @Pattern(regexp = "[\\pL0-9-_ .]+")
+  @Pattern(regexp = "^[A-Za-z0-9.'_\\- ]+$")
   @Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)
   @JsonProperty(value = "fullName", required = true)
   @Schema(requiredMode = RequiredMode.REQUIRED, example = "string")

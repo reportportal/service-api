@@ -11,9 +11,13 @@ import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.exception.NotFoundException;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseMapper;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -219,5 +223,124 @@ class TmsTestCaseServiceImplTest {
     // Then
     verify(tmsTestCaseAttributeService).deleteAllByTestCaseId(testCaseId);
     verify(tmsTestCaseRepository).deleteById(testCaseId);
+  }
+
+  @Test
+  void delete_WithBatchDeleteRequest_ShouldDeleteAllTestCases() {
+    // Given
+    List<Long> testCaseIds = Arrays.asList(1L, 2L, 3L);
+    BatchDeleteTestCasesRQ deleteRequest = BatchDeleteTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+
+    // When
+    sut.delete(projectId, deleteRequest);
+
+    // Then
+    verify(tmsTestCaseAttributeService).deleteAllByTestCaseIds(testCaseIds);
+    verify(tmsTestCaseRepository).deleteAllByTestCaseIds(testCaseIds);
+  }
+
+  @Test
+  void delete_WithEmptyLocationIds_ShouldStillCallRepositoryMethods() {
+    // Given
+    List<Long> emptyTestCaseIds = Collections.emptyList();
+    BatchDeleteTestCasesRQ deleteRequest = BatchDeleteTestCasesRQ.builder()
+        .testCaseIds(emptyTestCaseIds)
+        .build();
+
+    // When
+    sut.delete(projectId, deleteRequest);
+
+    // Then
+    verify(tmsTestCaseAttributeService).deleteAllByTestCaseIds(emptyTestCaseIds);
+    verify(tmsTestCaseRepository).deleteAllByTestCaseIds(emptyTestCaseIds);
+  }
+
+  @Test
+  void patch_WithBatchPatchRequest_ShouldCallRepositoryPatchMethod() {
+    // Given
+    List<Long> testCaseIds = Arrays.asList(1L, 2L, 3L);
+    Long testFolderId = 5L;
+
+    BatchPatchTestCasesRQ patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(testFolderId)
+        .build();
+
+    // When
+    sut.patch(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId);
+  }
+
+  @Test
+  void patch_WithNullTestFolderId_ShouldCallRepositoryPatchMethodWithNullFolderId() {
+    // Given
+    List<Long> testCaseIds = Arrays.asList(1L, 2L, 3L);
+
+    BatchPatchTestCasesRQ patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(null)
+        .build();
+
+    // When
+    sut.patch(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, null);
+  }
+
+  @Test
+  void patch_WithEmptyLocationIds_ShouldStillCallRepositoryMethod() {
+    // Given
+    List<Long> emptyTestCaseIds = Collections.emptyList();
+    Long testFolderId = 5L;
+
+    BatchPatchTestCasesRQ patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(emptyTestCaseIds)
+        .testFolderId(testFolderId)
+        .build();
+
+    // When
+    sut.patch(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestCaseRepository).patch(projectId, emptyTestCaseIds, testFolderId);
+  }
+
+  @Test
+  void patch_WithSingleTestCaseId_ShouldCallRepositoryPatchMethod() {
+    // Given
+    List<Long> singleTestCaseId = List.of(1L);
+    Long testFolderId = 5L;
+
+    BatchPatchTestCasesRQ patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(singleTestCaseId)
+        .testFolderId(testFolderId)
+        .build();
+
+    // When
+    sut.patch(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestCaseRepository).patch(projectId, singleTestCaseId, testFolderId);
+  }
+
+  @Test
+  void delete_WithSingleTestCaseId_ShouldDeleteTestCase() {
+    // Given
+    List<Long> singleTestCaseId = List.of(1L);
+    BatchDeleteTestCasesRQ deleteRequest = BatchDeleteTestCasesRQ.builder()
+        .testCaseIds(singleTestCaseId)
+        .build();
+
+    // When
+    sut.delete(projectId, deleteRequest);
+
+    // Then
+    verify(tmsTestCaseAttributeService).deleteAllByTestCaseIds(singleTestCaseId);
+    verify(tmsTestCaseRepository).deleteAllByTestCaseIds(singleTestCaseId);
   }
 }

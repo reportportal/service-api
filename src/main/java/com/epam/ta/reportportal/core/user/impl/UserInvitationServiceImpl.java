@@ -159,10 +159,12 @@ public class UserInvitationServiceImpl implements UserInvitationService {
     invitationRq.getOrganizations().forEach(orgInfo -> {
       var organization = organizationRepositoryCustom.findById(orgInfo.getId())
           .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgInfo.getId()));
-      var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(userToAssign.getId(), organization.getId())
+      var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(userToAssign.getId(),
+              organization.getId())
           .orElseGet(() -> {
             validateUserType(organization, userToAssign);
-            return organizationUserService.saveOrganizationUser(organization, userToAssign, OrganizationRole.MEMBER.toString());
+            return organizationUserService.saveOrganizationUser(organization, userToAssign,
+                OrganizationRole.MEMBER.toString());
           });
 
       assignProjects(orgInfo.getProjects(), orgUser, userToAssign);
@@ -183,7 +185,8 @@ public class UserInvitationServiceImpl implements UserInvitationService {
       var projectEntity = projectRepository.findById(project.getId())
           .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, project.getId()));
       expect(projectEntity.getOrganizationId(), equalTo(orgId))
-          .verify(BAD_REQUEST_ERROR, formattedSupplier("Project '{}' does not belong to organization {}", project.getId(), orgId));
+          .verify(BAD_REQUEST_ERROR,
+              formattedSupplier("Project '{}' does not belong to organization {}", project.getId(), orgId));
 
       projectUserRepository.findProjectUserByUserIdAndProjectId(user.getId(), project.getId())
           .orElse(projectUserRepository.save(new ProjectUser()

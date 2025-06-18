@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.model.settings;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -48,6 +49,12 @@ public class UpdateSettingsRq {
   @NotEmpty
   private String value;
 
+  /**
+   * Enum representing the keys for server settings.
+   * Each key corresponds to a specific setting that can be updated.
+   *
+   * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
+   */
   public enum SettingsKey {
     SERVER_ANALYTICS_ALL("server.analytics.all"),
     SERVER_DETAILS_INSTANCE("server.details.instance"),
@@ -63,6 +70,13 @@ public class UpdateSettingsRq {
       this.name = name;
     }
 
+    /**
+     * Converts a string value to the corresponding SettingsKey enum.
+     *
+     * @param value The string representation of the key.
+     * @return The SettingsKey enum corresponding to the provided value.
+     * @throws IllegalArgumentException if the value does not match any key.
+     */
     @JsonCreator
     public static SettingsKey fromValue(String value) {
       for (SettingsKey key : values()) {

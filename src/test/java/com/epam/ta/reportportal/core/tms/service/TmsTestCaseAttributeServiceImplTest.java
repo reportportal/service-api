@@ -14,6 +14,7 @@ import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseAttributeRepos
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseAttributeMapper;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -140,7 +141,7 @@ class TmsTestCaseAttributeServiceImplTest {
     sut.updateTestCaseAttributes(testCase, attributeRQs);
 
     // Then
-    verify(tmsTestCaseAttributeRepository).deleteAllById_TestCaseId(testCase.getId());
+    verify(tmsTestCaseAttributeRepository).deleteAllByTestCaseId(testCase.getId());
     verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(attributeRQs);
     verify(tmsTestCaseAttributeRepository).saveAll(testCaseAttributes);
 
@@ -154,7 +155,7 @@ class TmsTestCaseAttributeServiceImplTest {
     sut.updateTestCaseAttributes(testCase, null);
 
     // Then
-    verify(tmsTestCaseAttributeRepository).deleteAllById_TestCaseId(testCase.getId());
+    verify(tmsTestCaseAttributeRepository).deleteAllByTestCaseId(testCase.getId());
     verifyNoInteractions(tmsTestCaseAttributeMapper);
 
     // Assert that the test case's tags are unchanged from the initial state
@@ -168,7 +169,7 @@ class TmsTestCaseAttributeServiceImplTest {
     sut.updateTestCaseAttributes(testCase, Collections.emptyList());
 
     // Then
-    verify(tmsTestCaseAttributeRepository).deleteAllById_TestCaseId(testCase.getId());
+    verify(tmsTestCaseAttributeRepository).deleteAllByTestCaseId(testCase.getId());
     verifyNoInteractions(tmsTestCaseAttributeMapper);
 
     // Assert that the test case's tags are unchanged from the initial state
@@ -239,6 +240,18 @@ class TmsTestCaseAttributeServiceImplTest {
     sut.deleteAllByTestCaseId(testCaseId);
 
     // Then
-    verify(tmsTestCaseAttributeRepository).deleteAllById_TestCaseId(testCaseId);
+    verify(tmsTestCaseAttributeRepository).deleteAllByTestCaseId(testCaseId);
+  }
+
+  @Test
+  void deleteAllByTestCaseIds_WithValidIds_ShouldCallRepositoryDelete() {
+    // Given
+    List<Long> testCaseIds = Arrays.asList(1L, 2L, 3L);
+
+    // When
+    sut.deleteAllByTestCaseIds(testCaseIds);
+
+    // Then
+    verify(tmsTestCaseAttributeRepository).deleteAllByTestCaseIds(testCaseIds);
   }
 }

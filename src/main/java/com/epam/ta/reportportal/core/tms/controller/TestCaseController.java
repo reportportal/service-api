@@ -7,6 +7,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestCaseService;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -48,6 +49,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/project/{projectKey}/tms/test-case")
 @Tag(name = "Test Case", description = "Test Case API collection")
 @RequiredArgsConstructor
+@Valid
 public class TestCaseController {
 
   private final TmsTestCaseService tmsTestCaseService;
@@ -210,7 +212,7 @@ public class TestCaseController {
    * Deletes multiple test cases by their IDs within a project.
    *
    * @param projectKey The key of the project.
-   * @param ids Comma-separated list of test case IDs to delete.
+   * @param deleteRequest The object contains comma-separated list of test case IDs to delete.
    */
   @PreAuthorize(IS_ADMIN)
   @DeleteMapping("/batch/delete")
@@ -222,18 +224,22 @@ public class TestCaseController {
   )
   @ApiResponse(responseCode = "204", description = "Test cases deleted successfully")
   public void deleteTestCases(@PathVariable("projectKey") String projectKey,
-      @RequestParam("ids") List<String> ids,
+      @Valid @RequestBody BatchDeleteTestCasesRQ deleteRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
-    throw new UnsupportedOperationException("Method not implemented yet");
+    tmsTestCaseService.delete(
+        projectExtractor
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        deleteRequest
+    );
   }
 
   /**
    * Updates multiple test cases at once, particularly useful for changing test case folder for multiple test cases.
    *
    * @param projectKey The key of the project.
-   * @param ids Comma-separated list of test case IDs to update.
-   * @param updateRequest Request body containing update information.
-   * @return Response containing update results.
+   * @param patchRequest Request body containing update information
+   *                     and comma-separated list of test case IDs to update.
    */
   @PreAuthorize(IS_ADMIN)
   @PatchMapping("/batch/patch")
@@ -244,10 +250,14 @@ public class TestCaseController {
   )
   @ApiResponse(responseCode = "200", description = "Test cases updated successfully")
   public void batchPatchTestCases(@PathVariable("projectKey") String projectKey,
-      @RequestParam("ids") List<String> ids,
-      @RequestBody BatchPatchTestCasesRQ updateRequest,
+      @Valid @RequestBody BatchPatchTestCasesRQ patchRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
-    throw new UnsupportedOperationException("Method not implemented yet");
+    tmsTestCaseService.patch(
+        projectExtractor
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        patchRequest
+    );
   }
 
   /**
@@ -255,7 +265,6 @@ public class TestCaseController {
    *
    * @param projectKey The key of the project.
    * @param file The file containing test cases to import.
-   * @return Import operation results.
    */
   @PreAuthorize(IS_ADMIN)
   @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

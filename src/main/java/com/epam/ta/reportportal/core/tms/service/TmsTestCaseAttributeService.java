@@ -2,6 +2,8 @@ package com.epam.ta.reportportal.core.tms.service;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public interface TmsTestCaseAttributeService {
@@ -15,4 +17,6 @@ public interface TmsTestCaseAttributeService {
   void deleteAllByTestCaseId(Long testCaseId);
 
   void deleteAllByTestFolderId(Long projectId, Long testFolderId);
+
+  void deleteAllByTestCaseIds(@NotNull @NotEmpty List<Long> testCaseIds);
 }

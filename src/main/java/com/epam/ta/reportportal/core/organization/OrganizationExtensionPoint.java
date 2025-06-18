@@ -20,6 +20,7 @@ import com.epam.reportportal.api.model.CreateOrganizationRequest;
 import com.epam.reportportal.api.model.OrganizationInfo;
 import com.epam.reportportal.api.model.UpdateOrganizationRequest;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import com.epam.ta.reportportal.entity.user.User;
 import org.jclouds.rest.ResourceNotFoundException;
 
 /**
@@ -36,6 +37,14 @@ public interface OrganizationExtensionPoint extends ReportPortalExtensionPoint {
    * @return @{@link OrganizationInfo} containing the details of the created organization.
    */
   OrganizationInfo createOrganization(CreateOrganizationRequest createRequest);
+
+  /**
+   * Creates a personal organization for the specified user.
+   *
+   * @param user The user for whom the personal organization is to be created.
+   * @return @{@link OrganizationInfo} containing the details of the created personal organization.
+   */
+  OrganizationInfo createPersonalOrganization(User user);
 
   /**
    * Update an existing organization.

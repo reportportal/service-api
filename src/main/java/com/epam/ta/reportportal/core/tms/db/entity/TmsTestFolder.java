@@ -53,7 +53,7 @@ public class TmsTestFolder implements Serializable {
   private TmsTestFolder parentTestFolder;
 
   @OneToMany(mappedBy = "parentTestFolder")
-  private List<TmsTestFolder> subTestFolders; //TODO rename
+  private List<TmsTestFolder> subFolders;
 
 //    @ManyToMany(mappedBy = "testFolders") TODO add
 //    private Set<TmsTestPlan> testPlans;

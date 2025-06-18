@@ -184,7 +184,7 @@ public class UserInvitationServiceImpl implements UserInvitationService {
           .verify(BAD_REQUEST_ERROR, formattedSupplier("Project '{}' does not belong to organization {}", project.getId(), orgId));
 
       projectUserRepository.findProjectUserByUserIdAndProjectId(user.getId(), project.getId())
-          .orElse(projectUserRepository.save(new ProjectUser()
+          .orElseGet(() -> projectUserRepository.save(new ProjectUser()
               .withProject(projectEntity)
               .withProjectRole(ProjectRole.valueOf(project.getProjectRole().toString()))
               .withUser(user)));

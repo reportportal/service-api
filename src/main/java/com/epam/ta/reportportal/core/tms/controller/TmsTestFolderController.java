@@ -8,6 +8,7 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.service.TmsTestFolderService;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,7 +19,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/project/{projectKey}/tms/folder")
 @Tag(name = "Test Folder", description = "Tms Test Folder API collection")
 @RequiredArgsConstructor
+@PreAuthorize(IS_ADMIN)
 public class TmsTestFolderController {
 
   private final TmsTestFolderService tmsTestFolderService;
@@ -50,11 +51,11 @@ public class TmsTestFolderController {
    *
    * @param projectKey The key of the project to which the folder will be added.
    * @param inputDto   A request payload ({@link TmsTestFolderRQ}) containing details of the test
-   * folder to create.
+   *                   folder to create.
    * @return A data transfer object ({@link TmsTestFolderRS}) containing the created folder's
    * details.
    */
-  @PreAuthorize(IS_ADMIN)
+
   @PostMapping
   @Operation(
       summary = "Create Test Folder",
@@ -91,7 +92,7 @@ public class TmsTestFolderController {
    *                   details.
    * @return A data transfer object ({@link TmsTestFolderRS}) with updated folder information.
    */
-  @PreAuthorize(IS_ADMIN)
+
   @PutMapping("/{folderId}")
   @Operation(
       summary = "Update Test Folder",
@@ -131,7 +132,7 @@ public class TmsTestFolderController {
    *                   details.
    * @return A data transfer object ({@link TmsTestFolderRS}) with updated folder information.
    */
-  @PreAuthorize(IS_ADMIN)
+
   @PatchMapping("/{folderId}")
   @Operation(
       summary = "Patch Test Folder",
@@ -170,7 +171,7 @@ public class TmsTestFolderController {
    * @param folderId   The ID of the folder to retrieve.
    * @return A data transfer object ({@link TmsTestFolderRS}) containing folder information.
    */
-  @PreAuthorize(IS_ADMIN)
+
   @GetMapping("/{folderId}")
   @Operation(
       summary = "Get Test Folder by ID",
@@ -200,10 +201,10 @@ public class TmsTestFolderController {
    * Retrieves all test folders associated with a project.
    *
    * @param projectKey The key of the project.
-   * @return A list of data transfer objects ({@link TmsTestFolderRS}) representing
-   * the test folders.
+   * @return A list of data transfer objects ({@link TmsTestFolderRS}) representing the test
+   * folders.
    */
-  @PreAuthorize(IS_ADMIN)
+
   @GetMapping
   @Operation(
       summary = "Get Test Folders by project key",
@@ -212,8 +213,7 @@ public class TmsTestFolderController {
   @ApiResponses(value = {
       @ApiResponse(
           responseCode = "200",
-          description = "Test folders retrieved successfully",
-          content = @Content(schema = @Schema(implementation = Page.class))
+          description = "Test folders retrieved successfully"
       ),
       @ApiResponse(responseCode = "500", description = "Internal server error")
   })
@@ -234,10 +234,9 @@ public class TmsTestFolderController {
    *
    * @param projectKey The key of the project.
    * @param folderId   The ID of the parent folder.
-   * @return A list of data transfer objects ({@link TmsTestFolderRS})
-   * representing the subfolders.
+   * @return A list of data transfer objects ({@link TmsTestFolderRS}) representing the subfolders.
    */
-  @PreAuthorize(IS_ADMIN)
+
   @GetMapping("/{folderId}/sub-folder")
   @Operation(
       summary = "Get subfolders by test folder id",
@@ -246,8 +245,7 @@ public class TmsTestFolderController {
   @ApiResponses(value = {
       @ApiResponse(
           responseCode = "200",
-          description = "Subfolders retrieved successfully",
-          content = @Content(schema = @Schema(implementation = Page.class))
+          description = "Subfolders retrieved successfully"
       ),
       @ApiResponse(responseCode = "404", description = "Parent folder not found"),
       @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -271,7 +269,7 @@ public class TmsTestFolderController {
    * @param projectKey The key of the project.
    * @param folderId   The id of the test folder
    */
-  @PreAuthorize(IS_ADMIN)
+
   @DeleteMapping("/{folderId}")
   @Operation(
       summary = "Delete test folder",
@@ -301,7 +299,7 @@ public class TmsTestFolderController {
    * @param folderId   The ID of the folder to export.
    * @param fileType   The format to export the folder to.
    */
-  @PreAuthorize(IS_ADMIN)
+
   @GetMapping("/{folderId}/export/{fileType}")
   @Operation(
       summary = "Export test folder",

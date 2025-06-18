@@ -48,6 +48,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
+
     Optional<TmsTestFolder> folder = tmsTestFolderRepository.findById(1L);
     assertTrue(folder.isPresent());
     assertEquals(request.getName(), folder.get().getName());
@@ -68,7 +69,9 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value(request.getName()))
+        .andExpect(jsonPath("$.description").value(request.getDescription()));
 
     Optional<TmsTestFolder> folder = tmsTestFolderRepository.findById(3L);
     assertTrue(folder.isPresent());
@@ -92,7 +95,8 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("patched_name"));
 
     Optional<TmsTestFolder> updatedFolder = tmsTestFolderRepository.findById(4L);
     assertTrue(updatedFolder.isPresent());
@@ -111,7 +115,8 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.id").value(folder.get().getId()))
         .andExpect(jsonPath("$.name").value(folder.get().getName()))
         .andExpect(jsonPath("$.description").value(folder.get().getDescription()))
-        .andExpect(jsonPath("$.countOfSubfolders").exists());
+        .andExpect(jsonPath("$.countOfTestCases").exists())
+        .andExpect(jsonPath("$.subFolders").exists());
   }
 
   @Test
@@ -127,8 +132,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content[?(@.id == %d)].name", folder.get().getId()).value(
             folder.get().getName()))
         .andExpect(jsonPath("$.content[?(@.id == %d)].description", folder.get().getId()).value(
-            folder.get().getDescription()))
-        .andExpect(jsonPath("$.totalElements").exists());
+            folder.get().getDescription()));
   }
 
   @Test
@@ -137,7 +141,9 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.totalElements").exists());
+        .andExpect(jsonPath("$.content[*].countOfTestCases").exists())
+        .andExpect(jsonPath("$.content[*].parentFolderId").exists())
+        .andExpect(jsonPath("$.content[*].subFolders").exists());
   }
 
   @Test

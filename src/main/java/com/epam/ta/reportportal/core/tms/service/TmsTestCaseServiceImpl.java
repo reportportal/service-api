@@ -3,8 +3,11 @@ package com.epam.ta.reportportal.core.tms.service;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.exception.NotFoundException;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseMapper;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Valid
 public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   private static final String TEST_CASE_NOT_FOUND_BY_ID = "Test Case cannot be found by id: {0}. Project: {1}";
@@ -96,8 +100,25 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional
-  public void deleteByTestFolderId(Long projectId, Long folderId) {
+  public void deleteByTestFolderId(long projectId, long folderId) {
     tmsTestCaseAttributeService.deleteAllByTestFolderId(projectId, folderId);
     tmsTestCaseRepository.deleteTestCasesByFolderId(projectId, folderId);
+  }
+
+  @Override
+  @Transactional
+  public void delete(long projectId,
+      @Valid BatchDeleteTestCasesRQ deleteRequest) {
+    tmsTestCaseAttributeService.deleteAllByTestCaseIds(deleteRequest.getTestCaseIds());
+    tmsTestCaseRepository.deleteAllByTestCaseIds(deleteRequest.getTestCaseIds());
+  }
+
+  @Override
+  @Transactional
+  public void patch(long projectId,
+      @Valid BatchPatchTestCasesRQ patchRequest) {
+    tmsTestCaseRepository.patch(projectId,
+        patchRequest.getTestCaseIds(),
+        patchRequest.getTestFolderId());
   }
 }

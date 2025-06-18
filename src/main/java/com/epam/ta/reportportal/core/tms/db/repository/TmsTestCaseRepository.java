@@ -57,14 +57,14 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
 
   /**
    * Deletes multiple test cases by their IDs in a single batch operation.
-   * <p>
-   * This method performs a bulk delete operation which is more efficient than deleting
-   * test cases one by one. If any of the provided IDs don't exist, they will be silently
-   * ignored without throwing an exception.
+   *
+   * <p>This method performs a bulk delete operation which is more efficient than deleting test cases
+   * one by one. If any of the provided IDs don't exist, they will be silently ignored without
+   * throwing an exception.
    * </p>
    *
-   * @param testCaseIds the list of test case IDs to delete. Cannot be null, but can be empty.
-   *                    If empty list is provided, no deletion will be performed.
+   * @param testCaseIds the list of test case IDs to delete. Cannot be null, but can be empty. If
+   *                    empty list is provided, no deletion will be performed.
    */
   @Modifying
   @Query(value = "DELETE FROM TmsTestCase WHERE id IN (:testCaseIds)")
@@ -72,13 +72,11 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
 
   /**
    * Updates multiple test cases with new field values in a single batch operation.
-   * <p>
-   * This method performs a conditional update using CASE statements to only update
-   * fields when new values are provided (not null). Currently supports updating
-   * the test folder ID, but is designed to be extensible for additional fields
-   * in the future.
+   *
+   * <p>This method performs a conditional update using CASE statements to only update fields when new
+   * values are provided (not null). Currently supports updating the test folder ID, but is designed
+   * to be extensible for additional fields in the future.
    * </p>
-   * <p>
    * The update logic:
    * <ul>
    *   <li>If testFolderId is not null, updates the test_folder_id field</li>
@@ -86,16 +84,15 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
    *   <li>Only test cases with IDs in the provided list will be updated</li>
    *   <li>Non-existent IDs will be silently ignored</li>
    * </ul>
-   * </p>
    * <p>
    * <strong>Future extensibility:</strong> Additional fields can be added by uncommenting
    * and modifying the template CASE statements in the query.
    * </p>
    *
-   * @param projectId    the project ID for additional context/validation (currently not used in query
-   *                     but may be used for future security/validation purposes)
-   * @param testCaseIds  the list of test case IDs to update. Cannot be null, but can be empty.
-   *                     If empty, no updates will be performed.
+   * @param projectId    the project ID for additional context/validation (currently not used in
+   *                     query but may be used for future security/validation purposes)
+   * @param testCaseIds  the list of test case IDs to update. Cannot be null, but can be empty. If
+   *                     empty, no updates will be performed.
    * @param testFolderId the new test folder ID to assign. If null, the current test folder
    *                     assignment will remain unchanged.
    */

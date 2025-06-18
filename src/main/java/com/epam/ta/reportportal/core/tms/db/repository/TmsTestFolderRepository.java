@@ -1,7 +1,8 @@
 package com.epam.ta.reportportal.core.tms.db.repository;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfSubfolders;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderIdWithCountOfTestCases;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfTestCases;
 import com.epam.ta.reportportal.dao.ReportPortalRepository;
 import java.util.List;
 import java.util.Optional;
@@ -13,70 +14,173 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
+ * Repository interface for managing TMS test folders.
+ *
+ * <p>This repository provides methods for CRUD operations on test folders, including hierarchical
+ * operations for managing folder structures, counting test cases, and handling subfolder
+ * relationships within the Test Management System.
+ * </p>
+ *
  * @author Andrei_Varabyeu
  */
 @Repository
 public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestFolder, Long> {
 
+  /**
+   * Finds all test folders for a given project with their test case counts.
+   *
+   * <p>This method returns a paginated list of test folders along with the count of test cases
+   * contained in each folder. The count includes only direct test cases, not those in subfolders.
+   * </p>
+   *
+   * @param projectId the ID of the project to search folders in
+   * @param pageable  pagination information
+   * @return a page of test folders with their test case counts
+   */
   @Query(
-      "SELECT new com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfSubfolders(tf, "
-          + "(SELECT COUNT(sf) FROM TmsTestFolder sf WHERE sf.parentTestFolder.id = tf.id)) "
-          + "FROM TmsTestFolder tf WHERE tf.project.id = :projectId"
+      "SELECT new com.epam.ta.reportportal.core.tms.db.entity."
+          + "TmsTestFolderWithCountOfTestCases(tf, COUNT(tc))"
+          + "FROM TmsTestFolder tf "
+          + "LEFT JOIN tf.testCases tc "
+          + "WHERE tf.project.id = :projectId "
+          + "GROUP BY tf.id"
   )
-  Page<TmsTestFolderWithCountOfSubfolders> findAllByProjectIdWithCountOfSubfolders(
+  Page<TmsTestFolderWithCountOfTestCases> findAllByProjectIdWithCountOfTestCases(
       @Param("projectId") long projectId, Pageable pageable
   );
 
   /**
-   * Finds all direct subfolders of a given test folder
+   * Finds test folders by their IDs and eagerly fetches their subfolders.
    *
-   * @param projectId      The id of the project
-   * @param parentFolderId The ID of the parent folder
-   * @return List of subfolders
+   * <p>This method is useful when you need to work with folder hierarchies and want to avoid
+   * N+1 query problems by fetching subfolders in a single query.
+   * </p>
+   *
+   * @param folderIds list of folder IDs to retrieve
+   * @return list of test folders with their subfolders loaded
+   */
+  @Query("SELECT tf FROM TmsTestFolder tf LEFT JOIN FETCH tf.subFolders WHERE tf.id IN :folderIds")
+  List<TmsTestFolder> findByIdsWithSubFolders(@Param("folderIds") List<Long> folderIds);
+
+  /**
+   * Finds all direct subfolders of a given test folder with their test case counts.
+   *
+   * <p>This method returns only immediate children of the specified parent folder, not nested
+   * subfolders at deeper levels. Each folder is returned with its direct test case count.
+   * </p>
+   *
+   * @param projectId      the ID of the project
+   * @param parentFolderId the ID of the parent folder
+   * @param pageable       pagination information
+   * @return a page of direct subfolders with their test case counts
    */
   @Query(
-      "SELECT new com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfSubfolders(tf, "
-          + "(SELECT COUNT(sf) FROM TmsTestFolder sf WHERE sf.parentTestFolder.id = tf.id)) "
-          + "FROM TmsTestFolder tf WHERE tf.project.id = :projectId and tf.parentTestFolder.id = :parentFolderId"
+      "SELECT new com.epam.ta.reportportal.core.tms.db.entity."
+          + "TmsTestFolderWithCountOfTestCases(tf, COUNT(tc))"
+          + "FROM TmsTestFolder tf "
+          + "LEFT JOIN tf.testCases tc "
+          + "WHERE tf.project.id = :projectId and tf.parentTestFolder.id = :parentFolderId "
+          + "GROUP BY tf.id"
   )
-  Page<TmsTestFolderWithCountOfSubfolders> findAllByParentTestFolderIdWithCountOfSubfolders(
+  Page<TmsTestFolderWithCountOfTestCases> findAllByParentTestFolderIdWithCountOfTestCases(
       @Param("projectId") long projectId,
       @Param("parentFolderId") Long parentFolderId,
       Pageable pageable
   );
 
+  /**
+   * Finds a specific test folder by ID and project ID with its test case count.
+   *
+   * <p>This method returns a single folder with the count of test cases it directly contains.
+   * The count does not include test cases from subfolders.
+   * </p>
+   *
+   * @param projectId the ID of the project
+   * @param folderId  the ID of the folder to find
+   * @return an optional containing the folder with test case count, or empty if not found
+   */
   @Query(
-      "SELECT new com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfSubfolders(tf, "
-          + "(SELECT COUNT(sf) FROM TmsTestFolder sf WHERE sf.parentTestFolder.id = tf.id)) "
-          + "FROM TmsTestFolder tf WHERE tf.project.id = :projectId and tf.id = :folderId"
+      "SELECT new com.epam.ta.reportportal.core.tms.db.entity."
+          + "TmsTestFolderWithCountOfTestCases(tf, COUNT(tc))"
+          + "FROM TmsTestFolder tf "
+          + "LEFT JOIN tf.testCases tc "
+          + "WHERE tf.project.id = :projectId and tf.id = :folderId "
+          + "GROUP BY tf.id"
   )
-  Optional<TmsTestFolderWithCountOfSubfolders> findByIdWithCountOfSubfolders(
+  Optional<TmsTestFolderWithCountOfTestCases> findByIdWithCountOfTestCases(
       @Param("projectId") Long projectId, @Param("folderId") Long folderId);
 
   /**
-   * Finds a folder by given ID and project ID
+   * Returns test folder IDs and their corresponding test case counts.
    *
-   * @param id        ID of folder
-   * @param projectId ID of project
-   * @return Test Folder
+   * <p>This method is optimized for bulk operations where you only need folder IDs and their
+   * test case counts without loading the full folder entities.
+   * </p>
+   *
+   * @param folderIds list of folder IDs to get counts for
+   * @return list of objects containing folder IDs and their test case counts
+   */
+  @Query("SELECT new com.epam.ta.reportportal.core.tms.db.entity."
+      + "TmsTestFolderIdWithCountOfTestCases(tf.id, COUNT(tc)) "
+      + "FROM TmsTestFolder tf "
+      + "LEFT JOIN tf.testCases tc "
+      + "WHERE tf.id IN :folderIds "
+      + "GROUP BY tf.id")
+  List<TmsTestFolderIdWithCountOfTestCases> findTestCaseCountsByFolderIds(
+      @Param("folderIds") List<Long> folderIds);
+
+  /**
+   * Finds a test folder by ID and eagerly fetches its subfolders.
+   *
+   * <p>This method is useful when you need to work with a specific folder and its immediate
+   * subfolders without triggering additional queries.
+   * </p>
+   *
+   * @param folderId the ID of the folder to find
+   * @return an optional containing the folder with subfolders loaded, or empty if not found
+   */
+  @Query("SELECT tf FROM TmsTestFolder tf LEFT JOIN FETCH tf.subFolders WHERE tf.id = :folderId")
+  Optional<TmsTestFolder> findByIdWithSubFolders(@Param("folderId") Long folderId);
+
+  /**
+   * Finds a folder by given ID and project ID.
+   *
+   * <p>This method ensures that the folder belongs to the specified project, providing an
+   * additional security layer to prevent cross-project data access.
+   * </p>
+   *
+   * @param id        ID of the folder to find
+   * @param projectId ID of the project the folder should belong to
+   * @return an optional containing the test folder, or empty if not found
    */
   Optional<TmsTestFolder> findByIdAndProjectId(long id, long projectId);
 
   /**
-   * Counts all subfolders of a given test folder
+   * Counts all direct subfolders of a given test folder.
    *
-   * @param parentFolderId The ID of the parent folder
-   * @return The count of all subfolders
+   * <p>This method returns the count of immediate children only, not nested subfolders at
+   * deeper levels of the hierarchy.
+   * </p>
+   *
+   * @param parentFolderId the ID of the parent folder
+   * @return the count of direct subfolders
    */
   @Query("SELECT COUNT(tf) FROM TmsTestFolder tf WHERE tf.parentTestFolder.id = :parentFolderId")
   Long countSubfoldersByParentId(@Param("parentFolderId") Long parentFolderId);
 
   /**
-   * Recursively counts all subfolders (including nested subfolders) of a given test folder. Note:
-   * This uses a Common Table Expression (CTE) which is PostgreSQL specific.
+   * Recursively counts all subfolders (including nested subfolders) of a given test folder.
    *
-   * @param rootFolderId The ID of the root folder
-   * @return The count of all subfolders including nested ones
+   * <p>This method uses a Common Table Expression (CTE) which is PostgreSQL specific. It counts
+   * all subfolders at any level of nesting within the folder hierarchy.
+   * </p>
+   *
+   * <p><strong>Note:</strong> This query is PostgreSQL specific and may not work with other
+   * database systems.
+   * </p>
+   *
+   * @param rootFolderId the ID of the root folder
+   * @return the count of all nested subfolders (excluding the root folder itself)
    */
   @Query(value =
       "WITH RECURSIVE folder_tree AS ("
@@ -85,18 +189,28 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
           + "  SELECT f.id, f.parent_id FROM tms_test_folder f "
           + "  JOIN folder_tree ft ON f.parent_id = ft.id "
           + ") "
-          + "SELECT COUNT(*) - 1 FROM folder_tree", // Subtract 1 to exclude the root folder itself
+          + "SELECT COUNT(*) - 1 FROM folder_tree", // Subtract 1 to exclude root folder
       nativeQuery = true)
   Integer countAllNestedSubfolders(@Param("rootFolderId") Long rootFolderId);
 
   /**
-   * Recursively deletes a test folder and all its subfolders. This method uses a recursive Common
-   * Table Expression (CTE) to identify all subfolders at any level of nesting and then deletes
-   * them. Note: This method should be used after deleting all related entities (test cases,
-   * attributes, etc.) to avoid foreign key constraint violations.
+   * Recursively deletes a test folder and all its subfolders.
    *
-   * @param folderId  The ID of the folder to delete
-   * @param projectId The project ID to ensure folder belongs to the correct project
+   * <p>This method uses a recursive Common Table Expression (CTE) to identify all subfolders
+   * at any level of nesting and then deletes them. The deletion is performed in a way that respects
+   * the folder hierarchy.
+   * </p>
+   *
+   * <p><strong>Warning:</strong> This method should be used after deleting all related entities
+   * (test cases, attributes, etc.) to avoid foreign key constraint violations.
+   * </p>
+   *
+   * <p><strong>Note:</strong> This query is PostgreSQL specific and may not work with other
+   * database systems.
+   * </p>
+   *
+   * @param projectId the project ID to ensure folder belongs to the correct project
+   * @param folderId  the ID of the folder to delete (along with all its subfolders)
    */
   @Modifying
   @Query(value = "DELETE FROM tms_test_folder "
@@ -115,6 +229,21 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
   void deleteTestFolderWithSubfoldersById(@Param("projectId") Long projectId,
       @Param("folderId") Long folderId);
 
+  /**
+   * Finds all folder IDs in the hierarchy starting from a given folder.
+   *
+   * <p>This method uses a recursive CTE to traverse the folder hierarchy and return all folder
+   * IDs including the root folder and all its nested subfolders at any level.
+   * </p>
+   *
+   * <p>Note: This query is PostgreSQL specific and may not work with other
+   * database systems.
+   * </p>
+   *
+   * @param projectId the ID of the project to ensure security boundaries
+   * @param folderId  the ID of the root folder to start the hierarchy traversal from
+   * @return list of all folder IDs in the hierarchy (including the root folder)
+   */
   @Query(value =
       "WITH RECURSIVE ids AS ("
           + "  SELECT id FROM tms_test_folder WHERE id = :folderId AND project_id = :projectId "
@@ -125,5 +254,4 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
       nativeQuery = true)
   List<Long> findAllFolderIdsInHierarchy(@Param("projectId") Long projectId,
       @Param("folderId") Long folderId);
-
 }

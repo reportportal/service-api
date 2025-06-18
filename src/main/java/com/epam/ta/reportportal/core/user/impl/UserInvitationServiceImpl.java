@@ -189,7 +189,7 @@ public class UserInvitationServiceImpl implements UserInvitationService {
               formattedSupplier("Project '{}' does not belong to organization {}", project.getId(), orgId));
 
       projectUserRepository.findProjectUserByUserIdAndProjectId(user.getId(), project.getId())
-          .orElse(projectUserRepository.save(new ProjectUser()
+          .orElseGet(() -> projectUserRepository.save(new ProjectUser()
               .withProject(projectEntity)
               .withProjectRole(resolveProjectRole(orgUser.getOrganizationRole(), project.getProjectRole().getValue()))
               .withUser(user)));

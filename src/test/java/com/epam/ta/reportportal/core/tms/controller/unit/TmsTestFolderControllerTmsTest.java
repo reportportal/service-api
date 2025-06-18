@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.service.TmsTestFolderService;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,8 +34,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.core.MethodParameter;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -213,7 +212,7 @@ public class TmsTestFolderControllerTmsTest {
         .id(1L)
         .name("name")
         .description("doc")
-        .countOfSubfolders(3L)
+        .countOfTestCases(3L)
         .build();
 
     given(tmsTestFolderService.getById(projectId, folderId)).willReturn(expectedResponse);
@@ -223,7 +222,7 @@ public class TmsTestFolderControllerTmsTest {
         .andExpect(jsonPath("$.id").value(1))
         .andExpect(jsonPath("$.name").value("name"))
         .andExpect(jsonPath("$.description").value("doc"))
-        .andExpect(jsonPath("$.countOfSubfolders").value(3));
+        .andExpect(jsonPath("$.countOfTestCases").value(3));
 
     verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestFolderService).getById(projectId, folderId);
@@ -235,19 +234,21 @@ public class TmsTestFolderControllerTmsTest {
         .id(1L)
         .name("name1")
         .description("doc1")
-        .countOfSubfolders(2L)
+        .countOfTestCases(2L)
         .build();
     TmsTestFolderRS folder2 = TmsTestFolderRS.builder()
         .id(2L)
         .name("name2")
         .description("doc2")
-        .countOfSubfolders(3L)
+        .countOfTestCases(3L)
         .build();
 
-    Page<TmsTestFolderRS> expectedResponse = new PageImpl<>(
+
+    Page<TmsTestFolderRS> expectedResponse = new Page<>(
         Arrays.asList(folder1, folder2),
-        pageable,
-        2
+        10L, // size
+        0L,  // number
+        2L   // totalElements
     );
 
     given(tmsTestFolderService.getFoldersByProjectID(projectId, pageable)).willReturn(
@@ -259,11 +260,11 @@ public class TmsTestFolderControllerTmsTest {
         .andExpect(jsonPath("$.content.length()").value(2))
         .andExpect(jsonPath("$.content[0].id").value(1))
         .andExpect(jsonPath("$.content[0].name").value("name1"))
-        .andExpect(jsonPath("$.content[0].countOfSubfolders").value(2))
+        .andExpect(jsonPath("$.content[0].countOfTestCases").value(2))
         .andExpect(jsonPath("$.content[1].id").value(2))
         .andExpect(jsonPath("$.content[1].name").value("name2"))
-        .andExpect(jsonPath("$.content[1].countOfSubfolders").value(3))
-        .andExpect(jsonPath("$.totalElements").value(2));
+        .andExpect(jsonPath("$.content[1].countOfTestCases").value(3))
+        .andExpect(jsonPath("$.page.totalElements").value(2));
 
     verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestFolderService).getFoldersByProjectID(projectId, pageable);
@@ -276,19 +277,21 @@ public class TmsTestFolderControllerTmsTest {
         .id(2L)
         .name("subfolder1")
         .description("subfolder doc1")
-        .countOfSubfolders(0L)
+        .countOfTestCases(0L)
         .build();
     TmsTestFolderRS subfolder2 = TmsTestFolderRS.builder()
         .id(3L)
         .name("subfolder2")
         .description("subfolder doc2")
-        .countOfSubfolders(1L)
+        .countOfTestCases(1L)
         .build();
 
-    Page<TmsTestFolderRS> expectedResponse = new PageImpl<>(
+
+    Page<TmsTestFolderRS> expectedResponse = new Page<>(
         Arrays.asList(subfolder1, subfolder2),
-        pageable,
-        2
+        10L, // size
+        0L,  // number
+        2L   // totalElements
     );
 
     given(tmsTestFolderService.getSubFolders(projectId, parentFolderId, pageable))
@@ -303,7 +306,7 @@ public class TmsTestFolderControllerTmsTest {
         .andExpect(jsonPath("$.content[0].name").value("subfolder1"))
         .andExpect(jsonPath("$.content[1].id").value(3))
         .andExpect(jsonPath("$.content[1].name").value("subfolder2"))
-        .andExpect(jsonPath("$.totalElements").value(2));
+        .andExpect(jsonPath("$.page.totalElements").value(2));
 
     verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestFolderService).getSubFolders(projectId, parentFolderId, pageable);

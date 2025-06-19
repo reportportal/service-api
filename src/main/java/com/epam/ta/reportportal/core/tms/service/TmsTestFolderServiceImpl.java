@@ -4,6 +4,8 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderIdWithCountOfTestCases;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfTestCases;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestFolderRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
@@ -12,17 +14,21 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.exception.NotFoundException;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestFolderMapper;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestFolderExporterFactory;
+import com.epam.ta.reportportal.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ValidationException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Implementation of the {@link TmsTestFolderService} interface that provides operations
@@ -61,7 +67,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
 
     createParentTestFolder(projectId, inputDto.getParentTestFolder(), testFolder);
 
-    return tmsTestFolderMapper.convertToRS(tmsTestFolderRepository.save(testFolder));
+    return tmsTestFolderMapper.convertFromTmsTestFolderToRS(tmsTestFolderRepository.save(testFolder));
   }
 
   /**
@@ -88,7 +94,9 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
 
           updateParentTestFolder(projectId, inputDto.getParentTestFolder(), existingTestFolder);
 
-          return tmsTestFolderMapper.convert(tmsTestFolderRepository.save(existingTestFolder));
+          return tmsTestFolderMapper.convertFromTmsTestFolderToRS(
+              tmsTestFolderRepository.save(existingTestFolder)
+          );
         })
         .orElseGet(() -> create(projectId, inputDto));
   }
@@ -116,7 +124,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
 
           patchParentTestFolder(projectId, inputDto.getParentTestFolder(), existingTestFolder);
 
-          return tmsTestFolderMapper.convert(tmsTestFolderRepository.save(existingTestFolder));
+          return tmsTestFolderMapper.convertFromTmsTestFolderToRS(tmsTestFolderRepository.save(existingTestFolder));
         })
         .orElseThrow(NotFoundException.supplier(TEST_FOLDER_NOT_FOUND_BY_ID, testFolderId));
   }
@@ -134,18 +142,49 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
   @Override
   @Transactional(readOnly = true)
   public TmsTestFolderRS getById(long projectId, Long id) {
-    return tmsTestFolderMapper.convertToRS(
-        tmsTestFolderRepository
-            .findByIdWithCountOfSubfolders(projectId, id)
-            .orElseThrow(NotFoundException.supplier(TEST_FOLDER_NOT_FOUND_BY_ID, id))
-    );
+    return tmsTestFolderRepository
+        .findByIdWithCountOfTestCases(projectId, id)
+        .map(tmsTestFolderWithCountOfTestCases -> {
+          var folderWithSubFolders = tmsTestFolderRepository.findByIdWithSubFolders(id);
+
+          Map<Long, Long> subFolderTestCaseCounts = new HashMap<>();
+
+          if (folderWithSubFolders.isPresent()) {
+            var testFolder = folderWithSubFolders.get();
+            tmsTestFolderWithCountOfTestCases
+                .getTestFolder()
+                .setSubFolders(testFolder.getSubFolders());
+
+            if (!CollectionUtils.isEmpty(testFolder.getSubFolders())) {
+              var subFolderIds = testFolder.getSubFolders()
+                  .stream()
+                  .map(TmsTestFolder::getId)
+                  .collect(Collectors.toList());
+
+              var testCaseCountResults = tmsTestFolderRepository.findTestCaseCountsByFolderIds(subFolderIds);
+              subFolderTestCaseCounts = testCaseCountResults
+                  .stream()
+                  .collect(Collectors.toMap(
+                      TmsTestFolderIdWithCountOfTestCases::getTestFolderId,
+                      TmsTestFolderIdWithCountOfTestCases::getCountOfTestCases
+                  ));
+            }
+          }
+
+          return tmsTestFolderMapper.convertFromTmsTestFolderWithCountOfTestCasesToRS(
+              tmsTestFolderWithCountOfTestCases,
+              subFolderTestCaseCounts
+          );
+        })
+        .orElseThrow(NotFoundException
+            .supplier(TEST_FOLDER_NOT_FOUND_BY_ID, id));
   }
 
   /**
-   * Retrieves all test folders in a project.
+   * Retrieves test folders in a project.
    * <p>
-   * This method returns a paginated list of folders, each with information about
-   * the number of subfolders it contains.
+   * This method returns a paginated list of folders, each with information about the number of
+   * subfolders it contains.
    *
    * @param projectId The ID of the project
    * @param pageable  Pagination parameters
@@ -153,10 +192,10 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
    */
   @Override
   @Transactional(readOnly = true)
-  public Page<TmsTestFolderRS> getFoldersByProjectID(final long projectId, Pageable pageable) {
-    return tmsTestFolderMapper.convertToRS(
-        tmsTestFolderRepository.findAllByProjectIdWithCountOfSubfolders(projectId, pageable)
-    );
+  public Page<TmsTestFolderRS> getFoldersByProjectID(
+      final long projectId, Pageable pageable) {
+    var page = tmsTestFolderRepository.findAllByProjectIdWithCountOfTestCases(projectId, pageable);
+    return getTmsTestFoldersWithSubfoldersAndTmsTestCount(page);
   }
 
   /**
@@ -173,11 +212,10 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
   @Override
   @Transactional(readOnly = true)
   public Page<TmsTestFolderRS> getSubFolders(long projectId, Long folderId, Pageable pageable) {
-    return tmsTestFolderMapper.convertToRS(
-        tmsTestFolderRepository.findAllByParentTestFolderIdWithCountOfSubfolders(
-            projectId, folderId, pageable
-        )
+    var page = tmsTestFolderRepository.findAllByParentTestFolderIdWithCountOfTestCases(
+        projectId, folderId, pageable
     );
+    return getTmsTestFoldersWithSubfoldersAndTmsTestCount(page);
   }
 
   /**
@@ -234,10 +272,10 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
           var parent = folder.getParentTestFolder();
           if (parent != null && folderMap.containsKey(parent.getId())) {
             var actualParent = folderMap.get(parent.getId());
-            if (actualParent.getSubTestFolders() == null) {
-              actualParent.setSubTestFolders(new ArrayList<>());
+            if (actualParent.getSubFolders() == null) {
+              actualParent.setSubFolders(new ArrayList<>());
             }
-            actualParent.getSubTestFolders().add(folder);
+            actualParent.getSubFolders().add(folder);
           }
         }
     );
@@ -357,5 +395,59 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
         existingTestFolder.setParentTestFolder(null);
       }
     }
+  }
+
+  private Page<TmsTestFolderRS> getTmsTestFoldersWithSubfoldersAndTmsTestCount(
+      org.springframework.data.domain.Page<TmsTestFolderWithCountOfTestCases> page) {
+    if (page.hasContent()) {
+      var folderIds = page
+          .getContent()
+          .stream()
+          .map(TmsTestFolderWithCountOfTestCases::getTestFolder)
+          .map(TmsTestFolder::getId)
+          .collect(Collectors.toList());
+
+      var subFoldersMap =  tmsTestFolderRepository
+          .findByIdsWithSubFolders(folderIds)
+          .stream()
+          .collect(Collectors.toMap(
+              TmsTestFolder::getId,
+              TmsTestFolder::getSubFolders,
+              (existing, replacement) -> existing
+          ));
+
+      var allSubFolderIds = subFoldersMap.values()
+          .stream()
+          .flatMap(Collection::stream)
+          .map(TmsTestFolder::getId)
+          .distinct()
+          .collect(Collectors.toList());
+
+      Map<Long, Long> subFolderTestCaseCounts = new HashMap<>();
+      if (!allSubFolderIds.isEmpty()) {
+        var testCaseCountResults = tmsTestFolderRepository.findTestCaseCountsByFolderIds(allSubFolderIds);
+        subFolderTestCaseCounts = testCaseCountResults
+            .stream()
+            .collect(Collectors.toMap(
+                TmsTestFolderIdWithCountOfTestCases::getTestFolderId,
+                TmsTestFolderIdWithCountOfTestCases::getCountOfTestCases
+            ));
+      }
+
+      page
+          .getContent()
+          .stream()
+          .map(TmsTestFolderWithCountOfTestCases::getTestFolder)
+          .forEach(testFolder -> {
+            var subFolders = subFoldersMap.get(testFolder.getId());
+            if (subFolders != null) {
+              testFolder.setSubFolders(subFolders);
+            }
+          });
+
+      return tmsTestFolderMapper.convert(page, subFolderTestCaseCounts);
+    }
+
+    return tmsTestFolderMapper.convert(page);
   }
 }

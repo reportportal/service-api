@@ -78,7 +78,6 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
    * the test folder ID, but is designed to be extensible for additional fields
    * in the future.
    * </p>
-   * <p>
    * The update logic:
    * <ul>
    *   <li>If testFolderId is not null, updates the test_folder_id field</li>
@@ -86,7 +85,6 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
    *   <li>Only test cases with IDs in the provided list will be updated</li>
    *   <li>Non-existent IDs will be silently ignored</li>
    * </ul>
-   * </p>
    * <p>
    * <strong>Future extensibility:</strong> Additional fields can be added by uncommenting
    * and modifying the template CASE statements in the query.

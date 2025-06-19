@@ -5,10 +5,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class TmsTestFolderWithCountOfSubfolders {
+@AllArgsConstructor
+public class TmsTestFolderWithCountOfTestCases {
 
   private TmsTestFolder testFolder;
-  private Long countOfSubfolders;
+  private Long countOfTestCases;
 }

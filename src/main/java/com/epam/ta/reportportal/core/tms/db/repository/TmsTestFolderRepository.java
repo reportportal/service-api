@@ -1,12 +1,14 @@
 package com.epam.ta.reportportal.core.tms.db.repository;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfSubfolders;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderIdWithCountOfTestCases;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfTestCases;
 import com.epam.ta.reportportal.dao.ReportPortalRepository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,13 +21,17 @@ import org.springframework.stereotype.Repository;
 public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestFolder, Long> {
 
   @Query(
-      "SELECT new com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfSubfolders(tf, "
-          + "(SELECT COUNT(sf) FROM TmsTestFolder sf WHERE sf.parentTestFolder.id = tf.id)) "
-          + "FROM TmsTestFolder tf WHERE tf.project.id = :projectId"
+      "SELECT new com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfTestCases(tf, "
+          + "(SELECT COUNT(tc) FROM TmsTestCase tc WHERE tc.testFolder.id = tf.id)) "
+          + "FROM TmsTestFolder tf "
+          + "WHERE tf.project.id = :projectId"
   )
-  Page<TmsTestFolderWithCountOfSubfolders> findAllByProjectIdWithCountOfSubfolders(
+  Page<TmsTestFolderWithCountOfTestCases> findAllByProjectIdWithCountOfTestCases(
       @Param("projectId") long projectId, Pageable pageable
   );
+
+  @Query("SELECT tf FROM TmsTestFolder tf LEFT JOIN FETCH tf.subFolders WHERE tf.id IN :folderIds")
+  List<TmsTestFolder> findByIdsWithSubFolders(@Param("folderIds") List<Long> folderIds);
 
   /**
    * Finds all direct subfolders of a given test folder
@@ -35,23 +41,41 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
    * @return List of subfolders
    */
   @Query(
-      "SELECT new com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfSubfolders(tf, "
-          + "(SELECT COUNT(sf) FROM TmsTestFolder sf WHERE sf.parentTestFolder.id = tf.id)) "
-          + "FROM TmsTestFolder tf WHERE tf.project.id = :projectId and tf.parentTestFolder.id = :parentFolderId"
+      "SELECT new com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfTestCases(tf, "
+          + "(SELECT COUNT(tc) FROM TmsTestCase tc WHERE tc.testFolder.id = tf.id)) "
+          + "FROM TmsTestFolder tf "
+          + "WHERE tf.project.id = :projectId and tf.parentTestFolder.id = :parentFolderId"
   )
-  Page<TmsTestFolderWithCountOfSubfolders> findAllByParentTestFolderIdWithCountOfSubfolders(
+  Page<TmsTestFolderWithCountOfTestCases> findAllByParentTestFolderIdWithCountOfTestCases(
       @Param("projectId") long projectId,
       @Param("parentFolderId") Long parentFolderId,
       Pageable pageable
   );
 
   @Query(
-      "SELECT new com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfSubfolders(tf, "
-          + "(SELECT COUNT(sf) FROM TmsTestFolder sf WHERE sf.parentTestFolder.id = tf.id)) "
-          + "FROM TmsTestFolder tf WHERE tf.project.id = :projectId and tf.id = :folderId"
+      "SELECT new com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfTestCases(tf, "
+          + "(SELECT COUNT(tc) FROM TmsTestCase tc WHERE tc.testFolder.id = tf.id)) "
+          + "FROM TmsTestFolder tf "
+          + "WHERE tf.project.id = :projectId and tf.id = :folderId"
   )
-  Optional<TmsTestFolderWithCountOfSubfolders> findByIdWithCountOfSubfolders(
+  Optional<TmsTestFolderWithCountOfTestCases> findByIdWithCountOfTestCases(
       @Param("projectId") Long projectId, @Param("folderId") Long folderId);
+
+  /**
+   * Returns test folder ids and counts of test cases
+   *
+   * @param folderIds список ID папок
+   * @return List объектов TmsTestFolderIdWithCountOfTestCases
+   */
+  @Query("SELECT new com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderIdWithCountOfTestCases(tf.id, COUNT(tc)) " +
+      "FROM TmsTestFolder tf " +
+      "LEFT JOIN tf.testCases tc " +
+      "WHERE tf.id IN :folderIds " +
+      "GROUP BY tf.id")
+  List<TmsTestFolderIdWithCountOfTestCases> findTestCaseCountsByFolderIds(@Param("folderIds") List<Long> folderIds);
+
+  @Query("SELECT tf FROM TmsTestFolder tf LEFT JOIN FETCH tf.subFolders WHERE tf.id = :folderId")
+  Optional<TmsTestFolder> findByIdWithSubFolders(@Param("folderId") Long folderId);
 
   /**
    * Finds a folder by given ID and project ID

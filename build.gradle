@@ -63,12 +63,11 @@ println("Release mode: $releaseMode")
 dependencies {
     if (releaseMode) {
         println("Using release dependencies")
-        implementation 'com.epam.reportportal:commons'
-        implementation 'com.epam.reportportal:commons-dao'
-        implementation ('com.epam.reportportal:plugin-api') {
-            exclude group: 'com.epam.reportportal:commons-dao', module: 'commons-dao'
+        implementation 'com.github.reportportal:commons:fdfdcdf'
+        implementation 'com.github.reportportal:commons-dao:aa7da78'
+        implementation ('com.github.reportportal:plugin-api:6009bc4') {
+            exclude group: 'com.github.reportportal:commons-dao', module: 'commons-dao'
         }
-
     } else {
         println("Using snapshot dependencies")
         implementation 'com.github.reportportal:commons:fdfdcdf'

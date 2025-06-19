@@ -40,7 +40,7 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
  */
 public final class ExceptionMappings {
 
-  private static final ReloadableResourceBundleMessageSource MESSAGE_SOURCE = new ReloadableResourceBundleMessageSource() {
+  public static final ReloadableResourceBundleMessageSource MESSAGE_SOURCE = new ReloadableResourceBundleMessageSource() {
     {
       setBasename("classpath:ValidationMessages");
       setDefaultEncoding("UTF-8");

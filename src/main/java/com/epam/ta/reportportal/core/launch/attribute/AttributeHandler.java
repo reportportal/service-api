@@ -23,6 +23,9 @@ import com.epam.ta.reportportal.entity.launch.Launch;
  * @author Ivan Kustau
  */
 public interface AttributeHandler {
+
+  String RETENTION_POLICY_KEY = "retentionPolicy";
+
   /**
    * Handles different attribute creation during the start of launch.
    *

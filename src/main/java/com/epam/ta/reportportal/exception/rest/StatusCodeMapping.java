@@ -66,6 +66,7 @@ public class StatusCodeMapping {
       put(ErrorType.RESOURCE_ALREADY_EXISTS, HttpStatus.CONFLICT);
       put(ErrorType.PROJECT_ALREADY_EXISTS, HttpStatus.CONFLICT);
       put(ErrorType.USER_ALREADY_EXISTS, HttpStatus.CONFLICT);
+      put(ErrorType.USER_ALREADY_ASSIGNED, HttpStatus.CONFLICT);
       put(ErrorType.USER_FILTER_ALREADY_EXISTS, HttpStatus.CONFLICT);
       put(ErrorType.ROLE_ALREADY_EXISTS_ERROR, HttpStatus.CONFLICT);
 

@@ -22,6 +22,7 @@ import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_ASSIGNED;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateInvitationUrl;
 import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.BID_TYPE;
@@ -161,7 +162,8 @@ public class UserInvitationServiceImpl implements UserInvitationService {
       organizationUserRepository.findByUserIdAndOrganization_Id(userToAssign.getId(), organization.getId())
           .orElseGet(() -> {
             validateUserType(organization, userToAssign);
-            return organizationUserService.saveOrganizationUser(organization, userToAssign, OrganizationRole.MEMBER.toString());
+            return organizationUserService.saveOrganizationUser(organization, userToAssign,
+                OrganizationRole.MEMBER.toString());
           });
 
       assignProjects(orgInfo.getProjects(), organization.getId(), userToAssign);
@@ -181,13 +183,19 @@ public class UserInvitationServiceImpl implements UserInvitationService {
       var projectEntity = projectRepository.findById(project.getId())
           .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, project.getId()));
       expect(projectEntity.getOrganizationId(), equalTo(orgId))
-          .verify(BAD_REQUEST_ERROR, formattedSupplier("Project '{}' does not belong to organization {}", project.getId(), orgId));
+          .verify(BAD_REQUEST_ERROR,
+              formattedSupplier("Project '{}' does not belong to organization {}", project.getId(), orgId));
 
       projectUserRepository.findProjectUserByUserIdAndProjectId(user.getId(), project.getId())
-          .orElseGet(() -> projectUserRepository.save(new ProjectUser()
-              .withProject(projectEntity)
-              .withProjectRole(ProjectRole.valueOf(project.getProjectRole().toString()))
-              .withUser(user)));
+          .ifPresent(pu -> {
+            throw new ReportPortalException(USER_ALREADY_ASSIGNED, user.getId(),
+                formattedSupplier("the project '{}'", project.getId()));
+          });
+
+      projectUserRepository.save(new ProjectUser()
+          .withProject(projectEntity)
+          .withProjectRole(ProjectRole.valueOf(project.getProjectRole().toString()))
+          .withUser(user));
     });
 
   }

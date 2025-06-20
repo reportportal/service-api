@@ -35,7 +35,7 @@ insert into organization_user (user_id, organization_id, organization_role)
     values (3, 101, (select 'MEMBER'::public."organization_role_enum"));
 
 insert into owned_entity(id, owner, project_id)
-values (1, 'superadmin', 3);
+values (1, 'admin@reportportal.internal', 3);
 insert into filter(id, name, target, description)
 values (1, 'test filter', 'Launch', 'decription');
 insert into filter_sort(filter_id, field)
@@ -47,7 +47,7 @@ insert into user_preference(project_id, user_id, filter_id)
 values (3, 1, 1);
 
 insert into owned_entity(id, owner, project_id)
-values (2, 'superadmin', 3);
+values (2, 'admin@reportportal.internal', 3);
 insert into filter(id, name, target, description)
 values (2, 'test filter2', 'Launch', 'decription');
 insert into filter_sort(filter_id, field)

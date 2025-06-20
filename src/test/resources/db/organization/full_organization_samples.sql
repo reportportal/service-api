@@ -22,7 +22,7 @@
 -- admin
 INSERT INTO users(id, login, password, email, attachment, attachment_thumbnail, role, type, expired,
                   full_name, metadata)
-VALUES (101, 'admin', '179AD45C6CE2CB97CF1029E212046E81', 'admin@example.com', NULL, NULL,
+VALUES (101, 'admin@example.com', '179AD45C6CE2CB97CF1029E212046E81', 'admin@example.com', NULL, NULL,
         'ADMINISTRATOR', 'INTERNAL', FALSE, 'Simply admin',
         '{
           "metadata": {
@@ -33,7 +33,7 @@ VALUES (101, 'admin', '179AD45C6CE2CB97CF1029E212046E81', 'admin@example.com', N
 -- no projects admin
 INSERT INTO users(id, login, password, email, attachment, attachment_thumbnail, role, type, expired,
                   full_name, metadata)
-VALUES (102, 'no-projects-admin', '179AD45C6CE2CB97CF1029E212046E81',
+VALUES (102, 'no-projects-admin@example.com', '179AD45C6CE2CB97CF1029E212046E81',
         'no-projects-admin@example.com', NULL, NULL, 'ADMINISTRATOR', 'INTERNAL', FALSE,
         'no projects admin',
         '{
@@ -45,7 +45,7 @@ VALUES (102, 'no-projects-admin', '179AD45C6CE2CB97CF1029E212046E81',
 -- no orgs admin
 INSERT INTO users(id, login, password, email, attachment, attachment_thumbnail, role, type, expired,
                   full_name, metadata)
-VALUES (103, 'no-orgs-admin', '179AD45C6CE2CB97CF1029E212046E81', 'no-orgs-admin@example.com', NULL,
+VALUES (103, 'no-orgs-admin@example.com', '179AD45C6CE2CB97CF1029E212046E81', 'no-orgs-admin@example.com', NULL,
         NULL, 'ADMINISTRATOR', 'INTERNAL', FALSE, 'no orgs admin',
         '{
           "metadata": {
@@ -56,7 +56,7 @@ VALUES (103, 'no-orgs-admin', '179AD45C6CE2CB97CF1029E212046E81', 'no-orgs-admin
 -- user manager
 INSERT INTO users(id, login, password, email, attachment, attachment_thumbnail, role, type, expired,
                   full_name, metadata)
-VALUES (104, 'user-manager', '179AD45C6CE2CB97CF1029E212046E81', 'user-manager@example.com', NULL,
+VALUES (104, 'user-manager@example.com', '179AD45C6CE2CB97CF1029E212046E81', 'user-manager@example.com', NULL,
         NULL, 'USER', 'INTERNAL', FALSE, 'user manager',
         '{
           "metadata": {
@@ -67,7 +67,7 @@ VALUES (104, 'user-manager', '179AD45C6CE2CB97CF1029E212046E81', 'user-manager@e
 -- user member editor
 INSERT INTO users(id, login, password, email, attachment, attachment_thumbnail, role, type, expired,
                   full_name, metadata)
-VALUES (105, 'user-member-editor', '179AD45C6CE2CB97CF1029E212046E81',
+VALUES (105, 'user-member-editor@example.com', '179AD45C6CE2CB97CF1029E212046E81',
         'user-member-editor@example.com', NULL, NULL, 'USER', 'INTERNAL', FALSE,
         'user member editor',
         '{
@@ -79,7 +79,7 @@ VALUES (105, 'user-member-editor', '179AD45C6CE2CB97CF1029E212046E81',
 -- user member viewer
 INSERT INTO users(id, login, password, email, attachment, attachment_thumbnail, role, type, expired,
                   full_name, metadata)
-VALUES (106, 'user-member-viewer', '179AD45C6CE2CB97CF1029E212046E81',
+VALUES (106, 'user-member-viewer@example.com', '179AD45C6CE2CB97CF1029E212046E81',
         'user-member-viewer@example.com', NULL, NULL, 'USER', 'INTERNAL', FALSE,
         'user member viewer',
         '{
@@ -102,7 +102,7 @@ VALUES (107, 'no-projects-user', '179AD45C6CE2CB97CF1029E212046E81', 'no-project
 -- no orgs user
 INSERT INTO users(id, login, password, email, attachment, attachment_thumbnail, role, type, expired,
                   full_name, metadata)
-VALUES (108, 'no-orgs-user', '179AD45C6CE2CB97CF1029E212046E81', 'no-orgs-user@example.com', NULL,
+VALUES (108, 'no-orgs-user@example.com', '179AD45C6CE2CB97CF1029E212046E81', 'no-orgs-user@example.com', NULL,
         NULL, 'USER', 'INTERNAL', FALSE, 'no orgs user',
         '{
           "metadata": {
@@ -112,7 +112,7 @@ VALUES (108, 'no-orgs-user', '179AD45C6CE2CB97CF1029E212046E81', 'no-orgs-user@e
 
 INSERT INTO users(id, login, password, email, attachment, attachment_thumbnail, role, type, expired,
                   full_name, metadata)
-VALUES (109, 'upsa-user', '179AD45C6CE2CB97CF1029E212046E81', 'upsa-user@example.com', NULL,
+VALUES (109, 'upsa-user@example.com', '179AD45C6CE2CB97CF1029E212046E81', 'upsa-user@example.com', NULL,
         NULL, 'USER', 'UPSA', FALSE, 'upsa user',
         '{
           "metadata": {

@@ -1,5 +1,5 @@
 INSERT INTO users (login, password, email, role, type, full_name, expired, metadata)
-VALUES ('default_customer', '5d39d85bddde885f6579f8121e11eba2', 'customeremail@domain.com', 'USER',
+VALUES ('customeremail@domain.com', '5d39d85bddde885f6579f8121e11eba2', 'customeremail@domain.com', 'USER',
         'INTERNAL', 'tester', FALSE,
         '{"metadata": {"last_login": 0}}');
 

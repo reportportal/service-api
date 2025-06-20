@@ -40,14 +40,15 @@ public class OAuthHelper {
   private String customerToken;
 
   public String getDefaultToken() {
-    return defaultToken == null ? defaultToken = createAccessToken("default", "1q2w3e",
-        UserRole.USER) : defaultToken;
+    return defaultToken == null ?
+        defaultToken = createAccessToken("default@reportportal.internal", "1q2w3e", UserRole.USER) :
+        defaultToken;
   }
 
   public String getSuperadminToken() {
     return superadminToken == null ?
-        superadminToken = createAccessToken("superadmin", "erebus", UserRole.ADMINISTRATOR)
-        : superadminToken;
+        superadminToken = createAccessToken("admin@reportportal.internal", "erebus", UserRole.ADMINISTRATOR) :
+        superadminToken;
   }
 
   public String getCustomerToken() {

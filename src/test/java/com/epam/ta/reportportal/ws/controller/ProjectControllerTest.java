@@ -39,7 +39,6 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.LogicalOperator;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
-import com.epam.ta.reportportal.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.model.project.CreateProjectRQ;
 import com.epam.ta.reportportal.model.project.UnassignUsersRQ;
@@ -50,7 +49,6 @@ import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.rabbitmq.http.client.Client;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
@@ -157,7 +155,8 @@ class ProjectControllerTest extends BaseMvcTest {
         .contentType(APPLICATION_JSON)
         .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 
-    Project project = projectRepository.findByKey("test_project").get();
+    Project project = projectRepository.findByKey("test_project")
+        .orElseThrow(() -> new AssertionError("Test project 'test_project' not found"));
     projectAttributes.forEach((key, value) -> {
       Optional<ProjectAttribute> pa = project.getProjectAttributes()
           .stream()
@@ -336,8 +335,6 @@ class ProjectControllerTest extends BaseMvcTest {
   @Test
   @Disabled("waiting for requirements")
   void bulkDeleteProjects() throws Exception {
-    DeleteBulkRQ bulkRQ = new DeleteBulkRQ();
-    bulkRQ.setIds(Lists.newArrayList(2L, 3L));
     mockMvc.perform(delete("/v1/project")
             .with(token(oAuthHelper.getSuperadminToken()))
             .contentType(APPLICATION_JSON)
@@ -386,7 +383,7 @@ class ProjectControllerTest extends BaseMvcTest {
   void assignProjectUsersPositive() throws Exception {
     AssignUsersRQ rq = new AssignUsersRQ();
     Map<String, String> user = new HashMap<>();
-    user.put("default", "EDITOR");
+    user.put("default@reportportal.internal", "EDITOR");
     rq.setUserNames(user);
     mockMvc.perform(
         put("/v1/project/test_project/assign")
@@ -590,7 +587,7 @@ class ProjectControllerTest extends BaseMvcTest {
 
     SenderCaseDTO senderCaseDTO = new SenderCaseDTO();
     senderCaseDTO.setSendCase("always");
-    senderCaseDTO.setRecipients(Collections.singletonList("default"));
+    senderCaseDTO.setRecipients(Collections.singletonList("default@example.com"));
     senderCaseDTO.setLaunchNames(Collections.singletonList("test launch"));
     senderCaseDTO.setEnabled(true);
     senderCaseDTO.setRuleName("rule #1");
@@ -661,6 +658,6 @@ class ProjectControllerTest extends BaseMvcTest {
     assertEquals(2L, event.getProjectId().longValue());
     assertEquals("default_personal", event.getProjectName());
     assertEquals(2L, event.getUserId().longValue());
-    assertEquals("default", event.getUserLogin());
+    assertEquals("default@reportportal.internal", event.getUserLogin());
   }
 }

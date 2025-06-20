@@ -61,4 +61,4 @@ values (now() - interval '12 day', 'UPDATE', 'updateDashboard', 'MEDIUM', 1, 'na
        (now() - INTERVAL '1 day', 'FINISH', 'finishLaunch', 'MEDIUM', 4, 'launch test', 'LAUNCH', 1, '{
   "type": "com.epam.ta.reportportal.entity.activity.ActivityDetails",
   "history": []
-}', 1, 'superadmin', 'USER', 1);
+}', 1, 'admin@reportportal.internal', 'USER', 1);

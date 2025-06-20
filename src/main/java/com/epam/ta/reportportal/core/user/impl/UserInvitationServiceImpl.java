@@ -22,6 +22,7 @@ import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_ASSIGNED;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateInvitationUrl;
 import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.BID_TYPE;
@@ -189,10 +190,15 @@ public class UserInvitationServiceImpl implements UserInvitationService {
               formattedSupplier("Project '{}' does not belong to organization {}", project.getId(), orgId));
 
       projectUserRepository.findProjectUserByUserIdAndProjectId(user.getId(), project.getId())
-          .orElseGet(() -> projectUserRepository.save(new ProjectUser()
-              .withProject(projectEntity)
-              .withProjectRole(resolveProjectRole(orgUser.getOrganizationRole(), project.getProjectRole().getValue()))
-              .withUser(user)));
+          .ifPresent(pu -> {
+            throw new ReportPortalException(USER_ALREADY_ASSIGNED, user.getId(),
+                formattedSupplier("the project '{}'", project.getId()));
+          });
+
+      projectUserRepository.save(new ProjectUser()
+          .withProject(projectEntity)
+          .withProjectRole(resolveProjectRole(orgUser.getOrganizationRole(), project.getProjectRole().getValue()))
+          .withUser(user));
     });
 
   }

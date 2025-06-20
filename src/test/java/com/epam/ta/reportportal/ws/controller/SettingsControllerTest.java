@@ -23,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.epam.ta.reportportal.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.model.settings.UpdateSettingsRq;
+import com.epam.ta.reportportal.model.settings.UpdateSettingsRq.SettingsKey;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -45,18 +46,17 @@ class SettingsControllerTest extends BaseMvcTest {
 
   @Test
   void updateSettingsNegative() throws Exception {
-    UpdateSettingsRq mockRequest = new UpdateSettingsRq();
-    mockRequest.setKey("invalid_key");
-    mockRequest.setValue("true");
+    String json = "{\"key\":\"server.nonexistent.setting\",\"value\":\"true\"}";
     mockMvc.perform(put("/v1/settings").with(token(oAuthHelper.getSuperadminToken()))
-            .contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(mockRequest)))
-        .andExpect(status().isNotFound());
+            .contentType(APPLICATION_JSON)
+            .content(json))
+        .andExpect(status().isBadRequest());
   }
 
   @Test
   void updateSettings() throws Exception {
     UpdateSettingsRq mockRequest = new UpdateSettingsRq();
-    mockRequest.setKey("server.users.sso");
+    mockRequest.setKey(SettingsKey.fromValue("server.users.sso"));
     mockRequest.setValue("true");
 
     mockMvc.perform(put("/v1/settings").with(token(oAuthHelper.getSuperadminToken()))

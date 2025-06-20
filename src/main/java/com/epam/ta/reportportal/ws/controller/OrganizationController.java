@@ -22,12 +22,13 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION
 import static org.springframework.data.domain.Sort.Direction.ASC;
 
 import com.epam.reportportal.api.OrganizationsApi;
-import com.epam.reportportal.api.model.OrganizationBase;
+import com.epam.reportportal.api.model.CreateOrganizationRequest;
 import com.epam.reportportal.api.model.OrganizationInfo;
 import com.epam.reportportal.api.model.OrganizationPage;
 import com.epam.reportportal.api.model.OrganizationSettings;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
+import com.epam.reportportal.api.model.UpdateOrganizationRequest;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -114,8 +115,8 @@ public class OrganizationController extends BaseController implements Organizati
   @Override
   @PreAuthorize(IS_ADMIN)
   @Transactional
-  public ResponseEntity<OrganizationInfo> postOrganizations(OrganizationBase createRequest) {
-    var org = getOrgExtension().createOrganization(createRequest);
+  public ResponseEntity<OrganizationInfo> postOrganizations(CreateOrganizationRequest request) {
+    var org = getOrgExtension().createOrganization(request);
     var location = ServletUriComponentsBuilder.fromCurrentRequest()
         .path("/{orgId}")
         .buildAndExpand(org.getId())
@@ -126,8 +127,8 @@ public class OrganizationController extends BaseController implements Organizati
   @Override
   @PreAuthorize(ORGANIZATION_MANAGER)
   @Transactional
-  public ResponseEntity<SuccessfulUpdate> putOrganizationsOrgId(Long orgId, OrganizationBase updateRequest) {
-    getOrgExtension().updateOrganization(orgId, updateRequest);
+  public ResponseEntity<SuccessfulUpdate> putOrganizationsOrgId(Long orgId, UpdateOrganizationRequest request) {
+    getOrgExtension().updateOrganization(orgId, request);
     return ResponseEntity.ok(new SuccessfulUpdate("The update was completed successfully."));
   }
 

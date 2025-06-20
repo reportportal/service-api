@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.launch.util;
 
-import static com.epam.ta.reportportal.core.settings.ImportantLaunchSettingHandler.IMPORTANT_SETTINGS_KEY;
+import static com.epam.ta.reportportal.core.settings.handlers.ImportantLaunchSettingHandler.IMPORTANT_SETTINGS_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;

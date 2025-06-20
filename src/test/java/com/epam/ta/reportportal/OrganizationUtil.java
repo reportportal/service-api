@@ -38,7 +38,8 @@ public class OrganizationUtil {
       TEST_ORG_NAME,
       OrganizationType.INTERNAL,
       TEST_ORG_SLUG,
-      "ext-1");
+      "ext-1",
+      null);
 
   private OrganizationUtil() {
   }

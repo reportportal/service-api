@@ -51,6 +51,8 @@ import org.springframework.test.web.servlet.MvcResult;
 @Sql("/db/shareable/shareable-fill.sql")
 class WidgetControllerTest extends BaseMvcTest {
 
+  private final static String SUPERADMIN_USERNAME = "admin@reportportal.internal";
+
   @Autowired
   private ObjectMapper objectMapper;
 
@@ -132,9 +134,10 @@ class WidgetControllerTest extends BaseMvcTest {
     contentParameters.setContentFields(Arrays.asList("number", "start_time", "user"));
     contentParameters.setItemsCount(50);
     rq.setContentParameters(contentParameters);
-    mockMvc.perform(
-            put(SUPERADMIN_PROJECT_BASE_URL + "/widget/5").with(token(oAuthHelper.getSuperadminToken()))
-                .content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON))
+    mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/widget/5")
+            .with(token(oAuthHelper.getSuperadminToken()))
+            .content(objectMapper.writeValueAsBytes(rq))
+            .contentType(APPLICATION_JSON))
         .andExpect(status().isConflict());
   }
 
@@ -312,7 +315,7 @@ class WidgetControllerTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content.result[0].values.statistics$executions$skipped").value("1"))
         .andExpect(jsonPath("$.content.result[0].values.status").value("FAILED"))
         .andExpect(jsonPath("$.content.result[0].values.description").value("desc"))
-        .andExpect(jsonPath("$.content.result[0].values.user").value("superadmin"))
+        .andExpect(jsonPath("$.content.result[0].values.user").value(SUPERADMIN_USERNAME))
         .andExpect(jsonPath("$.content.result[0].values.statistics$executions$failed").value("3"))
         .andExpect(jsonPath("$.content.result[0].values.statistics$executions$total").value("5"))
         .andExpect(jsonPath("$.content.result[0].values.statistics$executions$passed").value("1"))
@@ -657,7 +660,7 @@ class WidgetControllerTest extends BaseMvcTest {
         .andExpect(content().contentType("application/json"))
         .andExpect(jsonPath("$.name").value("unique bug table"))
         .andExpect(jsonPath("$.widgetType").value("uniqueBugTable"))
-        .andExpect(jsonPath("$.content.result.ticket1.submitter").value("superadmin"))
+        .andExpect(jsonPath("$.content.result.ticket1.submitter").value(SUPERADMIN_USERNAME))
         .andExpect(jsonPath("$.content.result.ticket1.url").value("http:/example.com/ticket1"))
         .andExpect(jsonPath("$.content.result.ticket1.items[0].launchId").value(1))
         .andExpect(jsonPath("$.content.result.ticket1.items[0].itemName").value("test item 2"))
@@ -772,13 +775,13 @@ class WidgetControllerTest extends BaseMvcTest {
         .andExpect(content().contentType("application/json"))
         .andExpect(jsonPath("$.name").value("activity stream"))
         .andExpect(jsonPath("$.widgetType").value("activityStream"))
-        .andExpect(jsonPath("$.content.result[0].user").value("superadmin"))
+        .andExpect(jsonPath("$.content.result[0].user").value(SUPERADMIN_USERNAME))
         .andExpect(jsonPath("$.content.result[0].actionType").value("startLaunch"))
         .andExpect(jsonPath("$.content.result[0].objectType").value("LAUNCH"))
-        .andExpect(jsonPath("$.content.result[1].user").value("superadmin"))
+        .andExpect(jsonPath("$.content.result[1].user").value(SUPERADMIN_USERNAME))
         .andExpect(jsonPath("$.content.result[1].actionType").value("updateItem"))
         .andExpect(jsonPath("$.content.result[1].objectType").value("ITEM"))
-        .andExpect(jsonPath("$.content.result[2].user").value("superadmin"))
+        .andExpect(jsonPath("$.content.result[2].user").value(SUPERADMIN_USERNAME))
         .andExpect(jsonPath("$.content.result[2].actionType").value("deleteLaunch"))
         .andExpect(jsonPath("$.content.result[2].objectType").value("LAUNCH"));
   }
@@ -809,13 +812,13 @@ class WidgetControllerTest extends BaseMvcTest {
         .andExpect(content().contentType("application/json"))
         .andExpect(jsonPath("$.name").value("activity stream"))
         .andExpect(jsonPath("$.widgetType").value("activityStream"))
-        .andExpect(jsonPath("$.content.result[0].user").value("superadmin"))
+        .andExpect(jsonPath("$.content.result[0].user").value(SUPERADMIN_USERNAME))
         .andExpect(jsonPath("$.content.result[0].actionType").value("startLaunch"))
         .andExpect(jsonPath("$.content.result[0].objectType").value("LAUNCH"))
-        .andExpect(jsonPath("$.content.result[1].user").value("superadmin"))
+        .andExpect(jsonPath("$.content.result[1].user").value(SUPERADMIN_USERNAME))
         .andExpect(jsonPath("$.content.result[1].actionType").value("updateItem"))
         .andExpect(jsonPath("$.content.result[1].objectType").value("ITEM"))
-        .andExpect(jsonPath("$.content.result[2].user").value("superadmin"))
+        .andExpect(jsonPath("$.content.result[2].user").value(SUPERADMIN_USERNAME))
         .andExpect(jsonPath("$.content.result[2].actionType").value("deleteLaunch"))
         .andExpect(jsonPath("$.content.result[2].objectType").value("LAUNCH"));
   }

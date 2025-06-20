@@ -59,8 +59,8 @@ insert into issue(issue_id, issue_type, issue_description, auto_analyzed, ignore
 values (5, 1, 'to investigate', false, true);
 
 INSERT INTO public.owned_entity (id, owner, project_id)
-VALUES (1, 'superadmin', 1),
-       (2, 'superadmin', 1);
+VALUES (1, 'admin@reportportal.internal', 1),
+       (2, 'admin@reportportal.internal', 1);
 
 INSERT INTO public.filter (id, name, target, description)
 VALUES (1, 'Admin Filter', 'Launch', null);

@@ -25,7 +25,7 @@ WHERE result_id = 2;
 INSERT INTO issue(issue_id, issue_type, issue_description, auto_analyzed, ignore_analyzer)
 VALUES (2, 2, 'automation bug', FALSE, TRUE);
 INSERT INTO ticket(id, ticket_id, submitter, bts_url, submit_date, url, bts_project)
-VALUES (1, 'ticket1', 'superadmin', 'http:/example.com', now(), 'http:/example.com/ticket1',
+VALUES (1, 'ticket1', 'admin@reportportal.internal', 'http:/example.com', now(), 'http:/example.com/ticket1',
         'superadmin_bts');
 INSERT INTO issue_ticket(issue_id, ticket_id)
 VALUES (2, 1);
@@ -130,10 +130,10 @@ VALUES (10, 1, 'to investigate', FALSE, TRUE);
 
 -- Filter and widget
 INSERT INTO public.owned_entity (id, owner, project_id)
-VALUES (1, 'superadmin', 1),
-       (2, 'superadmin', 1),
-       (3, 'superadmin', 1),
-       (4, 'superadmin', 1);
+VALUES (1, 'admin@reportportal.internal', 1),
+       (2, 'admin@reportportal.internal', 1),
+       (3, 'admin@reportportal.internal', 1),
+       (4, 'admin@reportportal.internal', 1);
 
 INSERT INTO public.filter (id, name, target, description)
 VALUES (1, 'Admin Filter', 'Launch', NULL),

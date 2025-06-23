@@ -110,12 +110,12 @@ public abstract class BaseMvcTest {
 
   @BeforeEach
   void beforeEach() {
-    adminToken = oAuthHelper.createAccessToken("admin", "erebus", UserRole.ADMINISTRATOR);
-    managerToken = oAuthHelper.createAccessToken("user-manager", "erebus", UserRole.USER);
-    editorToken = oAuthHelper.createAccessToken("user-member-editor", "erebus", UserRole.USER);
-    viewerToken = oAuthHelper.createAccessToken("user-member-viewer", "erebus", UserRole.USER);
-    noProjectsUser = oAuthHelper.createAccessToken("no-projects-user", "erebus", UserRole.USER);
-    noOrgUser = oAuthHelper.createAccessToken("no-orgs-user", "erebus", UserRole.USER);
+    adminToken = oAuthHelper.createAccessToken("admin@example.com", "erebus", UserRole.ADMINISTRATOR);
+    managerToken = oAuthHelper.createAccessToken("user-manager@example.com", "erebus", UserRole.USER);
+    editorToken = oAuthHelper.createAccessToken("user-member-editor@example.com", "erebus", UserRole.USER);
+    viewerToken = oAuthHelper.createAccessToken("user-member-viewer@example.com", "erebus", UserRole.USER);
+    noProjectsUser = oAuthHelper.createAccessToken("no-projects-user@example.com", "erebus", UserRole.USER);
+    noOrgUser = oAuthHelper.createAccessToken("no-orgs-user@example.com", "erebus", UserRole.USER);
   }
 
   protected RequestPostProcessor token(String tokenValue) {

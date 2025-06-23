@@ -72,12 +72,12 @@ values (2, 'uuid1', 1, 1, 'empty launch', 'desc', now(), null, 1, now(), 'DEFAUL
 
 -- Filter and widgets
 INSERT INTO public.owned_entity (id, owner, project_id)
-VALUES (1, 'superadmin', 1),
-       (2, 'superadmin', 1),
-       (3, 'superadmin', 1),
-       (4, 'superadmin', 1),
-       (5, 'superadmin', 1),
-       (6, 'superadmin', 1);
+VALUES (1, 'admin@reportportal.internal', 1),
+       (2, 'admin@reportportal.internal', 1),
+       (3, 'admin@reportportal.internal', 1),
+       (4, 'admin@reportportal.internal', 1),
+       (5, 'admin@reportportal.internal', 1),
+       (6, 'admin@reportportal.internal', 1);
 
 INSERT INTO public.filter (id, name, target, description)
 VALUES (1, 'Admin Filter', 'Launch', null),

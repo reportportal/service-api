@@ -46,7 +46,7 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       image-tag: ${{ needs.variables-setup.outputs.tag }}
       version: ${{ needs.variables-setup.outputs.tag }}
-      branch: ${{ github.head_ref }}
+      branch: ${{ github.head_ref != '' && github.head_ref || github.ref_name }}
       date: ${{ needs.variables-setup.outputs.date }}
       runs-on: ubuntu-latest
     secrets: inherit

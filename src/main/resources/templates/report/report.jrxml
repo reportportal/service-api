@@ -534,7 +534,7 @@
             </jr:columnHeader>
             <jr:detailCell style="Table_TD" height="20">
               <property name="com.jaspersoft.studio.unit.height" value="px"/>
-              <textField>
+              <textField isStretchWithOverflow="true">
                 <reportElement x="0" y="0" width="90" height="20"
                   uuid="113268f0-68f2-4c5e-b580-ff200e7b853c"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">

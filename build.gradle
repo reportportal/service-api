@@ -36,10 +36,10 @@ apply from: "$scriptsUrl/copy-database-scripts.gradle"
 project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
 
 repositories {
-    if (!releaseMode) {
-    }
-    maven { url 'https://jitpack.io' }
     mavenCentral { url "https://repo1.maven.org/maven2" }
+    if (!releaseMode) {
+        maven { url 'https://jitpack.io' }
+    }
 }
 
 java {

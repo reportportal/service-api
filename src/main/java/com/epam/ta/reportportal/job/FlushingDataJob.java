@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.job;
 import com.epam.ta.reportportal.binary.UserBinaryDataService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
+import com.epam.ta.reportportal.core.organization.PersonalOrganizationService;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -92,6 +93,9 @@ public class FlushingDataJob implements Job {
   @Autowired
   private FeatureFlagHandler featureFlagHandler;
 
+  @Autowired
+  private PersonalOrganizationService personalOrganizationService;
+
   @Value("${datastore.bucketPrefix}")
   private String bucketPrefix;
 
@@ -149,7 +153,8 @@ public class FlushingDataJob implements Job {
     User user = new UserBuilder().addCreateUserFullRQ(request).addUserRole(UserRole.USER)
         .addPassword(passwordEncoder.encode(request.getPassword())).get();
     projectRepository.save(personalProjectService.generatePersonalProject(user));
-    userRepository.save(user);
+    var savedUser = userRepository.save(user);
+    personalOrganizationService.create(savedUser);
     LOGGER.info("Default user has been successfully created.");
   }
 

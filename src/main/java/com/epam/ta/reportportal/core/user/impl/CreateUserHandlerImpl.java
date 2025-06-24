@@ -34,6 +34,7 @@ import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
+import com.epam.ta.reportportal.core.organization.PersonalOrganizationService;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.dao.RestorePasswordBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -70,32 +71,34 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   public static final String INTERNAL_BID_TYPE = "internal";
 
   private final UserRepository userRepository;
-
   private final MailServiceFactory emailServiceFactory;
-
   private final RestorePasswordBidRepository restorePasswordBidRepository;
-
   private final ThreadPoolTaskExecutor emailExecutorService;
-
   private final PasswordEncoder passwordEncoder;
-
   private final ApplicationEventPublisher eventPublisher;
+  private final PersonalOrganizationService personalOrganizationService;
 
   @Override
-  public InstanceUser createUser(NewUserRequest request, ReportPortalUser creator,
-      String basicUrl) {
-    request.setEmail(NORMALIZE_EMAIL.apply(request.getEmail()));
-    User saved = saveUser(request);
-    UserCreatedEvent userCreatedEvent = new UserCreatedEvent(
-        TO_ACTIVITY_RESOURCE.apply(saved, null),
+  public InstanceUser createUser(NewUserRequest request, ReportPortalUser creator, String basicUrl) {
+    var email = NORMALIZE_EMAIL.apply(request.getEmail());
+    request.setEmail(email);
+
+    var savedUser = saveUser(request);
+
+    personalOrganizationService.create(savedUser);
+
+    var userCreatedEvent = new UserCreatedEvent(
+        TO_ACTIVITY_RESOURCE.apply(savedUser, null),
         creator.getUserId(),
         creator.getEmail(),
         false
     );
     eventPublisher.publishEvent(userCreatedEvent);
+
     emailExecutorService.execute(() -> emailServiceFactory.getDefaultEmailService(true)
         .sendCreateUserConfirmationEmail(request, basicUrl));
-    return UserConverter.TO_INSTANCE_USER.apply(saved);
+
+    return UserConverter.TO_INSTANCE_USER.apply(savedUser);
   }
 
   @Override

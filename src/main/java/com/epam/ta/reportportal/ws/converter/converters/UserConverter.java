@@ -67,6 +67,7 @@ public final class UserConverter {
             UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
             assignedProject.setEntryType(p.getProject().getProjectType().name());
             assignedProject.setProjectRole(p.getProjectRole().toString());
+            assignedProject.setProjectId(p.getProject().getId());
             return assignedProject;
           }));
 

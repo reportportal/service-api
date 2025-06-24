@@ -98,6 +98,7 @@ public final class UserConverter {
           UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
           assignedProject.setEntryType(projectUser.getProject().getProjectType().name());
           assignedProject.setProjectRole(projectUser.getProjectRole().toString());
+          assignedProject.setProjectId(projectUser.getProject().getId());
           userProjectsMap.put(projectUser.getProject().getName(), assignedProject);
         });
 
@@ -106,6 +107,7 @@ public final class UserConverter {
           UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
           assignedProject.setEntryType(project.getProject().getProjectType().name());
           assignedProject.setProjectRole(project.getProjectRole().toString());
+          assignedProject.setProjectId(project.getProject().getId());
 
           if (userProjectsMap.containsKey(projectName)) {
             ProjectRole existProjectRole = ProjectRole.valueOf(

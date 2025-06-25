@@ -20,13 +20,13 @@ import com.epam.reportportal.api.model.OrganizationInfo;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.entity.user.User;
 import java.util.Optional;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
-@Log4j2
+@Slf4j
 @Service
 public class PersonalOrganizationService {
 

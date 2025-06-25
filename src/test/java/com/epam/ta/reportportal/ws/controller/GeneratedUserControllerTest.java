@@ -37,7 +37,8 @@ public class GeneratedUserControllerTest extends BaseMvcTest {
 
     mockMvc.perform(post("/users").with(token(oAuthHelper.getSuperadminToken()))
             .contentType(APPLICATION_JSON)
-            .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk())
+            .content(objectMapper.writeValueAsBytes(rq)))
+        .andExpect(status().isCreated())
         .andReturn();
 
     var user = userRepository.findByEmail(rq.getEmail());

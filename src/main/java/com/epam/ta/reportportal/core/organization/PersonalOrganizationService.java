@@ -24,6 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
+ * Service for creating personal organizations for users.
+ *
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
 @Slf4j
@@ -32,15 +34,29 @@ public class PersonalOrganizationService {
 
   private final Pf4jPluginBox pluginBox;
 
+  /**
+   * Constructor for PersonalOrganizationService.
+   *
+   * @param pluginBox The plugin box to retrieve organization extensions.
+   */
   public PersonalOrganizationService(Pf4jPluginBox pluginBox) {
     this.pluginBox = pluginBox;
   }
 
+  /**
+   * Creates a personal organization for the given user.
+   *
+   * @param user The user for whom the personal organization is to be created.
+   * @return An Optional containing the OrganizationInfo if creation was successful, or empty if it failed.
+   */
   public Optional<OrganizationInfo> create(User user) {
     try {
       return getOrgExtension().map(ext -> ext.createPersonalOrganization(user));
+    } catch (IllegalStateException e) {
+      log.info("Can't create personal organization, reason: {}", e.getMessage());
+      return Optional.empty();
     } catch (Exception e) {
-      log.info("Can't create personal organization for user: {}, reason: {}", user.getLogin(), e.getMessage());
+      log.error("Can't create personal organization for user: {}, reason: {}", user.getLogin(), e.getMessage());
       return Optional.empty();
     }
   }

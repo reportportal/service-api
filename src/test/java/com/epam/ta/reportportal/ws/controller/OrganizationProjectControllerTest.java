@@ -153,7 +153,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
             .contentType(MediaType.APPLICATION_JSON)
             .with(token(oAuthHelper.getSuperadminToken()))
             .content(jsonBody.toString()))
-        .andExpect(status().isOk())
+        .andExpect(status().isCreated())
         .andExpect(jsonPath("$.name").value(name))
         .andExpect(jsonPath("$.key").value(ORG_SLUG + "." + expectSlug))
         .andExpect(jsonPath("$.slug").value(expectSlug));
@@ -170,7 +170,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
             .contentType(MediaType.APPLICATION_JSON)
             .with(token(oAuthHelper.getSuperadminToken()))
             .content(jsonBody.toString()))
-        .andExpect(status().isOk());
+        .andExpect(status().isCreated());
 
     mockMvc.perform(post("/organizations/1/projects")
             .contentType(MediaType.APPLICATION_JSON)

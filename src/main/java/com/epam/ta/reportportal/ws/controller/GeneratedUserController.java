@@ -101,8 +101,9 @@ public class GeneratedUserController implements UsersApi {
   @Override
   @PreAuthorize(IS_ADMIN)
   public ResponseEntity<InstanceUser> postUsers(NewUserRequest newUserRequest) {
-    return ResponseEntity.ok(createUserHandler.createUser(newUserRequest, getPrincipal(),
-        composeBaseUrl(httpServletRequest)));
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(createUserHandler.createUser(newUserRequest, getPrincipal(), composeBaseUrl(httpServletRequest)));
   }
 
   @Transactional

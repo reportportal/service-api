@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_ORG_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MANAGER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.reportportal.api.OrganizationProjectsApi;
@@ -122,7 +123,7 @@ public class OrganizationProjectController extends BaseController implements Org
       ProjectBase projectBase
   ) {
     return ResponseEntity
-        .status(OK)
+        .status(CREATED)
         .body(organizationProjectHandler.createProject(orgId, projectBase));
   }
 

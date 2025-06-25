@@ -53,10 +53,10 @@ public class PersonalOrganizationService {
     try {
       return getOrgExtension().map(ext -> ext.createPersonalOrganization(user));
     } catch (IllegalStateException e) {
-      log.info("Can't create personal organization, reason: {}", e.getMessage());
+      log.warn("Can't create personal organization, reason: {}", e.getMessage());
       return Optional.empty();
     } catch (Exception e) {
-      log.error("Can't create personal organization for user: {}, reason: {}", user.getLogin(), e.getMessage());
+      log.error("Can't create personal organization for user: {}", user.getLogin(), e);
       return Optional.empty();
     }
   }

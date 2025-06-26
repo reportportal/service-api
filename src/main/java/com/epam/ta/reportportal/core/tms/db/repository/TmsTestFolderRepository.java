@@ -233,9 +233,8 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
    * IDs including the root folder and all its nested subfolders at any level.
    * </p>
    *
-   * <p>strong>Note:</strong> This query is PostgreSQL specific and may not work with other
+   * Note: This query is PostgreSQL specific and may not work with other
    * database systems.
-   * </p>
    *
    * @param projectId the ID of the project to ensure security boundaries
    * @param folderId  the ID of the root folder to start the hierarchy traversal from

@@ -126,6 +126,8 @@ public abstract class TmsTestFolderMapper {
         .apply(pageOfTestFolders);
   }
 
+  public abstract TmsTestFolderRQ convertFromNameToRQ(String name);
+
   private List<TmsTestFolderRS> convert(
       List<TmsTestFolderWithCountOfTestCases> testFoldersWithCountOfTestCases,
       Map<Long, Long> testCaseCountForSubfolders) {

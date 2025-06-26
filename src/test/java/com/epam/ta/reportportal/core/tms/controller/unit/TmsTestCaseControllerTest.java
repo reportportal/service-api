@@ -1,11 +1,17 @@
 package com.epam.ta.reportportal.core.tms.controller.unit;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -16,12 +22,15 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.controller.TestCaseController;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestCaseService;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -31,7 +40,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.core.MethodParameter;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
@@ -44,12 +56,16 @@ public class TmsTestCaseControllerTest {
 
   private final long projectId = 1L;
   private final String projectKey = "test_project";
+
   @Mock
   private TmsTestCaseService tmsTestCaseService;
+
   @Mock
   private ProjectExtractor projectExtractor;
+
   @InjectMocks
   private TestCaseController testCaseController;
+
   private MockMvc mockMvc;
   private ObjectMapper mapper;
   private ReportPortalUser testUser;
@@ -87,7 +103,7 @@ public class TmsTestCaseControllerTest {
     mapper = new ObjectMapper();
 
     // Setup the project extractor mock to return a MembershipDetails with the projectId
-    MembershipDetails membershipDetails = MembershipDetails.builder()
+    var membershipDetails = MembershipDetails.builder()
         .withProjectId(projectId)
         .withProjectKey(projectKey)
         .build();
@@ -98,8 +114,8 @@ public class TmsTestCaseControllerTest {
   @Test
   void getTestCaseByIdTest() throws Exception {
     // Given
-    long testCaseId = 2L;
-    TmsTestCaseRS testCase = new TmsTestCaseRS();
+    var testCaseId = 2L;
+    var testCase = new TmsTestCaseRS();
     given(tmsTestCaseService.getById(projectId, testCaseId)).willReturn(testCase);
 
     // When/Then
@@ -113,14 +129,58 @@ public class TmsTestCaseControllerTest {
   }
 
   @Test
+  void getTestCasesByCriteriaTest() throws Exception {
+    // Given
+    var search = "test search";
+    var testFolderId = 5L;
+    var testCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS());
+    var page = new Page<>(testCases, 10, 0, 2, 1);
+
+    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), eq(search),
+        eq(testFolderId), any(Pageable.class))).willReturn(page);
+
+    // When/Then
+    mockMvc.perform(
+            get("/project/{projectKey}/tms/test-case", projectKey)
+                .param("search", search)
+                .param("testFolderId", Long.toString(testFolderId))
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), eq(search),
+        eq(testFolderId), any(Pageable.class));
+  }
+
+  @Test
+  void getTestCasesByCriteriaWithoutParametersTest() throws Exception {
+    // Given
+    var emptyTestCases = Collections.<TmsTestCaseRS>emptyList();
+    var page = new Page<>(emptyTestCases, 10, 0, 0, 0);
+
+    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), isNull(),
+        isNull(), any(Pageable.class))).willReturn(page);
+
+    // When/Then
+    mockMvc.perform(
+            get("/project/{projectKey}/tms/test-case", projectKey)
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), isNull(),
+        isNull(), any(Pageable.class));
+  }
+
+  @Test
   void createTestCaseTest() throws Exception {
     // Given
-    TmsTestCaseRQ testCaseRequest = new TmsTestCaseRQ();
+    var testCaseRequest = new TmsTestCaseRQ();
     testCaseRequest.setName("Test Case");
-    testCaseRequest.setTestFolderId(3L);
+    testCaseRequest.setTestFolder(TmsTestCaseTestFolderRQ.builder().testFolderId(3L).build());
 
-    TmsTestCaseRS testCase = new TmsTestCaseRS();
-    String jsonContent = mapper.writeValueAsString(testCaseRequest);
+    var testCase = new TmsTestCaseRS();
+    var jsonContent = mapper.writeValueAsString(testCaseRequest);
 
     given(tmsTestCaseService.create(projectId, testCaseRequest)).willReturn(testCase);
 
@@ -137,13 +197,13 @@ public class TmsTestCaseControllerTest {
   @Test
   void updateTestCaseTest() throws Exception {
     // Given
-    long testCaseId = 2L;
-    TmsTestCaseRQ testCaseRequest = new TmsTestCaseRQ();
+    var testCaseId = 2L;
+    var testCaseRequest = new TmsTestCaseRQ();
     testCaseRequest.setName("Updated Test Case");
-    testCaseRequest.setTestFolderId(3L);
+    testCaseRequest.setTestFolder(TmsTestCaseTestFolderRQ.builder().testFolderId(3L).build());
 
-    TmsTestCaseRS testCase = new TmsTestCaseRS();
-    String jsonContent = mapper.writeValueAsString(testCaseRequest);
+    var testCase = new TmsTestCaseRS();
+    var jsonContent = mapper.writeValueAsString(testCaseRequest);
 
     given(tmsTestCaseService.update(projectId, testCaseId, testCaseRequest)).willReturn(testCase);
 
@@ -161,13 +221,13 @@ public class TmsTestCaseControllerTest {
   @Test
   void patchTestCaseTest() throws Exception {
     // Given
-    long testCaseId = 2L;
-    TmsTestCaseRQ testCaseRequest = new TmsTestCaseRQ();
+    var testCaseId = 2L;
+    var testCaseRequest = new TmsTestCaseRQ();
     testCaseRequest.setName("Patched Test Case");
-    testCaseRequest.setTestFolderId(3L);
+    testCaseRequest.setTestFolder(TmsTestCaseTestFolderRQ.builder().testFolderId(3L).build());
 
-    TmsTestCaseRS testCase = new TmsTestCaseRS();
-    String jsonContent = mapper.writeValueAsString(testCaseRequest);
+    var testCase = new TmsTestCaseRS();
+    var jsonContent = mapper.writeValueAsString(testCaseRequest);
 
     given(tmsTestCaseService.patch(projectId, testCaseId, testCaseRequest)).willReturn(testCase);
 
@@ -183,14 +243,29 @@ public class TmsTestCaseControllerTest {
   }
 
   @Test
+  void deleteTestCaseTest() throws Exception {
+    // Given
+    var testCaseId = 2L;
+
+    // When/Then
+    mockMvc.perform(
+            delete("/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isNoContent());
+
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(tmsTestCaseService).delete(projectId, testCaseId);
+  }
+
+  @Test
   void deleteTestCasesTest() throws Exception {
     // Given
-    List<Long> testCaseIds = Arrays.asList(1L, 2L, 3L);
-    BatchDeleteTestCasesRQ deleteRequest = BatchDeleteTestCasesRQ.builder()
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var deleteRequest = BatchDeleteTestCasesRQ.builder()
         .testCaseIds(testCaseIds)
         .build();
 
-    String jsonContent = mapper.writeValueAsString(deleteRequest);
+    var jsonContent = mapper.writeValueAsString(deleteRequest);
 
     // When/Then
     mockMvc.perform(
@@ -206,12 +281,12 @@ public class TmsTestCaseControllerTest {
   @Test
   void deleteTestCasesWithSingleIdTest() throws Exception {
     // Given
-    List<Long> testCaseIds = List.of(1L);
-    BatchDeleteTestCasesRQ deleteRequest = BatchDeleteTestCasesRQ.builder()
+    var testCaseIds = List.of(1L);
+    var deleteRequest = BatchDeleteTestCasesRQ.builder()
         .testCaseIds(testCaseIds)
         .build();
 
-    String jsonContent = mapper.writeValueAsString(deleteRequest);
+    var jsonContent = mapper.writeValueAsString(deleteRequest);
 
     // When/Then
     mockMvc.perform(
@@ -227,13 +302,13 @@ public class TmsTestCaseControllerTest {
   @Test
   void batchPatchTestCasesTest() throws Exception {
     // Given
-    List<Long> testCaseIds = Arrays.asList(1L, 2L, 3L);
-    BatchPatchTestCasesRQ patchRequest = BatchPatchTestCasesRQ.builder()
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var patchRequest = BatchPatchTestCasesRQ.builder()
         .testCaseIds(testCaseIds)
         .testFolderId(5L)
         .build();
 
-    String jsonContent = mapper.writeValueAsString(patchRequest);
+    var jsonContent = mapper.writeValueAsString(patchRequest);
 
     // When/Then
     mockMvc.perform(
@@ -249,13 +324,13 @@ public class TmsTestCaseControllerTest {
   @Test
   void batchPatchTestCasesWithSingleIdTest() throws Exception {
     // Given
-    List<Long> testCaseIds = List.of(1L);
-    BatchPatchTestCasesRQ patchRequest = BatchPatchTestCasesRQ.builder()
+    var testCaseIds = List.of(1L);
+    var patchRequest = BatchPatchTestCasesRQ.builder()
         .testCaseIds(testCaseIds)
         .testFolderId(5L)
         .build();
 
-    String jsonContent = mapper.writeValueAsString(patchRequest);
+    var jsonContent = mapper.writeValueAsString(patchRequest);
 
     // When/Then
     mockMvc.perform(
@@ -266,5 +341,76 @@ public class TmsTestCaseControllerTest {
 
     verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
     verify(tmsTestCaseService).patch(projectId, patchRequest);
+  }
+
+  @Test
+  void importTestCasesTest() throws Exception {
+    // Given
+    var fileContent = "test,case,data";
+    var file = new MockMultipartFile("file", "test.csv", "text/csv", fileContent.getBytes());
+    var importedTestCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS());
+
+    given(tmsTestCaseService.importFromFile(projectId, file)).willReturn(importedTestCases);
+
+    // When/Then
+    mockMvc.perform(
+            multipart("/project/{projectKey}/tms/test-case/import", projectKey)
+                .file(file)
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(tmsTestCaseService).importFromFile(projectId, file);
+  }
+
+  @Test
+  void exportTestCasesWithIdsTest() throws Exception {
+    // Given
+    var testCaseIds = List.of(1L, 2L, 3L);
+    var format = "JSON";
+    var includeAttachments = true;
+
+    // When/Then
+    mockMvc.perform(
+            get("/project/{projectKey}/tms/test-case/export", projectKey)
+                .param("ids", "1,2,3")
+                .param("format", format)
+                .param("includeAttachments", "true")
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(tmsTestCaseService).exportToFile(eq(projectId), eq(testCaseIds), eq(format),
+        eq(includeAttachments), any(HttpServletResponse.class));
+  }
+
+  @Test
+  void exportTestCasesWithoutParametersTest() throws Exception {
+    // When/Then
+    mockMvc.perform(
+            get("/project/{projectKey}/tms/test-case/export", projectKey)
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(tmsTestCaseService).exportToFile(eq(projectId), isNull(), eq("JSON"),
+        eq(false), any(HttpServletResponse.class));
+  }
+
+  @Test
+  void exportTestCasesWithCsvFormatTest() throws Exception {
+    // Given
+    var format = "CSV";
+
+    // When/Then
+    mockMvc.perform(
+            get("/project/{projectKey}/tms/test-case/export", projectKey)
+                .param("format", format)
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(tmsTestCaseService).exportToFile(eq(projectId), isNull(), eq(format),
+        eq(false), any(HttpServletResponse.class));
   }
 }

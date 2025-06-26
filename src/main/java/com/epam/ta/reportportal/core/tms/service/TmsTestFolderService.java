@@ -15,4 +15,6 @@ public interface TmsTestFolderService extends CrudService<TmsTestFolderRQ, TmsTe
 
   void exportFolderById(Long projectId, Long folderId, TmsTestFolderExportFileType fileType,
       HttpServletResponse response);
+
+  TmsTestFolderRS create(long projectId, String testFolderName);
 }

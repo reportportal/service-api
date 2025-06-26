@@ -4,6 +4,8 @@ import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.dao.ReportPortalRepository;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -29,6 +31,30 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
       "WHERE tf.project.id = :projectId AND tc.id = :id"
   )
   Optional<TmsTestCase> findByIdAndProjectId(Long id, Long projectId);
+
+  /**
+   * Finds test cases by project with optional search and folder filtering, supporting pagination.
+   *
+   * @param projectId The project ID
+   * @param search Optional search term for full-text search in name and description
+   * @param testFolderId Optional test folder ID to filter by specific folder
+   * @param pageable Pagination parameters
+   * @return Page of test cases matching the criteria
+   */
+  @Query("SELECT tc FROM TmsTestCase tc " +
+      "JOIN FETCH tc.testFolder tf " +
+      "LEFT JOIN FETCH tc.tags t " +
+      "LEFT JOIN FETCH tc.versions v " +
+      "WHERE tf.project.id = :projectId " +
+//      "AND (:search IS NULL OR " + TODO add
+//      "     LOWER(tc.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+//      "     LOWER(tc.description) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+      "AND (:testFolderId IS NULL OR tf.id = :testFolderId)"
+  )
+  Page<TmsTestCase> findByCriteria(@Param("projectId") Long projectId,
+      @Param("search") String search,
+      @Param("testFolderId") Long testFolderId,
+      Pageable pageable);
 
   /**
    * Deletes all test cases that belong to the specified folder or any of its subfolders. Uses a

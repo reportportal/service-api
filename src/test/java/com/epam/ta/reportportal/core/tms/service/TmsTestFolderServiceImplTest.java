@@ -169,6 +169,8 @@ class TmsTestFolderServiceImplTest {
     subSubFolder.setSubFolders(new ArrayList<>());
 
     allFolders = Arrays.asList(rootFolder, firstSubfolder, secondSubfolder, subSubFolder);
+
+    sut.setTmsTestCaseService(tmsTestCaseService);
   }
 
   @Test

@@ -10,6 +10,7 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestCaseService;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,7 +21,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -50,6 +50,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Tag(name = "Test Case", description = "Test Case API collection")
 @RequiredArgsConstructor
 @Valid
+@PreAuthorize(IS_ADMIN)
 public class TestCaseController {
 
   private final TmsTestCaseService tmsTestCaseService;
@@ -63,7 +64,7 @@ public class TestCaseController {
    * @param testCaseId The ID of the test case to retrieve.
    * @return A data transfer object ({@link TmsTestCaseRS}) containing details of the test case.
    */
-  @PreAuthorize(IS_ADMIN)
+
   @GetMapping("/{testCaseId}")
   @Operation(
       summary = "Get a test case by ID",
@@ -82,15 +83,16 @@ public class TestCaseController {
   }
 
   /**
-   * Retrieves all test cases associated with a specific project.
-   * Supports filtering and pagination according to OpenAPI specification.
+   * Retrieves test cases associated with a specific project by criteria.
+   * Supports filtering, sorting, full-text search and pagination.
    *
    * @param projectKey The key of the project.
-   * @param search Optional search query string
-   * @param pageable Pagination information
+   * @param search Optional full-text search query string for searching in test case names and descriptions
+   * @param testFolderId Optional test folder ID to filter test cases by specific folder
+//   * @param pageable Pagination information including sorting parameters
+   * @param user Authenticated user
    * @return A paginated list of data transfer objects ({@link TmsTestCaseRS}) representing test cases.
    */
-  @PreAuthorize(IS_ADMIN)
   @GetMapping
   @Operation(
       summary = "Get test cases for a project by criteria",
@@ -100,10 +102,17 @@ public class TestCaseController {
   public Page<TmsTestCaseRS> getTestCasesByCriteria(
       @PathVariable("projectKey") String projectKey,
       @RequestParam(value = "search", required = false) String search,
-//      @FilterFor(TmsTestCase.class) Filter filter,
-      @SortFor(TmsTestCase.class) Pageable pageable,
+      @RequestParam(value = "testFolderId", required = false) Long testFolderId,
+      //TODO add filter, sort
+//      @SortFor(TmsTestCase.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
-    throw new UnsupportedOperationException("Method not implemented yet");
+    return tmsTestCaseService.getTestCasesByCriteria(
+        projectExtractor
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        search,
+        testFolderId,
+        Pageable.unpaged()); //TODO fix once added filter and sort
   }
 
   /**
@@ -113,7 +122,6 @@ public class TestCaseController {
    * @param inputDto  A request payload ({@link TmsTestCaseRQ}) containing information about the test case to create.
    * @return A data transfer object ({@link TmsTestCaseRS}) with details of the created test case.
    */
-  @PreAuthorize(IS_ADMIN)
   @PostMapping
   @Operation(
       summary = "Create a new test case",
@@ -139,7 +147,6 @@ public class TestCaseController {
    * @param inputDto   A request payload ({@link TmsTestCaseRQ}) containing updated information for the test case.
    * @return A data transfer object ({@link TmsTestCaseRS}) with updated details of the test case.
    */
-  @PreAuthorize(IS_ADMIN)
   @PutMapping("/{testCaseId}")
   @Operation(
       summary = "Update a test case",
@@ -148,7 +155,7 @@ public class TestCaseController {
   @ApiResponse(responseCode = "200", description = "Test case updated successfully")
   public TmsTestCaseRS updateTestCase(@PathVariable("projectKey") String projectKey,
       @PathVariable("testCaseId") final long testCaseId,
-      @RequestBody final TmsTestCaseRQ inputDto,
+      @RequestBody @Valid final TmsTestCaseRQ inputDto,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.update(
         projectExtractor
@@ -168,7 +175,6 @@ public class TestCaseController {
    * @param inputDto   A request payload ({@link TmsTestCaseRQ}) containing the modifications.
    * @return A data transfer object ({@link TmsTestCaseRS}) with patched details of the test case.
    */
-  @PreAuthorize(IS_ADMIN)
   @PatchMapping("/{testCaseId}")
   @Operation(
       summary = "Partially update a test case",
@@ -177,7 +183,7 @@ public class TestCaseController {
   @ApiResponse(responseCode = "200", description = "Test case patched successfully")
   public TmsTestCaseRS patchTestCase(@PathVariable("projectKey") String projectKey,
       @PathVariable("testCaseId") final long testCaseId,
-      @RequestBody final TmsTestCaseRQ inputDto,
+      @RequestBody @Valid final TmsTestCaseRQ inputDto,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.patch(
         projectExtractor
@@ -194,7 +200,6 @@ public class TestCaseController {
    * @param projectKey  The key of the project to which the test case belongs.
    * @param testCaseId The ID of the test case to delete.
    */
-  @PreAuthorize(IS_ADMIN)
   @DeleteMapping("/{testCaseId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
@@ -205,7 +210,9 @@ public class TestCaseController {
   public void deleteTestCase(@PathVariable("projectKey") String projectKey,
       @PathVariable("testCaseId") final long testCaseId,
       @AuthenticationPrincipal ReportPortalUser user) {
-    throw new UnsupportedOperationException("Method not implemented yet");
+    tmsTestCaseService.delete(projectExtractor
+        .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+        .getProjectId(), testCaseId);
   }
 
   /**
@@ -214,7 +221,6 @@ public class TestCaseController {
    * @param projectKey The key of the project.
    * @param deleteRequest The object contains comma-separated list of test case IDs to delete.
    */
-  @PreAuthorize(IS_ADMIN)
   @DeleteMapping("/batch/delete")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
@@ -241,7 +247,6 @@ public class TestCaseController {
    * @param patchRequest Request body containing update information
    *                     and comma-separated list of test case IDs to update.
    */
-  @PreAuthorize(IS_ADMIN)
   @PatchMapping("/batch/patch")
   @Operation(
       summary = "Partially update multiple test cases",
@@ -262,37 +267,42 @@ public class TestCaseController {
 
   /**
    * Imports test cases from a file into a project.
+   * Supports CSV and JSON file formats.
    *
    * @param projectKey The key of the project.
    * @param file The file containing test cases to import.
+   * @return A list of created test cases.
    */
-  @PreAuthorize(IS_ADMIN)
   @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @Operation(
       summary = "Import test cases",
-      description = "Imports test cases from a file into a project.",
+      description = "Imports test cases from a file into a project. Supports CSV and JSON formats.",
       tags = {"Import/Export"}
   )
   @ApiResponse(responseCode = "200", description = "Test cases imported successfully")
-  public void importTestCases(@PathVariable("projectKey") String projectKey,
+  public List<TmsTestCaseRS> importTestCases(@PathVariable("projectKey") String projectKey,
       @RequestPart("file") MultipartFile file,
       @AuthenticationPrincipal ReportPortalUser user) {
-    throw new UnsupportedOperationException("Method not implemented yet");
+    return tmsTestCaseService.importFromFile(
+        projectExtractor
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        file);
   }
 
   /**
    * Exports test cases from a project to a file.
+   * Supports JSON and CSV formats.
    *
    * @param projectKey The key of the project.
    * @param ids Comma-separated list of test case IDs to export. If not provided, all test cases will be exported.
-   * @param format Format of the export file.
-   * @param includeAttachments Whether to include attachments in the export.
+   * @param format Format of the export file (JSON or CSV).
+   * @param includeAttachments Whether to include attachments in the export (only for JSON format).
    */
-  @PreAuthorize(IS_ADMIN)
   @GetMapping("/export")
   @Operation(
       summary = "Export test cases",
-      description = "Exports test cases from a project to a file.",
+      description = "Exports test cases from a project to a file. Supports JSON and CSV formats.",
       tags = {"Import/Export"}
   )
   @ApiResponse(
@@ -301,11 +311,19 @@ public class TestCaseController {
       content = @Content(mediaType = "application/octet-stream")
   )
   public void exportTestCases(@PathVariable("projectKey") String projectKey,
-      @RequestParam(value = "ids", required = false) String ids,
+      @RequestParam(value = "ids", required = false) List<Long> ids,
       @RequestParam(value = "format", required = false, defaultValue = "JSON") String format,
       @RequestParam(value = "includeAttachments", required = false, defaultValue = "false") boolean includeAttachments,
       @AuthenticationPrincipal ReportPortalUser user,
       HttpServletResponse response) {
-    throw new UnsupportedOperationException("Method not implemented yet");
+    tmsTestCaseService.exportToFile(
+        projectExtractor
+            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        ids,
+        format,
+        includeAttachments,
+        response
+    );
   }
 }

@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.core.tms.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,7 +16,11 @@ public class TmsManualScenarioRS {
 
   private Long id;
 
-  private String name;
+  private Integer executionEstimationTime;
 
-  private String description;
+  private String linkToRequirements;
+
+  private Set<TmsManualScenarioAttributeRS> attributes;
+
+  private Set<TmsStepRS> steps;
 }

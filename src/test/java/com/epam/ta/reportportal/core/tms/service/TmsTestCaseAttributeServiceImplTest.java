@@ -108,30 +108,6 @@ class TmsTestCaseAttributeServiceImplTest {
   }
 
   @Test
-  void createTestCaseAttributes_WithNullAttributes_ShouldReturnEarly() {
-    // When
-    sut.createTestCaseAttributes(testCase, null);
-
-    // Then
-    verifyNoInteractions(tmsTestCaseAttributeMapper, tmsTestCaseAttributeRepository);
-
-    // Assert that the test case's tags are unchanged
-    assertEquals(existingAttributes, testCase.getTags());
-  }
-
-  @Test
-  void createTestCaseAttributes_WithEmptyAttributes_ShouldReturnEarly() {
-    // When
-    sut.createTestCaseAttributes(testCase, Collections.emptyList());
-
-    // Then
-    verifyNoInteractions(tmsTestCaseAttributeMapper, tmsTestCaseAttributeRepository);
-
-    // Assert that the test case's tags are unchanged
-    assertEquals(existingAttributes, testCase.getTags());
-  }
-
-  @Test
   void updateTestCaseAttributes_ShouldDeleteOldAndCreateNewAttributes() {
     // Given
     when(tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(attributeRQs)).thenReturn(

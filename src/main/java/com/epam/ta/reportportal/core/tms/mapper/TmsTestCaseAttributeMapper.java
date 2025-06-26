@@ -9,13 +9,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(config = CommonMapperConfig.class)
-public abstract class TmsTestCaseAttributeMapper {
+public interface TmsTestCaseAttributeMapper {
 
-  public abstract Set<TmsTestCaseAttribute> convertToTmsTestCaseAttributes(
+  Set<TmsTestCaseAttribute> convertToTmsTestCaseAttributes(
       List<TmsTestCaseAttributeRQ> attributes);
 
   @Mapping(target = "attribute.id", source = "tmsTestTestAttributeRQ.attributeId")
   @Mapping(target = "id.attributeId", source = "tmsTestTestAttributeRQ.attributeId")
-  public abstract TmsTestCaseAttribute convertTmsTestCaseAttribute(
+  TmsTestCaseAttribute convertTmsTestCaseAttribute(
       TmsTestCaseAttributeRQ tmsTestTestAttributeRQ);
 }

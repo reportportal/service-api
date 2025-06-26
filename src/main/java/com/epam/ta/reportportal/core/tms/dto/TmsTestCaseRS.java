@@ -22,6 +22,8 @@ public class TmsTestCaseRS {
 
   private String priority;
 
+  private TmsTestCaseTestFolderRS testFolder;
+
   private Set<TmsTestCaseVersionRS> versions;
 
   private Set<TmsTestPlanAttributeRS> tags;

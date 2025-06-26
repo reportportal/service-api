@@ -11,6 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.io.Serializable;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,6 +21,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class TmsTestCaseVersion implements Serializable {
 
   @Id
@@ -42,18 +44,6 @@ public class TmsTestCaseVersion implements Serializable {
 
   @OneToOne(mappedBy = "testCaseVersion", fetch = FetchType.LAZY)
   private TmsManualScenario manualScenario;
-
-  public TmsTestCaseVersion(final Long id,
-      final String name,
-      final boolean isDefault,
-      final boolean isDraft,
-      final TmsManualScenario manualScenario) {
-    this.id = id;
-    this.name = name;
-    this.isDefault = isDefault;
-    this.isDraft = isDraft;
-    this.manualScenario = manualScenario;
-  }
 
   //TODO: override equals and hashCode methods
 

@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,8 +48,15 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
 
   private final TmsTestFolderMapper tmsTestFolderMapper;
   private final TmsTestFolderRepository tmsTestFolderRepository;
-  private final TmsTestCaseService tmsTestCaseService;
   private final TmsTestFolderExporterFactory tmsTestFolderExporterFactory;
+
+  private TmsTestCaseService tmsTestCaseService;
+
+  @Autowired
+  public void setTmsTestCaseService(
+      TmsTestCaseService tmsTestCaseService) {
+    this.tmsTestCaseService = tmsTestCaseService;
+  }
 
   /**
    * Creates a new test folder in the specified project.
@@ -250,6 +258,12 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
             findFolderWithFullHierarchy(projectId, folderId),
             response
         );
+  }
+
+  @Override
+  @Transactional
+  public TmsTestFolderRS create(long projectId, String testFolderName) {
+    return create(projectId, tmsTestFolderMapper.convertFromNameToRQ(testFolderName));
   }
 
   /**

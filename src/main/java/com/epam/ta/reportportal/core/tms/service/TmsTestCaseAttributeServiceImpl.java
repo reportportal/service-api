@@ -11,6 +11,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,10 +26,7 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
   @Override
   @Transactional
   public void createTestCaseAttributes(TmsTestCase tmsTestCase,
-      List<TmsTestCaseAttributeRQ> attributes) {
-    if (isEmpty(attributes)) {
-      return;
-    }
+      @NotEmpty List<TmsTestCaseAttributeRQ> attributes) {
     var tmsTestCaseAttributes = tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(
         attributes);
     tmsTestCase.setTags(tmsTestCaseAttributes);
@@ -42,7 +40,9 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
   public void updateTestCaseAttributes(TmsTestCase tmsTestCase,
       List<TmsTestCaseAttributeRQ> attributes) {
     tmsTestCaseAttributeRepository.deleteAllByTestCaseId(tmsTestCase.getId());
-    createTestCaseAttributes(tmsTestCase, attributes);
+    if (CollectionUtils.isNotEmpty(attributes)) {
+      createTestCaseAttributes(tmsTestCase, attributes);
+    }
   }
 
   @Override
@@ -62,13 +62,13 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
 
   @Override
   @Transactional
-  public void deleteAllByTestCaseId(Long testCaseId) {
+  public void deleteAllByTestCaseId(@NotNull Long testCaseId) {
     tmsTestCaseAttributeRepository.deleteAllByTestCaseId(testCaseId);
   }
 
   @Override
   @Transactional
-  public void deleteAllByTestFolderId(Long projectId, Long testFolderId) {
+  public void deleteAllByTestFolderId(@NotNull Long projectId, @NotNull Long testFolderId) {
     tmsTestCaseAttributeRepository.deleteTestCaseAttributesByTestFolderId(projectId, testFolderId);
   }
 

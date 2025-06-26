@@ -36,6 +36,9 @@ public class TmsTestCase implements Serializable {
   @Column(name = "description")
   private String description;
 
+  @Column(name = "priority")
+  private String priority;
+
   @OneToMany(mappedBy = "testCase")
   private Set<TmsTestCaseAttribute> tags;
 

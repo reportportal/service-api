@@ -36,10 +36,10 @@ apply from: "$scriptsUrl/copy-database-scripts.gradle"
 project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
 
 repositories {
-    if (!releaseMode) {
-        maven { url 'https://jitpack.io' }
-    }
     mavenCentral { url "https://repo1.maven.org/maven2" }
+//    if (!releaseMode) {
+        maven { url 'https://jitpack.io' }
+//    }
 }
 
 java {
@@ -63,17 +63,16 @@ println("Release mode: $releaseMode")
 dependencies {
     if (releaseMode) {
         println("Using release dependencies")
-        implementation 'com.epam.reportportal:commons'
-        implementation 'com.epam.reportportal:commons-dao'
-        implementation ('com.epam.reportportal:plugin-api') {
-            exclude group: 'com.epam.reportportal:commons-dao', module: 'commons-dao'
+        implementation 'com.github.reportportal:commons:fdfdcdf'
+        implementation 'com.github.reportportal:commons-dao:aa7da78'
+        implementation ('com.github.reportportal:plugin-api:8f089e4') {
+            exclude group: 'com.github.reportportal:commons-dao', module: 'commons-dao'
         }
-
     } else {
         println("Using snapshot dependencies")
         implementation 'com.github.reportportal:commons:fdfdcdf'
-        implementation 'com.github.reportportal:commons-dao:42692f2'
-        implementation ('com.github.reportportal:plugin-api:6009bc4') {
+        implementation 'com.github.reportportal:commons-dao:aa7da78'
+        implementation ('com.github.reportportal:plugin-api:8f089e4') {
             exclude group: 'com.github.reportportal:commons-dao', module: 'commons-dao'
         }
     }
@@ -100,12 +99,13 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
 
     //Fix CVE-2025-24813
-    implementation 'org.apache.tomcat.embed:tomcat-embed-core:10.1.40'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-el:10.1.40'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:10.1.40'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-core:10.1.41'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-el:10.1.41'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:10.1.41'
 
 
     implementation 'com.opencsv:opencsv:5.10'
+    implementation 'commons-beanutils:commons-beanutils:1.11.0'
     implementation "org.jooq:jooq:${jooqVersion}"
 
     // Optional for spring-boot-starter-amqp

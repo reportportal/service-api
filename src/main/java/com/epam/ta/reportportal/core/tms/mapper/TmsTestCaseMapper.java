@@ -16,10 +16,11 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 @Mapper(config = CommonMapperConfig.class)
 public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTestCaseRS> {
 
-  @Mapping(target = "testFolder", expression = "java(convertToTmsTestFolder(tmsTestCaseRQ.getTestFolderId(), projectId))")
+  @Mapping(target = "testFolder", expression = "java(convertToTmsTestFolder(testFolderId, projectId))")
   @Mapping(target = "tags", ignore = true)
   @Mapping(target = "versions", ignore = true)
-  public abstract TmsTestCase convertFromRQ(Long projectId, TmsTestCaseRQ tmsTestCaseRQ);
+  public abstract TmsTestCase convertFromRQ(Long projectId, TmsTestCaseRQ tmsTestCaseRQ, Long testFolderId);
+
 
   @BeanMapping(nullValuePropertyMappingStrategy =
       NullValuePropertyMappingStrategy.SET_TO_NULL,

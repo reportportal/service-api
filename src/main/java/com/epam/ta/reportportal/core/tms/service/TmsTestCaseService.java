@@ -4,10 +4,12 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
+import com.epam.ta.reportportal.model.Page;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import java.util.List;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCaseRS, Long> {
 
@@ -18,4 +20,11 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
   void delete(long projectId, @Valid BatchDeleteTestCasesRQ deleteRequest);
 
   void patch(long projectId, @Valid BatchPatchTestCasesRQ patchRequest);
+
+  List<TmsTestCaseRS> importFromFile(long projectId, MultipartFile file);
+
+  void exportToFile(Long projectId, List<Long> ids, String format, boolean includeAttachments,
+      HttpServletResponse response);
+
+  Page<TmsTestCaseRS> getTestCasesByCriteria(long projectId, String search, Long testFolderId, Pageable pageable);
 }

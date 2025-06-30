@@ -450,7 +450,6 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/status")
   @ResponseStatus(OK)
-
   public Map<String, String> getStatuses(@PathVariable String projectName,
       @RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getStatuses(

@@ -58,7 +58,7 @@ import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.cluster.GetClusterHandler;
-import com.epam.ta.reportportal.core.launch.export.LaunchExportHandler;
+import com.epam.ta.reportportal.core.launch.export.LaunchExportService;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -111,7 +111,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   private final UserRepository userRepository;
   private final LaunchConverter launchConverter;
   private final ApplicationEventPublisher applicationEventPublisher;
-  private final LaunchExportHandler launchExportHandler;
+  private final LaunchExportService launchExportService;
 
   @Override
   public Launch get(Long id) {
@@ -320,9 +320,9 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUserId()));
 
     if (includeAttachments) {
-      launchExportHandler.exportLaunchWithAttachments(launch, userFullName, reportFormat, response);
+      launchExportService.exportLaunchWithAttachments(launch, userFullName, reportFormat, response);
     } else {
-      launchExportHandler.exportLaunch(launch, userFullName, reportFormat, response);
+      launchExportService.exportLaunch(launch, userFullName, reportFormat, response);
     }
   }
 

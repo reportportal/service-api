@@ -64,19 +64,21 @@ dependencies {
     if (releaseMode) {
         println("Using release dependencies")
         implementation 'com.github.reportportal:commons:fdfdcdf'
-        implementation 'com.github.reportportal:commons-dao:aa7da78'
+        implementation 'com.github.reportportal:commons-dao:439a3c0'
         implementation ('com.github.reportportal:plugin-api:6009bc4') {
             exclude group: 'com.github.reportportal:commons-dao', module: 'commons-dao'
         }
     } else {
         println("Using snapshot dependencies")
         implementation 'com.github.reportportal:commons:fdfdcdf'
-        implementation 'com.github.reportportal:commons-dao:aa7da78'
+        implementation 'com.github.reportportal:commons-dao:439a3c0'
         implementation ('com.github.reportportal:plugin-api:6009bc4') {
             exclude group: 'com.github.reportportal:commons-dao', module: 'commons-dao'
         }
     }
     implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
+    
+    implementation 'org.openjdk.jol:jol-core:0.17'
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-web'

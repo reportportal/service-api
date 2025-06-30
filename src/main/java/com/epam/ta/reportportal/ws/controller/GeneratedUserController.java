@@ -29,6 +29,8 @@ import com.epam.reportportal.api.model.InstanceUser;
 import com.epam.reportportal.api.model.InstanceUserPage;
 import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
@@ -36,11 +38,15 @@ import com.epam.ta.reportportal.core.filter.SearchCriteriaService;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
+import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.epam.ta.reportportal.util.DefaultUserFilter;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -110,8 +116,12 @@ public class GeneratedUserController implements UsersApi {
   @Override
   @PreAuthorize(IS_ADMIN)
   public ResponseEntity<InstanceUserPage> postUsersSearches(String accept, SearchCriteriaRQ searchCriteriaRq) {
-    Queryable filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteriaRq,
-        User.class);
+    if ("text/csv".equals(accept)) {
+      exportUsersSearch(searchCriteriaRq);
+      return null;
+    }
+    
+    Queryable filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteriaRq, User.class);
     Pageable pageable = ControllerUtils.getPageable(
         StringUtils.isNotBlank(searchCriteriaRq.getSort()) ? searchCriteriaRq.getSort() : CRITERIA_FULL_NAME,
         searchCriteriaRq.getOrder() != null ? searchCriteriaRq.getOrder().toString() : Direction.ASC.name(),
@@ -120,6 +130,38 @@ public class GeneratedUserController implements UsersApi {
 
     return ResponseEntity
         .ok(getUserHandler.getUsersExcluding(filter, pageable));
+  }
+  
+  private void exportUsersSearch(SearchCriteriaRQ searchCriteriaRq) {
+    Queryable filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteriaRq, User.class);
+    
+    try {
+      HttpServletResponse response = getHttpServletResponse();
+
+      ReportFormat format = ReportFormat.CSV;
+      response.setContentType(format.getContentType());
+      response.setHeader("Content-Disposition", "attachment; filename=\"users_search.csv\"");
+      
+      try (OutputStream outputStream = response.getOutputStream()) {
+        getUserHandler.exportUsers(format, outputStream, filter);
+      }
+    } catch (IOException e) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response.");
+    }
+  }
+
+  private static HttpServletResponse getHttpServletResponse() {
+    org.springframework.web.context.request.RequestAttributes requestAttributes =
+        org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+    if (requestAttributes == null) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to get request context");
+    }
+
+    HttpServletResponse response = ((org.springframework.web.context.request.ServletRequestAttributes) requestAttributes).getResponse();
+    if (response == null) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to get HTTP response");
+    }
+    return response;
   }
 
 

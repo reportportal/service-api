@@ -118,7 +118,7 @@ public class GeneratedUserController implements UsersApi {
   public ResponseEntity<InstanceUserPage> postUsersSearches(String accept, SearchCriteriaRQ searchCriteriaRq) {
     if ("text/csv".equals(accept)) {
       exportUsersSearch(searchCriteriaRq);
-      return null;
+      return ResponseEntity.ok().build();
     }
     
     Queryable filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteriaRq, User.class);

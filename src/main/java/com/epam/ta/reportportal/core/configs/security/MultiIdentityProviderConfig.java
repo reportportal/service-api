@@ -1,10 +1,9 @@
 package com.epam.ta.reportportal.core.configs.security;
 
-import com.epam.ta.reportportal.core.configs.security.ApiKeyAuthenticationProvider;
-import com.epam.ta.reportportal.core.configs.security.converters.ReportPortalJwtConverter;
 import com.epam.ta.reportportal.core.configs.security.converters.AzureJwtConverter;
 import com.epam.ta.reportportal.core.configs.security.converters.GoogleJwtConverter;
 import com.epam.ta.reportportal.core.configs.security.converters.InternalJwtConverter;
+import com.epam.ta.reportportal.core.configs.security.converters.ReportPortalJwtConverter;
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
 import jakarta.annotation.PostConstruct;

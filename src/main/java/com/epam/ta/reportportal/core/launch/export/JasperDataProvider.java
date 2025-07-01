@@ -17,6 +17,7 @@ package com.epam.ta.reportportal.core.launch.export;
 
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ public class JasperDataProvider {
     return testItemRepository.selectTestItemsProjection(launch.getId())
         .stream()
         .map(item -> TestItemPojo.build(item, includeAttachments))
-        .collect(Collectors.toMap(TestItemPojo::getId, it -> it));
+        .collect(Collectors.toMap(TestItemPojo::getId, it -> it, (oldValue, newValue) -> oldValue,
+            LinkedHashMap::new));
   }
 }

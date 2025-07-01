@@ -106,9 +106,17 @@ public class TestItemPojo {
 
     if (!CollectionUtils.isEmpty(input.getAttachments())) {
       this.attachmentPojoList = input.getAttachments().stream().filter(Objects::nonNull)
-          .peek(attachment -> this.type = this.type + "\n" + attachment.getFileName())
           .map(it -> AttachmentPojo.builder().fileId(it.getFileId()).fileName(it.getFileName()).build())
           .collect(Collectors.toSet());
     }
+  }
+
+  public static TestItemPojo build(TestItem input, boolean includeAttachments) {
+    var testItemPojo = new TestItemPojo(input);
+    if (includeAttachments) {
+      input.getAttachments().stream().filter(Objects::nonNull)
+          .forEach(attachment -> testItemPojo.setType(testItemPojo.getType() + "\n" + attachment.getFileName()));
+    }
+    return testItemPojo;
   }
 }

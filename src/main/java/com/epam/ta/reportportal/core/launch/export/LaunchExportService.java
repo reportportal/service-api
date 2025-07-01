@@ -51,7 +51,8 @@ public class LaunchExportService {
 
   public void exportLaunch(Launch launch, String username, String reportFormat, HttpServletResponse response) {
     ReportFormat format = reportService.resolveFormat(reportFormat);
-    byte[] report = reportService.generateReport(launch, dataProvider.getTestItemsOfLaunch(launch).values(), username,
+    byte[] report = reportService.generateReport(launch, dataProvider.getTestItemsOfLaunch(launch, false).values(),
+        username,
         format);
 
     response.setContentType(format.getContentType());
@@ -73,14 +74,15 @@ public class LaunchExportService {
    * @param reportFormat the format of the report inside the ZIP archive
    * @param response     the HTTP response to write the ZIP archive to
    */
-  public void exportLaunchWithAttachments(Launch launch, String username, String reportFormat, HttpServletResponse response) {
+  public void exportLaunchWithAttachments(Launch launch, String username, String reportFormat,
+      HttpServletResponse response) {
     ReportFormat format = reportService.resolveFormat(reportFormat);
     response.setContentType("application/zip");
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
         String.format("attachment; filename=\"RP_LAUNCH_%s_Report.zip\"", format.name()));
 
     try (ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream())) {
-      Map<Long, TestItemPojo> testItems = dataProvider.getTestItemsOfLaunch(launch);
+      Map<Long, TestItemPojo> testItems = dataProvider.getTestItemsOfLaunch(launch, true);
 
       for (TestItemPojo item : testItems.values()) {
         String itemsPathNames = pathService.buildItemPath(testItems, item);

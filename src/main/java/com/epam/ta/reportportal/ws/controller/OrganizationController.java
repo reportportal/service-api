@@ -125,7 +125,7 @@ public class OrganizationController extends BaseController implements Organizati
     if (isExportFormat(accept)) {
       ReportFormat format = organizationReportHandler.getReportFormat(accept);
       try (OutputStream outputStream = httpServletResponse.getOutputStream()) {
-        httpServletResponse.setContentType("application/vnd.ms-excel");
+        httpServletResponse.setContentType("text/csv");
         httpServletResponse.setHeader(CONTENT_DISPOSITION,
             String.format("attachment; filename=\"RP_ORGANIZATIONS_%s_Report.%s\"", format.name(), format.getValue()));
         getOrganizationHandler.exportOrganizations(filter, pageable, format, outputStream);

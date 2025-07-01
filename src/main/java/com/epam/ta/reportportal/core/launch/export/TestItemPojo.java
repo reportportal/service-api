@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.ta.reportportal.core.jasper;
+package com.epam.ta.reportportal.core.launch.export;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.EMPTY_STRING;
 import static com.epam.ta.reportportal.core.jasper.util.ExportUtils.COMMENT_PREFIX;
@@ -34,15 +34,16 @@ import static java.util.Optional.ofNullable;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Data;
+import org.springframework.util.CollectionUtils;
 
 /**
- * Jasper Reports collection {@link TestItem} POJO
- *
- * @author Andrei_Ramanchuk
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Data
 public class TestItemPojo {
@@ -50,7 +51,9 @@ public class TestItemPojo {
   private static final Double EMPTY_DURATION = 0D;
   private Long id;
   private String type;
+  private String itemName;
   private String name;
+  private String path;
   private String status;
   private Double duration;
   private Integer total;
@@ -62,10 +65,14 @@ public class TestItemPojo {
   private Integer systemIssue;
   private Integer noDefect;
   private Integer toInvestigate;
+  private Instant startTime;
+  private Set<AttachmentPojo> attachmentPojoList;
 
   public TestItemPojo(TestItem input) {
     this.id = input.getItemId();
     this.type = input.getType().name();
+    this.itemName = input.getName();
+    this.path = input.getPath();
     Optional<String> issueDescription = Optional.empty();
     if (input.getItemResults().getIssue() != null) {
       issueDescription = ofNullable(input.getItemResults().getIssue().getIssueDescription()).map(
@@ -96,5 +103,12 @@ public class TestItemPojo {
     this.systemIssue = getStatisticsCounter(statistics, DEFECTS_SYSTEM_ISSUE_TOTAL);
     this.noDefect = getStatisticsCounter(statistics, DEFECTS_NO_DEFECT_TOTAL);
     this.toInvestigate = getStatisticsCounter(statistics, DEFECTS_TO_INVESTIGATE_TOTAL);
+
+    if (!CollectionUtils.isEmpty(input.getAttachments())) {
+      this.attachmentPojoList = input.getAttachments().stream().filter(Objects::nonNull)
+          .peek(attachment -> this.type = this.type + "\n" + attachment.getFileName())
+          .map(it -> AttachmentPojo.builder().fileId(it.getFileId()).fileName(it.getFileName()).build())
+          .collect(Collectors.toSet());
+    }
   }
 }

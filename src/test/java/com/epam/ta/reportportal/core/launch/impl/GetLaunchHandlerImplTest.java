@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
-import com.epam.ta.reportportal.core.jasper.util.JasperDataProvider;
+import com.epam.ta.reportportal.core.launch.export.JasperDataProvider;
 import com.epam.ta.reportportal.core.launch.cluster.GetClusterHandler;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;

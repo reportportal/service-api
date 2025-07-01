@@ -96,7 +96,9 @@ public class LaunchExportService {
 
       for (Log log : launch.getLogs()) {
         if (log.getAttachment() != null) {
-          zipService.writeToZip(log.getAttachment().getFileId(), log.getAttachment().getFileName(), zipOut);
+          if (uniquePaths.add(log.getAttachment().getFileName())) {
+            zipService.writeToZip(log.getAttachment().getFileId(), log.getAttachment().getFileName(), zipOut);
+          }
         }
       }
 

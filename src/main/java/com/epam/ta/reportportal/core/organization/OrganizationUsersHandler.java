@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.organization;
 
 import com.epam.reportportal.api.model.OrgUserAssignment;
 import com.epam.reportportal.api.model.OrgUserProjectPage;
+import com.epam.reportportal.api.model.OrgUserUpdateRequest;
 import com.epam.reportportal.api.model.OrganizationUsersPage;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
@@ -51,4 +52,7 @@ public interface OrganizationUsersHandler {
    * @return
    */
   OrgUserProjectPage findUserProjectsInOrganization(Long userId, Long organizationId, Pageable pageable);
+
+  boolean updateOrganizationUserDetails(Long orgId, Long userId,
+      OrgUserUpdateRequest orgUserUpdateRequest);
 }

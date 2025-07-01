@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.export;
 
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.binary.DataStoreService;
 import java.io.IOException;
@@ -24,7 +25,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import com.epam.reportportal.rules.exception.ErrorType;
 
 /**
  * Service responsible for writing files into a ZIP output stream using file IDs.
@@ -56,7 +56,8 @@ public class AttachmentZipService {
       input.transferTo(zipOut);
       zipOut.closeEntry();
     } catch (IOException e) {
-      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Cannot write file to ZIP: " + filePath, e);
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "Cannot write file to ZIP: " + filePath + ". " + e.getMessage());
     }
   }
 

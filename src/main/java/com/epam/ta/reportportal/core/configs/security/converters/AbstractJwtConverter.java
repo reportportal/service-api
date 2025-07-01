@@ -20,10 +20,8 @@ public abstract class AbstractJwtConverter implements Converter<Jwt, AbstractAut
 
   protected Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter;
 
-  @Value("${user-management.default-role:USER}")
+  @Value("${user-management.default-role}")
   private String defaultRole;
-  @Value("${user-management.create-temporary-user:true}")
-  private Boolean isCreateTemporaryUserEnabled;
 
   protected AbstractJwtConverter(UserDetailsService userDetailsService) {
     this(userDetailsService, "authorities");
@@ -37,24 +35,12 @@ public abstract class AbstractJwtConverter implements Converter<Jwt, AbstractAut
     this.jwtGrantedAuthoritiesConverter = jwtGrantedAuthoritiesConverter;
   }
 
-  protected UserDetails findOrCreateUser(String identifier) {
+  protected UserDetails findUser(String identifier) {
     try {
       return userDetailsService.loadUserByUsername(identifier);
     } catch (UsernameNotFoundException e) {
-      if (!isCreateTemporaryUserEnabled) {
-        return createTemporaryUser(identifier);
-      } else {
-        throw new UsernameNotFoundException("User not found: " + identifier, e);
-      }
+      throw new UsernameNotFoundException("User not found: " + identifier, e);
     }
-  }
-
-  protected UserDetails createTemporaryUser(String identifier) {
-    return User.builder()
-        .username(identifier)
-        .password("")
-        .authorities(defaultRole)
-        .build();
   }
 
   protected Collection<GrantedAuthority> getDefaultAuthorities() {

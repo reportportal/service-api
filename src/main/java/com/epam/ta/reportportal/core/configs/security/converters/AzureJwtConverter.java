@@ -14,7 +14,7 @@ public class AzureJwtConverter extends AbstractJwtConverter {
   @Override
   public AbstractAuthenticationToken convert(Jwt jwt) {
     var upn = jwt.getClaimAsString("upn");
-    var user = findOrCreateUser(upn);
+    var user = findUser(upn);
     var authorities = extractAuthorities(jwt);
 
     return new UsernamePasswordAuthenticationToken(user, null, authorities);

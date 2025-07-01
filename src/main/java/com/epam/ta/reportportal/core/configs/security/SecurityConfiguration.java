@@ -20,19 +20,12 @@ import com.epam.ta.reportportal.auth.CustomAuthenticationEntryPoint;
 import com.epam.ta.reportportal.auth.UserRoleHierarchy;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
-import com.epam.ta.reportportal.core.configs.utils.CustomAuthenticationManagerResolver;
-import com.epam.ta.reportportal.dao.ServerSettingsRepository;
-import com.epam.ta.reportportal.entity.ServerSettings;
-import java.nio.charset.StandardCharsets;
-import java.util.Optional;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import org.apache.commons.lang3.StringUtils;
+import jakarta.inject.Inject;
+import org.springframework.security.authentication.AuthenticationManagerResolver;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
@@ -43,9 +36,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -53,47 +43,29 @@ import org.springframework.security.web.SecurityFilterChain;
  * Spring's Security Configuration
  *
  * @author Andrei Varabyeu
+ * @author Reingold Shekhtel
  */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(proxyTargetClass = true)
 class SecurityConfiguration {
 
-  @Value("${rp.jwt.signing-key}")
-  private String signingKey;
+  private final PermissionEvaluator permissionEvaluator;
+  private final DatabaseUserDetailsService userDetailsService;
+  private final RoleHierarchy roleHierarchy;
+  private final AuthenticationManagerResolver<HttpServletRequest> customAuthenticationManagerResolver;
 
   @Autowired
-  private PermissionEvaluator permissionEvaluator;
-
-  @Autowired
-  private DatabaseUserDetailsService userDetailsService;
-
-  @Autowired
-  private ServerSettingsRepository serverSettingsRepository;
-
-  @Autowired
-  private RoleHierarchy roleHierarchy;
-
-  @Autowired
-  private ApiKeyAuthenticationProvider apiKeyAuthenticationProvider;
-
-  @Autowired
-  private JwtCustomAuthenticationProvider jwtCustomAuthenticationProvider;
-
-
-  private static final String SECRET_KEY = "secret.key";
-
-  @Bean
-  @Profile("!unittest")
-  public JwtReportPortalUserConverter accessTokenConverter() {
-    JwtReportPortalUserConverter jwtConverter = new JwtReportPortalUserConverter(
-        userDetailsService);
-    JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-    jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName("authorities");
-    jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
-    jwtConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
-
-    return jwtConverter;
+  public SecurityConfiguration(
+      PermissionEvaluator permissionEvaluator,
+      DatabaseUserDetailsService userDetailsService,
+      RoleHierarchy roleHierarchy,
+      AuthenticationManagerResolver<HttpServletRequest> customAuthenticationManagerResolver
+  ) {
+    this.permissionEvaluator = permissionEvaluator;
+    this.userDetailsService = userDetailsService;
+    this.roleHierarchy = roleHierarchy;
+    this.customAuthenticationManagerResolver = customAuthenticationManagerResolver;
   }
 
   @Bean
@@ -119,7 +91,7 @@ class SecurityConfiguration {
             .anyRequest()
             .authenticated())
         .oauth2ResourceServer(resourceServer -> resourceServer
-            .authenticationManagerResolver(customAuthenticationManagerResolver())
+            .authenticationManagerResolver(customAuthenticationManagerResolver)
             .authenticationEntryPoint(authenticationEntryPoint()))
         .userDetailsService(userDetailsService)
         .csrf(AbstractHttpConfigurer::disable);
@@ -147,13 +119,6 @@ class SecurityConfiguration {
     return new BCryptPasswordEncoder();
   }
 
-
-  @Bean
-  @Profile("!unittest")
-  JwtDecoder jwtDecoder() {
-    return NimbusJwtDecoder.withSecretKey(this.getSecret()).build();
-  }
-
   @Bean
   public MethodSecurityExpressionHandler createExpressionHandler() {
     DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
@@ -161,30 +126,6 @@ class SecurityConfiguration {
     handler.setPermissionEvaluator(permissionEvaluator);
     return handler;
   }
-
-  private SecretKey getSecret() {
-    String secret = Optional.ofNullable(signingKey)
-        .filter(StringUtils::isNotEmpty)
-        .orElseGet(() -> serverSettingsRepository.findByKey(SECRET_KEY)
-            .map(ServerSettings::getValue)
-            .orElseGet(() -> serverSettingsRepository.generateSecret()));
-
-    return new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), 0, secret.length(),
-        "HmacSha256");
-  }
-
-
-  @Bean
-  public CustomAuthenticationManagerResolver customAuthenticationManagerResolver() {
-    return new CustomAuthenticationManagerResolver(apiKeyAuthenticationProvider,
-        jwtCustomAuthenticationProvider, jwtDecoder());
-  }
-
-  @Bean
-  public JwtCustomAuthenticationProvider jwtCustomAuthenticationProvider() {
-    return new JwtCustomAuthenticationProvider(jwtDecoder(), userDetailsService);
-  }
-
 }
 
 

@@ -14,7 +14,7 @@ public class GoogleJwtConverter extends AbstractJwtConverter {
   @Override
   public AbstractAuthenticationToken convert(Jwt jwt) {
     var email = jwt.getClaimAsString("email");
-    var user = findOrCreateUser(email);
+    var user = findUser(email);
     var authorities = getDefaultAuthorities();
 
     return new UsernamePasswordAuthenticationToken(user, null, authorities);

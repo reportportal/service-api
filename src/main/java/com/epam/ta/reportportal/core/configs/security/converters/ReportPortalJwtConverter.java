@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.configs.security;
+package com.epam.ta.reportportal.core.configs.security.converters;
 
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
@@ -26,32 +26,23 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
-public class JwtReportPortalUserConverter implements Converter<Jwt, AbstractAuthenticationToken> {
+public class ReportPortalJwtConverter extends AbstractJwtConverter {
 
-  private final UserDetailsService userDetailsService;
-
-  private Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-
-  private final static String PRINCIPAL_CLAIM_NAME = "user_name";
-
-  public JwtReportPortalUserConverter(UserDetailsService userDetailsService) {
-    this.userDetailsService = userDetailsService;
+  public ReportPortalJwtConverter(UserDetailsService userDetailsService) {
+    super(userDetailsService);
   }
 
   @Override
   public final AbstractAuthenticationToken convert(Jwt jwt) {
-    Collection<GrantedAuthority> authorities = this.jwtGrantedAuthoritiesConverter.convert(jwt);
-
-    String username = jwt.getClaimAsString(PRINCIPAL_CLAIM_NAME);
+    var username = jwt.getSubject();
     var principal = userDetailsService.loadUserByUsername(username);
 
+    var authorities = jwtGrantedAuthoritiesConverter.convert(jwt);
     return new UsernamePasswordAuthenticationToken(principal, null, authorities);
   }
-
 
   public void setJwtGrantedAuthoritiesConverter(@NotNull
   Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter) {
     this.jwtGrantedAuthoritiesConverter = jwtGrantedAuthoritiesConverter;
   }
-
 }

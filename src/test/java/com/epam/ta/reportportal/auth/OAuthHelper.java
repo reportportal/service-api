@@ -25,6 +25,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -38,6 +39,9 @@ public class OAuthHelper {
   private String superadminToken;
 
   private String customerToken;
+
+  @Value("${oauth2.resource-server.providers.rp.issuer-uri}")
+  private String issuerUri;
 
   public String getDefaultToken() {
     return defaultToken == null ?
@@ -53,7 +57,7 @@ public class OAuthHelper {
 
   public String getCustomerToken() {
     return customerToken == null ?
-        customerToken = createAccessToken("default_customer", "erebus", UserRole.USER) :
+        customerToken = createAccessToken("default@reportportal.internal", "erebus", UserRole.USER) :
         customerToken;
   }
 
@@ -65,6 +69,7 @@ public class OAuthHelper {
 
     return Jwts.builder()
         .subject(username)
+        .issuer(issuerUri)
         .claim("user_name", username)
         .claim("scope", "ui")
         .claim("authorities", authorities)

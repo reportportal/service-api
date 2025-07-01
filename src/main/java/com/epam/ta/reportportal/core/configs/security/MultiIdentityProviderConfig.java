@@ -1,7 +1,7 @@
-package com.epam.ta.reportportal.core.configs;
+package com.epam.ta.reportportal.core.configs.security;
 
 import com.epam.ta.reportportal.core.configs.security.ApiKeyAuthenticationProvider;
-import com.epam.ta.reportportal.core.configs.security.JwtReportPortalUserConverter;
+import com.epam.ta.reportportal.core.configs.security.converters.ReportPortalJwtConverter;
 import com.epam.ta.reportportal.core.configs.security.converters.AzureJwtConverter;
 import com.epam.ta.reportportal.core.configs.security.converters.GoogleJwtConverter;
 import com.epam.ta.reportportal.core.configs.security.converters.InternalJwtConverter;
@@ -56,15 +56,17 @@ public class MultiIdentityProviderConfig {
   @ConfigurationProperties(prefix = "oauth2.resource-server")
   @Data
   public static class IdentityProviderConfig {
+
     private Map<String, JwtIssuerConfig> providers = new HashMap<>();
   }
 
   @Data
   public static class JwtIssuerConfig {
+
     private String issuerUri;
     private String jwkSetUri;
     private String signingKey;
-    private String algorithm = "HS512";
+    private String algorithm = "HS256";
     private String usernameClaim = "sub";
     private String authoritiesClaim = "authorities";
   }
@@ -88,10 +90,12 @@ public class MultiIdentityProviderConfig {
 
     Map<String, AuthenticationManager> jwtManagers = new HashMap<>();
     var config = identityProviderConfig();
-    config.getProviders().forEach((name, issuerConfig) ->
-        jwtManagers.put(issuerConfig.getIssuerUri(), createProviderAuthenticationManager(name, issuerConfig))
-    );
-    
+    config.getProviders().forEach((name, issuerConfig) -> {
+      if (issuerConfig.getIssuerUri() != null && !issuerConfig.getIssuerUri().trim().isEmpty()) {
+        jwtManagers.put(issuerConfig.getIssuerUri(), createProviderAuthenticationManager(name, issuerConfig));
+      }
+    });
+
     var jwtResolver = new JwtIssuerAuthenticationManagerResolver(jwtManagers::get);
     var apiKeyManager = new ProviderManager(apiKeyAuthenticationProvider);
 
@@ -103,7 +107,7 @@ public class MultiIdentityProviderConfig {
       }
     };
   }
-  
+
   private boolean isJWT(HttpServletRequest request) {
     try {
       var token = getBearerValue(request);
@@ -121,7 +125,7 @@ public class MultiIdentityProviderConfig {
       return false;
     }
   }
-  
+
   private String getBearerValue(HttpServletRequest request) {
     String authHeader = request.getHeader("Authorization");
     if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
@@ -140,19 +144,19 @@ public class MultiIdentityProviderConfig {
   }
 
   private JwtDecoder createJwtDecoder(String name, JwtIssuerConfig config) {
-    if (config.getJwkSetUri() != null) {
+    if (config.getJwkSetUri() != null && !config.getJwkSetUri().trim().isEmpty()) {
       return NimbusJwtDecoder.withJwkSetUri(config.getJwkSetUri()).build();
     }
 
-    if (config.getSigningKey() != null) {
-      return NimbusJwtDecoder.withSecretKey(getSecretKey(config.getSigningKey()))
+    if (config.getSigningKey() != null && !config.getSigningKey().trim().isEmpty()) {
+      return NimbusJwtDecoder.withSecretKey(getSecretKey(config.getSigningKey(), config.getAlgorithm()))
           .macAlgorithm(MacAlgorithm.from(config.getAlgorithm()))
           .build();
     }
 
     if (Objects.equals(name, "rp")) {
-      return NimbusJwtDecoder.withSecretKey(getDefaultSecretKey())
-          .macAlgorithm(MacAlgorithm.from("HS512"))
+      return NimbusJwtDecoder.withSecretKey(getDefaultSecretKey(config.getAlgorithm()))
+          .macAlgorithm(MacAlgorithm.from(config.getAlgorithm()))
           .build();
     }
 
@@ -164,19 +168,30 @@ public class MultiIdentityProviderConfig {
       case "google" -> new GoogleJwtConverter(userDetailsService);
       case "azure" -> new AzureJwtConverter(userDetailsService);
       case "internal" -> new InternalJwtConverter(userDetailsService);
-      default -> new JwtReportPortalUserConverter(userDetailsService);
+      default -> new ReportPortalJwtConverter(userDetailsService);
     };
   }
 
-  private SecretKeySpec getSecretKey(String key) {
-    return new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
+  private SecretKeySpec getSecretKey(String key, String algorithm) {
+    String javaAlgorithm = getJavaAlgorithmName(algorithm);
+    return new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), javaAlgorithm);
   }
 
-  private SecretKeySpec getDefaultSecretKey() {
+  private SecretKeySpec getDefaultSecretKey(String algorithm) {
     var secret = serverSettingsRepository.findByKey(SETTING_KEY_SECRET)
         .map(ServerSettings::getValue)
         .orElseGet(serverSettingsRepository::generateSecret);
 
-    return new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
+    String javaAlgorithm = getJavaAlgorithmName(algorithm);
+    return new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), javaAlgorithm);
+  }
+
+  private String getJavaAlgorithmName(String algorithm) {
+    return switch (algorithm) {
+      case "HS256" -> "HmacSHA256";
+      case "HS384" -> "HmacSHA384";
+      case "HS512" -> "HmacSHA512";
+      default -> "HmacSHA256";
+    };
   }
 }

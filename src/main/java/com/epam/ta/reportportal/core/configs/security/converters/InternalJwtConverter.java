@@ -14,7 +14,7 @@ public class InternalJwtConverter extends AbstractJwtConverter {
   @Override
   public AbstractAuthenticationToken convert(Jwt jwt) {
     var externalId = jwt.getClaimAsString("sub");
-    var user = findOrCreateUser(externalId);
+    var user = findUser(externalId);
     var authorities = extractAuthorities(jwt);
 
     return new UsernamePasswordAuthenticationToken(user, null, authorities);

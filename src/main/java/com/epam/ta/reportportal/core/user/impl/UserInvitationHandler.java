@@ -40,6 +40,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.auth.authenticator.UserAuthenticator;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.organization.OrganizationUserService;
+import com.epam.ta.reportportal.core.organization.PersonalOrganizationService;
 import com.epam.ta.reportportal.core.user.UserInvitationService;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
@@ -87,6 +88,7 @@ public class UserInvitationHandler {
   private final ProjectRepository projectRepository;
   private final PasswordEncoder passwordEncoder;
   private final UserInvitationService userInvitationService;
+  private final PersonalOrganizationService personalOrganizationService;
 
   /**
    * Constructor of UserInvitationHandlerImpl.
@@ -99,7 +101,7 @@ public class UserInvitationHandler {
       OrganizationUserService organizationUserService,
       OrganizationRepositoryCustom organizationRepositoryCustom,
       ProjectRepository projectRepository, PasswordEncoder passwordEncoder,
-      UserInvitationService userInvitationService) {
+      UserInvitationService userInvitationService, PersonalOrganizationService personalOrganizationService) {
     this.httpServletRequest = httpServletRequest;
     this.userCreationBidRepository = userCreationBidRepository;
     this.userRepository = userRepository;
@@ -111,6 +113,7 @@ public class UserInvitationHandler {
     this.projectRepository = projectRepository;
     this.passwordEncoder = passwordEncoder;
     this.userInvitationService = userInvitationService;
+    this.personalOrganizationService = personalOrganizationService;
   }
 
   /**
@@ -164,6 +167,7 @@ public class UserInvitationHandler {
     var createdUser = saveUser(invitationActivation, bid);
     assignOrganizationsAndProjects(createdUser, bid.getMetadata());
     userCreationBidRepository.deleteByUuid(bid.getUuid());
+    personalOrganizationService.create(createdUser);
 
     var userCreatedEvent = new UserCreatedEvent(
         TO_ACTIVITY_RESOURCE.apply(createdUser, null),

@@ -19,16 +19,20 @@ package com.epam.ta.reportportal.core.organization;
 import com.epam.reportportal.api.model.OrganizationInfo;
 import com.epam.reportportal.api.model.OrganizationPage;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.model.organization.OrganizationResource;
+import java.io.OutputStream;
 import org.springframework.data.domain.Pageable;
 
 /**
+ * Handler interface for retrieving and exporting organization information.
+ *
  * @author Andrei Piankouski
  */
 public interface GetOrganizationHandler {
 
   /**
-   * Get Organization resource information
+   * Get Organization resource information.
    *
    * @param organizationId Organization id
    * @return {@link OrganizationResource}
@@ -36,13 +40,20 @@ public interface GetOrganizationHandler {
   OrganizationInfo getOrganizationById(Long organizationId);
 
   /**
-   * Get Organizations by query parameters
+   * Get Organizations by query parameters.
    *
    * @param filter   Queryable filter to apply on organizations
    * @param pageable Pagination information for the results
-   * @return An {@link Iterable} of {@link OrganizationResource} containing information about all
-   * projects
+   * @return An {@link Iterable} of {@link OrganizationResource} containing information about all projects
    */
   OrganizationPage getOrganizations(Queryable filter, Pageable pageable);
 
+  /**
+   * Export organizations matching the given filter to the provided output stream.
+   *
+   * @param filter       Queryable filter to apply on organizations
+   * @param pageable     Pagination information for the results
+   * @param outputStream OutputStream to write the exported data
+   */
+  void exportOrganizations(Queryable filter, Pageable pageable, ReportFormat reportFormat, OutputStream outputStream);
 }

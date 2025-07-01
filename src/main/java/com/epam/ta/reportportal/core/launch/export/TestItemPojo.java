@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.ta.reportportal.core.jasper;
+package com.epam.ta.reportportal.core.launch.export;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.EMPTY_STRING;
 import static com.epam.ta.reportportal.core.jasper.util.ExportUtils.COMMENT_PREFIX;
@@ -34,19 +34,26 @@ import static java.util.Optional.ofNullable;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import lombok.Data;
+import org.springframework.util.CollectionUtils;
 
 /**
- * Jasper Reports collection {@link TestItem} POJO
- *
- * @author Andrei_Ramanchuk
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@Data
 public class TestItemPojo {
 
+  private static final Double EMPTY_DURATION = 0D;
+  private Long id;
   private String type;
+  private String itemName;
   private String name;
+  private String path;
   private String status;
   private Double duration;
   private Integer total;
@@ -58,11 +65,14 @@ public class TestItemPojo {
   private Integer systemIssue;
   private Integer noDefect;
   private Integer toInvestigate;
-
-  private static final Double EMPTY_DURATION = 0D;
+  private Instant startTime;
+  private Set<AttachmentPojo> attachmentPojoList;
 
   public TestItemPojo(TestItem input) {
+    this.id = input.getItemId();
     this.type = input.getType().name();
+    this.itemName = input.getName();
+    this.path = input.getPath();
     Optional<String> issueDescription = Optional.empty();
     if (input.getItemResults().getIssue() != null) {
       issueDescription = ofNullable(input.getItemResults().getIssue().getIssueDescription()).map(
@@ -93,133 +103,20 @@ public class TestItemPojo {
     this.systemIssue = getStatisticsCounter(statistics, DEFECTS_SYSTEM_ISSUE_TOTAL);
     this.noDefect = getStatisticsCounter(statistics, DEFECTS_NO_DEFECT_TOTAL);
     this.toInvestigate = getStatisticsCounter(statistics, DEFECTS_TO_INVESTIGATE_TOTAL);
+
+    if (!CollectionUtils.isEmpty(input.getAttachments())) {
+      this.attachmentPojoList = input.getAttachments().stream().filter(Objects::nonNull)
+          .map(it -> AttachmentPojo.builder().fileId(it.getFileId()).fileName(it.getFileName()).build())
+          .collect(Collectors.toSet());
+    }
   }
 
-  public void setType(String value) {
-    this.type = value;
-  }
-
-  public String getType() {
-    return type;
-  }
-
-  public void setName(String value) {
-    this.name = value;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setStatus(String value) {
-    this.status = value;
-  }
-
-  public String getStatus() {
-    return status;
-  }
-
-  public void setTotal(Integer value) {
-    this.total = value;
-  }
-
-  public Integer getTotal() {
-    return total;
-  }
-
-  public void setPased(Integer value) {
-    this.passed = value;
-  }
-
-  public Integer getPassed() {
-    return passed;
-  }
-
-  public void setFailed(Integer value) {
-    this.failed = value;
-  }
-
-  public Integer getFailed() {
-    return failed;
-  }
-
-  public void setSkipped(Integer value) {
-    this.skipped = value;
-  }
-
-  public Integer getSkipped() {
-    return skipped;
-  }
-
-  public void setAutomationBug(Integer value) {
-    this.automationBug = value;
-  }
-
-  public Integer getAutomationBug() {
-    return automationBug;
-  }
-
-  public void setProductBug(Integer value) {
-    this.productBug = value;
-  }
-
-  public Integer getProductBug() {
-    return productBug;
-  }
-
-  public void setSystemIssue(Integer value) {
-    this.systemIssue = value;
-  }
-
-  public Integer getSystemIssue() {
-    return systemIssue;
-  }
-
-  public void setNoDefect(Integer value) {
-    this.noDefect = value;
-  }
-
-  public Integer getNoDefect() {
-    return noDefect;
-  }
-
-  public void setToInvestigate(Integer value) {
-    this.toInvestigate = value;
-  }
-
-  public Integer getToInvestigate() {
-    return toInvestigate;
-  }
-
-  public Double getDuration() {
-    return duration;
-  }
-
-  public void setDuration(Double duration) {
-    this.duration = duration;
-  }
-
-  public void setPassed(Integer passed) {
-    this.passed = passed;
-  }
-
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder("TestItemPojo{");
-    sb.append("type='").append(type).append('\'');
-    sb.append(", name='").append(name).append('\'');
-    sb.append(", status='").append(status).append('\'');
-    sb.append(", duration=").append(duration);
-    sb.append(", total=").append(total);
-    sb.append(", passed=").append(passed);
-    sb.append(", failed=").append(failed);
-    sb.append(", skipped=").append(skipped);
-    sb.append(", automationBug=").append(automationBug);
-    sb.append(", productBug=").append(productBug);
-    sb.append(", systemIssue=").append(systemIssue);
-    sb.append(", noDefect=").append(noDefect);
-    sb.append(", toInvestigate=").append(toInvestigate);
-    sb.append('}');
-    return sb.toString();
+  public static TestItemPojo build(TestItem input, boolean includeAttachments) {
+    var testItemPojo = new TestItemPojo(input);
+    if (includeAttachments) {
+      input.getAttachments().stream().filter(Objects::nonNull)
+          .forEach(attachment -> testItemPojo.setType(testItemPojo.getType() + "\n" + attachment.getFileName()));
+    }
+    return testItemPojo;
   }
 }

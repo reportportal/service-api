@@ -16,18 +16,16 @@
 
 package com.epam.ta.reportportal.core.launch;
 
+import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
-import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.reporting.LaunchResource;
-import java.io.OutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Pageable;
 
 //import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
@@ -73,8 +71,8 @@ public interface GetLaunchHandler {
    * @return Response Data
    */
   Page<LaunchResource> getProjectLaunches(ReportPortalUser.ProjectDetails projectDetails,
-                                          Filter filter, Pageable pageable,
-                                          String userName);
+      Filter filter, Pageable pageable,
+      String userName);
 
   /**
    * Get debug launches
@@ -146,14 +144,21 @@ public interface GetLaunchHandler {
   Map<String, String> getStatuses(ReportPortalUser.ProjectDetails projectDetails, Long[] ids);
 
   /**
-   * Export Launch info according to the {@link ReportFormat} type
+   * Exports the launch report in the specified format and writes it to the HTTP response.
+   * <p>
+   * If {@code includeAttachments} is {@code true}, the report along with all launch attachments will be packed into a
+   * ZIP archive and streamed to the client. Otherwise, only the report will be streamed in its native format (PDF, XLS,
+   * or HTML).
+   * </p>
    *
-   * @param launchId     {@link com.epam.ta.reportportal.entity.launch.Launch#id}
-   * @param reportFormat {@link ReportFormat}
-   * @param outputStream {@link HttpServletResponse#getOutputStream()}
-   * @param user         Current {@link ReportPortalUser}
+   * @param launchId           ID of the launch to export.
+   * @param reportFormat       Format of the report to export. Supported values: "pdf", "xls", "html".
+   * @param includeAttachments Whether to include all attachments related to the launch in a ZIP archive.
+   * @param response           {@link HttpServletResponse} used to write the report (or archive) to the output stream.
+   * @param user               Authenticated user requesting the export.
+   * @throws ReportPortalException if the report or archive could not be written to the output stream.
    */
-  void exportLaunch(Long launchId, ReportFormat reportFormat, OutputStream outputStream,
+  void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments, HttpServletResponse response,
       ReportPortalUser user);
 
   /**

@@ -37,12 +37,7 @@ public class ReportPortalJwtConverter extends AbstractJwtConverter {
     var username = jwt.getSubject();
     var principal = userDetailsService.loadUserByUsername(username);
 
-    var authorities = jwtGrantedAuthoritiesConverter.convert(jwt);
+    var authorities = extractAuthorities(jwt);
     return new UsernamePasswordAuthenticationToken(principal, null, authorities);
-  }
-
-  public void setJwtGrantedAuthoritiesConverter(@NotNull
-  Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter) {
-    this.jwtGrantedAuthoritiesConverter = jwtGrantedAuthoritiesConverter;
   }
 }

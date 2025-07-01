@@ -35,7 +35,6 @@ public class JasperDataProvider {
   private final TestItemRepository testItemRepository;
 
   public Map<Long, TestItemPojo> getTestItemsOfLaunch(Launch launch, boolean includeAttachments) {
-    /* Get launch referred test items with SORT! */
     return testItemRepository.selectTestItemsProjection(launch.getId())
         .stream()
         .map(item -> TestItemPojo.build(item, includeAttachments))

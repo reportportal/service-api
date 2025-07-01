@@ -83,11 +83,9 @@ public class LaunchExportService {
 
     try (ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream())) {
       Map<Long, TestItemPojo> testItems = dataProvider.getTestItemsOfLaunch(launch, true);
-
+      Set<String> uniquePaths = new HashSet<>();
       for (TestItemPojo item : testItems.values()) {
         String itemsPathNames = pathService.buildItemPath(testItems, item);
-
-        Set<String> uniquePaths = new HashSet<>();
         for (AttachmentPojo att : item.getAttachmentPojoList()) {
           String fullPath = pathService.buildAttachmentPath(itemsPathNames, att.getFileName());
           if (uniquePaths.add(fullPath)) {

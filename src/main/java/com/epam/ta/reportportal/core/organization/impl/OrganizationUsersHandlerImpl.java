@@ -251,7 +251,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
 
   @Override
   @Transactional
-  public boolean updateOrganizationUserDetails(Long orgId, Long userId,
+  public void updateOrganizationUserDetails(Long orgId, Long userId,
       OrgUserUpdateRequest orgUserUpdateRequest) {
 
     Organization organization = organizationRepositoryCustom.findById(orgId)
@@ -269,8 +269,6 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     assignToProjects(userId, projects, user);
 
     unassignUserProject(orgId, userId, projectsId);
-
-    return true;
   }
 
   private void unassignUserProject(Long orgId, Long userId, List<Long> projectsId) {

@@ -53,6 +53,6 @@ public interface OrganizationUsersHandler {
    */
   OrgUserProjectPage findUserProjectsInOrganization(Long userId, Long organizationId, Pageable pageable);
 
-  boolean updateOrganizationUserDetails(Long orgId, Long userId,
+  void updateOrganizationUserDetails(Long orgId, Long userId,
       OrgUserUpdateRequest orgUserUpdateRequest);
 }

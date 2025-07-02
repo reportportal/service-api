@@ -11,10 +11,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -52,7 +53,7 @@ public class MultiIdentityProviderConfig {
     this.serverSettingsRepository = serverSettingsRepository;
   }
 
-  @ConfigurationProperties(prefix = "oauth2.resource-server")
+  @ConfigurationProperties(prefix = "oauth2")
   @Data
   public static class IdentityProviderConfig {
 
@@ -143,19 +144,21 @@ public class MultiIdentityProviderConfig {
   }
 
   private JwtDecoder createJwtDecoder(String name, JwtIssuerConfig config) {
-    if (config.getJwkSetUri() != null && !config.getJwkSetUri().trim().isEmpty()) {
+    if (StringUtils.isNotEmpty(config.getSigningKey())) {
       return NimbusJwtDecoder.withJwkSetUri(config.getJwkSetUri()).build();
     }
 
-    if (config.getSigningKey() != null && !config.getSigningKey().trim().isEmpty()) {
-      return NimbusJwtDecoder.withSecretKey(getSecretKey(config.getSigningKey(), config.getAlgorithm()))
-          .macAlgorithm(MacAlgorithm.from(config.getAlgorithm()))
+    if (StringUtils.isNotEmpty(config.getSigningKey())) {
+      var algorithm = config.getAlgorithm();
+      return NimbusJwtDecoder.withSecretKey(convertToSecretKey(config.getSigningKey(), algorithm))
+          .macAlgorithm(MacAlgorithm.from(algorithm))
           .build();
     }
 
-    if (Objects.equals(name, "rp")) {
-      return NimbusJwtDecoder.withSecretKey(getDefaultSecretKey(config.getAlgorithm()))
-          .macAlgorithm(MacAlgorithm.from(config.getAlgorithm()))
+    if (name.contentEquals("rp")) {
+      var algorithm = config.getAlgorithm();
+      return NimbusJwtDecoder.withSecretKey(getDefaultSecretKey(config.getSigningKey(), algorithm))
+          .macAlgorithm(MacAlgorithm.from(algorithm))
           .build();
     }
 
@@ -171,23 +174,24 @@ public class MultiIdentityProviderConfig {
     };
   }
 
-  private SecretKeySpec getSecretKey(String key, String algorithm) {
-    String javaAlgorithm = getJavaAlgorithmName(algorithm);
-    return new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), javaAlgorithm);
+  private SecretKeySpec getDefaultSecretKey(String key, String algorithm) {
+    return Optional.ofNullable(key)
+        .map(k -> convertToSecretKey(k, algorithm))
+        .orElseGet(() -> convertToSecretKey(generateDefaultKey(), algorithm));
   }
 
-  private SecretKeySpec getDefaultSecretKey(String algorithm) {
-    var secret = serverSettingsRepository.findByKey(SETTING_KEY_SECRET)
+  private SecretKeySpec convertToSecretKey(String key, String algorithm) {
+    return new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), getJavaAlgorithmName(algorithm));
+  }
+
+  private String generateDefaultKey() {
+    return serverSettingsRepository.findByKey(SETTING_KEY_SECRET)
         .map(ServerSettings::getValue)
         .orElseGet(serverSettingsRepository::generateSecret);
-
-    String javaAlgorithm = getJavaAlgorithmName(algorithm);
-    return new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), javaAlgorithm);
   }
 
   private String getJavaAlgorithmName(String algorithm) {
     return switch (algorithm) {
-      case "HS256" -> "HmacSHA256";
       case "HS384" -> "HmacSHA384";
       case "HS512" -> "HmacSHA512";
       default -> "HmacSHA256";

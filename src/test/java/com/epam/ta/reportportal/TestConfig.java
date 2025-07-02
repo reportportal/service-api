@@ -19,7 +19,7 @@ package com.epam.ta.reportportal;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.impl.RabbitMqManagementClientTemplate;
-import com.epam.ta.reportportal.core.configs.security.JwtReportPortalUserConverter;
+import com.epam.ta.reportportal.core.configs.security.converters.ReportPortalJwtConverter;
 import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBeanTest;
 import com.epam.ta.reportportal.ws.resolver.JacksonViewAwareModule;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -49,7 +49,6 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -97,20 +96,13 @@ public class TestConfig {
     return new RabbitMqManagementClientTemplate(rabbitClient, "analyzer");
   }
 
-  @Bean
-  @Profile("unittest")
-  public JwtReportPortalUserConverter accessTokenConverter() {
-    JwtReportPortalUserConverter jwtConverter = new JwtReportPortalUserConverter(
-        userDetailsService);
-    JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-    jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName("authorities");
-    jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
-    //jwtGrantedAuthoritiesConverter.setAuthoritiesClaimDelimiter(" ");
-
-    jwtConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
-
-    return jwtConverter;
-  }
+//  @Bean
+//  @Profile("unittest")
+//  public ReportPortalJwtConverter converter() {
+//
+//
+//    return jwtConverter;
+//  }
 
   @Bean
   @Profile("unittest")

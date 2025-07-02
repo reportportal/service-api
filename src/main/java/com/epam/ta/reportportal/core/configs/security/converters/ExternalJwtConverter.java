@@ -5,9 +5,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.jwt.Jwt;
 
-public class InternalJwtConverter extends AbstractJwtConverter {
+public class ExternalJwtConverter extends AbstractJwtConverter {
 
-  public InternalJwtConverter(UserDetailsService userDetailsService) {
+  public ExternalJwtConverter(UserDetailsService userDetailsService) {
     super(userDetailsService);
   }
 

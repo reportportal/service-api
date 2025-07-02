@@ -2,7 +2,7 @@ package com.epam.ta.reportportal.core.configs.security;
 
 import com.epam.ta.reportportal.core.configs.security.converters.AzureJwtConverter;
 import com.epam.ta.reportportal.core.configs.security.converters.GoogleJwtConverter;
-import com.epam.ta.reportportal.core.configs.security.converters.InternalJwtConverter;
+import com.epam.ta.reportportal.core.configs.security.converters.ExternalJwtConverter;
 import com.epam.ta.reportportal.core.configs.security.converters.ReportPortalJwtConverter;
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
@@ -11,7 +11,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
@@ -144,7 +143,7 @@ public class MultiIdentityProviderConfig {
   }
 
   private JwtDecoder createJwtDecoder(String name, JwtIssuerConfig config) {
-    if (StringUtils.isNotEmpty(config.getSigningKey())) {
+    if (StringUtils.isNotEmpty(config.getJwkSetUri())) {
       return NimbusJwtDecoder.withJwkSetUri(config.getJwkSetUri()).build();
     }
 
@@ -169,15 +168,14 @@ public class MultiIdentityProviderConfig {
     return switch (name) {
       case "google" -> new GoogleJwtConverter(userDetailsService);
       case "azure" -> new AzureJwtConverter(userDetailsService);
-      case "internal" -> new InternalJwtConverter(userDetailsService);
+      case "external" -> new ExternalJwtConverter(userDetailsService);
       default -> new ReportPortalJwtConverter(userDetailsService);
     };
   }
 
   private SecretKeySpec getDefaultSecretKey(String key, String algorithm) {
-    return Optional.ofNullable(key)
-        .map(k -> convertToSecretKey(k, algorithm))
-        .orElseGet(() -> convertToSecretKey(generateDefaultKey(), algorithm));
+    String effectiveKey = StringUtils.isNotEmpty(key) ? key : generateDefaultKey();
+    return convertToSecretKey(effectiveKey, algorithm);
   }
 
   private SecretKeySpec convertToSecretKey(String key, String algorithm) {

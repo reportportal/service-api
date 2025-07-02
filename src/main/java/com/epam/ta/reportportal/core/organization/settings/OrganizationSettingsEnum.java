@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.organization.settings;
 
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import lombok.Getter;
 
 /**
@@ -27,13 +28,15 @@ import lombok.Getter;
 @Getter
 public enum OrganizationSettingsEnum {
 
-  RETENTION_LAUNCHES("retention_launches"),
-  RETENTION_LOGS("retention_logs"),
-  RETENTION_ATTACHMENTS("retention_attachments");
+  RETENTION_LAUNCHES("retention_launches", ProjectAttributeEnum.KEEP_LAUNCHES.getAttribute()),
+  RETENTION_LOGS("retention_logs", ProjectAttributeEnum.KEEP_LOGS.getAttribute()),
+  RETENTION_ATTACHMENTS("retention_attachments", ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute());
 
   private final String name;
+  private final String projectFormatKey;
 
-  OrganizationSettingsEnum(String name) {
+  OrganizationSettingsEnum(String name, String projectFormatKey) {
     this.name = name;
+    this.projectFormatKey = projectFormatKey;
   }
 }

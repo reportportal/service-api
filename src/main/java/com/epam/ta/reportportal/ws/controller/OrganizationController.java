@@ -174,6 +174,15 @@ public class OrganizationController extends BaseController implements Organizati
     return ResponseEntity.ok(organizationSettingsHandler.getOrganizationSettings(orgId));
   }
 
+  @Override
+  @PreAuthorize(ORGANIZATION_MANAGER)
+  @Transactional
+  public ResponseEntity<SuccessfulUpdate> updateOrgSettingsByOrgId(Long orgId,
+      OrganizationSettings organizationSettings) {
+    organizationSettingsHandler.updateOrgSettings(orgId, organizationSettings);
+    return ResponseEntity.ok(new SuccessfulUpdate("The update was completed successfully."));
+  }
+
   private OrganizationExtensionPoint getOrgExtension() {
     return pluginBox.getInstance(OrganizationExtensionPoint.class)
         .orElseThrow(() -> new ResponseStatusException(

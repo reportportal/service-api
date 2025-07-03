@@ -19,7 +19,15 @@ jobs:
       - name: Create variables
         id: vars
         run: |
-          echo "tag=$(echo ${{ github.head_ref }}-${{ github.run_number }} | tr '/' '-')" >> $GITHUB_OUTPUT
+          HEAD_REF="${{ github.head_ref }}"
+          RUN_NUMBER="${{ github.run_number }}"
+          if [ -z "$HEAD_REF" ]; then
+            TAG="build-${RUN_NUMBER}"
+          else
+            HEAD_REF=$(echo "$HEAD_REF" | tr '/' '-')
+            TAG="${HEAD_REF}-${RUN_NUMBER}"
+          fi
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
     outputs:
       tag: ${{ steps.vars.outputs.tag }}

@@ -24,10 +24,9 @@ import com.epam.reportportal.api.model.OrganizationSettingsRetentionPolicy;
 import com.epam.reportportal.api.model.OrganizationSettingsRetentionPolicyAttachments;
 import com.epam.reportportal.api.model.OrganizationSettingsRetentionPolicyLaunches;
 import com.epam.reportportal.api.model.OrganizationSettingsRetentionPolicyLogs;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.entity.organization.OrganizationSetting;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,30 +38,55 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrganizationRetentionPolicyHandler {
 
-  private static final String SETTINGS_PREFIX = "retention_";
-
   /**
    * Converts a map of raw organization settings into a structured {@link OrganizationSettingsRetentionPolicy} object,
    * including launches, logs, and attachments retention periods.
    *
-   * @param settings a map of setting keys to {@link OrganizationSetting} objects
+   * @param settings a list of {@link OrganizationSetting} objects
    * @return a populated {@link OrganizationSettingsRetentionPolicy} instance
    */
-  public OrganizationSettingsRetentionPolicy getRetentionPolicySettings(Map<String, OrganizationSetting> settings) {
-    var retentionPolicySettings = settings.entrySet().stream().filter(it -> it.getKey().startsWith(SETTINGS_PREFIX))
-        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+  public OrganizationSettingsRetentionPolicy getRetentionPolicySettings(List<OrganizationSetting> settings) {
     return OrganizationSettingsRetentionPolicy.builder()
         .launches(OrganizationSettingsRetentionPolicyLaunches.builder()
-            .period(getRetentionValue(retentionPolicySettings, RETENTION_LAUNCHES.getName())).build())
+            .period(getRetentionValue(settings, RETENTION_LAUNCHES)).build())
         .logs(OrganizationSettingsRetentionPolicyLogs.builder()
-            .period(getRetentionValue(retentionPolicySettings, RETENTION_LOGS.getName())).build())
+            .period(getRetentionValue(settings, RETENTION_LOGS)).build())
         .attachments(OrganizationSettingsRetentionPolicyAttachments.builder()
-            .period(getRetentionValue(retentionPolicySettings, RETENTION_ATTACHMENTS.getName())).build())
+            .period(getRetentionValue(settings, RETENTION_ATTACHMENTS)).build())
         .build();
   }
 
-  private int getRetentionValue(Map<String, OrganizationSetting> retentionPolicySettings, String retentionKey) {
-    return Integer.parseInt(retentionPolicySettings.get(retentionKey).getSettingValue());
+  public int getRetentionValue(List<OrganizationSetting> retentionPolicySettings,
+      OrganizationSettingsEnum retentionKey) {
+    return Integer.parseInt(
+        retentionPolicySettings.stream().filter(it -> retentionKey.getName().equalsIgnoreCase(it.getSettingKey()))
+            .findFirst().orElseThrow(() -> new ReportPortalException("Incorrect retention key: " + retentionKey))
+            .getSettingValue());
+  }
+
+  public OrganizationSetting getOrganizationSetting(List<OrganizationSetting> retentionPolicySettings,
+      OrganizationSettingsEnum retentionKey) {
+    return retentionPolicySettings.stream().filter(it -> retentionKey.getName().equalsIgnoreCase(it.getSettingKey()))
+        .findFirst().orElseThrow(() -> new ReportPortalException("Incorrect retention key: " + retentionKey));
+  }
+
+  /**
+   * Validates that retention values follow the rule: launches ≥ logs ≥ attachments where 0 means "forever" and is
+   * considered greater than any positive number.
+   */
+  public boolean isRetentionOrderValid(int launches, int logs, int attachments) {
+    return compareWithUnlimitedAsMax(launches, logs) >= 0 && compareWithUnlimitedAsMax(logs, attachments) >= 0;
+  }
+
+  /**
+   * Compares two retention values considering that 0 = "forever" = highest value.
+   *
+   * @return positive if first ≥ second, negative if not
+   */
+  private int compareWithUnlimitedAsMax(int first, int second) {
+    first = first == 0 ? Integer.MAX_VALUE : first;
+    second = second == 0 ? Integer.MAX_VALUE : second;
+    return Integer.compare(first, second);
   }
 
 }

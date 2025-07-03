@@ -25,55 +25,46 @@ import static org.springframework.http.HttpStatus.OK;
 import com.epam.reportportal.api.OrganizationUsersApi;
 import com.epam.reportportal.api.model.OrgUserAssignment;
 import com.epam.reportportal.api.model.OrgUserProjectPage;
+import com.epam.reportportal.api.model.OrgUserUpdateRequest;
 import com.epam.reportportal.api.model.OrganizationUsersPage;
+import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.organization.OrganizationUsersHandler;
-import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.organization.OrganizationUserFilter;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ControllerUtils;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class OrganizationUsersController extends BaseController implements OrganizationUsersApi {
 
-  private final OrganizationRepositoryCustom organizationRepositoryCustom;
-
   private final OrganizationUsersHandler organizationUsersHandler;
 
   @Autowired
-  public OrganizationUsersController(OrganizationRepositoryCustom organizationRepositoryCustom,
-      OrganizationUsersHandler organizationUsersHandler) {
-    this.organizationRepositoryCustom = organizationRepositoryCustom;
+  public OrganizationUsersController(OrganizationUsersHandler organizationUsersHandler) {
     this.organizationUsersHandler = organizationUsersHandler;
   }
 
   @Override
   @PreAuthorize(ORGANIZATION_MANAGER)
-  @Transactional(readOnly = true)
   public ResponseEntity<OrganizationUsersPage> getOrganizationsOrgIdUsers(Long orgId,
       Integer offset, Integer limit, String order, String sort, String fullName) {
-    organizationRepositoryCustom.findById(orgId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
-
-    Filter filter = new Filter(OrganizationUserFilter.class, Lists.newArrayList());
+    Filter filter = new Filter(OrganizationUserFilter.class, new ArrayList<>());
     filter.withCondition(
         new FilterCondition(Condition.EQUALS, false, orgId.toString(), "organization_id"));
     if (StringUtils.isNotEmpty(fullName)) {
@@ -91,7 +82,6 @@ public class OrganizationUsersController extends BaseController implements Organ
   }
 
   @Override
-  @Transactional
   @PreAuthorize(ORGANIZATION_MANAGER)
   public ResponseEntity<UserAssignmentResponse> postOrganizationsOrgIdUsers(
       @PathVariable("org_id") Long orgId, OrgUserAssignment request) {
@@ -102,7 +92,6 @@ public class OrganizationUsersController extends BaseController implements Organ
 
 
   @Override
-  @Transactional
   @PreAuthorize(ORGANIZATION_MEMBER)
   public ResponseEntity<Void> deleteOrganizationsOrgIdUsersUserId(Long orgId, Long userId) {
     organizationUsersHandler.unassignUser(orgId, userId);
@@ -110,7 +99,6 @@ public class OrganizationUsersController extends BaseController implements Organ
   }
 
   @Override
-  @Transactional
   @PreAuthorize(ORGANIZATION_MEMBER)
   public ResponseEntity<OrgUserProjectPage> getOrgUserProjects(Long orgId, Long userId,
       Integer offset, Integer limit, String order, String sort) {
@@ -129,5 +117,13 @@ public class OrganizationUsersController extends BaseController implements Organ
     return ResponseEntity
         .status(OK)
         .body(userProjectsInOrganization);
+  }
+
+  @Override
+  @PreAuthorize(ORGANIZATION_MANAGER)
+  public ResponseEntity<SuccessfulUpdate> putOrganizationsOrgIdUsersUserId(Long orgId, Long userId,
+      OrgUserUpdateRequest orgUserUpdateRequest) {
+    organizationUsersHandler.updateOrganizationUserDetails(orgId, userId, orgUserUpdateRequest);
+    return ResponseEntity.ok(new SuccessfulUpdate());
   }
 }

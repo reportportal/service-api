@@ -3,8 +3,8 @@ package com.epam.ta.reportportal.core.tms.service;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
+import com.epam.ta.reportportal.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface TmsTestFolderService extends CrudService<TmsTestFolderRQ, TmsTestFolderRS, Long> {
@@ -15,4 +15,6 @@ public interface TmsTestFolderService extends CrudService<TmsTestFolderRQ, TmsTe
 
   void exportFolderById(Long projectId, Long folderId, TmsTestFolderExportFileType fileType,
       HttpServletResponse response);
+
+  TmsTestFolderRS create(long projectId, String testFolderName);
 }

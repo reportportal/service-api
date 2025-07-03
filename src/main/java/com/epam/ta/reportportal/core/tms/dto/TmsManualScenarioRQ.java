@@ -39,25 +39,27 @@ public abstract class TmsManualScenarioRQ {
    * Must be a positive number.
    */
   @Min(value = 1, message = "Execution estimation time must be positive")
-  private Integer executionEstimationTime;
+  protected Integer executionEstimationTime;
+
+  protected String linkToRequirements;
 
   /**
    * Type of manual scenario (STEPS or TEXT).
    * Required for proper JSON deserialization.
    */
   @NotNull(message = "Manual scenario type must be specified")
-  private TmsManualScenarioType manualScenarioType;
+  protected TmsManualScenarioType manualScenarioType;
 
   /**
    * Preconditions for the test case.
    */
-  private String preconditions;
+  protected TmsManualScenarioPreconditionsRQ preconditions;
 
   /**
    * Attributes of the manual scenario.
    */
   @Valid
-  private List<TmsManualScenarioAttributeRQ> attributes;
+  protected List<TmsManualScenarioAttributeRQ> attributes;
 
   /**
    * Enum representing possible types of manual scenarios.

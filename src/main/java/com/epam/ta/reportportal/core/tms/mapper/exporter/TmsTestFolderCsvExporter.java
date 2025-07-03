@@ -93,8 +93,8 @@ public class TmsTestFolderCsvExporter implements TmsTestFolderExporter {
         folder.getParentTestFolder() != null ? folder.getParentTestFolder().getId() : null
     ));
 
-    if (folder.getSubTestFolders() != null) {
-      for (var subFolder : folder.getSubTestFolders()) {
+    if (folder.getSubFolders() != null) {
+      for (var subFolder : folder.getSubFolders()) {
         collectFoldersForExport(subFolder, result, level + 1, path);
       }
     }

@@ -65,7 +65,7 @@ public class MultiIdentityProviderConfig {
 
     private String issuerUri;
     private String jwkSetUri;
-    private String signingKey;
+    private String secretKey;
     private String algorithm = "HS256";
     private String usernameClaim = "sub";
     private String authoritiesClaim = "authorities";
@@ -109,19 +109,20 @@ public class MultiIdentityProviderConfig {
   private JwtDecoder createJwtDecoder(String name, JwtIssuerConfig config) {
     if (name.contentEquals("rp")) {
       var algorithm = config.getAlgorithm();
-      var secretKey = getDefaultSecretKey(config.getSigningKey(), algorithm);
+      var secretKey = getDefaultSecretKey(config.getSecretKey(), algorithm);
       return NimbusJwtDecoder.withSecretKey(secretKey)
           .macAlgorithm(MacAlgorithm.from(algorithm))
           .build();
     }
 
     if (StringUtils.isNotEmpty(config.getJwkSetUri())) {
-      return NimbusJwtDecoder.withJwkSetUri(config.getJwkSetUri()).build();
+      return NimbusJwtDecoder.withJwkSetUri(config.getJwkSetUri())
+          .build();
     }
 
-    if (StringUtils.isNotEmpty(config.getSigningKey())) {
+    if (StringUtils.isNotEmpty(config.getSecretKey())) {
       var algorithm = config.getAlgorithm();
-      var secretKey = convertToSecretKey(config.getSigningKey(), algorithm);
+      var secretKey = convertToSecretKey(config.getSecretKey(), algorithm);
       return NimbusJwtDecoder.withSecretKey(secretKey)
           .macAlgorithm(MacAlgorithm.from(algorithm))
           .build();

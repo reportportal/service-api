@@ -1,21 +1,22 @@
 package com.epam.ta.reportportal.auth.userdetails;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static com.epam.ta.reportportal.auth.converter.ReportPortalUserConverter.TO_REPORT_PORTAL_USER;
 
-import com.epam.ta.reportportal.auth.util.AuthUtils;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.google.common.collect.Maps;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Spring's {@link UserDetailsService} implementation for external users. Uses
+ * {@link com.epam.ta.reportportal.entity.user.User} entity from ReportPortal database.
+ */
 @Service
 public class ExternalUserDetailsService implements UserDetailsService {
+
   private UserRepository userRepository;
 
   @Autowired
@@ -25,24 +26,9 @@ public class ExternalUserDetailsService implements UserDetailsService {
 
   @Override
   @Transactional(readOnly = true)
-  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    //TODO: Change to findByExternalId when it is implemented
-    var user = userRepository.findByEmail(normalizeId(username))
+  public UserDetails loadUserByUsername(String externalId) throws UsernameNotFoundException {
+    return userRepository.findByExternalId(externalId)
+        .map(TO_REPORT_PORTAL_USER)
         .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-    UserDetails userDetails = User.builder()
-        .username(user.getEmail())
-        .password(user.getPassword() == null ? "" : user.getPassword())
-        .authorities(AuthUtils.AS_AUTHORITIES.apply(user.getRole()))
-        .build();
-
-    return ReportPortalUser.userBuilder()
-        .withUserDetails(userDetails)
-        .withUserId(user.getId())
-        .withUserRole(user.getRole())
-        .withOrganizationDetails(Maps.newHashMapWithExpectedSize(1))
-        .withEmail(user.getEmail())
-        .build();
   }
-
 }

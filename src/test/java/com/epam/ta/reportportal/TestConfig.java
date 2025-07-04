@@ -16,10 +16,9 @@
 
 package com.epam.ta.reportportal;
 
-import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
+import com.epam.ta.reportportal.auth.userdetails.DefaultUserDetailsService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.impl.RabbitMqManagementClientTemplate;
-import com.epam.ta.reportportal.core.configs.security.converters.ReportPortalJwtConverter;
 import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBeanTest;
 import com.epam.ta.reportportal.ws.resolver.JacksonViewAwareModule;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -88,7 +87,7 @@ public class TestConfig {
   protected MessageConverter messageConverter;
 
   @Autowired
-  private DatabaseUserDetailsService userDetailsService;
+  private DefaultUserDetailsService userDetailsService;
 
   @Bean
   @Profile("unittest")

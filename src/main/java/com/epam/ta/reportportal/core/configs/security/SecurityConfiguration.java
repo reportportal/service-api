@@ -18,9 +18,8 @@ package com.epam.ta.reportportal.core.configs.security;
 
 import com.epam.ta.reportportal.auth.CustomAuthenticationEntryPoint;
 import com.epam.ta.reportportal.auth.UserRoleHierarchy;
-import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
+import com.epam.ta.reportportal.auth.userdetails.DefaultUserDetailsService;
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,7 +27,6 @@ import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
-import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -50,16 +48,16 @@ import org.springframework.security.web.SecurityFilterChain;
 class SecurityConfiguration {
 
   private final PermissionEvaluator permissionEvaluator;
-  private final DatabaseUserDetailsService userDetailsService;
+  private final DefaultUserDetailsService userDetailsService;
   private final RoleHierarchy roleHierarchy;
-  private final AuthenticationManagerResolver<HttpServletRequest> customAuthenticationManagerResolver;
+  private final CustomAuthenticationManagerResolver customAuthenticationManagerResolver;
 
   @Autowired
   public SecurityConfiguration(
       PermissionEvaluator permissionEvaluator,
-      DatabaseUserDetailsService userDetailsService,
+      DefaultUserDetailsService userDetailsService,
       RoleHierarchy roleHierarchy,
-      AuthenticationManagerResolver<HttpServletRequest> customAuthenticationManagerResolver
+      CustomAuthenticationManagerResolver customAuthenticationManagerResolver
   ) {
     this.permissionEvaluator = permissionEvaluator;
     this.userDetailsService = userDetailsService;

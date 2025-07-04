@@ -1,8 +1,10 @@
 package com.epam.ta.reportportal.core.configs.security.converters;
 
+import com.epam.ta.reportportal.core.configs.security.MultiIdentityProviderConfig.JwtIssuerConfig;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.StringUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,19 +19,22 @@ public abstract class AbstractJwtConverter implements Converter<Jwt, AbstractAut
 
   protected final UserDetailsService userDetailsService;
 
+  protected JwtIssuerConfig config;
+
   protected Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter;
 
-  @Value("${user-management.default-role}")
-  private String defaultRole;
-
   protected AbstractJwtConverter(UserDetailsService userDetailsService) {
-    this(userDetailsService, "authorities");
+    this(userDetailsService, new JwtIssuerConfig());
   }
 
-  protected AbstractJwtConverter(UserDetailsService userDetailsService, String authoritiesClaimName) {
+  protected AbstractJwtConverter(
+      UserDetailsService userDetailsService,
+      JwtIssuerConfig config
+  ) {
     this.userDetailsService = userDetailsService;
+    this.config = config;
     var jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-    jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName(authoritiesClaimName);
+    jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName(config.getAuthoritiesClaim());
     jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
     this.jwtGrantedAuthoritiesConverter = jwtGrantedAuthoritiesConverter;
   }
@@ -40,10 +45,6 @@ public abstract class AbstractJwtConverter implements Converter<Jwt, AbstractAut
     } catch (UsernameNotFoundException e) {
       throw new UsernameNotFoundException("User not found: " + identifier, e);
     }
-  }
-
-  protected Collection<GrantedAuthority> getDefaultAuthorities() {
-    return List.of(new SimpleGrantedAuthority(defaultRole));
   }
 
   protected Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {

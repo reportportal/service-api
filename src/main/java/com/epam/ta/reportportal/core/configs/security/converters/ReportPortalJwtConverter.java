@@ -31,8 +31,8 @@ public class ReportPortalJwtConverter extends AbstractJwtConverter {
   public final AbstractAuthenticationToken convert(Jwt jwt) {
     var username = jwt.getSubject();
     var principal = userDetailsService.loadUserByUsername(username);
-
     var authorities = extractAuthorities(jwt);
+
     return new UsernamePasswordAuthenticationToken(principal, null, authorities);
   }
 }

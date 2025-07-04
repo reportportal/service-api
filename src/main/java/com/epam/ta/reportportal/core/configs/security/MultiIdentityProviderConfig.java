@@ -1,19 +1,18 @@
 package com.epam.ta.reportportal.core.configs.security;
 
-import com.epam.ta.reportportal.core.configs.security.converters.AzureJwtConverter;
-import com.epam.ta.reportportal.core.configs.security.converters.GoogleJwtConverter;
+import com.epam.ta.reportportal.auth.userdetails.DefaultUserDetailsService;
+import com.epam.ta.reportportal.auth.userdetails.ExternalUserDetailsService;
 import com.epam.ta.reportportal.core.configs.security.converters.ExternalJwtConverter;
 import com.epam.ta.reportportal.core.configs.security.converters.ReportPortalJwtConverter;
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
 import jakarta.annotation.PostConstruct;
-import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.Data;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -22,7 +21,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -33,7 +31,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 
-@Log4j2
+@Slf4j
 @Configuration
 @EnableWebSecurity
 public class MultiIdentityProviderConfig {
@@ -41,14 +39,17 @@ public class MultiIdentityProviderConfig {
   private static final String SETTING_KEY_SECRET = "secret.key";
 
   private final UserDetailsService userDetailsService;
+  private final ExternalUserDetailsService externalUserDetailsService;
   private final ServerSettingsRepository serverSettingsRepository;
 
   @Autowired
   public MultiIdentityProviderConfig(
-      UserDetailsService userDetailsService,
+      DefaultUserDetailsService userDetailsService,
+      ExternalUserDetailsService externalUserDetailsService,
       ServerSettingsRepository serverSettingsRepository
   ) {
     this.userDetailsService = userDetailsService;
+    this.externalUserDetailsService = externalUserDetailsService;
     this.serverSettingsRepository = serverSettingsRepository;
   }
 
@@ -68,6 +69,7 @@ public class MultiIdentityProviderConfig {
     private String algorithm = "HS256";
     private String usernameClaim = "sub";
     private String authoritiesClaim = "authorities";
+    private String userDetailsService = "default"; // "default" or "external"
   }
 
   @PostConstruct
@@ -83,80 +85,44 @@ public class MultiIdentityProviderConfig {
   }
 
   @Bean
-  public AuthenticationManagerResolver<HttpServletRequest> customAuthenticationManagerResolver(
-      ApiKeyAuthenticationProvider apiKeyAuthenticationProvider
-  ) {
-
+  public JwtIssuerAuthenticationManagerResolver jwtIssuerAuthenticationManagerResolver() {
     Map<String, AuthenticationManager> jwtManagers = new HashMap<>();
+
     var config = identityProviderConfig();
+
     config.getProviders().forEach((name, issuerConfig) -> {
       if (issuerConfig.getIssuerUri() != null && !issuerConfig.getIssuerUri().trim().isEmpty()) {
         jwtManagers.put(issuerConfig.getIssuerUri(), createProviderAuthenticationManager(name, issuerConfig));
-      }
-    });
+      }});
 
-    var jwtResolver = new JwtIssuerAuthenticationManagerResolver(jwtManagers::get);
-    var apiKeyManager = new ProviderManager(apiKeyAuthenticationProvider);
-
-    return request -> {
-      if (isJWT(request)) {
-        return jwtResolver.resolve(request);
-      } else {
-        return apiKeyManager;
-      }
-    };
-  }
-
-  private boolean isJWT(HttpServletRequest request) {
-    try {
-      var token = getBearerValue(request);
-      var parts = token.split("\\.");
-      if (parts.length != 3) {
-        return false;
-      }
-      try {
-        java.util.Base64.getUrlDecoder().decode(parts[1]);
-        return true;
-      } catch (Exception e) {
-        return false;
-      }
-    } catch (Exception e) {
-      return false;
-    }
-  }
-
-  private String getBearerValue(HttpServletRequest request) {
-    String authHeader = request.getHeader("Authorization");
-    if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
-      return authHeader.substring(7);
-    }
-    throw new IllegalArgumentException("No Bearer token found");
+    return new JwtIssuerAuthenticationManagerResolver(jwtManagers::get);
   }
 
   private AuthenticationManager createProviderAuthenticationManager(String name, JwtIssuerConfig config) {
-    JwtDecoder decoder = createJwtDecoder(name, config);
-
-    JwtAuthenticationProvider provider = new JwtAuthenticationProvider(decoder);
-    provider.setJwtAuthenticationConverter(createJwtConverter(name));
+    var decoder = createJwtDecoder(name, config);
+    var provider = new JwtAuthenticationProvider(decoder);
+    provider.setJwtAuthenticationConverter(createJwtConverter(name, config));
 
     return new ProviderManager(provider);
   }
 
   private JwtDecoder createJwtDecoder(String name, JwtIssuerConfig config) {
+    if (name.contentEquals("rp")) {
+      var algorithm = config.getAlgorithm();
+      var secretKey = getDefaultSecretKey(config.getSigningKey(), algorithm);
+      return NimbusJwtDecoder.withSecretKey(secretKey)
+          .macAlgorithm(MacAlgorithm.from(algorithm))
+          .build();
+    }
+
     if (StringUtils.isNotEmpty(config.getJwkSetUri())) {
       return NimbusJwtDecoder.withJwkSetUri(config.getJwkSetUri()).build();
     }
 
     if (StringUtils.isNotEmpty(config.getSigningKey())) {
       var algorithm = config.getAlgorithm();
-      return NimbusJwtDecoder.withSecretKey(convertToSecretKey(config.getSigningKey(), algorithm))
-          .macAlgorithm(MacAlgorithm.from(algorithm))
-          .build();
-    }
-
-    if (name.contentEquals("rp")) {
-      var algorithm = config.getAlgorithm();
-      return NimbusJwtDecoder.withSecretKey(getDefaultSecretKey(config.getSigningKey(), algorithm))
+      var secretKey = convertToSecretKey(config.getSigningKey(), algorithm);
+      return NimbusJwtDecoder.withSecretKey(secretKey)
           .macAlgorithm(MacAlgorithm.from(algorithm))
           .build();
     }
@@ -164,13 +130,16 @@ public class MultiIdentityProviderConfig {
     throw new IllegalArgumentException("Either jwkSetUri or signingKey must be provided");
   }
 
-  private Converter<Jwt, AbstractAuthenticationToken> createJwtConverter(String name) {
-    return switch (name) {
-      case "google" -> new GoogleJwtConverter(userDetailsService);
-      case "azure" -> new AzureJwtConverter(userDetailsService);
-      case "external" -> new ExternalJwtConverter(userDetailsService);
-      default -> new ReportPortalJwtConverter(userDetailsService);
-    };
+  private Converter<Jwt, AbstractAuthenticationToken> createJwtConverter(String name, JwtIssuerConfig config) {
+    if (name.equals("rp")) {
+      return new ReportPortalJwtConverter(userDetailsService);
+    }
+    
+    UserDetailsService selectedService = config.getUserDetailsService().equals("external")
+        ? externalUserDetailsService
+        : userDetailsService;
+        
+    return new ExternalJwtConverter(selectedService, config);
   }
 
   private SecretKeySpec getDefaultSecretKey(String key, String algorithm) {

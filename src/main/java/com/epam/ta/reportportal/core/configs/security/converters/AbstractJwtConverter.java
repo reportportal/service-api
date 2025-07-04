@@ -2,13 +2,9 @@ package com.epam.ta.reportportal.core.configs.security.converters;
 
 import com.epam.ta.reportportal.core.configs.security.MultiIdentityProviderConfig.JwtIssuerConfig;
 import java.util.Collection;
-import java.util.List;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.StringUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

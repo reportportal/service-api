@@ -20,6 +20,8 @@ import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.ORGANIZATION_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_ASSIGNED;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -34,6 +36,7 @@ import static java.util.function.Predicate.isEqual;
 import com.epam.reportportal.api.model.OrgRole;
 import com.epam.reportportal.api.model.OrgUserAssignment;
 import com.epam.reportportal.api.model.OrgUserProjectPage;
+import com.epam.reportportal.api.model.OrgUserUpdateRequest;
 import com.epam.reportportal.api.model.OrganizationUsersPage;
 import com.epam.reportportal.api.model.ProjectRole;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
@@ -53,12 +56,15 @@ import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.organization.OrganizationUserAccount;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.util.SlugifyUtils;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +72,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -99,6 +106,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public OrganizationUsersPage getOrganizationUsers(Queryable filter, Pageable pageable) {
     Page<OrganizationUserAccount> organizationUserAccounts =
         organizationUsersRepositoryCustom.findByFilter(filter, pageable);
@@ -118,11 +126,12 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
   }
 
   @Override
+  @Transactional
   public UserAssignmentResponse assignUser(Long orgId, OrgUserAssignment request) {
     User assignedUser = userRepository.findById(request.getId())
         .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, request.getId()));
     var organization = organizationRepositoryCustom.findById(orgId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
+        .orElseThrow(() -> new ReportPortalException(ORGANIZATION_NOT_FOUND, orgId));
     validateUserType(organization, assignedUser);
 
     var orgUserExists = organizationUserRepository.findByUserIdAndOrganization_Id(
@@ -139,7 +148,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     // validate projects
     projects.forEach(project -> {
       var projectEntity = projectRepository.findById(project.getId())
-          .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, project.getId()));
+          .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, project.getId()));
       expect(projectEntity.getOrganizationId(), equalTo(orgId)).verify(BAD_REQUEST_ERROR,
           formattedSupplier("Project '{}' does not belong to organization {}", project.getId(), orgId)
       );
@@ -161,6 +170,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
   }
 
   @Override
+  @Transactional
   public void unassignUser(Long orgId, Long unassignUserId) {
     OrganizationUser organizationUser = organizationUserRepository.findByUserIdAndOrganization_Id(unassignUserId, orgId)
         .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "User %s assignment".formatted(unassignUserId)));
@@ -174,6 +184,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
   }
 
   @Override
+  @Transactional
   public OrgUserProjectPage findUserProjectsInOrganization(Long userId, Long organizationId,
       Pageable pageable) {
     OrgUserProjectPage orgUserProjectPage = new OrgUserProjectPage();
@@ -238,4 +249,68 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
         .toList();
   }
 
+  @Override
+  @Transactional
+  public void updateOrganizationUserDetails(Long orgId, Long userId,
+      OrgUserUpdateRequest orgUserUpdateRequest) {
+
+    Organization organization = organizationRepositoryCustom.findById(orgId)
+        .orElseThrow(() -> new ReportPortalException(ORGANIZATION_NOT_FOUND, orgId));
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, userId));
+    Optional<OrganizationUser> userOrganization = organizationUserRepository.findByUserIdAndOrganization_Id(
+        userId, orgId);
+
+    assignToOrganization(orgUserUpdateRequest, userOrganization, organization, user);
+
+    List<UserProjectInfo> projects = orgUserUpdateRequest.getProjects();
+    List<Long> projectsId = projects.stream().map(UserProjectInfo::getId).toList();
+
+    assignToProjects(userId, projects, user);
+
+    unassignUserProject(orgId, userId, projectsId);
+  }
+
+  private void unassignUserProject(Long orgId, Long userId, List<Long> projectsId) {
+    Set<Long> currentUserProjectIds = projectUserRepository.findUserProjectIdsInOrganization(
+        userId, orgId);
+
+    List<Long> projectIdsToUnassign = currentUserProjectIds.stream()
+        .filter(projectId -> !projectsId.contains(projectId))
+        .toList();
+
+    projectUserRepository.deleteByUserIdAndProjectIds(userId, projectIdsToUnassign);
+  }
+
+  private void assignToProjects(Long userId, List<UserProjectInfo> projects, User user) {
+    for (UserProjectInfo userProjectInfo : projects) {
+      Optional<ProjectUser> projectUserOptional = projectUserRepository.findProjectUserByUserIdAndProjectId(
+          userId, userProjectInfo.getId());
+      Project project = projectRepository.findById(userProjectInfo.getId())
+          .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, userId));
+
+      ProjectUser projectUser = projectUserOptional.orElse(new ProjectUser());
+
+      projectUser.setUser(user);
+      projectUser.setProject(project);
+      if (userProjectInfo.getProjectRole() == null) {
+        userProjectInfo.setProjectRole(ProjectRole.VIEWER);
+      }
+      projectUser.setProjectRole(com.epam.ta.reportportal.entity.project.ProjectRole.valueOf(
+          userProjectInfo.getProjectRole().getValue()));
+      projectUserRepository.save(projectUser);
+    }
+  }
+
+  private void assignToOrganization(OrgUserUpdateRequest orgUserUpdateRequest,
+      Optional<OrganizationUser> userOrganization, Organization organization, User assignedUser) {
+    OrganizationUser organizationUser = userOrganization.orElse(new OrganizationUser());
+    if (organizationUser.getOrganization() == null) {
+      organizationUser.setOrganization(organization);
+    }
+    organizationUser.setUser(assignedUser);
+    organizationUser.setOrganizationRole(OrganizationRole.valueOf(
+        orgUserUpdateRequest.getOrgRole().getValue()));
+    organizationUserRepository.save(organizationUser);
+  }
 }

@@ -267,7 +267,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     List<UserProjectInfo> projects = orgUserUpdateRequest.getProjects();
     List<Long> projectsId = projects.stream().map(UserProjectInfo::getId).toList();
 
-    assignToProjects(userId, projects, user, orgUserUpdateRequest.getOrgRole().equals(MANAGER));
+    assignToProjects(projects, user, orgUserUpdateRequest.getOrgRole().equals(MANAGER));
 
     unassignUserProject(orgId, userId, projectsId);
   }
@@ -283,13 +283,12 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     projectUserRepository.deleteByUserIdAndProjectIds(userId, projectIdsToUnassign);
   }
 
-  private void assignToProjects(Long userId, List<UserProjectInfo> projects, User user,
-      boolean isManager) {
+  private void assignToProjects(List<UserProjectInfo> projects, User user, boolean isManager) {
     for (UserProjectInfo userProjectInfo : projects) {
       Optional<ProjectUser> projectUserOptional = projectUserRepository.findProjectUserByUserIdAndProjectId(
-          userId, userProjectInfo.getId());
+          user.getId(), userProjectInfo.getId());
       Project project = projectRepository.findById(userProjectInfo.getId())
-          .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, userId));
+          .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, user.getId()));
 
       ProjectUser projectUser = projectUserOptional.orElse(new ProjectUser());
 

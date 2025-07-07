@@ -48,9 +48,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 
 /**
- * Configuration for handling multiple identity providers with JWT authentication.
- * This configuration allows for different JWT issuers to be configured and used
- * for authentication based on the issuer URI.
+ * Configuration for handling multiple identity providers with JWT authentication. This configuration allows for
+ * different JWT issuers to be configured and used for authentication based on the issuer URI.
  *
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
@@ -65,6 +64,9 @@ public class MultiIdentityProviderConfig {
   private final ExternalUserDetailsService externalUserDetailsService;
   private final ServerSettingsRepository serverSettingsRepository;
 
+  /**
+   * Constructs a MultiIdentityProviderConfig with the necessary services.
+   */
   @Autowired
   public MultiIdentityProviderConfig(
       DefaultUserDetailsService userDetailsService,
@@ -76,6 +78,9 @@ public class MultiIdentityProviderConfig {
     this.serverSettingsRepository = serverSettingsRepository;
   }
 
+  /**
+   * Validates the configuration after initialization. Logs a warning if no identity providers are configured.
+   */
   @PostConstruct
   public void validate() {
     if (identityProviderConfig().getProviders().isEmpty()) {
@@ -83,6 +88,10 @@ public class MultiIdentityProviderConfig {
     }
   }
 
+  /**
+   * Configuration properties for identity providers. This class holds the configuration for each JWT issuer, including
+   * the issuer URI, signing key, algorithm, and user details service.
+   */
   @ConfigurationProperties(prefix = "oauth2")
   @Data
   public static class IdentityProviderConfig {
@@ -90,11 +99,20 @@ public class MultiIdentityProviderConfig {
     private Map<String, JwtIssuerConfig> providers = new HashMap<>();
   }
 
+  /**
+   * Bean for creating the IdentityProviderConfig.
+   */
   @Bean
   public IdentityProviderConfig identityProviderConfig() {
     return new IdentityProviderConfig();
   }
 
+  /**
+   * Bean for resolving JWT issuer authentication managers. This resolver maps issuer URIs to their respective
+   * authentication managers.
+   *
+   * @return JwtIssuerAuthenticationManagerResolver
+   */
   @Bean
   public JwtIssuerAuthenticationManagerResolver jwtIssuerAuthenticationManagerResolver() {
     Map<String, AuthenticationManager> jwtManagers = new HashMap<>();
@@ -104,7 +122,8 @@ public class MultiIdentityProviderConfig {
     config.getProviders().forEach((name, issuerConfig) -> {
       if (issuerConfig.getIssuerUri() != null && !issuerConfig.getIssuerUri().trim().isEmpty()) {
         jwtManagers.put(issuerConfig.getIssuerUri(), createProviderAuthenticationManager(name, issuerConfig));
-      }});
+      }
+    });
 
     return new JwtIssuerAuthenticationManagerResolver(jwtManagers::get);
   }
@@ -146,11 +165,11 @@ public class MultiIdentityProviderConfig {
     if (name.equals("rp")) {
       return new ReportPortalJwtConverter(userDetailsService);
     }
-    
+
     UserDetailsService selectedService = config.getUserDetailsService().equals("external")
         ? externalUserDetailsService
         : userDetailsService;
-        
+
     return new ExternalJwtConverter(selectedService, config);
   }
 

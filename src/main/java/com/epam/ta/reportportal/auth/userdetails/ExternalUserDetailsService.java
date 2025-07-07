@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.auth.userdetails;
 
-import static com.epam.ta.reportportal.auth.converter.ReportPortalUserConverter.TO_REPORT_PORTAL_USER;
+import static com.epam.ta.reportportal.core.configs.security.converters.UserReportPortalUserConverter.TO_REPORT_PORTAL_USER;
 
 import com.epam.ta.reportportal.dao.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;

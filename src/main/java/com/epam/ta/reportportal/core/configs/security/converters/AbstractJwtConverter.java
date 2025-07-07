@@ -42,10 +42,22 @@ public abstract class AbstractJwtConverter implements Converter<Jwt, AbstractAut
 
   protected Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter;
 
+  /**
+   * Constructs an AbstractJwtConverter with the specified
+   * UserDetailsService and default JwtIssuerConfig.
+   *
+   * @param userDetailsService The service to load user details.
+   */
   protected AbstractJwtConverter(UserDetailsService userDetailsService) {
     this(userDetailsService, new JwtIssuerConfig());
   }
 
+  /**
+   * Constructs an AbstractJwtConverter with the specified UserDetailsService and JwtIssuerConfig.
+   *
+   * @param userDetailsService The service to load user details.
+   * @param config The configuration for JWT issuer settings.
+   */
   protected AbstractJwtConverter(
       UserDetailsService userDetailsService,
       JwtIssuerConfig config
@@ -58,6 +70,13 @@ public abstract class AbstractJwtConverter implements Converter<Jwt, AbstractAut
     this.jwtGrantedAuthoritiesConverter = jwtGrantedAuthoritiesConverter;
   }
 
+  /**
+   * Finds a user by their identifier (username).
+   *
+   * @param identifier The identifier of the user to find.
+   * @return The UserDetails of the found user.
+   * @throws UsernameNotFoundException if the user is not found.
+   */
   protected UserDetails findUser(String identifier) {
     try {
       return userDetailsService.loadUserByUsername(identifier);
@@ -66,6 +85,12 @@ public abstract class AbstractJwtConverter implements Converter<Jwt, AbstractAut
     }
   }
 
+  /**
+   * Extracts authorities from the given JWT token.
+   *
+   * @param jwt The JWT token from which to extract authorities.
+   * @return A collection of GrantedAuthority extracted from the JWT.
+   */
   protected Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {
     return this.jwtGrantedAuthoritiesConverter.convert(jwt);
   }

@@ -18,8 +18,8 @@ package com.epam.ta.reportportal.core.configs.security;
 
 import com.epam.ta.reportportal.auth.CustomAuthenticationEntryPoint;
 import com.epam.ta.reportportal.auth.UserRoleHierarchy;
-import com.epam.ta.reportportal.auth.userdetails.DefaultUserDetailsService;
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
+import com.epam.ta.reportportal.auth.userdetails.DefaultUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,7 +37,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * Spring's Security Configuration
+ * Spring's Security Configuration.
  *
  * @author Andrei Varabyeu
  * @author Reingold Shekhtel

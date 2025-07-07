@@ -34,6 +34,10 @@ import org.springframework.security.oauth2.jwt.Jwt;
  */
 public class ExternalJwtConverter extends AbstractJwtConverter {
 
+  /**
+   * Constructs an ExternalJwtConverter with the specified
+   * UserDetailsService and JWT issuer configuration.
+   */
   public ExternalJwtConverter(UserDetailsService userDetailsService, JwtIssuerConfig config) {
     super(userDetailsService, config);
   }

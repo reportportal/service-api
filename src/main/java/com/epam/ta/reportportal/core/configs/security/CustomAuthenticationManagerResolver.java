@@ -24,6 +24,13 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.stereotype.Component;
 
+/**
+ * Custom authentication manager resolver that selects between API key and JWT authentication
+ * based on the request's Authorization header. <p>
+ * This resolver checks if the token is a JWT or an API key and returns the appropriate AuthenticationManager.
+ *
+ * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
+ */
 @Slf4j
 @Component
 public class CustomAuthenticationManagerResolver implements AuthenticationManagerResolver<HttpServletRequest> {
@@ -31,6 +38,13 @@ public class CustomAuthenticationManagerResolver implements AuthenticationManage
   private final AuthenticationManager apiKeyManager;
   private final JwtIssuerAuthenticationManagerResolver jwtResolver;
 
+  /**
+   * Constructs a CustomAuthenticationManagerResolver with the provided API key authentication provider
+   * and JWT issuer authentication manager resolver.
+   *
+   * @param apiKeyAuthenticationProvider The provider for API key authentication.
+   * @param jwtIssuerAuthenticationManagerResolver The resolver for JWT issuer authentication.
+   */
   public CustomAuthenticationManagerResolver(
       ApiKeyAuthenticationProvider apiKeyAuthenticationProvider,
       JwtIssuerAuthenticationManagerResolver jwtIssuerAuthenticationManagerResolver
@@ -39,6 +53,13 @@ public class CustomAuthenticationManagerResolver implements AuthenticationManage
     this.jwtResolver = jwtIssuerAuthenticationManagerResolver;
   }
 
+  /**
+   * Resolves the appropriate AuthenticationManager based on the request's Authorization header.
+   * If the token is a JWT, it uses the JWT resolver; otherwise, it uses the API key manager.
+   *
+   * @param request The HTTP request containing the Authorization header.
+   * @return The resolved AuthenticationManager.
+   */
   @Override
   public AuthenticationManager resolve(HttpServletRequest request) {
     try {

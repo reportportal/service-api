@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.configs.security;
+package com.epam.ta.reportportal.core.configs.security.converters;
 
 import com.epam.ta.reportportal.auth.util.AuthUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -23,12 +23,24 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
+/**
+ * Converter that transforms a {@link ReportPortalUser} into an {@link AbstractAuthenticationToken}.
+ */
 public class ApiKeyReportPortalUserConverter implements
     Converter<ReportPortalUser, AbstractAuthenticationToken> {
 
+  /**
+   * Default constructor for the converter.
+   */
   public ApiKeyReportPortalUserConverter() {
   }
 
+  /**
+   * Converts a {@link ReportPortalUser} into an {@link AbstractAuthenticationToken}.
+   *
+   * @param rpUser The ReportPortal user to convert.
+   * @return An authentication token representing the user.
+   */
   @Override
   public final AbstractAuthenticationToken convert(ReportPortalUser rpUser) {
     var userWithAuthorities = ReportPortalUser.userBuilder()

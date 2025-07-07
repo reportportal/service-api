@@ -30,6 +30,9 @@ import org.springframework.security.oauth2.jwt.Jwt;
  */
 public class ReportPortalJwtConverter extends AbstractJwtConverter {
 
+  /**
+   * Constructs a ReportPortalJwtConverter with the specified UserDetailsService.
+   */
   public ReportPortalJwtConverter(UserDetailsService userDetailsService) {
     super(userDetailsService);
   }

@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.configs.security;
 
 import com.epam.ta.reportportal.auth.ApiKeyUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.configs.security.converters.ApiKeyReportPortalUserConverter;
 import com.epam.ta.reportportal.dao.ApiKeyRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.user.ApiKey;

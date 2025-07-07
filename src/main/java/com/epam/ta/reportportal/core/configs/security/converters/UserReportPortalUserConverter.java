@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.auth.converter;
+package com.epam.ta.reportportal.core.configs.security.converters;
 
 import com.epam.ta.reportportal.auth.util.AuthUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -23,20 +23,21 @@ import com.google.common.collect.Maps;
 import java.util.function.Function;
 
 /**
- * Converts {@link User} to {@link ReportPortalUser}.
- * <p>
+ * Converts {@link User} to {@link ReportPortalUser}.<br>
  * This class is used to convert user entities to the format required by ReportPortal.
  * It ensures that all necessary fields are populated correctly.
- * </p>
  *
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
-public final class ReportPortalUserConverter {
+public final class UserReportPortalUserConverter {
 
-  private ReportPortalUserConverter() {
+  private UserReportPortalUserConverter() {
     // static only
   }
 
+  /**
+   * Converts a {@link User} object to a {@link ReportPortalUser} object.
+   */
   public static Function<User, ReportPortalUser> TO_REPORT_PORTAL_USER = user ->
       ReportPortalUser.userBuilder()
           .withUserId(user.getId())

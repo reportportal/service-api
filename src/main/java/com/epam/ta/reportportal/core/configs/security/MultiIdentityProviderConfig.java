@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.configs.security;
 
+import static com.epam.ta.reportportal.core.configs.security.UserResolverType.EXTERNAL;
+
 import com.epam.ta.reportportal.auth.userdetails.DefaultUserDetailsService;
 import com.epam.ta.reportportal.auth.userdetails.ExternalUserDetailsService;
 import com.epam.ta.reportportal.core.configs.security.converters.ExternalJwtConverter;
@@ -166,11 +168,11 @@ public class MultiIdentityProviderConfig {
       return new ReportPortalJwtConverter(userDetailsService);
     }
 
-    UserDetailsService selectedService = config.getUserDetailsService().equals("external")
+    var detailsService = config.getUserResolver() == EXTERNAL
         ? externalUserDetailsService
         : userDetailsService;
 
-    return new ExternalJwtConverter(selectedService, config);
+    return new ExternalJwtConverter(detailsService, config);
   }
 
   private SecretKeySpec getDefaultSecretKey(String key, String algorithm) {

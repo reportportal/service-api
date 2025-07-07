@@ -34,5 +34,5 @@ public class JwtIssuerConfig {
   private String algorithm = "HS256";
   private String usernameClaim = "sub";
   private String authoritiesClaim = "authorities";
-  private String userDetailsService = "default";
+  private UserResolverType userResolver = UserResolverType.DEFAULT;
 }

@@ -47,6 +47,13 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 
+/**
+ * Configuration for handling multiple identity providers with JWT authentication.
+ * This configuration allows for different JWT issuers to be configured and used
+ * for authentication based on the issuer URI.
+ *
+ * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
+ */
 @Slf4j
 @Configuration
 @EnableWebSecurity

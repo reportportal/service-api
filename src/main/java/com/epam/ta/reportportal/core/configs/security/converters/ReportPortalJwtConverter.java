@@ -21,6 +21,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.jwt.Jwt;
 
+/**
+ * Converter for JWT tokens to Spring Security authentication tokens.
+ * This class extends AbstractJwtConverter to provide a specific implementation
+ * for converting JWTs issued by Report Portal.
+ *
+ * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
+ */
 public class ReportPortalJwtConverter extends AbstractJwtConverter {
 
   public ReportPortalJwtConverter(UserDetailsService userDetailsService) {

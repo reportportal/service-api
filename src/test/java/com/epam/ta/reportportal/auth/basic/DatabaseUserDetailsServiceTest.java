@@ -44,7 +44,7 @@ class DatabaseUserDetailsServiceTest {
 
   @Test
   void userNotFoundTest() {
-    when(userRepository.findReportPortalUser("not_exist")).thenReturn(Optional.empty());
+    when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
 
     UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class,
         () -> userDetailsService.loadUserByUsername("not_exist")

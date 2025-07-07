@@ -29,8 +29,7 @@ import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rabbitmq.http.client.Client;
-import io.jsonwebtoken.Jwts.SIG;
-import javax.crypto.SecretKey;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -46,8 +45,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -58,12 +55,9 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.ws.rabbit.*"),
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.reporting.async.*"),
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = {"com.epam.ta.reportportal.job.*"}),
-    @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
-        "com.epam.ta.reportportal.core.integration.migration.*"}),
+    @ComponentScan.Filter(type = FilterType.REGEX, pattern = {"com.epam.ta.reportportal.core.integration.migration.*"}),
     @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ApplicationContextAwareFactoryBeanTest.TestConfig.class)})
 public class TestConfig {
-
-  public final static SecretKey TEST_SECRET = SIG.HS256.key().build();
 
   @MockBean
   protected Client rabbitClient;
@@ -93,20 +87,6 @@ public class TestConfig {
   @Profile("unittest")
   protected RabbitMqManagementClient managementTemplate() {
     return new RabbitMqManagementClientTemplate(rabbitClient, "analyzer");
-  }
-
-//  @Bean
-//  @Profile("unittest")
-//  public ReportPortalJwtConverter converter() {
-//
-//
-//    return jwtConverter;
-//  }
-
-  @Bean
-  @Profile("unittest")
-  JwtDecoder jwtDecoder() {
-    return NimbusJwtDecoder.withSecretKey(TEST_SECRET).build();
   }
 
   @Bean

@@ -2,6 +2,8 @@ datastore:
   type: filesystem
   path: ${java.io.tmpdir}/reportportal/datastore
 rp:
+  jwt:
+    signing-key: 60KNvXzuqCW1yoh1TZC+/3CjWVGhfnMqmuEV0RyLW3A=
   plugins:
     rooDir: ${java.io.tmpdir}/reportportal/plugins
     default:
@@ -17,3 +19,7 @@ embedded:
 spring:
   flyway:
     clean-disabled: false
+oauth2:
+  providers:
+    rp:
+      secret-key: ${rp.jwt.signing-key}

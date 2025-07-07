@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.organization.impl;
 
+import static com.epam.reportportal.api.model.OrgRole.MANAGER;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
@@ -228,7 +229,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     Map<Long, com.epam.reportportal.api.model.ProjectRole> projectRoleMap = new ConcurrentHashMap<>();
     request.getProjects().stream()
         .map(project -> {
-          if (request.getOrgRole() != null && request.getOrgRole().equals(OrgRole.MANAGER)) {
+          if (request.getOrgRole() != null && request.getOrgRole().equals(MANAGER)) {
             return project.projectRole(ProjectRole.EDITOR);
           }
           return project;
@@ -266,7 +267,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     List<UserProjectInfo> projects = orgUserUpdateRequest.getProjects();
     List<Long> projectsId = projects.stream().map(UserProjectInfo::getId).toList();
 
-    assignToProjects(userId, projects, user);
+    assignToProjects(userId, projects, user, orgUserUpdateRequest.getOrgRole().equals(MANAGER));
 
     unassignUserProject(orgId, userId, projectsId);
   }
@@ -282,7 +283,8 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     projectUserRepository.deleteByUserIdAndProjectIds(userId, projectIdsToUnassign);
   }
 
-  private void assignToProjects(Long userId, List<UserProjectInfo> projects, User user) {
+  private void assignToProjects(Long userId, List<UserProjectInfo> projects, User user,
+      boolean isManager) {
     for (UserProjectInfo userProjectInfo : projects) {
       Optional<ProjectUser> projectUserOptional = projectUserRepository.findProjectUserByUserIdAndProjectId(
           userId, userProjectInfo.getId());
@@ -295,6 +297,9 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
       projectUser.setProject(project);
       if (userProjectInfo.getProjectRole() == null) {
         userProjectInfo.setProjectRole(ProjectRole.VIEWER);
+      }
+      if (isManager) {
+        userProjectInfo.setProjectRole(ProjectRole.EDITOR);
       }
       projectUser.setProjectRole(com.epam.ta.reportportal.entity.project.ProjectRole.valueOf(
           userProjectInfo.getProjectRole().getValue()));

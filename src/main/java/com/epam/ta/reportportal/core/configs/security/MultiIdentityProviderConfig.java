@@ -1,3 +1,19 @@
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.core.configs.security;
 
 import com.epam.ta.reportportal.auth.userdetails.DefaultUserDetailsService;
@@ -53,30 +69,18 @@ public class MultiIdentityProviderConfig {
     this.serverSettingsRepository = serverSettingsRepository;
   }
 
-  @ConfigurationProperties(prefix = "oauth2")
-  @Data
-  public static class IdentityProviderConfig {
-
-    private Map<String, JwtIssuerConfig> providers = new HashMap<>();
-  }
-
-  @Data
-  public static class JwtIssuerConfig {
-
-    private String issuerUri;
-    private String jwkSetUri;
-    private String secretKey;
-    private String algorithm = "HS256";
-    private String usernameClaim = "sub";
-    private String authoritiesClaim = "authorities";
-    private String userDetailsService = "default"; // "default" or "external"
-  }
-
   @PostConstruct
   public void validate() {
     if (identityProviderConfig().getProviders().isEmpty()) {
       log.warn("No identity providers configured");
     }
+  }
+
+  @ConfigurationProperties(prefix = "oauth2")
+  @Data
+  public static class IdentityProviderConfig {
+
+    private Map<String, JwtIssuerConfig> providers = new HashMap<>();
   }
 
   @Bean

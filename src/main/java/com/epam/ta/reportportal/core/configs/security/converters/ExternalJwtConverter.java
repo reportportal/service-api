@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.configs.security.converters;
 
-import com.epam.ta.reportportal.core.configs.security.MultiIdentityProviderConfig.JwtIssuerConfig;
+import com.epam.ta.reportportal.core.configs.security.JwtIssuerConfig;
 import java.util.Collection;
 import java.util.Optional;
 import org.springframework.security.authentication.AbstractAuthenticationToken;

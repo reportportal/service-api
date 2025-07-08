@@ -3,7 +3,6 @@ package com.epam.ta.reportportal.core.tms.mapper.exporter;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseExportFormat;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;

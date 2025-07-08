@@ -486,7 +486,8 @@ public class TestItemController {
       @RequestBody @Validated BulkInfoUpdateRQ bulkInfoUpdateRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateTestItemHandler.bulkInfoUpdate(bulkInfoUpdateRQ,
-        projectExtractor.extractMembershipDetails(user, projectKey)
+        projectExtractor.extractMembershipDetails(user, projectKey),
+        user
     );
   }
 

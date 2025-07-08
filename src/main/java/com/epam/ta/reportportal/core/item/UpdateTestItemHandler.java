@@ -79,5 +79,5 @@ public interface UpdateTestItemHandler {
   void resetItemsIssue(List<Long> itemIds, Long projectId, ReportPortalUser user);
 
   OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq,
-      MembershipDetails membershipDetails);
+      MembershipDetails membershipDetails, ReportPortalUser user);
 }

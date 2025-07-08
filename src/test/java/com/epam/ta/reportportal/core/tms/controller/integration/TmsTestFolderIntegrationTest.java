@@ -1,7 +1,9 @@
 package com.epam.ta.reportportal.core.tms.controller.integration;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -223,13 +225,12 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     assertFalse(folder.isPresent());
 
     // Act & Assert - should return 404 Not Found
-    var result = mockMvc.perform(
+    var result = assertThrows(jakarta.servlet.ServletException.class, () -> mockMvc.perform(
             get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/{folderId}/export/{fileType}",
                 nonExistentFolderId, fileType)
                 .with(token(oAuthHelper.getSuperadminToken())))
-        .andReturn();
-    // Additional verification for CSV content
-    var content = result.getResponse().getContentAsString();
-    assertTrue(content.contains("Test Folder cannot be found by id: " + nonExistentFolderId));
+        .andReturn());
+
+    assertThat(result.getMessage()).contains("Test Folder cannot be found by id");
   }
 }

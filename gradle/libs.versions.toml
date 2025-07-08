@@ -37,6 +37,8 @@ lombok = "1.18.36"
 jooq = "3.19.18"
 jclouds = "2.6.0"
 hibernate-validator = "8.0.2.Final"
+mapstruct = "1.5.5.Final"
+apache-commons-csv = "1.10.0"
 
 [libraries]
 # Development libs
@@ -79,6 +81,7 @@ rabbitmq-http-client = { group = "com.rabbitmq", name = "http-client", version.r
 httpclient5 = { group = "org.apache.httpcomponents.client5", name = "httpclient5", version.ref = "httpclient5" }
 jasperreports = { group = "net.sf.jasperreports", name = "jasperreports", version.ref = "jasperreports" }
 apache-poi = { group = "org.apache.poi", name = "poi", version.ref = "apache-poi" }
+apache-poi-ooxml = { group = "org.apache.poi", name = "poi-ooxml", version.ref = "apache-poi" }
 openpdf = { group = "com.github.librepdf", name = "openpdf", version.ref = "openpdf" }
 jakarta-inject-api = { group = "jakarta.inject", name = "jakarta.inject-api", version.ref = "jakarta-inject" }
 jakarta-mail = { group = "com.sun.mail", name = "jakarta.mail", version.ref = "jakarta-mail" }
@@ -91,9 +94,14 @@ apache-commons-compress = { group = "org.apache.commons", name = "commons-compre
 hibernate-validator = { group = "org.hibernate.validator", name = "hibernate-validator", version.ref = "hibernate-validator" }
 json-schema-validator = { group = "com.networknt", name = "json-schema-validator", version.ref = "json-schema-validator" }
 caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine" }
+apache-commons-commonscsv = { group = "org.apache.commons", name = "commons-csv", version.ref = "apache-commons-csv" }
 
 # Lombok
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
+
+# Mapstruct
+mapstruct = { group = "org.mapstruct", name = "mapstruct", version.ref = "mapstruct" }
+mapstruct-processor = { group = "org.mapstruct", name = "mapstruct-processor", version.ref = "mapstruct" }
 
 # Test libraries
 spring-test = { group = "org.springframework", name = "spring-test" }

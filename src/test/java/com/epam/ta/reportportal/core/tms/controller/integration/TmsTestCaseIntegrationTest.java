@@ -1,9 +1,10 @@
 package com.epam.ta.reportportal.core.tms.controller.integration;
 
-import static org.hamcrest.Matchers.containsString;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -546,11 +547,14 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(batchPatchRequest);
 
-    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch/patch")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(jsonPath("$.message").value(containsString("violates foreign key constraint")));
+    var exception = assertThrows(jakarta.servlet.ServletException.class,
+        () -> mockMvc.perform(
+            patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch/patch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken()))));
+
+    assertThat(exception.getMessage()).contains("violates foreign key constraint");
   }
 
   @Test
@@ -577,19 +581,23 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     );
 
     // When/Then - should return error for unsupported format
-    mockMvc.perform(multipart("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
+    var exception = assertThrows(jakarta.servlet.ServletException.class, () -> mockMvc.perform(
+        multipart("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
             .file(file)
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(jsonPath("$.message").value(containsString("Unsupported import format: xml")));
+            .with(token(oAuthHelper.getSuperadminToken()))));
+
+    assertThat(exception.getMessage()).contains("Unsupported import format: xml");
   }
 
   @Test
   void exportTestCasesWithInvalidFormatIntegrationTest() throws Exception {
     // When/Then - should return error for unsupported format
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/export")
+    var exception = assertThrows(jakarta.servlet.ServletException.class, () -> mockMvc
+        .perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/export")
             .param("format", "XML")
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(jsonPath("$.message").value(containsString("Unsupported export format: XML")));
+            .with(token(oAuthHelper.getSuperadminToken()))));
+
+    assertThat(exception.getMessage()).contains("Unsupported export format: XML");
   }
 
 

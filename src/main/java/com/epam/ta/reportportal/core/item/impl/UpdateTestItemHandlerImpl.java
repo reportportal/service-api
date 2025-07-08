@@ -49,6 +49,7 @@ import com.epam.ta.reportportal.core.item.ExternalTicketHandler;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
+import com.epam.ta.reportportal.core.item.validator.TestItemAccessValidator;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -122,6 +123,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
   private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
   private final DefectUpdateStatisticsService defectUpdateStatisticsService;
+  private final TestItemAccessValidator testItemAccessValidator;
 
 
   @Autowired
@@ -131,7 +133,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
       MessageBus messageBus, LogIndexerService logIndexerService,
       IssueEntityRepository issueEntityRepository,
       Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping,
-      DefectUpdateStatisticsService defectUpdateStatisticsService) {
+      DefectUpdateStatisticsService defectUpdateStatisticsService,
+      TestItemAccessValidator testItemAccessValidator) {
     this.testItemService = testItemService;
     this.projectRepository = projectRepository;
     this.testItemRepository = testItemRepository;
@@ -142,6 +145,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     this.issueEntityRepository = issueEntityRepository;
     this.statusChangingStrategyMapping = statusChangingStrategyMapping;
     this.defectUpdateStatisticsService = defectUpdateStatisticsService;
+    this.testItemAccessValidator = testItemAccessValidator;
   }
 
   @Override
@@ -170,6 +174,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
                 "Cannot update issue type for test item '{}', cause it is not found.",
                 issueDefinition.getId()
             ).get()));
+        testItemAccessValidator.checkItemsBelongsToProject(projectDetails.getProjectId(), List.of(testItem));
 
         verifyTestItem(testItem, issueDefinition.getId());
         TestItemActivityResource before =
@@ -267,6 +272,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     List<String> errors = new ArrayList<>();
 
     List<TestItem> testItems = testItemRepository.findAllById(request.getTestItemIds());
+    testItemAccessValidator.checkItemsBelongsToProject(projectDetails.getProjectId(), testItems);
 
     testItems.forEach(testItem -> {
       try {
@@ -364,6 +370,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
         PROJECT_NOT_FOUND, projectDetails.getProjectId());
 
     List<TestItem> items = testItemRepository.findAllById(bulkUpdateRq.getIds());
+    testItemAccessValidator.checkItemsBelongsToProject(projectDetails.getProjectId(), items);
+
     items.forEach(
         it -> ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription())
             .ifPresent(it::setDescription));

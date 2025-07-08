@@ -16,24 +16,27 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_IS_NOT_FINISHED;
 import static com.epam.reportportal.rules.exception.ErrorType.TEST_ITEM_IS_NOT_FINISHED;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.not;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import com.epam.reportportal.events.ElementsDeletedEvent;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.ElementsCounterService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
+import com.epam.ta.reportportal.core.item.validator.TestItemAccessValidator;
 import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
@@ -46,8 +49,6 @@ import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Sets;
 import java.util.Collection;
@@ -89,12 +90,15 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
   private final LogService logService;
 
+  private final TestItemAccessValidator testItemAccessValidator;
+
   @Autowired
   public DeleteTestItemHandlerImpl(TestItemRepository testItemRepository,
       ContentRemover<Long> itemContentRemover, LogIndexer logIndexer,
       LaunchRepository launchRepository, AttachmentRepository attachmentRepository,
       ApplicationEventPublisher eventPublisher,
-      ElementsCounterService elementsCounterService, LogService logService) {
+      ElementsCounterService elementsCounterService, LogService logService,
+      TestItemAccessValidator testItemAccessValidator) {
     this.testItemRepository = testItemRepository;
     this.itemContentRemover = itemContentRemover;
     this.logIndexer = logIndexer;
@@ -103,6 +107,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
     this.eventPublisher = eventPublisher;
     this.elementsCounterService = elementsCounterService;
     this.logService = logService;
+    this.testItemAccessValidator = testItemAccessValidator;
   }
 
   @Override
@@ -145,6 +150,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
       ReportPortalUser.ProjectDetails projectDetails,
       ReportPortalUser user) {
     List<TestItem> items = testItemRepository.findAllById(ids);
+    testItemAccessValidator.checkItemsBelongsToProject(projectDetails.getProjectId(), items);
 
     List<Launch> launches = launchRepository.findAllById(items.stream()
         .map(TestItem::getLaunchId)
@@ -174,7 +180,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
     Set<Long> removedItems = testItemRepository.findAllById(idsToDelete)
         .stream()
         .map(TestItem::getPath)
-        .collect(toList())
+        .toList()
         .stream()
         .flatMap(path -> testItemRepository.selectAllDescendantsIds(path).stream())
         .collect(toSet());

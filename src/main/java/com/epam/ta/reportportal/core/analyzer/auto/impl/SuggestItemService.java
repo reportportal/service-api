@@ -13,17 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.CLUSTER_NOT_FOUND;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
 import static com.epam.ta.reportportal.entity.enums.LogLevel.ERROR_INT;
-import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestRq;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
+import com.epam.ta.reportportal.core.item.validator.TestItemAccessValidator;
 import com.epam.ta.reportportal.core.item.validator.state.TestItemValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.cluster.GetClusterHandler;
@@ -34,10 +41,8 @@ import com.epam.ta.reportportal.entity.cluster.Cluster;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Collections;
 import java.util.List;
@@ -67,6 +72,8 @@ public class SuggestItemService {
   private final LogService logService;
 
   private final List<TestItemValidator> testItemValidators;
+  private final TestItemAccessValidator testItemAccessValidator;
+
 
   @Autowired
   public SuggestItemService(AnalyzerServiceClient analyzerServiceClient,
@@ -74,7 +81,7 @@ public class SuggestItemService {
       GetLaunchHandler getLaunchHandler, GetClusterHandler getClusterHandler,
       LaunchAccessValidator launchAccessValidator,
       TestItemRepository testItemRepository, LogService logService,
-      List<TestItemValidator> testItemValidators) {
+      List<TestItemValidator> testItemValidators, TestItemAccessValidator testItemAccessValidator) {
     this.analyzerServiceClient = analyzerServiceClient;
     this.getProjectHandler = getProjectHandler;
     this.getLaunchHandler = getLaunchHandler;
@@ -83,6 +90,7 @@ public class SuggestItemService {
     this.testItemRepository = testItemRepository;
     this.logService = logService;
     this.testItemValidators = testItemValidators;
+    this.testItemAccessValidator = testItemAccessValidator;
   }
 
   @Transactional(readOnly = true)
@@ -91,6 +99,7 @@ public class SuggestItemService {
 
     TestItem testItem = testItemRepository.findById(testItemId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
+    testItemAccessValidator.checkItemsBelongsToProject(projectDetails.getProjectId(), List.of(testItem));
 
     validateTestItem(testItem);
 
@@ -113,6 +122,9 @@ public class SuggestItemService {
   public List<SuggestedItem> suggestClusterItems(Long clusterId,
       ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
     final Cluster cluster = getClusterHandler.getById(clusterId);
+    expect(cluster.getProjectId(), Predicates.equalTo(projectDetails.getProjectId()))
+        .verify(CLUSTER_NOT_FOUND, clusterId);
+
     final Launch launch = getLaunch(cluster.getLaunchId(), projectDetails, user);
     final Project project = getProjectHandler.get(projectDetails);
     final SuggestRq suggestRq = prepareSuggestRq(cluster, launch, project);

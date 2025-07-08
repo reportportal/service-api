@@ -14,6 +14,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestRq;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
+import com.epam.ta.reportportal.core.item.validator.TestItemAccessValidator;
 import com.epam.ta.reportportal.core.item.validator.state.TestItemValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.cluster.GetClusterHandler;
@@ -53,6 +54,7 @@ class SuggestItemServiceTest {
 
   private final TestItemValidator testItemValidator = mock(TestItemValidator.class);
   private final List<TestItemValidator> validators = List.of(testItemValidator);
+  private final TestItemAccessValidator testItemAccessValidator = mock(TestItemAccessValidator.class);
 
   private final SuggestItemService suggestItemService = new SuggestItemService(
       analyzerServiceClient,
@@ -61,7 +63,8 @@ class SuggestItemServiceTest {
       getClusterHandler,
       launchAccessValidator,
       testItemRepository,
-      logService, validators
+      logService, validators,
+      testItemAccessValidator
   );
 
   @Test
@@ -190,11 +193,13 @@ class SuggestItemServiceTest {
     final Cluster cluster = new Cluster();
     cluster.setId(1L);
     cluster.setLaunchId(1L);
+    cluster.setProjectId(1L);
 
     TestItem relevantItem = getRelevantItem();
 
     Launch launch = new Launch();
     launch.setId(1L);
+    launch.setProjectId(1L);
 
     final LogFull logFull = new LogFull();
 

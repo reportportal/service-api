@@ -72,6 +72,7 @@ spring-security-oauth2-resource-server = { group = "org.springframework.security
 
 # Other libraries
 springdoc-openapi = { group = "org.springdoc", name = "springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc-openapi" }
+micrometer = { group = "io.micrometer", name = "micrometer-registry-prometheus" }
 opencsv = { group = "com.opencsv", name = "opencsv", version.ref = "opencsv" }
 jooq = { group = "org.jooq", name = "jooq", version.ref = "jooq" }
 slugify = { group = "com.github.slugify", name = "slugify", version.ref = "slugify" }

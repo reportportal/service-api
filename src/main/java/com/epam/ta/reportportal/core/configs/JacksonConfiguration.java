@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.ws.resolver.JacksonViewAwareModule;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,6 +42,7 @@ public class JacksonConfiguration {
     ObjectMapper om = JsonMapper.builder()
         .annotationIntrospector(new JacksonAnnotationIntrospector())
         .configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true)
+        .serializationInclusion(Include.NON_NULL)
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
         .build();

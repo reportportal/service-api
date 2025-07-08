@@ -120,4 +120,18 @@ class OrganizationControllerTest extends BaseMvcTest {
 
   }
 
+  @Test
+  void getOrganizationByAdminWrongId() throws Exception {
+    mockMvc.perform(get("/organizations/notnumber")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().is4xxClientError());
+  }
+
+  @Test
+  void getOrganizationByUserWrongId() throws Exception {
+    mockMvc.perform(get("/organizations/notnumber")
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().is4xxClientError());
+  }
+
 }

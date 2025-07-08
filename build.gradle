@@ -133,6 +133,7 @@ dependencies {
 
     implementation "org.apache.jclouds.api:filesystem:${jcloudsVersion}"
     implementation 'org.apache.commons:commons-compress:1.27.1'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 
     implementation "org.hibernate.validator:hibernate-validator:${hibernateValidatorVersion}"
 

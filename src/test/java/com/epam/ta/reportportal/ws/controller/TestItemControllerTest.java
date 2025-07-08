@@ -978,7 +978,7 @@ class TestItemControllerTest extends BaseMvcTest {
   @Test
   void bulkUpdateItemAttributes() throws Exception {
     BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
-    List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L);
+    List<Long> launchIds = Arrays.asList(1L, 2L, 3L);
     request.setIds(launchIds);
     BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
     description.setAction(BulkInfoUpdateRQ.Action.CREATE);
@@ -1013,7 +1013,7 @@ class TestItemControllerTest extends BaseMvcTest {
   @Test
   void bulkCreateAttributes() throws Exception {
     BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
-    List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L);
+    List<Long> launchIds = Arrays.asList(1L, 2L, 3L);
     request.setIds(launchIds);
     BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
     description.setAction(BulkInfoUpdateRQ.Action.UPDATE);
@@ -1045,7 +1045,7 @@ class TestItemControllerTest extends BaseMvcTest {
   @Test
   void bulkDeleteAttributes() throws Exception {
     BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
-    List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L);
+    List<Long> launchIds = Arrays.asList(1L, 2L, 3L);
     request.setIds(launchIds);
     BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
     description.setAction(BulkInfoUpdateRQ.Action.CREATE);
@@ -1071,5 +1071,26 @@ class TestItemControllerTest extends BaseMvcTest {
               && !attr.isSystem()));
       assertEquals(comment, it.getDescription());
     });
+  }
+
+  @Test
+  void failValidationOnbulkUpdate() throws Exception {
+    BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
+    List<Long> launchIds = Arrays.asList(4L, 5L);
+    request.setIds(launchIds);
+    BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
+    description.setAction(BulkInfoUpdateRQ.Action.UPDATE);
+    String comment = "updated";
+    description.setComment(comment);
+    request.setDescription(description);
+    UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
+    updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.CREATE);
+    updateItemAttributeRQ.setTo(new ItemAttributeResource("createdKey", "createdValue"));
+    request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
+
+    mockMvc.perform(
+            put(DEFAULT_PROJECT_BASE_URL + "/item/info").with(token(oAuthHelper.getDefaultToken()))
+                .contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(request)))
+        .andExpect(status().isForbidden());
   }
 }

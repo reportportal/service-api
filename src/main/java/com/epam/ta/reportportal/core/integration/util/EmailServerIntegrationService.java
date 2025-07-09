@@ -22,7 +22,7 @@ import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.ta.reportportal.core.admin.ServerAdminHandlerImpl;
+import com.epam.ta.reportportal.core.settings.ServerSettingsServiceImpl;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
@@ -51,7 +51,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ServerAdminHandlerImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ServerSettingsServiceImpl.class);
 
   private final BasicTextEncryptor basicTextEncryptor;
 

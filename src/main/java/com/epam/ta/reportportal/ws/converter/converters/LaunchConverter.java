@@ -59,6 +59,8 @@ public class LaunchConverter {
   private Map<ItemAttributeType, ResourceAttributeHandler<LaunchResource>>
       resourceAttributeUpdaterMapping;
 
+  private static final String DELETED_USER = "deleted_user";
+
   public static final Function<Launch, LaunchActivityResource> TO_ACTIVITY_RESOURCE = launch -> {
     LaunchActivityResource resource = new LaunchActivityResource();
     resource.setId(launch.getId());
@@ -93,7 +95,7 @@ public class LaunchConverter {
     resource.setHasRetries(db.isHasRetries());
     //TODO replace with single select on higher level to prevent selection for each launch
     ofNullable(db.getUserId()).flatMap(id -> userRepository.findLoginById(id))
-        .ifPresent(resource::setOwner);
+        .ifPresentOrElse(resource::setOwner, () -> resource.setOwner(DELETED_USER));
     resource.setRerun(db.isRerun());
     return resource;
   };

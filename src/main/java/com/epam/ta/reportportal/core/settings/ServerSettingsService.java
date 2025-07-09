@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.admin;
+package com.epam.ta.reportportal.core.settings;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.model.settings.AnalyticsResource;
@@ -27,7 +27,7 @@ import java.util.Map;
  *
  * @author Andrei_Ramanchuk
  */
-public interface ServerAdminHandler {
+public interface ServerSettingsService {
 
   /**
    * Get all server settings
@@ -35,6 +35,16 @@ public interface ServerAdminHandler {
    * @return {@link Map}
    */
   Map<String, String> getServerSettings();
+
+  /**
+   * Checks if a specific server setting is enabled, based on the provided key and expected value.
+   *
+   * @param key   the key identifying the server setting to check
+   * @param value the expected value of the setting
+   * @return {@code true} if the server setting associated with the key matches the expected value;
+   * {@code false} otherwise
+   */
+  boolean checkServerSettingsState(String key, String value);
 
   /**
    * Update analytics settings

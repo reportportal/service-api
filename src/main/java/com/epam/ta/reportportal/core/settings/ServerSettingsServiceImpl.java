@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.admin;
+package com.epam.ta.reportportal.core.settings;
 
 import static com.epam.ta.reportportal.entity.ServerSettingsConstants.ANALYTICS_CONFIG_PREFIX;
 import static com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter.TO_RESOURCE;
@@ -34,18 +34,21 @@ import com.epam.ta.reportportal.model.settings.UpdateSettingsRq;
 import com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
- * Basic implementation of server administration interface {@link ServerAdminHandler}
+ * Basic implementation of server administration interface {@link ServerSettingsService}
  *
  * @author Andrei_Ramanchuk
  */
 @Service
 @RequiredArgsConstructor
-public class ServerAdminHandlerImpl implements ServerAdminHandler {
+public class ServerSettingsServiceImpl implements ServerSettingsService {
+
+  private final ServerSettingsRegistry settingsRegistry;
 
   private final ServerSettingsRepository serverSettingsRepository;
 
@@ -55,6 +58,12 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
   public Map<String, String> getServerSettings() {
     return ServerSettingsConverter.TO_RESOURCES.apply(
         serverSettingsRepository.selectServerSettings());
+  }
+
+  @Override
+  public boolean checkServerSettingsState(String key, String value) {
+    return serverSettingsRepository.findByKey(key).map(it -> Objects.equals(value, it.getValue()))
+        .orElse(Boolean.FALSE);
   }
 
   @Override
@@ -89,7 +98,8 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 
     serverSettings.setValue(request.getValue());
     serverSettingsRepository.save(serverSettings);
-
+    settingsRegistry.getHandler(serverSettings.getKey())
+        .ifPresent(handler -> handler.handle(serverSettings.getValue()));
     messageBus.publishActivity(new SettingsUpdatedEvent(before, TO_RESOURCE.apply(serverSettings),
         user.getUserId(), user.getUsername()));
     return new OperationCompletionRS("Server Settings were successfully updated.");

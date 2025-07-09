@@ -49,11 +49,10 @@ public interface GetJasperReportHandler<T> {
   /**
    * Convert rendered report to output stream.
    *
-   * @param format       Report format
-   * @param outputStream Stream report should be written to
-   * @param jasperPrint  Report Data
+   * @param format      Report format
+   * @param jasperPrint Report Data
    */
-  void writeReport(ReportFormat format, OutputStream outputStream, JasperPrint jasperPrint);
+  byte[] exportReportBytes(ReportFormat format, JasperPrint jasperPrint);
 
   /**
    * Convert entity parameters for {@link JasperPrint} creation

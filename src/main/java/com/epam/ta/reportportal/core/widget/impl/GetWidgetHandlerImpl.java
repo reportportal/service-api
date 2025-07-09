@@ -21,9 +21,9 @@ import static com.epam.reportportal.rules.commons.validation.Suppliers.formatted
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTES;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
@@ -35,13 +35,10 @@ import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.model.widget.WidgetResource;
-import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.Collections;
@@ -52,8 +49,6 @@ import java.util.function.Predicate;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
@@ -239,15 +234,5 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
   List<UserFilter> getPermittedFilters(Long[] ids, MembershipDetails membershipDetails,
       ReportPortalUser user) {
     return getUserFilterHandler.getFiltersById(ids, membershipDetails, user);
-  }
-
-  @Override
-  public com.epam.ta.reportportal.model.Page<Object> getOwnNames(MembershipDetails membershipDetails,
-                                                                 Pageable pageable, Filter filter, ReportPortalUser user) {
-    final Page<Widget> widgets =
-        widgetRepository.findByFilter(ProjectFilter.of(filter, membershipDetails.getProjectId()),
-            pageable
-        );
-    return PagedResourcesAssembler.pageConverter().apply(widgets.map(Widget::getName));
   }
 }

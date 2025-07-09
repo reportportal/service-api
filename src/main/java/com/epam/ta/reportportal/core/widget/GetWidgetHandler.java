@@ -64,15 +64,4 @@ public interface GetWidgetHandler {
 	 */
 	Map<String, ?> getWidgetPreview(WidgetPreviewRQ previewRQ, MembershipDetails membershipDetails, ReportPortalUser user);
 
-	/**
-	 * Get widget names that belong to user
-	 *
-   * @param membershipDetails Membership details
-	 * @param pageable       Paging
-	 * @param filter         Filter
-	 * @param user           User
-	 * @return List of widget names
-	 */
-	Page<Object> getOwnNames(MembershipDetails membershipDetails, Pageable pageable, Filter filter, ReportPortalUser user);
-
 }

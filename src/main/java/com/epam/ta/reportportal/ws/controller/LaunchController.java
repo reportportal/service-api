@@ -68,11 +68,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
-import java.util.List;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
@@ -497,7 +492,8 @@ public class LaunchController {
     );
 
     try (OutputStream outputStream = response.getOutputStream()) {
-      getLaunchMessageHandler.exportLaunch(launchId, view, includeAttachments, response, user);
+      getLaunchMessageHandler.exportLaunch(launchId, view, includeAttachments, response, user,
+        projectExtractor.extractProjectDetails(user, normalizeId(projectName)));
 
     } catch (IOException e) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,

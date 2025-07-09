@@ -2,7 +2,7 @@
 # Development versions
 commons-dev = "d3e888b"
 commons-dao-dev = "8643003"
-plugin-api-dev = "a0fd0c2"
+plugin-api-dev = "9bd040f"
 
 # Platform versions
 commons-bom = "5.13.4"

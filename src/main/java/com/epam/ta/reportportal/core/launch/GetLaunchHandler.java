@@ -23,16 +23,13 @@ import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
-import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.reporting.LaunchResource;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Pageable;
-
-//import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
 
 /**
  * Get Launch operation handler
@@ -156,7 +153,7 @@ public interface GetLaunchHandler {
    * @param user         Current {@link ReportPortalUser}
    */
   void exportLaunch(Long launchId, ReportFormat reportFormat, OutputStream outputStream,
-      ReportPortalUser user);
+      ReportPortalUser user, MembershipDetails membershipDetails);
 
   /**
    * Get latest launches

@@ -16,11 +16,14 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.entity.jasper.ReportFormat.TEXT_CSV;
+
 /**
- * This class provides basic functionalities that all controllers in the application can use. It
- * contains a method to get the details of the logged-in user. It is an abstract class and is
- * intended to be subclassed by other controllers.
+ * This class provides basic functionalities that all controllers in the application can use.
  */
 public abstract class BaseController {
 
+  protected static boolean isExportFormat(String accept) {
+    return accept.equals(TEXT_CSV.getValue());
+  }
 }

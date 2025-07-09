@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.jasper;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -41,27 +42,35 @@ import org.springframework.stereotype.Service;
  * Jasper Report render based on provided JRXML template.<br>
  *
  * @author Andrei_Ramanchuk
- * @author Andrei Varabyeu Performance improvements. Load JasperReport only once since it is
- * immutable
+ * @author Andrei Varabyeu Performance improvements. Load JasperReport only once since it is immutable
  */
 @Service("jasperRender")
 public class JasperReportRender {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JasperReportRender.class);
 
+  private static final String ORGANIZATIONS_REPORT_JRXML_TEMPLATE = "classpath:/templates/report/organizations.jrxml";
   private static final String PROJECTS_REPORT_JRXML_TEMPLATE = "classpath:/templates/report/projects.jrxml";
   private static final String USERS_REPORT_JRXML_TEMPLATE = "classpath:/templates/report/users.jrxml";
   private static final String LAUNCH_REPORT_JRXML_TEMPLATE = "classpath:/templates/report/report.jrxml";
-  private static final Map<ReportType, String> reportTypeTemplatePathMapping = ImmutableMap.<ReportType, String>builder()
-      .put(ReportType.PROJECT,
-          PROJECTS_REPORT_JRXML_TEMPLATE
-      )
-      .put(ReportType.USER, USERS_REPORT_JRXML_TEMPLATE)
-      .put(ReportType.LAUNCH, LAUNCH_REPORT_JRXML_TEMPLATE)
-      .build();
+  private static final Map<ReportType, String> reportTypeTemplatePathMapping =
+      ImmutableMap.<ReportType, String>builder()
+          .put(ReportType.ORGANIZATION, ORGANIZATIONS_REPORT_JRXML_TEMPLATE)
+          .put(ReportType.PROJECT, PROJECTS_REPORT_JRXML_TEMPLATE)
+          .put(ReportType.USER, USERS_REPORT_JRXML_TEMPLATE)
+          .put(ReportType.LAUNCH, LAUNCH_REPORT_JRXML_TEMPLATE)
+          .build();
 
   private final Map<ReportType, JasperReport> reportTemplatesMapping;
 
+
+  /**
+   * Constructs a JasperReportRender and preloads compiled JasperReport templates for each ReportType.
+   *
+   * @param resourceLoader The Spring ResourceLoader used to load JRXML template files from the classpath.
+   * @throws JRException If a JasperReports error occurs during compilation.
+   * @throws IOException If an I/O error occurs while reading template files.
+   */
   @Autowired
   public JasperReportRender(ResourceLoader resourceLoader) throws JRException, IOException {
 
@@ -81,11 +90,17 @@ public class JasperReportRender {
 
   }
 
-  public JasperPrint generateReportPrint(ReportType reportType, Map<String, Object> params,
-      JRDataSource datasource) {
+  /**
+   * Generates a JasperPrint object for the specified report type using the provided parameters and data source.
+   *
+   * @param reportType The type of report to generate.
+   * @param params     The parameters to pass to the report.
+   * @param datasource The data source for the report.
+   * @return A filled JasperPrint object, or an empty JasperPrint if an error occurs.
+   */
+  public JasperPrint generateReportPrint(ReportType reportType, Map<String, Object> params, JRDataSource datasource) {
     try {
-      return JasperFillManager.fillReport(reportTemplatesMapping.get(reportType), params,
-          datasource);
+      return JasperFillManager.fillReport(reportTemplatesMapping.get(reportType), params, datasource);
     } catch (JRException e) {
       LOGGER.error("Unable to generate Report", e);
       return new JasperPrint();

@@ -368,14 +368,14 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
   @Override
   public OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq,
-      MembershipDetails membershipDetails) {
-    expect(projectRepository.existsById(membershipDetails.getProjectId()), equalTo(TRUE)).verify(
-        PROJECT_NOT_FOUND, membershipDetails.getProjectId());
-
+      MembershipDetails membershipDetails, ReportPortalUser user) {
     List<TestItem> items = testItemRepository.findAllById(bulkUpdateRq.getIds());
     items.forEach(
-        it -> ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription())
-            .ifPresent(it::setDescription));
+        it -> {
+          validate(membershipDetails, user, it);
+            ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription())
+            .ifPresent(it::setDescription);
+        });
 
     bulkUpdateRq.getAttributes().forEach(it -> {
       switch (it.getAction()) {

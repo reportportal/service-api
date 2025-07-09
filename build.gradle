@@ -69,6 +69,7 @@ dependencies {
     implementation(libs.spring.test)
 
     implementation(libs.springdoc.openapi)
+    implementation(libs.micrometer)
     implementation(libs.opencsv)
     implementation(libs.jooq)
     implementation(libs.slugify)

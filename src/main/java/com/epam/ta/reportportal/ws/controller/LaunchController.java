@@ -470,7 +470,8 @@ public class LaunchController {
       @RequestParam(value = "includeAttachments", required = false, defaultValue = "false") boolean includeAttachments,
       @AuthenticationPrincipal ReportPortalUser user,
       HttpServletResponse response) {
-    getLaunchMessageHandler.exportLaunch(launchId, view, includeAttachments, response, user);
+    getLaunchMessageHandler.exportLaunch(launchId, view, includeAttachments, response, user,
+        projectExtractor.extractProjectDetails(user, normalizeId(projectName)));
   }
 
   @Transactional

@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.data.domain.Pageable;
 
-//import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
-
 /**
  * Get Launch operation handler
  *
@@ -159,7 +157,7 @@ public interface GetLaunchHandler {
    * @throws ReportPortalException if the report or archive could not be written to the output stream.
    */
   void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments, HttpServletResponse response,
-      ReportPortalUser user);
+      ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails);
 
   /**
    * Get latest launches

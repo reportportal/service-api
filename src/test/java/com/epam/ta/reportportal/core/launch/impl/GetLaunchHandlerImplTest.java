@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
@@ -244,11 +245,12 @@ class GetLaunchHandlerImplTest {
   void exportLaunchNotFound() {
     long launchId = 1L;
     ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+    ProjectDetails projectDetails = ProjectDetails.builder().withProjectId(1L).build();
 
     when(launchRepository.findById(launchId)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.exportLaunch(launchId, "pdf", false, null, user)
+        () -> handler.exportLaunch(launchId, "pdf", false, null, user, projectDetails)
     );
     assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
   }
@@ -257,14 +259,16 @@ class GetLaunchHandlerImplTest {
   void exportLaunchUserNotFound() {
     long launchId = 1L;
     ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+    ProjectDetails projectDetails = ProjectDetails.builder().withProjectId(1L).build();
 
     Launch launch = new Launch();
+    launch.setProjectId(1L);
     launch.setStatus(StatusEnum.FAILED);
     when(launchRepository.findById(launchId)).thenReturn(Optional.of(launch));
     when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.exportLaunch(launchId, "pdf", false, null, user)
+        () -> handler.exportLaunch(launchId, "pdf", false, null, user, projectDetails)
     );
     assertEquals("User '1' not found.", exception.getMessage());
   }

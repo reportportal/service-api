@@ -51,6 +51,7 @@ import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -309,13 +310,15 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
   @Override
   public void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments, HttpServletResponse response,
-      ReportPortalUser user) {
+      ReportPortalUser user, ProjectDetails projectDetails) {
     var launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
     expect(launch.getStatus(), not(statusIn(IN_PROGRESS))).verify(ErrorType.FORBIDDEN_OPERATION,
         Suppliers.formattedSupplier(
             "Launch '{}' has IN_PROGRESS status. Impossible to export such elements.", launchId)
     );
+
+    validate(launch, projectDetails);
     var userFullName = userRepository.findById(user.getUserId()).map(User::getFullName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUserId()));
 

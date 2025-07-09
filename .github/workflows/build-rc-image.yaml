@@ -41,4 +41,5 @@ jobs:
       version: ${{ needs.variables-setup.outputs.version }}
       date: ${{ needs.variables-setup.outputs.date }}
       runs-on: ubuntu-latest
+      drill-send-build-info: true
     secrets: inherit

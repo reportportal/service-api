@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.organization.impl;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_USER_ID;
 import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParameters;
 import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.ORG_PROFILE_TO_ORG_INFO;
@@ -37,32 +38,52 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.core.jasper.impl.OrganizationJasperReportHandler;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
+import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.collect.Lists;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import net.sf.jasperreports.engine.JRDataSource;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 
 /**
- * @author Andrei Piankouski
+ * Service implementation for handling organization-related operations. Provides methods to retrieve, list, and export
+ * organizations.
  */
 @Service
 public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
 
   private final OrganizationRepositoryCustom organizationRepositoryCustom;
   private final OrganizationUserRepository organizationUserRepository;
+  private final OrganizationJasperReportHandler organizationJasperReportHandler;
 
+
+  /**
+   * Constructs a new instance of GetOrganizationHandlerImpl.
+   *
+   * @param organizationRepositoryCustom    Custom repository for organization queries.
+   * @param organizationUserRepository      Repository for organization user operations.
+   * @param organizationJasperReportHandler Handler for Jasper report generation.
+   */
   @Autowired
   public GetOrganizationHandlerImpl(OrganizationRepositoryCustom organizationRepositoryCustom,
-      OrganizationUserRepository organizationUserRepository) {
+      OrganizationUserRepository organizationUserRepository,
+      OrganizationJasperReportHandler organizationJasperReportHandler) {
     this.organizationRepositoryCustom = organizationRepositoryCustom;
     this.organizationUserRepository = organizationUserRepository;
+    this.organizationJasperReportHandler = organizationJasperReportHandler;
   }
 
   @Override
@@ -84,18 +105,8 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
     OrganizationPage organizationProfilesPage = new OrganizationPage();
 
     if (!rpUser.getUserRole().equals(UserRole.ADMINISTRATOR)) {
-      var orgIds = organizationUserRepository.findOrganizationIdsByUserId(rpUser.getUserId())
-          .stream()
-          .map(Object::toString)
-          .collect(Collectors.joining(","));
-
-      if (orgIds.isEmpty()) {
-        // return empty response
-        return responseWithPageParameters(organizationProfilesPage, pageable, 0);
-      } else {
-        filter.getFilterConditions().add(
-            new FilterCondition(Condition.IN, false, orgIds, CRITERIA_ID));
-      }
+      filter.getFilterConditions()
+          .add(new FilterCondition(Condition.EQUALS, false, rpUser.getUserId().toString(), CRITERIA_ORG_USER_ID));
     }
 
     var organizationProfiles = organizationRepositoryCustom.findByFilter(filter, pageable);
@@ -126,6 +137,24 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
 
     return responseWithPageParameters(organizationProfilesPage, pageable,
         organizationProfiles.getTotalElements());
+  }
+
+
+  @Override
+  public void exportOrganizations(Queryable filter, Pageable pageable, ReportFormat reportFormat,
+      OutputStream outputStream) {
+    var orgs = organizationRepositoryCustom.findByFilter(filter, pageable);
+
+    List<? extends Map<String, ?>> data = orgs.stream()
+        .map(organizationJasperReportHandler::convertParams)
+        .collect(Collectors.toList());
+
+    JRDataSource jrDataSource = new JRBeanCollectionDataSource(data);
+
+    //don't provide any params to not overwrite params from the Jasper template
+    JasperPrint jasperPrint = organizationJasperReportHandler.getJasperPrint(null, jrDataSource);
+
+    organizationJasperReportHandler.writeReport(reportFormat, outputStream, jasperPrint);
   }
 
 }

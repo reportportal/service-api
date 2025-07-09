@@ -23,26 +23,20 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.CreateWidgetHandler;
 import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.UpdateWidgetHandler;
-import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
-import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.model.widget.WidgetResource;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.resolver.FilterFor;
-import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Map;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
@@ -140,17 +134,5 @@ public class WidgetController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateWidgetHandler.updateWidget(
         widgetId, updateRQ, projectExtractor.extractMembershipDetails(user, projectKey), user);
-  }
-
-  @Transactional(readOnly = true)
-  @GetMapping(value = "/names/all")
-  @ResponseStatus(OK)
-  @Operation(summary = "Load all widget names which belong to a user")
-  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
-  public Page<Object> getWidgetNames(@PathVariable String projectKey,
-      @SortFor(Widget.class) Pageable pageable, @FilterFor(Widget.class) Filter filter,
-      @AuthenticationPrincipal ReportPortalUser user) {
-    return getWidgetHandler.getOwnNames(
-        projectExtractor.extractMembershipDetails(user, projectKey), pageable, filter, user);
   }
 }

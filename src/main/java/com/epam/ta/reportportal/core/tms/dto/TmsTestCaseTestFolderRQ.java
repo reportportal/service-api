@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
 @ValidTestFolderIdentifier
 public class TmsTestCaseTestFolderRQ {
 
-  private Long testFolderId;
+  private Long id;
 
-  private String testFolderName;
+  private String name;
 
 }

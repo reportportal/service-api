@@ -1,7 +1,6 @@
 package com.epam.ta.reportportal.core.tms.validation;
 
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
-import com.epam.ta.reportportal.core.tms.validation.ValidTestFolderIdentifier;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.util.Objects;
@@ -35,8 +34,8 @@ public class TestFolderIdentifierValidator
       return true; // Let @NotNull handle null objects if needed
     }
 
-    var hasTestFolderId = Objects.nonNull(value.getTestFolderId());
-    var hasTestFolderName = StringUtils.isNotBlank(value.getTestFolderName());
+    var hasTestFolderId = Objects.nonNull(value.getId());
+    var hasTestFolderName = StringUtils.isNotBlank(value.getName());
 
     if ((hasTestFolderId && hasTestFolderName) || (!hasTestFolderId && !hasTestFolderName)) {
       context.disableDefaultConstraintViolation();

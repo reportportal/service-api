@@ -23,7 +23,7 @@ class TestFolderIdentifierValidatorTest {
   @Test
   void shouldPassValidationWhenTestFolderIdIsProvided() {
     var request = TmsTestCaseTestFolderRQ.builder()
-        .testFolderId(1L)
+        .id(1L)
         .build();
 
     var violations = validator.validate(request);
@@ -34,7 +34,7 @@ class TestFolderIdentifierValidatorTest {
   @Test
   void shouldPassValidationWhenTestFolderNameIsProvided() {
     var request = TmsTestCaseTestFolderRQ.builder()
-        .testFolderName("Test Folder")
+        .name("Test Folder")
         .build();
 
     var violations = validator.validate(request);
@@ -45,8 +45,8 @@ class TestFolderIdentifierValidatorTest {
   @Test
   void shouldFailValidationWhenBothFieldsAreProvided() {
     var request = TmsTestCaseTestFolderRQ.builder()
-        .testFolderId(1L)
-        .testFolderName("Test Folder")
+        .id(1L)
+        .name("Test Folder")
         .build();
 
     var violations = validator.validate(request);
@@ -72,7 +72,7 @@ class TestFolderIdentifierValidatorTest {
   @Test
   void shouldFailValidationWhenTestFolderNameIsEmpty() {
     var request = TmsTestCaseTestFolderRQ.builder()
-        .testFolderName("")
+        .name("")
         .build();
 
     var violations = validator.validate(request);
@@ -83,7 +83,7 @@ class TestFolderIdentifierValidatorTest {
   @Test
   void shouldFailValidationWhenTestFolderNameIsBlank() {
     var request = TmsTestCaseTestFolderRQ.builder()
-        .testFolderName("   ")
+        .name("   ")
         .build();
 
     var violations = validator.validate(request);

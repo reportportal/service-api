@@ -53,7 +53,7 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
 
         if (StringUtils.hasText(csvRecord.get("testFolder"))) {
           TmsTestCaseTestFolderRQ testFolderRQ = new TmsTestCaseTestFolderRQ();
-          testFolderRQ.setTestFolderName(csvRecord.get("testFolder"));
+          testFolderRQ.setName(csvRecord.get("testFolder"));
           testCaseRQ.setTestFolder(testFolderRQ);
         }
 

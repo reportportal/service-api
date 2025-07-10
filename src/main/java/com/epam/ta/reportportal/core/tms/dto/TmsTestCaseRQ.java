@@ -1,7 +1,6 @@
 package com.epam.ta.reportportal.core.tms.dto;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,5 +26,5 @@ public class TmsTestCaseRQ {
   private List<TmsTestCaseAttributeRQ> tags;
 
   @Valid
-  private TmsTestCaseDefaultVersionRQ testCaseDefaultVersion;
+  private TmsTestCaseDefaultVersionRQ defaultVersion;
 }

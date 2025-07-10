@@ -15,7 +15,7 @@ public interface TmsManualScenarioMapper {
 
   @Mapping(target = "executionEstimationTime", source = "executionEstimationTime")
   @Mapping(target = "linkToRequirements", source = "linkToRequirements")
-  @Mapping(target = "preconditions", source = "preconditions.preconditions")
+  @Mapping(target = "preconditions", source = "preconditions.value")
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "steps", ignore = true)
   TmsManualScenario createTmsManualScenario(TmsManualScenarioRQ manualScenarioRQ);

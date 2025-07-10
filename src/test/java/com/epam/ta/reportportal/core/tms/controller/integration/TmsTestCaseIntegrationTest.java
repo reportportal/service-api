@@ -82,7 +82,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Test Case 3");
     testCaseRQ.setDescription("Description for test case 3");
-    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().testFolderId(3L).build());
+    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(3L).build());
     testCaseRQ.setTags(List.of(attribute));
 
     ObjectMapper mapper = new ObjectMapper();
@@ -110,8 +110,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Test Case With Version");
     testCaseRQ.setDescription("Description for test case with version");
-    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().testFolderId(3L).build());
-    testCaseRQ.setTestCaseDefaultVersion(defaultVersionRQ);
+    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(3L).build());
+    testCaseRQ.setDefaultVersion(defaultVersionRQ);
 
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(testCaseRQ);
@@ -197,7 +197,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Updated Test Case 5");
     testCaseRQ.setDescription("Updated description for test case 5");
-    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().testFolderId(5L).build());
+    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(5L).build());
     testCaseRQ.setTags(List.of(attribute));
 
     ObjectMapper mapper = new ObjectMapper();
@@ -216,7 +216,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     assertTrue(testCase.isPresent());
     assertEquals(testCaseRQ.getName(), testCase.get().getName());
     assertEquals(testCaseRQ.getDescription(), testCase.get().getDescription());
-    assertEquals(testCaseRQ.getTestFolder().getTestFolderId(),
+    assertEquals(testCaseRQ.getTestFolder().getId(),
         testCase.get().getTestFolder().getId());
   }
 
@@ -234,8 +234,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Updated Test Case 17");
     testCaseRQ.setDescription("Updated description for test case 17");
-    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().testFolderId(6L).build());
-    testCaseRQ.setTestCaseDefaultVersion(defaultVersionRQ);
+    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(6L).build());
+    testCaseRQ.setDefaultVersion(defaultVersionRQ);
 
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(testCaseRQ);
@@ -263,7 +263,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Patched Test Case 6");
     testCaseRQ.setDescription("Patched description for test case 6");
-    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().testFolderId(6L).build());
+    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(6L).build());
     testCaseRQ.setTags(List.of(attribute));
 
     ObjectMapper mapper = new ObjectMapper();
@@ -282,7 +282,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     assertTrue(testCase.isPresent());
     assertEquals(testCaseRQ.getName(), testCase.get().getName());
     assertEquals(testCaseRQ.getDescription(), testCase.get().getDescription());
-    assertEquals(testCaseRQ.getTestFolder().getTestFolderId(),
+    assertEquals(testCaseRQ.getTestFolder().getId(),
         testCase.get().getTestFolder().getId());
   }
 
@@ -320,7 +320,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(deleteRequest);
 
     // When
-    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch/delete")
+    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -346,7 +346,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(batchPatchRequest);
 
     // When
-    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch/patch")
+    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -372,7 +372,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             "description": "Description for imported test case 1",
             "priority": 1,
             "testFolder": {
-              "testFolderId": 3
+              "id": 3
             }
           },
           {
@@ -380,7 +380,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             "description": "Description for imported test case 2",
             "priority": 2,
             "testFolder": {
-              "testFolderId": 4
+              "id": 4
             }
           }
         ]
@@ -507,7 +507,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(deleteRequest);
 
     // When/Then - should return bad request due to @NotEmpty validation
-    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch/delete")
+    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -526,7 +526,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(deleteRequest);
 
     // When/Then - should not throw exception, just silently ignore non-existent IDs
-    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch/delete")
+    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -549,7 +549,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     var exception = assertThrows(jakarta.servlet.ServletException.class,
         () -> mockMvc.perform(
-            patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch/patch")
+            patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
                 .contentType("application/json")
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken()))));
@@ -563,7 +563,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = "{\"testCaseIds\": [9, 10], \"testFolderId\": null}";
 
     // When/Then - should fail validation due to @NotNull annotation
-    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch/patch")
+    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -613,7 +613,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(batchPatchRequest);
 
     // When/Then - should return bad request due to @NotEmpty validation
-    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch/patch")
+    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -626,7 +626,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = "{\"testCaseIds\": null}";
 
     // When/Then - should return bad request due to @NotNull validation
-    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch/delete")
+    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -639,7 +639,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = "{\"testCaseIds\": null, \"testFolderId\": 6}";
 
     // When/Then - should return bad request due to @NotNull validation
-    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch/patch")
+    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -658,7 +658,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(deleteRequest);
 
     // When
-    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch/delete")
+    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -683,7 +683,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(batchPatchRequest);
 
     // When
-    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch/patch")
+    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -701,7 +701,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String malformedJson = "{\"locationIds\": [1, 2, 3";
 
     // When/Then - should return bad request due to malformed JSON
-    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch/delete")
+    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(malformedJson)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -714,7 +714,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String malformedJson = "{\"locationIds\": [1, 2], \"testFolderId\": 6";
 
     // When/Then - should return bad request due to malformed JSON
-    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch/patch")
+    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(malformedJson)
             .with(token(oAuthHelper.getSuperadminToken())))

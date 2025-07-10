@@ -43,13 +43,13 @@ class TmsTestCaseCsvImporterTest {
     var testCase1 = testCases.getFirst();
     assertThat(testCase1.getName()).isEqualTo("Test Case 1");
     assertThat(testCase1.getDescription()).isEqualTo("Description 1");
-    assertThat(testCase1.getTestFolder().getTestFolderName()).isEqualTo("Folder 1");
+    assertThat(testCase1.getTestFolder().getName()).isEqualTo("Folder 1");
     assertThat(testCase1.getPriority()).isEqualTo("HIGH");
 
     var testCase2 = testCases.get(1);
     assertThat(testCase2.getName()).isEqualTo("Test Case 2");
     assertThat(testCase2.getDescription()).isEqualTo("Description 2");
-    assertThat(testCase2.getTestFolder().getTestFolderName()).isEqualTo("Folder 2");
+    assertThat(testCase2.getTestFolder().getName()).isEqualTo("Folder 2");
     assertThat(testCase2.getPriority()).isEqualTo("LOW");
   }
 

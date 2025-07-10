@@ -1,9 +1,6 @@
 package com.epam.ta.reportportal.core.tms.controller.unit;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -40,7 +37,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.core.MethodParameter;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -177,7 +173,7 @@ public class TmsTestCaseControllerTest {
     // Given
     var testCaseRequest = new TmsTestCaseRQ();
     testCaseRequest.setName("Test Case");
-    testCaseRequest.setTestFolder(TmsTestCaseTestFolderRQ.builder().testFolderId(3L).build());
+    testCaseRequest.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(3L).build());
 
     var testCase = new TmsTestCaseRS();
     var jsonContent = mapper.writeValueAsString(testCaseRequest);
@@ -200,7 +196,7 @@ public class TmsTestCaseControllerTest {
     var testCaseId = 2L;
     var testCaseRequest = new TmsTestCaseRQ();
     testCaseRequest.setName("Updated Test Case");
-    testCaseRequest.setTestFolder(TmsTestCaseTestFolderRQ.builder().testFolderId(3L).build());
+    testCaseRequest.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(3L).build());
 
     var testCase = new TmsTestCaseRS();
     var jsonContent = mapper.writeValueAsString(testCaseRequest);
@@ -224,7 +220,7 @@ public class TmsTestCaseControllerTest {
     var testCaseId = 2L;
     var testCaseRequest = new TmsTestCaseRQ();
     testCaseRequest.setName("Patched Test Case");
-    testCaseRequest.setTestFolder(TmsTestCaseTestFolderRQ.builder().testFolderId(3L).build());
+    testCaseRequest.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(3L).build());
 
     var testCase = new TmsTestCaseRS();
     var jsonContent = mapper.writeValueAsString(testCaseRequest);
@@ -269,7 +265,7 @@ public class TmsTestCaseControllerTest {
 
     // When/Then
     mockMvc.perform(
-            delete("/project/{projectKey}/tms/test-case/batch/delete", projectKey)
+            delete("/project/{projectKey}/tms/test-case/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent))
         .andExpect(status().isNoContent());
@@ -290,7 +286,7 @@ public class TmsTestCaseControllerTest {
 
     // When/Then
     mockMvc.perform(
-            delete("/project/{projectKey}/tms/test-case/batch/delete", projectKey)
+            delete("/project/{projectKey}/tms/test-case/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent))
         .andExpect(status().isNoContent());
@@ -312,7 +308,7 @@ public class TmsTestCaseControllerTest {
 
     // When/Then
     mockMvc.perform(
-            patch("/project/{projectKey}/tms/test-case/batch/patch", projectKey)
+            patch("/project/{projectKey}/tms/test-case/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent))
         .andExpect(status().isOk());
@@ -334,7 +330,7 @@ public class TmsTestCaseControllerTest {
 
     // When/Then
     mockMvc.perform(
-            patch("/project/{projectKey}/tms/test-case/batch/patch", projectKey)
+            patch("/project/{projectKey}/tms/test-case/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent))
         .andExpect(status().isOk());

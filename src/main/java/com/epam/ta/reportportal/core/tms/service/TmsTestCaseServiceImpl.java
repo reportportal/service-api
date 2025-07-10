@@ -78,9 +78,9 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       tmsTestCaseAttributeService.createTestCaseAttributes(tmsTestCase, tmsTestCaseRQ.getTags());
     }
 
-    if (Objects.nonNull(tmsTestCaseRQ.getTestCaseDefaultVersion())) {
+    if (Objects.nonNull(tmsTestCaseRQ.getDefaultVersion())) {
       tmsTestCaseVersionService.createDefaultTestCaseVersion(tmsTestCase,
-          tmsTestCaseRQ.getTestCaseDefaultVersion());
+          tmsTestCaseRQ.getDefaultVersion());
     }
 
     return tmsTestCaseMapper.convert(tmsTestCase);
@@ -100,7 +100,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
               tmsTestCaseRQ.getTags());
 
           tmsTestCaseVersionService.updateDefaultTestCaseVersion(existingTestCase,
-              tmsTestCaseRQ.getTestCaseDefaultVersion());
+              tmsTestCaseRQ.getDefaultVersion());
 
           return tmsTestCaseMapper.convert(existingTestCase);
         })
@@ -121,7 +121,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
               tmsTestCaseRQ.getTags());
 
           tmsTestCaseVersionService.patchDefaultTestCaseVersion(existingTestCase,
-              tmsTestCaseRQ.getTestCaseDefaultVersion());
+              tmsTestCaseRQ.getDefaultVersion());
 
           return tmsTestCaseMapper.convert(existingTestCase);
         })
@@ -209,9 +209,9 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     if (Objects.isNull(testFolderRQ)) {
       return null;
     }
-    var testFolderId = testFolderRQ.getTestFolderId();
+    var testFolderId = testFolderRQ.getId();
     return Objects.nonNull(testFolderId) ? testFolderId : tmsTestFolderService
-        .create(projectId, testFolderRQ.getTestFolderName())
+        .create(projectId, testFolderRQ.getName())
         .getId();
   }
 }

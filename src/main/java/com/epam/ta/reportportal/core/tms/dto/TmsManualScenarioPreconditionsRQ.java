@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TmsManualScenarioPreconditionsRQ {
 
-  private String preconditions;
+  private String value;
 
   private List<TmsManualScenarioAttachmentRQ> attachments;
 }

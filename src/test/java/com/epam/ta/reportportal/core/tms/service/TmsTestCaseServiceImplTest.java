@@ -102,14 +102,14 @@ class TmsTestCaseServiceImplTest {
     testCaseDefaultVersionRQ.setName("Version name");
 
     testFolderRQ = new TmsTestCaseTestFolderRQ();
-    testFolderRQ.setTestFolderId(testFolderId);
+    testFolderRQ.setId(testFolderId);
 
     testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Test Case");
     testCaseRQ.setDescription("Description");
     testCaseRQ.setTestFolder(testFolderRQ);
     testCaseRQ.setTags(attributes);
-    testCaseRQ.setTestCaseDefaultVersion(testCaseDefaultVersionRQ);
+    testCaseRQ.setDefaultVersion(testCaseDefaultVersionRQ);
 
     testCase = new TmsTestCase();
     testCase.setId(testCaseId);
@@ -195,13 +195,13 @@ class TmsTestCaseServiceImplTest {
     // Given
     var testFolderName = "New Folder";
     var newTestFolderRQ = new TmsTestCaseTestFolderRQ();
-    newTestFolderRQ.setTestFolderName(testFolderName);
+    newTestFolderRQ.setName(testFolderName);
 
     var testCaseRQWithNewFolder = new TmsTestCaseRQ();
     testCaseRQWithNewFolder.setName("Test Case");
     testCaseRQWithNewFolder.setTestFolder(newTestFolderRQ);
     testCaseRQWithNewFolder.setTags(attributes);
-    testCaseRQWithNewFolder.setTestCaseDefaultVersion(testCaseDefaultVersionRQ);
+    testCaseRQWithNewFolder.setDefaultVersion(testCaseDefaultVersionRQ);
 
     var newFolderId = 10L;
     var newFolderRS = new TmsTestFolderRS();

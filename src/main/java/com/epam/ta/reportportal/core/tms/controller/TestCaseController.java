@@ -221,7 +221,7 @@ public class TestCaseController {
    * @param projectKey The key of the project.
    * @param deleteRequest The object contains comma-separated list of test case IDs to delete.
    */
-  @DeleteMapping("/batch/delete")
+  @DeleteMapping("/batch")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
       summary = "Delete multiple test cases",
@@ -247,7 +247,7 @@ public class TestCaseController {
    * @param patchRequest Request body containing update information
    *                     and comma-separated list of test case IDs to update.
    */
-  @PatchMapping("/batch/patch")
+  @PatchMapping("/batch")
   @Operation(
       summary = "Partially update multiple test cases",
       description = "Updates multiple test cases at once, particularly useful for changing test case folder for multiple test cases.",

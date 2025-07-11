@@ -32,31 +32,39 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JasperPrint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Handler for generating Jasper reports for {@link User} entities.
+ * Supports only CSV report format.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service("userJasperReportHandler")
 public class UserJasperReportHandler extends AbstractJasperReportHandler<User> {
 
-  private static final String UNSUPPORTED_REPORT_FORMAT_MESSAGE_EXCEPTION = "Report format - {} is not supported for user reports.";
+  private static final String UNSUPPORTED_REPORT_FORMAT_MESSAGE_EXCEPTION =
+      "Report format - {} is not supported for user reports.";
 
   private final Set<ReportFormat> availableReportFormats;
 
   private final JasperReportRender reportRender;
 
+
+  /**
+   * Constructs a new UserJasperReportHandler.
+   *
+   * @param reportRender The JasperReportRender used to generate report prints.
+   */
   @Autowired
   public UserJasperReportHandler(JasperReportRender reportRender) {
     super(UNSUPPORTED_REPORT_FORMAT_MESSAGE_EXCEPTION);
     this.reportRender = reportRender;
-    availableReportFormats = Sets.immutableEnumSet(ReportFormat.CSV);
+    availableReportFormats = Sets.immutableEnumSet(ReportFormat.CSV, ReportFormat.TEXT_CSV);
   }
 
   @Override
@@ -73,14 +81,7 @@ public class UserJasperReportHandler extends AbstractJasperReportHandler<User> {
     params.put(UserReportConstants.TYPE, user.getUserType().name());
     params.put(UserReportConstants.LOGIN, user.getLogin());
     params.put(UserReportConstants.EMAIL, user.getEmail());
-
-    params.put(UserReportConstants.PROJECTS_AND_ROLES,
-        user.getProjects().stream().collect(Collectors.toMap(
-                projectUser -> projectUser.getProject().getName(),
-                projectUser -> projectUser.getProjectRole().name(),
-                (prev, curr) -> prev
-            )).entrySet().stream().map(entry -> entry.getKey() + " - " + entry.getValue())
-            .collect(Collectors.joining(", ")));
+    params.put(UserReportConstants.ORGS_COUNT, (long) user.getOrganizationUsers().size());
 
     ofNullable(user.getMetadata())
         .map(Metadata::getMetadata)

@@ -23,6 +23,12 @@ import static com.epam.ta.reportportal.entity.jasper.ReportFormat.TEXT_CSV;
  */
 public abstract class BaseController {
 
+  /**
+   * Checks if the provided \`accept\` header value matches the export format (CSV).
+   *
+   * @param accept the value of the Accept header
+   * @return true if the format is CSV, false otherwise
+   */
   protected static boolean isExportFormat(String accept) {
     return accept.equals(TEXT_CSV.getValue());
   }

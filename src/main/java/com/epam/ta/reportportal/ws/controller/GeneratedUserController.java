@@ -134,11 +134,10 @@ public class GeneratedUserController extends BaseController implements UsersApi 
           String.format("attachment; filename=\"RP_USERS_%s_Report.%s\"", format.name(), format.getValue()));
 
       try (OutputStream outputStream = httpServletResponse.getOutputStream()) {
-        getUserHandler.exportUsers(format, outputStream, filter, pageable); // вопрос по эксорпту юзеров и существующего эксорта. одинаклвые поля?
+        getUserHandler.exportUsers(format, outputStream, filter, pageable);
         return null;
       } catch (IOException e) {
-        throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response."
-        );
+        throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response.");
       }
     } else {
       return ResponseEntity

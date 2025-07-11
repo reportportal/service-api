@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.jasper.impl;
 
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.reportportal.rules.exception.ErrorType;
 import java.io.OutputStream;
 import java.util.Set;
 import net.sf.jasperreports.engine.JRException;
@@ -43,8 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Jasper Reports provider. Basic implementation of
- * {@link com.epam.ta.reportportal.core.jasper.GetJasperReportHandler}
+ * Jasper Reports provider. Basic implementation of {@link com.epam.ta.reportportal.core.jasper.GetJasperReportHandler}
  *
  * @author Andrei_Ramanchuk
  */
@@ -54,14 +54,18 @@ public abstract class AbstractJasperReportHandler<T> implements GetJasperReportH
 
   private final String unsupportedReportFormatExceptionMessage;
 
+  /**
+   * Constructor for AbstractJasperReportHandler.
+   *
+   * @param unsupportedReportFormatExceptionMessage Message to use when an unsupported report format is encountered.
+   */
   public AbstractJasperReportHandler(String unsupportedReportFormatExceptionMessage) {
-
     this.unsupportedReportFormatExceptionMessage = unsupportedReportFormatExceptionMessage;
   }
 
   @Override
   public ReportFormat getReportFormat(String view) {
-    ReportFormat reportFormat = ReportFormat.findByName(view)
+    ReportFormat reportFormat = ReportFormat.findByValue(view)
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
             Suppliers.formattedSupplier("Unexpected report format: {}", view)
         ));
@@ -101,14 +105,14 @@ public abstract class AbstractJasperReportHandler<T> implements GetJasperReportH
           configuration.setCollapseRowSpan(false);
           configuration.setIgnoreGraphics(true);
 
-          JRXlsExporter exporterXLS = new JRXlsExporter();
-          exporterXLS.setExporterInput(new SimpleExporterInput(jasperPrint));
-          exporterXLS.setExporterOutput(new SimpleOutputStreamExporterOutput(outputStream));
-          exporterXLS.setConfiguration(configuration);
-          exporterXLS.exportReport();
+          JRXlsExporter xlsExporter = new JRXlsExporter();
+          xlsExporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+          xlsExporter.setExporterOutput(new SimpleOutputStreamExporterOutput(outputStream));
+          xlsExporter.setConfiguration(configuration);
+          xlsExporter.exportReport();
           break;
         case CSV:
-
+        case TEXT_CSV:
           JRCsvExporter jrCsvExporter = new JRCsvExporter();
           jrCsvExporter.setExporterInput(new SimpleExporterInput(jasperPrint));
           jrCsvExporter.setExporterOutput(new SimpleWriterExporterOutput(outputStream));
@@ -132,5 +136,10 @@ public abstract class AbstractJasperReportHandler<T> implements GetJasperReportH
     }
   }
 
+  /**
+   * Returns the set of available report formats supported by this handler.
+   *
+   * @return a set of supported {@link ReportFormat} values
+   */
   public abstract Set<ReportFormat> getAvailableReportFormats();
 }

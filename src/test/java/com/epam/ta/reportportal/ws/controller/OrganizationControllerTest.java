@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.http.HttpHeaders.ACCEPT;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -118,6 +120,55 @@ class OrganizationControllerTest extends BaseMvcTest {
 
     assertEquals(rows, response.getItems().size());
 
+  }
+
+
+  @ParameterizedTest
+  @CsvSource(
+      value = {
+          "name|EQ|My organization"
+      },
+      delimiter = '|',
+      nullValues = "null"
+  )
+  void exportOrganizations(String field, String op, String value)
+      throws Exception {
+    SearchCriteriaRQ rq = new SearchCriteriaRQ();
+
+    var searchCriteriaSearchCriteria = new SearchCriteriaSearchCriteriaInner()
+        .filterKey(field)
+        .operation(FilterOperation.fromValue(op))
+        .value(value);
+    rq.limit(1)
+        .offset(0)
+        .sort(field)
+        .order(Direction.ASC);
+    rq.addSearchCriteriaItem(searchCriteriaSearchCriteria);
+
+    var result = mockMvc.perform(MockMvcRequestBuilders.post("/organizations/searches")
+            .content(objectMapper.writeValueAsBytes(rq))
+            .contentType(APPLICATION_JSON)
+            .header(ACCEPT, "text/csv")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn().getResponse().getContentAsString();
+
+    assertTrue(result.contains("My organization"));
+    assertTrue(result.contains("INTERNAL"));
+  }
+
+  @Test
+  void getOrganizationByAdminWrongId() throws Exception {
+    mockMvc.perform(get("/organizations/notnumber")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().is4xxClientError());
+  }
+
+  @Test
+  void getOrganizationByUserWrongId() throws Exception {
+    mockMvc.perform(get("/organizations/notnumber")
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().is4xxClientError());
   }
 
 }

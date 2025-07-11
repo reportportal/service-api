@@ -338,7 +338,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
   @Override
   public void exportLaunch(Long launchId, ReportFormat reportFormat, OutputStream outputStream,
-      ReportPortalUser user) {
+      ReportPortalUser user, MembershipDetails membershipDetails) {
 
     Launch launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
@@ -346,6 +346,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
         Suppliers.formattedSupplier(
             "Launch '{}' has IN_PROGRESS status. Impossible to export such elements.", launchId)
     );
+
+    validate(launch, membershipDetails);
 
     String userFullName = userRepository.findById(user.getUserId()).map(User::getFullName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUserId()));

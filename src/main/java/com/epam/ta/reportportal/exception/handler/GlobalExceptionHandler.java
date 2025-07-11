@@ -75,7 +75,6 @@ public class GlobalExceptionHandler {
       RestClientException.class
     }
   )
-
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ErrorRS handleCustomBadRequest(Exception exception) {
     return defaultErrorResolver.resolveError(exception).errorRs();

@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.core.jasper.constants;
 
 /**
+ * Constants for user report fields used in Jasper reports.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class UserReportConstants {
@@ -26,7 +28,7 @@ public final class UserReportConstants {
   public static final String LOGIN = "Login";
   public static final String EMAIL = "Email";
   public static final String LAST_LOGIN = "Last login";
-  public static final String PROJECTS_AND_ROLES = "Projects and Roles";
+  public static final String ORGS_COUNT = "Organizations";
 
   private UserReportConstants() {
 

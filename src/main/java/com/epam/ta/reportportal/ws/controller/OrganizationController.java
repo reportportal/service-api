@@ -71,7 +71,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @Slf4j
 public class OrganizationController extends BaseController implements OrganizationsApi {
 
-  private static final String TEXT_CSV = "text/csv";
   private final GetOrganizationHandler getOrganizationHandler;
   private final SearchCriteriaService searchCriteriaService;
   private final Pf4jPluginBox pluginBox;
@@ -120,7 +119,7 @@ public class OrganizationController extends BaseController implements Organizati
         StringUtils.isNotBlank(criteriaRq.getSort()) ? criteriaRq.getSort() : "name",
         criteriaRq.getOrder() != null ? criteriaRq.getOrder().toString() : ASC.toString(),
         criteriaRq.getOffset(),
-        isExportFormat(accept) ? Integer.MAX_VALUE : criteriaRq.getLimit());
+        criteriaRq.getLimit());
 
     if (isExportFormat(accept)) {
       ReportFormat format = organizationReportHandler.getReportFormat(accept);
@@ -189,10 +188,6 @@ public class OrganizationController extends BaseController implements Organizati
             HttpStatus.PAYMENT_REQUIRED,
             "Organization management is not available. Please install the 'organization' plugin."
         ));
-  }
-
-  private static boolean isExportFormat(String accept) {
-    return accept.equals(TEXT_CSV);
   }
 
 }

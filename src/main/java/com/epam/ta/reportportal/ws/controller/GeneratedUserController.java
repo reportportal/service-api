@@ -21,6 +21,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
+import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
 
 import com.epam.reportportal.api.UsersApi;
 import com.epam.reportportal.api.model.AccountType;
@@ -29,18 +30,25 @@ import com.epam.reportportal.api.model.InstanceUser;
 import com.epam.reportportal.api.model.InstanceUserPage;
 import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
 import com.epam.ta.reportportal.core.filter.SearchCriteriaService;
+import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
+import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.epam.ta.reportportal.util.DefaultUserFilter;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -48,7 +56,6 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -64,7 +71,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @RequiredArgsConstructor
 @RestController
-public class GeneratedUserController implements UsersApi {
+public class GeneratedUserController extends BaseController implements UsersApi {
 
   private final CreateUserHandler createUserHandler;
   private final GetFileHandler getFileHandler;
@@ -72,6 +79,9 @@ public class GeneratedUserController implements UsersApi {
   private final GetUserHandler getUserHandler;
   private final HttpServletRequest httpServletRequest;
   private final SearchCriteriaService searchCriteriaService;
+  private final GetJasperReportHandler<User> jasperReportHandler;
+  private final HttpServletResponse httpServletResponse;
+
 
   @Override
   @PreAuthorize(IS_ADMIN)
@@ -110,16 +120,29 @@ public class GeneratedUserController implements UsersApi {
   @Override
   @PreAuthorize(IS_ADMIN)
   public ResponseEntity<InstanceUserPage> postUsersSearches(String accept, SearchCriteriaRQ searchCriteriaRq) {
-    Queryable filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteriaRq,
-        User.class);
+    Queryable filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteriaRq, User.class);
     Pageable pageable = ControllerUtils.getPageable(
         StringUtils.isNotBlank(searchCriteriaRq.getSort()) ? searchCriteriaRq.getSort() : CRITERIA_FULL_NAME,
         searchCriteriaRq.getOrder() != null ? searchCriteriaRq.getOrder().toString() : Direction.ASC.name(),
         searchCriteriaRq.getOffset(),
         searchCriteriaRq.getLimit());
 
-    return ResponseEntity
-        .ok(getUserHandler.getUsersExcluding(filter, pageable));
+    if (isExportFormat(accept)) {
+      ReportFormat format = jasperReportHandler.getReportFormat(accept);
+      httpServletResponse.setContentType(format.getContentType());
+      httpServletResponse.setHeader(CONTENT_DISPOSITION,
+          String.format("attachment; filename=\"RP_USERS_%s_Report.%s\"", format.name(), format.getValue()));
+
+      try (OutputStream outputStream = httpServletResponse.getOutputStream()) {
+        getUserHandler.exportUsers(format, outputStream, filter, pageable);
+        return null;
+      } catch (IOException e) {
+        throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response.");
+      }
+    } else {
+      return ResponseEntity
+          .ok(getUserHandler.getUsersExcluding(filter, pageable));
+    }
   }
 
 
@@ -131,7 +154,7 @@ public class GeneratedUserController implements UsersApi {
 
     return ResponseEntity.ok()
         .contentType(MediaType.parseMediaType(binaryData.getContentType()))
-        .header(HttpHeaders.CONTENT_DISPOSITION,
+        .header(CONTENT_DISPOSITION,
             "attachment; filename=\"" + binaryData.getFileName() + "\"")
         .body(resource);
   }

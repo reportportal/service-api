@@ -125,7 +125,7 @@ public class GeneratedUserController extends BaseController implements UsersApi 
         StringUtils.isNotBlank(searchCriteriaRq.getSort()) ? searchCriteriaRq.getSort() : CRITERIA_FULL_NAME,
         searchCriteriaRq.getOrder() != null ? searchCriteriaRq.getOrder().toString() : Direction.ASC.name(),
         searchCriteriaRq.getOffset(),
-        isExportFormat(accept) ? Integer.MAX_VALUE : searchCriteriaRq.getLimit());
+        searchCriteriaRq.getLimit());
 
     if (isExportFormat(accept)) {
       ReportFormat format = jasperReportHandler.getReportFormat(accept);

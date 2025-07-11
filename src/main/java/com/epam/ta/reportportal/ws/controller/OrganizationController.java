@@ -119,7 +119,7 @@ public class OrganizationController extends BaseController implements Organizati
         StringUtils.isNotBlank(criteriaRq.getSort()) ? criteriaRq.getSort() : "name",
         criteriaRq.getOrder() != null ? criteriaRq.getOrder().toString() : ASC.toString(),
         criteriaRq.getOffset(),
-        isExportFormat(accept) ? Integer.MAX_VALUE : criteriaRq.getLimit());
+        criteriaRq.getLimit());
 
     if (isExportFormat(accept)) {
       ReportFormat format = organizationReportHandler.getReportFormat(accept);

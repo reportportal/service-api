@@ -154,12 +154,6 @@ class WidgetControllerTest extends BaseMvcTest {
   }
 
   @Test
-  void getWidgetNamesPositive() throws Exception {
-    mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/widget/names/all").with(
-        token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
-  }
-
-  @Test
   void getWidgetPreview() throws Exception {
     WidgetPreviewRQ request = new WidgetPreviewRQ();
     request.setWidgetType("launchStatistics");

@@ -157,4 +157,18 @@ class OrganizationControllerTest extends BaseMvcTest {
     assertTrue(result.contains("INTERNAL"));
   }
 
+  @Test
+  void getOrganizationByAdminWrongId() throws Exception {
+    mockMvc.perform(get("/organizations/notnumber")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().is4xxClientError());
+  }
+
+  @Test
+  void getOrganizationByUserWrongId() throws Exception {
+    mockMvc.perform(get("/organizations/notnumber")
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().is4xxClientError());
+  }
+
 }

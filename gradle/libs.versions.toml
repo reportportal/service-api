@@ -1,8 +1,8 @@
 [versions]
 # Development versions
 commons-dev = "d3e888b"
-commons-dao-dev = "a619e18"
-plugin-api-dev = "a0fd0c2"
+commons-dao-dev = "8643003"
+plugin-api-dev = "9bd040f"
 
 # Platform versions
 commons-bom = "5.13.4"
@@ -72,6 +72,7 @@ spring-security-oauth2-resource-server = { group = "org.springframework.security
 
 # Other libraries
 springdoc-openapi = { group = "org.springdoc", name = "springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc-openapi" }
+micrometer = { group = "io.micrometer", name = "micrometer-registry-prometheus" }
 opencsv = { group = "com.opencsv", name = "opencsv", version.ref = "opencsv" }
 jooq = { group = "org.jooq", name = "jooq", version.ref = "jooq" }
 slugify = { group = "com.github.slugify", name = "slugify", version.ref = "slugify" }

@@ -41,8 +41,6 @@ public final class UserReportPortalUserConverter {
   public static Function<User, ReportPortalUser> TO_REPORT_PORTAL_USER = user ->
       ReportPortalUser.userBuilder()
           .withUserId(user.getId())
-          .withUuid(user.getUuid())
-          .withExternalId(user.getExternalId())
           .withUserName(user.getLogin())
           .withEmail(user.getEmail())
           .withUserRole(user.getRole())

@@ -42,7 +42,7 @@
   <field name="Login" class="java.lang.String"/>
   <field name="Email" class="java.lang.String"/>
   <field name="Last login" class="java.lang.String"/>
-  <field name="Projects and Roles" class="java.lang.String"/>
+  <field name="Organizations" class="java.lang.Long"/>
   <background>
     <band splitType="Stretch"/>
   </background>
@@ -100,7 +100,7 @@
             value="d4571106-56c2-445d-a317-a38effb2595b"/>
         </reportElement>
         <textElement textAlignment="Center"/>
-        <text><![CDATA[Projects and Roles]]></text>
+        <text><![CDATA[Organizations]]></text>
       </staticText>
     </band>
   </columnHeader>
@@ -167,7 +167,7 @@
             <property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
           </reportElement>
           <textElement textAlignment="Center" verticalAlignment="Top"/>
-          <textFieldExpression><![CDATA[$F{Projects and Roles}]]></textFieldExpression>
+          <textFieldExpression><![CDATA[$F{Organizations}]]></textFieldExpression>
         </textField>
       </frame>
     </band>

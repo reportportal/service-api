@@ -60,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
@@ -207,10 +208,17 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
   @Override
   public void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter) {
+    exportUsers(reportFormat, outputStream, filter, null);
+  }
 
-    final List<User> users = userRepository.findByFilter(filter);
+  @Override
+  public void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter, Pageable pageable) {
+    var users = (pageable == null)
+        ? userRepository.findByFilter(filter)
+        : userRepository.findByFilter(filter, pageable);
 
-    List<? extends Map<String, ?>> data = users.stream().map(jasperReportHandler::convertParams)
+    List<? extends Map<String, ?>> data = StreamSupport.stream(users.spliterator(), false)
+        .map(jasperReportHandler::convertParams)
         .collect(Collectors.toList());
 
     JRDataSource jrDataSource = new JRBeanCollectionDataSource(data);

@@ -26,9 +26,9 @@ import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.user.UserResource;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
 import java.util.Map;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Pageable;
 
 /**
@@ -80,7 +80,7 @@ public interface GetUserHandler {
    * @return Page of users
    */
   Page<UserResource> getUsers(Filter filter, Pageable pageable,
-                              MembershipDetails membershipDetails);
+      MembershipDetails membershipDetails);
 
   Map<String, UserResource.AssignedProject> getUserProjects(String userName);
 
@@ -111,6 +111,17 @@ public interface GetUserHandler {
    * @param outputStream {@link HttpServletResponse#getOutputStream()}
    */
   void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter);
+
+
+  /**
+   * Export users info according to the {@link ReportFormat} type with pagination.
+   *
+   * @param reportFormat {@link ReportFormat} format for export
+   * @param outputStream {@link OutputStream} to write exported data
+   * @param filter       {@link Queryable} filter for users
+   * @param pageable     {@link Pageable} pagination information
+   */
+  void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter, Pageable pageable);
 
   Page<UserResource> searchUsers(String term, Pageable pageable);
 }

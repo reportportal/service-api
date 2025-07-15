@@ -21,8 +21,8 @@ import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.core.jasper.JasperReportRender;
 import com.epam.ta.reportportal.core.jasper.constants.ProjectReportConstants;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
-import com.epam.ta.reportportal.entity.jasper.ReportType;
+import com.epam.ta.reportportal.core.jasper.ReportFormat;
+import com.epam.ta.reportportal.core.jasper.ReportType;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.google.common.collect.Sets;
 import java.time.ZoneOffset;

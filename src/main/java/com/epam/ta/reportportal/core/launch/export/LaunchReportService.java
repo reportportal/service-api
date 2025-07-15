@@ -17,18 +17,18 @@
 package com.epam.ta.reportportal.core.launch.export;
 
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
+import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.core.jasper.constants.LaunchReportConstants;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.User;
 import java.util.Collection;
 import java.util.Map;
 import net.sf.jasperreports.engine.JREmptyDataSource;
+import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JasperPrint;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import com.epam.reportportal.rules.exception.ErrorType;
 
 /**
  * Service responsible for generating launch reports using JasperReports.
@@ -58,13 +58,17 @@ public class LaunchReportService {
    * @param format    the format of the report
    * @return the generated report as a byte array
    */
-  public byte[] generateReport(Launch launch, Collection<TestItemPojo> testItems, String username, ReportFormat format) {
+  public byte[] generateReport(Launch launch, Collection<TestItemPojo> testItems, String username,
+      ReportFormat format) {
     Map<String, Object> params = reportHandler.convertParams(launch);
     String owner = userRepository.findById(launch.getUserId())
         .map(User::getFullName)
         .orElse(username);
     params.put(LaunchReportConstants.OWNER, owner);
     params.put(LaunchReportConstants.TEST_ITEMS, testItems);
+    if (!ReportFormat.PDF.equals(format)) {
+      params.put(JRParameter.IS_IGNORE_PAGINATION, true);
+    }
     JasperPrint jasperPrint = reportHandler.getJasperPrint(params, new JREmptyDataSource());
     return reportHandler.exportReportBytes(format, jasperPrint);
   }

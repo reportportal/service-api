@@ -16,7 +16,7 @@
  */
 package com.epam.ta.reportportal.core.jasper;
 
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import java.io.OutputStream;
 import java.util.Map;
 import net.sf.jasperreports.engine.JRDataSource;

@@ -96,7 +96,8 @@ public class TestCaseController {
   @GetMapping
   @Operation(
       summary = "Get test cases for a project by criteria",
-      description = "Retrieves test cases associated with a specific project by criteria. Supports filtering, sorting and full-text search."
+      description = "Retrieves test cases associated with a specific project by criteria. "
+          + "Supports filtering, sorting and full-text search."
   )
   @ApiResponse(responseCode = "200", description = "Successful operation")
   public Page<TmsTestCaseRS> getTestCasesByCriteria(

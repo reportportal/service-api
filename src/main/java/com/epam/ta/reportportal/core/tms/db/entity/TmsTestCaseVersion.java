@@ -42,7 +42,7 @@ public class TmsTestCaseVersion implements Serializable {
   @JoinColumn(name = "test_case_id")
   private TmsTestCase testCase;
 
-  @OneToOne(mappedBy = "testCaseVersion", fetch = FetchType.LAZY)
+  @OneToOne(mappedBy = "testCaseVersion")
   private TmsManualScenario manualScenario;
 
   //TODO: override equals and hashCode methods

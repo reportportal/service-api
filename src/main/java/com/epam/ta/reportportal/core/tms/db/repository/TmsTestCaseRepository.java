@@ -35,22 +35,23 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
   /**
    * Finds test cases by project with optional search and folder filtering, supporting pagination.
    *
-   * @param projectId The project ID
-   * @param search Optional search term for full-text search in name and description
+   * @param projectId    The project ID
+   * @param search       Optional search term for full-text search in name and description
    * @param testFolderId Optional test folder ID to filter by specific folder
-   * @param pageable Pagination parameters
+   * @param pageable     Pagination parameters
    * @return Page of test cases matching the criteria
    */
-  @Query("SELECT tc FROM TmsTestCase tc " +
-      "JOIN FETCH tc.testFolder tf " +
-      "LEFT JOIN FETCH tc.tags t " +
-      "LEFT JOIN FETCH tc.versions v " +
-      "WHERE tf.project.id = :projectId " +
-//      "AND (:search IS NULL OR " + TODO add
-//      "     LOWER(tc.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-//      "     LOWER(tc.description) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-      "AND (:testFolderId IS NULL OR tf.id = :testFolderId)"
-  )
+  @Query(value = "SELECT tc.* FROM tms_test_case tc "
+      + "JOIN tms_test_folder tf ON tf.id = tc.test_folder_id "
+      + "WHERE tf.project_id = :projectId "
+      + "AND (:testFolderId IS NULL OR tf.id = :testFolderId) "
+      + "AND (:search IS NULL OR tc.search_vector @@ plainto_tsquery('simple', :search))",
+      countQuery = "SELECT COUNT(tc.id) FROM tms_test_case tc "
+          + "JOIN tms_test_folder tf ON tf.id = tc.test_folder_id "
+          + "WHERE tf.project_id = :projectId "
+          + "AND (:testFolderId IS NULL OR tf.id = :testFolderId) "
+          + "AND (:search IS NULL OR tc.search_vector @@ plainto_tsquery('simple', :search))",
+      nativeQuery = true)
   Page<TmsTestCase> findByCriteria(@Param("projectId") Long projectId,
       @Param("search") String search,
       @Param("testFolderId") Long testFolderId,
@@ -84,8 +85,8 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
   /**
    * Deletes multiple test cases by their IDs in a single batch operation.
    *
-   * <p>This method performs a bulk delete operation which is more efficient than deleting test cases
-   * one by one. If any of the provided IDs don't exist, they will be silently ignored without
+   * <p>This method performs a bulk delete operation which is more efficient than deleting test
+   * cases one by one. If any of the provided IDs don't exist, they will be silently ignored without
    * throwing an exception.
    * </p>
    *
@@ -99,9 +100,9 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
   /**
    * Updates multiple test cases with new field values in a single batch operation.
    *
-   * <p>This method performs a conditional update using CASE statements to only update fields when new
-   * values are provided (not null). Currently supports updating the test folder ID, but is designed
-   * to be extensible for additional fields in the future.
+   * <p>This method performs a conditional update using CASE statements to only update fields when
+   * new values are provided (not null). Currently supports updating the test folder ID, but is
+   * designed to be extensible for additional fields in the future.
    * </p>
    * The update logic:
    * <ul>

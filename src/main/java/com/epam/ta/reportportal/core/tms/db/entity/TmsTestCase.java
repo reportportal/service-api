@@ -16,6 +16,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "tms_test_case", schema = "public")
@@ -39,10 +41,15 @@ public class TmsTestCase implements Serializable {
   @Column(name = "priority")
   private String priority;
 
+  @Column(name = "search_vector", insertable = false, updatable = false)
+  private String searchVector; //immutable, because trigger updates this field
+
   @OneToMany(mappedBy = "testCase")
+  @Fetch(FetchMode.SUBSELECT)
   private Set<TmsTestCaseAttribute> tags;
 
   @OneToMany(mappedBy = "testCase")
+  @Fetch(FetchMode.SUBSELECT)
   private Set<TmsTestCaseVersion> versions;
 
   @ManyToOne(fetch = FetchType.LAZY)

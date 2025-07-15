@@ -20,7 +20,7 @@ import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.Set;

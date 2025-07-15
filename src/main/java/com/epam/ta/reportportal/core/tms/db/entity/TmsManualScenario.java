@@ -16,6 +16,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "tms_manual_scenario", schema = "public")
@@ -45,8 +47,10 @@ public class TmsManualScenario {
   private TmsTestCaseVersion testCaseVersion;
 
   @OneToMany(mappedBy = "manualScenario")
+  @Fetch(FetchMode.SUBSELECT)
   private Set<TmsManualScenarioAttribute> attributes;
 
   @OneToMany(mappedBy = "manualScenario")
+  @Fetch(FetchMode.SUBSELECT)
   private Set<TmsStep> steps;
 }

@@ -16,6 +16,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "tms_step", schema = "public")
@@ -41,5 +43,6 @@ public class TmsStep implements Serializable {
   private TmsManualScenario manualScenario;
 
   @OneToMany(mappedBy = "step")
+  @Fetch(FetchMode.SUBSELECT)
   private Set<TmsAttachment> attachments;
 }

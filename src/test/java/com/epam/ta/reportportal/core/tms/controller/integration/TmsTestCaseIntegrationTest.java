@@ -177,6 +177,35 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void getTestCasesByFolderIdFullTestSearchIntegrationTest() throws Exception {
+    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("testFolderId", "8")
+            .param("search", "Test for full-text search")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(3)); // 3 test cases in folder 8
+
+    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("testFolderId", "8")
+            .param("search", "LOW")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(
+            1)); // 1 test case in folder 8 with priority == LOW
+
+    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("testFolderId", "8")
+            .param("search", "3test")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(
+            jsonPath("$.content.length()").value(2)); // 2 test cases in folder 8 with name == '3test'
+  }
+
+  @Test
   void getTestCasesByMultipleCriteriaIntegrationTest() throws Exception {
     // When/Then - Search by name and filter by folder
     mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")

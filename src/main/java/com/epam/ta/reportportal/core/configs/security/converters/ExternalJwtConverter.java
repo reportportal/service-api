@@ -45,6 +45,9 @@ public class ExternalJwtConverter extends AbstractJwtConverter {
   @Override
   public AbstractAuthenticationToken convert(Jwt jwt) {
     var externalId = jwt.getClaimAsString(config.getUsernameClaim());
+    if (externalId == null || externalId.trim().isEmpty()) {
+      throw new IllegalArgumentException("Username claim is missing or null");
+    }
     var user = findUser(externalId);
     var authorities = Optional.ofNullable(extractAuthorities(jwt))
         .filter(auths -> !auths.isEmpty())

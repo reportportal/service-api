@@ -49,9 +49,30 @@ public final class ActivityEventConverter {
       activity -> new com.epam.reportportal.api.model.Activity()
           .id(activity.getId())
           .createdAt(activity.getCreatedAt())
-          .eventName(activity.getEventName()).objectId(activity.getObjectId())
-          .objectName(activity.getObjectName()).objectType(activity.getObjectType().getValue())
-          .projectId(activity.getProjectId()).projectName(activity.getProjectName())
-          .subjectName(activity.getSubjectName()).subjectType(activity.getSubjectType().getValue());
+          .eventName(activity.getEventName())
+          .objectId(activity.getObjectId())
+          .objectName(activity.getObjectName())
+          .objectType(activity.getObjectType().getValue())
+          .projectId(activity.getProjectId())
+          .projectName(activity.getProjectName())
+          .subjectName(activity.getSubjectName())
+          .subjectType(activity.getSubjectType().getValue())
+          .details(convertDetails(activity.getDetails()));
+
+  private static ActivityDetails convertDetails(
+      com.epam.ta.reportportal.entity.activity.ActivityDetails detailsEntity) {
+    if (CollectionUtils.isEmpty(detailsEntity.getHistory())) {
+      return null;
+    }
+
+    return new ActivityDetails()
+        .history(detailsEntity.getHistory().stream()
+            .map(historyField -> new HistoryField()
+                .field(historyField.getField())
+                .newValue(historyField.getNewValue())
+                .oldValue(historyField.getOldValue()))
+            .toList());
+  }
+
 
 }

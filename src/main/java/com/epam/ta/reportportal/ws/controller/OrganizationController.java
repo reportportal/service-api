@@ -45,6 +45,7 @@ import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
 import com.epam.ta.reportportal.util.ControllerUtils;
+import com.epam.ta.reportportal.util.SecurityContextUtils;
 import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -54,6 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
@@ -71,7 +73,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @Slf4j
 public class OrganizationController extends BaseController implements OrganizationsApi {
 
-  private static final String TEXT_CSV = "text/csv";
   private final GetOrganizationHandler getOrganizationHandler;
   private final SearchCriteriaService searchCriteriaService;
   private final Pf4jPluginBox pluginBox;
@@ -120,9 +121,12 @@ public class OrganizationController extends BaseController implements Organizati
         StringUtils.isNotBlank(criteriaRq.getSort()) ? criteriaRq.getSort() : "name",
         criteriaRq.getOrder() != null ? criteriaRq.getOrder().toString() : ASC.toString(),
         criteriaRq.getOffset(),
-        isExportFormat(accept) ? Integer.MAX_VALUE : criteriaRq.getLimit());
+        criteriaRq.getLimit());
 
     if (isExportFormat(accept)) {
+      if (!SecurityContextUtils.isAdminRole()) {
+        throw new AccessDeniedException("Only administrators allowed to export users");
+      }
       ReportFormat format = organizationReportHandler.getReportFormat(accept);
       try (OutputStream outputStream = httpServletResponse.getOutputStream()) {
         httpServletResponse.setContentType("text/csv");
@@ -189,10 +193,6 @@ public class OrganizationController extends BaseController implements Organizati
             HttpStatus.PAYMENT_REQUIRED,
             "Organization management is not available. Please install the 'organization' plugin."
         ));
-  }
-
-  private static boolean isExportFormat(String accept) {
-    return accept.equals(TEXT_CSV);
   }
 
 }

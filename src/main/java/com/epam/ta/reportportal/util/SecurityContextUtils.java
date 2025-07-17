@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.util;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
@@ -33,11 +34,21 @@ public class SecurityContextUtils {
    * Fetches the details of the currently authenticated user from the Spring Security context.
    *
    * @return the {@link ReportPortalUser} representing the currently logged-in user.
-   * @throws ClassCastException if the principal in the {@link SecurityContextHolder}'s context is not a {@link ReportPortalUser}
+   * @throws ClassCastException if the principal is not a {@link ReportPortalUser}
    */
   public static ReportPortalUser getPrincipal() {
     return (ReportPortalUser) SecurityContextHolder.getContext()
         .getAuthentication()
         .getPrincipal();
+  }
+
+  /**
+   * Checks if the currently authenticated user has the administrator role.
+   *
+   * @return {@code true} if the user has the administrator role, {@code false} otherwise.
+   */
+  public static boolean isAdminRole() {
+    return UserRole.ADMINISTRATOR
+        .equals(getPrincipal().getUserRole());
   }
 }

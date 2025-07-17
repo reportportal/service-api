@@ -16,13 +16,16 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.reportportal.api.model.ActivityDetails;
+import com.epam.reportportal.api.model.HistoryField;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.model.ActivityEventResource;
 import java.util.Objects;
 import java.util.function.Function;
+import org.apache.commons.collections.CollectionUtils;
 
 /**
- * Activity to ActivityEventResource Converter
+ * Activity to ActivityEventResource Converter.
  *
  * @author Ryhor_Kukharenka
  */

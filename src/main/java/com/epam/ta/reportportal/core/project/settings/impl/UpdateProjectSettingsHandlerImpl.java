@@ -114,7 +114,8 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
     Project project = projectRepository.findByKey(projectKey)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 
-    PatternTemplate patternTemplate = patternTemplateRepository.findById(id).orElseThrow(
+    PatternTemplate patternTemplate = patternTemplateRepository.findByIdAndProjectId(id,
+        project.getId()).orElseThrow(
         () -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT, id,
             project.getId()
         ));

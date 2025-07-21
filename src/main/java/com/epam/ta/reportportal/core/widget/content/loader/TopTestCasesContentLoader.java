@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.INCLUDE_METHODS;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LATEST_LAUNCH;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
@@ -89,9 +88,8 @@ public class TopTestCasesContentLoader implements LoadContentStrategy {
             )
         ))
         .filter(it -> !it.getRight().isEmpty())
-        .map(it -> (Map<String, ?>) ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH,
-            launchConverter.TO_RESOURCE.apply(it.getLeft())
-        ).put(RESULT, it.getRight()).build())
+        .map(it -> (Map<String, ?>) ImmutableMap.<String, Object>builder()
+            .put(RESULT, it.getRight()).build())
         .orElse(Collections.emptyMap());
   }
 

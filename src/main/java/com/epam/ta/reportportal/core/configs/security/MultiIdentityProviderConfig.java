@@ -97,7 +97,6 @@ public class MultiIdentityProviderConfig {
   @ConfigurationProperties(prefix = "rp.oauth2")
   @Data
   public static class IdentityProviderConfig {
-
     private Map<String, JwtIssuerConfig> provider = new HashMap<>();
   }
 

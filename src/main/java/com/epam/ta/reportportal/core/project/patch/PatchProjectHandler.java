@@ -52,6 +52,7 @@ import org.springframework.stereotype.Service;
 public class PatchProjectHandler {
 
   private final PatchProjectNameHandler patchProjectNameHandler;
+  private final PatchProjectUsersHandler patchProjectUsersHandler;
   private final PatchProjectSlugHandler patchProjectSlugHandler;
   private final PatchProjectNoPathHandler patchProjectNoPathHandler;
   private final ProjectService projectService;
@@ -88,6 +89,7 @@ public class PatchProjectHandler {
    */
   public void patchProject(PatchOperation operation, Long orgId, Long projectId) {
     BasePatchProjectHandler patchOperationHandler = switch (operation.getPath()) {
+      case "users" -> this.patchProjectUsersHandler;
       case "name" -> this.patchProjectNameHandler;
       case "slug" -> this.patchProjectSlugHandler;
       case null -> this.patchProjectNoPathHandler;

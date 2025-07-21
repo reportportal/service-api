@@ -41,10 +41,10 @@ public class OAuthHelper {
 
   private String customerToken;
 
-  @Value("${oauth2.providers.rp.issuer-uri}")
+  @Value("${rp.oauth2.providers.internal.issuer-uri}")
   private String issuerUri;
 
-  @Value("${oauth2.providers.rp.secret-key}")
+  @Value("${rp.oauth2.providers.internal.secret-key}")
   private String signingKey;
 
   public String getDefaultToken() {

@@ -8,6 +8,10 @@ rp:
     rooDir: ${java.io.tmpdir}/reportportal/plugins
     default:
       load: false
+  oauth2:
+    providers:
+      internal:
+        secret-key: ${rp.jwt.signing-key}
 logging:
   file:
     name: ${java.io.tmpdir}/reportportal/logs/${spring.application.name}.log
@@ -19,7 +23,3 @@ embedded:
 spring:
   flyway:
     clean-disabled: false
-oauth2:
-  providers:
-    rp:
-      secret-key: ${rp.jwt.signing-key}

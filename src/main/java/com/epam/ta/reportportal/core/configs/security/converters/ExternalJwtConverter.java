@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.configs.security.converters;
 import com.epam.ta.reportportal.core.configs.security.JwtIssuerConfig;
 import java.util.Collection;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -45,7 +46,7 @@ public class ExternalJwtConverter extends AbstractJwtConverter {
   @Override
   public AbstractAuthenticationToken convert(Jwt jwt) {
     var externalId = jwt.getClaimAsString(config.getUsernameClaim());
-    if (externalId == null || externalId.trim().isEmpty()) {
+    if (StringUtils.isBlank(externalId)) {
       throw new IllegalArgumentException("Username claim is missing or null");
     }
     var user = findUser(externalId);

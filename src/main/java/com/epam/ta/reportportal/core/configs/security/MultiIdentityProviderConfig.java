@@ -91,8 +91,8 @@ public class MultiIdentityProviderConfig {
   }
 
   /**
-   * Configuration properties for identity providers. This class holds the configuration for each JWT issuer, including
-   * the issuer URI, signing key, algorithm, and user details service.
+   * Configuration properties for identity providers. This class holds the configuration for each JWT issuer,
+   * including the issuer URI, signing key, algorithm, and user details service.
    */
   @ConfigurationProperties(prefix = "rp.oauth2")
   @Data

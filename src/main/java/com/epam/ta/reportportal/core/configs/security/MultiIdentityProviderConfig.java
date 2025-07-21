@@ -85,7 +85,7 @@ public class MultiIdentityProviderConfig {
    */
   @PostConstruct
   public void validate() {
-    if (identityProviderConfig().getProvider().isEmpty()) {
+    if (identityProvidersConfig().getProviders().isEmpty()) {
       log.warn("No identity providers configured");
     }
   }
@@ -97,14 +97,14 @@ public class MultiIdentityProviderConfig {
   @ConfigurationProperties(prefix = "rp.oauth2")
   @Data
   public static class IdentityProviderConfig {
-    private Map<String, JwtIssuerConfig> provider = new HashMap<>();
+    private Map<String, JwtIssuerConfig> providers = new HashMap<>();
   }
 
   /**
    * Bean for creating the IdentityProviderConfig.
    */
   @Bean
-  public IdentityProviderConfig identityProviderConfig() {
+  public IdentityProviderConfig identityProvidersConfig() {
     return new IdentityProviderConfig();
   }
 
@@ -118,12 +118,12 @@ public class MultiIdentityProviderConfig {
   public JwtIssuerAuthenticationManagerResolver jwtIssuerAuthenticationManagerResolver() {
     Map<String, AuthenticationManager> jwtManagers = new HashMap<>();
 
-    var config = identityProviderConfig();
+    var config = identityProvidersConfig();
 
-    config.getProvider().forEach((name, issuerConfig) -> {
+    config.getProviders().forEach((name, issuerConfig) -> {
       if (issuerConfig.getIssuerUri() != null && !issuerConfig.getIssuerUri().trim().isEmpty()) {
         jwtManagers.put(issuerConfig.getIssuerUri(), createProviderAuthenticationManager(name, issuerConfig));
-        log.info("Added JWT issuer: {} with URI: {}", name, issuerConfig.getIssuerUri());
+        log.info("Added authentication provider: {} with URI: {}", name, issuerConfig.getIssuerUri());
       }
     });
 

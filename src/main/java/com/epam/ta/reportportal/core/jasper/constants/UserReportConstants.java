@@ -25,7 +25,6 @@ public final class UserReportConstants {
 
   public static final String FULL_NAME = "Full name";
   public static final String TYPE = "Type";
-  public static final String LOGIN = "Login";
   public static final String EMAIL = "Email";
   public static final String LAST_LOGIN = "Last login";
   public static final String ORGS_COUNT = "Organizations";

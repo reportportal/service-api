@@ -63,7 +63,7 @@ public class GeneratedUserControllerTest extends BaseMvcTest {
       delimiter = '|',
       nullValues = "null"
   )
-  void exportOrganizations(String field, String op, String value)
+  void exportUsers(String field, String op, String value)
       throws Exception {
     SearchCriteriaRQ rq = new SearchCriteriaRQ();
 
@@ -85,7 +85,7 @@ public class GeneratedUserControllerTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andReturn().getResponse().getContentAsString();
 
-    assertTrue(result.startsWith("Full name,Type,Login,Email,Last login,Organizations"));
+    assertTrue(result.startsWith("Full name,Type,Email,Last login,Organizations"));
     assertTrue(result.contains("tester"));
     assertTrue(result.contains("INTERNAL"));
   }

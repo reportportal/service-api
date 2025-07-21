@@ -26,8 +26,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * Custom authentication manager resolver that selects between API key and JWT authentication
- * based on the request's Authorization header. <p>
- * This resolver checks if the token is a JWT or an API key and returns the appropriate AuthenticationManager.
+ * based on the request's Authorization header.
+ *
+ * <p>This resolver checks if the token is a JWT or an API key and returns the appropriate AuthenticationManager.
  *
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
@@ -64,7 +65,7 @@ public class CustomAuthenticationManagerResolver implements AuthenticationManage
   public AuthenticationManager resolve(HttpServletRequest request) {
     try {
       String token = getBearerValue(request);
-      boolean isJwtToken = isJWT(request);
+      boolean isJwtToken = isJwt(request);
       
       log.debug("Resolving authentication manager for token: isJWT={}, tokenPrefix={}",
           isJwtToken, token.substring(0, Math.min(20, token.length())) + "...");
@@ -83,7 +84,7 @@ public class CustomAuthenticationManagerResolver implements AuthenticationManage
     }
   }
 
-  private boolean isJWT(HttpServletRequest request) {
+  private boolean isJwt(HttpServletRequest request) {
     try {
       var token = getBearerValue(request);
       var parts = token.split("\\.");

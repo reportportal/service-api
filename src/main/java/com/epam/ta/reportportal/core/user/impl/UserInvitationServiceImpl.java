@@ -165,7 +165,7 @@ public class UserInvitationServiceImpl implements UserInvitationService {
           .orElseGet(() -> {
             validateUserType(organization, userToAssign);
             return organizationUserService.saveOrganizationUser(organization, userToAssign,
-                OrganizationRole.MEMBER.toString());
+                OrganizationRole.valueOf(orgInfo.getOrgRole().getValue()).toString());
           });
 
       assignProjects(orgInfo.getProjects(), orgUser, userToAssign);

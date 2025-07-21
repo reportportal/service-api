@@ -85,7 +85,7 @@ public class MultiIdentityProviderConfig {
    */
   @PostConstruct
   public void validate() {
-    if (identityProviderConfig().getProviders().isEmpty()) {
+    if (identityProviderConfig().getProvider().isEmpty()) {
       log.warn("No identity providers configured");
     }
   }
@@ -94,11 +94,11 @@ public class MultiIdentityProviderConfig {
    * Configuration properties for identity providers. This class holds the configuration for each JWT issuer, including
    * the issuer URI, signing key, algorithm, and user details service.
    */
-  @ConfigurationProperties(prefix = "oauth2")
+  @ConfigurationProperties(prefix = "rp.oauth2")
   @Data
   public static class IdentityProviderConfig {
 
-    private Map<String, JwtIssuerConfig> providers = new HashMap<>();
+    private Map<String, JwtIssuerConfig> provider = new HashMap<>();
   }
 
   /**
@@ -121,9 +121,10 @@ public class MultiIdentityProviderConfig {
 
     var config = identityProviderConfig();
 
-    config.getProviders().forEach((name, issuerConfig) -> {
+    config.getProvider().forEach((name, issuerConfig) -> {
       if (issuerConfig.getIssuerUri() != null && !issuerConfig.getIssuerUri().trim().isEmpty()) {
         jwtManagers.put(issuerConfig.getIssuerUri(), createProviderAuthenticationManager(name, issuerConfig));
+        log.info("Added JWT issuer: {} with URI: {}", name, issuerConfig.getIssuerUri());
       }
     });
 
@@ -139,9 +140,12 @@ public class MultiIdentityProviderConfig {
   }
 
   private JwtDecoder createJwtDecoder(String name, JwtIssuerConfig config) {
-    if (name.contentEquals("rp")) {
+    if (name.contentEquals("internal")) {
       var algorithm = config.getAlgorithm();
-      var secretKey = getDefaultSecretKey(config.getSecretKey(), algorithm);
+      var key = StringUtils.isNotEmpty(config.getSecretKey())
+          ? config.getSecretKey()
+          : generateDefaultKey();
+      var secretKey = convertToSecretKey(key, algorithm);
       return NimbusJwtDecoder.withSecretKey(secretKey)
           .macAlgorithm(MacAlgorithm.from(algorithm))
           .build();
@@ -173,11 +177,6 @@ public class MultiIdentityProviderConfig {
         : userDetailsService;
 
     return new ExternalJwtConverter(detailsService, config);
-  }
-
-  private SecretKeySpec getDefaultSecretKey(String key, String algorithm) {
-    String effectiveKey = StringUtils.isNotEmpty(key) ? key : generateDefaultKey();
-    return convertToSecretKey(effectiveKey, algorithm);
   }
 
   private SecretKeySpec convertToSecretKey(String key, String algorithm) {

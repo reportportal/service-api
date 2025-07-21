@@ -39,7 +39,6 @@
   </queryString>
   <field name="Full name" class="java.lang.String"/>
   <field name="Type" class="java.lang.String"/>
-  <field name="Login" class="java.lang.String"/>
   <field name="Email" class="java.lang.String"/>
   <field name="Last login" class="java.lang.String"/>
   <field name="Organizations" class="java.lang.Long"/>
@@ -65,15 +64,6 @@
         </reportElement>
         <textElement textAlignment="Center"/>
         <text><![CDATA[Type]]></text>
-      </staticText>
-      <staticText>
-        <reportElement x="260" y="0" width="150" height="18"
-          uuid="64cc94b9-8766-49b1-8b9f-e45296c5c9c7">
-          <property name="com.jaspersoft.studio.spreadsheet.connectionID"
-            value="3ebec559-1ba4-4dc0-978b-ff46d0298c59"/>
-        </reportElement>
-        <textElement textAlignment="Center"/>
-        <text><![CDATA[Login]]></text>
       </staticText>
       <staticText>
         <reportElement x="410" y="0" width="150" height="18"
@@ -128,16 +118,6 @@
           </reportElement>
           <textElement textAlignment="Center"/>
           <textFieldExpression><![CDATA[$F{Type}]]></textFieldExpression>
-        </textField>
-        <textField>
-          <reportElement x="260" y="0" width="150" height="30"
-            uuid="66d3c031-147d-40f1-a43b-d1d9a3a6e457">
-            <property name="com.jaspersoft.studio.spreadsheet.connectionID"
-              value="3ebec559-1ba4-4dc0-978b-ff46d0298c59"/>
-            <property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
-          </reportElement>
-          <textElement textAlignment="Center"/>
-          <textFieldExpression><![CDATA[$F{Login}]]></textFieldExpression>
         </textField>
         <textField>
           <reportElement x="410" y="0" width="150" height="30"

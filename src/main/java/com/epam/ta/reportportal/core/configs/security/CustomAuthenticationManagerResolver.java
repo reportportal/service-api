@@ -64,12 +64,8 @@ public class CustomAuthenticationManagerResolver implements AuthenticationManage
   @Override
   public AuthenticationManager resolve(HttpServletRequest request) {
     try {
-      String token = getBearerValue(request);
       boolean isJwtToken = isJwt(request);
-      
-      log.debug("Resolving authentication manager for token: isJWT={}, tokenPrefix={}",
-          isJwtToken, token.substring(0, Math.min(20, token.length())) + "...");
-      
+
       if (isJwtToken) {
         AuthenticationManager manager = jwtResolver.resolve(request);
         log.debug("Selected JWT manager: {}", manager != null ? manager.getClass().getSimpleName() : "null");

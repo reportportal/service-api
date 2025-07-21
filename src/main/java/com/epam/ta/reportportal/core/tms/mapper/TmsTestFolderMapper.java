@@ -6,8 +6,10 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -61,10 +63,9 @@ public abstract class TmsTestFolderMapper {
 
   public List<TmsTestFolderRS> convertFromTmsTestFoldersWithCountOfTestCasesToListOfRS(
       List<TmsTestFolderWithCountOfTestCases> tmsTestFoldersWithCountOfTestCases) {
-    if (CollectionUtils.isEmpty(tmsTestFoldersWithCountOfTestCases)) {
-      return null;
-    }
-    return tmsTestFoldersWithCountOfTestCases
+    return Optional
+        .ofNullable(tmsTestFoldersWithCountOfTestCases)
+        .orElse(Collections.emptyList())
         .stream()
         .map(this::convertFromTmsTestFolderWithCountOfTestCasesToRS)
         .toList();

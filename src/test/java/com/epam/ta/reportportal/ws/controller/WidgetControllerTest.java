@@ -336,12 +336,14 @@ class WidgetControllerTest extends BaseMvcTest {
         .andExpect(content().contentType("application/json"))
         .andExpect(jsonPath("$.name").value("top test cases"))
         .andExpect(jsonPath("$.widgetType").value("topTestCases"))
-        .andExpect(jsonPath("$.content.latestLaunch.name").value("test launch"))
         .andExpect(jsonPath("$.content.result[0].name").value("test item 5"))
+        .andExpect(jsonPath("$.content.result[0].launchId").value("2"))
         .andExpect(jsonPath("$.content.result[0].total").value("1"))
         .andExpect(jsonPath("$.content.result[1].name").value("test item 2"))
+        .andExpect(jsonPath("$.content.result[1].launchId").value("1"))
         .andExpect(jsonPath("$.content.result[1].total").value("1"))
         .andExpect(jsonPath("$.content.result[2].name").value("test item 3"))
+        .andExpect(jsonPath("$.content.result[2].launchId").value("1"))
         .andExpect(jsonPath("$.content.result[2].total").value("1"));
   }
 
@@ -372,12 +374,14 @@ class WidgetControllerTest extends BaseMvcTest {
         .andExpect(content().contentType("application/json"))
         .andExpect(jsonPath("$.name").value("top test cases"))
         .andExpect(jsonPath("$.widgetType").value("topTestCases"))
-        .andExpect(jsonPath("$.content.latestLaunch.name").value("test launch"))
         .andExpect(jsonPath("$.content.result[0].name").value("test item 5"))
+        .andExpect(jsonPath("$.content.result[0].launchId").value("2"))
         .andExpect(jsonPath("$.content.result[0].total").value("1"))
         .andExpect(jsonPath("$.content.result[1].name").value("test item 2"))
+        .andExpect(jsonPath("$.content.result[1].launchId").value("1"))
         .andExpect(jsonPath("$.content.result[1].total").value("1"))
         .andExpect(jsonPath("$.content.result[2].name").value("test item 3"))
+        .andExpect(jsonPath("$.content.result[2].launchId").value("1"))
         .andExpect(jsonPath("$.content.result[2].total").value("1"));
   }
 
@@ -389,7 +393,7 @@ class WidgetControllerTest extends BaseMvcTest {
         .andExpect(content().contentType("application/json"))
         .andExpect(jsonPath("$.name").value("flaky test cases"))
         .andExpect(jsonPath("$.widgetType").value("flakyTestCases"))
-        .andExpect(jsonPath("$.content.latestLaunch.name").value("test launch"))
+        .andExpect(jsonPath("$.content.flaky[0].flakyCount").value("1"))
         .andExpect(jsonPath("$.content.flaky[0].flakyCount").value("1"))
         .andExpect(jsonPath("$.content.flaky[0].itemName").value("test item 4"));
   }
@@ -420,7 +424,6 @@ class WidgetControllerTest extends BaseMvcTest {
         .andExpect(content().contentType("application/json"))
         .andExpect(jsonPath("$.name").value("flaky test cases"))
         .andExpect(jsonPath("$.widgetType").value("flakyTestCases"))
-        .andExpect(jsonPath("$.content.latestLaunch.name").value("test launch"))
         .andExpect(jsonPath("$.content.flaky[0].flakyCount").value("1"))
         .andExpect(jsonPath("$.content.flaky[0].itemName").value("test item 4"));
   }

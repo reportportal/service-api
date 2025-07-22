@@ -46,7 +46,7 @@ import org.springframework.web.multipart.MultipartFile;
  * include retrieval, creation, updating, and patching test cases.
  */
 @RestController
-@RequestMapping("/project/{projectKey}/tms/test-case")
+@RequestMapping("/v1/project/{projectKey}/tms/test-case")
 @Tag(name = "Test Case", description = "Test Case API collection")
 @RequiredArgsConstructor
 @Valid

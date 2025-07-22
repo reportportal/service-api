@@ -39,7 +39,7 @@ class TmsDatasetIntegrationTest extends BaseMvcTest {
     var jsonPayload = objectMapper.writeValueAsString(requestPayload);
 
     mockMvc
-        .perform(post("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/dataset")
+        .perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/dataset")
             .contentType("application/json")
             .content(jsonPayload)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -58,7 +58,7 @@ class TmsDatasetIntegrationTest extends BaseMvcTest {
   @SneakyThrows
   void getDatasetsByProjectIdIntegrationTest() {
     mockMvc
-        .perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/dataset")
+        .perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/dataset")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(2))
@@ -73,7 +73,7 @@ class TmsDatasetIntegrationTest extends BaseMvcTest {
 
     // Act & Assert
     mockMvc
-        .perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/dataset/10001")
+        .perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/dataset/10001")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(tmsDataset.get().getId()))
@@ -89,7 +89,7 @@ class TmsDatasetIntegrationTest extends BaseMvcTest {
     var jsonPayload = objectMapper.writeValueAsString(updatedPayload);
 
     mockMvc
-        .perform(put("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/dataset/10001")
+        .perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/dataset/10001")
             .contentType("application/json")
             .content(jsonPayload)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -109,7 +109,7 @@ class TmsDatasetIntegrationTest extends BaseMvcTest {
     var jsonPayload = objectMapper.writeValueAsString(patchPayload);
 
     mockMvc
-        .perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/dataset/10001")
+        .perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/dataset/10001")
             .contentType("application/json")
             .content(jsonPayload)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -125,7 +125,7 @@ class TmsDatasetIntegrationTest extends BaseMvcTest {
   @SneakyThrows
   void deleteDatasetIntegrationTest() {
     mockMvc
-        .perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/dataset/10001")
+        .perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/dataset/10001")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
@@ -143,7 +143,7 @@ class TmsDatasetIntegrationTest extends BaseMvcTest {
         fileContent.getBytes()      // Content of the file as bytes
     );
     mockMvc
-        .perform(multipart("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/dataset/upload")
+        .perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/dataset/upload")
             .file(mockMultipartFile)
             .contentType(MediaType.MULTIPART_FORM_DATA) // Specify multipart content type
             .header("Content-Disposition", "form-data; name=\"file\"; filename=\"data.csv\"")

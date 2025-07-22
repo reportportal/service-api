@@ -66,6 +66,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -160,13 +161,20 @@ public class UserInvitationServiceImpl implements UserInvitationService {
     invitationRq.getOrganizations().forEach(orgInfo -> {
       var organization = organizationRepositoryCustom.findById(orgInfo.getId())
           .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgInfo.getId()));
-      var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(userToAssign.getId(),
-              organization.getId())
-          .orElseGet(() -> {
-            validateUserType(organization, userToAssign);
-            return organizationUserService.saveOrganizationUser(organization, userToAssign,
-                OrganizationRole.valueOf(orgInfo.getOrgRole().getValue()).toString());
-          });
+      var orgUserOptional = organizationUserRepository.findByUserIdAndOrganization_Id(userToAssign.getId(),
+          organization.getId());
+
+      orgUserOptional.ifPresent(ou -> {
+        if (CollectionUtils.isEmpty(orgInfo.getProjects())) {
+          throw new ReportPortalException(USER_ALREADY_ASSIGNED, userToAssign.getId(),
+              formattedSupplier("the organization '{}'", organization.getId()));
+        }
+      });
+      var orgUser = orgUserOptional.orElseGet(() -> {
+        validateUserType(organization, userToAssign);
+        return organizationUserService.saveOrganizationUser(organization, userToAssign,
+            OrganizationRole.valueOf(orgInfo.getOrgRole().getValue()).toString());
+      });
 
       assignProjects(orgInfo.getProjects(), orgUser, userToAssign);
     });

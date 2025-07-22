@@ -116,7 +116,7 @@ public class TmsTestCaseControllerTest {
 
     // When/Then
     mockMvc.perform(
-            get("/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
+            get("/v1/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
@@ -137,7 +137,7 @@ public class TmsTestCaseControllerTest {
 
     // When/Then
     mockMvc.perform(
-            get("/project/{projectKey}/tms/test-case", projectKey)
+            get("/v1/project/{projectKey}/tms/test-case", projectKey)
                 .param("search", search)
                 .param("testFolderId", Long.toString(testFolderId))
                 .contentType(MediaType.APPLICATION_JSON))
@@ -159,7 +159,7 @@ public class TmsTestCaseControllerTest {
 
     // When/Then
     mockMvc.perform(
-            get("/project/{projectKey}/tms/test-case", projectKey)
+            get("/v1/project/{projectKey}/tms/test-case", projectKey)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
@@ -181,7 +181,7 @@ public class TmsTestCaseControllerTest {
     given(tmsTestCaseService.create(projectId, testCaseRequest)).willReturn(testCase);
 
     // When/Then
-    mockMvc.perform(post("/project/{projectKey}/tms/test-case", projectKey)
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/test-case", projectKey)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
@@ -205,7 +205,7 @@ public class TmsTestCaseControllerTest {
 
     // When/Then
     mockMvc.perform(
-            put("/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
+            put("/v1/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent))
         .andExpect(status().isOk());
@@ -229,7 +229,7 @@ public class TmsTestCaseControllerTest {
 
     // When/Then
     mockMvc.perform(
-            patch("/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
+            patch("/v1/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent))
         .andExpect(status().isOk());
@@ -245,7 +245,7 @@ public class TmsTestCaseControllerTest {
 
     // When/Then
     mockMvc.perform(
-            delete("/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
+            delete("/v1/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNoContent());
 
@@ -265,7 +265,7 @@ public class TmsTestCaseControllerTest {
 
     // When/Then
     mockMvc.perform(
-            delete("/project/{projectKey}/tms/test-case/batch", projectKey)
+            delete("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent))
         .andExpect(status().isNoContent());
@@ -286,7 +286,7 @@ public class TmsTestCaseControllerTest {
 
     // When/Then
     mockMvc.perform(
-            delete("/project/{projectKey}/tms/test-case/batch", projectKey)
+            delete("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent))
         .andExpect(status().isNoContent());
@@ -308,7 +308,7 @@ public class TmsTestCaseControllerTest {
 
     // When/Then
     mockMvc.perform(
-            patch("/project/{projectKey}/tms/test-case/batch", projectKey)
+            patch("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent))
         .andExpect(status().isOk());
@@ -330,7 +330,7 @@ public class TmsTestCaseControllerTest {
 
     // When/Then
     mockMvc.perform(
-            patch("/project/{projectKey}/tms/test-case/batch", projectKey)
+            patch("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent))
         .andExpect(status().isOk());
@@ -350,7 +350,7 @@ public class TmsTestCaseControllerTest {
 
     // When/Then
     mockMvc.perform(
-            multipart("/project/{projectKey}/tms/test-case/import", projectKey)
+            multipart("/v1/project/{projectKey}/tms/test-case/import", projectKey)
                 .file(file)
                 .contentType(MediaType.MULTIPART_FORM_DATA))
         .andExpect(status().isOk());
@@ -368,7 +368,7 @@ public class TmsTestCaseControllerTest {
 
     // When/Then
     mockMvc.perform(
-            get("/project/{projectKey}/tms/test-case/export", projectKey)
+            get("/v1/project/{projectKey}/tms/test-case/export", projectKey)
                 .param("ids", "1,2,3")
                 .param("format", format)
                 .param("includeAttachments", "true")
@@ -384,7 +384,7 @@ public class TmsTestCaseControllerTest {
   void exportTestCasesWithoutParametersTest() throws Exception {
     // When/Then
     mockMvc.perform(
-            get("/project/{projectKey}/tms/test-case/export", projectKey)
+            get("/v1/project/{projectKey}/tms/test-case/export", projectKey)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
@@ -400,7 +400,7 @@ public class TmsTestCaseControllerTest {
 
     // When/Then
     mockMvc.perform(
-            get("/project/{projectKey}/tms/test-case/export", projectKey)
+            get("/v1/project/{projectKey}/tms/test-case/export", projectKey)
                 .param("format", format)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());

@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
  * retrieve, and list test folders. All endpoints are secured and require administrator privileges.
  */
 @RestController
-@RequestMapping("/project/{projectKey}/tms/folder")
+@RequestMapping("/v1/project/{projectKey}/tms/folder")
 @Tag(name = "Test Folder", description = "Tms Test Folder API collection")
 @RequiredArgsConstructor
 @PreAuthorize(IS_ADMIN)

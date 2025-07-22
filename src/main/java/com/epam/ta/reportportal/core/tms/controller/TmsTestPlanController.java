@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
  * All operations require administrator privileges.
  */
 @RestController
-@RequestMapping("/project/{projectKey}/tms/test-plan")
+@RequestMapping("/v1/project/{projectKey}/tms/test-plan")
 @Tag(name = "Test Plan", description = "Test Plan API collection")
 @RequiredArgsConstructor
 public class TmsTestPlanController {

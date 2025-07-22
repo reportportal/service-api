@@ -89,7 +89,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(testCaseRQ);
 
     // When
-    mockMvc.perform(post("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -117,7 +117,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(testCaseRQ);
 
     // When
-    mockMvc.perform(post("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -147,7 +147,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     Optional<TmsTestCase> testCase = testCaseRepository.findById(4L);
 
     // When/Then
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/4")
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/4")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(testCase.get().getId()))
@@ -158,7 +158,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Test
   void getTestCasesBySearchCriteriaIntegrationTest() throws Exception {
     // When/Then - Search by name
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
             .param("search", "Search")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
@@ -168,7 +168,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Test
   void getTestCasesByFolderIdCriteriaIntegrationTest() throws Exception {
     // When/Then - Filter by folder
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
             .param("testFolderId", "7")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
@@ -178,7 +178,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
   @Test
   void getTestCasesByFolderIdFullTestSearchIntegrationTest() throws Exception {
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
             .param("testFolderId", "8")
             .param("search", "Test for full-text search")
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -186,7 +186,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(3)); // 3 test cases in folder 8
 
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
             .param("testFolderId", "8")
             .param("search", "LOW")
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -195,7 +195,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content.length()").value(
             1)); // 1 test case in folder 8 with priority == LOW
 
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
             .param("testFolderId", "8")
             .param("search", "3test")
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -208,7 +208,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Test
   void getTestCasesByMultipleCriteriaIntegrationTest() throws Exception {
     // When/Then - Search by name and filter by folder
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
             .param("search", "Login")
             .param("testFolderId", "7")
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -233,7 +233,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(testCaseRQ);
 
     // When
-    mockMvc.perform(put("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/5")
+    mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/5")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -270,7 +270,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(testCaseRQ);
 
     // When
-    mockMvc.perform(put("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/17")
+    mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/17")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -299,7 +299,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(testCaseRQ);
 
     // When
-    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/6")
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/6")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -321,7 +321,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var testCaseId = 17L;
 
     // When
-    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId)
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNoContent());
 
@@ -349,7 +349,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(deleteRequest);
 
     // When
-    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -375,7 +375,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(batchPatchRequest);
 
     // When
-    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -423,7 +423,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     );
 
     // When
-    mockMvc.perform(multipart("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
+    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
             .file(file)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
@@ -457,7 +457,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     );
 
     // When
-    mockMvc.perform(multipart("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
+    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
             .file(file)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
@@ -477,7 +477,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Test
   void exportTestCasesToJsonIntegrationTest() throws Exception {
     // When/Then
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/export")
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/export")
             .param("ids", "4,5,6")
             .param("format", "JSON")
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -490,7 +490,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Test
   void exportTestCasesToCsvIntegrationTest() throws Exception {
     // When/Then
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/export")
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/export")
             .param("ids", "4,5")
             .param("format", "CSV")
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -503,7 +503,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Test
   void exportAllTestCasesIntegrationTest() throws Exception {
     // When/Then - Export all test cases (no ids parameter)
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/export")
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/export")
             .param("format", "JSON")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
@@ -513,7 +513,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Test
   void exportTestCasesWithAttachmentsIntegrationTest() throws Exception {
     // When/Then
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/export")
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/export")
             .param("ids", "4,5")
             .param("format", "JSON")
             .param("includeAttachments", "true")
@@ -536,7 +536,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(deleteRequest);
 
     // When/Then - should return bad request due to @NotEmpty validation
-    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -555,7 +555,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(deleteRequest);
 
     // When/Then - should not throw exception, just silently ignore non-existent IDs
-    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -578,7 +578,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     var exception = assertThrows(jakarta.servlet.ServletException.class,
         () -> mockMvc.perform(
-            patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
                 .contentType("application/json")
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken()))));
@@ -592,7 +592,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = "{\"testCaseIds\": [9, 10], \"testFolderId\": null}";
 
     // When/Then - should fail validation due to @NotNull annotation
-    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -611,7 +611,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     // When/Then - should return error for unsupported format
     var exception = assertThrows(jakarta.servlet.ServletException.class, () -> mockMvc.perform(
-        multipart("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
+        multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
             .file(file)
             .with(token(oAuthHelper.getSuperadminToken()))));
 
@@ -622,7 +622,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void exportTestCasesWithInvalidFormatIntegrationTest() throws Exception {
     // When/Then - should return error for unsupported format
     var exception = assertThrows(jakarta.servlet.ServletException.class, () -> mockMvc
-        .perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/export")
+        .perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/export")
             .param("format", "XML")
             .with(token(oAuthHelper.getSuperadminToken()))));
 
@@ -642,7 +642,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(batchPatchRequest);
 
     // When/Then - should return bad request due to @NotEmpty validation
-    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -655,7 +655,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = "{\"testCaseIds\": null}";
 
     // When/Then - should return bad request due to @NotNull validation
-    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -668,7 +668,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = "{\"testCaseIds\": null, \"testFolderId\": 6}";
 
     // When/Then - should return bad request due to @NotNull validation
-    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -687,7 +687,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(deleteRequest);
 
     // When
-    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -712,7 +712,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(batchPatchRequest);
 
     // When
-    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -730,7 +730,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String malformedJson = "{\"locationIds\": [1, 2, 3";
 
     // When/Then - should return bad request due to malformed JSON
-    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(malformedJson)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -743,7 +743,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String malformedJson = "{\"locationIds\": [1, 2], \"testFolderId\": 6";
 
     // When/Then - should return bad request due to malformed JSON
-    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(malformedJson)
             .with(token(oAuthHelper.getSuperadminToken())))

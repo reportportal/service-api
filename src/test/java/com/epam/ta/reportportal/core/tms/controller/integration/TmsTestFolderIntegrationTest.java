@@ -45,7 +45,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
 
-    mockMvc.perform(post("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -67,7 +67,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
 
-    mockMvc.perform(put("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/3")
+    mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/3")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -93,7 +93,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
 
-    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/4")
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/4")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -111,7 +111,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     Optional<TmsTestFolder> folder = tmsTestFolderRepository.findById(4L);
     assertTrue(folder.isPresent());
 
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/4")
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/4")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(folder.get().getId()))
@@ -126,7 +126,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     Optional<TmsTestFolder> folder = tmsTestFolderRepository.findById(5L);
     assertTrue(folder.isPresent());
 
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
@@ -139,7 +139,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
   @Test
   void testGetSubfolders() throws Exception {
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/3/sub-folder")
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/3/sub-folder")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
@@ -154,7 +154,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     assertTrue(folder.isPresent());
 
     mockMvc
-        .perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/5")
+        .perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/5")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
@@ -174,7 +174,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
     // Act & Assert
     var result = mockMvc.perform(
-            get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/{folderId}/export/{fileType}",
+            get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/{folderId}/export/{fileType}",
                 folderId, fileType)
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
@@ -202,7 +202,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
     // Act & Assert
     var result = mockMvc.perform(
-            get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/{folderId}/export/{fileType}",
+            get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/{folderId}/export/{fileType}",
                 folderId, fileType)
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
@@ -226,7 +226,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
     // Act & Assert - should return 404 Not Found
     var result = assertThrows(jakarta.servlet.ServletException.class, () -> mockMvc.perform(
-            get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/{folderId}/export/{fileType}",
+            get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/{folderId}/export/{fileType}",
                 nonExistentFolderId, fileType)
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andReturn());

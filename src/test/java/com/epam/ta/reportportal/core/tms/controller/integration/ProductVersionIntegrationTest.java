@@ -38,7 +38,7 @@ class ProductVersionIntegrationTest extends BaseMvcTest {
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
 
-    mockMvc.perform(post("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/productversion")
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/productversion")
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -58,7 +58,7 @@ class ProductVersionIntegrationTest extends BaseMvcTest {
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
 
-    mockMvc.perform(put("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/productversion/3")
+    mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/productversion/3")
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -74,7 +74,7 @@ class ProductVersionIntegrationTest extends BaseMvcTest {
 
   @Test
   void deleteProductVersionIntegrationTest() throws Exception {
-    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/productversion/4")
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/productversion/4")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
     assertFalse(productVersionRepository.findByProjectIdAndId(1L, 4L).isPresent());
@@ -85,7 +85,7 @@ class ProductVersionIntegrationTest extends BaseMvcTest {
     Optional<TmsProductVersion> productVersion = productVersionRepository
         .findByProjectIdAndId(1L, 5L);
 
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/productversion/5")
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/productversion/5")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(productVersion.get().getId()))

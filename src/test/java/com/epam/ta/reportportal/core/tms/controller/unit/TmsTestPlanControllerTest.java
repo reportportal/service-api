@@ -109,7 +109,7 @@ public class TmsTestPlanControllerTest {
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(tmsTestPlanRequest);
 
-    mockMvc.perform(post("/project/{projectKey}/tms/test-plan", projectKey)
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/test-plan", projectKey)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
@@ -127,7 +127,7 @@ public class TmsTestPlanControllerTest {
     given(tmsTestPlanService.getByCriteria(projectId, List.of(1L), List.of(2L), pageable))
         .willReturn(page);
 
-    mockMvc.perform(get("/project/{projectKey}/tms/test-plan", projectKey)
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan", projectKey)
             .contentType(MediaType.APPLICATION_JSON)
             .param("environmentId", "1")
             .param("productVersionId", "2")
@@ -150,7 +150,7 @@ public class TmsTestPlanControllerTest {
     given(tmsTestPlanService.update(projectId, testPlanId, tmsTestPlanRequest))
         .willReturn(testPlan);
 
-    mockMvc.perform(put("/project/{projectKey}/tms/test-plan/{testPlanId}", projectKey, testPlanId)
+    mockMvc.perform(put("/v1/project/{projectKey}/tms/test-plan/{testPlanId}", projectKey, testPlanId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
@@ -165,7 +165,7 @@ public class TmsTestPlanControllerTest {
     TmsTestPlanRS testPlan = new TmsTestPlanRS();
     given(tmsTestPlanService.getById(projectId, testPlanId)).willReturn(testPlan);
 
-    mockMvc.perform(get("/project/{projectKey}/tms/test-plan/{testPlanId}", projectKey, testPlanId)
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan/{testPlanId}", projectKey, testPlanId)
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
@@ -177,7 +177,7 @@ public class TmsTestPlanControllerTest {
   void deleteTestPlanTest() throws Exception {
     Long testPlanId = 2L;
 
-    mockMvc.perform(delete("/project/{projectKey}/tms/test-plan/{testPlanId}",
+    mockMvc.perform(delete("/v1/project/{projectKey}/tms/test-plan/{testPlanId}",
                             projectKey, testPlanId)
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
@@ -196,7 +196,7 @@ public class TmsTestPlanControllerTest {
 
     given(tmsTestPlanService.patch(projectId, testPlanId, tmsTestPlanRequest)).willReturn(testPlan);
 
-    mockMvc.perform(patch("/project/{projectKey}/tms/test-plan/{testPlanId}",
+    mockMvc.perform(patch("/v1/project/{projectKey}/tms/test-plan/{testPlanId}",
                            projectKey, testPlanId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))

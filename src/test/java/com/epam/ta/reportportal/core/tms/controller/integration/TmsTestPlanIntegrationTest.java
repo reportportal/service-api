@@ -57,7 +57,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(tmsTestPlan);
 
-    mockMvc.perform(post("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -79,7 +79,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   void getTestPlansByCriteriaIntegrationTest() throws Exception {
     Optional<TmsTestPlan> testPlan = testPlanRepository.findById(4L);
 
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
             .param("environmentId", "4")
             .param("productVersionId", "4")
             .param("page", "0")
@@ -112,7 +112,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(tmsTestPlan);
 
-    mockMvc.perform(put("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/5")
+    mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/5")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -134,7 +134,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   void getTestPlanByIdIntegrationTest() throws Exception {
     Optional<TmsTestPlan> testPlan = testPlanRepository.findById(5L);
 
-    mockMvc.perform(get("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/5")
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/5")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(testPlan.get().getId()))
@@ -148,7 +148,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   @Test
   void deleteTestPlanIntegrationTest() throws Exception {
 
-    mockMvc.perform(delete("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/6")
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/6")
             .contentType(MediaType.APPLICATION_JSON)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
@@ -173,7 +173,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(tmsTestPlan);
 
-    mockMvc.perform(patch("/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/5")
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/5")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))

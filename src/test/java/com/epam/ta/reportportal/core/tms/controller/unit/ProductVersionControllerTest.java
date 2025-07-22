@@ -104,7 +104,7 @@ class ProductVersionControllerTest {
 
     given(productVersionService.getById(projectId, productVersionId)).willReturn(productVersionRS);
 
-    mockMvc.perform(get("/project/{projectKey}/tms/productversion/{productVersionId}", projectKey,
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/productversion/{productVersionId}", projectKey,
             productVersionId))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").exists());
@@ -126,7 +126,7 @@ class ProductVersionControllerTest {
 
     given(productVersionService.create(projectId, request)).willReturn(expectedResponse);
 
-    mockMvc.perform(post("/project/{projectKey}/tms/productversion", projectKey)
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/productversion", projectKey)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
@@ -150,7 +150,7 @@ class ProductVersionControllerTest {
     given(productVersionService.update(projectId, productVersionId, request))
         .willReturn(expectedResponse);
 
-    mockMvc.perform(put("/project/{projectKey}/tms/productversion/{productVersionId}",
+    mockMvc.perform(put("/v1/project/{projectKey}/tms/productversion/{productVersionId}",
             projectKey, productVersionId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
@@ -165,7 +165,7 @@ class ProductVersionControllerTest {
 
     doNothing().when(productVersionService).delete(projectId, productVersionId);
 
-    mockMvc.perform(delete("/project/{projectKey}/tms/productversion/{productVersionId}",
+    mockMvc.perform(delete("/v1/project/{projectKey}/tms/productversion/{productVersionId}",
             projectKey, productVersionId))
         .andExpect(status().isOk());
     verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));

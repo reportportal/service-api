@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
  * and deleting product versions associated with a specific project.
  */
 @RestController
-@RequestMapping("/project/{projectKey}/tms/productversion")
+@RequestMapping("/v1/project/{projectKey}/tms/productversion")
 @Tag(name = "Product Version", description = "Product Version API collection")
 @RequiredArgsConstructor
 public class ProductVersionController {

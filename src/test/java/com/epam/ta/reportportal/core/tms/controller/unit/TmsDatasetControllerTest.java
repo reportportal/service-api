@@ -109,7 +109,7 @@ class TmsDatasetControllerTest {
     given(tmsDatasetService.create(projectId, datasetRQ)).willReturn(expectedResponse);
 
     mockMvc
-        .perform(post("/project/{projectKey}/tms/dataset", projectKey)
+        .perform(post("/v1/project/{projectKey}/tms/dataset", projectKey)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk())
@@ -129,7 +129,7 @@ class TmsDatasetControllerTest {
     given(tmsDatasetService.uploadFromFile(eq(projectId), any())).willReturn(mockResponse);
 
     mockMvc
-        .perform(multipart("/project/{projectKey}/tms/dataset/upload", projectKey)
+        .perform(multipart("/v1/project/{projectKey}/tms/dataset/upload", projectKey)
             .file("file", "mockFileContent".getBytes())
             .contentType(MediaType.MULTIPART_FORM_DATA))
         .andExpect(status().isOk())
@@ -148,7 +148,7 @@ class TmsDatasetControllerTest {
     given(tmsDatasetService.getByProjectId(projectId)).willReturn(mockResponse);
 
     mockMvc
-        .perform(get("/project/{projectKey}/tms/dataset", projectKey))
+        .perform(get("/v1/project/{projectKey}/tms/dataset", projectKey))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(2));
 
@@ -164,7 +164,7 @@ class TmsDatasetControllerTest {
     given(tmsDatasetService.getById(projectId, datasetId)).willReturn(mockResponse);
 
     mockMvc
-        .perform(get("/project/{projectKey}/tms/dataset/{datasetId}", projectKey,
+        .perform(get("/v1/project/{projectKey}/tms/dataset/{datasetId}", projectKey,
                                                                                  datasetId))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(mockResponse.getId()))
@@ -186,7 +186,7 @@ class TmsDatasetControllerTest {
         .willReturn(expectedResponse);
 
     mockMvc
-        .perform(put("/project/{projectKey}/tms/dataset/{datasetId}", projectKey, datasetId)
+        .perform(put("/v1/project/{projectKey}/tms/dataset/{datasetId}", projectKey, datasetId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk())
@@ -209,7 +209,7 @@ class TmsDatasetControllerTest {
         .willReturn(expectedResponse);
 
     mockMvc
-        .perform(patch("/project/{projectKey}/tms/dataset/{datasetId}", projectKey, datasetId)
+        .perform(patch("/v1/project/{projectKey}/tms/dataset/{datasetId}", projectKey, datasetId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk())
@@ -226,7 +226,7 @@ class TmsDatasetControllerTest {
 
     mockMvc
         .perform(
-          delete("/project/{projectKey}/tms/dataset/{datasetId}", projectKey, datasetId))
+          delete("/v1/project/{projectKey}/tms/dataset/{datasetId}", projectKey, datasetId))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));

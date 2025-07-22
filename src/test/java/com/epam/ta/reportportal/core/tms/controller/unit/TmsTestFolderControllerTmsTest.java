@@ -142,7 +142,7 @@ public class TmsTestFolderControllerTmsTest {
 
     given(tmsTestFolderService.create(projectId, request)).willReturn(expectedResponse);
 
-    mockMvc.perform(post("/project/{projectKey}/tms/folder", projectKey)
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/folder", projectKey)
             .contentType("application/json")
             .content(jsonContent))
         .andExpect(status().isOk());
@@ -169,7 +169,7 @@ public class TmsTestFolderControllerTmsTest {
     given(tmsTestFolderService.update(projectId, folderId, request))
         .willReturn(expectedResponse);
 
-    mockMvc.perform(put("/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId)
+    mockMvc.perform(put("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId)
             .contentType("application/json")
             .content(jsonContent))
         .andExpect(status().isOk());
@@ -196,7 +196,7 @@ public class TmsTestFolderControllerTmsTest {
     given(tmsTestFolderService.patch(projectId, folderId, request))
         .willReturn(expectedResponse);
 
-    mockMvc.perform(patch("/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId)
+    mockMvc.perform(patch("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId)
             .contentType("application/json")
             .content(jsonContent))
         .andExpect(status().isOk());
@@ -217,7 +217,7 @@ public class TmsTestFolderControllerTmsTest {
 
     given(tmsTestFolderService.getById(projectId, folderId)).willReturn(expectedResponse);
 
-    mockMvc.perform(get("/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId))
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(1))
         .andExpect(jsonPath("$.name").value("name"))
@@ -254,7 +254,7 @@ public class TmsTestFolderControllerTmsTest {
     given(tmsTestFolderService.getFoldersByProjectID(projectId, pageable)).willReturn(
         expectedResponse);
 
-    mockMvc.perform(get("/project/{projectKey}/tms/folder", projectKey))
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/folder", projectKey))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(2))
@@ -297,7 +297,7 @@ public class TmsTestFolderControllerTmsTest {
     given(tmsTestFolderService.getSubFolders(projectId, parentFolderId, pageable))
         .willReturn(expectedResponse);
 
-    mockMvc.perform(get("/project/{projectKey}/tms/folder/{folderId}/sub-folder",
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/folder/{folderId}/sub-folder",
             projectKey, parentFolderId))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
@@ -318,7 +318,7 @@ public class TmsTestFolderControllerTmsTest {
 
     doNothing().when(tmsTestFolderService).delete(projectId, folderId);
 
-    mockMvc.perform(delete("/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId))
+    mockMvc.perform(delete("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
@@ -336,7 +336,7 @@ public class TmsTestFolderControllerTmsTest {
             any(HttpServletResponse.class));
 
     // Act & Assert
-    mockMvc.perform(get("/project/{projectKey}/tms/folder/{folderId}/export/{fileType}",
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/folder/{folderId}/export/{fileType}",
             projectKey, folderId, fileType))
         .andExpect(status().isOk());
 

@@ -32,7 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
  * from files. All endpoints are secured and require administrator privileges.
  */
 @RestController
-@RequestMapping("/project/{projectKey}/tms/dataset")
+@RequestMapping("/v1/project/{projectKey}/tms/dataset")
 @Tag(name = "Dataset", description = "Dataset API collection")
 @RequiredArgsConstructor
 public class TmsDatasetController {

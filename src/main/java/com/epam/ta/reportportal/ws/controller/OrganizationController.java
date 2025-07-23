@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MANAGER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
+import static com.epam.ta.reportportal.entity.jasper.ReportFormat.CSV;
 import static com.google.common.net.HttpHeaders.CONTENT_DISPOSITION;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 
@@ -131,7 +132,7 @@ public class OrganizationController extends BaseController implements Organizati
       try (OutputStream outputStream = httpServletResponse.getOutputStream()) {
         httpServletResponse.setContentType("text/csv");
         httpServletResponse.setHeader(CONTENT_DISPOSITION,
-            String.format("attachment; filename=\"RP_ORGANIZATIONS_%s_Report.%s\"", format.name(), format.getValue()));
+            String.format("attachment; filename=\"RP_ORGANIZATIONS_%s_Report.%s\"", CSV.name(), CSV.getValue()));
         getOrganizationHandler.exportOrganizations(filter, pageable, format, outputStream);
         return null;
       } catch (IOException e) {

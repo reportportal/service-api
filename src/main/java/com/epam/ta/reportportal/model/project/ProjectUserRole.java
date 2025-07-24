@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2025 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.jasper.constants;
+package com.epam.ta.reportportal.model.project;
+
+import com.epam.ta.reportportal.entity.project.ProjectRole;
+
 
 /**
- * Constants for user report fields used in Jasper reports.
+ * Represents a user's role within a project.
  *
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * @param id   The unique identifier of the project user role.
+ * @param role The role assigned to the user in the project.
  */
-public final class UserReportConstants {
+public record ProjectUserRole(Long id, ProjectRole role) {
 
-  public static final String FULL_NAME = "Full name";
-  public static final String TYPE = "Type";
-  public static final String EMAIL = "Email";
-  public static final String LAST_LOGIN = "Last login";
-  public static final String ORGS_COUNT = "Organizations";
-
-  private UserReportConstants() {
-
-    //static only
-  }
 }

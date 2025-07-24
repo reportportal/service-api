@@ -47,7 +47,7 @@ public class SecurityContextUtils {
    *
    * @return {@code true} if the user has the administrator role, {@code false} otherwise.
    */
-  public boolean isAdminRole() {
+  public static boolean isAdminRole() {
     return UserRole.ADMINISTRATOR
         .equals(getPrincipal().getUserRole());
   }

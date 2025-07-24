@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.model.project;
 
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 /**
@@ -25,6 +26,6 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
  * @param id   The unique identifier of the project user role.
  * @param role The role assigned to the user in the project.
  */
-public record ProjectUserRole(Long id, ProjectRole role) {
+public record ProjectUserRole(Long id, @JsonProperty("project_role") ProjectRole role) {
 
 }

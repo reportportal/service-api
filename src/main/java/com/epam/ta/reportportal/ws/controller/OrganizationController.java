@@ -45,6 +45,7 @@ import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
 import com.epam.ta.reportportal.util.ControllerUtils;
+import com.epam.ta.reportportal.util.SecurityContextUtils;
 import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -54,6 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
@@ -122,6 +124,9 @@ public class OrganizationController extends BaseController implements Organizati
         criteriaRq.getLimit());
 
     if (isExportFormat(accept)) {
+      if (!SecurityContextUtils.isAdminRole()) {
+        throw new AccessDeniedException("Only administrators allowed to export users");
+      }
       ReportFormat format = organizationReportHandler.getReportFormat(accept);
       try (OutputStream outputStream = httpServletResponse.getOutputStream()) {
         httpServletResponse.setContentType("text/csv");

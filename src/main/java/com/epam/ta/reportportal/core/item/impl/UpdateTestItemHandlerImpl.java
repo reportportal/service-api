@@ -257,7 +257,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
       strategy.changeStatus(testItem, providedStatus.get(), user, true);
       messageBus.publishActivity(new TestItemStatusChangedEvent(before,
           TO_ACTIVITY_RESOURCE.apply(testItem, membershipDetails.getProjectId()), user.getUserId(),
-          user.getUsername()
+          user.getUsername(), membershipDetails.getOrgId()
       ));
     }
     testItem = new TestItemBuilder(testItem).overwriteAttributes(rq.getAttributes())
@@ -305,9 +305,11 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
             .map(it -> TO_ACTIVITY_RESOURCE.apply(it, membershipDetails.getProjectId()))
             .toList();
 
+
+
     before.forEach(it -> messageBus.publishActivity(new LinkTicketEvent(it,
         after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
-        user.getUserId(), user.getUsername(), false
+        user.getUserId(), user.getUsername(), false, membershipDetails.getOrgId()
     )));
     return testItems.stream().map(TestItem::getItemId).map(COMPOSE_UPDATE_RESPONSE)
         .collect(toList());

@@ -79,7 +79,6 @@ public class UserJasperReportHandler extends AbstractJasperReportHandler<User> {
 
     params.put(UserReportConstants.FULL_NAME, user.getFullName());
     params.put(UserReportConstants.TYPE, user.getUserType().name());
-    params.put(UserReportConstants.LOGIN, user.getLogin());
     params.put(UserReportConstants.EMAIL, user.getEmail());
     params.put(UserReportConstants.ORGS_COUNT, (long) user.getOrganizationUsers().size());
 

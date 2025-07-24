@@ -125,7 +125,7 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
   }
 
   protected List<Long> changeParentsStatuses(TestItem testItem, Launch launch,
-      boolean issueRequired, ReportPortalUser user) {
+      boolean issueRequired, ReportPortalUser user, Project project) {
     List<Long> updatedParents = Lists.newArrayList();
 
     Long parentId = testItem.getParentId();
@@ -144,7 +144,7 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
           parent.getItemResults().setStatus(newParentStatus);
           updateItem(parent, launch.getProjectId(), issueRequired).ifPresent(updatedParents::add);
           publishUpdateActivity(before, TO_ACTIVITY_RESOURCE.apply(parent, launch.getProjectId()),
-              user
+              user, project.getOrganizationId()
           );
         } else {
           return updatedParents;
@@ -191,9 +191,9 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
   }
 
   private void publishUpdateActivity(TestItemActivityResource before,
-      TestItemActivityResource after, ReportPortalUser user) {
+      TestItemActivityResource after, ReportPortalUser user, Long orgId) {
     messageBus.publishActivity(
-        new TestItemStatusChangedEvent(before, after, user.getUserId(), user.getUsername()));
+        new TestItemStatusChangedEvent(before, after, user.getUserId(), user.getUsername(), orgId));
   }
 
 }

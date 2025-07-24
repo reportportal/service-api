@@ -120,24 +120,25 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
         "Unable to update current status to - " + IN_PROGRESS);
 
     final int withoutChildren = updateDescendantsWithoutChildren(parentEntity,
-        membershipDetails.getProjectId(), status, endDate, user);
+        membershipDetails, status, endDate, user);
     final int withChildren = updateDescendantsWithChildren(parentEntity, endDate);
     return withoutChildren + withChildren;
   }
 
-  private int updateDescendantsWithoutChildren(T entity, Long projectId, StatusEnum status,
+  private int updateDescendantsWithoutChildren(T entity, MembershipDetails membershipDetails, StatusEnum status,
       Instant endTime, ReportPortalUser user) {
+    Long projectId = membershipDetails.getProjectId();
     AtomicInteger updatedCount = new AtomicInteger(0);
     getIssueType(isIssueRequired(status, entity),
         projectId,
         TO_INVESTIGATE.getLocator()
     ).ifPresentOrElse(issueType -> PageUtil.iterateOverContent(ITEM_PAGE_SIZE,
             getItemIdsFunction(false, entity, IN_PROGRESS),
-            itemIdsWithoutChildrenHandler(issueType, status, endTime, projectId, user, updatedCount)
+            itemIdsWithoutChildrenHandler(issueType, status, endTime, membershipDetails, user, updatedCount)
         ),
         () -> PageUtil.iterateOverContent(ITEM_PAGE_SIZE,
             getItemIdsFunction(false, entity, IN_PROGRESS),
-            itemIdsWithoutChildrenHandler(status, endTime, projectId, user, updatedCount)
+            itemIdsWithoutChildrenHandler(status, endTime, membershipDetails, user, updatedCount)
         )
     );
     return updatedCount.get();
@@ -145,26 +146,26 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 
   private Consumer<List<Long>> itemIdsWithoutChildrenHandler(IssueType issueType, StatusEnum status,
       Instant endTime,
-      Long projectId, ReportPortalUser user, AtomicInteger updatedCount) {
+      MembershipDetails membershipDetails, ReportPortalUser user, AtomicInteger updatedCount) {
     return itemIds -> {
       Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
       itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
         finishItem(testItem, status, endTime);
         attachIssue(testItem, issueType);
-        changeStatusHandler.changeParentStatus(testItem, projectId, user);
+        changeStatusHandler.changeParentStatus(testItem, membershipDetails, user);
       }));
       updatedCount.addAndGet(itemIds.size());
     };
   }
 
   private Consumer<List<Long>> itemIdsWithoutChildrenHandler(StatusEnum status,
-      Instant endTime, Long projectId,
+      Instant endTime, MembershipDetails membershipDetails,
       ReportPortalUser user, AtomicInteger updatedCount) {
     return itemIds -> {
       Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
       itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
         finishItem(testItem, status, endTime);
-        changeStatusHandler.changeParentStatus(testItem, projectId, user);
+        changeStatusHandler.changeParentStatus(testItem, membershipDetails, user);
       }));
       updatedCount.addAndGet(itemIds.size());
     };

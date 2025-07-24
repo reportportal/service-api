@@ -262,15 +262,18 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     if (Objects.nonNull(user)) {
       Long userId = user.getUserId();
       String username = user.getUsername();
-      publishProjectDeletedEvent(userId, username, project.getId(), project.getName());
+      publishProjectDeletedEvent(userId, username, project.getId(), project.getName(),
+          project.getOrganizationId());
     } else {
-      publishProjectDeletedEvent(null, RP_SUBJECT_NAME, project.getId(), "personal_project");
+      publishProjectDeletedEvent(null, RP_SUBJECT_NAME, project.getId(), "personal_project",
+          project.getOrganizationId());
     }
   }
 
   private void publishProjectDeletedEvent(Long userId, String userLogin, Long projectId,
-      String projectName) {
-    ProjectDeletedEvent event = new ProjectDeletedEvent(userId, userLogin, projectId, projectName);
+      String projectName, Long organizationId) {
+    ProjectDeletedEvent event = new ProjectDeletedEvent(userId, userLogin, projectId, projectName,
+        organizationId);
     applicationEventPublisher.publishEvent(event);
   }
 

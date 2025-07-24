@@ -297,7 +297,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
         attribute -> ATTRIBUTE_KEY_STATUS.equalsIgnoreCase(attribute.getKey())
             && ATTRIBUTE_VALUE_INTERRUPTED.equalsIgnoreCase(attribute.getValue()));
 
-    changeStatusHandler.changeParentStatus(testItem, membershipDetails.getProjectId(), user);
+    changeStatusHandler.changeParentStatus(testItem, membershipDetails, user);
     changeStatusHandler.changeLaunchStatus(launch);
 
     return testItemResults;
@@ -318,7 +318,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
       resolvedIssue.ifPresent(issue -> updateItemIssue(testItemResults, issue));
       ofNullable(testItem.getRetryOf()).ifPresentOrElse(retryOf -> {
       }, () -> {
-        changeStatusHandler.changeParentStatus(testItem, membershipDetails.getProjectId(), user);
+        changeStatusHandler.changeParentStatus(testItem, membershipDetails, user);
         changeStatusHandler.changeLaunchStatus(launch);
         if (testItem.isHasRetries()) {
           retryHandler.finishRetries(testItem.getItemId(), JStatusEnum.valueOf(actualStatus.name()),
@@ -328,7 +328,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
       });
     } else {
       updateFinishedItem(testItemResults, actualStatus, resolvedIssue, testItem, user,
-          membershipDetails.getProjectId()
+          membershipDetails
       );
     }
 
@@ -382,7 +382,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
   private void updateFinishedItem(TestItemResults testItemResults, StatusEnum actualStatus,
       Optional<IssueEntity> resolvedIssue, TestItem testItem, ReportPortalUser user,
-      Long projectId) {
+      MembershipDetails membershipDetails) {
+
+    Long projectId = membershipDetails.getProjectId();
 
     resolvedIssue.ifPresent(
         issue -> deleteOldIssueIndex(actualStatus, testItem, testItemResults, projectId));
@@ -396,7 +398,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
       } else {
         testItemResults.setStatus(actualStatus);
       }
-      publishUpdateActivity(before, TO_ACTIVITY_RESOURCE.apply(testItem, projectId), user);
+      publishUpdateActivity(before, TO_ACTIVITY_RESOURCE.apply(testItem, projectId), user,
+          membershipDetails.getOrgId());
     }
 
     resolvedIssue.ifPresent(issue -> {
@@ -409,9 +412,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
   }
 
   private void publishUpdateActivity(TestItemActivityResource before,
-      TestItemActivityResource after, ReportPortalUser user) {
+      TestItemActivityResource after, ReportPortalUser user, Long orgId) {
     messageBus.publishActivity(
-        new TestItemStatusChangedEvent(before, after, user.getUserId(), user.getUsername()));
+        new TestItemStatusChangedEvent(before, after, user.getUserId(), user.getUsername(), orgId));
   }
 
   private void deleteOldIssueIndex(StatusEnum actualStatus, TestItem testItem,

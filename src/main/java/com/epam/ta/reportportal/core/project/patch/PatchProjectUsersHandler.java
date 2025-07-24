@@ -31,8 +31,10 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.model.project.ProjectUserRole;
 import com.epam.ta.reportportal.util.SecurityContextUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import java.util.Set;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
@@ -40,12 +42,11 @@ import org.springframework.stereotype.Service;
  * user-specific patch logic.
  */
 @Service
+@Slf4j
 public class PatchProjectUsersHandler extends BasePatchProjectHandler {
 
   private final ProjectUserRepository projectUserRepository;
   private final OrganizationUserRepository organizationUserRepository;
-  private final ObjectMapper objectMapper;
-
 
   /**
    * Constructs a new PatchProjectUsersHandler.
@@ -57,10 +58,9 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
   protected PatchProjectUsersHandler(ProjectService projectService, ProjectUserRepository projectUserRepository,
       OrganizationUserRepository organizationUserRepository,
       ObjectMapper objectMapper) {
-    super(projectService);
+    super(projectService, objectMapper);
     this.projectUserRepository = projectUserRepository;
     this.organizationUserRepository = organizationUserRepository;
-    this.objectMapper = objectMapper;
   }
 
   @Override
@@ -86,6 +86,26 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
         .ifPresentOrElse(pru -> pru.setProjectRole(newRole), () -> {
           throw new ReportPortalException(ErrorType.USER_NOT_FOUND, pur.id());
         });
+  }
+
+  @Override
+  public void remove(PatchOperation operation, Long orgId, Long projectId) {
+    List<Long> ids;
+    try {
+      ids = objectMapper.readValue(
+          valueToString(operation.getValue()),
+          new com.fasterxml.jackson.core.type.TypeReference<>() {
+          });
+    } catch (Exception e) {
+      log.error(e.getMessage());
+      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Invalid field 'value'");
+    }
+    ids.forEach(id -> {
+      projectUserRepository.findProjectUserByUserIdAndProjectId(id, projectId)
+          .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, id));
+      projectUserRepository.deleteByUserIdAndProjectIds(id, List.of(projectId));
+      log.info("User with ID {} has been removed from project with ID {}", id, projectId);
+    });
   }
 
 }

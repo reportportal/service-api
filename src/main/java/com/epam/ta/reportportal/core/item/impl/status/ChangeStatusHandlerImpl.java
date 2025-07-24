@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 import com.google.common.collect.Lists;
@@ -67,7 +68,8 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
   }
 
   @Override
-  public void changeParentStatus(TestItem childItem, Long projectId, ReportPortalUser user) {
+  public void changeParentStatus(TestItem childItem, MembershipDetails membershipDetails, ReportPortalUser user) {
+    Long projectId = membershipDetails.getProjectId();
     ofNullable(childItem.getParentId()).flatMap(testItemRepository::findById).ifPresent(parent -> {
       if (parent.isHasChildren()) {
         ofNullable(parent.getItemResults().getIssue()).map(IssueEntity::getIssueId)
@@ -80,9 +82,9 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
           changeStatus(parent, resolvedStatus, user);
           messageBus.publishActivity(
               new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(parent, projectId),
-                  user.getUserId(), user.getUsername()
+                  user.getUserId(), user.getUsername(), membershipDetails.getOrgId()
               ));
-          changeParentStatus(parent, projectId, user);
+          changeParentStatus(parent, membershipDetails, user);
         }
 
       }

@@ -199,7 +199,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
               it -> messageBus.publishActivity(new LinkTicketEvent(before,
                   after,
                   analyzerInstance,
-                  true
+                  true, project.getOrganizationId()
               )));
         }
       });

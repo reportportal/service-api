@@ -123,15 +123,18 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
     if (Objects.nonNull(user)) {
       Long userId = user.getUserId();
       String username = user.getUsername();
-      publishProjectDeletedEvent(userId, username, project.getId(), project.getName());
+      publishProjectDeletedEvent(userId, username, project.getId(), project.getName(),
+          project.getOrganizationId());
     } else {
-      publishProjectDeletedEvent(null, RP_SUBJECT_NAME, project.getId(), "personal_project");
+      publishProjectDeletedEvent(null, RP_SUBJECT_NAME, project.getId(), "personal_project",
+          project.getOrganizationId());
     }
   }
 
   private void publishProjectDeletedEvent(Long userId, String userLogin, Long projectId,
-      String projectName) {
-    messageBus.publishActivity(new ProjectDeletedEvent(userId, userLogin, projectId, projectName));
+      String projectName, Long organizationId) {
+    messageBus.publishActivity(
+        new ProjectDeletedEvent(userId, userLogin, projectId, projectName, organizationId));
   }
 
   private Project getProjectById(Long projectId) {

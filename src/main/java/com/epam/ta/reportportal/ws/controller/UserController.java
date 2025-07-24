@@ -20,6 +20,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_E
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_OWNER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
+import static com.epam.ta.reportportal.entity.jasper.ReportFormat.CSV;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -245,10 +246,7 @@ public class UserController {
     response.setContentType(format.getContentType());
 
     response.setHeader(com.google.common.net.HttpHeaders.CONTENT_DISPOSITION,
-        String.format("attachment; filename=\"RP_USERS_%s_Report.%s\"", format.name(),
-            format.getValue()
-        )
-    );
+        String.format("attachment; filename=\"RP_USERS_%s_Report.%s\"", CSV.name(), CSV.getValue()));
 
     try (OutputStream outputStream = response.getOutputStream()) {
       getUserHandler.exportUsers(format, outputStream,

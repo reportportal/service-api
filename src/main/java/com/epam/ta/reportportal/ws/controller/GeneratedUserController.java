@@ -20,6 +20,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_O
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
+import static com.epam.ta.reportportal.entity.jasper.ReportFormat.CSV;
 import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
 
@@ -131,7 +132,7 @@ public class GeneratedUserController extends BaseController implements UsersApi 
       ReportFormat format = jasperReportHandler.getReportFormat(accept);
       httpServletResponse.setContentType(format.getContentType());
       httpServletResponse.setHeader(CONTENT_DISPOSITION,
-          String.format("attachment; filename=\"RP_USERS_%s_Report.%s\"", format.name(), format.getValue()));
+          String.format("attachment; filename=\"RP_USERS_%s_Report.%s\"", CSV.name(), CSV.getValue()));
 
       try (OutputStream outputStream = httpServletResponse.getOutputStream()) {
         getUserHandler.exportUsers(format, outputStream, filter, pageable);
